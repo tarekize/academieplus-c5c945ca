@@ -1,0 +1,4 @@
+project_id = "ipbfmsgcdwrgcyxiiyfn"
+
+[functions.link-child-by-code]
+verify_jwt = false
