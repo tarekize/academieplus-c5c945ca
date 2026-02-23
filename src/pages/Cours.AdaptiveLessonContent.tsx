@@ -1,28 +1,51 @@
-import { AdaptiveLessonContainer } from "@/components/course/AdaptiveLessonContainer";
-import { useLearningStyle } from "@/hooks/useLearningStyle";
 import { Button } from "@/components/ui/button";
 import { LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
 import { GenerateQuizExercisesButton } from "@/components/course/QuizExerciseCRUD";
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, PenTool, BookOpen, ArrowLeft, ChevronLeft } from "lucide-react";
-
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
-export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleMarkComplete, handleDownloadPDF, handleChapterChange, chapters }) {
-    const { learningStyle } = useLearningStyle();
-    const [selectedLesson, setSelectedLesson] = useState(null);
+export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleMarkComplete, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect }: any) {
+    const navigate = useNavigate();
+    const [selectedLesson, setSelectedLesson] = useState<any>(null);
+    const [lessonContent, setLessonContent] = useState<string>("");
+    const [loadingContent, setLoadingContent] = useState(false);
 
-    // Réinitialiser la leçon sélectionnée lors du changement de chapitre
+    // Reset when chapter changes
     useEffect(() => {
         setSelectedLesson(null);
+        setLessonContent("");
     }, [chapter.id]);
 
-    const handleLessonClick = (lesson) => {
+    const handleLessonClick = async (lesson: any) => {
+        if (canManage) {
+            // Pédagogue → navigate to lesson editor
+            navigate(`/lecon/${lesson.id}`);
+            return;
+        }
+        // Élève → show content inline
         setSelectedLesson(lesson);
+        setLoadingContent(true);
+        try {
+            const { data } = await supabase
+                .from("lessons")
+                .select("content")
+                .eq("id", lesson.id)
+                .maybeSingle();
+            setLessonContent(data?.content || "");
+        } catch (err) {
+            console.error(err);
+            setLessonContent("");
+        } finally {
+            setLoadingContent(false);
+        }
     };
 
     const handleBackToList = () => {
         setSelectedLesson(null);
+        setLessonContent("");
     };
 
     // Liste des leçons
@@ -34,7 +57,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     <LessonFormDialog chapterId={chapter.id} onSaved={fetchCourse} />
                 )}
             </div>
-            {chapter.lessons?.map((lesson, idx) => (
+            {chapter.lessons?.map((lesson: any, idx: number) => (
                 <div
                     key={lesson.id}
                     className="w-full text-right p-4 border rounded-lg hover:bg-accent/10 transition-colors cursor-pointer flex items-center gap-3"
@@ -62,39 +85,48 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         </div>
     );
 
-    // Contenu adaptatif d'une leçon
-    const renderAdaptiveLesson = () => (
-        selectedLesson && (
-            <AdaptiveLessonContainer
-                lessonTitle={selectedLesson.title}
-                lessonContent={chapter.content}
-                learningStyle={learningStyle}
-            />
-        )
+    // Student lesson content view
+    const renderLessonContent = () => (
+        <div>
+            <Button variant="outline" size="sm" onClick={handleBackToList} className="mb-4">
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Retour aux leçons
+            </Button>
+            <Card>
+                <CardContent className="p-6">
+                    <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
+                    {loadingContent ? (
+                        <div className="flex justify-center py-12">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                        </div>
+                    ) : lessonContent ? (
+                        <div
+                            className="prose prose-sm dark:prose-invert max-w-none"
+                            dangerouslySetInnerHTML={{ __html: lessonContent }}
+                        />
+                    ) : (
+                        <p className="text-center text-muted-foreground py-12">
+                            Aucun contenu disponible pour cette leçon.
+                        </p>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
     );
 
-    // Fallback si pas de leçon dans le chapitre
+    // Fallback if no lessons
     const renderNoLesson = () => (
         <div className="prose prose-sm dark:prose-invert max-w-none mb-4">
             <div dangerouslySetInnerHTML={{ __html: chapter.content || "<p>Contenu non disponible</p>" }} />
         </div>
     );
 
-    // Bouton retour vers la liste des leçons
-    const renderBackButton = () => (
-        <Button variant="outline" size="sm" onClick={handleBackToList} className="mb-4">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Retour aux leçons
-        </Button>
-    );
-
-    // ——— Logique d'affichage ———
-    // Pas de leçons dans ce chapitre → fallback
+    // No lessons in chapter
     if (!chapter.lessons || chapter.lessons.length === 0) {
         return (
             <>
                 {renderNoLesson()}
-                {canManage && dbQuizzes.length === 0 && dbExercises.length === 0 && (
+                {canManage && (
                     <div className="flex justify-center">
                         <GenerateQuizExercisesButton chapterId={chapter.id} onGenerated={fetchQuizExercises} />
                     </div>
@@ -105,68 +137,14 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         );
     }
 
-    // Style TEXTUEL :
-    // • Liste des leçons d'abord
-    // • Au clic sur une leçon → contenu textuel avec bouton "Voir les vidéos" en haut
-    if (learningStyle === "textual") {
-        return (
-            <>
-                {!selectedLesson ? (
-                    renderLessonsList()
-                ) : (
-                    <>
-                        {renderBackButton()}
-                        {renderAdaptiveLesson()}
-                    </>
-                )}
-                {canManage && !selectedLesson && dbQuizzes.length === 0 && dbExercises.length === 0 && (
-                    <div className="flex justify-center mt-4">
-                        <GenerateQuizExercisesButton chapterId={chapter.id} onGenerated={fetchQuizExercises} />
-                    </div>
-                )}
-                {renderActivityCards()}
-                {renderNavigation()}
-            </>
-        );
-    }
-
-    // Style VISUEL :
-    // • Liste des leçons d'abord (titres seulement)
-    // • Au clic sur une leçon → vidéos affichées avec bouton "Voir le texte" en haut
-    if (learningStyle === "visual") {
-        return (
-            <>
-                {!selectedLesson ? (
-                    renderLessonsList()
-                ) : (
-                    <>
-                        {renderBackButton()}
-                        {renderAdaptiveLesson()}
-                    </>
-                )}
-                {canManage && !selectedLesson && dbQuizzes.length === 0 && dbExercises.length === 0 && (
-                    <div className="flex justify-center mt-4">
-                        <GenerateQuizExercisesButton chapterId={chapter.id} onGenerated={fetchQuizExercises} />
-                    </div>
-                )}
-                {renderActivityCards()}
-                {renderNavigation()}
-            </>
-        );
-    }
-
-    // Style PRATIQUE ou non défini → même comportement que textuel
     return (
         <>
             {!selectedLesson ? (
                 renderLessonsList()
             ) : (
-                <>
-                    {renderBackButton()}
-                    {renderAdaptiveLesson()}
-                </>
+                renderLessonContent()
             )}
-            {canManage && !selectedLesson && dbQuizzes.length === 0 && dbExercises.length === 0 && (
+            {canManage && !selectedLesson && (
                 <div className="flex justify-center mt-4">
                     <GenerateQuizExercisesButton chapterId={chapter.id} onGenerated={fetchQuizExercises} />
                 </div>
@@ -179,10 +157,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     function renderActivityCards() {
         return (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-                <Card
-                    className="cursor-pointer hover:shadow-lg transition-all"
-                    onClick={() => window.location.hash = "#quiz"}
-                >
+                <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onActivitySelect?.("quiz")}>
                     <CardContent className="p-6 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                             <Brain className="h-6 w-6 text-primary" />
@@ -193,11 +168,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         </div>
                     </CardContent>
                 </Card>
-
-                <Card
-                    className="cursor-pointer hover:shadow-lg transition-all"
-                    onClick={() => window.location.hash = "#exercises"}
-                >
+                <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onActivitySelect?.("exercises")}>
                     <CardContent className="p-6 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center">
                             <PenTool className="h-6 w-6 text-accent-foreground" />
@@ -208,11 +179,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         </div>
                     </CardContent>
                 </Card>
-
-                <Card
-                    className="cursor-pointer hover:shadow-lg transition-all"
-                    onClick={() => window.location.hash = "#revision"}
-                >
+                <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onActivitySelect?.("revision")}>
                     <CardContent className="p-6 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
                             <BookOpen className="h-6 w-6 text-green-500" />
@@ -230,18 +197,11 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     function renderNavigation() {
         return (
             <div className="flex justify-between mt-6">
-                <Button
-                    variant="outline"
-                    onClick={() => handleChapterChange("prev")}
-                    disabled={chapters.findIndex(c => c.id === chapter.id) === 0}
-                >
+                <Button variant="outline" onClick={() => handleChapterChange("prev")} disabled={chapters.findIndex((c: any) => c.id === chapter.id) === 0}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Chapitre précédent
                 </Button>
-                <Button
-                    onClick={() => handleChapterChange("next")}
-                    disabled={chapters.findIndex(c => c.id === chapter.id) === chapters.length - 1}
-                >
+                <Button onClick={() => handleChapterChange("next")} disabled={chapters.findIndex((c: any) => c.id === chapter.id) === chapters.length - 1}>
                     Chapitre suivant
                     <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
                 </Button>

@@ -257,6 +257,7 @@ export type Database = {
       }
       learning_styles: {
         Row: {
+          advice_seen: boolean | null
           assessment_data: Json | null
           completed_at: string
           created_at: string
@@ -269,6 +270,7 @@ export type Database = {
           visual_score: number
         }
         Insert: {
+          advice_seen?: boolean | null
           assessment_data?: Json | null
           completed_at?: string
           created_at?: string
@@ -281,6 +283,7 @@ export type Database = {
           visual_score?: number
         }
         Update: {
+          advice_seen?: boolean | null
           assessment_data?: Json | null
           completed_at?: string
           created_at?: string

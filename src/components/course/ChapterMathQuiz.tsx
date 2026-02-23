@@ -144,6 +144,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
             <span className="text-sm px-2 py-1 rounded-full bg-primary/10 text-primary">{chapterTitle}</span>
             {canManage && onRefresh && (
               <div className="flex gap-1">
+                <QuizFormDialog chapterId={chapterId} onSaved={onRefresh} />
                 <QuizFormDialog chapterId={chapterId} onSaved={onRefresh} quiz={{
                   id: currentQuestion.id, question: currentQuestion.question,
                   options: currentQuestion.options, correct_answer: currentQuestion.correct_answer,

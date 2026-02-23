@@ -423,6 +423,41 @@ const Cours = () => {
           />
         )}
 
+        {activeActivity === "revision" && activeChapter && (
+          <div className="max-w-2xl mx-auto space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold" dir="rtl">مراجعة - {activeChapter.title}</h2>
+              <Button variant="outline" onClick={() => setActiveActivity(null)}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                العودة للدرس
+              </Button>
+            </div>
+            {dbQuizzes.length > 0 ? (
+              <div className="space-y-4">
+                {dbQuizzes.map((q, idx) => (
+                  <Card key={q.id}>
+                    <CardContent className="p-6">
+                      <p className="text-sm text-muted-foreground mb-1" dir="rtl">بطاقة {idx + 1}</p>
+                      <p className="text-lg font-medium mb-3" dir="rtl">{q.question}</p>
+                      <details className="cursor-pointer">
+                        <summary className="text-primary text-sm" dir="rtl">عرض الإجابة</summary>
+                        <p className="mt-2 p-3 bg-muted/50 rounded-lg" dir="rtl">{q.correct_answer}</p>
+                        {q.explanation && <p className="mt-1 text-sm text-muted-foreground" dir="rtl">{q.explanation}</p>}
+                      </details>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <p className="text-muted-foreground" dir="rtl">لا توجد بطاقات مراجعة. قم بإضافة أسئلة أولاً.</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
         {/* Grid view - Chapter selection */}
         {!activeActivity && viewMode === "grid" && (
           <div className="space-y-4">
@@ -494,7 +529,7 @@ const Cours = () => {
             </div>
 
             {/* Affichage adaptatif de la leçon */}
-            <AdaptiveLessonContent chapter={activeChapter} canManage={canManage} fetchCourse={fetchCourse} dbQuizzes={dbQuizzes} dbExercises={dbExercises} fetchQuizExercises={fetchQuizExercises} subjectId={subjectId} progress={progress} handleMarkComplete={handleMarkComplete} handleDownloadPDF={handleDownloadPDF} handleChapterChange={handleChapterChange} chapters={chapters} />
+            <AdaptiveLessonContent chapter={activeChapter} canManage={canManage} fetchCourse={fetchCourse} dbQuizzes={dbQuizzes} dbExercises={dbExercises} fetchQuizExercises={fetchQuizExercises} subjectId={subjectId} progress={progress} handleMarkComplete={handleMarkComplete} handleDownloadPDF={handleDownloadPDF} handleChapterChange={handleChapterChange} chapters={chapters} onActivitySelect={setActiveActivity} />
           </div>
         )}
 
