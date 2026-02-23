@@ -6,6 +6,8 @@ import { Brain, PenTool, BookOpen, ArrowLeft, ChevronLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { TableOfContents } from "@/components/course/TableOfContents";
+import { injectHeaderIds } from "@/lib/toc-utils";
 
 export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleMarkComplete, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect }: any) {
     const navigate = useNavigate();
@@ -92,25 +94,30 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Retour aux leçons
             </Button>
-            <Card>
-                <CardContent className="p-6">
-                    <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
-                    {loadingContent ? (
-                        <div className="flex justify-center py-12">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                        </div>
-                    ) : lessonContent ? (
-                        <div
-                            className="prose prose-sm dark:prose-invert max-w-none"
-                            dangerouslySetInnerHTML={{ __html: lessonContent }}
-                        />
-                    ) : (
-                        <p className="text-center text-muted-foreground py-12">
-                            Aucun contenu disponible pour cette leçon.
-                        </p>
-                    )}
-                </CardContent>
-            </Card>
+            <div className="flex flex-col lg:flex-row gap-8">
+                <Card className="flex-1 min-w-0">
+                    <CardContent className="p-6">
+                        <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
+                        {loadingContent ? (
+                            <div className="flex justify-center py-12">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                            </div>
+                        ) : lessonContent ? (
+                            <div
+                                className="prose prose-sm dark:prose-invert max-w-none"
+                                dangerouslySetInnerHTML={{ __html: injectHeaderIds(lessonContent) }}
+                            />
+                        ) : (
+                            <p className="text-center text-muted-foreground py-12">
+                                Aucun contenu disponible pour cette leçon.
+                            </p>
+                        )}
+                    </CardContent>
+                </Card>
+                <div className="w-full lg:w-72 shrink-0">
+                    <TableOfContents htmlContent={lessonContent} />
+                </div>
+            </div>
         </div>
     );
 
@@ -125,13 +132,13 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     if (!chapter.lessons || chapter.lessons.length === 0) {
         return (
             <>
-                {renderNoLesson()}
+                {renderActivityCards()}
                 {canManage && (
-                    <div className="flex justify-center">
+                    <div className="flex justify-center mb-6">
                         <GenerateQuizExercisesButton chapterId={chapter.id} onGenerated={fetchQuizExercises} />
                     </div>
                 )}
-                {renderActivityCards()}
+                {renderNoLesson()}
                 {renderNavigation()}
             </>
         );
@@ -139,24 +146,24 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
 
     return (
         <>
+            {renderActivityCards()}
+            {canManage && !selectedLesson && (
+                <div className="flex justify-center mb-6">
+                    <GenerateQuizExercisesButton chapterId={chapter.id} onGenerated={fetchQuizExercises} />
+                </div>
+            )}
             {!selectedLesson ? (
                 renderLessonsList()
             ) : (
                 renderLessonContent()
             )}
-            {canManage && !selectedLesson && (
-                <div className="flex justify-center mt-4">
-                    <GenerateQuizExercisesButton chapterId={chapter.id} onGenerated={fetchQuizExercises} />
-                </div>
-            )}
-            {renderActivityCards()}
             {renderNavigation()}
         </>
     );
 
     function renderActivityCards() {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onActivitySelect?.("quiz")}>
                     <CardContent className="p-6 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">

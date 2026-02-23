@@ -10,8 +10,8 @@ SELECT cron.schedule(
   $$
   SELECT
     net.http_post(
-        url:='https://jrgjvjnhdliymljelhgd.supabase.co/functions/v1/gdpr-cleanup',
-        headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpyZ2p2am5oZGxpeW1samVsaGdkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMTA2NjYsImV4cCI6MjA3NTU4NjY2Nn0.gqxAPzrF4mMuGGMS0xSxq69GeNQ8FbWQBxKVE6ARg7Q"}'::jsonb,
+        url:='https://lfothlxoixayjiytwwqa.supabase.co/functions/v1/gdpr-cleanup',
+        headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxmb3RobHhvaXhheWppeXR3d3FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1MDQzNjUsImV4cCI6MjA4NzA4MDM2NX0.Z5uiVCL7jrcYIenOhGyFfXbGULHP30j_E9W390NYS3U"}'::jsonb,
         body:=concat('{"timestamp": "', now(), '"}')::jsonb
     ) as request_id;
   $$

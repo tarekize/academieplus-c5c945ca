@@ -1,3 +1,4 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -5,7 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Mapping: current level → previous level for test
 const PREVIOUS_LEVEL_MAP: Record<string, string> = {
   "1ere_cem": "5eme_primaire",
   "2eme_cem": "1ere_cem",
@@ -16,174 +16,80 @@ const PREVIOUS_LEVEL_MAP: Record<string, string> = {
   "terminale": "seconde",
 };
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+async function tryModels(prompt: string, apiKey: string) {
+  // Liste des modèles du plus probable au moins probable pour le quota gratuit
+  const models = ["gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-pro"];
+  const errors = [];
+
+  for (const model of models) {
+    try {
+      console.log(`Tentative avec ${model}...`);
+      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+      });
+
+      const data = await resp.json();
+      if (resp.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
+        return { text: data.candidates[0].content.parts[0].text, model };
+      }
+
+      const msg = data.error?.message || "Erreur inconnue";
+      console.warn(`Modèle ${model} échoué: ${msg}`);
+      errors.push(`${model}: ${msg}`);
+    } catch (e) {
+      errors.push(`${model}: ${e.message}`);
+    }
   }
+  throw new Error(`Tous les modèles ont échoué. Détails: ${errors.join(" | ")}`);
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { school_level, action, answers, chapters_info, student_name } = await req.json();
+    const { school_level, action } = await req.json();
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    if (!GEMINI_API_KEY) throw new Error("Clé AI manquante");
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     if (action === "generate") {
-      // Get previous level
-      const previousLevel = PREVIOUS_LEVEL_MAP[school_level] || school_level;
+      const previousLevel = PREVIOUS_LEVEL_MAP[school_level];
+      let chaptersContext = "";
 
-      // Fetch chapters from previous level
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-      const chaptersRes = await fetch(
-        `${supabaseUrl}/rest/v1/chapters?school_level=eq.${previousLevel}&subject=eq.math&select=id,title,title_ar,lessons(title,title_ar)&order=order_index`,
-        {
-          headers: {
-            "apikey": supabaseKey,
-            "Authorization": `Bearer ${supabaseKey}`,
-          },
+      if (school_level === "5eme_primaire") {
+        chaptersContext = "برنامج الرياضيات للمستوى الابتدائي";
+      } else if (previousLevel) {
+        const { data: chapters } = await supabase.from("chapters").select("title_ar, lessons(title_ar)").eq("school_level", previousLevel).eq("subject", "math");
+        if (chapters && chapters.length > 0) {
+          chaptersContext = chapters.map(ch => `${ch.title_ar}: ${(ch.lessons as any[] || []).map(l => l.title_ar).join("، ")}`).join("\n");
         }
-      );
-      const chapters = await chaptersRes.json();
-
-      if (!chapters || chapters.length === 0) {
-        return new Response(JSON.stringify({
-          questions: [],
-          error: "No chapters found for previous level"
-        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // Build context for AI
-      const chaptersContext = chapters.map((ch: any) => {
-        const lessonTitles = (ch.lessons || []).map((l: any) => l.title_ar || l.title).join("، ");
-        return `${ch.title_ar || ch.title}: ${lessonTitles}`;
-      }).join("\n");
+      const prompt = `أنت معلم رياضيات جزائري. أنشئ 5 أسئلة QCM بالعربية لتقييم طالب ينتقل لمستوى ${school_level}.
+      أجب بـ JSON فقط: {"questions": [{"question": "...", "options": ["...", "...", "...", "..."], "correct_index": 0, "chapter_ref": "...", "explanation": "..."}]}`;
 
-      // Generate 5 questions using AI
-      const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-      if (!lovableApiKey) {
-        throw new Error("LOVABLE_API_KEY not configured");
-      }
+      const result = await tryModels(prompt, GEMINI_API_KEY);
 
-      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${lovableApiKey}`,
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            {
-              role: "system",
-              content: `أنت معلم رياضيات جزائري. أنشئ 5 أسئلة اختيار من متعدد باللغة العربية لتقييم مستوى الطالب بناءً على برنامج السنة السابقة. كل سؤال يجب أن يكون واضحاً ومحدداً.
-
-أجب بصيغة JSON فقط بدون أي نص إضافي:
-{
-  "questions": [
-    {
-      "question": "نص السؤال",
-      "options": ["الخيار 1", "الخيار 2", "الخيار 3", "الخيار 4"],
-      "correct_index": 0,
-      "chapter_ref": "اسم الفصل المرجعي",
-      "explanation": "شرح الإجابة الصحيحة"
-    }
-  ]
-}`
-            },
-            {
-              role: "user",
-              content: `أنشئ 5 أسئلة تقييم لطالب ينتقل من المستوى ${previousLevel} بناءً على الفصول التالية:\n${chaptersContext}`
-            }
-          ],
-          temperature: 0.7,
-        }),
-      });
-
-      const aiData = await aiResponse.json();
-      let content = aiData.choices?.[0]?.message?.content || "";
-
-      // Parse JSON from response
+      const content = result.text.replace(/```json/g, "").replace(/```/g, "").trim();
       const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error("Failed to parse AI response");
-      }
+      const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : content);
 
-      const parsed = JSON.parse(jsonMatch[0]);
-
-      return new Response(JSON.stringify({
-        questions: parsed.questions,
-        previous_level: previousLevel,
-        chapters_used: chapters.map((ch: any) => ({ title: ch.title, title_ar: ch.title_ar })),
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    if (action === "evaluate") {
-      // Generate AI evaluation report
-      const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-      if (!lovableApiKey) throw new Error("LOVABLE_API_KEY not configured");
-
-      const score = answers.filter((a: any) => a.correct).length;
-      const total = answers.length;
-      const answersDetail = answers.map((a: any, i: number) =>
-        `السؤال ${i + 1}: ${a.correct ? "✓ صحيح" : "✗ خطأ"} - ${a.question} (الفصل: ${a.chapter_ref})`
-      ).join("\n");
-
-      // Use student name if provided, otherwise use generic "الطالب"
-      const studentName = student_name || "الطالب";
-
-      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${lovableApiKey}`,
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            {
-              role: "system",
-              content: `أنت معلم رياضيات جزائري. قدم تقريراً مختصراً وشخصياً عن مستوى الطالب باللغة العربية. كن مشجعاً وبنّاءً. أجب بصيغة JSON:
-
-استخدم اسم الطالب في النصيحة: "${studentName}"
-
-{
-  "level_label": "ممتاز/جيد جداً/جيد/متوسط/يحتاج تحسين",
-  "summary": "ملخص قصير عن مستوى الطالب",
-  "strengths": ["نقطة قوة 1", "نقطة قوة 2"],
-  "improvements": ["نقطة تحسين 1", "نقطة تحسين 2"],
-  "advice": "نصيحة شخصية للطالب باستخدام اسمه ${studentName}"
-}`
-            },
-            {
-              role: "user",
-              content: `الطالب ${studentName} في المستوى ${school_level} حصل على ${score}/${total}.\n\nتفاصيل الإجابات:\n${answersDetail}`
-            }
-          ],
-          temperature: 0.7,
-        }),
+      return new Response(JSON.stringify({ questions: parsed.questions, success: true, model: result.model }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
-
-      const aiData = await aiResponse.json();
-      let content = aiData.choices?.[0]?.message?.content || "";
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error("Failed to parse AI evaluation");
-
-      const report = JSON.parse(jsonMatch[0]);
-
-      return new Response(JSON.stringify({
-        score,
-        total,
-        report,
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ error: "Invalid action" }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ error: "Action non supportée" }), { status: 400, headers: corsHeaders });
 
-  } catch (error: any) {
-    console.error("Error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+  } catch (err: any) {
+    return new Response(JSON.stringify({ error: err.message, success: false }), {
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

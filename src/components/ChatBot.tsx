@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { ChatMessage } from "./ChatMessage";
+import { supabase } from "@/integrations/supabase/client";
 
 type MessageContent = {
   type: "text" | "image_url";
@@ -124,10 +125,12 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
     setIsLoading(true);
 
     try {
-      const response = await fetch("https://jrgjvjnhdliymljelhgd.supabase.co/functions/v1/lovable-chat", {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch("https://lfothlxoixayjiytwwqa.supabase.co/functions/v1/lovable-chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxmb3RobHhvaXhheWppeXR3d3FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1MDQzNjUsImV4cCI6MjA4NzA4MDM2NX0.Z5uiVCL7jrcYIenOhGyFfXbGULHP30j_E9W390NYS3U"}`
         },
         body: JSON.stringify({
           messages: updatedMessages,

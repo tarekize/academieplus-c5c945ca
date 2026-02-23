@@ -71,18 +71,25 @@ const LearningAssessment = () => {
       const { data, error } = await supabase.functions.invoke("generate-placement-test", {
         body: { school_level: profile?.school_level, action: "generate" },
       });
+
       if (error) throw error;
-      if (data.questions && data.questions.length > 0) {
+
+      // Si la fonction renvoie une erreur métier dans le JSON
+      if (data && data.error) {
+        throw new Error(data.error);
+      }
+
+      if (data && data.questions && data.questions.length > 0) {
         setQuestions(data.questions);
         setPhase("intro");
       } else {
-        toast.error("لم يتم العثور على أسئلة لهذا المستوى");
+        toast.error("Aucune question n'a pu être générée.");
         navigate("/liste-cours");
       }
     } catch (err: any) {
-      console.error(err);
-      toast.error("خطأ في تحميل الاختبار");
-      navigate("/liste-cours");
+      console.error("Détails de l'erreur Assessment:", err);
+      toast.error(err.message || "خطأ في تحميل الاختبار");
+      // navigate("/liste-cours"); // Commenté temporairement pour voir l'erreur
     }
   };
 

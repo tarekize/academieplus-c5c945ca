@@ -1,177 +1,66 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-async function generateContent(lessonTitle: string, chapterTitle: string, schoolLevel: string): Promise<string> {
-  const levelMap: Record<string, string> = {
-    "5eme_primaire": "الخامسة ابتدائي",
-    "1ere_cem": "الأولى متوسط",
-    "2eme_cem": "الثانية متوسط",
-    "3eme_cem": "الثالثة متوسط",
-    "4eme_cem": "الرابعة متوسط",
-    "premiere": "الأولى ثانوي",
-    "seconde": "الثانية ثانوي",
-    "terminale": "الثالثة ثانوي (البكالوريا)",
-  };
-
-  const levelAr = levelMap[schoolLevel] || schoolLevel;
-
-  const prompt = `أنت أستاذ رياضيات جزائري. اكتب محتوى درس رياضيات باللغة العربية بصيغة HTML لمستوى ${levelAr}.
-
-الفصل: ${chapterTitle}
-الدرس: ${lessonTitle}
-
-اكتب درسًا كاملًا يتضمن:
-1. <h2> عنوان الدرس </h2>
-2. <h3>التعريف</h3> مع شرح واضح للمفهوم
-3. <h3>القاعدة</h3> مع القواعد الرياضية الأساسية
-4. <h3>أمثلة محلولة</h3> مع 2-3 أمثلة مفصلة خطوة بخطوة
-5. <h3>تمارين تطبيقية</h3> مع 2-3 تمارين للتدريب
-
-القواعد:
-- استخدم HTML فقط (h2, h3, p, ul, li, ol, strong, em)
-- اكتب بلغة عربية فصحى واضحة ومبسطة تناسب المستوى الدراسي
-- المحتوى يجب أن يكون دقيقًا علميًا ومتوافقًا مع المنهاج الجزائري
-- لا تستخدم LaTeX، اكتب الصيغ الرياضية بنص عادي
-- أضف dir="rtl" للعنصر الأول فقط
-- لا تضف أي نص تقديمي أو تعليق خارج HTML
-
-ابدأ مباشرة بـ <div dir="rtl">`;
-
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 3000,
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`AI API error: ${res.status} - ${err}`);
-  }
-
-  const data = await res.json();
-  let content = data.choices?.[0]?.message?.content || "";
-  
-  // Clean up markdown code blocks if present
-  content = content.replace(/```html\n?/g, "").replace(/```\n?/g, "").trim();
-  
-  return content;
-}
-
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { batch_size = 10, offset = 0, school_level, lesson_id } = await req.json();
+    const { lesson_id } = await req.json();
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
-    // Single lesson mode
-    if (lesson_id) {
-      const { data: lesson, error: lErr } = await supabase
-        .from("lessons")
-        .select("id, title, title_ar, chapters!inner(title, title_ar, school_level)")
-        .eq("id", lesson_id)
-        .single();
-      if (lErr || !lesson) throw new Error(lErr?.message || "Lesson not found");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY manquante");
 
-      const chapter = lesson.chapters as any;
-      const content = await generateContent(
-        lesson.title_ar || lesson.title,
-        chapter.title_ar || chapter.title,
-        chapter.school_level
-      );
+    // ÉTAPE DE DÉBOGAGE : Lister les modèles disponibles pour cette clé
+    const listResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
+    const listData = await listResp.json();
 
-      const { error: uErr } = await supabase.from("lessons").update({ content }).eq("id", lesson_id);
-      if (uErr) throw uErr;
-
-      return new Response(JSON.stringify({ success: true, lesson_id }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!listResp.ok) {
+      throw new Error(`Impossible de lister les modèles: ${JSON.stringify(listData.error)}`);
     }
 
-    // Batch mode - Get lessons without content
-    let query = supabase
-      .from("lessons")
-      .select(`
-        id, title, title_ar, content,
-        chapters!inner(title, title_ar, school_level)
-      `)
-      .or("content.is.null,content.eq.")
-      .range(offset, offset + batch_size - 1)
-      .order("id");
+    const availableModels = (listData.models || []).map((m: any) => m.name.replace("models/", ""));
+    console.log("Modèles détectés:", availableModels);
 
-    if (school_level) {
-      query = query.eq("chapters.school_level", school_level);
-    }
+    // On cherche un modèle flash ou pro dans la liste réelle renvoyée par Google
+    const selectedModel = availableModels.find((m: string) => m.includes("flash") || m.includes("pro")) || availableModels[0];
 
-    const { data: lessons, error } = await query;
-    if (error) throw error;
+    if (!selectedModel) throw new Error("Aucun modèle trouvé pour cette clé.");
 
-    if (!lessons || lessons.length === 0) {
-      return new Response(JSON.stringify({ message: "No more lessons to process", processed: 0 }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    const results: { id: string; status: string }[] = [];
+    const { data: lesson } = await supabase.from("lessons").select("title, title_ar, chapter_id").eq("id", lesson_id).single();
+    const { data: chapter } = await supabase.from("chapters").select("title_ar, school_level").eq("id", lesson?.chapter_id).single();
 
-    for (const lesson of lessons) {
-      const chapter = lesson.chapters as any;
-      try {
-        const content = await generateContent(
-          lesson.title_ar || lesson.title,
-          chapter.title_ar || chapter.title,
-          chapter.school_level
-        );
+    const prompt = `أنت أستاذ رياضيات جزائري. اكتب درس بالتفصيل باللغة العربية (HTML) لدرس: ${lesson?.title_ar || lesson?.title}. استخدم h2 و h3.`;
 
-        const { error: updateError } = await supabase
-          .from("lessons")
-          .update({ content })
-          .eq("id", lesson.id);
-
-        if (updateError) throw updateError;
-        results.push({ id: lesson.id, status: "success" });
-      } catch (err: any) {
-        console.error(`Failed for lesson ${lesson.id}:`, err.message);
-        results.push({ id: lesson.id, status: `error: ${err.message}` });
-      }
-    }
-
-    // Count remaining
-    const { count } = await supabase
-      .from("lessons")
-      .select("id", { count: "exact", head: true })
-      .or("content.is.null,content.eq.");
-
-    return new Response(JSON.stringify({ 
-      processed: results.length, 
-      results,
-      remaining: count || 0,
-      next_offset: offset + batch_size 
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const genResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${GEMINI_API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
     });
+
+    const result = await genResp.json();
+
+    if (!genResp.ok) {
+      throw new Error(`Erreur avec ${selectedModel}: ${result.error?.message || "Inconnue"}. Modèles dispo pour votre clé: ${availableModels.join(', ')}`);
+    }
+
+    let content = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    content = content.replace(/```html\n?/g, "").replace(/```\n?/g, "").trim();
+
+    await supabase.from("lessons").update({ content }).eq("id", lesson_id);
+
+    return new Response(JSON.stringify({ success: true, model_used: selectedModel }), { headers: corsHeaders });
+
   } catch (err: any) {
-    console.error("Error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
+    return new Response(JSON.stringify({ error: err.message, success: false }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
