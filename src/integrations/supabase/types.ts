@@ -14,6 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
+<<<<<<< HEAD
       activity_logs: {
         Row: {
           action: string
@@ -452,39 +453,18 @@ export type Database = {
         }
         Relationships: []
       }
+=======
+      [_ in never]: never
+>>>>>>> 2b80e3ab5e9808994e8ffc9dc273736b7955cd3f
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      is_parent_of: {
-        Args: { _child_id: string; _parent_id: string }
-        Returns: boolean
-      }
-      log_activity: {
-        Args: { _action: string; _details?: Json; _user_id: string }
-        Returns: string
-      }
+      [_ in never]: never
     }
     Enums: {
-      app_role: "student" | "parent" | "admin" | "pedago"
-      link_status: "pending" | "active" | "rejected"
-      school_level:
-        | "5eme_primaire"
-        | "1ere_cem"
-        | "2eme_cem"
-        | "3eme_cem"
-        | "4eme_cem"
-        | "premiere"
-        | "seconde"
-        | "terminale"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -611,19 +591,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["student", "parent", "admin", "pedago"],
-      link_status: ["pending", "active", "rejected"],
-      school_level: [
-        "5eme_primaire",
-        "1ere_cem",
-        "2eme_cem",
-        "3eme_cem",
-        "4eme_cem",
-        "premiere",
-        "seconde",
-        "terminale",
-      ],
-    },
+    Enums: {},
   },
 } as const
