@@ -6,12 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
 const levelMap: Record<string, string> = {
   "5eme_primaire": "الخامسة ابتدائي",
   "1ere_cem": "الأولى متوسط",
@@ -23,38 +17,53 @@ const levelMap: Record<string, string> = {
   "terminale": "الثالثة ثانوي (البكالوريا)",
 };
 
-async function callGemini(prompt: string, apiKey: string) {
-  const model = "gemini-1.5-flash-8b"; // Modèle qui a fonctionné pour l'utilisateur
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+async function callLovableAI(prompt: string, systemPrompt: string, apiKey: string): Promise<string> {
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt },
+      ],
+    }),
   });
-  const data = await response.json();
-  if (!response.ok) throw new Error(`Gemini API: ${data.error?.message}`);
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+  if (!response.ok) {
+    if (response.status === 429) throw new Error("Limite de requêtes dépassée, réessayez plus tard.");
+    if (response.status === 402) throw new Error("Crédits épuisés, ajoutez des crédits.");
+    const t = await response.text();
+    throw new Error(`AI Gateway error: ${response.status} ${t}`);
+  }
+
+  const result = await response.json();
+  return result.choices?.[0]?.message?.content || "";
 }
 
-async function generateQuizzes(chapterTitle: string, schoolLevel: string): Promise<any[]> {
+async function generateQuizzes(chapterTitle: string, schoolLevel: string, apiKey: string): Promise<any[]> {
   const levelAr = levelMap[schoolLevel] || schoolLevel;
   const prompt = `أنت أستاذ رياضيات جزائري. أنشئ 5 أسئلة اختيار من متعدد (QCM) باللغة العربية لمستوى ${levelAr}.
 الفصل: ${chapterTitle}
 أجب فقط بمصفوفة JSON صالحة:
 [{"question":"...","options":["أ","ب","ج","د"],"correct_answer":"الإجابة","explanation":"..."}]`;
 
-  let content = await callGemini(prompt, GEMINI_API_KEY!);
+  let content = await callLovableAI(prompt, "You are an expert Algerian math teacher. Always respond with valid JSON arrays only.", apiKey);
   content = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
   const jsonMatch = content.match(/\[[\s\S]*\]/);
   return JSON.parse(jsonMatch ? jsonMatch[0] : content);
 }
 
-async function generateExercises(chapterTitle: string, schoolLevel: string): Promise<any[]> {
+async function generateExercises(chapterTitle: string, schoolLevel: string, apiKey: string): Promise<any[]> {
   const levelAr = levelMap[schoolLevel] || schoolLevel;
   const prompt = `أنت أستاذ رياضيات جزائري. أنشئ 5 تمارين رياضية باللغة العربية لمستوى ${levelAr}.
 الفصل: ${chapterTitle}
 أجب بمصفوفة JSON صالحة تحتوي على: title, statement, expected_answer, accepted_answers, solution.`;
 
-  let content = await callGemini(prompt, GEMINI_API_KEY!);
+  let content = await callLovableAI(prompt, "You are an expert Algerian math teacher. Always respond with valid JSON arrays only.", apiKey);
   content = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
   const jsonMatch = content.match(/\[[\s\S]*\]/);
   return JSON.parse(jsonMatch ? jsonMatch[0] : content);
@@ -64,17 +73,22 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { chapter_id, school_level } = await req.json();
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
+    const { chapter_id } = await req.json();
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     if (chapter_id) {
       const { data: chapter } = await supabase.from("chapters").select("*").eq("id", chapter_id).single();
       if (!chapter) throw new Error("Chapter not found");
 
       const chapterTitle = chapter.title_ar || chapter.title;
-      const quizzes = await generateQuizzes(chapterTitle, chapter.school_level);
+      const quizzes = await generateQuizzes(chapterTitle, chapter.school_level, LOVABLE_API_KEY);
 
-      // On insère par lots
       const quizInserts = quizzes.map((q, i) => ({
         chapter_id,
         question: q.question,
@@ -85,7 +99,7 @@ serve(async (req) => {
       }));
       await supabase.from("chapter_quizzes").insert(quizInserts);
 
-      const exercises = await generateExercises(chapterTitle, chapter.school_level);
+      const exercises = await generateExercises(chapterTitle, chapter.school_level, LOVABLE_API_KEY);
       const exInserts = exercises.map((ex, i) => ({
         chapter_id,
         title: ex.title,
@@ -102,7 +116,8 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ error: "Missing chapter_id" }), { status: 400, headers: corsHeaders });
 
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ error: message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
