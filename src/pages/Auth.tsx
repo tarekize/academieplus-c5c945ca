@@ -350,10 +350,32 @@ const Auth = () => {
     }
   };
 
-  // Ne pas masquer l'interface si on est sur /learning-assessment ou /complete-profile
+  // Ne pas masquer l'interface si on est sur /learning-assessment, /complete-profile, ou pendant l'inscription
   const isOnboardingOrAssessment = ["/learning-assessment", "/complete-profile"].some((path) => window.location.pathname.startsWith(path));
-  if (session && !isOnboardingOrAssessment) {
+
+  // ⚠️ IMPORTANT: Ne PAS retourner null pendant l'inscription (isRegistering)
+  // car la session Supabase est créée AVANT la navigation vers /learning-assessment
+  // ce qui causait une page blanche entre les deux
+  if (session && !isOnboardingOrAssessment && !isRegistering) {
     return null;
+  }
+
+  // Écran de chargement pendant l'inscription en cours
+  if (isRegistering) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background via-secondary to-background gap-6">
+        <div className="relative">
+          <div className="w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-primary/10" />
+          </div>
+        </div>
+        <div className="text-center space-y-2">
+          <h2 className="text-xl font-semibold text-foreground">Création de votre compte...</h2>
+          <p className="text-muted-foreground text-sm">Préparation de votre test de niveau</p>
+        </div>
+      </div>
+    );
   }
 
   return (

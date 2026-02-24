@@ -89,7 +89,7 @@ STRUCTURE : Reformule la question, explique les concepts, détaille la résoluti
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: gatewayMessages,
         stream: true,
       }),

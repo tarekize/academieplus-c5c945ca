@@ -31,7 +31,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: "You are an expert Algerian math teacher. Write detailed lessons in Arabic HTML format." },
           { role: "user", content: prompt },
