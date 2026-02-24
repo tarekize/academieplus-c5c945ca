@@ -18,7 +18,7 @@ const PREVIOUS_LEVEL_MAP: Record<string, string> = {
 
 async function tryModels(prompt: string, apiKey: string) {
   // Liste des modèles du plus probable au moins probable pour le quota gratuit
-  const models = ["gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-pro"];
+  const models = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-pro"];
   const errors = [];
 
   for (const model of models) {
@@ -38,8 +38,8 @@ async function tryModels(prompt: string, apiKey: string) {
       const msg = data.error?.message || "Erreur inconnue";
       console.warn(`Modèle ${model} échoué: ${msg}`);
       errors.push(`${model}: ${msg}`);
-    } catch (e) {
-      errors.push(`${model}: ${e.message}`);
+    } catch (e: unknown) {
+      errors.push(`${model}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
   throw new Error(`Tous les modèles ont échoué. Détails: ${errors.join(" | ")}`);

@@ -27,7 +27,7 @@ serve(async (req) => {
     console.log("Modèles détectés:", availableModels);
 
     // On cherche un modèle flash ou pro dans la liste réelle renvoyée par Google
-    const selectedModel = availableModels.find((m: string) => m.includes("flash") || m.includes("pro")) || availableModels[0];
+    const selectedModel = availableModels.find((m: string) => m.includes("2.0-flash") || m.includes("2.5-flash") || m.includes("flash") || m.includes("pro")) || availableModels[0];
 
     if (!selectedModel) throw new Error("Aucun modèle trouvé pour cette clé.");
 
