@@ -11,25 +11,9 @@ serve(async (req) => {
 
   try {
     const { lesson_id } = await req.json();
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY manquante");
-
-    // ÉTAPE DE DÉBOGAGE : Lister les modèles disponibles pour cette clé
-    const listResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
-    const listData = await listResp.json();
-
-    if (!listResp.ok) {
-      throw new Error(`Impossible de lister les modèles: ${JSON.stringify(listData.error)}`);
-    }
-
-    const availableModels = (listData.models || []).map((m: any) => m.name.replace("models/", ""));
-    console.log("Modèles détectés:", availableModels);
-
-    // On cherche un modèle flash ou pro dans la liste réelle renvoyée par Google
-    const selectedModel = availableModels.find((m: string) => m.includes("2.0-flash") || m.includes("2.5-flash") || m.includes("flash") || m.includes("pro")) || availableModels[0];
-
-    if (!selectedModel) throw new Error("Aucun modèle trouvé pour cette clé.");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -40,27 +24,39 @@ serve(async (req) => {
 
     const prompt = `أنت أستاذ رياضيات جزائري. اكتب درس بالتفصيل باللغة العربية (HTML) لدرس: ${lesson?.title_ar || lesson?.title}. استخدم h2 و h3.`;
 
-    const genResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${GEMINI_API_KEY}`, {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: "You are an expert Algerian math teacher. Write detailed lessons in Arabic HTML format." },
+          { role: "user", content: prompt },
+        ],
+      }),
     });
 
-    const result = await genResp.json();
-
-    if (!genResp.ok) {
-      throw new Error(`Erreur avec ${selectedModel}: ${result.error?.message || "Inconnue"}. Modèles dispo pour votre clé: ${availableModels.join(', ')}`);
+    if (!response.ok) {
+      if (response.status === 429) throw new Error("Limite de requêtes dépassée, réessayez plus tard.");
+      if (response.status === 402) throw new Error("Crédits épuisés, ajoutez des crédits à votre workspace Lovable.");
+      const t = await response.text();
+      throw new Error(`AI Gateway error: ${response.status} ${t}`);
     }
 
-    let content = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const result = await response.json();
+    let content = result.choices?.[0]?.message?.content || "";
     content = content.replace(/```html\n?/g, "").replace(/```\n?/g, "").trim();
 
     await supabase.from("lessons").update({ content }).eq("id", lesson_id);
 
-    return new Response(JSON.stringify({ success: true, model_used: selectedModel }), { headers: corsHeaders });
+    return new Response(JSON.stringify({ success: true, model_used: "lovable-ai" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message, success: false }), {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ error: message, success: false }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

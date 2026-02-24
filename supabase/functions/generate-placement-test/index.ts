@@ -16,45 +16,16 @@ const PREVIOUS_LEVEL_MAP: Record<string, string> = {
   "terminale": "seconde",
 };
 
-async function tryModels(prompt: string, apiKey: string) {
-  // Liste des modèles du plus probable au moins probable pour le quota gratuit
-  const models = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-pro"];
-  const errors = [];
-
-  for (const model of models) {
-    try {
-      console.log(`Tentative avec ${model}...`);
-      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-      });
-
-      const data = await resp.json();
-      if (resp.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
-        return { text: data.candidates[0].content.parts[0].text, model };
-      }
-
-      const msg = data.error?.message || "Erreur inconnue";
-      console.warn(`Modèle ${model} échoué: ${msg}`);
-      errors.push(`${model}: ${msg}`);
-    } catch (e: unknown) {
-      errors.push(`${model}: ${e instanceof Error ? e.message : String(e)}`);
-    }
-  }
-  throw new Error(`Tous les modèles ont échoué. Détails: ${errors.join(" | ")}`);
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const { school_level, action } = await req.json();
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    if (!GEMINI_API_KEY) throw new Error("Clé AI manquante");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -74,21 +45,44 @@ serve(async (req) => {
       const prompt = `أنت معلم رياضيات جزائري. أنشئ 5 أسئلة QCM بالعربية لتقييم طالب ينتقل لمستوى ${school_level}.
       أجب بـ JSON فقط: {"questions": [{"question": "...", "options": ["...", "...", "...", "..."], "correct_index": 0, "chapter_ref": "...", "explanation": "..."}]}`;
 
-      const result = await tryModels(prompt, GEMINI_API_KEY);
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: "You are an expert Algerian math teacher. Always respond with valid JSON only." },
+            { role: "user", content: prompt },
+          ],
+        }),
+      });
 
-      const content = result.text.replace(/```json/g, "").replace(/```/g, "").trim();
+      if (!response.ok) {
+        if (response.status === 429) throw new Error("Limite de requêtes dépassée, réessayez plus tard.");
+        if (response.status === 402) throw new Error("Crédits épuisés, ajoutez des crédits à votre workspace Lovable.");
+        const t = await response.text();
+        throw new Error(`AI Gateway error: ${response.status} ${t}`);
+      }
+
+      const result = await response.json();
+      let content = result.choices?.[0]?.message?.content || "";
+      content = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : content);
 
-      return new Response(JSON.stringify({ questions: parsed.questions, success: true, model: result.model }), {
+      return new Response(JSON.stringify({ questions: parsed.questions, success: true, model: "lovable-ai" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     }
 
     return new Response(JSON.stringify({ error: "Action non supportée" }), { status: 400, headers: corsHeaders });
 
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message, success: false }), {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ error: message, success: false }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
