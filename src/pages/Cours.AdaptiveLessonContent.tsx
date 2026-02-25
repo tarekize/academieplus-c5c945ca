@@ -3,17 +3,20 @@ import { LessonFormDialog, DeleteLessonButton } from "@/components/course/Pedago
 import { GenerateQuizExercisesButton } from "@/components/course/QuizExerciseCRUD";
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, PenTool, BookOpen, ArrowLeft, ChevronLeft } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { TableOfContents } from "@/components/course/TableOfContents";
 import { injectHeaderIds } from "@/lib/toc-utils";
+import { AdaptiveActivities } from "@/components/course/AdaptiveActivities";
 
-export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleMarkComplete, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect }: any) {
+export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleMarkComplete, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel }: any) {
     const navigate = useNavigate();
     const [selectedLesson, setSelectedLesson] = useState<any>(null);
     const [lessonContent, setLessonContent] = useState<string>("");
     const [loadingContent, setLoadingContent] = useState(false);
+    const readingTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const readingStartRef = useRef<number>(0);
 
     // Reset when chapter changes
     useEffect(() => {
@@ -118,6 +121,18 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     <TableOfContents htmlContent={lessonContent} />
                 </div>
             </div>
+
+            {/* AI Adaptive Activities - Only for students */}
+            {!canManage && userId && selectedLesson && (
+                <AdaptiveActivities
+                    lessonId={selectedLesson.id}
+                    chapterId={chapter.id}
+                    userId={userId}
+                    schoolLevel={schoolLevel || ""}
+                    lessonTitle={selectedLesson.titleAr || selectedLesson.title}
+                    chapterTitle={chapter.title}
+                />
+            )}
         </div>
     );
 

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check } from "lucide-react";
+import { NotificationBell } from "@/components/course/NotificationBell";
 import ChatBot from "@/components/ChatBot";
 import ITSRecommendations from "@/components/its/ITSRecommendations";
 import { ChapterFormDialog, DeleteChapterButton, LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
@@ -335,6 +336,7 @@ const Cours = () => {
             </div>
 
             <div className="flex items-center gap-4">
+              {profile?.id && <NotificationBell userId={profile.id} />}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/10 rounded-lg p-2 transition-colors">
@@ -529,7 +531,7 @@ const Cours = () => {
             </div>
 
             {/* Affichage adaptatif de la leçon */}
-            <AdaptiveLessonContent chapter={activeChapter} canManage={canManage} fetchCourse={fetchCourse} dbQuizzes={dbQuizzes} dbExercises={dbExercises} fetchQuizExercises={fetchQuizExercises} subjectId={subjectId} progress={progress} handleMarkComplete={handleMarkComplete} handleDownloadPDF={handleDownloadPDF} handleChapterChange={handleChapterChange} chapters={chapters} onActivitySelect={setActiveActivity} />
+            <AdaptiveLessonContent chapter={activeChapter} canManage={canManage} fetchCourse={fetchCourse} dbQuizzes={dbQuizzes} dbExercises={dbExercises} fetchQuizExercises={fetchQuizExercises} subjectId={subjectId} progress={progress} handleMarkComplete={handleMarkComplete} handleDownloadPDF={handleDownloadPDF} handleChapterChange={handleChapterChange} chapters={chapters} onActivitySelect={setActiveActivity} userId={profile?.id} schoolLevel={schoolLevel} />
           </div>
         )}
 
