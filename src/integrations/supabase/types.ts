@@ -49,6 +49,57 @@ export type Database = {
           },
         ]
       }
+      ai_generated_content: {
+        Row: {
+          chapter_id: string
+          content: Json
+          content_type: string
+          created_at: string
+          difficulty_level: number
+          id: string
+          lesson_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chapter_id: string
+          content?: Json
+          content_type: string
+          created_at?: string
+          difficulty_level?: number
+          id?: string
+          lesson_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chapter_id?: string
+          content?: Json
+          content_type?: string
+          created_at?: string
+          difficulty_level?: number
+          id?: string
+          lesson_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_generated_content_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_generated_content_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chapter_exercises: {
         Row: {
           accepted_answers: Json
@@ -430,6 +481,129 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      student_notifications: {
+        Row: {
+          advice: string | null
+          chapter_id: string | null
+          created_at: string
+          diagnostic: string | null
+          id: string
+          is_read: boolean
+          lesson_id: string | null
+          message: string
+          notification_type: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          advice?: string | null
+          chapter_id?: string | null
+          created_at?: string
+          diagnostic?: string | null
+          id?: string
+          is_read?: boolean
+          lesson_id?: string | null
+          message: string
+          notification_type: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          advice?: string | null
+          chapter_id?: string | null
+          created_at?: string
+          diagnostic?: string | null
+          id?: string
+          is_read?: boolean
+          lesson_id?: string | null
+          message?: string
+          notification_type?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_notifications_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_notifications_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_scores: {
+        Row: {
+          accuracy_rate: number
+          chapter_id: string | null
+          correct_answers: number
+          created_at: string
+          current_level: number
+          exercise_time_seconds: number
+          id: string
+          lesson_id: string | null
+          quiz_time_seconds: number
+          reading_time_seconds: number
+          streak: number
+          total_answers: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accuracy_rate?: number
+          chapter_id?: string | null
+          correct_answers?: number
+          created_at?: string
+          current_level?: number
+          exercise_time_seconds?: number
+          id?: string
+          lesson_id?: string | null
+          quiz_time_seconds?: number
+          reading_time_seconds?: number
+          streak?: number
+          total_answers?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accuracy_rate?: number
+          chapter_id?: string | null
+          correct_answers?: number
+          created_at?: string
+          current_level?: number
+          exercise_time_seconds?: number
+          id?: string
+          lesson_id?: string | null
+          quiz_time_seconds?: number
+          reading_time_seconds?: number
+          streak?: number
+          total_answers?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_scores_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_scores_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
