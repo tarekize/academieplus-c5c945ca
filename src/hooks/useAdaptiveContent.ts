@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -170,36 +170,50 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
 
   // Update score after answering
   const recordAnswer = useCallback(async (isCorrect: boolean, timeSeconds: number, type: "quiz" | "exercise") => {
-    const newScore = { ...score };
-    newScore.total_answers += 1;
-    if (isCorrect) {
-      newScore.correct_answers += 1;
-      newScore.streak += 1;
-    } else {
-      newScore.streak = 0;
-    }
-    newScore.accuracy_rate = Math.round((newScore.correct_answers / newScore.total_answers) * 100);
+    let finalScore: StudentScore | null = null;
+    let oldCurrentLevel: number;
 
-    if (type === "quiz") newScore.quiz_time_seconds += timeSeconds;
-    else newScore.exercise_time_seconds += timeSeconds;
+    setScore((prev) => {
+      oldCurrentLevel = prev.current_level; // Capture old level for comparison
+      const newScore = { ...prev };
+      newScore.total_answers += 1;
 
-    // Dynamic level adjustment
-    if (isCorrect && timeSeconds < 30) {
-      // Fast correct → increase level
-      newScore.current_level = Math.min(100, newScore.current_level + 3);
-    } else if (isCorrect) {
-      newScore.current_level = Math.min(100, newScore.current_level + 1);
-    } else if (timeSeconds > 120) {
-      // Slow wrong → decrease more
-      newScore.current_level = Math.max(5, newScore.current_level - 4);
-    } else {
-      newScore.current_level = Math.max(5, newScore.current_level - 2);
-    }
+      if (isCorrect) {
+        newScore.correct_answers += 1;
+        newScore.streak += 1;
+      } else {
+        newScore.streak = 0;
+      }
 
-    setScore(newScore);
+      if (newScore.total_answers > 0) {
+        newScore.accuracy_rate = Math.round((newScore.correct_answers / newScore.total_answers) * 100);
+      }
 
-    // Upsert to DB
-    const { data: existing } = await supabase
+      if (type === "quiz") newScore.quiz_time_seconds += timeSeconds;
+      else newScore.exercise_time_seconds += timeSeconds;
+
+      // Dynamic level adjustment
+      if (isCorrect && timeSeconds < 30) {
+        newScore.current_level = Math.min(100, newScore.current_level + 3);
+      } else if (isCorrect) {
+        newScore.current_level = Math.min(100, newScore.current_level + 1);
+      } else if (timeSeconds > 120) {
+        newScore.current_level = Math.max(5, newScore.current_level - 4);
+      } else {
+        newScore.current_level = Math.max(5, newScore.current_level - 2);
+      }
+
+      finalScore = newScore;
+      return newScore;
+    });
+
+    // Short delay to allow setScore to run synchronously and populate finalScore
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    if (!finalScore) return; // Fallback safety
+
+    // Save to DB in the background
+    const { data: latestScore } = await supabase
       .from("student_scores")
       .select("id")
       .eq("user_id", userId)
@@ -210,24 +224,24 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       user_id: userId,
       lesson_id: lessonId,
       chapter_id: chapterId,
-      current_level: newScore.current_level,
-      reading_time_seconds: newScore.reading_time_seconds,
-      quiz_time_seconds: newScore.quiz_time_seconds,
-      exercise_time_seconds: newScore.exercise_time_seconds,
-      total_answers: newScore.total_answers,
-      correct_answers: newScore.correct_answers,
-      accuracy_rate: newScore.accuracy_rate,
-      streak: newScore.streak,
+      current_level: finalScore.current_level,
+      reading_time_seconds: finalScore.reading_time_seconds,
+      quiz_time_seconds: finalScore.quiz_time_seconds,
+      exercise_time_seconds: finalScore.exercise_time_seconds,
+      total_answers: finalScore.total_answers,
+      correct_answers: finalScore.correct_answers,
+      accuracy_rate: finalScore.accuracy_rate,
+      streak: finalScore.streak,
     };
 
-    if (existing) {
-      await supabase.from("student_scores").update(scoreRow).eq("id", existing.id);
+    if (latestScore) {
+      await supabase.from("student_scores").update(scoreRow).eq("id", latestScore.id);
     } else {
       await supabase.from("student_scores").insert(scoreRow);
     }
 
     // Check for performance drop → notification
-    if (newScore.accuracy_rate < 40 && newScore.total_answers >= 5) {
+    if (finalScore.accuracy_rate < 40 && finalScore.total_answers >= 5) {
       await supabase.from("student_notifications").insert({
         user_id: userId,
         lesson_id: lessonId,
@@ -235,15 +249,15 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
         notification_type: "performance_drop",
         title: "📉 انخفاض في الأداء",
         message: "لاحظنا انخفاضًا في أدائك. لا تقلق، سنساعدك!",
-        diagnostic: `نسبة الإجابات الصحيحة: ${newScore.accuracy_rate}%. يجب التركيز على هذا الدرس.`,
+        diagnostic: `نسبة الإجابات الصحيحة: ${finalScore.accuracy_rate}%. يجب التركيز على هذا الدرس.`,
         advice: "لقد أعدنا إنشاء تمارين واختبارات مكيفة مع مستواك الحالي لمساعدتك على التحسن.",
       });
     }
 
     // Auto-regenerate if level changed significantly (every 10 level points)
-    const oldBracket = Math.floor(score.current_level / 10);
-    const newBracket = Math.floor(newScore.current_level / 10);
-    if (oldBracket !== newBracket && newScore.total_answers >= 3) {
+    const oldBracket = Math.floor(oldCurrentLevel / 10);
+    const newBracket = Math.floor(finalScore.current_level / 10);
+    if (oldBracket !== newBracket && finalScore.total_answers >= 3) {
       // Regenerate content at new level
       toast({ title: "🔄 تحديث المستوى", description: "جاري إعادة إنشاء المحتوى حسب مستواك الجديد..." });
 
@@ -259,8 +273,8 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       }, 1000);
     }
 
-    return newScore;
-  }, [score, userId, lessonId, chapterId, toast]);
+    return finalScore;
+  }, [userId, lessonId, chapterId, toast, generateContent]);
 
   const updateReadingTime = useCallback(async (seconds: number) => {
     const newScore = { ...score, reading_time_seconds: score.reading_time_seconds + seconds };

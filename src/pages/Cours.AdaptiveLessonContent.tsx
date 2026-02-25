@@ -97,7 +97,20 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Retour aux leçons
             </Button>
-            <div className="flex flex-col lg:flex-row gap-8">
+
+            {/* AI Adaptive Activities - Only for students */}
+            {!canManage && userId && selectedLesson && (
+                <AdaptiveActivities
+                    lessonId={selectedLesson.id}
+                    chapterId={chapter.id}
+                    userId={userId}
+                    schoolLevel={schoolLevel || ""}
+                    lessonTitle={selectedLesson.titleAr || selectedLesson.title}
+                    chapterTitle={chapter.title}
+                />
+            )}
+
+            <div className="flex flex-col lg:flex-row gap-8 mt-8">
                 <Card className="flex-1 min-w-0">
                     <CardContent className="p-6">
                         <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
@@ -121,18 +134,6 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     <TableOfContents htmlContent={lessonContent} />
                 </div>
             </div>
-
-            {/* AI Adaptive Activities - Only for students */}
-            {!canManage && userId && selectedLesson && (
-                <AdaptiveActivities
-                    lessonId={selectedLesson.id}
-                    chapterId={chapter.id}
-                    userId={userId}
-                    schoolLevel={schoolLevel || ""}
-                    lessonTitle={selectedLesson.titleAr || selectedLesson.title}
-                    chapterTitle={chapter.title}
-                />
-            )}
         </div>
     );
 
