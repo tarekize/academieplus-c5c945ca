@@ -531,7 +531,24 @@ const Cours = () => {
             </div>
 
             {/* Affichage adaptatif de la leçon */}
-            <AdaptiveLessonContent chapter={activeChapter} canManage={canManage} fetchCourse={fetchCourse} dbQuizzes={dbQuizzes} dbExercises={dbExercises} fetchQuizExercises={fetchQuizExercises} subjectId={subjectId} progress={progress} handleMarkComplete={handleMarkComplete} handleDownloadPDF={handleDownloadPDF} handleChapterChange={handleChapterChange} chapters={chapters} onActivitySelect={setActiveActivity} userId={profile?.id} schoolLevel={schoolLevel} />
+            <AdaptiveLessonContent
+              chapter={activeChapter}
+              canManage={canManage}
+              fetchCourse={fetchCourse}
+              dbQuizzes={dbQuizzes}
+              dbExercises={dbExercises}
+              fetchQuizExercises={fetchQuizExercises}
+              subjectId={subjectId}
+              progress={progress}
+              handleMarkComplete={handleMarkComplete}
+              handleDownloadPDF={handleDownloadPDF}
+              handleChapterChange={handleChapterChange}
+              chapters={chapters}
+              onActivitySelect={setActiveActivity}
+              userId={profile?.id}
+              schoolLevel={schoolLevel}
+              showActivityCards={canManage}
+            />
           </div>
         )}
 

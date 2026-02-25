@@ -83,7 +83,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           .select("visual_score, textual_score, practical_score")
           .eq("user_id", userId)
           .maybeSingle();
-        
+
         if (learningData) {
           const avg = Math.round((learningData.visual_score + learningData.textual_score + learningData.practical_score) / 3);
           setScore(prev => ({ ...prev, current_level: Math.min(100, Math.max(10, avg)) }));
@@ -129,7 +129,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       if (data?.error) throw new Error(data.error);
 
       const content = data.content;
-      
+
       if (contentType === "quiz") setQuizzes(content);
       if (contentType === "exercise") setExercises(content);
       if (contentType === "revision") setRevisions(content);
@@ -179,7 +179,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       newScore.streak = 0;
     }
     newScore.accuracy_rate = Math.round((newScore.correct_answers / newScore.total_answers) * 100);
-    
+
     if (type === "quiz") newScore.quiz_time_seconds += timeSeconds;
     else newScore.exercise_time_seconds += timeSeconds;
 
@@ -240,12 +240,23 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       });
     }
 
-    // Auto-regenerate if level changed significantly (every 5 level points)
+    // Auto-regenerate if level changed significantly (every 10 level points)
     const oldBracket = Math.floor(score.current_level / 10);
     const newBracket = Math.floor(newScore.current_level / 10);
     if (oldBracket !== newBracket && newScore.total_answers >= 3) {
       // Regenerate content at new level
       toast({ title: "🔄 تحديث المستوى", description: "جاري إعادة إنشاء المحتوى حسب مستواك الجديد..." });
+
+      // We generate sequentially to avoid rate limits on the free AI API
+      setTimeout(async () => {
+        if (type === "quiz") {
+          await generateContent("quiz");
+          await generateContent("exercise");
+        } else {
+          await generateContent("exercise");
+          await generateContent("quiz");
+        }
+      }, 1000);
     }
 
     return newScore;

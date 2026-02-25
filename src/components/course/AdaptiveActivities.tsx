@@ -17,7 +17,7 @@ interface AdaptiveActivitiesProps {
 }
 
 export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, lessonTitle, chapterTitle }: AdaptiveActivitiesProps) {
-  const { quizzes, exercises, revisions, loading, score, generateContent, recordAnswer } = useAdaptiveContent(
+  const { quizzes, exercises, revisions, loading, score, generateContent, recordAnswer, updateReadingTime } = useAdaptiveContent(
     lessonId, chapterId, userId, schoolLevel, lessonTitle, chapterTitle
   );
 
@@ -31,7 +31,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
   const timerRef = useRef<number>(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Timer for tracking
+  // Timer for tracking exercises/quizzes
   useEffect(() => {
     if (activeTab === "quiz" || activeTab === "exercise") {
       timerRef.current = 0;
@@ -39,6 +39,17 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
     }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [activeTab]);
+
+  // Reading time tracking (fires when component unmounts or lesson changes)
+  useEffect(() => {
+    const mountTime = Date.now();
+    return () => {
+      const timeSpentSeconds = Math.floor((Date.now() - mountTime) / 1000);
+      if (timeSpentSeconds > 5) { // Only record if they spent more than 5 seconds
+        updateReadingTime(timeSpentSeconds);
+      }
+    };
+  }, [lessonId, updateReadingTime]);
 
   const handleQuizAnswer = async (qIdx: number, answer: string) => {
     if (quizResults[qIdx] !== undefined) return;
@@ -94,7 +105,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
 
       {/* Activity tabs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card 
+        <Card
           className={`cursor-pointer hover:shadow-lg transition-all ${activeTab === "quiz" ? "ring-2 ring-primary" : ""}`}
           onClick={() => setActiveTab(activeTab === "quiz" ? null : "quiz")}
         >
@@ -112,7 +123,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
           </CardContent>
         </Card>
 
-        <Card 
+        <Card
           className={`cursor-pointer hover:shadow-lg transition-all ${activeTab === "exercise" ? "ring-2 ring-primary" : ""}`}
           onClick={() => setActiveTab(activeTab === "exercise" ? null : "exercise")}
         >
@@ -130,7 +141,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
           </CardContent>
         </Card>
 
-        <Card 
+        <Card
           className={`cursor-pointer hover:shadow-lg transition-all ${activeTab === "revision" ? "ring-2 ring-primary" : ""}`}
           onClick={() => setActiveTab(activeTab === "revision" ? null : "revision")}
         >
@@ -154,7 +165,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle dir="rtl">اختبارات - {lessonTitle}</CardTitle>
-            <Button 
+            <Button
               onClick={() => { setQuizAnswers({}); setQuizResults({}); generateContent("quiz"); }}
               disabled={loading.quiz}
               size="sm"
@@ -170,9 +181,23 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                 <Skeleton key={i} className="h-32 w-full rounded-lg" />
               ))
             ) : quizzes.length === 0 ? (
-              <div className="text-center py-8">
-                <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground" dir="rtl">اضغط على "إنشاء" لتوليد اختبارات مخصصة لمستواك</p>
+              <div className="text-center py-12 px-4 flex flex-col items-center">
+                <div className="w-20 h-20 bg-primary/10 rounded-full flex justify-center items-center mb-6">
+                  <Brain className="h-10 w-10 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold mb-3" dir="rtl">اختبارات ذكية مخصصة لك</h3>
+                <p className="text-muted-foreground mb-8 max-w-sm text-center" dir="rtl">
+                  انقر على الزر أدناه ليقوم الذكاء الاصطناعي بتوليد 5 أسئلة اختبار تناسب مستواك الحالي في هذا الدرس.
+                </p>
+                <Button
+                  size="lg"
+                  onClick={() => { setQuizAnswers({}); setQuizResults({}); generateContent("quiz"); }}
+                  disabled={loading.quiz}
+                  className="font-bold gap-2 text-lg h-14 px-8 w-full max-w-xs transition-all hover:scale-105 shadow-md shadow-primary/20"
+                >
+                  <Sparkles className="h-5 w-5 text-yellow-300" />
+                  {loading.quiz ? "جاري الإنشاء..." : "إنشاء بواسطة الذكاء الاصطناعي"}
+                </Button>
               </div>
             ) : (
               quizzes.map((q, idx) => (
@@ -229,9 +254,23 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                 <Skeleton key={i} className="h-40 w-full rounded-lg" />
               ))
             ) : exercises.length === 0 ? (
-              <div className="text-center py-8">
-                <PenTool className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground" dir="rtl">اضغط على "إنشاء" لتوليد تمارين مخصصة لمستواك</p>
+              <div className="text-center py-12 px-4 flex flex-col items-center">
+                <div className="w-20 h-20 bg-accent/20 rounded-full flex justify-center items-center mb-6">
+                  <PenTool className="h-10 w-10 text-accent-foreground" />
+                </div>
+                <h3 className="text-xl font-bold mb-3" dir="rtl">تمارين ذكية مخصصة لك</h3>
+                <p className="text-muted-foreground mb-8 max-w-sm text-center" dir="rtl">
+                  انقر على الزر أدناه ليقوم الذكاء الاصطناعي بتوليد 5 تمارين تطبيقية تناسب مستواك الحالي في هذا الدرس.
+                </p>
+                <Button
+                  size="lg"
+                  onClick={() => { setExerciseRevealed({}); setExerciseAnswers({}); setExerciseResults({}); generateContent("exercise"); }}
+                  disabled={loading.exercise}
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold gap-2 text-lg h-14 px-8 w-full max-w-xs transition-all hover:scale-105 shadow-md shadow-accent/20"
+                >
+                  <Sparkles className="h-5 w-5 text-yellow-500" />
+                  {loading.exercise ? "جاري الإنشاء..." : "إنشاء بواسطة الذكاء الاصطناعي"}
+                </Button>
               </div>
             ) : (
               exercises.map((ex, idx) => (
@@ -319,9 +358,23 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                 <Skeleton key={i} className="h-24 w-full rounded-lg" />
               ))
             ) : revisions.length === 0 ? (
-              <div className="text-center py-8">
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground" dir="rtl">اضغط على "إنشاء" لتوليد بطاقات مراجعة مخصصة</p>
+              <div className="text-center py-12 px-4 flex flex-col items-center">
+                <div className="w-20 h-20 bg-green-500/10 rounded-full flex justify-center items-center mb-6">
+                  <BookOpen className="h-10 w-10 text-green-500" />
+                </div>
+                <h3 className="text-xl font-bold mb-3" dir="rtl">بطاقات مراجعة ذكية</h3>
+                <p className="text-muted-foreground mb-8 max-w-sm text-center" dir="rtl">
+                  انقر على الزر أدناه ليقوم الذكاء الاصطناعي بتلخيص هذا الدرس وتوليد بطاقات مراجعة مفيدة لك.
+                </p>
+                <Button
+                  size="lg"
+                  onClick={() => generateContent("revision")}
+                  disabled={loading.revision}
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold gap-2 text-lg h-14 px-8 w-full max-w-xs transition-all hover:scale-105 shadow-md shadow-green-500/20"
+                >
+                  <Sparkles className="h-5 w-5 text-yellow-300" />
+                  {loading.revision ? "جاري الإنشاء..." : "إنشاء بواسطة الذكاء الاصطناعي"}
+                </Button>
               </div>
             ) : (
               revisions.map((rev, idx) => (

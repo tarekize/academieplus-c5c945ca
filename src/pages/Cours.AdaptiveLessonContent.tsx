@@ -10,7 +10,7 @@ import { TableOfContents } from "@/components/course/TableOfContents";
 import { injectHeaderIds } from "@/lib/toc-utils";
 import { AdaptiveActivities } from "@/components/course/AdaptiveActivities";
 
-export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleMarkComplete, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel }: any) {
+export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleMarkComplete, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel, showActivityCards }: any) {
     const navigate = useNavigate();
     const [selectedLesson, setSelectedLesson] = useState<any>(null);
     const [lessonContent, setLessonContent] = useState<string>("");
@@ -143,39 +143,6 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         </div>
     );
 
-    // No lessons in chapter
-    if (!chapter.lessons || chapter.lessons.length === 0) {
-        return (
-            <>
-                {renderActivityCards()}
-                {canManage && (
-                    <div className="flex justify-center mb-6">
-                        <GenerateQuizExercisesButton chapterId={chapter.id} onGenerated={fetchQuizExercises} />
-                    </div>
-                )}
-                {renderNoLesson()}
-                {renderNavigation()}
-            </>
-        );
-    }
-
-    return (
-        <>
-            {renderActivityCards()}
-            {canManage && !selectedLesson && (
-                <div className="flex justify-center mb-6">
-                    <GenerateQuizExercisesButton chapterId={chapter.id} onGenerated={fetchQuizExercises} />
-                </div>
-            )}
-            {!selectedLesson ? (
-                renderLessonsList()
-            ) : (
-                renderLessonContent()
-            )}
-            {renderNavigation()}
-        </>
-    );
-
     function renderActivityCards() {
         return (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -230,4 +197,40 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
             </div>
         );
     }
+
+    // No lessons in chapter
+    if (!chapter.lessons || chapter.lessons.length === 0) {
+        return (
+            <>
+                {showActivityCards && renderActivityCards()}
+                {canManage && (
+                    <div className="flex justify-center mb-6">
+                        <GenerateQuizExercisesButton chapterId={chapter.id} onGenerated={fetchQuizExercises} />
+                    </div>
+                )}
+                {renderNoLesson()}
+                {renderNavigation()}
+            </>
+        );
+    }
+
+    // Show activity cards for teachers always, or for students when no lesson is selected
+    const shouldShowActivityCards = canManage || !selectedLesson;
+
+    return (
+        <>
+            {shouldShowActivityCards && renderActivityCards()}
+            {canManage && !selectedLesson && (
+                <div className="flex justify-center mb-6">
+                    <GenerateQuizExercisesButton chapterId={chapter.id} onGenerated={fetchQuizExercises} />
+                </div>
+            )}
+            {!selectedLesson ? (
+                renderLessonsList()
+            ) : (
+                renderLessonContent()
+            )}
+            {renderNavigation()}
+        </>
+    );
 }
