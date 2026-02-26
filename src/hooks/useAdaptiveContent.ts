@@ -52,12 +52,26 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     streak: 0,
   });
 
+  // Session-local x/y counter (resets when lesson changes or content regenerated)
+  const [sessionCorrect, setSessionCorrect] = useState(0);
+  const [sessionTotal, setSessionTotal] = useState(0);
+  // Track if we just triggered auto-refresh
+  const [levelUpMessage, setLevelUpMessage] = useState<string | null>(null);
+  const scoreRef = useRef(score);
+  scoreRef.current = score;
+
+  // Reset session counters when lesson changes
+  useEffect(() => {
+    setSessionCorrect(0);
+    setSessionTotal(0);
+    setLevelUpMessage(null);
+  }, [lessonId]);
+
   // Load existing AI content and score
   useEffect(() => {
     if (!lessonId || !userId) return;
 
     const loadExisting = async () => {
-      // Load score
       const { data: scoreData } = await supabase
         .from("student_scores")
         .select("*")
@@ -77,7 +91,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           streak: scoreData.streak,
         });
       } else {
-        // Check if student has a placement test level
+        // Check placement test level
         const { data: learningData } = await supabase
           .from("learning_styles")
           .select("visual_score, textual_score, practical_score")
@@ -119,7 +133,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           chapter_id: chapterId,
           content_type: contentType,
           school_level: schoolLevel,
-          difficulty_level: score.current_level,
+          difficulty_level: scoreRef.current.current_level,
           lesson_title: lessonTitle,
           chapter_title: chapterTitle,
         },
@@ -146,7 +160,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       if (existing) {
         await supabase
           .from("ai_generated_content")
-          .update({ content, difficulty_level: score.current_level })
+          .update({ content, difficulty_level: scoreRef.current.current_level })
           .eq("id", existing.id);
       } else {
         await supabase.from("ai_generated_content").insert({
@@ -155,7 +169,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           chapter_id: chapterId,
           content_type: contentType,
           content,
-          difficulty_level: score.current_level,
+          difficulty_level: scoreRef.current.current_level,
         });
       }
 
@@ -166,15 +180,20 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     } finally {
       setLoading(prev => ({ ...prev, [contentType]: false }));
     }
-  }, [lessonId, chapterId, schoolLevel, score.current_level, lessonTitle, chapterTitle, userId, toast]);
+  }, [lessonId, chapterId, schoolLevel, lessonTitle, chapterTitle, userId, toast]);
 
-  // Update score after answering
+  // Record answer + update score + auto-refresh every 5 session answers
   const recordAnswer = useCallback(async (isCorrect: boolean, timeSeconds: number, type: "quiz" | "exercise") => {
+    // Update session counters
+    const newSessionTotal = sessionTotal + 1;
+    const newSessionCorrect = sessionCorrect + (isCorrect ? 1 : 0);
+    setSessionTotal(newSessionTotal);
+    if (isCorrect) setSessionCorrect(prev => prev + 1);
+
     let finalScore: StudentScore | null = null;
-    let oldCurrentLevel: number;
+    let oldCurrentLevel = scoreRef.current.current_level;
 
     setScore((prev) => {
-      oldCurrentLevel = prev.current_level; // Capture old level for comparison
       const newScore = { ...prev };
       newScore.total_answers += 1;
 
@@ -207,12 +226,10 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       return newScore;
     });
 
-    // Short delay to allow setScore to run synchronously and populate finalScore
     await new Promise(resolve => setTimeout(resolve, 0));
+    if (!finalScore) return;
 
-    if (!finalScore) return; // Fallback safety
-
-    // Save to DB in the background
+    // Save to DB
     const { data: latestScore } = await supabase
       .from("student_scores")
       .select("id")
@@ -240,44 +257,64 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       await supabase.from("student_scores").insert(scoreRow);
     }
 
-    // Check for performance drop → notification
-    if (finalScore.accuracy_rate < 40 && finalScore.total_answers >= 5) {
-      await supabase.from("student_notifications").insert({
-        user_id: userId,
-        lesson_id: lessonId,
-        chapter_id: chapterId,
-        notification_type: "performance_drop",
-        title: "📉 انخفاض في الأداء",
-        message: "لاحظنا انخفاضًا في أدائك. لا تقلق، سنساعدك!",
-        diagnostic: `نسبة الإجابات الصحيحة: ${finalScore.accuracy_rate}%. يجب التركيز على هذا الدرس.`,
-        advice: "لقد أعدنا إنشاء تمارين واختبارات مكيفة مع مستواك الحالي لمساعدتك على التحسن.",
-      });
-    }
+    // Every 5 session answers → auto-refresh with smart notification
+    if (newSessionTotal > 0 && newSessionTotal % 5 === 0) {
+      const sessionAccuracy = Math.round((newSessionCorrect / newSessionTotal) * 100);
+      
+      if (sessionAccuracy < 50) {
+        // Failure notification
+        const msg = `لديك ثغرات في هذا الدرس (${newSessionCorrect}/${newSessionTotal}). انقر على "مراجعة" لمراجعة البطاقات ثم "تجديد" لتمارين مكيّفة.`;
+        setLevelUpMessage(msg);
 
-    // Auto-regenerate if level changed significantly (every 10 level points)
-    const oldBracket = Math.floor(oldCurrentLevel / 10);
-    const newBracket = Math.floor(finalScore.current_level / 10);
-    if (oldBracket !== newBracket && finalScore.total_answers >= 3) {
-      // Regenerate content at new level
+        await supabase.from("student_notifications").insert({
+          user_id: userId,
+          lesson_id: lessonId,
+          chapter_id: chapterId,
+          notification_type: "performance_drop",
+          title: "📉 انخفاض في الأداء",
+          message: msg,
+          diagnostic: `نسبة الإجابات الصحيحة: ${sessionAccuracy}% (${newSessionCorrect}/${newSessionTotal})`,
+          advice: "لقد أعدنا إنشاء تمارين واختبارات مكيفة مع مستواك الحالي لمساعدتك على التحسن.",
+        });
+      } else if (sessionAccuracy >= 80) {
+        // Success notification
+        const msg = `تهانينا! أنت تتقن هذا المستوى (${newSessionCorrect}/${newSessionTotal}). انقر على "تجديد" للانتقال إلى تحديات أصعب!`;
+        setLevelUpMessage(msg);
+
+        await supabase.from("student_notifications").insert({
+          user_id: userId,
+          lesson_id: lessonId,
+          chapter_id: chapterId,
+          notification_type: "level_up",
+          title: "🎉 مستوى ممتاز!",
+          message: msg,
+          diagnostic: `نسبة الإجابات الصحيحة: ${sessionAccuracy}%`,
+          advice: "تم رفع مستوى الصعوبة. استمر في التقدم!",
+        });
+      } else {
+        const msg = `تم تحليل أدائك (${newSessionCorrect}/${newSessionTotal}). يتم تحديث المحتوى حسب مستواك الجديد.`;
+        setLevelUpMessage(msg);
+      }
+
+      // Auto-regenerate content for the active type
       toast({ title: "🔄 تحديث المستوى", description: "جاري إعادة إنشاء المحتوى حسب مستواك الجديد..." });
+      
+      // Reset session counters for next batch
+      setSessionCorrect(0);
+      setSessionTotal(0);
 
-      // We generate sequentially to avoid rate limits on the free AI API
       setTimeout(async () => {
-        if (type === "quiz") {
-          await generateContent("quiz");
-          await generateContent("exercise");
-        } else {
-          await generateContent("exercise");
-          await generateContent("quiz");
-        }
+        await generateContent(type);
+        if (type === "quiz") await generateContent("exercise");
+        else await generateContent("quiz");
       }, 1000);
     }
 
     return finalScore;
-  }, [userId, lessonId, chapterId, toast, generateContent]);
+  }, [userId, lessonId, chapterId, toast, generateContent, sessionTotal, sessionCorrect]);
 
   const updateReadingTime = useCallback(async (seconds: number) => {
-    const newScore = { ...score, reading_time_seconds: score.reading_time_seconds + seconds };
+    const newScore = { ...scoreRef.current, reading_time_seconds: scoreRef.current.reading_time_seconds + seconds };
     setScore(newScore);
 
     const { data: existing } = await supabase
@@ -298,7 +335,13 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
         current_level: newScore.current_level,
       });
     }
-  }, [score, userId, lessonId, chapterId]);
+  }, [userId, lessonId, chapterId]);
+
+  const resetSessionCounters = useCallback(() => {
+    setSessionCorrect(0);
+    setSessionTotal(0);
+    setLevelUpMessage(null);
+  }, []);
 
   return {
     quizzes,
@@ -306,8 +349,12 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     revisions,
     loading,
     score,
+    sessionCorrect,
+    sessionTotal,
+    levelUpMessage,
     generateContent,
     recordAnswer,
     updateReadingTime,
+    resetSessionCounters,
   };
 }
