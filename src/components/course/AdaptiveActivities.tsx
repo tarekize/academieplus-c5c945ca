@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Brain, PenTool, BookOpen, Sparkles, RefreshCw, CheckCircle2, XCircle, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
+import { Brain, PenTool, BookOpen, Sparkles, RefreshCw, CheckCircle2, XCircle, ChevronDown, ChevronUp, Lightbulb, AlertTriangle, Trophy } from "lucide-react";
 import { useAdaptiveContent } from "@/hooks/useAdaptiveContent";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -17,9 +17,11 @@ interface AdaptiveActivitiesProps {
 }
 
 export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, lessonTitle, chapterTitle }: AdaptiveActivitiesProps) {
-  const { quizzes, exercises, revisions, loading, score, generateContent, recordAnswer, updateReadingTime } = useAdaptiveContent(
-    lessonId, chapterId, userId, schoolLevel, lessonTitle, chapterTitle
-  );
+  const {
+    quizzes, exercises, revisions, loading, score,
+    sessionCorrect, sessionTotal, levelUpMessage,
+    generateContent, recordAnswer, updateReadingTime, resetSessionCounters,
+  } = useAdaptiveContent(lessonId, chapterId, userId, schoolLevel, lessonTitle, chapterTitle);
 
   const [activeTab, setActiveTab] = useState<"quiz" | "exercise" | "revision" | null>(null);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
@@ -28,6 +30,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
   const [exerciseAnswers, setExerciseAnswers] = useState<Record<number, string>>({});
   const [exerciseResults, setExerciseResults] = useState<Record<number, boolean | null>>({});
   const [showHints, setShowHints] = useState<Record<number, boolean>>({});
+  const [flippedCards, setFlippedCards] = useState<Record<number, boolean>>({});
   const timerRef = useRef<number>(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -40,14 +43,12 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [activeTab]);
 
-  // Reading time tracking (fires when component unmounts or lesson changes)
+  // Reading time tracking
   useEffect(() => {
     const mountTime = Date.now();
     return () => {
       const timeSpentSeconds = Math.floor((Date.now() - mountTime) / 1000);
-      if (timeSpentSeconds > 5) { // Only record if they spent more than 5 seconds
-        updateReadingTime(timeSpentSeconds);
-      }
+      if (timeSpentSeconds > 5) updateReadingTime(timeSpentSeconds);
     };
   }, [lessonId, updateReadingTime]);
 
@@ -69,6 +70,13 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
     timerRef.current = 0;
   };
 
+  const handleRegenerate = (type: "quiz" | "exercise" | "revision") => {
+    if (type === "quiz") { setQuizAnswers({}); setQuizResults({}); }
+    if (type === "exercise") { setExerciseRevealed({}); setExerciseAnswers({}); setExerciseResults({}); }
+    resetSessionCounters();
+    generateContent(type);
+  };
+
   const getDifficultyColor = (level: number) => {
     if (level < 30) return "text-green-500";
     if (level < 60) return "text-yellow-500";
@@ -85,7 +93,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
 
   return (
     <div className="space-y-6 mt-8">
-      {/* Score bar */}
+      {/* Score bar with x/y counter */}
       <Card className="border-primary/20">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
@@ -95,13 +103,50 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
             </Badge>
           </div>
           <Progress value={score.current_level} className="h-2" />
-          <div className="flex justify-between text-xs text-muted-foreground mt-1">
-            <span>إجابات: {score.correct_answers}/{score.total_answers}</span>
-            <span>نسبة النجاح: {score.accuracy_rate}%</span>
+          <div className="flex justify-between text-xs text-muted-foreground mt-2 flex-wrap gap-2">
+            {/* Session x/y scoreboard */}
+            <span className="font-semibold text-foreground text-sm" dir="rtl">
+              الجلسة: {sessionCorrect} / {sessionTotal}
+            </span>
+            <span dir="rtl">المجموع: {score.correct_answers}/{score.total_answers}</span>
+            <span dir="rtl">نسبة النجاح: {score.accuracy_rate}%</span>
             {score.streak > 2 && <span className="text-green-500">🔥 {score.streak} متتالية</span>}
           </div>
+          {/* Auto-refresh progress indicator (every 5) */}
+          {sessionTotal > 0 && (
+            <div className="mt-2">
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                <span dir="rtl">التحديث التلقائي بعد {5 - (sessionTotal % 5)} أسئلة</span>
+                <span>{sessionTotal % 5}/5</span>
+              </div>
+              <Progress value={(sessionTotal % 5) * 20} className="h-1" />
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Level-up / Performance drop notification banner */}
+      {levelUpMessage && (
+        <Card className={`border-2 ${
+          levelUpMessage.includes("تهانينا") ? "border-green-500 bg-green-500/5" : 
+          levelUpMessage.includes("ثغرات") ? "border-red-500 bg-red-500/5" : 
+          "border-primary bg-primary/5"
+        }`}>
+          <CardContent className="p-4 flex items-start gap-3">
+            {levelUpMessage.includes("تهانينا") ? (
+              <Trophy className="h-6 w-6 text-green-500 shrink-0 mt-0.5" />
+            ) : levelUpMessage.includes("ثغرات") ? (
+              <AlertTriangle className="h-6 w-6 text-red-500 shrink-0 mt-0.5" />
+            ) : (
+              <RefreshCw className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+            )}
+            <div>
+              <p className="text-sm font-medium" dir="rtl">{levelUpMessage}</p>
+            </div>
+            <Button variant="ghost" size="sm" className="ml-auto shrink-0" onClick={() => resetSessionCounters()}>✕</Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Activity tabs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -164,15 +209,15 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
       {activeTab === "quiz" && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle dir="rtl">اختبارات - {lessonTitle}</CardTitle>
+            <CardTitle dir="rtl">اختبارات ذكية - {lessonTitle}</CardTitle>
             <Button
-              onClick={() => { setQuizAnswers({}); setQuizResults({}); generateContent("quiz"); }}
+              onClick={() => handleRegenerate("quiz")}
               disabled={loading.quiz}
               size="sm"
               variant="outline"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading.quiz ? "animate-spin" : ""}`} />
-              {quizzes.length > 0 ? "تجديد" : "إنشاء"}
+              {quizzes.length > 0 ? "تجديد" : "إنشاء بالذكاء الاصطناعي"}
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -187,16 +232,16 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                 </div>
                 <h3 className="text-xl font-bold mb-3" dir="rtl">اختبارات ذكية مخصصة لك</h3>
                 <p className="text-muted-foreground mb-8 max-w-sm text-center" dir="rtl">
-                  انقر على الزر أدناه ليقوم الذكاء الاصطناعي بتوليد 5 أسئلة اختبار تناسب مستواك الحالي في هذا الدرس.
+                  انقر على الزر أدناه ليقوم الذكاء الاصطناعي بتوليد 5 أسئلة اختبار تناسب مستواك الحالي.
                 </p>
                 <Button
                   size="lg"
-                  onClick={() => { setQuizAnswers({}); setQuizResults({}); generateContent("quiz"); }}
+                  onClick={() => handleRegenerate("quiz")}
                   disabled={loading.quiz}
                   className="font-bold gap-2 text-lg h-14 px-8 w-full max-w-xs transition-all hover:scale-105 shadow-md shadow-primary/20"
                 >
                   <Sparkles className="h-5 w-5 text-yellow-300" />
-                  {loading.quiz ? "جاري الإنشاء..." : "إنشاء بواسطة الذكاء الاصطناعي"}
+                  {loading.quiz ? "جاري الإنشاء..." : "إنشاء بالذكاء الاصطناعي"}
                 </Button>
               </div>
             ) : (
@@ -237,15 +282,15 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
       {activeTab === "exercise" && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle dir="rtl">تمارين - {lessonTitle}</CardTitle>
+            <CardTitle dir="rtl">تمارين ذكية - {lessonTitle}</CardTitle>
             <Button
-              onClick={() => { setExerciseRevealed({}); setExerciseAnswers({}); setExerciseResults({}); generateContent("exercise"); }}
+              onClick={() => handleRegenerate("exercise")}
               disabled={loading.exercise}
               size="sm"
               variant="outline"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading.exercise ? "animate-spin" : ""}`} />
-              {exercises.length > 0 ? "تجديد" : "إنشاء"}
+              {exercises.length > 0 ? "تجديد" : "إنشاء بالذكاء الاصطناعي"}
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -260,16 +305,16 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                 </div>
                 <h3 className="text-xl font-bold mb-3" dir="rtl">تمارين ذكية مخصصة لك</h3>
                 <p className="text-muted-foreground mb-8 max-w-sm text-center" dir="rtl">
-                  انقر على الزر أدناه ليقوم الذكاء الاصطناعي بتوليد 5 تمارين تطبيقية تناسب مستواك الحالي في هذا الدرس.
+                  انقر على الزر أدناه ليقوم الذكاء الاصطناعي بتوليد 5 تمارين تطبيقية تناسب مستواك.
                 </p>
                 <Button
                   size="lg"
-                  onClick={() => { setExerciseRevealed({}); setExerciseAnswers({}); setExerciseResults({}); generateContent("exercise"); }}
+                  onClick={() => handleRegenerate("exercise")}
                   disabled={loading.exercise}
                   className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold gap-2 text-lg h-14 px-8 w-full max-w-xs transition-all hover:scale-105 shadow-md shadow-accent/20"
                 >
                   <Sparkles className="h-5 w-5 text-yellow-500" />
-                  {loading.exercise ? "جاري الإنشاء..." : "إنشاء بواسطة الذكاء الاصطناعي"}
+                  {loading.exercise ? "جاري الإنشاء..." : "إنشاء بالذكاء الاصطناعي"}
                 </Button>
               </div>
             ) : (
@@ -279,7 +324,6 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                     <h4 className="font-semibold" dir="rtl">{idx + 1}. {ex.title}</h4>
                     <p className="text-sm" dir="rtl">{ex.statement}</p>
 
-                    {/* Hints */}
                     {ex.hints && ex.hints.length > 0 && (
                       <Button
                         variant="ghost"
@@ -296,7 +340,6 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                       <p key={hIdx} className="text-xs text-muted-foreground bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {hint}</p>
                     ))}
 
-                    {/* Answer input */}
                     {exerciseResults[idx] === undefined && (
                       <div className="flex gap-2" dir="rtl">
                         <input
@@ -316,7 +359,6 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                       </div>
                     )}
 
-                    {/* Solution toggle */}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -341,15 +383,15 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
       {activeTab === "revision" && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle dir="rtl">بطاقات المراجعة - {lessonTitle}</CardTitle>
+            <CardTitle dir="rtl">بطاقات المراجعة الذكية - {lessonTitle}</CardTitle>
             <Button
-              onClick={() => generateContent("revision")}
+              onClick={() => handleRegenerate("revision")}
               disabled={loading.revision}
               size="sm"
               variant="outline"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading.revision ? "animate-spin" : ""}`} />
-              {revisions.length > 0 ? "تجديد" : "إنشاء"}
+              {revisions.length > 0 ? "تجديد" : "إنشاء بالذكاء الاصطناعي"}
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -364,36 +406,51 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                 </div>
                 <h3 className="text-xl font-bold mb-3" dir="rtl">بطاقات مراجعة ذكية</h3>
                 <p className="text-muted-foreground mb-8 max-w-sm text-center" dir="rtl">
-                  انقر على الزر أدناه ليقوم الذكاء الاصطناعي بتلخيص هذا الدرس وتوليد بطاقات مراجعة مفيدة لك.
+                  انقر على الزر أدناه ليقوم الذكاء الاصطناعي بتلخيص هذا الدرس وتوليد بطاقات مراجعة.
                 </p>
                 <Button
                   size="lg"
-                  onClick={() => generateContent("revision")}
+                  onClick={() => handleRegenerate("revision")}
                   disabled={loading.revision}
                   className="bg-green-600 hover:bg-green-700 text-white font-bold gap-2 text-lg h-14 px-8 w-full max-w-xs transition-all hover:scale-105 shadow-md shadow-green-500/20"
                 >
                   <Sparkles className="h-5 w-5 text-yellow-300" />
-                  {loading.revision ? "جاري الإنشاء..." : "إنشاء بواسطة الذكاء الاصطناعي"}
+                  {loading.revision ? "جاري الإنشاء..." : "إنشاء بالذكاء الاصطناعي"}
                 </Button>
               </div>
             ) : (
-              revisions.map((rev, idx) => (
-                <Card key={idx} className="border-green-500/20">
-                  <CardContent className="p-4 space-y-2">
-                    <h4 className="font-bold text-primary" dir="rtl">📌 {rev.concept}</h4>
-                    <p className="text-sm" dir="rtl">{rev.explanation}</p>
-                    <div className="bg-muted/50 rounded-lg p-3">
-                      <p className="text-sm font-medium" dir="rtl">مثال:</p>
-                      <p className="text-sm" dir="rtl">{rev.example}</p>
-                    </div>
-                    {rev.key_formula && (
-                      <div className="bg-primary/5 rounded-lg p-2 text-center">
-                        <p className="text-sm font-mono font-bold" dir="rtl">{rev.key_formula}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {revisions.map((rev, idx) => (
+                  <Card
+                    key={idx}
+                    className="border-green-500/20 cursor-pointer hover:shadow-md transition-all min-h-[160px]"
+                    onClick={() => setFlippedCards(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                  >
+                    <CardContent className="p-4 space-y-2">
+                      {!flippedCards[idx] ? (
+                        <>
+                          <h4 className="font-bold text-primary" dir="rtl">📌 {rev.concept}</h4>
+                          <p className="text-sm" dir="rtl">{rev.explanation}</p>
+                          <p className="text-xs text-muted-foreground mt-2" dir="rtl">انقر لرؤية المثال ←</p>
+                        </>
+                      ) : (
+                        <>
+                          <div className="bg-muted/50 rounded-lg p-3">
+                            <p className="text-sm font-medium" dir="rtl">مثال:</p>
+                            <p className="text-sm" dir="rtl">{rev.example}</p>
+                          </div>
+                          {rev.key_formula && (
+                            <div className="bg-primary/5 rounded-lg p-2 text-center">
+                              <p className="text-sm font-mono font-bold" dir="rtl">{rev.key_formula}</p>
+                            </div>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-2" dir="rtl">← انقر للعودة</p>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>
