@@ -76,9 +76,9 @@ export default function ITSRecommendations() {
         await supabase
           .from("learning_styles")
           .update({
-            periodic_advice: newAdvice,
+            periodic_advice: newAdvice as any,
             last_advice_generated_at: new Date().toISOString()
-          })
+          } as any)
           .eq("id", learningId);
 
         setPeriodicAdvice(newAdvice);
@@ -109,9 +109,9 @@ ${report.advice ? `تذكير: ${report.advice}` : ''}
     await supabase
       .from("learning_styles")
       .update({
-        periodic_advice: localAdvice,
+        periodic_advice: localAdvice as any,
         last_advice_generated_at: new Date().toISOString()
-      })
+      } as any)
       .eq("id", learningId);
 
     setPeriodicAdvice(localAdvice);
@@ -125,9 +125,9 @@ ${report.advice ? `تذكير: ${report.advice}` : ''}
 
     const fetchData = async () => {
       try {
-        const { data, error } = await supabase
+        const { data: rawData, error } = await supabase
           .from("learning_styles")
-          .select("id, preferred_style, visual_score, textual_score, practical_score, assessment_data, advice_seen, report_first_shown_at, last_advice_generated_at, periodic_advice")
+          .select("id, preferred_style, visual_score, textual_score, practical_score, assessment_data, advice_seen")
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -137,10 +137,13 @@ ${report.advice ? `تذكير: ${report.advice}` : ''}
           return;
         }
 
-        if (!data || !data.assessment_data) {
+        if (!rawData || !rawData.assessment_data) {
           setLoading(false);
           return;
         }
+
+        // Cast to access columns not yet in generated types
+        const data = rawData as any;
 
         const assessmentData = data.assessment_data as AssessmentData;
 
@@ -150,7 +153,7 @@ ${report.advice ? `تذكير: ${report.advice}` : ''}
           reportFirstShownAt = new Date().toISOString();
           await supabase
             .from("learning_styles")
-            .update({ report_first_shown_at: reportFirstShownAt })
+            .update({ report_first_shown_at: reportFirstShownAt } as any)
             .eq("id", data.id);
         }
 
