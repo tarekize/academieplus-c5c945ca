@@ -313,8 +313,11 @@ export type Database = {
           completed_at: string
           created_at: string
           id: string
+          last_advice_generated_at: string | null
+          periodic_advice: Json | null
           practical_score: number
           preferred_style: string
+          report_first_shown_at: string | null
           textual_score: number
           updated_at: string
           user_id: string
@@ -326,8 +329,11 @@ export type Database = {
           completed_at?: string
           created_at?: string
           id?: string
+          last_advice_generated_at?: string | null
+          periodic_advice?: Json | null
           practical_score?: number
           preferred_style?: string
+          report_first_shown_at?: string | null
           textual_score?: number
           updated_at?: string
           user_id: string
@@ -339,8 +345,11 @@ export type Database = {
           completed_at?: string
           created_at?: string
           id?: string
+          last_advice_generated_at?: string | null
+          periodic_advice?: Json | null
           practical_score?: number
           preferred_style?: string
+          report_first_shown_at?: string | null
           textual_score?: number
           updated_at?: string
           user_id?: string
