@@ -16,7 +16,6 @@ const PREVIOUS_LEVEL_MAP: Record<string, string> = {
   "terminale": "seconde",
 };
 
-// Appel à l'IA Lovable (même modèle que lovable-chat qui fonctionne)
 async function callLovableAI(apiKey: string, systemPrompt: string, userPrompt: string): Promise<string> {
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -35,16 +34,15 @@ async function callLovableAI(apiKey: string, systemPrompt: string, userPrompt: s
 
   if (!response.ok) {
     const text = await response.text();
-    if (response.status === 429) throw new Error("Limite de requêtes dépassée, réessayez plus tard.");
-    if (response.status === 402) throw new Error("Crédits épuisés, ajoutez des crédits à votre workspace Lovable.");
-    throw new Error(`Lovable AI error: ${response.status} — ${text}`);
+    if (response.status === 429) throw new Error("Limite de requêtes dépassée.");
+    if (response.status === 402) throw new Error("Crédits épuisés.");
+    throw new Error(`AI error: ${response.status} — ${text}`);
   }
 
   const result = await response.json();
   return result.choices?.[0]?.message?.content || "";
 }
 
-// Extraire le JSON de la réponse de l'IA (gère les blocs markdown)
 function extractJSON(raw: string): any {
   let cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
   const match = cleaned.match(/\{[\s\S]*\}/);
@@ -68,9 +66,7 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // ──────────────────────────────────────────────────
-    // ACTION: generate — génère 5 questions QCM
-    // ──────────────────────────────────────────────────
+    // ── GENERATE ──
     if (action === "generate") {
       const previousLevel = PREVIOUS_LEVEL_MAP[school_level];
       let chaptersContext = "";
@@ -91,31 +87,25 @@ serve(async (req) => {
       }
 
       if (!chaptersContext) {
-        chaptersContext = "الرياضيات العامة للمستوى المتوسط والثانوي";
+        chaptersContext = "الرياضيات العامة";
       }
 
-      const prompt = `أنت معلم رياضيات جزائري متمرس.
-المهمة: أنشئ 5 أسئلة اختيار من متعدد (QCM) باللغة العربية لتقييم مستوى طالب في مرحلة الانتقال إلى مستوى: ${school_level}.
-محتوى البرنامج المرجعي للسنة الماضية:
+      const prompt = `أنت معلم رياضيات جزائري.
+أنشئ 5 أسئلة QCM بالعربية لتقييم طالب ينتقل إلى: ${school_level}.
+البرنامج المرجعي:
 ${chaptersContext}
 
-قواعد:
-- كل سؤال يجب أن يكون واضحاً ومحدداً
-- 4 خيارات لكل سؤال (خيار واحد صحيح فقط)
-- correct_index: رقم الخيار الصحيح (0 إلى 3)
-- explanation: تفسير الجواب الصحيح بالعربية
-
-أجب بـ JSON فقط بهذا الشكل الصارم:
+قواعد: 4 خيارات، خيار صحيح واحد، correct_index من 0 إلى 3.
+أجب بـ JSON فقط:
 {"questions": [{"question": "...", "options": ["...", "...", "...", "..."], "correct_index": 0, "chapter_ref": "...", "explanation": "..."}]}`;
 
       const raw = await callLovableAI(
         LOVABLE_API_KEY,
-        "You are an expert Algerian math teacher. Always respond with valid JSON only. No markdown, no explanation outside the JSON.",
+        "أجب بـ JSON فقط. لا شرح خارج JSON.",
         prompt
       );
 
       const parsed = extractJSON(raw);
-
       if (!parsed.questions || !Array.isArray(parsed.questions) || parsed.questions.length === 0) {
         throw new Error("L'IA n'a pas retourné de questions valides.");
       }
@@ -126,12 +116,10 @@ ${chaptersContext}
       );
     }
 
-    // ──────────────────────────────────────────────────
-    // ACTION: evaluate — analyse les réponses
-    // ──────────────────────────────────────────────────
+    // ── EVALUATE (concise) ──
     if (action === "evaluate") {
       if (!answers || !Array.isArray(answers)) {
-        throw new Error("Les réponses (answers) sont requises pour l'évaluation.");
+        throw new Error("Les réponses sont requises.");
       }
 
       const correctCount = answers.filter((a: any) => a.correct).length;
@@ -140,23 +128,19 @@ ${chaptersContext}
 
       const answersText = answers
         .map((a: any, i: number) =>
-          `السؤال ${i + 1}: ${a.question}\nالجواب: ${a.selected_index} | صحيح: ${a.correct} | المرجع: ${a.chapter_ref}`
+          `س${i + 1}: ${a.correct ? "✓" : "✗"} (${a.chapter_ref})`
         )
-        .join("\n---\n");
+        .join(" | ");
 
-      const prompt = `أنت معلم رياضيات جزائري خبير في التقييم.
-الطالب${student_name ? ` (${student_name})` : ""} أجاب على ${total} سؤالاً وأصاب في ${correctCount} (${percentage}%).
-
-تفاصيل الإجابات:
+      const prompt = `أنت معلم رياضيات. الطالب أجاب ${correctCount}/${total} (${percentage}%).
 ${answersText}
 
-أنشئ تقرير تقييم مفصل باللغة العربية.
-أجب بـ JSON فقط:
-{"level_label": "مستوى ممتاز / جيد جداً / جيد / متوسط / ضعيف", "summary": "ملخص (2-3 جمل)", "strengths": ["..."], "improvements": ["..."], "advice": "نصيحة شخصية"}`;
+أنشئ تقرير مختصر. أجب بـ JSON فقط:
+{"level_label": "مبتدئ/متوسط/متقدم", "summary": "جملة واحدة فقط", "strengths": ["نقطة واحدة"], "improvements": ["نقطة واحدة"], "advice": "نصيحة في جملة واحدة"}`;
 
       const raw = await callLovableAI(
         LOVABLE_API_KEY,
-        "You are an expert educational evaluator. Respond with valid JSON only.",
+        "أجب بـ JSON مختصر فقط. لا تكتب أكثر من جملة واحدة لكل حقل.",
         prompt
       );
 
