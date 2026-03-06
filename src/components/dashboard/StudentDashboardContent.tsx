@@ -22,7 +22,6 @@ interface StudentDashboardContentProps {
     school_level: string | null;
     email: string | null;
   };
-  /** Hide course access buttons (for parent view) */
   hideActions?: boolean;
 }
 
@@ -41,10 +40,10 @@ interface DayEntry {
 }
 
 const LEVEL_LABELS: Record<string, { label: string; color: string }> = {
-  advanced: { label: "متقدم / Avancé", color: "bg-primary text-primary-foreground" },
-  intermediate: { label: "متوسط / Intermédiaire", color: "bg-accent text-accent-foreground" },
-  beginner: { label: "مبتدئ / Débutant", color: "bg-secondary text-secondary-foreground" },
-  needs_work: { label: "يحتاج عمل / À travailler", color: "bg-destructive text-destructive-foreground" },
+  advanced: { label: "متقدم", color: "bg-primary text-primary-foreground" },
+  intermediate: { label: "متوسط", color: "bg-accent text-accent-foreground" },
+  beginner: { label: "مبتدئ", color: "bg-secondary text-secondary-foreground" },
+  needs_work: { label: "يحتاج عمل", color: "bg-destructive text-destructive-foreground" },
 };
 
 function getLevelBadge(accuracy: number) {
@@ -84,9 +83,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
 
   const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Utilisateur";
 
-  useEffect(() => {
-    fetchScores();
-  }, [userId]);
+  useEffect(() => { fetchScores(); }, [userId]);
 
   const fetchScores = async () => {
     const { data } = await supabase
@@ -97,7 +94,6 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
 
     if (!data || data.length === 0) return;
 
-    // Aggregate per chapter
     const chapterMap = new Map<string, ChapterStat>();
     let totalReadTime = 0, totalQuizTime = 0, totalExTime = 0;
 
@@ -106,17 +102,13 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
       const existing = chapterMap.get(cId) || {
         chapterId: cId,
         chapterTitle: s.chapter?.title_ar || s.chapter?.title || "—",
-        totalTime: 0,
-        quizAccuracy: 0,
-        exerciseAccuracy: 0,
-        level: 0,
+        totalTime: 0, quizAccuracy: 0, exerciseAccuracy: 0, level: 0,
       };
       existing.totalTime += (s.reading_time_seconds || 0) + (s.quiz_time_seconds || 0) + (s.exercise_time_seconds || 0);
       existing.quizAccuracy = Number(s.accuracy_rate) || existing.quizAccuracy;
       existing.exerciseAccuracy = Number(s.accuracy_rate) || existing.exerciseAccuracy;
       existing.level = s.current_level;
       chapterMap.set(cId, existing);
-
       totalReadTime += s.reading_time_seconds || 0;
       totalQuizTime += s.quiz_time_seconds || 0;
       totalExTime += s.exercise_time_seconds || 0;
@@ -125,7 +117,6 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
     setChapterStats(Array.from(chapterMap.values()));
     setActivityBreakdown({ reading: totalReadTime, quiz: totalQuizTime, exercise: totalExTime });
 
-    // Daily aggregation (last 14 days)
     const now = new Date();
     const dayMap = new Map<string, number>();
     for (let i = 13; i >= 0; i--) {
@@ -141,7 +132,6 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
     });
     setDailyData(Array.from(dayMap.entries()).map(([date, seconds]) => ({ date, minutes: Math.round(seconds / 60) })));
 
-    // Overall stats
     const total = totalReadTime + totalQuizTime + totalExTime;
     setTotalTime(total);
     const totalAns = data.reduce((s: number, d: any) => s + (d.total_answers || 0), 0);
@@ -152,167 +142,146 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
     setAvgLevel(lvl);
   };
 
-  // SVG chart helper
+  // SVG chart helpers
   const maxMinutes = Math.max(...dailyData.map(d => d.minutes), 1);
   const chartW = 600;
-  const chartH = 200;
+  const chartH = 180;
   const padding = 30;
   const plotW = chartW - padding * 2;
   const plotH = chartH - padding * 2;
-
-  const points = dailyData.map((d, i) => {
-    const x = padding + (i / Math.max(dailyData.length - 1, 1)) * plotW;
-    const y = padding + plotH - (d.minutes / maxMinutes) * plotH;
-    return { x, y, ...d };
-  });
-
-  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
-  const areaPath = `${linePath} L ${points[points.length - 1]?.x || 0} ${padding + plotH} L ${points[0]?.x || 0} ${padding + plotH} Z`;
+  const barWidth = plotW / Math.max(dailyData.length, 1) * 0.6;
+  const barGap = plotW / Math.max(dailyData.length, 1) * 0.4;
 
   const totalActivity = activityBreakdown.reading + activityBreakdown.quiz + activityBreakdown.exercise || 1;
   const readPct = Math.round((activityBreakdown.reading / totalActivity) * 100);
   const quizPct = Math.round((activityBreakdown.quiz / totalActivity) * 100);
   const exPct = 100 - readPct - quizPct;
 
-  // Engagement: target 1h/day, calculate today's time
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayMinutes = dailyData.find(d => d.date === todayStr)?.minutes || 0;
   const engagementPct = Math.min(100, Math.round((todayMinutes / 60) * 100));
-
   const avgPerDay = dailyData.length > 0 ? Math.round(dailyData.reduce((s, d) => s + d.minutes, 0) / dailyData.length) : 0;
+
+  // Level ring SVG
+  const ringRadius = 52;
+  const ringCircumference = 2 * Math.PI * ringRadius;
+  const ringOffset = ringCircumference - (avgLevel / 100) * ringCircumference;
+
+  const stats = [
+    { icon: Clock, label: "وقت الدراسة", value: formatTime(totalTime), color: "text-primary", bg: "bg-primary/10" },
+    { icon: TrendingUp, label: "متوسط يومي", value: `${avgPerDay} min`, color: "text-accent", bg: "bg-accent/10" },
+    { icon: Target, label: "دقة الإجابات", value: `${avgAccuracy}%`, color: "text-primary", bg: "bg-primary/10" },
+    { icon: GraduationCap, label: "المستوى", value: SCHOOL_LEVELS[profile.school_level || ""] || "—", color: "text-muted-foreground", bg: "bg-muted" },
+  ];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Main Content - 2/3 */}
+      {/* Main Content */}
       <div className="lg:col-span-2 space-y-6">
-        {/* Welcome Card */}
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-2xl font-bold mb-4">مرحباً {profile.first_name || fullName} 👋</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/10">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Clock className="h-5 w-5 text-primary" />
+        {/* Welcome + Stats */}
+        <Card className="overflow-hidden">
+          <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-transparent p-6 pb-2">
+            <h2 className="text-2xl font-bold text-foreground">مرحباً {profile.first_name || fullName} 👋</h2>
+            <p className="text-sm text-muted-foreground mt-1">ملخص نشاطك التعليمي</p>
+          </div>
+          <CardContent className="p-6 pt-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {stats.map((s, i) => (
+                <div key={i} className="flex flex-col items-center text-center p-4 rounded-xl bg-card border border-border/50 hover:border-primary/20 transition-colors">
+                  <div className={`p-2.5 rounded-lg ${s.bg} mb-2`}>
+                    <s.icon className={`h-5 w-5 ${s.color}`} />
+                  </div>
+                  <p className="text-lg font-bold text-foreground">{s.value}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
                 </div>
-                <div>
-                  <p className="text-lg font-bold text-foreground">{formatTime(totalTime)}</p>
-                  <p className="text-xs text-muted-foreground">وقت الدراسة الإجمالي</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-accent/5 border border-accent/10">
-                <div className="p-2 rounded-lg bg-accent/10">
-                  <TrendingUp className="h-5 w-5 text-accent" />
-                </div>
-                <div>
-                  <p className="text-lg font-bold text-foreground">{avgPerDay} min</p>
-                  <p className="text-xs text-muted-foreground">متوسط يومي</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/10">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Target className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-lg font-bold text-foreground">{avgAccuracy}%</p>
-                  <p className="text-xs text-muted-foreground">دقة الإجابات</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary border border-border">
-                <div className="p-2 rounded-lg bg-muted">
-                  <GraduationCap className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="text-lg font-bold text-foreground">{SCHOOL_LEVELS[profile.school_level || ""] || profile.school_level || "—"}</p>
-                  <p className="text-xs text-muted-foreground">المستوى الدراسي</p>
-                </div>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Evolution & Activity Breakdown */}
+        {/* Evolution & Breakdown */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              التطور والتوزيع - Évolution & répartition
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              التطور والتوزيع
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* SVG Chart - last 14 days */}
+              {/* Bar Chart */}
               <div>
-                <p className="text-sm text-muted-foreground mb-3">الوقت المستغرق / 14 يوماً الأخيرة</p>
-                <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full h-auto" style={{ maxHeight: 220 }}>
-                  {/* Grid lines */}
-                  {[0, 0.25, 0.5, 0.75, 1].map(f => {
+                <p className="text-xs text-muted-foreground mb-2">الوقت (دقائق) — آخر 14 يوماً</p>
+                <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full h-auto" style={{ maxHeight: 200 }}>
+                  {/* Grid */}
+                  {[0, 0.5, 1].map(f => {
                     const y = padding + plotH - f * plotH;
                     return (
                       <g key={f}>
-                        <line x1={padding} y1={y} x2={padding + plotW} y2={y} stroke="hsl(var(--border))" strokeWidth="1" strokeDasharray="4 4" />
-                        <text x={padding - 5} y={y + 4} textAnchor="end" fontSize="10" fill="hsl(var(--muted-foreground))">{Math.round(maxMinutes * f)}</text>
+                        <line x1={padding} y1={y} x2={padding + plotW} y2={y} stroke="hsl(var(--border))" strokeWidth="0.5" />
+                        <text x={padding - 5} y={y + 3} textAnchor="end" fontSize="9" fill="hsl(var(--muted-foreground))">{Math.round(maxMinutes * f)}</text>
                       </g>
                     );
                   })}
-                  {/* Area */}
-                  {points.length > 1 && (
-                    <path d={areaPath} fill="hsl(var(--primary) / 0.1)" />
-                  )}
-                  {/* Line */}
-                  {points.length > 1 && (
-                    <path d={linePath} fill="none" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  )}
-                  {/* Dots */}
-                  {points.map((p, i) => (
-                    <g key={i}>
-                      <circle cx={p.x} cy={p.y} r="4" fill="hsl(var(--primary))" stroke="hsl(var(--card))" strokeWidth="2" />
-                      {i % 2 === 0 && (
-                        <text x={p.x} y={chartH - 5} textAnchor="middle" fontSize="8" fill="hsl(var(--muted-foreground))">
-                          {p.date.slice(5)}
-                        </text>
-                      )}
-                    </g>
-                  ))}
+                  {/* Bars */}
+                  {dailyData.map((d, i) => {
+                    const x = padding + i * (plotW / dailyData.length) + barGap / 2;
+                    const barH = (d.minutes / maxMinutes) * plotH;
+                    const y = padding + plotH - barH;
+                    return (
+                      <g key={i}>
+                        <rect x={x} y={y} width={barWidth} height={barH} rx={3} fill="hsl(var(--primary))" opacity={d.date === todayStr ? 1 : 0.6} />
+                        {i % 2 === 0 && (
+                          <text x={x + barWidth / 2} y={chartH - 4} textAnchor="middle" fontSize="7" fill="hsl(var(--muted-foreground))">
+                            {d.date.slice(8)}
+                          </text>
+                        )}
+                      </g>
+                    );
+                  })}
                 </svg>
               </div>
 
-              {/* Activity Breakdown */}
+              {/* Activity + Level Ring */}
               <div className="space-y-4">
-                <p className="text-sm text-muted-foreground mb-3">توزيع النشاط</p>
+                <p className="text-xs text-muted-foreground">توزيع النشاط</p>
                 <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="flex items-center gap-2"><BookOpen className="h-3.5 w-3.5 text-primary" /> قراءة الدروس</span>
-                      <span className="text-muted-foreground">{readPct}%</span>
+                  {[
+                    { label: "قراءة الدروس", icon: BookOpen, pct: readPct, color: "bg-primary" },
+                    { label: "اختبارات", icon: Brain, pct: quizPct, color: "bg-accent" },
+                    { label: "تمارين", icon: FileText, pct: exPct, color: "bg-muted-foreground/50" },
+                  ].map((item, i) => (
+                    <div key={i}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="flex items-center gap-1.5"><item.icon className="h-3 w-3" /> {item.label}</span>
+                        <span className="text-muted-foreground">{item.pct}%</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                        <div className={`h-full rounded-full ${item.color} transition-all`} style={{ width: `${item.pct}%` }} />
+                      </div>
                     </div>
-                    <Progress value={readPct} className="h-2.5" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="flex items-center gap-2"><Brain className="h-3.5 w-3.5 text-accent" /> اختبارات</span>
-                      <span className="text-muted-foreground">{quizPct}%</span>
-                    </div>
-                    <div className="h-2.5 rounded-full bg-secondary overflow-hidden">
-                      <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${quizPct}%` }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="flex items-center gap-2"><FileText className="h-3.5 w-3.5 text-muted-foreground" /> تمارين</span>
-                      <span className="text-muted-foreground">{exPct}%</span>
-                    </div>
-                    <div className="h-2.5 rounded-full bg-secondary overflow-hidden">
-                      <div className="h-full rounded-full bg-muted-foreground/40 transition-all" style={{ width: `${exPct}%` }} />
-                    </div>
-                  </div>
+                  ))}
                 </div>
 
-                {/* Level gauge */}
-                <div className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/10 text-center">
-                  <p className="text-sm text-muted-foreground mb-1">المستوى العام</p>
-                  <p className="text-3xl font-bold text-primary">{avgLevel}%</p>
-                  <div className="mt-2 h-2 rounded-full bg-secondary overflow-hidden">
-                    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${avgLevel}%` }} />
+                {/* Level Ring */}
+                <div className="flex items-center justify-center pt-2">
+                  <div className="relative">
+                    <svg width="130" height="130" viewBox="0 0 130 130">
+                      <circle cx="65" cy="65" r={ringRadius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="10" />
+                      <circle
+                        cx="65" cy="65" r={ringRadius} fill="none"
+                        stroke="hsl(var(--primary))" strokeWidth="10"
+                        strokeLinecap="round"
+                        strokeDasharray={ringCircumference}
+                        strokeDashoffset={ringOffset}
+                        transform="rotate(-90 65 65)"
+                        className="transition-all duration-700"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-2xl font-bold text-primary">{avgLevel}%</span>
+                      <span className="text-[10px] text-muted-foreground">المستوى العام</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -320,14 +289,17 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
           </CardContent>
         </Card>
 
-        {/* Chapter Details Table */}
+        {/* Chapter Table */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">تفاصيل حسب الفصل - Détails par chapitre</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">تفاصيل حسب الفصل</CardTitle>
           </CardHeader>
           <CardContent>
             {chapterStats.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">لا توجد بيانات بعد. ابدأ بدراسة الدروس!</p>
+              <div className="text-center py-12">
+                <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
+                <p className="text-muted-foreground">لا توجد بيانات بعد. ابدأ بدراسة الدروس!</p>
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
@@ -335,9 +307,9 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                     <TableRow>
                       <TableHead className="w-10">#</TableHead>
                       <TableHead>الفصل</TableHead>
-                      <TableHead>الوقت الإجمالي</TableHead>
-                      <TableHead>نسبة نجاح الاختبار</TableHead>
-                      <TableHead>نسبة نجاح التمارين</TableHead>
+                      <TableHead>الوقت</TableHead>
+                      <TableHead>اختبار</TableHead>
+                      <TableHead>تمارين</TableHead>
                       <TableHead>المستوى</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -346,13 +318,13 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                       const badge = getLevelBadge(ch.level);
                       return (
                         <TableRow key={ch.chapterId}>
-                          <TableCell className="font-medium">{i + 1}</TableCell>
+                          <TableCell className="font-medium text-muted-foreground">{i + 1}</TableCell>
                           <TableCell className="font-medium">{ch.chapterTitle}</TableCell>
-                          <TableCell>{formatTime(ch.totalTime)}</TableCell>
-                          <TableCell>{ch.quizAccuracy}%</TableCell>
-                          <TableCell>{ch.exerciseAccuracy}%</TableCell>
+                          <TableCell className="text-sm">{formatTime(ch.totalTime)}</TableCell>
+                          <TableCell className="text-sm">{ch.quizAccuracy}%</TableCell>
+                          <TableCell className="text-sm">{ch.exerciseAccuracy}%</TableCell>
                           <TableCell>
-                            <Badge className={badge.color}>{badge.label}</Badge>
+                            <Badge className={`${badge.color} text-xs`}>{badge.label}</Badge>
                           </TableCell>
                         </TableRow>
                       );
@@ -365,60 +337,56 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
         </Card>
       </div>
 
-      {/* Sidebar - 1/3 */}
+      {/* Sidebar */}
       <div className="space-y-6">
         {/* Profile Card */}
-        <Card>
-          <CardContent className="p-6 text-center">
-            <Avatar className="h-20 w-20 mx-auto mb-3">
+        <Card className="overflow-hidden">
+          <div className="bg-gradient-to-br from-primary/10 to-accent/5 p-6 pb-4 text-center">
+            <Avatar className="h-20 w-20 mx-auto mb-3 ring-4 ring-background shadow-lg">
               <AvatarImage src={profile.avatar_url || undefined} />
-              <AvatarFallback className="text-xl bg-primary/10 text-primary">{fullName.charAt(0).toUpperCase()}</AvatarFallback>
+              <AvatarFallback className="text-xl bg-primary text-primary-foreground">{fullName.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <h3 className="font-semibold text-lg">{fullName}</h3>
-            <p className="text-sm text-muted-foreground">{profile.email}</p>
+            <h3 className="font-semibold text-lg text-foreground">{fullName}</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">{profile.email}</p>
             <Badge variant="outline" className="mt-2">
               {SCHOOL_LEVELS[profile.school_level || ""] || profile.school_level || "—"}
             </Badge>
-
-            {/* Engagement bar */}
-            <div className="mt-5">
-              <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>التفاعل اليومي</span>
-                <span>{todayMinutes} min / 60 min</span>
-              </div>
-              <Progress value={engagementPct} className="h-3" />
-              <p className="text-xs text-muted-foreground mt-1">الهدف: 1 ساعة يومياً</p>
+          </div>
+          <CardContent className="p-5">
+            <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
+              <span>التفاعل اليومي</span>
+              <span>{todayMinutes} / 60 min</span>
             </div>
+            <Progress value={engagementPct} className="h-2.5" />
+            <p className="text-[10px] text-muted-foreground mt-1 text-center">الهدف: 1 ساعة يومياً</p>
           </CardContent>
         </Card>
 
         {/* Quick Actions */}
         {!hideActions && (
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">إجراءات سريعة</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">إجراءات سريعة</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2">
               <Button className="w-full justify-start gap-2" onClick={() => navigate("/liste-cours")}>
-                <BookOpen className="h-4 w-4" /> فتح دروسي - Ouvrir mes cours
+                <BookOpen className="h-4 w-4" /> فتح دروسي
               </Button>
               <Button variant="outline" className="w-full justify-start gap-2" onClick={() => navigate("/liste-cours")}>
-                <Brain className="h-4 w-4" /> إجراء اختبار - Faire un quiz
+                <Brain className="h-4 w-4" /> إجراء اختبار
               </Button>
-              <Button variant="secondary" className="w-full justify-start gap-2" onClick={() => navigate("/revision")}>
-                <FileText className="h-4 w-4" /> مراجعة - Réviser
+              <Button variant="secondary" className="w-full justify-start gap-2" onClick={() => navigate("/liste-cours")}>
+                <FileText className="h-4 w-4" /> مراجعة
               </Button>
             </CardContent>
           </Card>
         )}
 
-        {/* Stats summary card */}
+        {/* Total Answers */}
         <Card className="bg-primary/5 border-primary/10">
-          <CardContent className="p-6">
-            <div className="text-center space-y-2">
-              <p className="text-4xl font-bold text-primary">{totalAnswers}</p>
-              <p className="text-sm text-muted-foreground">إجمالي الإجابات</p>
-            </div>
+          <CardContent className="p-6 text-center">
+            <p className="text-4xl font-bold text-primary">{totalAnswers}</p>
+            <p className="text-xs text-muted-foreground mt-1">إجمالي الإجابات</p>
           </CardContent>
         </Card>
       </div>
