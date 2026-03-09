@@ -92,6 +92,7 @@ const MesInformations = () => {
     filiere: "",
     email: "",
     avatar_url: "",
+    date_of_birth: undefined as Date | undefined,
   });
 
   useEffect(() => {
