@@ -73,6 +73,9 @@ interface Profile {
   avatar_url: string | null;
   linking_code: string | null;
   date_of_birth: string | null;
+  wilaya: string | null;
+  ville: string | null;
+  ecole: string | null;
 }
 
 const MesInformations = () => {
