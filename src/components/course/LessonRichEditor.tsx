@@ -44,6 +44,24 @@ const PreserveStyles = Extension.create({
     ];
   },
 });
+
+// Extend TextStyle to preserve full style attribute on spans
+const ExtendedTextStyle = TextStyle.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      style: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('style') || null,
+        renderHTML: (attributes: Record<string, any>) => {
+          if (!attributes.style) return {};
+          return { style: attributes.style };
+        },
+      },
+    };
+  },
+});
+
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
