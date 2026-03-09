@@ -9,7 +9,8 @@ import { GenerateQuizExercisesButton } from "@/components/course/QuizExerciseCRU
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check } from "lucide-react";
+import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { NotificationBell } from "@/components/course/NotificationBell";
 import ChatBot from "@/components/ChatBot";
 import ITSRecommendations from "@/components/its/ITSRecommendations";
