@@ -9,7 +9,8 @@ import { GenerateQuizExercisesButton } from "@/components/course/QuizExerciseCRU
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check } from "lucide-react";
+import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { NotificationBell } from "@/components/course/NotificationBell";
 import ChatBot from "@/components/ChatBot";
 import ITSRecommendations from "@/components/its/ITSRecommendations";
@@ -81,6 +82,7 @@ const Cours = () => {
   const [activeActivity, setActiveActivity] = useState<string | null>(null);
   const [canManage, setCanManage] = useState(false);
   const [filiereId, setFiliereId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [dbQuizzes, setDbQuizzes] = useState<DBQuizQuestion[]>([]);
   const [dbExercises, setDbExercises] = useState<DBExercise[]>([]);
 
@@ -463,6 +465,25 @@ const Cours = () => {
         {/* Grid view - Chapter selection */}
         {!activeActivity && viewMode === "grid" && (
           <div className="space-y-4">
+            {/* Search bar */}
+            <div className="bg-card rounded-xl p-6 border">
+              <h2 className="text-lg font-semibold mb-1">
+                Matières de {schoolLevel && getSchoolLevelName(schoolLevel)}
+              </h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Découvre tous les cours de ta classe et prépare-toi à réussir ! 🚀
+              </p>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Rechercher un chapitre ou une leçon..."
+                  className="pl-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+
             <ITSRecommendations />
             {canManage && (
               <div className="flex justify-end">
@@ -475,7 +496,15 @@ const Cours = () => {
               </div>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {chapters.map((chapter, index) => (
+              {chapters.filter((chapter) => {
+                if (!searchQuery.trim()) return true;
+                const q = searchQuery.toLowerCase();
+                const titleMatch = chapter.title.toLowerCase().includes(q);
+                const lessonMatch = chapter.lessons?.some(l => 
+                  l.title.toLowerCase().includes(q) || l.titleAr.toLowerCase().includes(q)
+                );
+                return titleMatch || lessonMatch;
+              }).map((chapter, index) => (
                 <Card
                   key={chapter.id}
                   className={`cursor-pointer transition-all hover:shadow-lg ${progress[chapter.id] ? 'border-green-500/50 bg-green-500/5' : ''
