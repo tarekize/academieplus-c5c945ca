@@ -290,6 +290,10 @@ const Auth = () => {
         }
       }
 
+      if (wilaya) userData.wilaya = wilaya;
+      if (ville) userData.ville = ville;
+      if (ecole) userData.ecole = ecole;
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
