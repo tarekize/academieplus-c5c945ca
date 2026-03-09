@@ -97,6 +97,9 @@ const MesInformations = () => {
     email: "",
     avatar_url: "",
     date_of_birth: undefined as Date | undefined,
+    wilaya: "",
+    ville: "",
+    ecole: "",
   });
 
   useEffect(() => {
