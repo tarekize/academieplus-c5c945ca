@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, CreditCard, GraduationCap, LogOut, User as UserIcon } from "lucide-react";
+import { ArrowLeft, CreditCard, GraduationCap, LogOut, User as UserIcon, Shield, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -119,6 +120,39 @@ const Paiement = () => {
     navigate("/");
   };
 
+  // Compute billing details
+  const getBillingDetails = () => {
+    if (!paymentInfo) return null;
+
+    const now = new Date();
+    const isAnnual = paymentInfo.billingPeriod === 'annual';
+    const months = isAnnual ? 10 : 1;
+    const monthlyPrice = Math.round(paymentInfo.price / months);
+
+    const endDate = new Date(now);
+    endDate.setMonth(endDate.getMonth() + months);
+
+    const renewalDate = new Date(endDate);
+
+    const formatDate = (d: Date) =>
+      d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    const periodLabel = isAnnual ? '1 année scolaire' : 'mensuel';
+
+    return {
+      monthlyPrice,
+      totalPrice: paymentInfo.price,
+      months,
+      periodLabel,
+      startDate: formatDate(now),
+      endDate: formatDate(endDate),
+      renewalDate: formatDate(renewalDate),
+      isAnnual,
+    };
+  };
+
+  const billing = getBillingDetails();
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -133,14 +167,14 @@ const Paiement = () => {
         <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between h-16">
-              <div 
-                className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" 
+              <div
+                className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={() => navigate("/liste-cours")}
               >
                 <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                  <GraduationCap className="h-6 w-6 text-white" />
+                  <GraduationCap className="h-6 w-6 text-primary-foreground" />
                 </div>
-                <span className="text-xl font-bold">AcadémiePlus</span>
+                <span className="text-xl font-bold text-foreground">AcadémiePlus</span>
               </div>
             </div>
           </div>
@@ -148,7 +182,7 @@ const Paiement = () => {
 
         <main className="pt-24 pb-12">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-3xl font-bold mb-4">Aucune formule sélectionnée</h1>
+            <h1 className="text-3xl font-bold mb-4 text-foreground">Aucune formule sélectionnée</h1>
             <p className="text-muted-foreground mb-8">
               Veuillez d'abord choisir une formule d'abonnement.
             </p>
@@ -169,14 +203,14 @@ const Paiement = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <div 
-              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" 
+            <div
+              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate("/liste-cours")}
             >
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-white" />
+                <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">AcadémiePlus</span>
+              <span className="text-xl font-bold text-foreground">AcadémiePlus</span>
             </div>
 
             <div className="flex items-center gap-4">
@@ -190,7 +224,7 @@ const Paiement = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div className="text-left hidden md:block">
-                      <p className="text-sm font-medium">{fullName}</p>
+                      <p className="text-sm font-medium text-foreground">{fullName}</p>
                       <p className="text-xs text-muted-foreground">
                         {profile?.school_level && getSchoolLevelName(profile.school_level)}
                       </p>
@@ -231,57 +265,76 @@ const Paiement = () => {
             </BreadcrumbList>
           </Breadcrumb>
 
-          <div className="max-w-2xl mx-auto">
-            <Card className="p-8">
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2">
-                  Paiement
-                </h1>
-                <p className="text-2xl font-semibold text-primary">
-                  {paymentInfo.planName}
-                </p>
+          <div className="grid lg:grid-cols-[1fr_380px] gap-8 max-w-5xl mx-auto">
+            {/* Left Column - Plan + Payment Form */}
+            <div className="space-y-6">
+              {/* Selected Plan Header */}
+              <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-bold text-foreground">Formule sélectionnée</h1>
+                <span className="text-muted-foreground underline underline-offset-4">
+                  Contenus - {billing?.isAnnual ? '1 année scolaire' : 'mensuel'}
+                </span>
               </div>
 
-              <div className="mb-8 p-4 bg-muted rounded-lg">
-                <div className="flex justify-between items-center text-lg">
-                  <span>Montant total</span>
-                  <span className="font-bold">{paymentInfo.price.toLocaleString('fr-DZ')} DA</span>
-                </div>
-                {paymentInfo.isFamily && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Formule famille incluse
-                  </p>
-                )}
-              </div>
+              <Separator />
 
+              {/* Payment Form */}
               <div className="space-y-6">
-                <h2 className="text-xl font-bold">
-                  Informations de paiement
-                </h2>
+                <h2 className="text-xl font-bold text-foreground">Paiement</h2>
 
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="cardNumber">Numéro de carte</Label>
-                    <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
+                {/* Payment Methods */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 border-2 border-primary rounded-lg px-4 py-2.5">
+                    <CreditCard className="h-5 w-5 text-primary" />
+                    <span className="text-sm font-semibold text-foreground">CIB / EDAHABIA</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="expiry">Date d'expiration</Label>
-                      <Input id="expiry" placeholder="MM/AA" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cvv">CVV</Label>
-                      <Input id="cvv" placeholder="123" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cardName">Nom sur la carte</Label>
-                    <Input id="cardName" placeholder="Nom complet" />
+                  <div className="flex items-center gap-2 border rounded-lg px-4 py-2.5 text-muted-foreground">
+                    <span className="text-sm font-medium">Virement bancaire</span>
                   </div>
                 </div>
 
-                <Button 
-                  className="w-full mt-6"
+                {/* Card Number */}
+                <div className="space-y-2">
+                  <div className="relative">
+                    <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="cardNumber"
+                      placeholder="1234 1234 1234 1234"
+                      className="pl-11 h-12 text-base"
+                    />
+                  </div>
+                </div>
+
+                {/* Expiry + CVC */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="relative">
+                    <Input
+                      id="expiry"
+                      placeholder="MM / AA"
+                      className="h-12 text-base"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="cvv"
+                      placeholder="CVC"
+                      className="pl-10 h-12 text-base"
+                    />
+                  </div>
+                </div>
+
+                {/* Security Notice */}
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <Shield className="h-4 w-4 flex-shrink-0" />
+                  <span>
+                    Hébergement entièrement sécurisé. AcadémiePlus n'enregistre pas votre moyen de paiement.
+                  </span>
+                </div>
+
+                {/* Pay Button */}
+                <Button
+                  className="w-auto px-10 font-bold text-lg py-6"
                   size="lg"
                   onClick={() => {
                     toast({
@@ -290,15 +343,103 @@ const Paiement = () => {
                     });
                   }}
                 >
-                  <CreditCard className="h-5 w-5 mr-2" />
                   Payer {paymentInfo.price.toLocaleString('fr-DZ')} DA
                 </Button>
 
-                <p className="text-center text-sm text-muted-foreground">
-                  Paiement sécurisé • Vos données sont protégées
+                {/* Legal Text */}
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  En cliquant sur ce bouton, je confirme avoir lu et accepté les{" "}
+                  <span
+                    className="font-semibold text-foreground cursor-pointer hover:underline"
+                    onClick={() => navigate("/mentions-legales")}
+                  >
+                    Conditions générales d'utilisation
+                  </span>
+                  , la{" "}
+                  <span
+                    className="font-semibold text-foreground cursor-pointer hover:underline"
+                    onClick={() => navigate("/politique-confidentialite")}
+                  >
+                    politique de confidentialité
+                  </span>
+                  , ainsi que les{" "}
+                  <span className="font-semibold text-foreground">
+                    Conditions générales de vente d'AcadémiePlus
+                  </span>
+                  .
                 </p>
               </div>
-            </Card>
+            </div>
+
+            {/* Right Column - Tarif Summary */}
+            <div className="lg:sticky lg:top-24 h-fit">
+              <Card className="p-6 border-l-4 border-l-primary bg-card">
+                <div className="flex items-baseline justify-between mb-6">
+                  <h3 className="text-xl font-bold text-foreground">Tarif</h3>
+                  <div className="text-right">
+                    <span className="text-3xl font-bold text-primary">
+                      {billing ? billing.monthlyPrice.toLocaleString('fr-DZ') : '---'} DA
+                    </span>
+                    <span className="text-muted-foreground text-sm"> / mois</span>
+                  </div>
+                </div>
+
+                <Separator className="mb-5" />
+
+                <div className="space-y-5">
+                  {/* Facturation */}
+                  <div>
+                    <h4 className="font-bold text-foreground mb-1">Facturation :</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Prélèvement immédiat de{" "}
+                      <span className="font-semibold text-foreground">
+                        {paymentInfo.price.toLocaleString('fr-DZ')} DA
+                      </span>
+                      {billing?.isAnnual ? (
+                        <> pour une période de {billing.months} mois, soit du {billing.startDate} au {billing.endDate}.</>
+                      ) : (
+                        <> pour un mois, soit du {billing?.startDate} au {billing?.endDate}.</>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Résiliation */}
+                  <div>
+                    <h4 className="font-bold text-foreground mb-1">Résiliation en un clic :</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Immédiate en un clic depuis votre espace personnel, à effectuer à tout moment jusqu'à 24h avant le renouvellement. Accès maintenu jusqu'à la fin de la période déjà payée.
+                    </p>
+                  </div>
+
+                  {/* Renouvellement */}
+                  <div>
+                    <h4 className="font-bold text-foreground mb-1">Renouvellement :</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Automatique le{" "}
+                      <span className="font-bold text-foreground">{billing?.renewalDate}</span>
+                      {" "}à hauteur de{" "}
+                      <span className="font-semibold text-foreground">
+                        {paymentInfo.price.toLocaleString('fr-DZ')} DA
+                      </span>
+                      {billing?.isAnnual ? (
+                        <> pour une période suivante de {billing.months} mois, sauf résiliation préalable.</>
+                      ) : (
+                        <> pour une période suivante de 1 mois, sauf résiliation préalable.</>
+                      )}
+                    </p>
+                  </div>
+
+                  {paymentInfo.isFamily && (
+                    <div>
+                      <h4 className="font-bold text-foreground mb-1">Formule :</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Famille (jusqu'à 3 enfants)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
           </div>
         </div>
       </main>
