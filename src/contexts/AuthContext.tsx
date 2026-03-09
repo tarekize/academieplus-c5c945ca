@@ -45,19 +45,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .eq('user_id', session.user.id)
             .maybeSingle();
 
+          const currentPath = window.location.pathname;
+
           // Si pas de rôle et qu'on n'est pas déjà sur la page de complétion ou d'évaluation
-          // Allow new users to reach /learning-assessment before redirecting to /complete-profile
-          if (!roleData?.role && !window.location.pathname.includes('/complete-profile') && !window.location.pathname.includes('/auth') && !window.location.pathname.includes('/learning-assessment')) {
+          if (!roleData?.role && !currentPath.includes('/complete-profile') && !currentPath.includes('/auth') && !currentPath.includes('/learning-assessment')) {
             window.location.href = '/complete-profile';
+            return;
           }
 
-          // Rediriger les pédagos vers /liste-cours s'ils arrivent sur /complete-profile
-          if (roleData?.role === 'pedago' && window.location.pathname.includes('/complete-profile')) {
+          // Rediriger admin et pédago vers /liste-cours après connexion
+          if ((roleData?.role === 'pedago' || roleData?.role === 'admin') && 
+              (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/')) {
             window.location.href = '/liste-cours';
+            return;
           }
 
           // Rediriger les élèves sans évaluation vers le jeu d'apprentissage
-          if (roleData?.role === 'student' && !window.location.pathname.includes('/learning-assessment') && !window.location.pathname.includes('/complete-profile') && !window.location.pathname.includes('/auth')) {
+          if (roleData?.role === 'student' && !currentPath.includes('/learning-assessment') && !currentPath.includes('/complete-profile') && !currentPath.includes('/auth')) {
             const { data: styleData } = await supabase
               .from('learning_styles')
               .select('id')
