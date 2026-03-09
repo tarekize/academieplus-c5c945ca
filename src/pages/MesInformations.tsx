@@ -145,6 +145,9 @@ const MesInformations = () => {
         email: data.email || "",
         avatar_url: data.avatar_url || "",
         date_of_birth: data.date_of_birth ? new Date(data.date_of_birth + 'T00:00:00') : undefined,
+        wilaya: (data as any).wilaya || "",
+        ville: (data as any).ville || "",
+        ecole: (data as any).ecole || "",
       });
     } catch (error: any) {
       toast({
