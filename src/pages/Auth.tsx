@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import Header from "@/components/Header";
 import iconStudent from "@/assets/icon-student.png";
 import iconParent from "@/assets/icon-parent.png";
+import LocationFields from "@/components/profile/LocationFields";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -37,6 +38,9 @@ const Auth = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [registrationEmail, setRegistrationEmail] = useState("");
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [wilaya, setWilaya] = useState("");
+  const [ville, setVille] = useState("");
+  const [ecole, setEcole] = useState("");
 
   // RGPD Consent states
   const [consentDataProcessing, setConsentDataProcessing] = useState(false);
@@ -203,7 +207,7 @@ const Auth = () => {
       setIsRegistering(true);
 
       // Envoyer l'inscription en arrière-plan
-      performSignUp(firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth);
+      performSignUp(firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth, wilaya, ville, ecole);
     } else {
       // LOGIN
       setLoading(true);
@@ -241,7 +245,10 @@ const Auth = () => {
     profileType: string,
     classLevel: string,
     filiere: string,
-    dateOfBirth: Date | undefined
+    dateOfBirth: Date | undefined,
+    wilaya: string,
+    ville: string,
+    ecole: string
   ) => {
     try {
       const schoolLevelMapping: Record<string, string> = {
@@ -282,6 +289,10 @@ const Auth = () => {
           userData.filiere = filiereMapping[filiere] || filiere.toLowerCase().replace(/\s+/g, '_');
         }
       }
+
+      if (wilaya) userData.wilaya = wilaya;
+      if (ville) userData.ville = ville;
+      if (ecole) userData.ecole = ecole;
 
       const { error } = await supabase.auth.signUp({
         email,
@@ -732,6 +743,18 @@ const Auth = () => {
                           </div>
                         )}
                       </div>
+                    )}
+
+                    {/* Wilaya, Ville, École - pour élève et parent */}
+                    {(profileType === "enfant" || profileType === "parent") && (
+                      <LocationFields
+                        wilaya={wilaya}
+                        ville={ville}
+                        ecole={ecole}
+                        onWilayaChange={setWilaya}
+                        onVilleChange={setVille}
+                        onEcoleChange={setEcole}
+                      />
                     )}
 
                     {/* RGPD Consents */}

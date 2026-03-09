@@ -11,6 +11,7 @@ import Header from "@/components/Header";
 import iconStudent from "@/assets/icon-student.png";
 import iconParent from "@/assets/icon-parent.png";
 import { User } from "lucide-react";
+import LocationFields from "@/components/profile/LocationFields";
 
 const CompleteProfile = () => {
   const navigate = useNavigate();
@@ -21,6 +22,9 @@ const CompleteProfile = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
+  const [wilaya, setWilaya] = useState("");
+  const [ville, setVille] = useState("");
+  const [ecole, setEcole] = useState("");
 
   useEffect(() => {
     const checkSession = async () => {
@@ -54,7 +58,6 @@ const CompleteProfile = () => {
     checkSession();
   }, [navigate]);
 
-  // Reset filiere when class level changes
   useEffect(() => {
     setFiliere("");
   }, [classLevel]);
@@ -98,6 +101,10 @@ const CompleteProfile = () => {
           updateData.filiere = filiere;
         }
       }
+
+      if (wilaya) updateData.wilaya = wilaya;
+      if (ville) updateData.ville = ville;
+      if (ecole) updateData.ecole = ecole;
 
       const { error: profileError } = await supabase
         .from('profiles')
@@ -198,7 +205,6 @@ const CompleteProfile = () => {
                     </RadioGroup>
                   </div>
 
-                  {/* Tronc commun pour Première */}
                   {classLevel === "Première" && (
                     <div className="space-y-2">
                       <Label className="text-foreground">Quel est ton tronc commun ?</Label>
@@ -218,7 +224,6 @@ const CompleteProfile = () => {
                     </div>
                   )}
 
-                  {/* Filière pour Seconde et Terminale */}
                   {(classLevel === "Seconde" || classLevel === "Terminale") && (
                     <div className="space-y-2">
                       <Label className="text-foreground">Quelle est ta filière ?</Label>
@@ -238,6 +243,17 @@ const CompleteProfile = () => {
                     </div>
                   )}
                 </>
+              )}
+
+              {(profileType === "enfant" || profileType === "parent") && (
+                <LocationFields
+                  wilaya={wilaya}
+                  ville={ville}
+                  ecole={ecole}
+                  onWilayaChange={setWilaya}
+                  onVilleChange={setVille}
+                  onEcoleChange={setEcole}
+                />
               )}
 
               <Button type="submit" className="w-full" disabled={loading}>

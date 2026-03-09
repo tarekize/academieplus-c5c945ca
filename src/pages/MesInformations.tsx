@@ -43,6 +43,7 @@ import { LinkedParentsSection } from "@/components/profile/LinkedParentsSection"
 import { AvatarUpload } from "@/components/profile/AvatarUpload";
 import TwoFactorSettings from "@/components/TwoFactorSettings";
 import { SchoolLevelSelect } from "@/components/profile/SchoolLevelSelect";
+import LocationFields from "@/components/profile/LocationFields";
 import {
   Select,
   SelectContent,
@@ -72,6 +73,9 @@ interface Profile {
   avatar_url: string | null;
   linking_code: string | null;
   date_of_birth: string | null;
+  wilaya: string | null;
+  ville: string | null;
+  ecole: string | null;
 }
 
 const MesInformations = () => {
@@ -93,6 +97,9 @@ const MesInformations = () => {
     email: "",
     avatar_url: "",
     date_of_birth: undefined as Date | undefined,
+    wilaya: "",
+    ville: "",
+    ecole: "",
   });
 
   useEffect(() => {
@@ -123,7 +130,7 @@ const MesInformations = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, email, phone, school_level, filiere, avatar_url, linking_code, date_of_birth")
+        .select("id, first_name, last_name, email, phone, school_level, filiere, avatar_url, linking_code, date_of_birth, wilaya, ville, ecole")
         .eq("id", userId)
         .single();
 
@@ -138,6 +145,9 @@ const MesInformations = () => {
         email: data.email || "",
         avatar_url: data.avatar_url || "",
         date_of_birth: data.date_of_birth ? new Date(data.date_of_birth + 'T00:00:00') : undefined,
+        wilaya: (data as any).wilaya || "",
+        ville: (data as any).ville || "",
+        ecole: (data as any).ecole || "",
       });
     } catch (error: any) {
       toast({
@@ -211,6 +221,9 @@ const MesInformations = () => {
           filiere: validatedData.filiere,
           avatar_url: validatedData.avatar_url,
           date_of_birth: formData.date_of_birth ? format(formData.date_of_birth, 'yyyy-MM-dd') : null,
+          wilaya: formData.wilaya || null,
+          ville: formData.ville || null,
+          ecole: formData.ecole || null,
         } as any)
         .eq("id", profile.id);
 
@@ -488,6 +501,17 @@ const MesInformations = () => {
                   </Popover>
                 </div>
 
+                {/* Wilaya, Ville, École - pour élève et parent */}
+                {(userRole === 'student' || userRole === 'parent') && (
+                  <LocationFields
+                    wilaya={formData.wilaya}
+                    ville={formData.ville}
+                    ecole={formData.ecole}
+                    onWilayaChange={(val) => setFormData({ ...formData, wilaya: val, ville: "" })}
+                    onVilleChange={(val) => setFormData({ ...formData, ville: val })}
+                    onEcoleChange={(val) => setFormData({ ...formData, ecole: val })}
+                  />
+                )}
 
                 {userRole === 'student' && (
                   <>
