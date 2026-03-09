@@ -43,6 +43,7 @@ import { LinkedParentsSection } from "@/components/profile/LinkedParentsSection"
 import { AvatarUpload } from "@/components/profile/AvatarUpload";
 import TwoFactorSettings from "@/components/TwoFactorSettings";
 import { SchoolLevelSelect } from "@/components/profile/SchoolLevelSelect";
+import LocationFields from "@/components/profile/LocationFields";
 import {
   Select,
   SelectContent,
