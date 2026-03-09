@@ -501,6 +501,17 @@ const MesInformations = () => {
                   </Popover>
                 </div>
 
+                {/* Wilaya, Ville, École - pour élève et parent */}
+                {(userRole === 'student' || userRole === 'parent') && (
+                  <LocationFields
+                    wilaya={formData.wilaya}
+                    ville={formData.ville}
+                    ecole={formData.ecole}
+                    onWilayaChange={(val) => setFormData({ ...formData, wilaya: val, ville: "" })}
+                    onVilleChange={(val) => setFormData({ ...formData, ville: val })}
+                    onEcoleChange={(val) => setFormData({ ...formData, ecole: val })}
+                  />
+                )}
 
                 {userRole === 'student' && (
                   <>
