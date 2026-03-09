@@ -745,6 +745,18 @@ const Auth = () => {
                       </div>
                     )}
 
+                    {/* Wilaya, Ville, École - pour élève et parent */}
+                    {(profileType === "enfant" || profileType === "parent") && (
+                      <LocationFields
+                        wilaya={wilaya}
+                        ville={ville}
+                        ecole={ecole}
+                        onWilayaChange={setWilaya}
+                        onVilleChange={setVille}
+                        onEcoleChange={setEcole}
+                      />
+                    )}
+
                     {/* RGPD Consents */}
                     <div className="space-y-4 pt-4 border-t border-border">
                       <div className="flex items-start space-x-3">
