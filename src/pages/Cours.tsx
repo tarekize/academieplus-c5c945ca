@@ -205,6 +205,13 @@ const Cours = () => {
     return () => { supabase.removeChannel(channel); };
   }, [fetchCourse, fetchQuizExercises]);
 
+  // Redirect admin/pedago without niveau param back to level selection
+  useEffect(() => {
+    if (!loading && canManage && !adminNiveau) {
+      navigate("/liste-cours", { replace: true });
+    }
+  }, [loading, canManage, adminNiveau, navigate]);
+
   // Initial fetch
   useEffect(() => {
     if (subjectId) {
