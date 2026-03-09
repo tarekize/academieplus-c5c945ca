@@ -461,6 +461,7 @@ const MesInformations = () => {
                   </p>
                 </div>
 
+                {userRole !== 'parent' && (
                   <>
                     <div className="space-y-2">
                       <Label htmlFor="school_level">Niveau scolaire</Label>
