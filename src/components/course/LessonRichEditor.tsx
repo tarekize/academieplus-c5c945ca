@@ -1,4 +1,4 @@
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Extension } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
@@ -9,6 +9,41 @@ import Heading from '@tiptap/extension-heading';
 import Image from '@tiptap/extension-image';
 import Mathematics from '@tiptap/extension-mathematics';
 import 'katex/dist/katex.min.css';
+
+// Extension to preserve inline style attributes on all node types
+const PreserveStyles = Extension.create({
+  name: 'preserveStyles',
+  addGlobalAttributes() {
+    return [
+      {
+        types: [
+          'heading', 'paragraph', 'bulletList', 'orderedList',
+          'listItem', 'blockquote', 'codeBlock', 'hardBreak',
+          'horizontalRule', 'image', 'tableRow', 'tableCell',
+          'tableHeader',
+        ],
+        attributes: {
+          style: {
+            default: null,
+            parseHTML: (element: HTMLElement) => element.getAttribute('style') || null,
+            renderHTML: (attributes: Record<string, any>) => {
+              if (!attributes.style) return {};
+              return { style: attributes.style };
+            },
+          },
+          class: {
+            default: null,
+            parseHTML: (element: HTMLElement) => element.getAttribute('class') || null,
+            renderHTML: (attributes: Record<string, any>) => {
+              if (!attributes.class) return {};
+              return { class: attributes.class };
+            },
+          },
+        },
+      },
+    ];
+  },
+});
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
