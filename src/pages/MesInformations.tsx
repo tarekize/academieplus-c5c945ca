@@ -71,6 +71,7 @@ interface Profile {
   filiere: string | null;
   avatar_url: string | null;
   linking_code: string | null;
+  date_of_birth: string | null;
 }
 
 const MesInformations = () => {
