@@ -102,7 +102,7 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
       }),
       Heading.configure({ levels: [1, 2, 3] }),
       Underline,
-      TextStyle,
+      ExtendedTextStyle,
       Color,
       Highlight.configure({ multicolor: true }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
