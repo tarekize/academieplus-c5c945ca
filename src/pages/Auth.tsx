@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import Header from "@/components/Header";
 import iconStudent from "@/assets/icon-student.png";
 import iconParent from "@/assets/icon-parent.png";
+import LocationFields from "@/components/profile/LocationFields";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
