@@ -106,7 +106,11 @@ const MesInformations = () => {
     fetchProfile(user.id);
 
     const determineUserRole = async () => {
-      if (await hasRole('parent')) {
+      if (await hasRole('admin')) {
+        setUserRole('admin');
+      } else if (await hasRole('pedago')) {
+        setUserRole('pedago');
+      } else if (await hasRole('parent')) {
         setUserRole('parent');
       } else if (await hasRole('student')) {
         setUserRole('student');
