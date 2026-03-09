@@ -36,6 +36,13 @@ interface LearningStyleData {
 const DISPLAY_SECONDS = 120;
 const PERIODIC_ADVICE_INTERVAL = 10 * 24 * 60 * 60 * 1000;
 
+// localStorage keys for persistent countdown
+const getReportStartKey = (userId: string) => `its_report_start_${userId}`;
+const getReportDoneKey = (userId: string) => `its_report_done_${userId}`;
+const getAdviceStartKey = (userId: string) => `its_advice_start_${userId}`;
+const getAdviceDoneKey = (userId: string) => `its_advice_done_${userId}`;
+const getAdviceGenKey = (userId: string) => `its_advice_gen_${userId}`;
+
 export default function ITSRecommendations() {
   const { user } = useAuth();
   const [learningData, setLearningData] = useState<LearningStyleData | null>(null);
@@ -48,41 +55,68 @@ export default function ITSRecommendations() {
   const reportTimerRef = useRef<NodeJS.Timeout | null>(null);
   const adviceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const reportCountRef = useRef(0);
-  const adviceCountRef = useRef(0);
-
-  const startReportCountdown = useCallback((sessionKey: string) => {
-    reportCountRef.current = DISPLAY_SECONDS;
-    setReportCountdown(DISPLAY_SECONDS);
-    setShowReport(true);
-    if (reportTimerRef.current) clearInterval(reportTimerRef.current);
-    reportTimerRef.current = setInterval(() => {
-      reportCountRef.current -= 1;
-      if (reportCountRef.current <= 0) {
-        clearInterval(reportTimerRef.current!);
-        setShowReport(false);
-        setReportCountdown(null);
-        sessionStorage.setItem(sessionKey, "hidden");
-      } else {
-        setReportCountdown(reportCountRef.current);
-      }
-    }, 1000);
+  // Cleanup timers on unmount or logout
+  useEffect(() => {
+    return () => {
+      if (reportTimerRef.current) clearInterval(reportTimerRef.current);
+      if (adviceTimerRef.current) clearInterval(adviceTimerRef.current);
+    };
   }, []);
 
-  const startAdviceCountdown = useCallback((sessionKey: string) => {
-    adviceCountRef.current = DISPLAY_SECONDS;
-    setAdviceCountdown(DISPLAY_SECONDS);
-    setShowAdvice(true);
-    if (adviceTimerRef.current) clearInterval(adviceTimerRef.current);
-    adviceTimerRef.current = setInterval(() => {
-      adviceCountRef.current -= 1;
-      if (adviceCountRef.current <= 0) {
-        clearInterval(adviceTimerRef.current!);
-        setShowAdvice(false);
-        setAdviceCountdown(null);
-        sessionStorage.setItem(sessionKey, "hidden");
+  // Hide everything on logout
+  useEffect(() => {
+    if (!user) {
+      setShowReport(false);
+      setShowAdvice(false);
+      setReportCountdown(null);
+      setAdviceCountdown(null);
+      if (reportTimerRef.current) clearInterval(reportTimerRef.current);
+      if (adviceTimerRef.current) clearInterval(adviceTimerRef.current);
+    }
+  }, [user]);
+
+  const startCountdown = useCallback((
+    storageStartKey: string,
+    storageDoneKey: string,
+    setShow: (v: boolean) => void,
+    setCountdown: (v: number | null) => void,
+    timerRef: React.MutableRefObject<NodeJS.Timeout | null>
+  ) => {
+    // Already done forever? Don't show.
+    if (localStorage.getItem(storageDoneKey) === "done") return;
+
+    // Get or set start timestamp
+    let startTs = localStorage.getItem(storageStartKey);
+    if (!startTs) {
+      startTs = Date.now().toString();
+      localStorage.setItem(storageStartKey, startTs);
+    }
+
+    const elapsed = Math.floor((Date.now() - parseInt(startTs)) / 1000);
+    const remaining = DISPLAY_SECONDS - elapsed;
+
+    if (remaining <= 0) {
+      // Time already expired
+      localStorage.setItem(storageDoneKey, "done");
+      setShow(false);
+      setCountdown(null);
+      return;
+    }
+
+    setShow(true);
+    setCountdown(remaining);
+
+    if (timerRef.current) clearInterval(timerRef.current);
+    let current = remaining;
+    timerRef.current = setInterval(() => {
+      current -= 1;
+      if (current <= 0) {
+        clearInterval(timerRef.current!);
+        setShow(false);
+        setCountdown(null);
+        localStorage.setItem(storageDoneKey, "done");
       } else {
-        setAdviceCountdown(adviceCountRef.current);
+        setCountdown(current);
       }
     }, 1000);
   }, []);
@@ -118,10 +152,12 @@ export default function ITSRecommendations() {
           .eq("id", learningId);
 
         setPeriodicAdvice(newAdvice);
+        return newAdvice;
       }
     } catch (err) {
       console.error("Error generating periodic advice:", err);
     }
+    return null;
   }, [user]);
 
   useEffect(() => {
@@ -163,31 +199,61 @@ export default function ITSRecommendations() {
 
         setLearningData(ld);
 
-        // --- REPORT: show once per session with 120s countdown ---
-        const reportSessionKey = `its_report_shown_${user.id}`;
-        const reportAlreadyShown = sessionStorage.getItem(reportSessionKey);
-        if (!reportAlreadyShown) {
-          startReportCountdown(reportSessionKey);
-        }
-
-        // --- PERIODIC ADVICE ---
         const lastGenerated = data.last_advice_generated_at;
-        const shouldGenerate = !lastGenerated ||
+        const isFirstConnection = !lastGenerated;
+        const shouldGenerateAdvice = !isFirstConnection &&
           (Date.now() - new Date(lastGenerated).getTime()) >= PERIODIC_ADVICE_INTERVAL;
 
-        if (data.periodic_advice) {
+        // --- REPORT: show with persistent countdown (survives refresh) ---
+        const reportDoneKey = getReportDoneKey(user.id);
+        const reportDone = localStorage.getItem(reportDoneKey) === "done";
+        if (!reportDone) {
+          startCountdown(
+            getReportStartKey(user.id),
+            reportDoneKey,
+            setShowReport,
+            setReportCountdown,
+            reportTimerRef
+          );
+        }
+
+        // --- PERIODIC ADVICE: only after 10 days (NOT first connection) ---
+        if (!isFirstConnection && data.periodic_advice) {
           setPeriodicAdvice(data.periodic_advice);
         }
 
-        if (shouldGenerate) {
-          await generatePeriodicAdvice(data.id, data.assessment_data, data.preferred_style || "mixed");
+        if (shouldGenerateAdvice) {
+          // Reset advice done key so new advice shows
+          const adviceGenKey = getAdviceGenKey(user.id);
+          const lastShownGen = localStorage.getItem(adviceGenKey);
+          
+          const newAdvice = await generatePeriodicAdvice(data.id, data.assessment_data, data.preferred_style || "mixed");
+          
+          if (newAdvice) {
+            // New advice generated - reset countdown keys so it shows fresh
+            if (lastShownGen !== newAdvice.generated_at) {
+              localStorage.removeItem(getAdviceStartKey(user.id));
+              localStorage.removeItem(getAdviceDoneKey(user.id));
+              localStorage.setItem(adviceGenKey, newAdvice.generated_at);
+            }
+          }
         }
 
-        // Show advice once per session
-        const adviceSessionKey = `its_advice_shown_${user.id}`;
-        const adviceAlreadyShown = sessionStorage.getItem(adviceSessionKey);
-        if ((data.periodic_advice || shouldGenerate) && !adviceAlreadyShown) {
-          startAdviceCountdown(adviceSessionKey);
+        // Show advice countdown if we have advice and it's not first connection
+        if (!isFirstConnection) {
+          const adviceDoneKey = getAdviceDoneKey(user.id);
+          const adviceDone = localStorage.getItem(adviceDoneKey) === "done";
+          const hasAdvice = data.periodic_advice || shouldGenerateAdvice;
+          
+          if (hasAdvice && !adviceDone) {
+            startCountdown(
+              getAdviceStartKey(user.id),
+              adviceDoneKey,
+              setShowAdvice,
+              setAdviceCountdown,
+              adviceTimerRef
+            );
+          }
         }
 
         // Mark as seen
@@ -208,7 +274,7 @@ export default function ITSRecommendations() {
       if (reportTimerRef.current) clearInterval(reportTimerRef.current);
       if (adviceTimerRef.current) clearInterval(adviceTimerRef.current);
     };
-  }, [user, generatePeriodicAdvice, startReportCountdown, startAdviceCountdown]);
+  }, [user, generatePeriodicAdvice, startCountdown]);
 
   if (loading || !learningData) return null;
 
@@ -219,7 +285,7 @@ export default function ITSRecommendations() {
 
   return (
     <div className="space-y-4">
-      {/* AI Report - once per session, 120s countdown */}
+      {/* AI Report - persistent countdown across refresh */}
       {showReport && reportCountdown !== null && (
         <Card className="p-5 border-primary/20 bg-gradient-to-r from-primary/5 to-transparent animate-in fade-in slide-in-from-top-4">
           <div className="flex items-center justify-between mb-3">
@@ -247,7 +313,7 @@ export default function ITSRecommendations() {
         </Card>
       )}
 
-      {/* Periodic Advice - once per session, 120s countdown */}
+      {/* Periodic Advice - only after 10 days, NOT on first connection */}
       {showAdvice && adviceCountdown !== null && periodicAdvice && (
         <Card className="p-5 border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 animate-in fade-in slide-in-from-top-4">
           <div className="flex items-center justify-between mb-3">
