@@ -374,21 +374,6 @@ const Cours = () => {
       </header>
 
       <main className="container mx-auto px-4 pt-24 pb-8">
-        {/* Breadcrumb */}
-        <Breadcrumb className="mb-6">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink onClick={() => navigate("/liste-cours")} className="cursor-pointer">
-                <ArrowLeft className="h-4 w-4 mr-2 inline" />
-                Liste des cours
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{subject?.name || "Cours"}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
 
         {/* Progress bar */}
         <div className="mb-6">
