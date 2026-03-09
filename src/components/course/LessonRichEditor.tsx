@@ -92,6 +92,7 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
       Mathematics.configure({
         katexOptions: { throwOnError: false },
       }),
+      PreserveStyles,
     ],
     content,
     editable,
