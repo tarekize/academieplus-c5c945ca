@@ -448,6 +448,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string | null
           date_of_birth: string | null
+          ecole: string | null
           email: string
           email_verified: boolean | null
           filiere: string | null
@@ -459,11 +460,14 @@ export type Database = {
           phone: string | null
           school_level: Database["public"]["Enums"]["school_level"] | null
           updated_at: string | null
+          ville: string | null
+          wilaya: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          ecole?: string | null
           email: string
           email_verified?: boolean | null
           filiere?: string | null
@@ -475,11 +479,14 @@ export type Database = {
           phone?: string | null
           school_level?: Database["public"]["Enums"]["school_level"] | null
           updated_at?: string | null
+          ville?: string | null
+          wilaya?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          ecole?: string | null
           email?: string
           email_verified?: boolean | null
           filiere?: string | null
@@ -491,6 +498,8 @@ export type Database = {
           phone?: string | null
           school_level?: Database["public"]["Enums"]["school_level"] | null
           updated_at?: string | null
+          ville?: string | null
+          wilaya?: string | null
         }
         Relationships: []
       }
