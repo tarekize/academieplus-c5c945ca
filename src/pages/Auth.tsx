@@ -37,6 +37,9 @@ const Auth = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [registrationEmail, setRegistrationEmail] = useState("");
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [wilaya, setWilaya] = useState("");
+  const [ville, setVille] = useState("");
+  const [ecole, setEcole] = useState("");
 
   // RGPD Consent states
   const [consentDataProcessing, setConsentDataProcessing] = useState(false);
