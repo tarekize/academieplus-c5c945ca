@@ -245,7 +245,10 @@ const Auth = () => {
     profileType: string,
     classLevel: string,
     filiere: string,
-    dateOfBirth: Date | undefined
+    dateOfBirth: Date | undefined,
+    wilaya: string,
+    ville: string,
+    ecole: string
   ) => {
     try {
       const schoolLevelMapping: Record<string, string> = {
