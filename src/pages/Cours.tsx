@@ -82,6 +82,7 @@ const Cours = () => {
   const [activeActivity, setActiveActivity] = useState<string | null>(null);
   const [canManage, setCanManage] = useState(false);
   const [filiereId, setFiliereId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [dbQuizzes, setDbQuizzes] = useState<DBQuizQuestion[]>([]);
   const [dbExercises, setDbExercises] = useState<DBExercise[]>([]);
 
