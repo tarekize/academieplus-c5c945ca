@@ -71,6 +71,7 @@ interface Profile {
   filiere: string | null;
   avatar_url: string | null;
   linking_code: string | null;
+  date_of_birth: string | null;
 }
 
 const MesInformations = () => {
@@ -117,7 +118,7 @@ const MesInformations = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, email, phone, school_level, filiere, avatar_url, linking_code")
+        .select("id, first_name, last_name, email, phone, school_level, filiere, avatar_url, linking_code, date_of_birth")
         .eq("id", userId)
         .single();
 
@@ -443,6 +444,21 @@ const MesInformations = () => {
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="Numéro de téléphone"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Date de naissance</Label>
+                  <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-muted text-muted-foreground">
+                    <CalendarIcon className="h-4 w-4" />
+                    <span>
+                      {profile?.date_of_birth
+                        ? format(new Date(profile.date_of_birth), "dd/MM/yyyy")
+                        : "Non renseignée"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    La date de naissance ne peut pas être modifiée après l'inscription.
+                  </p>
                 </div>
 
                 {userRole !== 'parent' && (
