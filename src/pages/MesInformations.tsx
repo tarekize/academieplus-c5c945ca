@@ -206,7 +206,8 @@ const MesInformations = () => {
           school_level: validatedData.school_level as any,
           filiere: validatedData.filiere,
           avatar_url: validatedData.avatar_url,
-        })
+          date_of_birth: formData.date_of_birth ? format(formData.date_of_birth, 'yyyy-MM-dd') : null,
+        } as any)
         .eq("id", profile.id);
 
       if (error) throw error;
