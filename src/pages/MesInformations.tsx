@@ -133,6 +133,7 @@ const MesInformations = () => {
         filiere: data.filiere || "",
         email: data.email || "",
         avatar_url: data.avatar_url || "",
+        date_of_birth: data.date_of_birth ? new Date(data.date_of_birth + 'T00:00:00') : undefined,
       });
     } catch (error: any) {
       toast({
