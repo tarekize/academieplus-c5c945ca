@@ -92,6 +92,7 @@ const MesInformations = () => {
     filiere: "",
     email: "",
     avatar_url: "",
+    date_of_birth: undefined as Date | undefined,
   });
 
   useEffect(() => {
@@ -132,6 +133,7 @@ const MesInformations = () => {
         filiere: data.filiere || "",
         email: data.email || "",
         avatar_url: data.avatar_url || "",
+        date_of_birth: data.date_of_birth ? new Date(data.date_of_birth + 'T00:00:00') : undefined,
       });
     } catch (error: any) {
       toast({
@@ -204,7 +206,8 @@ const MesInformations = () => {
           school_level: validatedData.school_level as any,
           filiere: validatedData.filiere,
           avatar_url: validatedData.avatar_url,
-        })
+          date_of_birth: formData.date_of_birth ? format(formData.date_of_birth, 'yyyy-MM-dd') : null,
+        } as any)
         .eq("id", profile.id);
 
       if (error) throw error;
@@ -448,18 +451,39 @@ const MesInformations = () => {
 
                 <div className="space-y-2">
                   <Label>Date de naissance</Label>
-                  <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-muted text-muted-foreground">
-                    <CalendarIcon className="h-4 w-4" />
-                    <span>
-                      {profile?.date_of_birth
-                        ? format(new Date(profile.date_of_birth), "dd/MM/yyyy")
-                        : "Non renseignée"}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    La date de naissance ne peut pas être modifiée après l'inscription.
-                  </p>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !formData.date_of_birth && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.date_of_birth
+                          ? format(formData.date_of_birth, "dd/MM/yyyy")
+                          : "Sélectionnez votre date de naissance"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.date_of_birth}
+                        onSelect={(date) => setFormData({ ...formData, date_of_birth: date })}
+                        disabled={(date) =>
+                          date > new Date() || date < new Date("1940-01-01")
+                        }
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                        captionLayout="dropdown-buttons"
+                        fromYear={1940}
+                        toYear={new Date().getFullYear()}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
+
 
                 {userRole !== 'parent' && (
                   <>
