@@ -447,6 +447,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string | null
+          date_of_birth: string | null
           email: string
           email_verified: boolean | null
           filiere: string | null
@@ -462,6 +463,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
+          date_of_birth?: string | null
           email: string
           email_verified?: boolean | null
           filiere?: string | null
@@ -477,6 +479,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string | null
+          date_of_birth?: string | null
           email?: string
           email_verified?: boolean | null
           filiere?: string | null
