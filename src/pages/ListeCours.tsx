@@ -90,8 +90,7 @@ const ListeCours = () => {
         return;
       }
       setUser(session.user);
-      fetchProfile(session.user.id);
-      checkAdminRole(session.user.id);
+      fetchProfileAndRole(session.user.id);
     });
 
     const {
