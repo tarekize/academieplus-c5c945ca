@@ -90,8 +90,7 @@ const ListeCours = () => {
         return;
       }
       setUser(session.user);
-      fetchProfile(session.user.id);
-      checkAdminRole(session.user.id);
+      fetchProfileAndRole(session.user.id);
     });
 
     const {
@@ -102,23 +101,39 @@ const ListeCours = () => {
         return;
       }
       setUser(session.user);
-      fetchProfile(session.user.id);
-      checkAdminRole(session.user.id);
+      fetchProfileAndRole(session.user.id);
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfileAndRole = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, avatar_url, school_level, email")
-        .eq("id", userId)
-        .single();
+      // Fetch profile and roles in parallel
+      const [profileResult, adminResult, pedagoResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, first_name, last_name, avatar_url, school_level, email")
+          .eq("id", userId)
+          .single(),
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .eq("role", "admin")
+          .maybeSingle(),
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .eq("role", "pedago")
+          .maybeSingle(),
+      ]);
 
-      if (error) throw error;
-      setProfile(data);
+      if (profileResult.error) throw profileResult.error;
+      setProfile(profileResult.data);
+      setIsAdmin(!!adminResult.data);
+      setIsPedago(!!pedagoResult.data);
     } catch (error: any) {
       toast({
         title: "Erreur",
@@ -127,32 +142,6 @@ const ListeCours = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const checkAdminRole = async (userId: string) => {
-    try {
-      // Check for admin role
-      const { data: adminData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
-
-      setIsAdmin(!!adminData);
-
-      // Check for pédago role
-      const { data: pedagoData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", "pedago")
-        .maybeSingle();
-
-      setIsPedago(!!pedagoData);
-    } catch (error) {
-      console.error("Error checking roles:", error);
     }
   };
 
