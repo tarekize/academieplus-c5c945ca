@@ -118,7 +118,7 @@ const MesInformations = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, email, phone, school_level, filiere, avatar_url, linking_code")
+        .select("id, first_name, last_name, email, phone, school_level, filiere, avatar_url, linking_code, date_of_birth")
         .eq("id", userId)
         .single();
 
