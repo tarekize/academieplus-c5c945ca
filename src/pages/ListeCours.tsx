@@ -231,6 +231,13 @@ const ListeCours = () => {
     level.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Auto-redirect students directly to math course (only subject available)
+  useEffect(() => {
+    if (!loading && profile && !isAdmin && !isPedago) {
+      navigate("/cours/math", { replace: true });
+    }
+  }, [loading, profile, isAdmin, isPedago, navigate]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
