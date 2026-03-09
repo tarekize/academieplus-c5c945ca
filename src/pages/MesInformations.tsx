@@ -221,6 +221,9 @@ const MesInformations = () => {
           filiere: validatedData.filiere,
           avatar_url: validatedData.avatar_url,
           date_of_birth: formData.date_of_birth ? format(formData.date_of_birth, 'yyyy-MM-dd') : null,
+          wilaya: formData.wilaya || null,
+          ville: formData.ville || null,
+          ecole: formData.ecole || null,
         } as any)
         .eq("id", profile.id);
 
