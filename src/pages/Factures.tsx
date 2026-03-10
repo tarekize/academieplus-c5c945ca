@@ -197,7 +197,7 @@ const Factures = () => {
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(gray[0], gray[1], gray[2]);
-    doc.text("Votre partenaire éducatif de confiance", 46, 32);
+    doc.text("Votre partenaire educatif de confiance", 46, 32);
 
     // ── FACTURE badge (top right) ──
     const badgeW = 52;
