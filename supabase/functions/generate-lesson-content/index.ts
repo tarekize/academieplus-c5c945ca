@@ -117,7 +117,7 @@ serve(async (req) => {
     const results: { id: string; status: string }[] = [];
     for (const lesson of lessons) {
       try {
-        const r = await generateForLesson(supabase, lesson.id, GEMINI_API_KEY);
+        const r = await generateForLesson(supabase, lesson.id, API_KEY);
         results.push(r);
       } catch (err: any) {
         results.push({ id: lesson.id, status: `error: ${err.message}` });
