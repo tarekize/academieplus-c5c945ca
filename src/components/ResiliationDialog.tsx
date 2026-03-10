@@ -148,7 +148,7 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
     try {
       const isFreeCode = selectedSub.id.startsWith("free_");
 
-      // Delete the subscription only if it exists (not a free/unused code)
+      // If code was used by a student, delete their subscription first
       if (!isFreeCode) {
         const { error: subError } = await supabase
           .from("student_subscriptions")
@@ -156,13 +156,19 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
           .eq("id", selectedSub.id);
 
         if (subError) throw subError;
+      } else if (selectedSub.activation_code_id) {
+        // Even for free codes, check if any subscription exists with this code
+        await supabase
+          .from("student_subscriptions")
+          .delete()
+          .eq("activation_code_id", selectedSub.activation_code_id);
       }
 
-      // Update activation code status to cancelled
+      // Delete the activation code entirely
       if (selectedSub.activation_code_id) {
         const { error: codeError } = await supabase
           .from("activation_codes")
-          .update({ status: "cancelled", used_at: null, used_by: null })
+          .delete()
           .eq("id", selectedSub.activation_code_id);
 
         if (codeError) throw codeError;
