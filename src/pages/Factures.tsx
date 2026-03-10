@@ -253,7 +253,7 @@ const Factures = () => {
     doc.setFontSize(7);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(accent[0], accent[1], accent[2]);
-    doc.text("DÉTAILS DE FACTURATION", rightX + 7, y + 10);
+    doc.text("DETAILS DE FACTURATION", rightX + 7, y + 10);
 
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
