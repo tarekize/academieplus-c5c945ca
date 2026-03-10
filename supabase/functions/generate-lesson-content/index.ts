@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function generateForLesson(supabase: any, lessonId: string, GEMINI_API_KEY: string) {
+async function generateForLesson(supabase: any, lessonId: string, API_KEY: string) {
   const { data: lesson } = await supabase.from("lessons").select("title, title_ar, chapter_id, content").eq("id", lessonId).single();
   if (!lesson) throw new Error("Lesson not found");
 
@@ -29,26 +29,30 @@ async function generateForLesson(supabase: any, lessonId: string, GEMINI_API_KEY
 
 اكتب الدرس بشكل شامل مع: مقدمة، شرح المفاهيم، أمثلة محلولة، خصائص، تمارين تطبيقية.`;
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${API_KEY}`,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({
-      systemInstruction: {
-        parts: [{ text: "You are an expert Algerian math teacher. Generate beautifully formatted, colorful HTML lessons in Arabic. Use inline styles for colors, backgrounds, borders. Make the content visually rich with colored sections for definitions, examples, exercises, properties, and formulas. Use tables where appropriate. Do NOT use markdown, only HTML. Do NOT wrap in ```html tags." }]
-      },
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 8192 },
+      model: "google/gemini-2.5-flash",
+      messages: [
+        { role: "system", content: "You are an expert Algerian math teacher. Generate beautifully formatted, colorful HTML lessons in Arabic. Use inline styles. Do NOT use markdown, only HTML. Do NOT wrap in ```html tags." },
+        { role: "user", content: prompt },
+      ],
     }),
   });
 
   if (!response.ok) {
     if (response.status === 429) throw new Error("Rate limit");
+    if (response.status === 402) throw new Error("Credits exhausted");
     const t = await response.text();
-    throw new Error(`Gemini API error: ${response.status} ${t}`);
+    throw new Error(`AI error: ${response.status} ${t}`);
   }
 
   const result = await response.json();
-  let content = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  let content = result.choices?.[0]?.message?.content || "";
   content = content.replace(/```html\n?/g, "").replace(/```\n?/g, "").trim();
 
   await supabase.from("lessons").update({ content }).eq("id", lessonId);
