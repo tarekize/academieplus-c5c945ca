@@ -306,6 +306,13 @@ const Account = () => {
       onClick: () => navigate("/abonnements"),
     },
     {
+      title: "Facturation",
+      description: "Consulter et télécharger mes factures",
+      icon: FileText,
+      color: "text-emerald-600",
+      onClick: () => navigate("/factures"),
+    },
+    {
       title: "Mes statistiques",
       description: "Voir mes statistiques d'apprentissage",
       icon: BarChart3,
