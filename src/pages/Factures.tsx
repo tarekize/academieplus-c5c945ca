@@ -274,7 +274,7 @@ const Factures = () => {
     doc.setFontSize(8);
     doc.setFont("helvetica", "bold");
     doc.text("DESCRIPTION", 22, y + 9);
-    doc.text("QTÉ", pw / 2, y + 9, { align: "center" });
+    doc.text("QTE", pw / 2, y + 9, { align: "center" });
     doc.text("MONTANT", pw - 22, y + 9, { align: "right" });
 
     // Table row
