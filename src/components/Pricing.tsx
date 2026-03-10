@@ -26,12 +26,29 @@ const Pricing = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   
-  // Switch par défaut sur "1 enfant" (false)
   const [isFamily, setIsFamily] = useState(false);
+  const [plans, setPlans] = useState<PricingPlan[]>(FALLBACK_PLANS);
+  const [periodLabel, setPeriodLabel] = useState("1 année scolaire");
 
-  // Trouver les plans mensuel et annuel
-  const monthlyPlan = PRICING_PLANS.find(p => p.billing_period === 'monthly');
-  const annualPlan = PRICING_PLANS.find(p => p.billing_period === 'annual');
+  useEffect(() => {
+    const fetchConfig = async () => {
+      const { data } = await supabase.from("subscription_config").select("*").eq("is_active", true);
+      if (data && data.length > 0) {
+        setPlans(data.map((c: any) => ({
+          id: c.plan_type,
+          name: c.label,
+          billing_period: c.plan_type as 'monthly' | 'annual',
+          total_single: c.price_single,
+          total_family: c.price_family,
+        })));
+      }
+      const { data: periods } = await supabase.from("subscription_periods").select("*").eq("is_active", true).limit(1);
+      if (periods && periods.length > 0) {
+        setPeriodLabel(periods[0].label);
+      }
+    };
+    fetchConfig();
+  }, []);
 
   // Obtenir le prix total en fonction du switch famille
   const getTotalPrice = (plan: PricingPlan) => {
