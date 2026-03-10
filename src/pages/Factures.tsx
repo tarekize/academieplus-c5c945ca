@@ -321,13 +321,13 @@ const Factures = () => {
     doc.text(formatCurrency(payment.amount), pw - 22, y + 11, { align: "right" });
 
     // ── Status badge (left of totals) ──
-    const statusText = payment.status === "completed" ? "PAYÉ" : "EN ATTENTE";
+    const statusText = payment.status === "completed" ? "PAYE" : "EN ATTENTE";
     if (payment.status === "completed") {
-      doc.setFillColor(220, 252, 231); // green-100
-      doc.setDrawColor(34, 197, 94); // green-500
+      doc.setFillColor(220, 252, 231);
+      doc.setDrawColor(34, 197, 94);
     } else {
-      doc.setFillColor(254, 249, 195); // yellow-100
-      doc.setDrawColor(234, 179, 8); // yellow-500
+      doc.setFillColor(254, 249, 195);
+      doc.setDrawColor(234, 179, 8);
     }
     doc.setLineWidth(0.6);
     const statusBadgeW = doc.getTextWidth(statusText) * 1.2 + 16;
@@ -335,11 +335,11 @@ const Factures = () => {
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
     if (payment.status === "completed") {
-      doc.setTextColor(22, 163, 74); // green-600
+      doc.setTextColor(22, 163, 74);
     } else {
-      doc.setTextColor(161, 98, 7); // yellow-700
+      doc.setTextColor(161, 98, 7);
     }
-    doc.text(`● ${statusText}`, 22, y + 10);
+    doc.text(statusText, 22, y + 10);
 
     // ── Thank you section ──
     y += 40;
