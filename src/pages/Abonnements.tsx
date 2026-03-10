@@ -100,7 +100,22 @@ const Abonnements = () => {
       .eq("created_by", userId)
       .order("created_at", { ascending: false });
 
-    if (data) setCodes(data as any[]);
+    if (data) {
+      setCodes(data as any[]);
+      // Fetch subscription statuses for used codes
+      const usedCodeIds = (data as any[]).filter(c => c.status === "used").map(c => c.id);
+      if (usedCodeIds.length > 0) {
+        const { data: subs } = await supabase
+          .from("student_subscriptions")
+          .select("activation_code_id, is_paused")
+          .in("activation_code_id", usedCodeIds);
+        if (subs) {
+          const map: Record<string, SubStatus> = {};
+          (subs as any[]).forEach(s => { map[s.activation_code_id] = { is_paused: s.is_paused }; });
+          setSubStatuses(map);
+        }
+      }
+    }
   };
 
   const getFullName = (p: Profile | null): string => {
