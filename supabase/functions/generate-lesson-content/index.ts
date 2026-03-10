@@ -29,7 +29,7 @@ async function generateForLesson(supabase: any, lessonId: string, GEMINI_API_KEY
 
 اكتب الدرس بشكل شامل مع: مقدمة، شرح المفاهيم، أمثلة محلولة، خصائص، تمارين تطبيقية.`;
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`, {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
