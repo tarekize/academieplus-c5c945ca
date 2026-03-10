@@ -15,7 +15,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const [selectedLesson, setSelectedLesson] = useState<any>(null);
     const [lessonContent, setLessonContent] = useState<string>("");
     const [loadingContent, setLoadingContent] = useState(false);
-    const readingTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const readingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const readingStartRef = useRef<number>(0);
 
     // Reset when chapter changes

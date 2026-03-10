@@ -80,7 +80,7 @@ export default function ITSRecommendations() {
     storageDoneKey: string,
     setShow: (v: boolean) => void,
     setCountdown: (v: number | null) => void,
-    timerRef: React.MutableRefObject<NodeJS.Timeout | null>
+    timerRef: React.MutableRefObject<ReturnType<typeof setInterval> | null>
   ) => {
     // Already done forever? Don't show.
     if (localStorage.getItem(storageDoneKey) === "done") return;
