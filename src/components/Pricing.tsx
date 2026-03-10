@@ -119,7 +119,7 @@ const Pricing = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {plans.map((plan, index) => (
+          {displayPlans.map((plan, index) => (
             <Card
               key={index}
               className={`p-8 ${
@@ -138,7 +138,7 @@ const Pricing = () => {
                         price: getTotalPrice(plan.planData),
                         isFamily: isFamily,
                         billingPeriod: plan.planData.billing_period,
-                        monthsCount: 10
+                        monthsCount: 12
                       }
                     });
                   }
@@ -160,7 +160,6 @@ const Pricing = () => {
                 )}
                 <div className="flex items-baseline justify-center gap-1 relative mb-4">
                   <span className="text-4xl font-bold text-foreground">{plan.price}</span>
-                  {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
                   {plan.highlighted && (
                     <span className="absolute -top-5 -right-2 bg-destructive text-destructive-foreground text-lg font-bold px-4 py-2 rounded-full shadow-lg animate-pulse">
                       -30%
