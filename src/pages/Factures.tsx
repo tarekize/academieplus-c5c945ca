@@ -352,7 +352,7 @@ const Factures = () => {
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(gray[0], gray[1], gray[2]);
-    doc.text("Pour toute question, contactez-nous à support@academieplus.dz", pw / 2, y + 21, { align: "center" });
+    doc.text("Pour toute question, contactez-nous a support@academieplus.dz", pw / 2, y + 21, { align: "center" });
 
     // ── Footer ──
     const footerY = ph - 20;
