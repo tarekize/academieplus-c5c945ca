@@ -60,6 +60,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
           }
 
+          // Rediriger les parents vers /parent-dashboard après connexion
+          if (roleData?.role === 'parent' && 
+              (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/')) {
+            window.location.href = '/parent-dashboard';
+            return;
+          }
+
           // Rediriger les élèves sans évaluation vers le jeu d'apprentissage
           if (roleData?.role === 'student' && !currentPath.includes('/learning-assessment') && !currentPath.includes('/complete-profile') && !currentPath.includes('/auth')) {
             const { data: styleData } = await supabase
