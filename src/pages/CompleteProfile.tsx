@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 import Header from "@/components/Header";
 import iconStudent from "@/assets/icon-student.png";
 import iconParent from "@/assets/icon-parent.png";
-import { User } from "lucide-react";
+import { User, CalendarIcon } from "lucide-react";
 import LocationFields from "@/components/profile/LocationFields";
 
 const CompleteProfile = () => {
@@ -22,6 +25,8 @@ const CompleteProfile = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
+  const [phone, setPhone] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState<Date>();
   const [wilaya, setWilaya] = useState("");
   const [ville, setVille] = useState("");
   const [ecole, setEcole] = useState("");
@@ -44,15 +49,29 @@ const CompleteProfile = () => {
         return;
       }
 
+      // Pre-fill from Google OAuth metadata
+      const meta = session.user.user_metadata;
+      if (meta) {
+        setFirstName(meta.first_name || meta.given_name || meta.full_name?.split(' ')[0] || "");
+        setLastName(meta.last_name || meta.family_name || meta.full_name?.split(' ').slice(1).join(' ') || "");
+        if (meta.phone) setPhone(meta.phone);
+      }
+
+      // Override with existing profile data if available
       const { data: profile } = await supabase
         .from('profiles')
-        .select('first_name, last_name')
+        .select('first_name, last_name, phone, date_of_birth, wilaya, ville, ecole')
         .eq('id', session.user.id)
         .single();
 
       if (profile) {
-        setFirstName(profile.first_name || "");
-        setLastName(profile.last_name || "");
+        if (profile.first_name) setFirstName(profile.first_name);
+        if (profile.last_name) setLastName(profile.last_name);
+        if (profile.phone) setPhone(profile.phone);
+        if (profile.date_of_birth) setDateOfBirth(new Date(profile.date_of_birth));
+        if (profile.wilaya) setWilaya(profile.wilaya);
+        if (profile.ville) setVille(profile.ville);
+        if (profile.ecole) setEcole(profile.ecole);
       }
     };
     checkSession();
@@ -94,6 +113,9 @@ const CompleteProfile = () => {
         first_name: firstName,
         last_name: lastName,
       };
+
+      if (phone) updateData.phone = phone;
+      if (dateOfBirth) updateData.date_of_birth = format(dateOfBirth, 'yyyy-MM-dd');
 
       if (profileType === 'enfant' && classLevel) {
         updateData.school_level = schoolLevelMapping[classLevel] || classLevel.toLowerCase();
@@ -159,6 +181,27 @@ const CompleteProfile = () => {
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Nom</Label>
                   <Input id="lastName" placeholder="Nom" value={lastName} onChange={(e) => setLastName(e.target.value)} className="bg-secondary/20 border-border" required />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Téléphone</Label>
+                  <Input id="phone" type="tel" placeholder="0555 123 456" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-secondary/20 border-border" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Date de naissance</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal bg-secondary/20 border-border", !dateOfBirth && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy") : "Sélectionnez votre date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={dateOfBirth} onSelect={setDateOfBirth} captionLayout="dropdown-buttons" fromYear={1950} toYear={new Date().getFullYear()} initialFocus className="pointer-events-auto" />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
 
