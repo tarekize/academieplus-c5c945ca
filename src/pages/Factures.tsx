@@ -365,7 +365,7 @@ const Factures = () => {
     doc.setTextColor(180, 190, 210);
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
-    doc.text("AcadémiePlus — Votre partenaire éducatif de confiance", pw / 2, footerY + 6, { align: "center" });
+    doc.text("AcademiePlus - Votre partenaire educatif de confiance", pw / 2, footerY + 6, { align: "center" });
     doc.text("www.academieplus.dz  |  contact@academieplus.dz", pw / 2, footerY + 12, { align: "center" });
 
     doc.save(`${invoiceNum}.pdf`);
