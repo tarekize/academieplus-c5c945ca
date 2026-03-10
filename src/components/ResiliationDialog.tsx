@@ -61,29 +61,50 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
 
   const fetchData = async () => {
     // Fetch active annual subscriptions created by this parent (via activation codes)
+    // Fetch all annual codes (used or free) created by this parent
     const { data: codes } = await supabase
       .from("activation_codes")
-      .select("id, is_family, plan_type")
+      .select("id, is_family, plan_type, status")
       .eq("created_by", userId)
-      .eq("status", "used")
-      .eq("plan_type", "annual");
+      .eq("plan_type", "annual")
+      .in("status", ["used", "free"]);
 
     if (codes && codes.length > 0) {
-      const codeIds = codes.map(c => c.id);
+      const usedCodes = codes.filter(c => c.status === "used");
       const codeMap = new Map(codes.map(c => [c.id, c]));
 
-      const { data: subs } = await supabase
-        .from("student_subscriptions")
-        .select("id, plan_type, started_at, days_used, total_days, is_paused, activation_code_id")
-        .in("activation_code_id", codeIds);
+      // For used codes, fetch linked subscriptions
+      let subsFromDb: SubscriptionInfo[] = [];
+      if (usedCodes.length > 0) {
+        const codeIds = usedCodes.map(c => c.id);
+        const { data: subs } = await supabase
+          .from("student_subscriptions")
+          .select("id, plan_type, started_at, days_used, total_days, is_paused, activation_code_id")
+          .in("activation_code_id", codeIds);
 
-      if (subs) {
-        setSubscriptions(subs.map(s => ({
-          ...s,
-          days_used: Number(s.days_used),
-          is_family: codeMap.get(s.activation_code_id || "")?.is_family || false,
-        })));
+        if (subs) {
+          subsFromDb = subs.map(s => ({
+            ...s,
+            days_used: Number(s.days_used),
+            is_family: codeMap.get(s.activation_code_id || "")?.is_family || false,
+          }));
+        }
       }
+
+      // For free (unused) codes, create virtual entries so parent can cancel the purchase
+      const freeCodes = codes.filter(c => c.status === "free");
+      const freeEntries: SubscriptionInfo[] = freeCodes.map(c => ({
+        id: `free_${c.id}`,
+        plan_type: "annual",
+        started_at: new Date().toISOString(),
+        days_used: 0,
+        total_days: 360,
+        is_paused: false,
+        activation_code_id: c.id,
+        is_family: c.is_family,
+      }));
+
+      setSubscriptions([...subsFromDb, ...freeEntries]);
     } else {
       setSubscriptions([]);
     }
@@ -125,15 +146,19 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
     setLoading(true);
 
     try {
-      // Delete the subscription
-      const { error: subError } = await supabase
-        .from("student_subscriptions")
-        .delete()
-        .eq("id", selectedSub.id);
+      const isFreeCode = selectedSub.id.startsWith("free_");
 
-      if (subError) throw subError;
+      // Delete the subscription only if it exists (not a free/unused code)
+      if (!isFreeCode) {
+        const { error: subError } = await supabase
+          .from("student_subscriptions")
+          .delete()
+          .eq("id", selectedSub.id);
 
-      // Update activation code status back to free
+        if (subError) throw subError;
+      }
+
+      // Update activation code status to cancelled
       if (selectedSub.activation_code_id) {
         const { error: codeError } = await supabase
           .from("activation_codes")
@@ -209,9 +234,13 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
                         <h4 className="font-semibold">
                           Formule Scolaire {sub.is_family ? "(Pack Famille)" : "(1 enfant)"}
                         </h4>
-                        <p className="text-sm text-muted-foreground">
-                          Debut : {new Date(sub.started_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                        </p>
+                        {sub.id.startsWith("free_") ? (
+                          <p className="text-sm text-muted-foreground">Code non encore utilise (remboursement total)</p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            Debut : {new Date(sub.started_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                          </p>
+                        )}
                       </div>
                       <Badge variant={sub.is_paused ? "outline" : "default"}>
                         {sub.is_paused ? "En pause" : "Actif"}
