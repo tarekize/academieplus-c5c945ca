@@ -146,40 +146,60 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
     setLoading(true);
 
     try {
-      const isFreeCode = selectedSub.id.startsWith("free_");
+      if (selectedSub.id === "family_group") {
+        // Delete ALL family codes and their subscriptions
+        for (const sub of familySubs) {
+          const codeId = sub.activation_code_id;
+          if (!codeId) continue;
 
-      // If code was used by a student, delete their subscription first
-      if (!isFreeCode) {
-        const { error: subError } = await supabase
-          .from("student_subscriptions")
-          .delete()
-          .eq("id", selectedSub.id);
+          // Delete student subscription linked to this code
+          if (!sub.id.startsWith("free_")) {
+            await supabase.from("student_subscriptions").delete().eq("id", sub.id);
+          } else {
+            await supabase.from("student_subscriptions").delete().eq("activation_code_id", codeId);
+          }
 
-        if (subError) throw subError;
-      } else if (selectedSub.activation_code_id) {
-        // Even for free codes, check if any subscription exists with this code
-        await supabase
-          .from("student_subscriptions")
-          .delete()
-          .eq("activation_code_id", selectedSub.activation_code_id);
+          // Delete the activation code
+          const { error: codeError } = await supabase
+            .from("activation_codes")
+            .delete()
+            .eq("id", codeId);
+          if (codeError) throw codeError;
+        }
+
+        const refundInfo = getFamilyGroupRefund();
+        toast({
+          title: "Resiliation confirmee",
+          description: `Le pack famille a ete resilie (${familySubs.length} codes supprimes). Montant a rembourser : ${refundInfo.refund}DA`,
+        });
+      } else {
+        // Single code resiliation
+        const isFreeCode = selectedSub.id.startsWith("free_");
+
+        if (!isFreeCode) {
+          const { error: subError } = await supabase
+            .from("student_subscriptions")
+            .delete()
+            .eq("id", selectedSub.id);
+          if (subError) throw subError;
+        } else if (selectedSub.activation_code_id) {
+          await supabase.from("student_subscriptions").delete().eq("activation_code_id", selectedSub.activation_code_id);
+        }
+
+        if (selectedSub.activation_code_id) {
+          const { error: codeError } = await supabase
+            .from("activation_codes")
+            .delete()
+            .eq("id", selectedSub.activation_code_id);
+          if (codeError) throw codeError;
+        }
+
+        const refundInfo = calculateRefund(selectedSub);
+        toast({
+          title: "Resiliation confirmee",
+          description: `L'abonnement a ete resilie. Montant a rembourser : ${refundInfo.refund}DA`,
+        });
       }
-
-      // Delete the activation code entirely
-      if (selectedSub.activation_code_id) {
-        const { error: codeError } = await supabase
-          .from("activation_codes")
-          .delete()
-          .eq("id", selectedSub.activation_code_id);
-
-        if (codeError) throw codeError;
-      }
-
-      const refundInfo = calculateRefund(selectedSub);
-
-      toast({
-        title: "Resiliation confirmee",
-        description: `L'abonnement a ete resilie. Montant a rembourser : ${refundInfo.refund}DA`,
-      });
 
       setConfirmOpen(false);
       setOpen(false);
