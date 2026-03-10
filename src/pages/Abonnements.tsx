@@ -56,6 +56,7 @@ const Abonnements = () => {
   const [loading, setLoading] = useState(true);
   const [isParent, setIsParent] = useState(false);
   const [codes, setCodes] = useState<ActivationCode[]>([]);
+  const [subStatuses, setSubStatuses] = useState<Record<string, SubStatus>>({});
   const [showCodes, setShowCodes] = useState(false);
 
   useEffect(() => {
