@@ -551,11 +551,14 @@ const Auth = () => {
 
                     <Input
                       type="tel"
-                      placeholder="Numéro de téléphone"
-                      value={wilaya ? undefined : undefined}
+                      placeholder="Numéro de téléphone (ex: 0555 123 456)"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
                       className="bg-secondary/20 border-border"
                     />
 
+                    <Input
+                      type="email"
                       placeholder="Adresse e-mail"
                       value={email}
                       onChange={(e) => {
