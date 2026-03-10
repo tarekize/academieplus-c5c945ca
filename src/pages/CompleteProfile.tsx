@@ -205,6 +205,7 @@ const CompleteProfile = () => {
                 </div>
               </div>
 
+              <div className="space-y-2">
                 <Label className="text-foreground">Qui êtes-vous ?</Label>
                 <RadioGroup value={profileType} onValueChange={setProfileType}>
                   <div className="grid grid-cols-2 gap-4">
