@@ -4,36 +4,22 @@ import { Card } from "./ui/card";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
-// Hardcoded pricing plans since the table doesn't exist yet
 interface PricingPlan {
   id: string;
   name: string;
   billing_period: 'monthly' | 'annual';
   total_single: number;
   total_family: number;
-  duration_months: number;
 }
 
-const PRICING_PLANS: PricingPlan[] = [
-  {
-    id: 'annual',
-    name: 'Formule Scolaire',
-    billing_period: 'annual',
-    total_single: 15000,
-    total_family: 25000,
-    duration_months: 10,
-  },
-  {
-    id: 'monthly',
-    name: 'Formule Mensuelle',
-    billing_period: 'monthly',
-    total_single: 2000,
-    total_family: 3500,
-    duration_months: 1,
-  },
+// Fallback plans
+const FALLBACK_PLANS: PricingPlan[] = [
+  { id: 'annual', name: 'Formule Scolaire', billing_period: 'annual', total_single: 15000, total_family: 25000 },
+  { id: 'monthly', name: 'Formule Mensuelle', billing_period: 'monthly', total_single: 2000, total_family: 3500 },
 ];
 
 const Pricing = () => {
