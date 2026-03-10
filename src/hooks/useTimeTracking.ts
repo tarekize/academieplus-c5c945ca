@@ -51,7 +51,7 @@ export const useTimeTracking = ({
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const elapsedRef = useRef<number>(0);
 
   // Sync elapsedRef with elapsedSeconds

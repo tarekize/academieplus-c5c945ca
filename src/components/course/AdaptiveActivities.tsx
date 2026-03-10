@@ -32,7 +32,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
   const [showHints, setShowHints] = useState<Record<number, boolean>>({});
   const [flippedCards, setFlippedCards] = useState<Record<number, boolean>>({});
   const timerRef = useRef<number>(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Timer for tracking exercises/quizzes
   useEffect(() => {
