@@ -233,7 +233,7 @@ const Factures = () => {
     doc.setFontSize(7);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(accent[0], accent[1], accent[2]);
-    doc.text("FACTURÉ À", 22, y + 10);
+    doc.text("FACTURE A", 22, y + 10);
 
     doc.setFontSize(13);
     doc.setFont("helvetica", "bold");
