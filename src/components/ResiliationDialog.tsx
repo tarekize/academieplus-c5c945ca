@@ -146,40 +146,60 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
     setLoading(true);
 
     try {
-      const isFreeCode = selectedSub.id.startsWith("free_");
+      if (selectedSub.id === "family_group") {
+        // Delete ALL family codes and their subscriptions
+        for (const sub of familySubs) {
+          const codeId = sub.activation_code_id;
+          if (!codeId) continue;
 
-      // If code was used by a student, delete their subscription first
-      if (!isFreeCode) {
-        const { error: subError } = await supabase
-          .from("student_subscriptions")
-          .delete()
-          .eq("id", selectedSub.id);
+          // Delete student subscription linked to this code
+          if (!sub.id.startsWith("free_")) {
+            await supabase.from("student_subscriptions").delete().eq("id", sub.id);
+          } else {
+            await supabase.from("student_subscriptions").delete().eq("activation_code_id", codeId);
+          }
 
-        if (subError) throw subError;
-      } else if (selectedSub.activation_code_id) {
-        // Even for free codes, check if any subscription exists with this code
-        await supabase
-          .from("student_subscriptions")
-          .delete()
-          .eq("activation_code_id", selectedSub.activation_code_id);
+          // Delete the activation code
+          const { error: codeError } = await supabase
+            .from("activation_codes")
+            .delete()
+            .eq("id", codeId);
+          if (codeError) throw codeError;
+        }
+
+        const refundInfo = getFamilyGroupRefund();
+        toast({
+          title: "Resiliation confirmee",
+          description: `Le pack famille a ete resilie (${familySubs.length} codes supprimes). Montant a rembourser : ${refundInfo.refund}DA`,
+        });
+      } else {
+        // Single code resiliation
+        const isFreeCode = selectedSub.id.startsWith("free_");
+
+        if (!isFreeCode) {
+          const { error: subError } = await supabase
+            .from("student_subscriptions")
+            .delete()
+            .eq("id", selectedSub.id);
+          if (subError) throw subError;
+        } else if (selectedSub.activation_code_id) {
+          await supabase.from("student_subscriptions").delete().eq("activation_code_id", selectedSub.activation_code_id);
+        }
+
+        if (selectedSub.activation_code_id) {
+          const { error: codeError } = await supabase
+            .from("activation_codes")
+            .delete()
+            .eq("id", selectedSub.activation_code_id);
+          if (codeError) throw codeError;
+        }
+
+        const refundInfo = calculateRefund(selectedSub);
+        toast({
+          title: "Resiliation confirmee",
+          description: `L'abonnement a ete resilie. Montant a rembourser : ${refundInfo.refund}DA`,
+        });
       }
-
-      // Delete the activation code entirely
-      if (selectedSub.activation_code_id) {
-        const { error: codeError } = await supabase
-          .from("activation_codes")
-          .delete()
-          .eq("id", selectedSub.activation_code_id);
-
-        if (codeError) throw codeError;
-      }
-
-      const refundInfo = calculateRefund(selectedSub);
-
-      toast({
-        title: "Resiliation confirmee",
-        description: `L'abonnement a ete resilie. Montant a rembourser : ${refundInfo.refund}DA`,
-      });
 
       setConfirmOpen(false);
       setOpen(false);
@@ -198,14 +218,42 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
 
   const annualSubs = subscriptions.filter(s => s.plan_type === "annual");
 
+  // Group: family codes together, single codes individually
+  const familySubs = annualSubs.filter(s => s.is_family);
+  const singleSubs = annualSubs.filter(s => !s.is_family);
+
+  const getFamilyGroupRefund = () => {
+    // For family, use the family annual price (paid once for all codes)
+    // and calculate based on max days_used among all codes
+    const maxDaysUsed = Math.max(...familySubs.map(s => s.days_used), 0);
+    const monthsConsumed = Math.ceil(maxDaysUsed / 30);
+    const annualPrice = prices.annual_family;
+    const monthlyPrice = prices.monthly_family;
+    const costAtMonthlyRate = monthsConsumed * monthlyPrice;
+    const refund = Math.max(0, annualPrice - costAtMonthlyRate);
+    return { monthsConsumed, annualPrice, monthlyPrice, costAtMonthlyRate, refund };
+  };
+
+  const handleFamilyResiliation = () => {
+    // Select a virtual "group" entry representing all family codes
+    setSelectedSub({
+      id: "family_group",
+      plan_type: "annual",
+      started_at: familySubs[0]?.started_at || new Date().toISOString(),
+      days_used: Math.max(...familySubs.map(s => s.days_used), 0),
+      total_days: 360,
+      is_paused: false,
+      activation_code_id: null,
+      is_family: true,
+    });
+    setConfirmOpen(true);
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button
-            variant="destructive"
-            className="gap-2"
-          >
+          <Button variant="destructive" className="gap-2">
             <XCircle className="h-4 w-4" />
             Resiliation
           </Button>
@@ -231,29 +279,25 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
             </div>
           ) : (
             <div className="space-y-4 max-h-[400px] overflow-y-auto">
-              {annualSubs.map((sub) => {
-                const { monthsConsumed, annualPrice, monthlyPrice, costAtMonthlyRate, refund } = calculateRefund(sub);
+              {/* Family group card */}
+              {familySubs.length > 0 && (() => {
+                const { monthsConsumed, annualPrice, monthlyPrice, costAtMonthlyRate, refund } = getFamilyGroupRefund();
+                const allFree = familySubs.every(s => s.id.startsWith("free_"));
                 return (
-                  <Card key={sub.id} className="p-4 space-y-3">
+                  <Card className="p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-semibold">
-                          Formule Scolaire {sub.is_family ? "(Pack Famille)" : "(1 enfant)"}
-                        </h4>
-                        {sub.id.startsWith("free_") ? (
-                          <p className="text-sm text-muted-foreground">Code non encore utilise (remboursement total)</p>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">
-                            Debut : {new Date(sub.started_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                          </p>
-                        )}
+                        <h4 className="font-semibold">Formule Scolaire (Pack Famille)</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {familySubs.length} codes inclus
+                          {allFree && " — aucun code utilise (remboursement total)"}
+                        </p>
                       </div>
-                      <Badge variant={sub.is_paused ? "outline" : "default"}>
-                        {sub.is_paused ? "En pause" : "Actif"}
+                      <Badge variant="default">
+                        {allFree ? "Non active" : "Actif"}
                       </Badge>
                     </div>
 
-                    {/* Calculation breakdown */}
                     <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-sm">
                       <div className="flex items-center gap-2 font-medium text-foreground">
                         <Calculator className="h-4 w-4" />
@@ -283,11 +327,71 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
                             {refund}DA
                           </span>
                         </div>
-                        {refund === 0 && (
-                          <p className="text-xs text-destructive mt-1">
-                            Aucun remboursement possible. Les mois consommes depassent ou egalent le prix annuel.
+                      </div>
+                    </div>
+
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="w-full"
+                      onClick={handleFamilyResiliation}
+                    >
+                      Resilier le pack famille ({familySubs.length} codes)
+                    </Button>
+                  </Card>
+                );
+              })()}
+
+              {/* Single (non-family) cards */}
+              {singleSubs.map((sub) => {
+                const { monthsConsumed, annualPrice, monthlyPrice, costAtMonthlyRate, refund } = calculateRefund(sub);
+                return (
+                  <Card key={sub.id} className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold">Formule Scolaire (1 enfant)</h4>
+                        {sub.id.startsWith("free_") ? (
+                          <p className="text-sm text-muted-foreground">Code non encore utilise (remboursement total)</p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            Debut : {new Date(sub.started_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                           </p>
                         )}
+                      </div>
+                      <Badge variant={sub.is_paused ? "outline" : "default"}>
+                        {sub.is_paused ? "En pause" : "Actif"}
+                      </Badge>
+                    </div>
+
+                    <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-sm">
+                      <div className="flex items-center gap-2 font-medium text-foreground">
+                        <Calculator className="h-4 w-4" />
+                        Detail du calcul
+                      </div>
+                      <div className="space-y-1 text-muted-foreground">
+                        <div className="flex justify-between">
+                          <span>Prix annuel paye</span>
+                          <span className="font-mono">{annualPrice}DA</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Mois consommes</span>
+                          <span className="font-mono">{monthsConsumed} mois</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Tarif mensuel standard</span>
+                          <span className="font-mono">{monthlyPrice}DA/mois</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Cout reel ({monthsConsumed} x {monthlyPrice}DA)</span>
+                          <span className="font-mono">{costAtMonthlyRate}DA</span>
+                        </div>
+                        <hr className="border-border" />
+                        <div className="flex justify-between font-semibold text-foreground text-base">
+                          <span>Remboursement</span>
+                          <span className={`font-mono ${refund > 0 ? "text-emerald-600" : "text-destructive"}`}>
+                            {refund}DA
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -324,18 +428,26 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
           </DialogHeader>
 
           {selectedSub && (() => {
-            const { monthsConsumed, refund } = calculateRefund(selectedSub);
+            const isFamilyGroup = selectedSub.id === "family_group";
+            const refundData = isFamilyGroup ? getFamilyGroupRefund() : calculateRefund(selectedSub);
+            const { monthsConsumed, refund } = refundData;
             return (
               <div className="py-4 space-y-3">
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-center space-y-1">
                   <p className="text-sm text-muted-foreground">Montant a rembourser</p>
                   <p className="text-3xl font-bold text-destructive">{refund}DA</p>
                   <p className="text-xs text-muted-foreground">
-                    Apres {monthsConsumed} mois d'utilisation
+                    {isFamilyGroup 
+                      ? `Pack famille — ${familySubs.length} codes seront supprimes`
+                      : `Apres ${monthsConsumed} mois d'utilisation`
+                    }
                   </p>
                 </div>
                 <p className="text-sm text-muted-foreground text-center">
-                  Etes-vous sur de vouloir resilier cet abonnement ?
+                  {isFamilyGroup
+                    ? `Etes-vous sur de vouloir resilier le pack famille ? Les ${familySubs.length} codes seront supprimes et les eleves perdront leur acces.`
+                    : "Etes-vous sur de vouloir resilier cet abonnement ?"
+                  }
                 </p>
               </div>
             );
