@@ -73,7 +73,7 @@ serve(async (req) => {
 
     // Single lesson mode
     if (body.lesson_id) {
-      const result = await generateForLesson(supabase, body.lesson_id, GEMINI_API_KEY);
+      const result = await generateForLesson(supabase, body.lesson_id, API_KEY);
       return new Response(JSON.stringify({ success: true, ...result }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
