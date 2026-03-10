@@ -123,8 +123,19 @@ const Factures = () => {
     });
   };
 
+  const formatDateTimeFull = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
+    return `${day}/${month}/${year} a ${hours}:${minutes}:${seconds}`;
+  };
+
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fr-DZ", { style: "currency", currency: "DZD", minimumFractionDigits: 0 }).format(amount);
+    return amount.toLocaleString('fr-FR') + ' DA';
   };
 
   const getStatusBadge = (status: string) => {
@@ -178,15 +189,15 @@ const Factures = () => {
     doc.setTextColor(dark[0], dark[1], dark[2]);
     doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
-    doc.text("Académie", 46, 25);
+    doc.text("Academie", 46, 25);
     doc.setTextColor(accent[0], accent[1], accent[2]);
-    doc.text("Plus", 46 + doc.getTextWidth("Académie"), 25);
+    doc.text("Plus", 46 + doc.getTextWidth("Academie"), 25);
 
     // Tagline
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(gray[0], gray[1], gray[2]);
-    doc.text("Votre partenaire éducatif de confiance", 46, 32);
+    doc.text("Votre partenaire educatif de confiance", 46, 32);
 
     // ── FACTURE badge (top right) ──
     const badgeW = 52;
@@ -203,8 +214,8 @@ const Factures = () => {
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(gray[0], gray[1], gray[2]);
-    doc.text(`N° ${invoiceNum}`, pw - 15, 40, { align: "right" });
-    doc.text(`Date : ${formatDate(payment.payment_date)}`, pw - 15, 47, { align: "right" });
+    doc.text(`N  ${invoiceNum}`, pw - 15, 40, { align: "right" });
+    doc.text(`Date : ${formatDateTimeFull(payment.payment_date)}`, pw - 15, 47, { align: "right" });
 
     // ── Divider ──
     let y = 56;
@@ -222,7 +233,7 @@ const Factures = () => {
     doc.setFontSize(7);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(accent[0], accent[1], accent[2]);
-    doc.text("FACTURÉ À", 22, y + 10);
+    doc.text("FACTURE A", 22, y + 10);
 
     doc.setFontSize(13);
     doc.setFont("helvetica", "bold");
@@ -242,7 +253,7 @@ const Factures = () => {
     doc.setFontSize(7);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(accent[0], accent[1], accent[2]);
-    doc.text("DÉTAILS DE FACTURATION", rightX + 7, y + 10);
+    doc.text("DETAILS DE FACTURATION", rightX + 7, y + 10);
 
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
@@ -263,7 +274,7 @@ const Factures = () => {
     doc.setFontSize(8);
     doc.setFont("helvetica", "bold");
     doc.text("DESCRIPTION", 22, y + 9);
-    doc.text("QTÉ", pw / 2, y + 9, { align: "center" });
+    doc.text("QTE", pw / 2, y + 9, { align: "center" });
     doc.text("MONTANT", pw - 22, y + 9, { align: "right" });
 
     // Table row
@@ -310,13 +321,13 @@ const Factures = () => {
     doc.text(formatCurrency(payment.amount), pw - 22, y + 11, { align: "right" });
 
     // ── Status badge (left of totals) ──
-    const statusText = payment.status === "completed" ? "PAYÉ" : "EN ATTENTE";
+    const statusText = payment.status === "completed" ? "PAYE" : "EN ATTENTE";
     if (payment.status === "completed") {
-      doc.setFillColor(220, 252, 231); // green-100
-      doc.setDrawColor(34, 197, 94); // green-500
+      doc.setFillColor(220, 252, 231);
+      doc.setDrawColor(34, 197, 94);
     } else {
-      doc.setFillColor(254, 249, 195); // yellow-100
-      doc.setDrawColor(234, 179, 8); // yellow-500
+      doc.setFillColor(254, 249, 195);
+      doc.setDrawColor(234, 179, 8);
     }
     doc.setLineWidth(0.6);
     const statusBadgeW = doc.getTextWidth(statusText) * 1.2 + 16;
@@ -324,11 +335,11 @@ const Factures = () => {
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
     if (payment.status === "completed") {
-      doc.setTextColor(22, 163, 74); // green-600
+      doc.setTextColor(22, 163, 74);
     } else {
-      doc.setTextColor(161, 98, 7); // yellow-700
+      doc.setTextColor(161, 98, 7);
     }
-    doc.text(`● ${statusText}`, 22, y + 10);
+    doc.text(statusText, 22, y + 10);
 
     // ── Thank you section ──
     y += 40;
@@ -341,7 +352,7 @@ const Factures = () => {
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(gray[0], gray[1], gray[2]);
-    doc.text("Pour toute question, contactez-nous à support@academieplus.dz", pw / 2, y + 21, { align: "center" });
+    doc.text("Pour toute question, contactez-nous a support@academieplus.dz", pw / 2, y + 21, { align: "center" });
 
     // ── Footer ──
     const footerY = ph - 20;
@@ -354,7 +365,7 @@ const Factures = () => {
     doc.setTextColor(180, 190, 210);
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
-    doc.text("AcadémiePlus — Votre partenaire éducatif de confiance", pw / 2, footerY + 6, { align: "center" });
+    doc.text("AcademiePlus - Votre partenaire educatif de confiance", pw / 2, footerY + 6, { align: "center" });
     doc.text("www.academieplus.dz  |  contact@academieplus.dz", pw / 2, footerY + 12, { align: "center" });
 
     doc.save(`${invoiceNum}.pdf`);
