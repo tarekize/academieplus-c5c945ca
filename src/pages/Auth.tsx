@@ -40,6 +40,7 @@ const Auth = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [wilaya, setWilaya] = useState("");
   const [ville, setVille] = useState("");
+  const [phone, setPhone] = useState("");
   const [ecole, setEcole] = useState("");
 
   // RGPD Consent states
