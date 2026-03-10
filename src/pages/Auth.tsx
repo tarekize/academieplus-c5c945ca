@@ -40,6 +40,7 @@ const Auth = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [wilaya, setWilaya] = useState("");
   const [ville, setVille] = useState("");
+  const [phone, setPhone] = useState("");
   const [ecole, setEcole] = useState("");
 
   // RGPD Consent states
@@ -207,7 +208,7 @@ const Auth = () => {
       setIsRegistering(true);
 
       // Envoyer l'inscription en arrière-plan
-      performSignUp(firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth, wilaya, ville, ecole);
+      performSignUp(firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth, wilaya, ville, ecole, phone);
     } else {
       // LOGIN
       setLoading(true);
@@ -248,7 +249,8 @@ const Auth = () => {
     dateOfBirth: Date | undefined,
     wilaya: string,
     ville: string,
-    ecole: string
+    ecole: string,
+    phone: string
   ) => {
     try {
       const schoolLevelMapping: Record<string, string> = {
@@ -293,6 +295,7 @@ const Auth = () => {
       if (wilaya) userData.wilaya = wilaya;
       if (ville) userData.ville = ville;
       if (ecole) userData.ecole = ecole;
+      if (phone) userData.phone = phone;
 
       const { error } = await supabase.auth.signUp({
         email,
@@ -550,6 +553,14 @@ const Auth = () => {
                     </div>
 
                     <Input
+                      type="tel"
+                      placeholder="Numéro de téléphone (ex: 0555 123 456)"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="bg-secondary/20 border-border"
+                    />
+
+                    <Input
                       type="email"
                       placeholder="Adresse e-mail"
                       value={email}
@@ -745,17 +756,15 @@ const Auth = () => {
                       </div>
                     )}
 
-                    {/* Wilaya, Ville, École - pour élève et parent */}
-                    {(profileType === "enfant" || profileType === "parent") && (
-                      <LocationFields
-                        wilaya={wilaya}
-                        ville={ville}
-                        ecole={ecole}
-                        onWilayaChange={setWilaya}
-                        onVilleChange={setVille}
-                        onEcoleChange={setEcole}
-                      />
-                    )}
+                    {/* Wilaya, Ville, École - toujours affiché */}
+                    <LocationFields
+                      wilaya={wilaya}
+                      ville={ville}
+                      ecole={ecole}
+                      onWilayaChange={setWilaya}
+                      onVilleChange={setVille}
+                      onEcoleChange={setEcole}
+                    />
 
                     {/* RGPD Consents */}
                     <div className="space-y-4 pt-4 border-t border-border">
