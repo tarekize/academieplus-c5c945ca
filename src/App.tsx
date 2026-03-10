@@ -100,6 +100,11 @@ const App = () => (
                   <Admin />
                 </ProtectedRoute>
               } />
+              <Route path="/admin/abonnements" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminAbonnements />
+                </ProtectedRoute>
+              } />
               <Route path="/mentions-legales" element={<MentionsLegales />} />
               <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

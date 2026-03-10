@@ -223,6 +223,12 @@ const Dashboard = () => {
                       </CardHeader>
                       <CardContent><p className="text-muted-foreground">Consultez les statistiques d'utilisation</p></CardContent>
                     </Card>
+                    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/admin/abonnements")}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><CreditCard className="h-5 w-5" />Gérer les Abonnements</CardTitle>
+                      </CardHeader>
+                      <CardContent><p className="text-muted-foreground">Configurez les tarifs, périodes et consultez les paiements</p></CardContent>
+                    </Card>
                   </>
                 )}
                 <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/liste-cours")}>
