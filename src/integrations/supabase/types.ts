@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      activation_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          id: string
+          is_family: boolean
+          payment_id: string | null
+          plan_type: string
+          status: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by: string
+          id?: string
+          is_family?: boolean
+          payment_id?: string | null
+          plan_type: string
+          status?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_family?: boolean
+          payment_id?: string | null
+          plan_type?: string
+          status?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activation_codes_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activity_logs: {
         Row: {
           action: string
@@ -676,6 +723,59 @@ export type Database = {
           },
         ]
       }
+      student_subscriptions: {
+        Row: {
+          activation_code_id: string | null
+          created_at: string
+          days_used: number
+          id: string
+          is_paused: boolean
+          last_tick_at: string
+          paused_at: string | null
+          plan_type: string
+          started_at: string
+          total_days: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activation_code_id?: string | null
+          created_at?: string
+          days_used?: number
+          id?: string
+          is_paused?: boolean
+          last_tick_at?: string
+          paused_at?: string | null
+          plan_type: string
+          started_at?: string
+          total_days: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activation_code_id?: string | null
+          created_at?: string
+          days_used?: number
+          id?: string
+          is_paused?: boolean
+          last_tick_at?: string
+          paused_at?: string | null
+          plan_type?: string
+          started_at?: string
+          total_days?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_subscriptions_activation_code_id_fkey"
+            columns: ["activation_code_id"]
+            isOneToOne: false
+            referencedRelation: "activation_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_config: {
         Row: {
           created_at: string
@@ -765,6 +865,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_activation_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
