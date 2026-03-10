@@ -25,6 +25,8 @@ const CompleteProfile = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
+  const [phone, setPhone] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState<Date>();
   const [wilaya, setWilaya] = useState("");
   const [ville, setVille] = useState("");
   const [ecole, setEcole] = useState("");
