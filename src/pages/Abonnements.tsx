@@ -214,68 +214,104 @@ const Abonnements = () => {
 
           {/* My Codes Section - visible for parents */}
           {isParent && codes.length > 0 && (
-            <div className="max-w-4xl mx-auto mb-8">
-              <Button
-                variant={showCodes ? "default" : "outline"}
-                className="mb-4"
+            <div className="max-w-4xl mx-auto mb-10">
+              {/* Modern toggle card */}
+              <Card 
+                className={`cursor-pointer transition-all duration-300 overflow-hidden ${
+                  showCodes 
+                    ? "border-primary/30 shadow-lg shadow-primary/5" 
+                    : "hover:border-primary/20 hover:shadow-md"
+                }`}
                 onClick={() => setShowCodes(!showCodes)}
               >
-                <Key className="h-4 w-4 mr-2" />
-                Mes Codes ({codes.length})
-              </Button>
+                <div className="p-5 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`h-12 w-12 rounded-2xl flex items-center justify-center transition-colors ${
+                      showCodes ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
+                    }`}>
+                      <Key className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg">Mes Codes d'Activation</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {codes.length} code{codes.length > 1 ? "s" : ""} • {codes.filter(c => c.status === "free").length} disponible{codes.filter(c => c.status === "free").length > 1 ? "s" : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                    showCodes ? "border-primary bg-primary/10 rotate-180" : "border-muted-foreground/30"
+                  }`}>
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </Card>
 
+              {/* Expandable table */}
               {showCodes && (
-                <Card className="p-4">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Code</TableHead>
-                        <TableHead>Formule</TableHead>
-                        <TableHead>Statut</TableHead>
-                        <TableHead>État</TableHead>
-                        <TableHead>Date de début</TableHead>
-                        <TableHead>Date de fin</TableHead>
-                        <TableHead></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {codes.map((code) => (
-                        <TableRow key={code.id}>
-                          <TableCell className="font-mono font-bold tracking-widest">{code.code}</TableCell>
-                          <TableCell>{code.plan_type === "annual" ? "Scolaire (1 an)" : "Mensuelle"}</TableCell>
-                          <TableCell>
-                            <Badge variant={code.status === "used" ? "secondary" : "default"}>
-                              {code.status === "used" ? "Utilisé" : "Libre"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {code.status === "used" ? (
-                              <Badge variant={subStatuses[code.id]?.is_paused ? "outline" : "default"}>
-                                {subStatuses[code.id]?.is_paused ? "En pause" : "Actif"}
-                              </Badge>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {code.used_at
-                              ? new Date(code.used_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
-                              : new Date(code.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                          </TableCell>
-                          <TableCell>
-                            {getEndDate(code)}
-                          </TableCell>
-                          <TableCell>
-                            {code.status === "free" && (
-                              <Button variant="ghost" size="sm" onClick={() => copyCode(code.code)}>
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </TableCell>
+                <Card className="mt-3 overflow-hidden border-primary/10 animate-in slide-in-from-top-2 duration-300">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/30 hover:bg-muted/30">
+                          <TableHead className="font-semibold">Code</TableHead>
+                          <TableHead className="font-semibold">Formule</TableHead>
+                          <TableHead className="font-semibold">Statut</TableHead>
+                          <TableHead className="font-semibold">État</TableHead>
+                          <TableHead className="font-semibold">Date de début</TableHead>
+                          <TableHead className="font-semibold">Date de fin</TableHead>
+                          <TableHead></TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {codes.map((code) => (
+                          <TableRow key={code.id} className="group hover:bg-muted/20 transition-colors">
+                            <TableCell className="font-mono font-bold tracking-widest text-primary">{code.code}</TableCell>
+                            <TableCell>{code.plan_type === "annual" ? "Scolaire (1 an)" : "Mensuelle"}</TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={code.status === "used" ? "secondary" : "default"}
+                                className={code.status === "free" ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20" : ""}
+                              >
+                                {code.status === "used" ? "Utilisé" : "Disponible"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {code.status === "used" ? (
+                                <Badge variant={subStatuses[code.id]?.is_paused ? "outline" : "default"}>
+                                  {subStatuses[code.id]?.is_paused ? "En pause" : "Actif"}
+                                </Badge>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {code.used_at
+                                ? new Date(code.used_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+                                : new Date(code.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {getEndDate(code)}
+                            </TableCell>
+                            <TableCell>
+                              {code.status === "free" && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={(e) => { e.stopPropagation(); copyCode(code.code); }}
+                                  className="opacity-60 group-hover:opacity-100 transition-opacity hover:bg-primary/10 hover:text-primary"
+                                >
+                                  <Copy className="h-4 w-4 mr-1" />
+                                  <span className="hidden sm:inline">Copier</span>
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </Card>
               )}
             </div>
