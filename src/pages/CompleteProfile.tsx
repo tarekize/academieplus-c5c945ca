@@ -288,16 +288,14 @@ const CompleteProfile = () => {
                 </>
               )}
 
-              {(profileType === "enfant" || profileType === "parent") && (
-                <LocationFields
-                  wilaya={wilaya}
-                  ville={ville}
-                  ecole={ecole}
-                  onWilayaChange={setWilaya}
-                  onVilleChange={setVille}
-                  onEcoleChange={setEcole}
-                />
-              )}
+              <LocationFields
+                wilaya={wilaya}
+                ville={ville}
+                ecole={ecole}
+                onWilayaChange={setWilaya}
+                onVilleChange={setVille}
+                onEcoleChange={setEcole}
+              />
 
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Enregistrement..." : "Valider mon profil"}
