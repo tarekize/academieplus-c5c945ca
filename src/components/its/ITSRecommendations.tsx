@@ -52,8 +52,8 @@ export default function ITSRecommendations() {
   const [showReport, setShowReport] = useState(false);
   const [showAdvice, setShowAdvice] = useState(false);
   const [periodicAdvice, setPeriodicAdvice] = useState<PeriodicAdvice | null>(null);
-  const reportTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const adviceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const reportTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const adviceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Cleanup timers on unmount or logout
   useEffect(() => {
