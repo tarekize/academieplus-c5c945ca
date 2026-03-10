@@ -189,9 +189,9 @@ const Factures = () => {
     doc.setTextColor(dark[0], dark[1], dark[2]);
     doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
-    doc.text("Académie", 46, 25);
+    doc.text("Academie", 46, 25);
     doc.setTextColor(accent[0], accent[1], accent[2]);
-    doc.text("Plus", 46 + doc.getTextWidth("Académie"), 25);
+    doc.text("Plus", 46 + doc.getTextWidth("Academie"), 25);
 
     // Tagline
     doc.setFontSize(9);
