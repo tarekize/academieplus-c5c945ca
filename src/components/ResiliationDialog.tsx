@@ -234,9 +234,13 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
                         <h4 className="font-semibold">
                           Formule Scolaire {sub.is_family ? "(Pack Famille)" : "(1 enfant)"}
                         </h4>
-                        <p className="text-sm text-muted-foreground">
-                          Debut : {new Date(sub.started_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                        </p>
+                        {sub.id.startsWith("free_") ? (
+                          <p className="text-sm text-muted-foreground">Code non encore utilise (remboursement total)</p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            Debut : {new Date(sub.started_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                          </p>
+                        )}
                       </div>
                       <Badge variant={sub.is_paused ? "outline" : "default"}>
                         {sub.is_paused ? "En pause" : "Actif"}
