@@ -184,7 +184,27 @@ const CompleteProfile = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Téléphone</Label>
+                  <Input id="phone" type="tel" placeholder="0555 123 456" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-secondary/20 border-border" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Date de naissance</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal bg-secondary/20 border-border", !dateOfBirth && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy") : "Sélectionnez votre date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={dateOfBirth} onSelect={setDateOfBirth} captionLayout="dropdown-buttons" fromYear={1950} toYear={new Date().getFullYear()} initialFocus className="pointer-events-auto" />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
                 <Label className="text-foreground">Qui êtes-vous ?</Label>
                 <RadioGroup value={profileType} onValueChange={setProfileType}>
                   <div className="grid grid-cols-2 gap-4">
