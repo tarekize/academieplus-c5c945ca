@@ -114,6 +114,9 @@ const CompleteProfile = () => {
         last_name: lastName,
       };
 
+      if (phone) updateData.phone = phone;
+      if (dateOfBirth) updateData.date_of_birth = format(dateOfBirth, 'yyyy-MM-dd');
+
       if (profileType === 'enfant' && classLevel) {
         updateData.school_level = schoolLevelMapping[classLevel] || classLevel.toLowerCase();
         if (filiere) {
