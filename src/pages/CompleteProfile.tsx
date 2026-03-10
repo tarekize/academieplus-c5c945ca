@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 import Header from "@/components/Header";
 import iconStudent from "@/assets/icon-student.png";
 import iconParent from "@/assets/icon-parent.png";
-import { User } from "lucide-react";
+import { User, CalendarIcon } from "lucide-react";
 import LocationFields from "@/components/profile/LocationFields";
 
 const CompleteProfile = () => {
