@@ -43,6 +43,11 @@ interface ActivationCode {
   is_family: boolean;
 }
 
+interface SubStatus {
+  is_paused: boolean;
+}
+
+
 const Abonnements = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -51,6 +56,7 @@ const Abonnements = () => {
   const [loading, setLoading] = useState(true);
   const [isParent, setIsParent] = useState(false);
   const [codes, setCodes] = useState<ActivationCode[]>([]);
+  const [subStatuses, setSubStatuses] = useState<Record<string, SubStatus>>({});
   const [showCodes, setShowCodes] = useState(false);
 
   useEffect(() => {
@@ -94,7 +100,22 @@ const Abonnements = () => {
       .eq("created_by", userId)
       .order("created_at", { ascending: false });
 
-    if (data) setCodes(data as any[]);
+    if (data) {
+      setCodes(data as any[]);
+      // Fetch subscription statuses for used codes
+      const usedCodeIds = (data as any[]).filter(c => c.status === "used").map(c => c.id);
+      if (usedCodeIds.length > 0) {
+        const { data: subs } = await supabase
+          .from("student_subscriptions")
+          .select("activation_code_id, is_paused")
+          .in("activation_code_id", usedCodeIds);
+        if (subs) {
+          const map: Record<string, SubStatus> = {};
+          (subs as any[]).forEach(s => { map[s.activation_code_id] = { is_paused: s.is_paused }; });
+          setSubStatuses(map);
+        }
+      }
+    }
   };
 
   const getFullName = (p: Profile | null): string => {
@@ -211,6 +232,7 @@ const Abonnements = () => {
                         <TableHead>Code</TableHead>
                         <TableHead>Formule</TableHead>
                         <TableHead>Statut</TableHead>
+                        <TableHead>État</TableHead>
                         <TableHead>Date de début</TableHead>
                         <TableHead>Date de fin</TableHead>
                         <TableHead></TableHead>
@@ -222,9 +244,18 @@ const Abonnements = () => {
                           <TableCell className="font-mono font-bold tracking-widest">{code.code}</TableCell>
                           <TableCell>{code.plan_type === "annual" ? "Scolaire (1 an)" : "Mensuelle"}</TableCell>
                           <TableCell>
-                            <Badge variant={code.status === "free" ? "default" : "secondary"}>
-                              {code.status === "free" ? "Libre" : "Utilisé"}
+                            <Badge variant={code.status === "used" ? "secondary" : "default"}>
+                              {code.status === "used" ? "Utilisé" : "Libre"}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {code.status === "used" ? (
+                              <Badge variant={subStatuses[code.id]?.is_paused ? "outline" : "default"}>
+                                {subStatuses[code.id]?.is_paused ? "En pause" : "Actif"}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             {code.used_at
