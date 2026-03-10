@@ -208,7 +208,7 @@ const Auth = () => {
       setIsRegistering(true);
 
       // Envoyer l'inscription en arrière-plan
-      performSignUp(firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth, wilaya, ville, ecole);
+      performSignUp(firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth, wilaya, ville, ecole, phone);
     } else {
       // LOGIN
       setLoading(true);
