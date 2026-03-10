@@ -50,48 +50,36 @@ const Pricing = () => {
     fetchConfig();
   }, []);
 
-  // Obtenir le prix total en fonction du switch famille
   const getTotalPrice = (plan: PricingPlan) => {
     return isFamily ? plan.total_family : plan.total_single;
   };
 
-  // Calculer la date de fin (aujourd'hui + 10 mois)
-  const getEndDate = () => {
-    const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + 10);
-    return endDate.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' });
-  };
+  const annualPlan = plans.find(p => p.billing_period === 'annual');
+  const monthlyPlan = plans.find(p => p.billing_period === 'monthly');
 
-  const plans = [
+  const features = [
+    "Tous les cours de mathématiques de votre niveau",
+    "Exercices et corrigés",
+    "Vidéos explicatives",
+    "Suivi de progression",
+    "Support prioritaire",
+    "Examens blancs",
+  ];
+
+  const displayPlans = [
     {
-      name: "Formule Scolaire",
+      name: annualPlan?.name || "Formule Scolaire",
       price: annualPlan ? `${getTotalPrice(annualPlan).toLocaleString('fr-FR')} DA` : '---',
-      period: "",
-      description: `Paiement unique pour 10 mois jusqu'au ${getEndDate()}`,
-      features: [
-        "Tous les cours de mathématiques de votre niveau",
-        "Exercices et corrigés",
-        "Vidéos explicatives",
-        "Suivi de progression",
-        "Support prioritaire",
-        "Examens blancs",
-      ],
+      description: `Paiement unique pour ${periodLabel}`,
+      features,
       highlighted: true,
       planData: annualPlan,
     },
     {
-      name: "Formule Mensuelle",
+      name: monthlyPlan?.name || "Formule Mensuelle",
       price: monthlyPlan ? `${getTotalPrice(monthlyPlan).toLocaleString('fr-FR')} DA` : '---',
-      period: "",
       description: "Paiement mensuel",
-      features: [
-        "Tous les cours de mathématiques de votre niveau",
-        "Exercices et corrigés",
-        "Vidéos explicatives",
-        "Suivi de progression",
-        "Support prioritaire",
-        "Examens blancs",
-      ],
+      features,
       highlighted: false,
       planData: monthlyPlan,
     },
