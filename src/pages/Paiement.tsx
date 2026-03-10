@@ -126,7 +126,7 @@ const Paiement = () => {
 
     const now = new Date();
     const isAnnual = paymentInfo.billingPeriod === 'annual';
-    const months = isAnnual ? 10 : 1;
+    const months = isAnnual ? 12 : 1;
     const monthlyPrice = Math.round(paymentInfo.price / months);
 
     const endDate = new Date(now);

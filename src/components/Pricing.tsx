@@ -4,91 +4,82 @@ import { Card } from "./ui/card";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
-// Hardcoded pricing plans since the table doesn't exist yet
 interface PricingPlan {
   id: string;
   name: string;
   billing_period: 'monthly' | 'annual';
   total_single: number;
   total_family: number;
-  duration_months: number;
 }
 
-const PRICING_PLANS: PricingPlan[] = [
-  {
-    id: 'annual',
-    name: 'Formule Scolaire',
-    billing_period: 'annual',
-    total_single: 15000,
-    total_family: 25000,
-    duration_months: 10,
-  },
-  {
-    id: 'monthly',
-    name: 'Formule Mensuelle',
-    billing_period: 'monthly',
-    total_single: 2000,
-    total_family: 3500,
-    duration_months: 1,
-  },
+// Fallback plans
+const FALLBACK_PLANS: PricingPlan[] = [
+  { id: 'annual', name: 'Formule Scolaire', billing_period: 'annual', total_single: 15000, total_family: 25000 },
+  { id: 'monthly', name: 'Formule Mensuelle', billing_period: 'monthly', total_single: 2000, total_family: 3500 },
 ];
 
 const Pricing = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   
-  // Switch par défaut sur "1 enfant" (false)
   const [isFamily, setIsFamily] = useState(false);
+  const [plans, setPlans] = useState<PricingPlan[]>(FALLBACK_PLANS);
+  const [periodLabel, setPeriodLabel] = useState("1 année scolaire");
 
-  // Trouver les plans mensuel et annuel
-  const monthlyPlan = PRICING_PLANS.find(p => p.billing_period === 'monthly');
-  const annualPlan = PRICING_PLANS.find(p => p.billing_period === 'annual');
+  useEffect(() => {
+    const fetchConfig = async () => {
+      const { data } = await supabase.from("subscription_config").select("*").eq("is_active", true);
+      if (data && data.length > 0) {
+        setPlans(data.map((c: any) => ({
+          id: c.plan_type,
+          name: c.label,
+          billing_period: c.plan_type as 'monthly' | 'annual',
+          total_single: c.price_single,
+          total_family: c.price_family,
+        })));
+      }
+      const { data: periods } = await supabase.from("subscription_periods").select("*").eq("is_active", true).limit(1);
+      if (periods && periods.length > 0) {
+        setPeriodLabel(periods[0].label);
+      }
+    };
+    fetchConfig();
+  }, []);
 
-  // Obtenir le prix total en fonction du switch famille
   const getTotalPrice = (plan: PricingPlan) => {
     return isFamily ? plan.total_family : plan.total_single;
   };
 
-  // Calculer la date de fin (aujourd'hui + 10 mois)
-  const getEndDate = () => {
-    const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + 10);
-    return endDate.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' });
-  };
+  const annualPlan = plans.find(p => p.billing_period === 'annual');
+  const monthlyPlan = plans.find(p => p.billing_period === 'monthly');
 
-  const plans = [
+  const features = [
+    "Tous les cours de mathématiques de votre niveau",
+    "Exercices et corrigés",
+    "Vidéos explicatives",
+    "Suivi de progression",
+    "Support prioritaire",
+    "Examens blancs",
+  ];
+
+  const displayPlans = [
     {
-      name: "Formule Scolaire",
+      name: annualPlan?.name || "Formule Scolaire",
       price: annualPlan ? `${getTotalPrice(annualPlan).toLocaleString('fr-FR')} DA` : '---',
-      period: "",
-      description: `Paiement unique pour 10 mois jusqu'au ${getEndDate()}`,
-      features: [
-        "Tous les cours de mathématiques de votre niveau",
-        "Exercices et corrigés",
-        "Vidéos explicatives",
-        "Suivi de progression",
-        "Support prioritaire",
-        "Examens blancs",
-      ],
+      description: `Paiement unique pour ${periodLabel}`,
+      features,
       highlighted: true,
       planData: annualPlan,
     },
     {
-      name: "Formule Mensuelle",
+      name: monthlyPlan?.name || "Formule Mensuelle",
       price: monthlyPlan ? `${getTotalPrice(monthlyPlan).toLocaleString('fr-FR')} DA` : '---',
-      period: "",
       description: "Paiement mensuel",
-      features: [
-        "Tous les cours de mathématiques de votre niveau",
-        "Exercices et corrigés",
-        "Vidéos explicatives",
-        "Suivi de progression",
-        "Support prioritaire",
-        "Examens blancs",
-      ],
+      features,
       highlighted: false,
       planData: monthlyPlan,
     },
@@ -128,7 +119,7 @@ const Pricing = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {plans.map((plan, index) => (
+          {displayPlans.map((plan, index) => (
             <Card
               key={index}
               className={`p-8 ${
@@ -147,7 +138,7 @@ const Pricing = () => {
                         price: getTotalPrice(plan.planData),
                         isFamily: isFamily,
                         billingPeriod: plan.planData.billing_period,
-                        monthsCount: 10
+                        monthsCount: 12
                       }
                     });
                   }
@@ -169,7 +160,6 @@ const Pricing = () => {
                 )}
                 <div className="flex items-baseline justify-center gap-1 relative mb-4">
                   <span className="text-4xl font-bold text-foreground">{plan.price}</span>
-                  {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
                   {plan.highlighted && (
                     <span className="absolute -top-5 -right-2 bg-destructive text-destructive-foreground text-lg font-bold px-4 py-2 rounded-full shadow-lg animate-pulse">
                       -30%

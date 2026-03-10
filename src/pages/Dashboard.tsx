@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Users, GraduationCap, Search, LogOut, User as UserIcon, BarChart3 } from "lucide-react";
+import { Users, GraduationCap, Search, LogOut, User as UserIcon, BarChart3, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -222,6 +222,12 @@ const Dashboard = () => {
                         <CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5" />Analytics</CardTitle>
                       </CardHeader>
                       <CardContent><p className="text-muted-foreground">Consultez les statistiques d'utilisation</p></CardContent>
+                    </Card>
+                    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/admin/abonnements")}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><CreditCard className="h-5 w-5" />Gérer les Abonnements</CardTitle>
+                      </CardHeader>
+                      <CardContent><p className="text-muted-foreground">Configurez les tarifs, périodes et consultez les paiements</p></CardContent>
                     </Card>
                   </>
                 )}
