@@ -135,7 +135,7 @@ const Factures = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    return amount.toLocaleString('fr-FR') + ' DA';
+    return amount.toString() + 'DA';
   };
 
   const getStatusBadge = (status: string) => {
