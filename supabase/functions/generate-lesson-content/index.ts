@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function generateForLesson(supabase: any, lessonId: string, LOVABLE_API_KEY: string) {
+async function generateForLesson(supabase: any, lessonId: string, GEMINI_API_KEY: string) {
   const { data: lesson } = await supabase.from("lessons").select("title, title_ar, chapter_id, content").eq("id", lessonId).single();
   if (!lesson) throw new Error("Lesson not found");
 
@@ -29,30 +29,26 @@ async function generateForLesson(supabase: any, lessonId: string, LOVABLE_API_KE
 
 اكتب الدرس بشكل شامل مع: مقدمة، شرح المفاهيم، أمثلة محلولة، خصائص، تمارين تطبيقية.`;
 
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [
-        { role: "system", content: "You are an expert Algerian math teacher. Generate beautifully formatted, colorful HTML lessons in Arabic. Use inline styles for colors, backgrounds, borders. Make the content visually rich with colored sections for definitions, examples, exercises, properties, and formulas. Use tables where appropriate. Do NOT use markdown, only HTML. Do NOT wrap in ```html tags." },
-        { role: "user", content: prompt },
-      ],
+      systemInstruction: {
+        parts: [{ text: "You are an expert Algerian math teacher. Generate beautifully formatted, colorful HTML lessons in Arabic. Use inline styles for colors, backgrounds, borders. Make the content visually rich with colored sections for definitions, examples, exercises, properties, and formulas. Use tables where appropriate. Do NOT use markdown, only HTML. Do NOT wrap in ```html tags." }]
+      },
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 8192 },
     }),
   });
 
   if (!response.ok) {
     if (response.status === 429) throw new Error("Rate limit");
-    if (response.status === 402) throw new Error("Credits exhausted");
     const t = await response.text();
-    throw new Error(`AI Gateway error: ${response.status} ${t}`);
+    throw new Error(`Gemini API error: ${response.status} ${t}`);
   }
 
   const result = await response.json();
-  let content = result.choices?.[0]?.message?.content || "";
+  let content = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
   content = content.replace(/```html\n?/g, "").replace(/```\n?/g, "").trim();
 
   await supabase.from("lessons").update({ content }).eq("id", lessonId);
@@ -64,8 +60,8 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -73,7 +69,7 @@ serve(async (req) => {
 
     // Single lesson mode
     if (body.lesson_id) {
-      const result = await generateForLesson(supabase, body.lesson_id, LOVABLE_API_KEY);
+      const result = await generateForLesson(supabase, body.lesson_id, GEMINI_API_KEY);
       return new Response(JSON.stringify({ success: true, ...result }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -83,7 +79,6 @@ serve(async (req) => {
     const batchSize = body.batch_size || 3;
     const schoolLevel = body.school_level;
 
-    // Find lessons without content
     let query = supabase
       .from("lessons")
       .select("id, chapter_id")
@@ -91,7 +86,6 @@ serve(async (req) => {
       .order("created_at", { ascending: true })
       .limit(batchSize);
 
-    // Filter by school level if specified
     if (schoolLevel) {
       const { data: chapterIds } = await supabase
         .from("chapters")
@@ -119,12 +113,11 @@ serve(async (req) => {
     const results: { id: string; status: string }[] = [];
     for (const lesson of lessons) {
       try {
-        const r = await generateForLesson(supabase, lesson.id, LOVABLE_API_KEY);
+        const r = await generateForLesson(supabase, lesson.id, GEMINI_API_KEY);
         results.push(r);
       } catch (err: any) {
         results.push({ id: lesson.id, status: `error: ${err.message}` });
-        // Stop on rate limit or credits
-        if (err.message === "Rate limit" || err.message === "Credits exhausted") break;
+        if (err.message === "Rate limit") break;
       }
     }
 
