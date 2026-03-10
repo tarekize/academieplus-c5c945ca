@@ -214,7 +214,7 @@ const Abonnements = () => {
           </Breadcrumb>
 
           {/* Resiliation button for parents with annual codes */}
-          {isParent && codes.some(c => c.plan_type === "annual" && c.status === "used") && (
+          {isParent && codes.some(c => c.plan_type === "annual") && (
             <div className="max-w-4xl mx-auto mb-6 flex justify-end">
               <ResiliationDialog 
                 userId={profile?.id || ""} 
