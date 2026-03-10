@@ -140,7 +140,26 @@ const Account = () => {
     setActivating(true);
 
     try {
-      // Find the code
+      // Check if code exists at all
+      const { data: anyCode } = await supabase
+        .from("activation_codes")
+        .select("status")
+        .eq("code", activationCode.trim().toUpperCase())
+        .maybeSingle();
+
+      if (!anyCode) {
+        toast({ title: "Code invalide", description: "Ce code n'existe pas. Vérifiez le code et réessayez.", variant: "destructive" });
+        setActivating(false);
+        return;
+      }
+
+      if (anyCode.status === "used") {
+        toast({ title: "Code déjà utilisé", description: "Ce code a déjà été activé et ne peut pas être réutilisé.", variant: "destructive" });
+        setActivating(false);
+        return;
+      }
+
+      // Fetch full code data
       const { data: codeData, error: codeErr } = await supabase
         .from("activation_codes")
         .select("*")
@@ -149,7 +168,7 @@ const Account = () => {
         .single();
 
       if (codeErr || !codeData) {
-        toast({ title: "Code invalide", description: "Ce code n'existe pas ou a déjà été utilisé.", variant: "destructive" });
+        toast({ title: "Erreur", description: "Impossible d'activer ce code.", variant: "destructive" });
         setActivating(false);
         return;
       }
