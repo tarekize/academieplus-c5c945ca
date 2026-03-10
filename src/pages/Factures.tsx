@@ -123,8 +123,19 @@ const Factures = () => {
     });
   };
 
+  const formatDateTimeFull = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
+    return `${day}/${month}/${year} a ${hours}:${minutes}:${seconds}`;
+  };
+
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fr-DZ", { style: "currency", currency: "DZD", minimumFractionDigits: 0 }).format(amount);
+    return amount.toLocaleString('fr-FR') + ' DA';
   };
 
   const getStatusBadge = (status: string) => {
