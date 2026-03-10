@@ -550,7 +550,12 @@ const Auth = () => {
                     </div>
 
                     <Input
-                      type="email"
+                      type="tel"
+                      placeholder="Numéro de téléphone"
+                      value={wilaya ? undefined : undefined}
+                      className="bg-secondary/20 border-border"
+                    />
+
                       placeholder="Adresse e-mail"
                       value={email}
                       onChange={(e) => {
