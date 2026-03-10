@@ -144,43 +144,136 @@ const Factures = () => {
   };
 
   const handleDownloadInvoice = (payment: Payment) => {
-    // Generate a simple text-based invoice for download
-    const invoiceContent = `
-═══════════════════════════════════════════
-                FACTURE
-         AcadémiePlus
-═══════════════════════════════════════════
+    const doc = new jsPDF();
+    const invoiceNum = generateInvoiceNumber(payment);
+    const pageWidth = doc.internal.pageSize.getWidth();
 
-N° Facture: ${generateInvoiceNumber(payment)}
-Date: ${formatDate(payment.payment_date)}
+    // --- Header background ---
+    doc.setFillColor(15, 23, 42); // slate-900
+    doc.rect(0, 0, pageWidth, 52, "F");
 
-Client: ${getFullName(profile)}
-Email: ${profile?.email || "—"}
+    // --- Logo icon (graduation cap circle) ---
+    doc.setFillColor(99, 102, 241); // indigo-500
+    doc.circle(24, 26, 10, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("A+", 24, 29, { align: "center" });
 
-───────────────────────────────────────────
-Détail
-───────────────────────────────────────────
+    // --- Brand name ---
+    doc.setFontSize(22);
+    doc.text("AcadémiePlus", 40, 24);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(180, 190, 210);
+    doc.text("Votre partenaire éducatif", 40, 32);
 
-Formule: ${payment.plan_label}
-Type: ${payment.is_family ? `Famille (${payment.children_count} enfant${payment.children_count > 1 ? "s" : ""})` : "Individuel"}
+    // --- FACTURE label ---
+    doc.setFontSize(28);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(255, 255, 255);
+    doc.text("FACTURE", pageWidth - 15, 28, { align: "right" });
 
-Montant: ${formatCurrency(payment.amount)}
-Statut: ${payment.status === "completed" ? "Payé" : "En attente"}
+    // --- Invoice number & date pill ---
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(180, 190, 210);
+    doc.text(`N° ${invoiceNum}`, pageWidth - 15, 38, { align: "right" });
+    doc.text(`Date : ${formatDate(payment.payment_date)}`, pageWidth - 15, 45, { align: "right" });
 
-═══════════════════════════════════════════
-    Merci pour votre confiance !
-    AcadémiePlus - Votre partenaire éducatif
-═══════════════════════════════════════════
-    `.trim();
+    // --- Client info section ---
+    let y = 68;
+    doc.setFillColor(248, 250, 252); // slate-50
+    doc.roundedRect(15, y - 6, pageWidth - 30, 34, 3, 3, "F");
 
-    const blob = new Blob([invoiceContent], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${generateInvoiceNumber(payment)}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast({ title: "Facture téléchargée", description: `${generateInvoiceNumber(payment)}` });
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139); // slate-500
+    doc.text("FACTURÉ À", 22, y);
+    y += 7;
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(15, 23, 42);
+    doc.text(getFullName(profile), 22, y);
+    y += 7;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 116, 139);
+    doc.text(profile?.email || "—", 22, y);
+
+    // --- Separator line ---
+    y = 108;
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.5);
+    doc.line(15, y, pageWidth - 15, y);
+
+    // --- Table header ---
+    y += 10;
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(15, y - 5, pageWidth - 30, 12, 2, 2, "F");
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(100, 116, 139);
+    doc.text("DESCRIPTION", 22, y + 2);
+    doc.text("TYPE", 100, y + 2);
+    doc.text("MONTANT", pageWidth - 22, y + 2, { align: "right" });
+
+    // --- Table row ---
+    y += 18;
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(15, 23, 42);
+    doc.text(payment.plan_label, 22, y);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    const typeText = payment.is_family
+      ? `Famille (${payment.children_count} enfant${payment.children_count > 1 ? "s" : ""})`
+      : "Individuel";
+    doc.text(typeText, 100, y);
+
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(15, 23, 42);
+    doc.text(formatCurrency(payment.amount), pageWidth - 22, y, { align: "right" });
+
+    // --- Separator ---
+    y += 12;
+    doc.setDrawColor(226, 232, 240);
+    doc.line(15, y, pageWidth - 15, y);
+
+    // --- Total section ---
+    y += 14;
+    doc.setFillColor(99, 102, 241); // indigo-500
+    doc.roundedRect(pageWidth - 90, y - 6, 75, 18, 3, 3, "F");
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(255, 255, 255);
+    doc.text("TOTAL", pageWidth - 84, y + 4);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(formatCurrency(payment.amount), pageWidth - 22, y + 4, { align: "right" });
+
+    // --- Status badge ---
+    const statusText = payment.status === "completed" ? "PAYÉ" : "EN ATTENTE";
+    const badgeColor = payment.status === "completed" ? [16, 185, 129] : [245, 158, 11]; // emerald / amber
+    doc.setFillColor(badgeColor[0], badgeColor[1], badgeColor[2]);
+    doc.roundedRect(15, y - 4, 28, 10, 2, 2, "F");
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(255, 255, 255);
+    doc.text(statusText, 29, y + 2, { align: "center" });
+
+    // --- Footer ---
+    const footerY = doc.internal.pageSize.getHeight() - 30;
+    doc.setDrawColor(226, 232, 240);
+    doc.line(15, footerY, pageWidth - 15, footerY);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(148, 163, 184);
+    doc.text("Merci pour votre confiance !", pageWidth / 2, footerY + 10, { align: "center" });
+    doc.text("AcadémiePlus — Votre partenaire éducatif", pageWidth / 2, footerY + 17, { align: "center" });
+
+    doc.save(`${invoiceNum}.pdf`);
+    toast({ title: "Facture PDF téléchargée", description: invoiceNum });
   };
 
   if (loading) {
