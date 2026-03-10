@@ -214,8 +214,8 @@ const Factures = () => {
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(gray[0], gray[1], gray[2]);
-    doc.text(`N° ${invoiceNum}`, pw - 15, 40, { align: "right" });
-    doc.text(`Date : ${formatDate(payment.payment_date)}`, pw - 15, 47, { align: "right" });
+    doc.text(`N  ${invoiceNum}`, pw - 15, 40, { align: "right" });
+    doc.text(`Date : ${formatDateTimeFull(payment.payment_date)}`, pw - 15, 47, { align: "right" });
 
     // ── Divider ──
     let y = 56;
