@@ -232,6 +232,7 @@ const Abonnements = () => {
                         <TableHead>Code</TableHead>
                         <TableHead>Formule</TableHead>
                         <TableHead>Statut</TableHead>
+                        <TableHead>État</TableHead>
                         <TableHead>Date de début</TableHead>
                         <TableHead>Date de fin</TableHead>
                         <TableHead></TableHead>
@@ -243,9 +244,18 @@ const Abonnements = () => {
                           <TableCell className="font-mono font-bold tracking-widest">{code.code}</TableCell>
                           <TableCell>{code.plan_type === "annual" ? "Scolaire (1 an)" : "Mensuelle"}</TableCell>
                           <TableCell>
-                            <Badge variant={code.status === "free" ? "default" : "secondary"}>
-                              {code.status === "free" ? "Libre" : "Utilisé"}
+                            <Badge variant={code.status === "used" ? "secondary" : "default"}>
+                              {code.status === "used" ? "Utilisé" : "Libre"}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {code.status === "used" ? (
+                              <Badge variant={subStatuses[code.id]?.is_paused ? "outline" : "default"}>
+                                {subStatuses[code.id]?.is_paused ? "En pause" : "Actif"}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             {code.used_at
