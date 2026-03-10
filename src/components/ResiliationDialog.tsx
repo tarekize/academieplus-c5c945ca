@@ -198,14 +198,42 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
 
   const annualSubs = subscriptions.filter(s => s.plan_type === "annual");
 
+  // Group: family codes together, single codes individually
+  const familySubs = annualSubs.filter(s => s.is_family);
+  const singleSubs = annualSubs.filter(s => !s.is_family);
+
+  const getFamilyGroupRefund = () => {
+    // For family, use the family annual price (paid once for all codes)
+    // and calculate based on max days_used among all codes
+    const maxDaysUsed = Math.max(...familySubs.map(s => s.days_used), 0);
+    const monthsConsumed = Math.ceil(maxDaysUsed / 30);
+    const annualPrice = prices.annual_family;
+    const monthlyPrice = prices.monthly_family;
+    const costAtMonthlyRate = monthsConsumed * monthlyPrice;
+    const refund = Math.max(0, annualPrice - costAtMonthlyRate);
+    return { monthsConsumed, annualPrice, monthlyPrice, costAtMonthlyRate, refund };
+  };
+
+  const handleFamilyResiliation = () => {
+    // Select a virtual "group" entry representing all family codes
+    setSelectedSub({
+      id: "family_group",
+      plan_type: "annual",
+      started_at: familySubs[0]?.started_at || new Date().toISOString(),
+      days_used: Math.max(...familySubs.map(s => s.days_used), 0),
+      total_days: 360,
+      is_paused: false,
+      activation_code_id: null,
+      is_family: true,
+    });
+    setConfirmOpen(true);
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button
-            variant="destructive"
-            className="gap-2"
-          >
+          <Button variant="destructive" className="gap-2">
             <XCircle className="h-4 w-4" />
             Resiliation
           </Button>
@@ -231,29 +259,25 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
             </div>
           ) : (
             <div className="space-y-4 max-h-[400px] overflow-y-auto">
-              {annualSubs.map((sub) => {
-                const { monthsConsumed, annualPrice, monthlyPrice, costAtMonthlyRate, refund } = calculateRefund(sub);
+              {/* Family group card */}
+              {familySubs.length > 0 && (() => {
+                const { monthsConsumed, annualPrice, monthlyPrice, costAtMonthlyRate, refund } = getFamilyGroupRefund();
+                const allFree = familySubs.every(s => s.id.startsWith("free_"));
                 return (
-                  <Card key={sub.id} className="p-4 space-y-3">
+                  <Card className="p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-semibold">
-                          Formule Scolaire {sub.is_family ? "(Pack Famille)" : "(1 enfant)"}
-                        </h4>
-                        {sub.id.startsWith("free_") ? (
-                          <p className="text-sm text-muted-foreground">Code non encore utilise (remboursement total)</p>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">
-                            Debut : {new Date(sub.started_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                          </p>
-                        )}
+                        <h4 className="font-semibold">Formule Scolaire (Pack Famille)</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {familySubs.length} codes inclus
+                          {allFree && " — aucun code utilise (remboursement total)"}
+                        </p>
                       </div>
-                      <Badge variant={sub.is_paused ? "outline" : "default"}>
-                        {sub.is_paused ? "En pause" : "Actif"}
+                      <Badge variant="default">
+                        {allFree ? "Non active" : "Actif"}
                       </Badge>
                     </div>
 
-                    {/* Calculation breakdown */}
                     <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-sm">
                       <div className="flex items-center gap-2 font-medium text-foreground">
                         <Calculator className="h-4 w-4" />
@@ -283,11 +307,71 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
                             {refund}DA
                           </span>
                         </div>
-                        {refund === 0 && (
-                          <p className="text-xs text-destructive mt-1">
-                            Aucun remboursement possible. Les mois consommes depassent ou egalent le prix annuel.
+                      </div>
+                    </div>
+
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="w-full"
+                      onClick={handleFamilyResiliation}
+                    >
+                      Resilier le pack famille ({familySubs.length} codes)
+                    </Button>
+                  </Card>
+                );
+              })()}
+
+              {/* Single (non-family) cards */}
+              {singleSubs.map((sub) => {
+                const { monthsConsumed, annualPrice, monthlyPrice, costAtMonthlyRate, refund } = calculateRefund(sub);
+                return (
+                  <Card key={sub.id} className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold">Formule Scolaire (1 enfant)</h4>
+                        {sub.id.startsWith("free_") ? (
+                          <p className="text-sm text-muted-foreground">Code non encore utilise (remboursement total)</p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            Debut : {new Date(sub.started_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                           </p>
                         )}
+                      </div>
+                      <Badge variant={sub.is_paused ? "outline" : "default"}>
+                        {sub.is_paused ? "En pause" : "Actif"}
+                      </Badge>
+                    </div>
+
+                    <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-sm">
+                      <div className="flex items-center gap-2 font-medium text-foreground">
+                        <Calculator className="h-4 w-4" />
+                        Detail du calcul
+                      </div>
+                      <div className="space-y-1 text-muted-foreground">
+                        <div className="flex justify-between">
+                          <span>Prix annuel paye</span>
+                          <span className="font-mono">{annualPrice}DA</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Mois consommes</span>
+                          <span className="font-mono">{monthsConsumed} mois</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Tarif mensuel standard</span>
+                          <span className="font-mono">{monthlyPrice}DA/mois</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Cout reel ({monthsConsumed} x {monthlyPrice}DA)</span>
+                          <span className="font-mono">{costAtMonthlyRate}DA</span>
+                        </div>
+                        <hr className="border-border" />
+                        <div className="flex justify-between font-semibold text-foreground text-base">
+                          <span>Remboursement</span>
+                          <span className={`font-mono ${refund > 0 ? "text-emerald-600" : "text-destructive"}`}>
+                            {refund}DA
+                          </span>
+                        </div>
                       </div>
                     </div>
 
