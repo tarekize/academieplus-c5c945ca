@@ -43,6 +43,11 @@ interface ActivationCode {
   is_family: boolean;
 }
 
+interface SubStatus {
+  is_paused: boolean;
+}
+
+
 const Abonnements = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
