@@ -49,15 +49,29 @@ const CompleteProfile = () => {
         return;
       }
 
+      // Pre-fill from Google OAuth metadata
+      const meta = session.user.user_metadata;
+      if (meta) {
+        setFirstName(meta.first_name || meta.given_name || meta.full_name?.split(' ')[0] || "");
+        setLastName(meta.last_name || meta.family_name || meta.full_name?.split(' ').slice(1).join(' ') || "");
+        if (meta.phone) setPhone(meta.phone);
+      }
+
+      // Override with existing profile data if available
       const { data: profile } = await supabase
         .from('profiles')
-        .select('first_name, last_name')
+        .select('first_name, last_name, phone, date_of_birth, wilaya, ville, ecole')
         .eq('id', session.user.id)
         .single();
 
       if (profile) {
-        setFirstName(profile.first_name || "");
-        setLastName(profile.last_name || "");
+        if (profile.first_name) setFirstName(profile.first_name);
+        if (profile.last_name) setLastName(profile.last_name);
+        if (profile.phone) setPhone(profile.phone);
+        if (profile.date_of_birth) setDateOfBirth(new Date(profile.date_of_birth));
+        if (profile.wilaya) setWilaya(profile.wilaya);
+        if (profile.ville) setVille(profile.ville);
+        if (profile.ecole) setEcole(profile.ecole);
       }
     };
     checkSession();
