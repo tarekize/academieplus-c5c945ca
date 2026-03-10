@@ -61,29 +61,50 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
 
   const fetchData = async () => {
     // Fetch active annual subscriptions created by this parent (via activation codes)
+    // Fetch all annual codes (used or free) created by this parent
     const { data: codes } = await supabase
       .from("activation_codes")
-      .select("id, is_family, plan_type")
+      .select("id, is_family, plan_type, status")
       .eq("created_by", userId)
-      .eq("status", "used")
-      .eq("plan_type", "annual");
+      .eq("plan_type", "annual")
+      .in("status", ["used", "free"]);
 
     if (codes && codes.length > 0) {
-      const codeIds = codes.map(c => c.id);
+      const usedCodes = codes.filter(c => c.status === "used");
       const codeMap = new Map(codes.map(c => [c.id, c]));
 
-      const { data: subs } = await supabase
-        .from("student_subscriptions")
-        .select("id, plan_type, started_at, days_used, total_days, is_paused, activation_code_id")
-        .in("activation_code_id", codeIds);
+      // For used codes, fetch linked subscriptions
+      let subsFromDb: SubscriptionInfo[] = [];
+      if (usedCodes.length > 0) {
+        const codeIds = usedCodes.map(c => c.id);
+        const { data: subs } = await supabase
+          .from("student_subscriptions")
+          .select("id, plan_type, started_at, days_used, total_days, is_paused, activation_code_id")
+          .in("activation_code_id", codeIds);
 
-      if (subs) {
-        setSubscriptions(subs.map(s => ({
-          ...s,
-          days_used: Number(s.days_used),
-          is_family: codeMap.get(s.activation_code_id || "")?.is_family || false,
-        })));
+        if (subs) {
+          subsFromDb = subs.map(s => ({
+            ...s,
+            days_used: Number(s.days_used),
+            is_family: codeMap.get(s.activation_code_id || "")?.is_family || false,
+          }));
+        }
       }
+
+      // For free (unused) codes, create virtual entries so parent can cancel the purchase
+      const freeCodes = codes.filter(c => c.status === "free");
+      const freeEntries: SubscriptionInfo[] = freeCodes.map(c => ({
+        id: `free_${c.id}`,
+        plan_type: "annual",
+        started_at: new Date().toISOString(),
+        days_used: 0,
+        total_days: 360,
+        is_paused: false,
+        activation_code_id: c.id,
+        is_family: c.is_family,
+      }));
+
+      setSubscriptions([...subsFromDb, ...freeEntries]);
     } else {
       setSubscriptions([]);
     }
