@@ -228,11 +228,11 @@ const Abonnements = () => {
                           </TableCell>
                           <TableCell>
                             {code.used_at
-                              ? new Date(code.used_at).toLocaleDateString("fr-FR")
-                              : "-"}
+                              ? new Date(code.used_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+                              : new Date(code.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                           </TableCell>
                           <TableCell>
-                            {code.status === "used" ? getEndDate(code) : "-"}
+                            {getEndDate(code)}
                           </TableCell>
                           <TableCell>
                             {code.status === "free" && (
