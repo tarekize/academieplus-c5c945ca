@@ -146,134 +146,219 @@ const Factures = () => {
   const handleDownloadInvoice = (payment: Payment) => {
     const doc = new jsPDF();
     const invoiceNum = generateInvoiceNumber(payment);
-    const pageWidth = doc.internal.pageSize.getWidth();
+    const pw = doc.internal.pageSize.getWidth();
+    const ph = doc.internal.pageSize.getHeight();
 
-    // --- Header background ---
-    doc.setFillColor(15, 23, 42); // slate-900
-    doc.rect(0, 0, pageWidth, 52, "F");
+    // ── Accent color ──
+    const accent = [79, 70, 229]; // indigo-600
+    const accentLight = [238, 242, 255]; // indigo-50
+    const dark = [15, 23, 42];
+    const gray = [100, 116, 139];
+    const lightGray = [241, 245, 249];
 
-    // --- Logo icon (graduation cap circle) ---
-    doc.setFillColor(99, 102, 241); // indigo-500
-    doc.circle(24, 26, 10, "F");
+    // ── Left accent bar ──
+    doc.setFillColor(accent[0], accent[1], accent[2]);
+    doc.rect(0, 0, 6, ph, "F");
+
+    // ── Header section ──
+    // Logo circle
+    doc.setFillColor(accent[0], accent[1], accent[2]);
+    doc.circle(28, 28, 12, "F");
+    // Inner ring
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(1.5);
+    doc.circle(28, 28, 8, "S");
+    // Graduation cap icon text
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text("A+", 24, 29, { align: "center" });
+    doc.setFontSize(11);
+    doc.text("A+", 28, 31, { align: "center" });
 
-    // --- Brand name ---
-    doc.setFontSize(22);
-    doc.text("AcadémiePlus", 40, 24);
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(180, 190, 210);
-    doc.text("Votre partenaire éducatif", 40, 32);
-
-    // --- FACTURE label ---
-    doc.setFontSize(28);
+    // Brand name
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(255, 255, 255);
-    doc.text("FACTURE", pageWidth - 15, 28, { align: "right" });
+    doc.text("Académie", 46, 25);
+    doc.setTextColor(accent[0], accent[1], accent[2]);
+    doc.text("Plus", 46 + doc.getTextWidth("Académie"), 25);
 
-    // --- Invoice number & date pill ---
+    // Tagline
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(180, 190, 210);
-    doc.text(`N° ${invoiceNum}`, pageWidth - 15, 38, { align: "right" });
-    doc.text(`Date : ${formatDate(payment.payment_date)}`, pageWidth - 15, 45, { align: "right" });
+    doc.setTextColor(gray[0], gray[1], gray[2]);
+    doc.text("Votre partenaire éducatif de confiance", 46, 32);
 
-    // --- Client info section ---
-    let y = 68;
-    doc.setFillColor(248, 250, 252); // slate-50
-    doc.roundedRect(15, y - 6, pageWidth - 30, 34, 3, 3, "F");
-
-    doc.setFontSize(8);
-    doc.setTextColor(100, 116, 139); // slate-500
-    doc.text("FACTURÉ À", 22, y);
-    y += 7;
+    // ── FACTURE badge (top right) ──
+    const badgeW = 52;
+    const badgeH = 14;
+    const badgeX = pw - 15 - badgeW;
+    doc.setFillColor(accent[0], accent[1], accent[2]);
+    doc.roundedRect(badgeX, 16, badgeW, badgeH, 4, 4, "F");
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(13);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(15, 23, 42);
-    doc.text(getFullName(profile), 22, y);
-    y += 7;
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(100, 116, 139);
-    doc.text(profile?.email || "—", 22, y);
+    doc.text("FACTURE", badgeX + badgeW / 2, 26, { align: "center" });
 
-    // --- Separator line ---
-    y = 108;
-    doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.5);
-    doc.line(15, y, pageWidth - 15, y);
-
-    // --- Table header ---
-    y += 10;
-    doc.setFillColor(248, 250, 252);
-    doc.roundedRect(15, y - 5, pageWidth - 30, 12, 2, 2, "F");
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(100, 116, 139);
-    doc.text("DESCRIPTION", 22, y + 2);
-    doc.text("TYPE", 100, y + 2);
-    doc.text("MONTANT", pageWidth - 22, y + 2, { align: "right" });
-
-    // --- Table row ---
-    y += 18;
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(15, 23, 42);
-    doc.text(payment.plan_label, 22, y);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(100, 116, 139);
-    const typeText = payment.is_family
-      ? `Famille (${payment.children_count} enfant${payment.children_count > 1 ? "s" : ""})`
-      : "Individuel";
-    doc.text(typeText, 100, y);
-
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(15, 23, 42);
-    doc.text(formatCurrency(payment.amount), pageWidth - 22, y, { align: "right" });
-
-    // --- Separator ---
-    y += 12;
-    doc.setDrawColor(226, 232, 240);
-    doc.line(15, y, pageWidth - 15, y);
-
-    // --- Total section ---
-    y += 14;
-    doc.setFillColor(99, 102, 241); // indigo-500
-    doc.roundedRect(pageWidth - 90, y - 6, 75, 18, 3, 3, "F");
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(255, 255, 255);
-    doc.text("TOTAL", pageWidth - 84, y + 4);
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text(formatCurrency(payment.amount), pageWidth - 22, y + 4, { align: "right" });
-
-    // --- Status badge ---
-    const statusText = payment.status === "completed" ? "PAYÉ" : "EN ATTENTE";
-    const badgeColor = payment.status === "completed" ? [16, 185, 129] : [245, 158, 11]; // emerald / amber
-    doc.setFillColor(badgeColor[0], badgeColor[1], badgeColor[2]);
-    doc.roundedRect(15, y - 4, 28, 10, 2, 2, "F");
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(255, 255, 255);
-    doc.text(statusText, 29, y + 2, { align: "center" });
-
-    // --- Footer ---
-    const footerY = doc.internal.pageSize.getHeight() - 30;
-    doc.setDrawColor(226, 232, 240);
-    doc.line(15, footerY, pageWidth - 15, footerY);
+    // Invoice number & date below badge
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(148, 163, 184);
-    doc.text("Merci pour votre confiance !", pageWidth / 2, footerY + 10, { align: "center" });
-    doc.text("AcadémiePlus — Votre partenaire éducatif", pageWidth / 2, footerY + 17, { align: "center" });
+    doc.setTextColor(gray[0], gray[1], gray[2]);
+    doc.text(`N° ${invoiceNum}`, pw - 15, 40, { align: "right" });
+    doc.text(`Date : ${formatDate(payment.payment_date)}`, pw - 15, 47, { align: "right" });
+
+    // ── Divider ──
+    let y = 56;
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.4);
+    doc.line(15, y, pw - 15, y);
+
+    // ── Two-column info section ──
+    y = 66;
+
+    // Left: Facturé à
+    doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
+    doc.roundedRect(15, y, (pw - 40) / 2, 40, 4, 4, "F");
+
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(accent[0], accent[1], accent[2]);
+    doc.text("FACTURÉ À", 22, y + 10);
+
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.text(getFullName(profile), 22, y + 20);
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(gray[0], gray[1], gray[2]);
+    doc.text(profile?.email || "—", 22, y + 28);
+
+    // Right: Détails
+    const rightX = 15 + (pw - 40) / 2 + 10;
+    doc.setFillColor(accentLight[0], accentLight[1], accentLight[2]);
+    doc.roundedRect(rightX, y, (pw - 40) / 2, 40, 4, 4, "F");
+
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(accent[0], accent[1], accent[2]);
+    doc.text("DÉTAILS DE FACTURATION", rightX + 7, y + 10);
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    const typeLabel = payment.is_family
+      ? `Famille (${payment.children_count} enfant${payment.children_count > 1 ? "s" : ""})`
+      : "Individuel";
+    doc.text(`Type : ${typeLabel}`, rightX + 7, y + 20);
+    doc.text(`Formule : ${payment.plan_label}`, rightX + 7, y + 28);
+
+    // ── Items table ──
+    y = 118;
+
+    // Table header
+    doc.setFillColor(dark[0], dark[1], dark[2]);
+    doc.roundedRect(15, y, pw - 30, 14, 3, 3, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.text("DESCRIPTION", 22, y + 9);
+    doc.text("QTÉ", pw / 2, y + 9, { align: "center" });
+    doc.text("MONTANT", pw - 22, y + 9, { align: "right" });
+
+    // Table row
+    y += 20;
+    doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
+    doc.roundedRect(15, y - 4, pw - 30, 16, 2, 2, "F");
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.text(payment.plan_label, 22, y + 6);
+    doc.setTextColor(gray[0], gray[1], gray[2]);
+    doc.text("1", pw / 2, y + 6, { align: "center" });
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.text(formatCurrency(payment.amount), pw - 22, y + 6, { align: "right" });
+
+    // ── Totals section (right-aligned) ──
+    y += 28;
+    const totalsX = pw - 100;
+
+    // Sous-total
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(gray[0], gray[1], gray[2]);
+    doc.text("Sous-total", totalsX, y);
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.text(formatCurrency(payment.amount), pw - 22, y, { align: "right" });
+
+    // Divider
+    y += 6;
+    doc.setDrawColor(226, 232, 240);
+    doc.line(totalsX - 5, y, pw - 15, y);
+
+    // Total with accent bg
+    y += 4;
+    doc.setFillColor(accent[0], accent[1], accent[2]);
+    doc.roundedRect(totalsX - 5, y, pw - 15 - totalsX + 5, 16, 3, 3, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("TOTAL TTC", totalsX + 2, y + 11);
+    doc.setFontSize(14);
+    doc.text(formatCurrency(payment.amount), pw - 22, y + 11, { align: "right" });
+
+    // ── Status badge (left of totals) ──
+    const statusText = payment.status === "completed" ? "PAYÉ" : "EN ATTENTE";
+    if (payment.status === "completed") {
+      doc.setFillColor(220, 252, 231); // green-100
+      doc.setDrawColor(34, 197, 94); // green-500
+    } else {
+      doc.setFillColor(254, 249, 195); // yellow-100
+      doc.setDrawColor(234, 179, 8); // yellow-500
+    }
+    doc.setLineWidth(0.6);
+    const statusBadgeW = doc.getTextWidth(statusText) * 1.2 + 16;
+    doc.roundedRect(15, y + 1, statusBadgeW, 14, 3, 3, "FD");
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    if (payment.status === "completed") {
+      doc.setTextColor(22, 163, 74); // green-600
+    } else {
+      doc.setTextColor(161, 98, 7); // yellow-700
+    }
+    doc.text(`● ${statusText}`, 22, y + 10);
+
+    // ── Thank you section ──
+    y += 40;
+    doc.setFillColor(accentLight[0], accentLight[1], accentLight[2]);
+    doc.roundedRect(15, y, pw - 30, 28, 4, 4, "F");
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(accent[0], accent[1], accent[2]);
+    doc.text("Merci pour votre confiance !", pw / 2, y + 12, { align: "center" });
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(gray[0], gray[1], gray[2]);
+    doc.text("Pour toute question, contactez-nous à support@academieplus.dz", pw / 2, y + 21, { align: "center" });
+
+    // ── Footer ──
+    const footerY = ph - 20;
+    doc.setFillColor(dark[0], dark[1], dark[2]);
+    doc.rect(0, footerY - 4, pw, 24, "F");
+    // Overwrite left bar color on footer
+    doc.setFillColor(accent[0], accent[1], accent[2]);
+    doc.rect(0, footerY - 4, 6, 24, "F");
+
+    doc.setTextColor(180, 190, 210);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text("AcadémiePlus — Votre partenaire éducatif de confiance", pw / 2, footerY + 6, { align: "center" });
+    doc.text("www.academieplus.dz  |  contact@academieplus.dz", pw / 2, footerY + 12, { align: "center" });
 
     doc.save(`${invoiceNum}.pdf`);
-    toast({ title: "Facture PDF téléchargée", description: invoiceNum });
+    toast({ title: "Facture téléchargée", description: `${invoiceNum}.pdf` });
   };
 
   if (loading) {
