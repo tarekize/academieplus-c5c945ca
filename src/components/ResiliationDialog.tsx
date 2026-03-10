@@ -428,18 +428,26 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
           </DialogHeader>
 
           {selectedSub && (() => {
-            const { monthsConsumed, refund } = calculateRefund(selectedSub);
+            const isFamilyGroup = selectedSub.id === "family_group";
+            const refundData = isFamilyGroup ? getFamilyGroupRefund() : calculateRefund(selectedSub);
+            const { monthsConsumed, refund } = refundData;
             return (
               <div className="py-4 space-y-3">
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-center space-y-1">
                   <p className="text-sm text-muted-foreground">Montant a rembourser</p>
                   <p className="text-3xl font-bold text-destructive">{refund}DA</p>
                   <p className="text-xs text-muted-foreground">
-                    Apres {monthsConsumed} mois d'utilisation
+                    {isFamilyGroup 
+                      ? `Pack famille — ${familySubs.length} codes seront supprimes`
+                      : `Apres ${monthsConsumed} mois d'utilisation`
+                    }
                   </p>
                 </div>
                 <p className="text-sm text-muted-foreground text-center">
-                  Etes-vous sur de vouloir resilier cet abonnement ?
+                  {isFamilyGroup
+                    ? `Etes-vous sur de vouloir resilier le pack famille ? Les ${familySubs.length} codes seront supprimes et les eleves perdront leur acces.`
+                    : "Etes-vous sur de vouloir resilier cet abonnement ?"
+                  }
                 </p>
               </div>
             );
