@@ -443,6 +443,56 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          amount: number
+          children_count: number
+          created_at: string
+          id: string
+          is_family: boolean
+          payment_date: string
+          period_id: string | null
+          plan_label: string
+          plan_type: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          children_count?: number
+          created_at?: string
+          id?: string
+          is_family?: boolean
+          payment_date?: string
+          period_id?: string | null
+          plan_label: string
+          plan_type: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          children_count?: number
+          created_at?: string
+          id?: string
+          is_family?: boolean
+          payment_date?: string
+          period_id?: string | null
+          plan_label?: string
+          plan_type?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -625,6 +675,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      subscription_config: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          plan_type: string
+          price_family: number
+          price_single: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          plan_type: string
+          price_family: number
+          price_single: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          plan_type?: string
+          price_family?: number
+          price_single?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_periods: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          is_active: boolean
+          label: string
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          is_active?: boolean
+          label: string
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
