@@ -249,7 +249,8 @@ const Auth = () => {
     dateOfBirth: Date | undefined,
     wilaya: string,
     ville: string,
-    ecole: string
+    ecole: string,
+    phone: string
   ) => {
     try {
       const schoolLevelMapping: Record<string, string> = {
