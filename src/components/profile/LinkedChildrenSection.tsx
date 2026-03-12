@@ -42,9 +42,12 @@ export function LinkedChildrenSection() {
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleAddByCode = async () => {
+    setError(null);
     if (!code.trim()) {
-      toast.error("Veuillez entrer un code");
+      setError("Veuillez entrer un code");
       return;
     }
 
@@ -55,9 +58,10 @@ export function LinkedChildrenSection() {
     if (result.success) {
       toast.success(result.message);
       setCode("");
+      setError(null);
       setDialogOpen(false);
     } else {
-      toast.error(result.message);
+      setError(result.message);
     }
   };
 
