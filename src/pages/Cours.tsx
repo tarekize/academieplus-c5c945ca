@@ -490,12 +490,31 @@ const Cours = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {chapters.filter((chapter) => {
                 if (!searchQuery.trim()) return true;
-                const q = searchQuery.toLowerCase();
-                const titleMatch = chapter.title.toLowerCase().includes(q);
+                const q = searchQuery.toLowerCase().trim();
+                const fuzzyMatch = (text: string) => {
+                  const t = text.toLowerCase();
+                  if (t.includes(q)) return true;
+                  // Fuzzy: allow 1 character difference (missing/extra/wrong letter)
+                  if (q.length >= 3) {
+                    const words = q.split(/\s+/);
+                    return words.every(word => {
+                      if (t.includes(word)) return true;
+                      // Check if removing one char from word matches
+                      for (let i = 0; i < word.length; i++) {
+                        const variant = word.slice(0, i) + word.slice(i + 1);
+                        if (variant.length >= 2 && t.includes(variant)) return true;
+                      }
+                      return false;
+                    });
+                  }
+                  return false;
+                };
+                const titleMatch = fuzzyMatch(chapter.title);
+                const contentMatch = chapter.content ? fuzzyMatch(chapter.content.replace(/<[^>]*>/g, '')) : false;
                 const lessonMatch = chapter.lessons?.some(l => 
-                  l.title.toLowerCase().includes(q) || l.titleAr.toLowerCase().includes(q)
+                  fuzzyMatch(l.title) || fuzzyMatch(l.titleAr)
                 );
-                return titleMatch || lessonMatch;
+                return titleMatch || lessonMatch || contentMatch;
               }).map((chapter, index) => (
                 <Card
                   key={chapter.id}
