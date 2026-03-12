@@ -5,7 +5,7 @@ export function useAutoSave<T>(
   intervalMs: number,
   saveCallback: (data: T) => Promise<void>
 ) {
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const previousDataRef = useRef<T>(data);
 
   useEffect(() => {

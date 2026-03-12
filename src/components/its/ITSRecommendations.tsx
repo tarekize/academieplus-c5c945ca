@@ -52,8 +52,8 @@ export default function ITSRecommendations() {
   const [showReport, setShowReport] = useState(false);
   const [showAdvice, setShowAdvice] = useState(false);
   const [periodicAdvice, setPeriodicAdvice] = useState<PeriodicAdvice | null>(null);
-  const reportTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const adviceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const reportTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const adviceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Cleanup timers on unmount or logout
   useEffect(() => {
@@ -80,7 +80,7 @@ export default function ITSRecommendations() {
     storageDoneKey: string,
     setShow: (v: boolean) => void,
     setCountdown: (v: number | null) => void,
-    timerRef: React.MutableRefObject<NodeJS.Timeout | null>
+    timerRef: React.MutableRefObject<ReturnType<typeof setInterval> | null>
   ) => {
     // Already done forever? Don't show.
     if (localStorage.getItem(storageDoneKey) === "done") return;
