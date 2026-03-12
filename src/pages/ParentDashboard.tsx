@@ -331,8 +331,7 @@ const ParentDashboard = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => link.status === "active" && setSelectedChild(link)}
-                                disabled={link.status !== "active"}
+                                onClick={() => setSelectedChild(link)}
                               >
                                 <Eye className="h-4 w-4 mr-2" />Voir
                               </Button>
