@@ -487,76 +487,148 @@ const Cours = () => {
                 />
               </div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {chapters.filter((chapter) => {
-                if (!searchQuery.trim()) return true;
-                const q = searchQuery.toLowerCase().trim();
-                const fuzzyMatch = (text: string) => {
-                  const t = text.toLowerCase();
-                  if (t.includes(q)) return true;
-                  // Fuzzy: allow 1 character difference (missing/extra/wrong letter)
-                  if (q.length >= 3) {
-                    const words = q.split(/\s+/);
-                    return words.every(word => {
-                      if (t.includes(word)) return true;
-                      // Check if removing one char from word matches
-                      for (let i = 0; i < word.length; i++) {
-                        const variant = word.slice(0, i) + word.slice(i + 1);
-                        if (variant.length >= 2 && t.includes(variant)) return true;
+            {(() => {
+              const normalize = (str: string) =>
+                str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+              const fuzzyMatch = (text: string, query: string) => {
+                const t = normalize(text);
+                const q = normalize(query);
+                if (!q) return false;
+                if (t.includes(q)) return true;
+                // Fuzzy: allow 1 character difference for queries >= 3 chars
+                if (q.length >= 3) {
+                  const words = q.split(/\s+/);
+                  return words.every(word => {
+                    if (t.includes(word)) return true;
+                    // Remove one char from word
+                    for (let i = 0; i < word.length; i++) {
+                      const variant = word.slice(0, i) + word.slice(i + 1);
+                      if (variant.length >= 2 && t.includes(variant)) return true;
+                    }
+                    // Remove one char from each word in text
+                    const textWords = t.split(/\s+/);
+                    return textWords.some(tw => {
+                      if (tw.includes(word)) return true;
+                      for (let i = 0; i < tw.length; i++) {
+                        const variant = tw.slice(0, i) + tw.slice(i + 1);
+                        if (variant.length >= 2 && variant.includes(word)) return true;
                       }
                       return false;
                     });
+                  });
+                }
+                return false;
+              };
+
+              const isSearching = searchQuery.trim().length > 0;
+
+              if (isSearching) {
+                // Build flat list of matching lessons
+                const matchingLessons: { lesson: Lesson; chapter: Chapter; chapterIndex: number }[] = [];
+                chapters.forEach((chapter, chapterIndex) => {
+                  const chapterTitleMatch = fuzzyMatch(chapter.title, searchQuery);
+                  const chapterContentMatch = chapter.content ? fuzzyMatch(chapter.content.replace(/<[^>]*>/g, ''), searchQuery) : false;
+
+                  chapter.lessons?.forEach(lesson => {
+                    const lessonTitleMatch = fuzzyMatch(lesson.title, searchQuery) || fuzzyMatch(lesson.titleAr, searchQuery);
+                    if (lessonTitleMatch || chapterTitleMatch || chapterContentMatch) {
+                      matchingLessons.push({ lesson, chapter, chapterIndex });
+                    }
+                  });
+
+                  // If chapter matches but has no lessons, still show the chapter
+                  if ((chapterTitleMatch || chapterContentMatch) && (!chapter.lessons || chapter.lessons.length === 0)) {
+                    matchingLessons.push({ lesson: { id: chapter.id, title: chapter.title, titleAr: '' }, chapter, chapterIndex });
                   }
-                  return false;
-                };
-                const titleMatch = fuzzyMatch(chapter.title);
-                const contentMatch = chapter.content ? fuzzyMatch(chapter.content.replace(/<[^>]*>/g, '')) : false;
-                const lessonMatch = chapter.lessons?.some(l => 
-                  fuzzyMatch(l.title) || fuzzyMatch(l.titleAr)
+                });
+
+                if (matchingLessons.length === 0) {
+                  return (
+                    <div className="text-center py-12">
+                      <p className="text-lg text-muted-foreground">Aucun cours trouvé pour "{searchQuery}"</p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {matchingLessons.map(({ lesson, chapter, chapterIndex }) => (
+                      <Card
+                        key={`${chapter.id}-${lesson.id}`}
+                        className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/50"
+                        onClick={() => {
+                          setActiveChapter(chapter);
+                          setActiveChapterIndex(chapterIndex);
+                          setViewMode("content");
+                          setSearchQuery("");
+                        }}
+                      >
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">
+                              <BookOpen className="h-4 w-4" />
+                            </span>
+                            <span className="flex-1">{lesson.title}</span>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-xs text-muted-foreground">
+                            📖 {chapter.title}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 );
-                return titleMatch || lessonMatch || contentMatch;
-              }).map((chapter, index) => (
-                <Card
-                  key={chapter.id}
-                  className={`cursor-pointer transition-all hover:shadow-lg ${progress[chapter.id] ? 'border-green-500/50 bg-green-500/5' : ''
-                    }`}
-                  onClick={() => {
-                    setActiveChapter(chapter);
-                    setActiveChapterIndex(index);
-                    setViewMode("content");
-                  }}
-                >
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">
-                        {index + 1}
-                      </span>
-                      <span className="flex-1">{chapter.title}</span>
-                      {progress[chapter.id] && (
-                        <Check className="h-5 w-5 text-green-500" />
-                      )}
-                      {canManage && (
-                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                          <ChapterFormDialog
-                            schoolLevel={schoolLevel}
-                            filiereId={filiereId}
-                            subject={subjectId || "math"}
-                            onSaved={fetchCourse}
-                            chapter={{ id: chapter.id, title: chapter.title.split(' - ')[0], title_ar: chapter.title.includes(' - ') ? chapter.title.split(' - ')[1] : null, description: null, order_index: chapter.order_index }}
-                          />
-                          <DeleteChapterButton chapterId={chapter.id} onDeleted={fetchCourse} />
-                        </div>
-                      )}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {chapter.content?.replace(/<[^>]*>/g, '').substring(0, 100)}...
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+              }
+
+              // Default: show chapters grid
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {chapters.map((chapter, index) => (
+                    <Card
+                      key={chapter.id}
+                      className={`cursor-pointer transition-all hover:shadow-lg ${progress[chapter.id] ? 'border-green-500/50 bg-green-500/5' : ''}`}
+                      onClick={() => {
+                        setActiveChapter(chapter);
+                        setActiveChapterIndex(index);
+                        setViewMode("content");
+                      }}
+                    >
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">
+                            {index + 1}
+                          </span>
+                          <span className="flex-1">{chapter.title}</span>
+                          {progress[chapter.id] && (
+                            <Check className="h-5 w-5 text-green-500" />
+                          )}
+                          {canManage && (
+                            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                              <ChapterFormDialog
+                                schoolLevel={schoolLevel}
+                                filiereId={filiereId}
+                                subject={subjectId || "math"}
+                                onSaved={fetchCourse}
+                                chapter={{ id: chapter.id, title: chapter.title.split(' - ')[0], title_ar: chapter.title.includes(' - ') ? chapter.title.split(' - ')[1] : null, description: null, order_index: chapter.order_index }}
+                              />
+                              <DeleteChapterButton chapterId={chapter.id} onDeleted={fetchCourse} />
+                            </div>
+                          )}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {chapter.content?.replace(/<[^>]*>/g, '').substring(0, 100)}...
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         )}
 
