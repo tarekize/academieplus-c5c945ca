@@ -326,29 +326,29 @@ const Account = () => {
   const remaining = subscription ? Math.floor(getRemainingDays(subscription)) : 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/20">
       {/* Navigation Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div 
               className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" 
               onClick={() => navigate(isParent ? "/dashboard" : "/liste-cours")}
             >
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-primary-foreground" />
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md">
+                <GraduationCap className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">AcadémiePlus</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">AcadémiePlus</span>
             </div>
 
             <div className="flex items-center gap-3">
               <ChangePasswordButton />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/10 rounded-lg p-2 transition-colors">
-                    <Avatar className="h-8 w-8">
+                  <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/50 rounded-xl p-2 transition-all duration-200">
+                    <Avatar className="h-8 w-8 ring-2 ring-primary/20">
                       <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback>{fullName.charAt(0).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">{fullName.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className="text-left hidden md:block">
                       <p className="text-sm font-medium">{fullName}</p>
@@ -358,17 +358,17 @@ const Account = () => {
                     </div>
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/account")}>
+                <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-border/50">
+                  <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg">
                     <UserIcon className="mr-2 h-4 w-4" />
                     <span>Gérer mon compte</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate(isParent ? "/parent-dashboard" : "/dashboard")}>
+                  <DropdownMenuItem onClick={() => navigate(isParent ? "/parent-dashboard" : "/dashboard")} className="rounded-lg">
                     <GraduationCap className="mr-2 h-4 w-4" />
                     <span>Tableau de bord</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Se déconnecter</span>
                   </DropdownMenuItem>
@@ -381,48 +381,68 @@ const Account = () => {
 
       <main className="container mx-auto px-4 py-8 mt-20">
         {!isParent && (
-          <Breadcrumb className="mb-6">
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink onClick={() => navigate("/liste-cours")} className="cursor-pointer flex items-center gap-2">
-                  <ArrowLeft className="h-4 w-4" />
-                  Retour vers liste des matières
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+          <button
+            onClick={() => navigate("/liste-cours")}
+            className="mb-8 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+          >
+            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+            Retour vers liste des matières
+          </button>
         )}
 
-        <div className="max-w-6xl mx-auto">
-          {/* Profile Photo and Title */}
-          <div className="text-center mb-12">
-            <div className="flex justify-center mb-6">
-              <Avatar className="h-32 w-32 border-4 border-primary">
-                <AvatarImage src={profile?.avatar_url || undefined} />
-                <AvatarFallback className="text-4xl">{fullName.charAt(0).toUpperCase()}</AvatarFallback>
-              </Avatar>
+        <div className="max-w-5xl mx-auto">
+          {/* Profile Hero Section */}
+          <div className="relative mb-12">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/20 to-primary/5 rounded-3xl blur-xl" />
+            <div className="relative bg-card/80 backdrop-blur-sm rounded-3xl border border-border/50 p-8 md:p-12">
+              <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-gradient-to-br from-primary to-primary/50 rounded-full blur-sm opacity-60" />
+                  <Avatar className="relative h-28 w-28 md:h-32 md:w-32 ring-4 ring-background shadow-2xl">
+                    <AvatarImage src={profile?.avatar_url || undefined} />
+                    <AvatarFallback className="text-4xl font-bold bg-primary/10 text-primary">{fullName.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="text-center md:text-left flex-1">
+                  <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-1">
+                    {fullName}
+                  </h1>
+                  <p className="text-muted-foreground">{profile?.email}</p>
+                  {profile?.school_level && (
+                    <Badge variant="secondary" className="mt-3 rounded-full px-4 py-1">
+                      <GraduationCap className="h-3.5 w-3.5 mr-1.5" />
+                      {getSchoolLevelName(profile.school_level)}
+                    </Badge>
+                  )}
+                </div>
+              </div>
             </div>
-            <h1 className="text-4xl font-bold mb-2">Gérer mon compte</h1>
-            <p className="text-muted-foreground text-lg">{fullName}</p>
-            <p className="text-muted-foreground text-sm">{profile?.email}</p>
           </div>
 
           {/* Account Management Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
             {accountCards.map((card, index) => (
               <Card
                 key={index}
-                className="hover:shadow-lg transition-all cursor-pointer hover:scale-105"
+                className="group relative overflow-hidden rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 cursor-pointer hover:-translate-y-1"
                 onClick={card.onClick}
               >
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3">
-                    <card.icon className={`h-6 w-6 ${card.color}`} />
-                    <span>{card.title}</span>
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <CardHeader className="relative pb-2">
+                  <CardTitle className="flex items-center gap-4 text-lg">
+                    <div className={`h-12 w-12 rounded-2xl flex items-center justify-center bg-gradient-to-br ${
+                      index === 0 ? 'from-blue-500/15 to-blue-600/5' :
+                      index === 1 ? 'from-purple-500/15 to-purple-600/5' :
+                      index === 2 ? 'from-emerald-500/15 to-emerald-600/5' :
+                      'from-indigo-500/15 to-indigo-600/5'
+                    }`}>
+                      <card.icon className={`h-6 w-6 ${card.color}`} />
+                    </div>
+                    <span className="font-semibold">{card.title}</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{card.description}</p>
+                <CardContent className="relative">
+                  <p className="text-sm text-muted-foreground ml-16">{card.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -430,74 +450,86 @@ const Account = () => {
 
           {/* Student: Activate Subscription Section */}
           {isStudent && (
-            <Card className="max-w-xl mx-auto p-6 mb-8">
-              <div className="flex items-center gap-3 mb-4">
-                <Key className="h-6 w-6 text-primary" />
-                <h2 className="text-xl font-bold text-foreground">Activer l'abonnement</h2>
+            <Card className="max-w-2xl mx-auto rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-primary/10 to-accent/10 px-6 py-4 border-b border-border/30">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
+                    <Key className="h-5 w-5 text-primary" />
+                  </div>
+                  <h2 className="text-lg font-bold text-foreground">Activer l'abonnement</h2>
+                </div>
               </div>
 
-              {subscription ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Formule</p>
-                      <p className="font-semibold text-foreground">
-                        {subscription.plan_type === "annual" ? "Scolaire (1 an)" : "Mensuelle"}
-                      </p>
+              <div className="p-6">
+                {subscription ? (
+                  <div className="space-y-5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">Formule</p>
+                        <p className="font-semibold text-foreground">
+                          {subscription.plan_type === "annual" ? "Scolaire (1 an)" : "Mensuelle"}
+                        </p>
+                      </div>
+                      <Badge 
+                        variant={subscription.is_paused ? "secondary" : "default"}
+                        className="rounded-full px-4"
+                      >
+                        {subscription.is_paused ? "En pause" : "Actif"}
+                      </Badge>
                     </div>
-                    <Badge variant={subscription.is_paused ? "secondary" : "default"}>
-                      {subscription.is_paused ? "En pause" : "Actif"}
-                    </Badge>
-                  </div>
 
-                  <div className="flex items-center gap-2 text-foreground">
-                    <Clock className="h-5 w-5 text-primary" />
-                    <span className="font-semibold">{remaining} jours restants</span>
-                    <span className="text-muted-foreground">/ {subscription.total_days} jours</span>
-                  </div>
+                    <div className="bg-accent/30 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Clock className="h-4 w-4 text-primary" />
+                        <span className="font-semibold text-foreground">{remaining} jours restants</span>
+                        <span className="text-sm text-muted-foreground">/ {subscription.total_days}</span>
+                      </div>
+                      <div className="w-full bg-secondary/50 rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-primary to-primary/70 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${Math.min(100, (remaining / subscription.total_days) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
 
-                  {/* Progress bar */}
-                  <div className="w-full bg-secondary rounded-full h-2.5">
-                    <div
-                      className="bg-primary h-2.5 rounded-full transition-all"
-                      style={{ width: `${Math.min(100, (remaining / subscription.total_days) * 100)}%` }}
-                    />
+                    {subscription.plan_type === "annual" && remaining > 0 && (
+                      <Button
+                        variant={subscription.is_paused ? "default" : "outline"}
+                        className="w-full rounded-xl h-11"
+                        onClick={subscription.is_paused ? handleResume : handlePause}
+                      >
+                        {subscription.is_paused ? (
+                          <><Play className="h-4 w-4 mr-2" /> Reprendre l'abonnement</>
+                        ) : (
+                          <><Pause className="h-4 w-4 mr-2" /> Mettre en pause</>
+                        )}
+                      </Button>
+                    )}
                   </div>
-
-                  {/* Pause/Resume button - only for annual */}
-                  {subscription.plan_type === "annual" && remaining > 0 && (
-                    <Button
-                      variant={subscription.is_paused ? "default" : "outline"}
-                      className="w-full"
-                      onClick={subscription.is_paused ? handleResume : handlePause}
-                    >
-                      {subscription.is_paused ? (
-                        <><Play className="h-4 w-4 mr-2" /> Reprendre l'abonnement</>
-                      ) : (
-                        <><Pause className="h-4 w-4 mr-2" /> Mettre en pause</>
-                      )}
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Entrez le code d'activation fourni par votre parent pour activer votre abonnement.
-                  </p>
-                  <div className="flex gap-3">
-                    <Input
-                      placeholder="Ex: A1B2C3D4"
-                      value={activationCode}
-                      onChange={(e) => setActivationCode(e.target.value.toUpperCase())}
-                      className="font-mono text-lg tracking-widest"
-                      maxLength={8}
-                    />
-                    <Button onClick={handleActivateCode} disabled={activating || !activationCode.trim()}>
-                      {activating ? "Activation..." : "Activer"}
-                    </Button>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Entrez le code d'activation fourni par votre parent pour activer votre abonnement.
+                    </p>
+                    <div className="flex gap-3">
+                      <Input
+                        placeholder="Ex: A1B2C3D4"
+                        value={activationCode}
+                        onChange={(e) => setActivationCode(e.target.value.toUpperCase())}
+                        className="font-mono text-lg tracking-widest rounded-xl h-11"
+                        maxLength={8}
+                      />
+                      <Button 
+                        onClick={handleActivateCode} 
+                        disabled={activating || !activationCode.trim()}
+                        className="rounded-xl h-11 px-6"
+                      >
+                        {activating ? "Activation..." : "Activer"}
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </Card>
           )}
         </div>
