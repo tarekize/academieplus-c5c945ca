@@ -9,7 +9,7 @@ import { GenerateQuizExercisesButton } from "@/components/course/QuizExerciseCRU
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check, Search } from "lucide-react";
+import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check, Search, BarChart3 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { NotificationBell } from "@/components/course/NotificationBell";
 import ChatBot from "@/components/ChatBot";
@@ -52,6 +52,7 @@ interface Lesson {
   id: string;
   title: string;
   titleAr: string;
+  content?: string;
 }
 
 interface Chapter {
@@ -83,6 +84,7 @@ const Cours = () => {
   const [canManage, setCanManage] = useState(false);
   const [filiereId, setFiliereId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [initialLessonId, setInitialLessonId] = useState<string | null>(null);
   const [dbQuizzes, setDbQuizzes] = useState<DBQuizQuestion[]>([]);
   const [dbExercises, setDbExercises] = useState<DBExercise[]>([]);
 
@@ -152,6 +154,7 @@ const Cours = () => {
               id: l.id,
               title: l.title,
               titleAr: l.title_ar || l.title,
+              content: l.content || "",
             })),
           }));
 
@@ -368,6 +371,10 @@ const Cours = () => {
                     <UserIcon className="mr-2 h-4 w-4" />
                     <span>Gérer mon compte</span>
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    <span>Tableau de bord</span>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
@@ -491,59 +498,244 @@ const Cours = () => {
               const normalize = (str: string) =>
                 str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 
-              const fuzzyMatch = (text: string, query: string) => {
-                const t = normalize(text);
-                const q = normalize(query);
-                if (!q) return false;
-                if (t.includes(q)) return true;
-                // Fuzzy: allow 1 character difference for queries >= 3 chars
-                if (q.length >= 3) {
-                  const words = q.split(/\s+/);
-                  return words.every(word => {
-                    if (t.includes(word)) return true;
-                    // Remove one char from word
-                    for (let i = 0; i < word.length; i++) {
-                      const variant = word.slice(0, i) + word.slice(i + 1);
-                      if (variant.length >= 2 && t.includes(variant)) return true;
-                    }
-                    // Remove one char from each word in text
-                    const textWords = t.split(/\s+/);
-                    return textWords.some(tw => {
-                      if (tw.includes(word)) return true;
-                      for (let i = 0; i < tw.length; i++) {
-                        const variant = tw.slice(0, i) + tw.slice(i + 1);
-                        if (variant.length >= 2 && variant.includes(word)) return true;
-                      }
-                      return false;
-                    });
-                  });
+              const stripHtml = (html: string) => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
+              // Arabic/French stopwords to ignore during search
+              const stopwords = new Set([
+                // Arabic
+                'و', 'في', 'من', 'على', 'إلى', 'عن', 'مع', 'هو', 'هي', 'هذا', 'هذه',
+                'ذلك', 'تلك', 'التي', 'الذي', 'الذين', 'ان', 'أن', 'كان', 'لا', 'ما',
+                'لم', 'قد', 'بين', 'أو', 'ثم', 'حتى', 'كل', 'غير', 'بعد', 'قبل',
+                'لكن', 'اذا', 'إذا', 'عند', 'حيث',
+                // French
+                'le', 'la', 'les', 'de', 'du', 'des', 'un', 'une', 'et', 'ou', 'en',
+                'au', 'aux', 'ce', 'ces', 'son', 'sa', 'ses', 'sur', 'par', 'pour',
+                'avec', 'dans', 'est', 'sont', 'pas', 'ne', 'que', 'qui', 'dont',
+              ]);
+
+              // Strip Arabic prefixes/suffixes to get approximate root
+              const stemArabic = (word: string): string => {
+                let s = word;
+                // Remove common prefixes: ال، و، ب، ك، ف، لل
+                if (s.startsWith('وال')) s = s.slice(3);
+                else if (s.startsWith('بال')) s = s.slice(3);
+                else if (s.startsWith('كال')) s = s.slice(3);
+                else if (s.startsWith('فال')) s = s.slice(3);
+                else if (s.startsWith('لل')) s = s.slice(2);
+                else if (s.startsWith('ال')) s = s.slice(2);
+                else if (s.length > 3 && ['و', 'ب', 'ك', 'ف', 'ل'].includes(s[0])) s = s.slice(1);
+                // Remove common suffixes: ة، ات، ية، ين، ون، ها، هم
+                if (s.endsWith('ية') && s.length > 4) s = s.slice(0, -2);
+                else if (s.endsWith('ات') && s.length > 4) s = s.slice(0, -2);
+                else if (s.endsWith('ين') && s.length > 4) s = s.slice(0, -2);
+                else if (s.endsWith('ون') && s.length > 4) s = s.slice(0, -2);
+                else if (s.endsWith('ة') && s.length > 3) s = s.slice(0, -1);
+                return s;
+              };
+
+              // Check if a character is Arabic
+              const isArabic = (str: string) => /[\u0600-\u06FF]/.test(str);
+
+              const levenshtein = (a: string, b: string): number => {
+                const m = a.length, n = b.length;
+                if (m === 0) return n;
+                if (n === 0) return m;
+                if (Math.abs(m - n) > 3) return Math.max(m, n); // early exit
+                const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+                for (let i = 0; i <= m; i++) dp[i][0] = i;
+                for (let j = 0; j <= n; j++) dp[0][j] = j;
+                for (let i = 1; i <= m; i++) {
+                  for (let j = 1; j <= n; j++) {
+                    dp[i][j] = Math.min(
+                      dp[i - 1][j] + 1,
+                      dp[i][j - 1] + 1,
+                      dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+                    );
+                  }
                 }
-                return false;
+                return dp[m][n];
+              };
+
+              // Extract meaningful keywords from a query, removing stopwords
+              const extractKeywords = (query: string): string[] => {
+                return normalize(query)
+                  .split(/\s+/)
+                  .filter(w => w.length > 1 && !stopwords.has(w));
+              };
+
+              // Flexible word match: exact, substring, stem, or Levenshtein
+              const wordMatchScore = (textWord: string, queryWord: string): number => {
+                if (textWord === queryWord) return 100;
+                if (textWord.includes(queryWord) || queryWord.includes(textWord)) return 85;
+
+                // Arabic stem matching
+                if (isArabic(queryWord)) {
+                  const stemQ = stemArabic(queryWord);
+                  const stemT = stemArabic(textWord);
+                  if (stemQ === stemT) return 90;
+                  if (stemT.includes(stemQ) || stemQ.includes(stemT)) return 80;
+                  if (stemQ.length >= 2 && stemT.length >= 2) {
+                    const d = levenshtein(stemQ, stemT);
+                    const maxDist = stemQ.length <= 3 ? 1 : 2;
+                    if (d <= maxDist) return Math.max(10, 70 - d * 15);
+                  }
+                }
+
+                // Levenshtein on full words
+                if (queryWord.length >= 3) {
+                  const maxDist = queryWord.length <= 4 ? 1 : queryWord.length <= 7 ? 2 : 3;
+                  const d = levenshtein(textWord, queryWord);
+                  if (d <= maxDist) return Math.max(10, 65 - d * 15);
+                }
+                return 0;
+              };
+
+              // Score how well a text matches the WHOLE phrase/concept
+              const phraseSearch = (text: string, keywords: string[]): { match: boolean; score: number } => {
+                if (keywords.length === 0) return { match: false, score: 0 };
+                const t = normalize(text);
+                const textWords = t.split(/\s+/).filter(w => w.length > 1);
+                if (textWords.length === 0) return { match: false, score: 0 };
+
+                // 1) Full phrase match (highest score)
+                const fullQuery = keywords.join(' ');
+                if (t.includes(fullQuery)) return { match: true, score: 100 };
+
+                // 2) All keywords must match — phrase-level coherence
+                const keywordScores: number[] = [];
+                const matchPositions: number[] = []; // track where each keyword matched
+
+                for (const kw of keywords) {
+                  let bestScore = 0;
+                  let bestPos = -1;
+
+                  for (let i = 0; i < textWords.length; i++) {
+                    const s = wordMatchScore(textWords[i], kw);
+                    if (s > bestScore) {
+                      bestScore = s;
+                      bestPos = i;
+                    }
+                  }
+
+                  if (bestScore === 0) {
+                    // This keyword doesn't match at all → the phrase doesn't match
+                    return { match: false, score: 0 };
+                  }
+                  keywordScores.push(bestScore);
+                  matchPositions.push(bestPos);
+                }
+
+                // All keywords matched → calculate score
+                const avgScore = keywordScores.reduce((a, b) => a + b, 0) / keywordScores.length;
+
+                // 3) Proximity bonus: keywords appearing close together = better match
+                let proximityBonus = 0;
+                if (matchPositions.length > 1) {
+                  const sorted = [...matchPositions].sort((a, b) => a - b);
+                  const span = sorted[sorted.length - 1] - sorted[0];
+                  // If all keywords within 10 words of each other, big bonus
+                  if (span <= keywords.length + 2) proximityBonus = 20;
+                  else if (span <= keywords.length + 8) proximityBonus = 10;
+                  else if (span <= 20) proximityBonus = 5;
+                }
+
+                return { match: true, score: Math.min(100, avgScore + proximityBonus) };
+              };
+
+              const getSnippet = (text: string, keywords: string[]): string => {
+                const plain = stripHtml(text);
+                const t = normalize(plain);
+                const textWords = t.split(/\s+/);
+                let bestPos = -1;
+
+                // Find position of first keyword match
+                for (const kw of keywords) {
+                  for (let i = 0; i < textWords.length; i++) {
+                    if (wordMatchScore(textWords[i], kw) > 0) {
+                      // Convert word index to character position
+                      let charPos = 0;
+                      for (let j = 0; j < i; j++) charPos += textWords[j].length + 1;
+                      bestPos = charPos;
+                      break;
+                    }
+                  }
+                  if (bestPos !== -1) break;
+                }
+
+                if (bestPos === -1) return plain.substring(0, 120) + "...";
+                const start = Math.max(0, bestPos - 40);
+                const end = Math.min(plain.length, bestPos + 80);
+                return (start > 0 ? "..." : "") + plain.substring(start, end) + (end < plain.length ? "..." : "");
+              };
+
+              type SearchResult = {
+                lesson: Lesson;
+                chapter: Chapter;
+                chapterIndex: number;
+                score: number;
+                matchSource: 'chapter-title' | 'lesson-title' | 'lesson-content';
+                snippet?: string;
               };
 
               const isSearching = searchQuery.trim().length > 0;
 
               if (isSearching) {
-                // Build flat list of matching lessons
-                const matchingLessons: { lesson: Lesson; chapter: Chapter; chapterIndex: number }[] = [];
+                const keywords = extractKeywords(searchQuery);
+                if (keywords.length === 0) {
+                  return (
+                    <div className="text-center py-12">
+                      <p className="text-lg text-muted-foreground">Tapez un mot-clé pour rechercher</p>
+                    </div>
+                  );
+                }
+
+                const results: SearchResult[] = [];
+
                 chapters.forEach((chapter, chapterIndex) => {
-                  const chapterTitleMatch = fuzzyMatch(chapter.title, searchQuery);
-                  const chapterContentMatch = chapter.content ? fuzzyMatch(chapter.content.replace(/<[^>]*>/g, ''), searchQuery) : false;
+                  const chapterTitleResult = phraseSearch(chapter.title, keywords);
 
                   chapter.lessons?.forEach(lesson => {
-                    const lessonTitleMatch = fuzzyMatch(lesson.title, searchQuery) || fuzzyMatch(lesson.titleAr, searchQuery);
-                    if (lessonTitleMatch || chapterTitleMatch || chapterContentMatch) {
-                      matchingLessons.push({ lesson, chapter, chapterIndex });
+                    const titleFr = phraseSearch(lesson.title, keywords);
+                    const titleAr = phraseSearch(lesson.titleAr, keywords);
+                    const contentPlain = lesson.content ? stripHtml(lesson.content) : '';
+                    const contentResult = contentPlain ? phraseSearch(contentPlain, keywords) : { match: false, score: 0 };
+
+                    let bestScore = 0;
+                    let matchSource: SearchResult['matchSource'] = 'lesson-title';
+                    let snippet: string | undefined;
+
+                    if (titleFr.match && titleFr.score > bestScore) { bestScore = titleFr.score; matchSource = 'lesson-title'; }
+                    if (titleAr.match && titleAr.score > bestScore) { bestScore = titleAr.score; matchSource = 'lesson-title'; }
+                    if (contentResult.match && contentResult.score > bestScore) {
+                      bestScore = contentResult.score;
+                      matchSource = 'lesson-content';
+                      snippet = getSnippet(lesson.content || '', keywords);
+                    }
+                    if (chapterTitleResult.match && chapterTitleResult.score > bestScore) {
+                      bestScore = chapterTitleResult.score;
+                      matchSource = 'chapter-title';
+                    }
+
+                    if (bestScore > 0) {
+                      results.push({ lesson, chapter, chapterIndex, score: bestScore, matchSource, snippet });
                     }
                   });
 
-                  // If chapter matches but has no lessons, still show the chapter
-                  if ((chapterTitleMatch || chapterContentMatch) && (!chapter.lessons || chapter.lessons.length === 0)) {
-                    matchingLessons.push({ lesson: { id: chapter.id, title: chapter.title, titleAr: '' }, chapter, chapterIndex });
+                  // Chapter with no lessons
+                  if (chapterTitleResult.match && (!chapter.lessons || chapter.lessons.length === 0)) {
+                    results.push({
+                      lesson: { id: chapter.id, title: chapter.title, titleAr: '' },
+                      chapter, chapterIndex,
+                      score: chapterTitleResult.score,
+                      matchSource: 'chapter-title',
+                    });
                   }
                 });
 
-                if (matchingLessons.length === 0) {
+                // Sort by score descending
+                results.sort((a, b) => b.score - a.score);
+
+                if (results.length === 0) {
                   return (
                     <div className="text-center py-12">
                       <p className="text-lg text-muted-foreground">Aucun cours trouvé pour "{searchQuery}"</p>
@@ -553,13 +745,14 @@ const Cours = () => {
 
                 return (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {matchingLessons.map(({ lesson, chapter, chapterIndex }) => (
+                    {results.map(({ lesson, chapter, chapterIndex, matchSource, snippet }) => (
                       <Card
                         key={`${chapter.id}-${lesson.id}`}
                         className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/50"
                         onClick={() => {
                           setActiveChapter(chapter);
                           setActiveChapterIndex(chapterIndex);
+                          setInitialLessonId(lesson.id !== chapter.id ? lesson.id : null);
                           setViewMode("content");
                           setSearchQuery("");
                         }}
@@ -569,13 +762,24 @@ const Cours = () => {
                             <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">
                               <BookOpen className="h-4 w-4" />
                             </span>
-                            <span className="flex-1">{lesson.title}</span>
+                            <span className="flex-1">{lesson.titleAr || lesson.title}</span>
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-muted-foreground mb-1">
                             📖 {chapter.title}
                           </p>
+                          {matchSource === 'lesson-content' && snippet && (
+                            <p className="text-xs text-muted-foreground/80 italic line-clamp-2">
+                              "{snippet}"
+                            </p>
+                          )}
+                          <span className={`inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full ${matchSource === 'chapter-title' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                            : matchSource === 'lesson-title' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                              : 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300'
+                            }`}>
+                            {matchSource === 'chapter-title' ? 'Chapitre' : matchSource === 'lesson-title' ? 'Titre leçon' : 'Contenu'}
+                          </span>
                         </CardContent>
                       </Card>
                     ))}
@@ -636,7 +840,7 @@ const Cours = () => {
         {!activeActivity && viewMode === "content" && activeChapter && (
           <div className="space-y-6">
             <div className="flex gap-2 mb-4">
-              <Button variant="outline" onClick={() => setViewMode("grid")}>
+              <Button variant="outline" onClick={() => { setViewMode("grid"); setInitialLessonId(null); }}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Retour aux chapitres
               </Button>
@@ -660,6 +864,8 @@ const Cours = () => {
               userId={profile?.id}
               schoolLevel={schoolLevel}
               showActivityCards={canManage}
+              initialLessonId={initialLessonId}
+              onInitialLessonHandled={() => setInitialLessonId(null)}
             />
           </div>
         )}

@@ -325,8 +325,8 @@ const Account = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <div 
-              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" 
+            <div
+              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate(isParent ? "/dashboard" : "/liste-cours")}
             >
               <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md">
@@ -375,12 +375,30 @@ const Account = () => {
 
       <main className="container mx-auto px-4 py-8 mt-20">
         {!isParent && (
+          <div className="flex gap-3 mb-8">
+            <button
+              onClick={() => navigate("/liste-cours")}
+              className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-primary/10 text-primary font-medium text-sm border border-primary/20 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 group"
+            >
+              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
+              Retour vers liste des matières
+            </button>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-accent/10 text-accent font-medium text-sm border border-accent/20 hover:bg-accent hover:text-white hover:border-accent hover:shadow-lg hover:shadow-accent/25 transition-all duration-300 group"
+            >
+              <BarChart3 className="h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
+              Tableau de bord
+            </button>
+          </div>
+        )}
+        {isParent && (
           <button
-            onClick={() => navigate("/liste-cours")}
-            className="mb-8 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+            onClick={() => navigate("/parent-dashboard")}
+            className="mb-8 inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-primary/10 text-primary font-medium text-sm border border-primary/20 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 group"
           >
-            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-            Retour vers liste des matières
+            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
+            Retour au tableau de bord parent
           </button>
         )}
 
@@ -424,12 +442,11 @@ const Account = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <CardHeader className="relative pb-2">
                   <CardTitle className="flex items-center gap-4 text-lg">
-                    <div className={`h-12 w-12 rounded-2xl flex items-center justify-center bg-gradient-to-br ${
-                      index === 0 ? 'from-blue-500/15 to-blue-600/5' :
+                    <div className={`h-12 w-12 rounded-2xl flex items-center justify-center bg-gradient-to-br ${index === 0 ? 'from-blue-500/15 to-blue-600/5' :
                       index === 1 ? 'from-purple-500/15 to-purple-600/5' :
-                      index === 2 ? 'from-emerald-500/15 to-emerald-600/5' :
-                      'from-indigo-500/15 to-indigo-600/5'
-                    }`}>
+                        index === 2 ? 'from-emerald-500/15 to-emerald-600/5' :
+                          'from-indigo-500/15 to-indigo-600/5'
+                      }`}>
                       <card.icon className={`h-6 w-6 ${card.color}`} />
                     </div>
                     <span className="font-semibold">{card.title}</span>
@@ -464,7 +481,7 @@ const Account = () => {
                           {subscription.plan_type === "annual" ? "Scolaire (1 an)" : "Mensuelle"}
                         </p>
                       </div>
-                      <Badge 
+                      <Badge
                         variant={subscription.is_paused ? "secondary" : "default"}
                         className="rounded-full px-4"
                       >
@@ -513,8 +530,8 @@ const Account = () => {
                         className="font-mono text-lg tracking-widest rounded-xl h-11"
                         maxLength={8}
                       />
-                      <Button 
-                        onClick={handleActivateCode} 
+                      <Button
+                        onClick={handleActivateCode}
                         disabled={activating || !activationCode.trim()}
                         className="rounded-xl h-11 px-6"
                       >

@@ -107,9 +107,9 @@ All colors MUST be HSL.
 }
 
 @layer base {
-* {
-  @apply border-border;
-}
+  * {
+    @apply border-border;
+  }
 
   body {
     @apply bg-background text-foreground;
@@ -153,21 +153,21 @@ All colors MUST be HSL.
     @apply border-l-4 border-purple-500 bg-purple-50/50;
   }
 
-html[lang="ar"],
-html[lang="ar"] body {
-  direction: ltr !important;
-}
+  html[lang="ar"],
+  html[lang="ar"] body {
+    direction: ltr !important;
+  }
 
-.text-center,
-.text-center h1,
-.text-center h2,
-.text-center h3,
-.text-center h4,
-.text-center h5,
-.text-center h6,
-.text-center p {
-  text-align: center !important;
-}
+  .text-center,
+  .text-center h1,
+  .text-center h2,
+  .text-center h3,
+  .text-center h4,
+  .text-center h5,
+  .text-center h6,
+  .text-center p {
+    text-align: center !important;
+  }
 }
 
 /* Tiptap / ProseMirror editor styles */
@@ -224,4 +224,35 @@ html[lang="ar"] body {
 .ProseMirror img {
   max-width: 100%;
   height: auto;
+}
+
+/* Sonner toast centered popup with backdrop */
+[data-sonner-toaster] {
+  --offset: 0px !important;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 9999 !important;
+}
+
+[data-sonner-toaster][data-x-position="center"] {
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Backdrop overlay when sonner toast is visible */
+[data-sonner-toaster]:has([data-sonner-toast])::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: -1;
+}
+
+[data-sonner-toast] {
+  font-size: 0.95rem !important;
+  padding: 16px 24px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.3) !important;
 }

@@ -11,18 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Users, Copy, Check, Trash2, User, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Users, Copy, Check, User, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { useLinkedParents, LinkedParent } from "@/hooks/useProfile";
 import { toast } from "sonner";
 
@@ -182,7 +171,6 @@ export function LinkedParentsSection() {
                 <ParentCard
                   key={link.id}
                   link={link}
-                  onRemove={() => handleRemoveParent(link.id)}
                 />
               ))}
             </div>
@@ -246,10 +234,8 @@ function PendingRequestCard({
 
 function ParentCard({
   link,
-  onRemove,
 }: {
   link: LinkedParent;
-  onRemove: () => void;
 }) {
   const parent = link.parent;
   const fullName = getParentFullName(parent);
@@ -276,34 +262,13 @@ function ParentCard({
           </div>
           {parent?.email ? (
             <p className="text-sm text-muted-foreground">{parent.email}</p>
+          ) : parent?.first_name || parent?.last_name ? (
+            <p className="text-sm text-muted-foreground">Compte parent lié</p>
           ) : (
-            <p className="text-sm text-muted-foreground">Informations indisponibles</p>
+            <p className="text-sm text-muted-foreground">Compte parent</p>
           )}
         </div>
       </div>
-
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button variant="outline" size="sm" className="text-destructive">
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer le lien ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Voulez-vous vraiment supprimer le lien avec {fullName} ?
-              Ce parent ne pourra plus suivre votre progression.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={onRemove} className="bg-destructive">
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

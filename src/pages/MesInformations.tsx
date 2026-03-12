@@ -41,7 +41,6 @@ import {
 import { LinkedChildrenSection } from "@/components/profile/LinkedChildrenSection";
 import { LinkedParentsSection } from "@/components/profile/LinkedParentsSection";
 import { AvatarUpload } from "@/components/profile/AvatarUpload";
-import TwoFactorSettings from "@/components/TwoFactorSettings";
 import { SchoolLevelSelect } from "@/components/profile/SchoolLevelSelect";
 import LocationFields from "@/components/profile/LocationFields";
 import {
@@ -181,11 +180,11 @@ const MesInformations = () => {
       });
 
       if (!profile?.id || !user) return;
-      
+
       // Update email if it has changed - using edge function for immediate update
       if (validatedData.email !== profile.email) {
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        
+
         if (sessionError || !sessionData.session) {
           toast({
             title: "Session expirée",
@@ -199,11 +198,11 @@ const MesInformations = () => {
         const { error: emailError } = await supabase.functions.invoke("update-user-email", {
           body: { userId: profile.id, newEmail: validatedData.email },
         });
-        
+
         if (emailError) {
           throw new Error(emailError.message || "Erreur lors de la mise à jour de l'email");
         }
-        
+
         toast({
           title: "Email mis à jour",
           description: "Votre email a été modifié avec succès. Vous pouvez maintenant vous connecter avec votre nouvelle adresse.",
@@ -398,16 +397,13 @@ const MesInformations = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 mt-20">
-        <Breadcrumb className="mb-6">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink onClick={() => navigate("/account")} className="cursor-pointer flex items-center gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Retour vers Gérer mon compte
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <button
+          onClick={() => navigate("/account")}
+          className="mb-6 inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-primary/10 text-primary font-medium text-sm border border-primary/20 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 group"
+        >
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
+          Retour vers Gérer mon compte
+        </button>
 
         <div className="max-w-3xl mx-auto space-y-6">
           <Card>
@@ -510,6 +506,7 @@ const MesInformations = () => {
                     onWilayaChange={(val) => setFormData({ ...formData, wilaya: val, ville: "" })}
                     onVilleChange={(val) => setFormData({ ...formData, ville: val })}
                     onEcoleChange={(val) => setFormData({ ...formData, ecole: val })}
+                    hideEcole={userRole === 'parent'}
                   />
                 )}
 
@@ -520,8 +517,8 @@ const MesInformations = () => {
                       <SchoolLevelSelect
                         value={formData.school_level}
                         onValueChange={(value) => {
-                          setFormData({ 
-                            ...formData, 
+                          setFormData({
+                            ...formData,
                             school_level: value,
                             // Reset filière when changing level
                             filiere: ["premiere", "seconde", "terminale"].includes(value) ? formData.filiere : ""
@@ -617,9 +614,6 @@ const MesInformations = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Section 2FA */}
-          <TwoFactorSettings />
 
           {/* Section Parent/Enfant selon le rôle */}
           {userRole === 'parent' && <LinkedChildrenSection />}

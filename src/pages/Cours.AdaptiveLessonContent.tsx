@@ -10,7 +10,7 @@ import { TableOfContents } from "@/components/course/TableOfContents";
 import { injectHeaderIds } from "@/lib/toc-utils";
 import { AdaptiveActivities } from "@/components/course/AdaptiveActivities";
 
-export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleMarkComplete, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel, showActivityCards }: any) {
+export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleMarkComplete, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel, showActivityCards, initialLessonId, onInitialLessonHandled }: any) {
     const navigate = useNavigate();
     const [selectedLesson, setSelectedLesson] = useState<any>(null);
     const [lessonContent, setLessonContent] = useState<string>("");
@@ -23,6 +23,17 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         setSelectedLesson(null);
         setLessonContent("");
     }, [chapter.id]);
+
+    // Auto-open lesson when coming from search
+    useEffect(() => {
+        if (initialLessonId && chapter.lessons) {
+            const lesson = chapter.lessons.find((l: any) => l.id === initialLessonId);
+            if (lesson) {
+                handleLessonClick(lesson);
+            }
+            onInitialLessonHandled?.();
+        }
+    }, [initialLessonId, chapter.id]);
 
     const handleLessonClick = async (lesson: any) => {
         if (canManage) {

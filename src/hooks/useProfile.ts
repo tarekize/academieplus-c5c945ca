@@ -189,7 +189,7 @@ export function useLinkedChildren() {
     if (!user) return { success: false, message: "Non authentifié" };
 
     const trimmedCode = code.trim();
-    
+
     // Validate code format (8 hex characters)
     if (!/^[a-f0-9]{8}$/i.test(trimmedCode)) {
       return { success: false, message: "Format de code invalide (8 caractères attendus)" };
@@ -226,7 +226,7 @@ export function useLinkedChildren() {
         .eq("id", linkId);
 
       if (error) throw error;
-      
+
       await fetchChildren();
       toast.success("Lien supprimé avec succès");
       return true;
@@ -260,24 +260,45 @@ export function useLinkedParents() {
     }
 
     try {
-      const { data, error } = await supabase
-        .from("parent_child_links")
-        .select(`
-          id,
-          parent_id,
-          status,
-          created_at,
-          parent:profiles!parent_child_links_parent_id_fkey(
-            id,
-            first_name,
-            last_name,
-            email
-          )
-        `)
-        .eq("child_id", user.id);
+      // Use RPC function (SECURITY DEFINER) to bypass RLS and get parent info
+      const { data: rpcData, error: rpcError } = await supabase
+        .rpc("get_linked_parents", { _child_id: user.id });
 
-      if (error) throw error;
-      setParents((data as any[]) || []);
+      if (!rpcError && rpcData && rpcData.length > 0) {
+        const mapped: LinkedParent[] = rpcData.map((row: any) => ({
+          id: row.link_id,
+          parent_id: row.parent_id,
+          status: row.status,
+          created_at: row.created_at,
+          parent: {
+            id: row.parent_id,
+            first_name: row.first_name,
+            last_name: row.last_name,
+            email: row.email,
+          },
+        }));
+        setParents(mapped);
+      } else {
+        // Fallback: standard join query (works if RLS policy is in place)
+        const { data, error } = await supabase
+          .from("parent_child_links")
+          .select(`
+            id,
+            parent_id,
+            status,
+            created_at,
+            parent:profiles!parent_child_links_parent_id_fkey(
+              id,
+              first_name,
+              last_name,
+              email
+            )
+          `)
+          .eq("child_id", user.id);
+
+        if (error) throw error;
+        setParents((data as any[]) || []);
+      }
 
       // Also fetch the user's linking code
       const { data: profileData } = await supabase
@@ -309,7 +330,7 @@ export function useLinkedParents() {
         .eq("child_id", user?.id);
 
       if (error) throw error;
-      
+
       await fetchParents();
       toast.success(accept ? "Lien accepté" : "Demande refusée");
       return { success: true };
@@ -328,7 +349,7 @@ export function useLinkedParents() {
         .eq("id", linkId);
 
       if (error) throw error;
-      
+
       await fetchParents();
       toast.success("Lien supprimé avec succès");
       return true;
