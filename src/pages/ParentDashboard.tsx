@@ -421,6 +421,7 @@ const ParentDashboard = () => {
                 </DialogContent>
               </Dialog>
             </div>
+          </div>
 
           <Card>
             <CardHeader>
