@@ -106,7 +106,7 @@ export function LinkedChildrenSection() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Ajouter un enfant</DialogTitle>
+                <DialogTitle>Ajouter un lien de parenté</DialogTitle>
                 <DialogDescription>
                   Liez le compte de votre enfant à votre profil parent en utilisant son code de liaison
                 </DialogDescription>
