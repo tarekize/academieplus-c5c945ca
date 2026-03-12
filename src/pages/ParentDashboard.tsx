@@ -253,11 +253,11 @@ const ParentDashboard = () => {
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="lg" className="gap-2"><UserPlus className="h-5 w-5" />Ajouter un enfant</Button>
+                <Button size="lg" className="gap-2"><UserPlus className="h-5 w-5" />Ajouter un lien de parenté</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Ajouter un enfant</DialogTitle>
+                  <DialogTitle>Ajouter un lien de parenté</DialogTitle>
                   <DialogDescription>Liez le compte de votre enfant en utilisant son code de liaison</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
@@ -331,8 +331,7 @@ const ParentDashboard = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => link.status === "active" && setSelectedChild(link)}
-                                disabled={link.status !== "active"}
+                                onClick={() => setSelectedChild(link)}
                               >
                                 <Eye className="h-4 w-4 mr-2" />Voir
                               </Button>

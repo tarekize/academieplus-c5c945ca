@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
       .insert({
         parent_id: parentId,
         child_id: childId,
-        status: "pending",
+        status: "active",
       });
 
     if (insertError) {
@@ -198,7 +198,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Demande de liaison envoyée",
+        message: "Lien de parenté créé avec succès",
         child: {
           first_name: childProfile.first_name,
           last_name: childProfile.last_name,
