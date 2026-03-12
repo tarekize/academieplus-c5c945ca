@@ -233,14 +233,8 @@ const ParentDashboard = () => {
       setCreating(false);
     }
   };
-      const { error } = await supabase.from("parent_child_links").delete().eq("id", linkId);
-      if (error) throw error;
-      if (user) fetchChildren(user.id);
-      sonnerToast.success("Lien supprimé avec succès");
-    } catch (error: any) {
-      sonnerToast.error("Erreur lors de la suppression du lien");
-    }
-  };
+
+
 
   if (authLoading || loading) {
     return (
