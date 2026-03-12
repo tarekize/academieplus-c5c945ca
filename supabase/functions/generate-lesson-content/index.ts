@@ -10,14 +10,35 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { lesson_id } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const body = await req.json();
+    const { lesson_id, content: directContent, bulk_updates } = body;
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Mode 1: Bulk updates - array of {lesson_id, content}
+    if (bulk_updates && Array.isArray(bulk_updates)) {
+      const results = [];
+      for (const item of bulk_updates) {
+        const { error } = await supabase.from("lessons").update({ content: item.content }).eq("id", item.lesson_id);
+        results.push({ lesson_id: item.lesson_id, success: !error, error: error?.message });
+      }
+      return new Response(JSON.stringify({ success: true, results }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Mode 2: Direct content provided - just update
+    if (directContent && lesson_id) {
+      const { error } = await supabase.from("lessons").update({ content: directContent }).eq("id", lesson_id);
+      if (error) throw new Error(error.message);
+      return new Response(JSON.stringify({ success: true, mode: "direct" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Mode 3: AI generation (original behavior)
+    if (!lesson_id) throw new Error("lesson_id is required");
+
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const { data: lesson } = await supabase.from("lessons").select("title, title_ar, chapter_id").eq("id", lesson_id).single();
     const { data: chapter } = await supabase.from("chapters").select("title_ar, school_level").eq("id", lesson?.chapter_id).single();
