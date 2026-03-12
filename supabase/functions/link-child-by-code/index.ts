@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
       .insert({
         parent_id: parentId,
         child_id: childId,
-        status: "pending",
+        status: "active",
       });
 
     if (insertError) {
