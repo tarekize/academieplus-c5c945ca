@@ -42,9 +42,12 @@ export function LinkedChildrenSection() {
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleAddByCode = async () => {
+    setError(null);
     if (!code.trim()) {
-      toast.error("Veuillez entrer un code");
+      setError("Veuillez entrer un code");
       return;
     }
 
@@ -55,9 +58,10 @@ export function LinkedChildrenSection() {
     if (result.success) {
       toast.success(result.message);
       setCode("");
+      setError(null);
       setDialogOpen(false);
     } else {
-      toast.error(result.message);
+      setError(result.message);
     }
   };
 
@@ -101,25 +105,31 @@ export function LinkedChildrenSection() {
             <DialogTrigger asChild>
               <Button>
                 <UserPlus className="h-4 w-4 mr-2" />
-                Ajouter un enfant
+                Ajouter un lien de parenté
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Ajouter un enfant</DialogTitle>
+                <DialogTitle>Ajouter un lien de parenté</DialogTitle>
                 <DialogDescription>
                   Liez le compte de votre enfant à votre profil parent en utilisant son code de liaison
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 mt-4">
+                {error && (
+                  <div className="p-3 rounded-md bg-destructive/10 border border-destructive/30 text-destructive text-sm font-medium">
+                    ⚠️ {error}
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label>Code de liaison</Label>
                   <Input
                     placeholder="ABC123"
                     value={code}
-                    onChange={(e) => setCode(e.target.value.toUpperCase())}
+                    onChange={(e) => { setCode(e.target.value.toUpperCase()); setError(null); }}
                     maxLength={8}
+                    className={error ? "border-destructive" : ""}
                   />
                   <p className="text-sm text-muted-foreground">
                     Demandez à votre enfant de générer un code depuis son profil
@@ -148,7 +158,7 @@ export function LinkedChildrenSection() {
           <div className="text-center py-8 text-muted-foreground">
             <User className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <p>Aucun enfant lié pour le moment</p>
-            <p className="text-sm">Cliquez sur "Ajouter un enfant" pour commencer</p>
+            <p className="text-sm">Cliquez sur "Ajouter un lien de parenté" pour commencer</p>
           </div>
         ) : (
           <div className="space-y-4">
