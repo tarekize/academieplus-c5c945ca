@@ -117,13 +117,19 @@ export function LinkedChildrenSection() {
               </DialogHeader>
 
               <div className="space-y-4 mt-4">
+                {error && (
+                  <div className="p-3 rounded-md bg-destructive/10 border border-destructive/30 text-destructive text-sm font-medium">
+                    ⚠️ {error}
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label>Code de liaison</Label>
                   <Input
                     placeholder="ABC123"
                     value={code}
-                    onChange={(e) => setCode(e.target.value.toUpperCase())}
+                    onChange={(e) => { setCode(e.target.value.toUpperCase()); setError(null); }}
                     maxLength={8}
+                    className={error ? "border-destructive" : ""}
                   />
                   <p className="text-sm text-muted-foreground">
                     Demandez à votre enfant de générer un code depuis son profil
