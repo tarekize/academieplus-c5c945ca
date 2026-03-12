@@ -158,7 +158,7 @@ export function LinkedChildrenSection() {
           <div className="text-center py-8 text-muted-foreground">
             <User className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <p>Aucun enfant lié pour le moment</p>
-            <p className="text-sm">Cliquez sur "Ajouter un enfant" pour commencer</p>
+            <p className="text-sm">Cliquez sur "Ajouter un lien de parenté" pour commencer</p>
           </div>
         ) : (
           <div className="space-y-4">
