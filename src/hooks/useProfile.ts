@@ -260,44 +260,49 @@ export function useLinkedParents() {
     }
 
     try {
-      // Use RPC function (SECURITY DEFINER) to bypass RLS and get parent info
-      const { data: rpcData, error: rpcError } = await supabase
-        .rpc("get_linked_parents", { _child_id: user.id });
+      // Get parent_child_links for this child
+      const { data: links, error: linksError } = await supabase
+        .from("parent_child_links")
+        .select("id, parent_id, status, created_at")
+        .eq("child_id", user.id);
 
-      if (!rpcError && rpcData && rpcData.length > 0) {
-        const mapped: LinkedParent[] = rpcData.map((row: any) => ({
-          id: row.link_id,
-          parent_id: row.parent_id,
-          status: row.status,
-          created_at: row.created_at,
-          parent: {
-            id: row.parent_id,
-            first_name: row.first_name,
-            last_name: row.last_name,
-            email: row.email,
-          },
-        }));
-        setParents(mapped);
+      if (linksError) throw linksError;
+
+      if (links && links.length > 0) {
+        // Fetch parent profiles individually (child may not have RLS access to join)
+        const parentIds = links.map(l => l.parent_id);
+        const parentsWithProfiles: LinkedParent[] = [];
+
+        for (const link of links) {
+          // Try to get parent profile - may fail due to RLS
+          const { data: parentProfile } = await supabase
+            .from("profiles")
+            .select("id, first_name, last_name, email")
+            .eq("id", link.parent_id)
+            .maybeSingle();
+
+          parentsWithProfiles.push({
+            id: link.id,
+            parent_id: link.parent_id,
+            status: link.status,
+            created_at: link.created_at,
+            parent: parentProfile ? {
+              id: parentProfile.id,
+              first_name: parentProfile.first_name,
+              last_name: parentProfile.last_name,
+              email: parentProfile.email,
+            } : {
+              id: link.parent_id,
+              first_name: null,
+              last_name: null,
+              email: "Parent lié",
+            },
+          } as any);
+        }
+
+        setParents(parentsWithProfiles);
       } else {
-        // Fallback: standard join query (works if RLS policy is in place)
-        const { data, error } = await supabase
-          .from("parent_child_links")
-          .select(`
-            id,
-            parent_id,
-            status,
-            created_at,
-            parent:profiles!parent_child_links_parent_id_fkey(
-              id,
-              first_name,
-              last_name,
-              email
-            )
-          `)
-          .eq("child_id", user.id);
-
-        if (error) throw error;
-        setParents((data as any[]) || []);
+        setParents([]);
       }
 
       // Also fetch the user's linking code
