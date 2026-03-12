@@ -19,11 +19,14 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  GraduationCap, LogOut, User as UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  GraduationCap, LogOut, User as UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
-import { getSchoolLevelLabel } from "@/lib/validation";
+import { getSchoolLevelLabel, allSchoolLevels } from "@/lib/validation";
 import { ChangePasswordButton } from "@/components/ChangePasswordButton";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
 
@@ -63,6 +66,17 @@ const ParentDashboard = () => {
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [selectedChild, setSelectedChild] = useState<LinkedChild | null>(null);
+  
+  // Create child account state
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newChildEmail, setNewChildEmail] = useState("");
+  const [newChildPassword, setNewChildPassword] = useState("");
+  const [newChildFirstName, setNewChildFirstName] = useState("");
+  const [newChildLastName, setNewChildLastName] = useState("");
+  const [newChildLevel, setNewChildLevel] = useState("");
+  const [newChildFiliere, setNewChildFiliere] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const fetchProfile = useCallback(async (userId: string) => {
     try {
@@ -156,6 +170,71 @@ const ParentDashboard = () => {
       sonnerToast.error("Erreur lors de la suppression du lien");
     }
   };
+
+  const needsFiliere = ["premiere", "seconde", "terminale"].includes(newChildLevel);
+  const filiereOptions: Record<string, { value: string; label: string }[]> = {
+    premiere: [
+      { value: "Tronc Commun Sciences", label: "Tronc Commun Sciences" },
+      { value: "Tronc Commun Lettres", label: "Tronc Commun Lettres" },
+    ],
+    seconde: [
+      { value: "Sciences", label: "Sciences" },
+      { value: "Lettres", label: "Lettres" },
+      { value: "Gestion", label: "Gestion" },
+      { value: "Math techniques", label: "Math techniques" },
+      { value: "Mathématiques", label: "Mathématiques" },
+    ],
+    terminale: [
+      { value: "Sciences", label: "Sciences" },
+      { value: "Lettres", label: "Lettres" },
+      { value: "Gestion", label: "Gestion" },
+      { value: "Math techniques", label: "Math techniques" },
+      { value: "Mathématiques", label: "Mathématiques" },
+    ],
+  };
+
+  const handleCreateChild = async () => {
+    setCreateError(null);
+    if (!newChildEmail || !newChildPassword || !newChildFirstName || !newChildLastName || !newChildLevel) {
+      setCreateError("Tous les champs sont obligatoires");
+      return;
+    }
+    if (newChildPassword.length < 8) {
+      setCreateError("Le mot de passe doit contenir au moins 8 caractères");
+      return;
+    }
+    if (needsFiliere && !newChildFiliere) {
+      setCreateError("Veuillez sélectionner une filière");
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-child-account", {
+        body: {
+          email: newChildEmail,
+          password: newChildPassword,
+          firstName: newChildFirstName,
+          lastName: newChildLastName,
+          schoolLevel: newChildLevel,
+          filiere: newChildFiliere || null,
+        },
+      });
+      if (error) { setCreateError(error.message || "Erreur lors de la création"); return; }
+      if (data?.error) { setCreateError(data.error); return; }
+      sonnerToast.success(data?.message || "Compte élève créé avec succès");
+      setNewChildEmail(""); setNewChildPassword(""); setNewChildFirstName("");
+      setNewChildLastName(""); setNewChildLevel(""); setNewChildFiliere("");
+      setCreateDialogOpen(false);
+      if (user) fetchChildren(user.id);
+    } catch (error: any) {
+      setCreateError(error.message || "Erreur inattendue");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+
 
   if (authLoading || loading) {
     return (
@@ -251,28 +330,97 @@ const ParentDashboard = () => {
               <h1 className="text-3xl font-bold mb-2">Bonjour {fullName} 👋</h1>
               <p className="text-muted-foreground">Suivez la progression de vos enfants</p>
             </div>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="lg" className="gap-2"><UserPlus className="h-5 w-5" />Ajouter un lien de parenté</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Ajouter un lien de parenté</DialogTitle>
-                  <DialogDescription>Liez le compte de votre enfant en utilisant son code de liaison</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label>Code de liaison</Label>
-                    <Input placeholder="ABC123" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={8} />
-                    <p className="text-sm text-muted-foreground">Demandez à votre enfant de générer un code depuis son profil</p>
+            <div className="flex flex-wrap gap-3">
+              {/* Ajouter un élève - création de compte */}
+              <Dialog open={createDialogOpen} onOpenChange={(open) => { setCreateDialogOpen(open); if (!open) setCreateError(null); }}>
+                <DialogTrigger asChild>
+                  <Button size="lg" className="gap-2"><Plus className="h-5 w-5" />Ajouter un élève</Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Créer un compte élève</DialogTitle>
+                    <DialogDescription>Créez un compte pour votre enfant. Le lien de parenté sera établi automatiquement.</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    {createError && (
+                      <div className="p-3 rounded-md bg-destructive/10 border border-destructive/30 text-destructive text-sm font-medium">
+                        ⚠️ {createError}
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label>Prénom</Label>
+                        <Input placeholder="Prénom" value={newChildFirstName} onChange={(e) => setNewChildFirstName(e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Nom</Label>
+                        <Input placeholder="Nom" value={newChildLastName} onChange={(e) => setNewChildLastName(e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Email</Label>
+                      <Input type="email" placeholder="email@exemple.com" value={newChildEmail} onChange={(e) => setNewChildEmail(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Mot de passe</Label>
+                      <Input type="password" placeholder="Min. 8 caractères" value={newChildPassword} onChange={(e) => setNewChildPassword(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Niveau scolaire</Label>
+                      <Select value={newChildLevel} onValueChange={(v) => { setNewChildLevel(v); setNewChildFiliere(""); }}>
+                        <SelectTrigger><SelectValue placeholder="Sélectionner le niveau" /></SelectTrigger>
+                        <SelectContent>
+                          {allSchoolLevels.map((l) => (
+                            <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {needsFiliere && filiereOptions[newChildLevel] && (
+                      <div className="space-y-2">
+                        <Label>{newChildLevel === "premiere" ? "Tronc commun" : "Filière"}</Label>
+                        <Select value={newChildFiliere} onValueChange={setNewChildFiliere}>
+                          <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                          <SelectContent>
+                            {filiereOptions[newChildLevel].map((f) => (
+                              <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    <Button onClick={handleCreateChild} disabled={creating} className="w-full">
+                      {creating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+                      Créer le compte élève
+                    </Button>
                   </div>
-                  <Button onClick={handleAddByCode} disabled={submitting} className="w-full">
-                    {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Hash className="h-4 w-4 mr-2" />}
-                    Valider le code
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+
+              {/* Ajouter un lien de parenté - par code */}
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="lg" variant="outline" className="gap-2"><UserPlus className="h-5 w-5" />Ajouter un lien de parenté</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Ajouter un lien de parenté</DialogTitle>
+                    <DialogDescription>Liez le compte de votre enfant en utilisant son code de liaison</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label>Code de liaison</Label>
+                      <Input placeholder="ABC123" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={8} />
+                      <p className="text-sm text-muted-foreground">Demandez à votre enfant de générer un code depuis son profil</p>
+                    </div>
+                    <Button onClick={handleAddByCode} disabled={submitting} className="w-full">
+                      {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Hash className="h-4 w-4 mr-2" />}
+                      Valider le code
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
 
           <Card>
