@@ -330,29 +330,97 @@ const ParentDashboard = () => {
               <h1 className="text-3xl font-bold mb-2">Bonjour {fullName} 👋</h1>
               <p className="text-muted-foreground">Suivez la progression de vos enfants</p>
             </div>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="lg" className="gap-2"><UserPlus className="h-5 w-5" />Ajouter un lien de parenté</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Ajouter un lien de parenté</DialogTitle>
-                  <DialogDescription>Liez le compte de votre enfant en utilisant son code de liaison</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label>Code de liaison</Label>
-                    <Input placeholder="ABC123" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={8} />
-                    <p className="text-sm text-muted-foreground">Demandez à votre enfant de générer un code depuis son profil</p>
+            <div className="flex flex-wrap gap-3">
+              {/* Ajouter un élève - création de compte */}
+              <Dialog open={createDialogOpen} onOpenChange={(open) => { setCreateDialogOpen(open); if (!open) setCreateError(null); }}>
+                <DialogTrigger asChild>
+                  <Button size="lg" className="gap-2"><Plus className="h-5 w-5" />Ajouter un élève</Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Créer un compte élève</DialogTitle>
+                    <DialogDescription>Créez un compte pour votre enfant. Le lien de parenté sera établi automatiquement.</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    {createError && (
+                      <div className="p-3 rounded-md bg-destructive/10 border border-destructive/30 text-destructive text-sm font-medium">
+                        ⚠️ {createError}
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label>Prénom</Label>
+                        <Input placeholder="Prénom" value={newChildFirstName} onChange={(e) => setNewChildFirstName(e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Nom</Label>
+                        <Input placeholder="Nom" value={newChildLastName} onChange={(e) => setNewChildLastName(e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Email</Label>
+                      <Input type="email" placeholder="email@exemple.com" value={newChildEmail} onChange={(e) => setNewChildEmail(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Mot de passe</Label>
+                      <Input type="password" placeholder="Min. 8 caractères" value={newChildPassword} onChange={(e) => setNewChildPassword(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Niveau scolaire</Label>
+                      <Select value={newChildLevel} onValueChange={(v) => { setNewChildLevel(v); setNewChildFiliere(""); }}>
+                        <SelectTrigger><SelectValue placeholder="Sélectionner le niveau" /></SelectTrigger>
+                        <SelectContent>
+                          {allSchoolLevels.map((l) => (
+                            <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {needsFiliere && filiereOptions[newChildLevel] && (
+                      <div className="space-y-2">
+                        <Label>{newChildLevel === "premiere" ? "Tronc commun" : "Filière"}</Label>
+                        <Select value={newChildFiliere} onValueChange={setNewChildFiliere}>
+                          <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                          <SelectContent>
+                            {filiereOptions[newChildLevel].map((f) => (
+                              <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    <Button onClick={handleCreateChild} disabled={creating} className="w-full">
+                      {creating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+                      Créer le compte élève
+                    </Button>
                   </div>
-                  <Button onClick={handleAddByCode} disabled={submitting} className="w-full">
-                    {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Hash className="h-4 w-4 mr-2" />}
-                    Valider le code
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+                </DialogContent>
+              </Dialog>
+
+              {/* Ajouter un lien de parenté - par code */}
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="lg" variant="outline" className="gap-2"><UserPlus className="h-5 w-5" />Ajouter un lien de parenté</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Ajouter un lien de parenté</DialogTitle>
+                    <DialogDescription>Liez le compte de votre enfant en utilisant son code de liaison</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label>Code de liaison</Label>
+                      <Input placeholder="ABC123" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={8} />
+                      <p className="text-sm text-muted-foreground">Demandez à votre enfant de générer un code depuis son profil</p>
+                    </div>
+                    <Button onClick={handleAddByCode} disabled={submitting} className="w-full">
+                      {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Hash className="h-4 w-4 mr-2" />}
+                      Valider le code
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
 
           <Card>
             <CardHeader>
