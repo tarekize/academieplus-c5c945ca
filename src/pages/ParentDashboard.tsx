@@ -171,6 +171,77 @@ const ParentDashboard = () => {
     }
   };
 
+  const needsFiliere = ["premiere", "seconde", "terminale"].includes(newChildLevel);
+  const filiereOptions: Record<string, { value: string; label: string }[]> = {
+    premiere: [
+      { value: "Tronc Commun Sciences", label: "Tronc Commun Sciences" },
+      { value: "Tronc Commun Lettres", label: "Tronc Commun Lettres" },
+    ],
+    seconde: [
+      { value: "Sciences", label: "Sciences" },
+      { value: "Lettres", label: "Lettres" },
+      { value: "Gestion", label: "Gestion" },
+      { value: "Math techniques", label: "Math techniques" },
+      { value: "Mathématiques", label: "Mathématiques" },
+    ],
+    terminale: [
+      { value: "Sciences", label: "Sciences" },
+      { value: "Lettres", label: "Lettres" },
+      { value: "Gestion", label: "Gestion" },
+      { value: "Math techniques", label: "Math techniques" },
+      { value: "Mathématiques", label: "Mathématiques" },
+    ],
+  };
+
+  const handleCreateChild = async () => {
+    setCreateError(null);
+    if (!newChildEmail || !newChildPassword || !newChildFirstName || !newChildLastName || !newChildLevel) {
+      setCreateError("Tous les champs sont obligatoires");
+      return;
+    }
+    if (newChildPassword.length < 8) {
+      setCreateError("Le mot de passe doit contenir au moins 8 caractères");
+      return;
+    }
+    if (needsFiliere && !newChildFiliere) {
+      setCreateError("Veuillez sélectionner une filière");
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-child-account", {
+        body: {
+          email: newChildEmail,
+          password: newChildPassword,
+          firstName: newChildFirstName,
+          lastName: newChildLastName,
+          schoolLevel: newChildLevel,
+          filiere: newChildFiliere || null,
+        },
+      });
+      if (error) { setCreateError(error.message || "Erreur lors de la création"); return; }
+      if (data?.error) { setCreateError(data.error); return; }
+      sonnerToast.success(data?.message || "Compte élève créé avec succès");
+      setNewChildEmail(""); setNewChildPassword(""); setNewChildFirstName("");
+      setNewChildLastName(""); setNewChildLevel(""); setNewChildFiliere("");
+      setCreateDialogOpen(false);
+      if (user) fetchChildren(user.id);
+    } catch (error: any) {
+      setCreateError(error.message || "Erreur inattendue");
+    } finally {
+      setCreating(false);
+    }
+  };
+      const { error } = await supabase.from("parent_child_links").delete().eq("id", linkId);
+      if (error) throw error;
+      if (user) fetchChildren(user.id);
+      sonnerToast.success("Lien supprimé avec succès");
+    } catch (error: any) {
+      sonnerToast.error("Erreur lors de la suppression du lien");
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
