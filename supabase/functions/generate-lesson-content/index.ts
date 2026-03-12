@@ -10,49 +10,10 @@ async function generateForLesson(supabase: any, lessonId: string, API_KEY: strin
   const { data: lesson } = await supabase.from("lessons").select("title, title_ar, chapter_id, content").eq("id", lessonId).single();
   if (!lesson) throw new Error("Lesson not found");
 
-<<<<<<< HEAD
-  try {
-    const body = await req.json();
-    const { lesson_id, content: directContent, bulk_updates } = body;
-
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-    // Mode 1: Bulk updates - array of {lesson_id, content}
-    if (bulk_updates && Array.isArray(bulk_updates)) {
-      const results = [];
-      for (const item of bulk_updates) {
-        const { error } = await supabase.from("lessons").update({ content: item.content }).eq("id", item.lesson_id);
-        results.push({ lesson_id: item.lesson_id, success: !error, error: error?.message });
-      }
-      return new Response(JSON.stringify({ success: true, results }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    // Mode 2: Direct content provided - just update
-    if (directContent && lesson_id) {
-      const { error } = await supabase.from("lessons").update({ content: directContent }).eq("id", lesson_id);
-      if (error) throw new Error(error.message);
-      return new Response(JSON.stringify({ success: true, mode: "direct" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    // Mode 3: AI generation (original behavior)
-    if (!lesson_id) throw new Error("lesson_id is required");
-
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-
-    const { data: lesson } = await supabase.from("lessons").select("title, title_ar, chapter_id").eq("id", lesson_id).single();
-    const { data: chapter } = await supabase.from("chapters").select("title_ar, school_level").eq("id", lesson?.chapter_id).single();
-
-    const levelLabel = chapter?.school_level || "";
-    const prompt = `أنت أستاذ رياضيات جزائري خبير. اكتب درساً مفصلاً وجميلاً باللغة العربية بصيغة HTML لدرس: "${lesson?.title_ar || lesson?.title}" للمستوى: ${levelLabel}.
-=======
   const { data: chapter } = await supabase.from("chapters").select("title_ar, school_level").eq("id", lesson.chapter_id).single();
 
   const levelLabel = chapter?.school_level || "";
   const prompt = `أنت أستاذ رياضيات جزائري خبير. اكتب درساً مفصلاً وجميلاً باللغة العربية بصيغة HTML لدرس: "${lesson.title_ar || lesson.title}" للمستوى: ${levelLabel}.
->>>>>>> e97fa3f1f549c1d349bfdb04c4c9fda2c41e7ce6
 
 قواعد التنسيق الإلزامية:
 1. العناوين الرئيسية h2: استخدم style="color: #2980b9; font-size: 1.8em; border-bottom: 3px solid #2980b9; padding-bottom: 8px; margin-top: 30px;"

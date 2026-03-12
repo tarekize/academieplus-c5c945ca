@@ -101,7 +101,7 @@ export function LinkedChildrenSection() {
             <DialogTrigger asChild>
               <Button>
                 <UserPlus className="h-4 w-4 mr-2" />
-                Ajouter un enfant
+                Ajouter un lien de parenté
               </Button>
             </DialogTrigger>
             <DialogContent>
