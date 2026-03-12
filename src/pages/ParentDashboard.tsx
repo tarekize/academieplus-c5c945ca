@@ -66,6 +66,17 @@ const ParentDashboard = () => {
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [selectedChild, setSelectedChild] = useState<LinkedChild | null>(null);
+  
+  // Create child account state
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newChildEmail, setNewChildEmail] = useState("");
+  const [newChildPassword, setNewChildPassword] = useState("");
+  const [newChildFirstName, setNewChildFirstName] = useState("");
+  const [newChildLastName, setNewChildLastName] = useState("");
+  const [newChildLevel, setNewChildLevel] = useState("");
+  const [newChildFiliere, setNewChildFiliere] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const fetchProfile = useCallback(async (userId: string) => {
     try {
