@@ -273,10 +273,6 @@ export default function LessonEditor() {
             <TableOfContents htmlContent={content} />
           </div>
         </div>
-
-      </div>
-    </div>
-  );
       </div>
     </div>
   );
