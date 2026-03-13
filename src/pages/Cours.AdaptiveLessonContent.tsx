@@ -110,19 +110,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                 Retour aux leçons
             </Button>
 
-            {/* AI Adaptive Activities - Only for students */}
-            {!canManage && userId && selectedLesson && (
-                <AdaptiveActivities
-                    lessonId={selectedLesson.id}
-                    chapterId={chapter.id}
-                    userId={userId}
-                    schoolLevel={schoolLevel || ""}
-                    lessonTitle={selectedLesson.titleAr || selectedLesson.title}
-                    chapterTitle={chapter.title}
-                />
-            )}
-
-            <div className="flex flex-col lg:flex-row gap-8 mt-8">
+            <div className="flex flex-col lg:flex-row gap-8">
                 <Card className="flex-1 min-w-0">
                     <CardContent className="p-6">
                         <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
@@ -146,6 +134,33 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     <TableOfContents htmlContent={lessonContent} />
                 </div>
             </div>
+
+            {/* 3-step Exercises/Quiz/Revision tabs for students */}
+            {!canManage && selectedLesson && (
+                <LessonActivityTabs
+                    dbQuizzes={dbQuizzes}
+                    dbExercises={dbExercises}
+                    chapterId={chapter.id}
+                    chapterTitle={chapter.title}
+                    lessonTitle={selectedLesson.titleAr || selectedLesson.title}
+                    onGenerateAI={(type) => {
+                        // Switch to AI adaptive activities
+                        onActivitySelect?.(type === "quiz" ? "quiz" : "exercises");
+                    }}
+                />
+            )}
+
+            {/* AI Adaptive Activities - Only for students */}
+            {!canManage && userId && selectedLesson && (
+                <AdaptiveActivities
+                    lessonId={selectedLesson.id}
+                    chapterId={chapter.id}
+                    userId={userId}
+                    schoolLevel={schoolLevel || ""}
+                    lessonTitle={selectedLesson.titleAr || selectedLesson.title}
+                    chapterTitle={chapter.title}
+                />
+            )}
         </div>
     );
 
