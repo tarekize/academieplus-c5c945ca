@@ -108,12 +108,9 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
 
     // Student lesson content view
     const renderLessonContent = () => {
-        const [view, setView] = useState<"course" | "activity">("course");
-        const [activeActivity, setActiveActivityInternal] = useState<string | null>(null);
-
         return (
             <div>
-                <Button variant="outline" size="sm" onClick={handleBackToList} className="mb-4">
+                <Button variant="outline" size="sm" onClick={() => { handleBackToList(); setLessonView("course"); setActiveActivity(null); }} className="mb-4">
                     <ChevronLeft className="h-4 w-4 mr-1" />
                     Retour aux leçons
                 </Button>
@@ -127,22 +124,22 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         chapterTitle={chapter.title}
                         lessonTitle={selectedLesson.titleAr || selectedLesson.title}
                         onGenerateAI={(type) => {
-                            setActiveActivityInternal(type);
-                            setView("activity");
+                            setActiveActivity(type);
+                            setLessonView("activity");
                         }}
                         onSectionChange={(section) => {
                             if (section !== null) {
-                                setView("activity");
+                                setLessonView("activity");
                             } else {
-                                setView("course");
-                                setActiveActivityInternal(null);
+                                setLessonView("course");
+                                setActiveActivity(null);
                             }
                         }}
                     />
                 )}
 
                 {/* Course content OR Activity View */}
-                {view === "course" ? (
+                {lessonView === "course" ? (
                     <div className="flex flex-col lg:flex-row gap-8 mt-6">
                         <Card className="flex-1 min-w-0">
                             <CardContent className="p-6">
