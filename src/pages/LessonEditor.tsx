@@ -180,6 +180,11 @@ export default function LessonEditor() {
           </div>
         </div>
 
+        {/* Exercises & Quizzes CRUD for pedago - moved to top */}
+        {canManage && lesson.chapter_id && (
+          <LessonEditorActivities chapterId={lesson.chapter_id} />
+        )}
+
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1 min-w-0">
             {/* Action bar */}
@@ -268,11 +273,6 @@ export default function LessonEditor() {
             <TableOfContents htmlContent={content} />
           </div>
         </div>
-
-        {/* Exercises & Quizzes CRUD for pedago */}
-        {canManage && lesson.chapter_id && (
-          <LessonEditorActivities chapterId={lesson.chapter_id} />
-        )}
       </div>
     </div>
   );
