@@ -165,19 +165,8 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         </div>
                     </div>
                 ) : (
-                    <div className="space-y-4 mt-6">
-                        {/* AI Adaptive Activities - Only for students */}
-                        {!canManage && userId && selectedLesson && (
-                            <AdaptiveActivities
-                                lessonId={selectedLesson.id}
-                                chapterId={chapter.id}
-                                userId={userId}
-                                schoolLevel={schoolLevel || ""}
-                                lessonTitle={selectedLesson.titleAr || selectedLesson.title}
-                                chapterTitle={chapter.title}
-                                initialTab={activeActivity as any}
-                            />
-                        )}
+                    <div className="mt-6">
+                        {/* Activity content handled by LessonActivityTabs stepper */}
                     </div>
                 )}
             </div>
