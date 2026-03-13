@@ -274,10 +274,9 @@ export default function LessonEditor() {
           </div>
         </div>
 
-        {/* Exercises & Quizzes CRUD for pedago */}
-        {canManage && lesson.chapter_id && (
-          <LessonEditorActivities chapterId={lesson.chapter_id} />
-        )}
+      </div>
+    </div>
+  );
       </div>
     </div>
   );
