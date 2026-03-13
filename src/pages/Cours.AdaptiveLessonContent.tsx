@@ -110,10 +110,18 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const renderLessonContent = () => {
         return (
             <div>
-                <Button variant="outline" size="sm" onClick={() => { handleBackToList(); setLessonView("course"); setActiveActivity(null); }} className="mb-4">
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    Retour aux leçons
-                </Button>
+                {/* Modern Navigation Breadcrumb */}
+                <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-lg border border-primary/10 mb-6">
+                    <button
+                        onClick={() => { handleBackToList(); setLessonView("course"); setActiveActivity(null); }}
+                        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors text-sm font-medium text-foreground/80 hover:text-foreground"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                        <span>Leçons</span>
+                    </button>
+                    <span className="text-muted-foreground/50">/</span>
+                    <span className="text-sm font-medium text-foreground">{selectedLesson?.titleAr || selectedLesson?.title}</span>
+                </div>
 
                 {/* Activity tabs always on top for students */}
                 {!canManage && selectedLesson && (
