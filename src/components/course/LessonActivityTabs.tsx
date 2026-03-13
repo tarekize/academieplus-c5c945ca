@@ -107,7 +107,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   if (activeSection === "revision") {
     return (
       <div className="mt-6 space-y-4">
-        <Button variant="outline" size="sm" onClick={() => setActiveSection(null)}>
+        <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>
           ← العودة
         </Button>
         <Card>
