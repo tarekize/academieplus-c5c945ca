@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import LessonRichEditor from '@/components/course/LessonRichEditor';
 import { TableOfContents } from '@/components/course/TableOfContents';
 import { injectHeaderIds } from '@/lib/toc-utils';
+import { LessonEditorActivities } from '@/components/course/LessonEditorActivities';
 import {
   AlertDialog,
   AlertDialogAction,
