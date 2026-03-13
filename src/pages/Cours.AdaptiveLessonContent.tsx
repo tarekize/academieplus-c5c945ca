@@ -226,12 +226,9 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         );
     }
 
-    // Show activity cards for teachers always, or for students when no lesson is selected
-    const shouldShowActivityCards = canManage || !selectedLesson;
-
     return (
         <>
-            {shouldShowActivityCards && renderActivityCards()}
+            {canManage && renderActivityCards()}
             {canManage && !selectedLesson && (
                 <div className="flex justify-center mb-6">
                     <GenerateQuizExercisesButton chapterId={chapter.id} onGenerated={fetchQuizExercises} />
