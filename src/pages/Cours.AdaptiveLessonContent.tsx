@@ -103,66 +103,78 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     );
 
     // Student lesson content view
-    const renderLessonContent = () => (
-        <div>
-            <Button variant="outline" size="sm" onClick={handleBackToList} className="mb-4">
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Retour aux leçons
-            </Button>
+    const renderLessonContent = () => {
+        const [activeActivity, setActiveActivityInternal] = useState<string | null>(null);
 
-            <div className="flex flex-col lg:flex-row gap-8">
-                <Card className="flex-1 min-w-0">
-                    <CardContent className="p-6">
-                        <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
-                        {loadingContent ? (
-                            <div className="flex justify-center py-12">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                            </div>
-                        ) : lessonContent ? (
-                            <div
-                                className="prose prose-sm dark:prose-invert max-w-none"
-                                dangerouslySetInnerHTML={{ __html: injectHeaderIds(lessonContent) }}
+        return (
+            <div>
+                <Button variant="outline" size="sm" onClick={handleBackToList} className="mb-4">
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Retour aux leçons
+                </Button>
+
+                {/* 3-step Exercises/Quiz/Revision tabs for students - Moved to top */}
+                {!canManage && selectedLesson && !activeActivity && (
+                    <LessonActivityTabs
+                        dbQuizzes={dbQuizzes}
+                        dbExercises={dbExercises}
+                        chapterId={chapter.id}
+                        chapterTitle={chapter.title}
+                        lessonTitle={selectedLesson.titleAr || selectedLesson.title}
+                        onGenerateAI={(type) => {
+                            setActiveActivityInternal(type);
+                        }}
+                    />
+                )}
+
+                {!activeActivity ? (
+                    <div className="flex flex-col lg:flex-row gap-8">
+                        <Card className="flex-1 min-w-0">
+                            <CardContent className="p-6">
+                                <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
+                                {loadingContent ? (
+                                    <div className="flex justify-center py-12">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                                    </div>
+                                ) : lessonContent ? (
+                                    <div
+                                        className="prose prose-sm dark:prose-invert max-w-none"
+                                        dangerouslySetInnerHTML={{ __html: injectHeaderIds(lessonContent) }}
+                                    />
+                                ) : (
+                                    <p className="text-center text-muted-foreground py-12">
+                                        Aucun contenu disponible pour cette leçon.
+                                    </p>
+                                )}
+                            </CardContent>
+                        </Card>
+                        <div className="w-full lg:w-72 shrink-0">
+                            <TableOfContents htmlContent={lessonContent} />
+                        </div>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        <Button variant="ghost" onClick={() => setActiveActivityInternal(null)} className="mb-2">
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            Retour au cours
+                        </Button>
+                        {/* AI Adaptive Activities - Only for students */}
+                        {!canManage && userId && selectedLesson && (
+                            <AdaptiveActivities
+                                lessonId={selectedLesson.id}
+                                chapterId={chapter.id}
+                                userId={userId}
+                                schoolLevel={schoolLevel || ""}
+                                lessonTitle={selectedLesson.titleAr || selectedLesson.title}
+                                chapterTitle={chapter.title}
+                                initialTab={activeActivity as any}
                             />
-                        ) : (
-                            <p className="text-center text-muted-foreground py-12">
-                                Aucun contenu disponible pour cette leçon.
-                            </p>
                         )}
-                    </CardContent>
-                </Card>
-                <div className="w-full lg:w-72 shrink-0">
-                    <TableOfContents htmlContent={lessonContent} />
-                </div>
+                    </div>
+                )}
             </div>
-
-            {/* 3-step Exercises/Quiz/Revision tabs for students */}
-            {!canManage && selectedLesson && (
-                <LessonActivityTabs
-                    dbQuizzes={dbQuizzes}
-                    dbExercises={dbExercises}
-                    chapterId={chapter.id}
-                    chapterTitle={chapter.title}
-                    lessonTitle={selectedLesson.titleAr || selectedLesson.title}
-                    onGenerateAI={(type) => {
-                        // Switch to AI adaptive activities
-                        onActivitySelect?.(type === "quiz" ? "quiz" : "exercises");
-                    }}
-                />
-            )}
-
-            {/* AI Adaptive Activities - Only for students */}
-            {!canManage && userId && selectedLesson && (
-                <AdaptiveActivities
-                    lessonId={selectedLesson.id}
-                    chapterId={chapter.id}
-                    userId={userId}
-                    schoolLevel={schoolLevel || ""}
-                    lessonTitle={selectedLesson.titleAr || selectedLesson.title}
-                    chapterTitle={chapter.title}
-                />
-            )}
-        </div>
-    );
+        );
+    };
 
     // Fallback if no lessons
     const renderNoLesson = () => (

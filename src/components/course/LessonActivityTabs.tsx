@@ -249,18 +249,15 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
       {activeStep === "approfondir" && (
         <Card className="border-purple-500/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-purple-600">
-              <Rocket className="h-5 w-5" />
+          <CardHeader className="pb-3 text-center">
+            <CardTitle className="flex items-center justify-center gap-2 text-purple-600">
+              <Sparkles className="h-4 w-4 text-yellow-500" />
               <span dir="rtl">{isQuiz ? "اختبارات ذكية" : "تمارين ذكية"} - إنشاء بالذكاء الاصطناعي</span>
-              <Sparkles className="h-4 w-4 text-yellow-500 ml-auto" />
+              <Sparkles className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-center py-8">
-            <div className="w-20 h-20 rounded-full bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
-              <Sparkles className="h-10 w-10 text-purple-500" />
-            </div>
-            <p className="text-muted-foreground mb-6 max-w-sm mx-auto" dir="rtl">
+          <CardContent className="text-center py-4">
+            <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto" dir="rtl">
               {isQuiz
                 ? "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء اختبارات متقدمة تناسب مستواك"
                 : "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء تمارين متقدمة تناسب مستواك"
@@ -269,10 +266,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             <Button
               size="lg"
               onClick={() => onGenerateAI(isQuiz ? "quiz" : "exercise")}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-bold gap-2 text-lg h-14 px-8 transition-all hover:scale-105 shadow-md shadow-purple-500/20"
+              className="bg-purple-600 hover:bg-purple-700 text-white font-bold gap-2 transition-all hover:scale-105 shadow-md shadow-purple-500/20"
             >
-              <Sparkles className="h-5 w-5 text-yellow-300" />
-              {isQuiz ? "اختبارات ذكية - إنشاء بالذكاء الاصطناعي" : "تمارين ذكية - إنشاء بالذكاء الاصطناعي"}
+              <Sparkles className="h-4 w-4 text-yellow-300" />
+              Générer avec l'IA
             </Button>
           </CardContent>
         </Card>
