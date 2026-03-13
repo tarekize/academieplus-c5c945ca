@@ -136,7 +136,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   return (
     <div className="mt-6 space-y-4">
       <div className="flex items-center gap-3">
-        <Button variant="outline" size="sm" onClick={() => setActiveSection(null)}>
+        <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>
           ← العودة
         </Button>
         <div className="flex items-center gap-2">
