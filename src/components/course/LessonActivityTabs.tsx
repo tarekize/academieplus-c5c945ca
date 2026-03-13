@@ -27,9 +27,15 @@ const stepConfig: { id: StepLevel; label: string; labelAr: string; icon: typeof 
   { id: "approfondir", label: "Approfondir", labelAr: "تعمّق", icon: Rocket, color: "text-purple-500", description: "Génération par IA" },
 ];
 
-export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonTitle, onGenerateAI }: LessonActivityTabsProps) {
+export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonTitle, onGenerateAI, onSectionChange }: LessonActivityTabsProps) {
   const [activeSection, setActiveSection] = useState<ActivitySection>(null);
   const [activeStep, setActiveStep] = useState<StepLevel>("decouvrir");
+
+  const handleSectionChange = (section: ActivitySection) => {
+    setActiveSection(section);
+    setActiveStep("decouvrir");
+    onSectionChange?.(section);
+  };
 
   // Split DB content into discover/understand tiers
   const halfQuiz = Math.ceil(dbQuizzes.length / 2);
