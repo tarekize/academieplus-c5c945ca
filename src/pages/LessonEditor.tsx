@@ -268,6 +268,11 @@ export default function LessonEditor() {
             <TableOfContents htmlContent={content} />
           </div>
         </div>
+
+        {/* Exercises & Quizzes CRUD for pedago */}
+        {canManage && lesson.chapter_id && (
+          <LessonEditorActivities chapterId={lesson.chapter_id} />
+        )}
       </div>
     </div>
   );
