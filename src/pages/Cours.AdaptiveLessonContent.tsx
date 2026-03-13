@@ -105,6 +105,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     // Student lesson content view
     const renderLessonContent = () => {
         const [activeActivity, setActiveActivityInternal] = useState<string | null>(null);
+        const [activitySectionActive, setActivitySectionActive] = useState(false);
 
         return (
             <div>
@@ -113,7 +114,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     Retour aux leçons
                 </Button>
 
-                {/* 3-step Exercises/Quiz/Revision tabs for students - Moved to top */}
+                {/* Activity tabs always on top for students */}
                 {!canManage && selectedLesson && !activeActivity && (
                     <LessonActivityTabs
                         dbQuizzes={dbQuizzes}
@@ -124,11 +125,15 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         onGenerateAI={(type) => {
                             setActiveActivityInternal(type);
                         }}
+                        onSectionChange={(section) => {
+                            setActivitySectionActive(section !== null);
+                        }}
                     />
                 )}
 
-                {!activeActivity ? (
-                    <div className="flex flex-col lg:flex-row gap-8">
+                {/* Course content - hidden when an activity section is active */}
+                {!activeActivity && !activitySectionActive && (
+                    <div className="flex flex-col lg:flex-row gap-8 mt-6">
                         <Card className="flex-1 min-w-0">
                             <CardContent className="p-6">
                                 <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
@@ -152,13 +157,15 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                             <TableOfContents htmlContent={lessonContent} />
                         </div>
                     </div>
-                ) : (
-                    <div className="space-y-4">
+                )}
+
+                {/* AI Adaptive Activities - when user clicks "Approfondir" AI button */}
+                {activeActivity && (
+                    <div className="space-y-4 mt-4">
                         <Button variant="ghost" onClick={() => setActiveActivityInternal(null)} className="mb-2">
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Retour au cours
                         </Button>
-                        {/* AI Adaptive Activities - Only for students */}
                         {!canManage && userId && selectedLesson && (
                             <AdaptiveActivities
                                 lessonId={selectedLesson.id}
