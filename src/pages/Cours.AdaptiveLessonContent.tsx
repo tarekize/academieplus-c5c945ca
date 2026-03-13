@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { TableOfContents } from "@/components/course/TableOfContents";
 import { injectHeaderIds } from "@/lib/toc-utils";
 import { AdaptiveActivities } from "@/components/course/AdaptiveActivities";
+import { LessonActivityTabs } from "@/components/course/LessonActivityTabs";
 
 export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleMarkComplete, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel, showActivityCards, initialLessonId, onInitialLessonHandled }: any) {
     const navigate = useNavigate();
@@ -109,19 +110,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                 Retour aux leçons
             </Button>
 
-            {/* AI Adaptive Activities - Only for students */}
-            {!canManage && userId && selectedLesson && (
-                <AdaptiveActivities
-                    lessonId={selectedLesson.id}
-                    chapterId={chapter.id}
-                    userId={userId}
-                    schoolLevel={schoolLevel || ""}
-                    lessonTitle={selectedLesson.titleAr || selectedLesson.title}
-                    chapterTitle={chapter.title}
-                />
-            )}
-
-            <div className="flex flex-col lg:flex-row gap-8 mt-8">
+            <div className="flex flex-col lg:flex-row gap-8">
                 <Card className="flex-1 min-w-0">
                     <CardContent className="p-6">
                         <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
@@ -145,6 +134,33 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     <TableOfContents htmlContent={lessonContent} />
                 </div>
             </div>
+
+            {/* 3-step Exercises/Quiz/Revision tabs for students */}
+            {!canManage && selectedLesson && (
+                <LessonActivityTabs
+                    dbQuizzes={dbQuizzes}
+                    dbExercises={dbExercises}
+                    chapterId={chapter.id}
+                    chapterTitle={chapter.title}
+                    lessonTitle={selectedLesson.titleAr || selectedLesson.title}
+                    onGenerateAI={(type) => {
+                        // Switch to AI adaptive activities
+                        onActivitySelect?.(type === "quiz" ? "quiz" : "exercises");
+                    }}
+                />
+            )}
+
+            {/* AI Adaptive Activities - Only for students */}
+            {!canManage && userId && selectedLesson && (
+                <AdaptiveActivities
+                    lessonId={selectedLesson.id}
+                    chapterId={chapter.id}
+                    userId={userId}
+                    schoolLevel={schoolLevel || ""}
+                    lessonTitle={selectedLesson.titleAr || selectedLesson.title}
+                    chapterTitle={chapter.title}
+                />
+            )}
         </div>
     );
 
@@ -226,12 +242,9 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         );
     }
 
-    // Show activity cards for teachers always, or for students when no lesson is selected
-    const shouldShowActivityCards = canManage || !selectedLesson;
-
     return (
         <>
-            {shouldShowActivityCards && renderActivityCards()}
+            {canManage && renderActivityCards()}
             {canManage && !selectedLesson && (
                 <div className="flex justify-center mb-6">
                     <GenerateQuizExercisesButton chapterId={chapter.id} onGenerated={fetchQuizExercises} />
