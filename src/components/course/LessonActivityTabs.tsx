@@ -15,6 +15,7 @@ interface LessonActivityTabsProps {
   chapterTitle: string;
   lessonTitle: string;
   onGenerateAI: (type: "quiz" | "exercise") => void;
+  onSectionChange?: (section: string | null) => void;
 }
 
 type ActivitySection = "exercises" | "quiz" | "revision" | null;
@@ -26,9 +27,15 @@ const stepConfig: { id: StepLevel; label: string; labelAr: string; icon: typeof 
   { id: "approfondir", label: "Approfondir", labelAr: "تعمّق", icon: Rocket, color: "text-purple-500", description: "Génération par IA" },
 ];
 
-export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonTitle, onGenerateAI }: LessonActivityTabsProps) {
+export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonTitle, onGenerateAI, onSectionChange }: LessonActivityTabsProps) {
   const [activeSection, setActiveSection] = useState<ActivitySection>(null);
   const [activeStep, setActiveStep] = useState<StepLevel>("decouvrir");
+
+  const handleSectionChange = (section: ActivitySection) => {
+    setActiveSection(section);
+    setActiveStep("decouvrir");
+    onSectionChange?.(section);
+  };
 
   // Split DB content into discover/understand tiers
   const halfQuiz = Math.ceil(dbQuizzes.length / 2);
@@ -44,7 +51,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <Card
           className="cursor-pointer group hover:shadow-lg hover:border-primary/50 transition-all"
-          onClick={() => setActiveSection("exercises")}
+          onClick={() => handleSectionChange("exercises")}
         >
           <CardContent className="p-6 flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -62,7 +69,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
         <Card
           className="cursor-pointer group hover:shadow-lg hover:border-primary/50 transition-all"
-          onClick={() => setActiveSection("quiz")}
+          onClick={() => handleSectionChange("quiz")}
         >
           <CardContent className="p-6 flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -80,7 +87,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
         <Card
           className="cursor-pointer group hover:shadow-lg hover:border-green-500/50 transition-all"
-          onClick={() => setActiveSection("revision")}
+          onClick={() => handleSectionChange("revision")}
         >
           <CardContent className="p-6 flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-green-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -100,7 +107,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   if (activeSection === "revision") {
     return (
       <div className="mt-6 space-y-4">
-        <Button variant="outline" size="sm" onClick={() => setActiveSection(null)}>
+        <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>
           ← العودة
         </Button>
         <Card>
@@ -129,7 +136,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   return (
     <div className="mt-6 space-y-4">
       <div className="flex items-center gap-3">
-        <Button variant="outline" size="sm" onClick={() => setActiveSection(null)}>
+        <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>
           ← العودة
         </Button>
         <div className="flex items-center gap-2">
