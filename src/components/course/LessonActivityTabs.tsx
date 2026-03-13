@@ -69,7 +69,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
         <Card
           className="cursor-pointer group hover:shadow-lg hover:border-primary/50 transition-all"
-          onClick={() => setActiveSection("quiz")}
+          onClick={() => handleSectionChange("quiz")}
         >
           <CardContent className="p-6 flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
