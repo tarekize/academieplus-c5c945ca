@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import LessonRichEditor from '@/components/course/LessonRichEditor';
 import { TableOfContents } from '@/components/course/TableOfContents';
 import { injectHeaderIds } from '@/lib/toc-utils';
+import { LessonEditorActivities } from '@/components/course/LessonEditorActivities';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -267,6 +268,11 @@ export default function LessonEditor() {
             <TableOfContents htmlContent={content} />
           </div>
         </div>
+
+        {/* Exercises & Quizzes CRUD for pedago */}
+        {canManage && lesson.chapter_id && (
+          <LessonEditorActivities chapterId={lesson.chapter_id} />
+        )}
       </div>
     </div>
   );
