@@ -18,11 +18,15 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const [loadingContent, setLoadingContent] = useState(false);
     const readingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const readingStartRef = useRef<number>(0);
+    const [lessonView, setLessonView] = useState<"course" | "activity">("course");
+    const [activeActivity, setActiveActivity] = useState<string | null>(null);
 
     // Reset when chapter changes
     useEffect(() => {
         setSelectedLesson(null);
         setLessonContent("");
+        setLessonView("course");
+        setActiveActivity(null);
     }, [chapter.id]);
 
     // Auto-open lesson when coming from search
