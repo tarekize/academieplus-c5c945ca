@@ -869,28 +869,29 @@ const Cours = () => {
             />
           </div>
         )}
-
-
-
       </main>
 
-      {/* Floating Chat Button */}
-      <button
-        onClick={() => setIsChatOpen(!isChatOpen)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors z-50"
-      >
-        {isChatOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-      </button>
+      {/* Floating Chat Button - Only show when a chapter is active */}
+      {viewMode === "content" && (
+        <>
+          <button
+            onClick={() => setIsChatOpen(!isChatOpen)}
+            className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors z-50"
+          >
+            {isChatOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+          </button>
 
-      {/* Chat Panel */}
-      {isChatOpen && (
-        <div className="fixed bottom-24 right-6 w-96 h-[500px] z-50">
-          <ChatBot
-            messages={chatMessages}
-            setMessages={setChatMessages}
-            schoolLevel={profile?.school_level}
-          />
-        </div>
+          {/* Chat Panel */}
+          {isChatOpen && (
+            <div className="fixed bottom-24 right-6 w-96 h-[500px] z-50">
+              <ChatBot
+                messages={chatMessages}
+                setMessages={setChatMessages}
+                schoolLevel={profile?.school_level}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
