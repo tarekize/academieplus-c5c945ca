@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, PenTool, ChevronLeft, Eye, Lightbulb, Plus, Pencil, Trash2 } from "lucide-react";
-import { QuizFormDialog, DeleteQuizButton, ExerciseFormDialog, DeleteExerciseButton } from "./QuizExerciseCRUD";
+import { QuizFormDialog, DeleteQuizButton, ExerciseFormDialog, DeleteExerciseButton, GenerateQuizExercisesButton } from "./QuizExerciseCRUD";
 
 interface DBQuiz {
   id: string;
@@ -81,35 +81,42 @@ export function LessonEditorActivities({
   // Tab buttons view
   if (!activeTab) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 mb-8">
-        <Card
-          className="cursor-pointer hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-accent group"
-          onClick={() => handleTabChange("exercises")}
-        >
-          <CardContent className="p-6 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center group-hover:bg-accent group-hover:scale-110 transition-all duration-300">
-              <PenTool className="h-7 w-7 text-accent-foreground group-hover:text-white transition-colors" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-slate-800 dark:text-white" dir="rtl">تمارين (Exercices)</h3>
-              <p className="text-sm font-medium text-muted-foreground mt-1" dir="rtl">{exercises.length} تمارين متاحة</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card
-          className="cursor-pointer hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-primary group"
-          onClick={() => handleTabChange("quizzes")}
-        >
-          <CardContent className="p-6 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:scale-110 transition-all duration-300">
-              <Brain className="h-7 w-7 text-primary group-hover:text-white transition-colors" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-slate-800 dark:text-white" dir="rtl">اختبارات (Quizzes)</h3>
-              <p className="text-sm font-medium text-muted-foreground mt-1" dir="rtl">{quizzes.length} أسئلة متاحة</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="space-y-6 mt-6 mb-8">
+        <div className="flex justify-center">
+          <GenerateQuizExercisesButton chapterId={chapterId} onGenerated={fetchData} />
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Card
+            className="cursor-pointer hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-accent group"
+            onClick={() => handleTabChange("exercises")}
+          >
+            <CardContent className="p-6 flex items-center gap-5">
+              <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center group-hover:bg-accent group-hover:scale-110 transition-all duration-300">
+                <PenTool className="h-7 w-7 text-accent-foreground group-hover:text-white transition-colors" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-white" dir="rtl">تمارين (Exercices)</h3>
+                <p className="text-sm font-medium text-muted-foreground mt-1" dir="rtl">{exercises.length} تمارين متاحة</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            className="cursor-pointer hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-primary group"
+            onClick={() => handleTabChange("quizzes")}
+          >
+            <CardContent className="p-6 flex items-center gap-5">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:scale-110 transition-all duration-300">
+                <Brain className="h-7 w-7 text-primary group-hover:text-white transition-colors" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-white" dir="rtl">اختبارات (Quizzes)</h3>
+                <p className="text-sm font-medium text-muted-foreground mt-1" dir="rtl">{quizzes.length} أسئلة متاحة</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
