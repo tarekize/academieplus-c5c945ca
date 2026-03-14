@@ -35,6 +35,7 @@ export default function LessonEditor() {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   const [canManage, setCanManage] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [isActivityActive, setActivityActive] = useState(false);
 
   const fetchLesson = useCallback(async () => {
     if (!lessonId) return;
@@ -169,110 +170,124 @@ export default function LessonEditor() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1 as any)}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold">{lesson.title_ar || lesson.title}</h1>
-            {lesson.title_ar && <p className="text-sm text-muted-foreground">{lesson.title}</p>}
+        {/* Modern Header / Breadcrumb */}
+        <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-lg border border-primary/10 mb-6">
+          <button
+            onClick={() => navigate(-1 as any)}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors text-sm font-medium text-foreground/80 hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">Retourner vers le cours</span>
+            <span className="sm:hidden">Retour</span>
+          </button>
+          <span className="text-muted-foreground/50">/</span>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-sm font-bold text-foreground truncate">{lesson.title_ar || lesson.title}</h1>
+            {lesson.title_ar && <p className="text-xs text-muted-foreground truncate">{lesson.title}</p>}
           </div>
         </div>
 
         {/* Exercises & Quizzes CRUD for pedago - moved to top */}
         {canManage && lesson.chapter_id && (
-          <LessonEditorActivities chapterId={lesson.chapter_id} />
+          <LessonEditorActivities
+            chapterId={lesson.chapter_id}
+            lessonId={lesson.id}
+            lessonTitle={lesson.title_ar || lesson.title}
+            onActiveChange={(isActive) => setActivityActive(isActive)}
+          />
         )}
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className="flex-1 min-w-0">
-            {/* Action bar */}
-            {canManage && (
-              <div className="flex items-center gap-2 mb-6">
-                {mode === 'view' ? (
-                  <>
-                    <Button onClick={() => setMode('edit')}>
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Modifier
-                    </Button>
-                    <Button variant="secondary" onClick={handleGenerateAI} disabled={generating}>
-                      {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                      {generating ? 'Génération...' : 'Généré avec IA'}
-                    </Button>
-                    {lesson.content && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive">
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Supprimer le contenu
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Cette action supprimera tout le contenu de cette leçon. Cette action est irréversible.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <Button onClick={handleSave} disabled={saving}>
-                      <Save className="h-4 w-4 mr-2" />
-                      {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-                    </Button>
-                    <Button variant="outline" onClick={() => { setMode('view'); setContent(lesson.content || ''); }}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      Annuler
-                    </Button>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Content */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{mode === 'edit' ? 'Éditeur de contenu' : 'Contenu du cours'}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {mode === 'edit' ? (
-                  <LessonRichEditor content={content} onChange={setContent} editable />
-                ) : (
-                  content ? (
-                    <div
-                      className="prose prose-sm dark:prose-invert max-w-none"
-                      dangerouslySetInnerHTML={{ __html: injectHeaderIds(content) }}
-                    />
-                  ) : (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <p>Aucun contenu pour cette leçon.</p>
-                      {canManage && (
-                        <Button className="mt-4" onClick={() => setMode('edit')}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Ajouter du contenu
-                        </Button>
+        {/* Hide the rest of the page if an activity is active */}
+        {!isActivityActive && (
+          <div className="flex flex-col lg:flex-row gap-8">
+            <div className="flex-1 min-w-0">
+              {/* Action bar */}
+              {canManage && (
+                <div className="flex items-center gap-2 mb-6">
+                  {mode === 'view' ? (
+                    <>
+                      <Button onClick={() => setMode('edit')}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Modifier
+                      </Button>
+                      <Button variant="secondary" onClick={handleGenerateAI} disabled={generating}>
+                        {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                        {generating ? 'Génération...' : 'Généré avec IA'}
+                      </Button>
+                      {lesson.content && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Supprimer le contenu
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Cette action supprimera tout le contenu de cette leçon. Cette action est irréversible.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       )}
-                    </div>
-                  )
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                    </>
+                  ) : (
+                    <>
+                      <Button onClick={handleSave} disabled={saving}>
+                        <Save className="h-4 w-4 mr-2" />
+                        {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+                      </Button>
+                      <Button variant="outline" onClick={() => { setMode('view'); setContent(lesson.content || ''); }}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Annuler
+                      </Button>
+                    </>
+                  )}
+                </div>
+              )}
 
-          {/* Sidebar TOC */}
-          <div className="w-full lg:w-72 shrink-0">
-            <TableOfContents htmlContent={content} />
+              {/* Content */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>{mode === 'edit' ? 'Éditeur de contenu' : 'Contenu du cours'}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {mode === 'edit' ? (
+                    <LessonRichEditor content={content} onChange={setContent} editable />
+                  ) : (
+                    content ? (
+                      <div
+                        className="prose prose-sm dark:prose-invert max-w-none"
+                        dangerouslySetInnerHTML={{ __html: injectHeaderIds(content) }}
+                      />
+                    ) : (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <p>Aucun contenu pour cette leçon.</p>
+                        {canManage && (
+                          <Button className="mt-4" onClick={() => setMode('edit')}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Ajouter du contenu
+                          </Button>
+                        )}
+                      </div>
+                    )
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Sidebar TOC */}
+            <div className="w-full lg:w-72 shrink-0">
+              <TableOfContents htmlContent={content} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
