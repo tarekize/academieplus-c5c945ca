@@ -30,7 +30,7 @@ export default function LessonEditor() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [lesson, setLesson] = useState<{ id: string; title: string; title_ar: string | null; content: string | null; chapter_id: string } | null>(null);
+  const [lesson, setLesson] = useState<{ id: string; title: string; title_ar: string | null; content: string | null; chapter_id: string; subject?: string; school_level?: string } | null>(null);
   const [content, setContent] = useState('');
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   const [canManage, setCanManage] = useState(false);
@@ -55,10 +55,19 @@ export default function LessonEditor() {
         return;
       }
 
-      // Get chapter_id from the query
+      // Get chapter_id + chapter info for back navigation
       const { data: lessonRow } = await supabase.from('lessons').select('chapter_id').eq('id', lessonId).maybeSingle();
+      const chId = lessonRow?.chapter_id || '';
+      
+      let chSubject = '';
+      let chSchoolLevel = '';
+      if (chId) {
+        const { data: chapterRow } = await supabase.from('chapters').select('subject, school_level').eq('id', chId).maybeSingle();
+        chSubject = chapterRow?.subject || '';
+        chSchoolLevel = chapterRow?.school_level || '';
+      }
 
-      setLesson({ ...data, chapter_id: lessonRow?.chapter_id || '' });
+      setLesson({ ...data, chapter_id: chId, subject: chSubject, school_level: chSchoolLevel });
       setContent(data.content || '');
     } catch (err) {
       console.error(err);
@@ -173,7 +182,13 @@ export default function LessonEditor() {
         {/* Modern Header / Breadcrumb */}
         <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-lg border border-primary/10 mb-6">
           <button
-            onClick={() => navigate(-1 as any)}
+            onClick={() => {
+              if (lesson?.subject && lesson?.school_level && lesson?.chapter_id) {
+                navigate(`/cours/${lesson.subject}?niveau=${lesson.school_level}&chapitre=${lesson.chapter_id}`);
+              } else {
+                navigate(-1 as any);
+              }
+            }}
             className="inline-flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors text-sm font-medium text-foreground/80 hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />

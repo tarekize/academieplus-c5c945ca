@@ -55,23 +55,18 @@ export function LessonEditorActivities({
   };
 
   const fetchData = useCallback(async () => {
-    let qQuery = supabase.from("chapter_quizzes").select("*").eq("chapter_id", chapterId).order("order_index");
-    let eQuery = supabase.from("chapter_exercises").select("*").eq("chapter_id", chapterId).order("order_index");
-
-    if (lessonId) {
-      qQuery = qQuery.eq("lesson_id", lessonId);
-      eQuery = eQuery.eq("lesson_id", lessonId);
-    }
-
-    const [{ data: q }, { data: e }] = await Promise.all([qQuery, eQuery]);
+    const [{ data: q }, { data: e }] = await Promise.all([
+      supabase.from("chapter_quizzes").select("*").eq("chapter_id", chapterId).order("order_index"),
+      supabase.from("chapter_exercises").select("*").eq("chapter_id", chapterId).order("order_index"),
+    ]);
 
     setQuizzes((q || []).map((item: any) => ({ ...item, options: Array.isArray(item.options) ? item.options : [], accepted_answers: Array.isArray(item.accepted_answers) ? item.accepted_answers : [] })));
     setExercises((e || []).map((item: any) => ({ ...item, accepted_answers: Array.isArray(item.accepted_answers) ? item.accepted_answers : [] })));
-  }, [chapterId, lessonId]);
+  }, [chapterId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // Split items by level - first half uncover, second understand
+  // Split items by level - first half discover, second understand
   const splitByLevel = <T extends any>(items: T[]) => {
     const mid = Math.ceil(items.length / 2);
     return {
@@ -120,8 +115,8 @@ export function LessonEditorActivities({
   }
 
   const isExercises = activeTab === "exercises";
-  const discoverItems = isExercises ? (exercisesByLevel as any).discover : (quizzesByLevel as any).discover;
-  const understandItems = isExercises ? (exercisesByLevel as any).understand : (quizzesByLevel as any).understand;
+  const discoverItems = isExercises ? exercisesByLevel.discover : quizzesByLevel.discover;
+  const understandItems = isExercises ? exercisesByLevel.understand : quizzesByLevel.understand;
 
   return (
     <div className="mt-6 mb-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 bg-card rounded-xl border shadow-sm p-4 md:p-6">
@@ -182,26 +177,12 @@ export function LessonEditorActivities({
                 {isExercises ? (
                   <ExerciseFormDialog
                     chapterId={chapterId}
-                    lessonId={lessonId}
                     onSaved={fetchData}
-                    trigger={
-                      <Button size="sm" className="gap-2 shadow-sm whitespace-nowrap">
-                        <Plus className="h-4 w-4" />
-                        <span className="hidden sm:inline" dir="rtl">إضافة تمرين</span>
-                      </Button>
-                    }
                   />
                 ) : (
                   <QuizFormDialog
                     chapterId={chapterId}
-                    lessonId={lessonId}
                     onSaved={fetchData}
-                    trigger={
-                      <Button size="sm" className="gap-2 shadow-sm whitespace-nowrap">
-                        <Plus className="h-4 w-4" />
-                        <span className="hidden sm:inline" dir="rtl">إضافة سؤال</span>
-                      </Button>
-                    }
                   />
                 )}
               </div>
@@ -223,7 +204,6 @@ export function LessonEditorActivities({
                   {items.map((item: any, idx: number) => (
                     <Card key={item.id} className="group hover:border-primary/40 hover:shadow-md transition-all duration-300 overflow-hidden">
                       <div className="flex flex-col sm:flex-row">
-                        {/* Status/Index indicator */}
                         <div className="bg-muted/40 sm:w-16 flex flex-row sm:flex-col items-center justify-center p-3 border-b sm:border-b-0 sm:border-r gap-1">
                           <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest hidden sm:block">
                             {isExercises ? "Exo" : "Qst"}
@@ -233,7 +213,6 @@ export function LessonEditorActivities({
                           </span>
                         </div>
 
-                        {/* Content */}
                         <div className="p-4 flex-1 min-w-0" dir="rtl">
                           {isExercises ? (
                             <div className="space-y-2 text-right">
@@ -262,20 +241,13 @@ export function LessonEditorActivities({
                           )}
                         </div>
 
-                        {/* Actions */}
                         <div className="flex sm:flex-col gap-2 p-3 sm:border-l bg-muted/10 items-center justify-end sm:justify-start border-t sm:border-t-0">
                           {isExercises ? (
                             <>
                               <ExerciseFormDialog
                                 chapterId={chapterId}
-                                lessonId={lessonId}
                                 onSaved={fetchData}
                                 exercise={item}
-                                trigger={
-                                  <Button size="icon" variant="outline" className="h-8 w-8 hover:bg-primary hover:text-primary-foreground transition-colors" title="Modifier">
-                                    <Pencil className="h-4 w-4" />
-                                  </Button>
-                                }
                               />
                               <DeleteExerciseButton exerciseId={item.id} onDeleted={fetchData} />
                             </>
@@ -283,14 +255,8 @@ export function LessonEditorActivities({
                             <>
                               <QuizFormDialog
                                 chapterId={chapterId}
-                                lessonId={lessonId}
                                 onSaved={fetchData}
                                 quiz={item}
-                                trigger={
-                                  <Button size="icon" variant="outline" className="h-8 w-8 hover:bg-primary hover:text-primary-foreground transition-colors" title="Modifier">
-                                    <Pencil className="h-4 w-4" />
-                                  </Button>
-                                }
                               />
                               <DeleteQuizButton quizId={item.id} onDeleted={fetchData} />
                             </>
