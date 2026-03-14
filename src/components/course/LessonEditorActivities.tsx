@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, PenTool, ChevronLeft, Eye, Lightbulb, Plus, Pencil, Trash2 } from "lucide-react";
-import { QuizFormDialog, DeleteQuizButton, ExerciseFormDialog, DeleteExerciseButton, GenerateQuizExercisesButton } from "./QuizExerciseCRUD";
+import { QuizFormDialog, DeleteQuizButton, ExerciseFormDialog, DeleteExerciseButton } from "./QuizExerciseCRUD";
 
 interface DBQuiz {
   id: string;
