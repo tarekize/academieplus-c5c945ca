@@ -248,11 +248,6 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         return (
             <>
                 {showActivityCards && !canManage && renderActivityCards()}
-                {canManage && (
-                    <div className="flex justify-center mb-6">
-                        <GenerateQuizExercisesButton chapterId={chapter.id} onGenerated={fetchQuizExercises} />
-                    </div>
-                )}
                 {renderNoLesson()}
                 {renderNavigation()}
             </>
