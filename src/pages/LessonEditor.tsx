@@ -182,7 +182,13 @@ export default function LessonEditor() {
         {/* Modern Header / Breadcrumb */}
         <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-lg border border-primary/10 mb-6">
           <button
-            onClick={() => navigate(-1 as any)}
+            onClick={() => {
+              if (lesson?.subject && lesson?.school_level && lesson?.chapter_id) {
+                navigate(`/cours/${lesson.subject}?niveau=${lesson.school_level}&chapitre=${lesson.chapter_id}`);
+              } else {
+                navigate(-1 as any);
+              }
+            }}
             className="inline-flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors text-sm font-medium text-foreground/80 hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
