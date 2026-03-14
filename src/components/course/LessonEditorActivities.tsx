@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, PenTool, ChevronLeft, Eye, Lightbulb, Plus, Pencil, Trash2 } from "lucide-react";
-import { QuizFormDialog, DeleteQuizButton, ExerciseFormDialog, DeleteExerciseButton, GenerateQuizExercisesButton } from "./QuizExerciseCRUD";
+import { QuizFormDialog, DeleteQuizButton, ExerciseFormDialog, DeleteExerciseButton } from "./QuizExerciseCRUD";
 
 interface DBQuiz {
   id: string;
@@ -81,11 +81,7 @@ export function LessonEditorActivities({
   // Tab buttons view
   if (!activeTab) {
     return (
-      <div className="space-y-6 mt-6 mb-8">
-        <div className="flex justify-center">
-          <GenerateQuizExercisesButton chapterId={chapterId} onGenerated={fetchData} />
-        </div>
-        
+      <div className="mt-6 mb-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Card
             className="cursor-pointer hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-accent group"
