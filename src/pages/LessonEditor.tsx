@@ -55,10 +55,19 @@ export default function LessonEditor() {
         return;
       }
 
-      // Get chapter_id from the query
+      // Get chapter_id + chapter info for back navigation
       const { data: lessonRow } = await supabase.from('lessons').select('chapter_id').eq('id', lessonId).maybeSingle();
+      const chId = lessonRow?.chapter_id || '';
+      
+      let chSubject = '';
+      let chSchoolLevel = '';
+      if (chId) {
+        const { data: chapterRow } = await supabase.from('chapters').select('subject, school_level').eq('id', chId).maybeSingle();
+        chSubject = chapterRow?.subject || '';
+        chSchoolLevel = chapterRow?.school_level || '';
+      }
 
-      setLesson({ ...data, chapter_id: lessonRow?.chapter_id || '' });
+      setLesson({ ...data, chapter_id: chId, subject: chSubject, school_level: chSchoolLevel });
       setContent(data.content || '');
     } catch (err) {
       console.error(err);
