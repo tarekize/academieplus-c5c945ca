@@ -30,7 +30,7 @@ export default function LessonEditor() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [lesson, setLesson] = useState<{ id: string; title: string; title_ar: string | null; content: string | null; chapter_id: string } | null>(null);
+  const [lesson, setLesson] = useState<{ id: string; title: string; title_ar: string | null; content: string | null; chapter_id: string; subject?: string; school_level?: string } | null>(null);
   const [content, setContent] = useState('');
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   const [canManage, setCanManage] = useState(false);
