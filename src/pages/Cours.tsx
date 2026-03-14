@@ -68,6 +68,7 @@ const Cours = () => {
   const [searchParams] = useSearchParams();
   const adminNiveau = searchParams.get("niveau");
   const adminFiliere = searchParams.get("filiere");
+  const chapitreParam = searchParams.get("chapitre");
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
