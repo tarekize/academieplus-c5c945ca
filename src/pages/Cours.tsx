@@ -160,7 +160,18 @@ const Cours = () => {
           }));
 
           setChapters(mappedChapters);
-          if (mappedChapters.length > 0) {
+          
+          // If chapitre param is present, auto-select that chapter and show content view
+          const targetChapter = chapitreParam
+            ? mappedChapters.find(c => c.id === chapitreParam)
+            : null;
+          
+          if (targetChapter) {
+            const targetIndex = mappedChapters.indexOf(targetChapter);
+            setActiveChapter(targetChapter);
+            setActiveChapterIndex(targetIndex);
+            setViewMode("content");
+          } else if (mappedChapters.length > 0) {
             setActiveChapter(mappedChapters[0]);
             setActiveChapterIndex(0);
           }
