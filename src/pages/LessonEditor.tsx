@@ -10,6 +10,7 @@ import LessonRichEditor from '@/components/course/LessonRichEditor';
 import { TableOfContents } from '@/components/course/TableOfContents';
 import { injectHeaderIds } from '@/lib/toc-utils';
 import { LessonEditorActivities } from '@/components/course/LessonEditorActivities';
+import { GenerateQuizExercisesButton } from '@/components/course/QuizExerciseCRUD';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -202,14 +203,19 @@ export default function LessonEditor() {
           </div>
         </div>
 
-        {/* Exercises & Quizzes CRUD for pedago - moved to top */}
+        {/* AI Generation button + Exercises & Quizzes CRUD for pedago */}
         {canManage && lesson.chapter_id && (
-          <LessonEditorActivities
-            chapterId={lesson.chapter_id}
-            lessonId={lesson.id}
-            lessonTitle={lesson.title_ar || lesson.title}
-            onActiveChange={(isActive) => setActivityActive(isActive)}
-          />
+          <>
+            <div className="flex justify-center mb-4">
+              <GenerateQuizExercisesButton chapterId={lesson.chapter_id} onGenerated={() => window.location.reload()} />
+            </div>
+            <LessonEditorActivities
+              chapterId={lesson.chapter_id}
+              lessonId={lesson.id}
+              lessonTitle={lesson.title_ar || lesson.title}
+              onActiveChange={(isActive) => setActivityActive(isActive)}
+            />
+          </>
         )}
 
         {/* Hide the rest of the page if an activity is active */}

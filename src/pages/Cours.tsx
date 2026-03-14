@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { courseService, Chapter as DBChapter, Lesson as DBLesson } from "@/services/courseService";
 import { ChapterMathQuiz, DBQuizQuestion } from "@/components/course/ChapterMathQuiz";
 import { ChapterMathExercises, DBExercise } from "@/components/course/ChapterMathExercises";
-import { GenerateQuizExercisesButton } from "@/components/course/QuizExerciseCRUD";
+
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
