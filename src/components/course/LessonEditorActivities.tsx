@@ -81,11 +81,7 @@ export function LessonEditorActivities({
   // Tab buttons view
   if (!activeTab) {
     return (
-      <div className="space-y-6 mt-6 mb-8">
-        <div className="flex justify-center">
-          <GenerateQuizExercisesButton chapterId={chapterId} onGenerated={fetchData} />
-        </div>
-        
+      <div className="mt-6 mb-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Card
             className="cursor-pointer hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-accent group"
