@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
-import { GenerateQuizExercisesButton } from "@/components/course/QuizExerciseCRUD";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, PenTool, BookOpen, ArrowLeft, ChevronLeft } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
