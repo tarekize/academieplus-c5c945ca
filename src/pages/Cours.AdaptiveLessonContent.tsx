@@ -199,13 +199,21 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                             setLessonView("activity");
                         }}
                         onSectionChange={(section) => {
+                            const sectionLabels: Record<string, string> = {
+                                exercises: "تمارين",
+                                quiz: "اختبارات",
+                                revision: "Révision",
+                            };
                             if (section !== null) {
                                 setLessonView("activity");
+                                setActiveSectionLabel(sectionLabels[section] || section);
                             } else {
                                 setLessonView("course");
                                 setActiveActivity(null);
+                                setActiveSectionLabel(null);
                             }
                         }}
+                        hiddenBackButton
                     />
                 )}
 
