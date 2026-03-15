@@ -29,6 +29,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const [lessonView, setLessonView] = useState<"course" | "activity">("course");
     const [activeActivity, setActiveActivity] = useState<string | null>(null);
     const [activeSectionLabel, setActiveSectionLabel] = useState<string | null>(null);
+    const [activityResetKey, setActivityResetKey] = useState(0);
 
     // Reset when chapter changes
     useEffect(() => {
@@ -120,7 +121,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                                     ) : (
                                         <BreadcrumbLink
                                             className="cursor-pointer hover:text-primary transition-colors"
-                                            onClick={() => { setLessonView("course"); setActiveActivity(null); setActiveSectionLabel(null); }}
+                                            onClick={() => { setLessonView("course"); setActiveActivity(null); setActiveSectionLabel(null); setActivityResetKey(k => k + 1); }}
                                         >
                                             {selectedLesson.titleAr || selectedLesson.title}
                                         </BreadcrumbLink>
@@ -189,6 +190,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                 {/* Activity tabs always on top for students */}
                 {!canManage && selectedLesson && (
                     <LessonActivityTabs
+                        key={activityResetKey}
                         dbQuizzes={dbQuizzes}
                         dbExercises={dbExercises}
                         chapterId={chapter.id}
