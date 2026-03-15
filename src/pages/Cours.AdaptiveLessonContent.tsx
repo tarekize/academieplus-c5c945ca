@@ -10,8 +10,16 @@ import { TableOfContents } from "@/components/course/TableOfContents";
 import { injectHeaderIds } from "@/lib/toc-utils";
 import { AdaptiveActivities } from "@/components/course/AdaptiveActivities";
 import { LessonActivityTabs } from "@/components/course/LessonActivityTabs";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
-export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleMarkComplete, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel, showActivityCards, initialLessonId, onInitialLessonHandled }: any) {
+export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleMarkComplete, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel, showActivityCards, initialLessonId, onInitialLessonHandled, onBackToChapters }: any) {
     const navigate = useNavigate();
     const [selectedLesson, setSelectedLesson] = useState<any>(null);
     const [lessonContent, setLessonContent] = useState<string>("");
@@ -20,6 +28,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const readingStartRef = useRef<number>(0);
     const [lessonView, setLessonView] = useState<"course" | "activity">("course");
     const [activeActivity, setActiveActivity] = useState<string | null>(null);
+    const [activeSectionLabel, setActiveSectionLabel] = useState<string | null>(null);
 
     // Reset when chapter changes
     useEffect(() => {
@@ -69,9 +78,74 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         setLessonContent("");
     };
 
+    // Unified breadcrumb for all states
+    const renderBreadcrumb = () => {
+        const sectionLabels: Record<string, string> = {
+            exercises: "تمارين",
+            quiz: "اختبارات",
+            revision: "Révision",
+        };
+
+        return (
+            <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-lg border border-primary/10 mb-6">
+                <Breadcrumb>
+                    <BreadcrumbList className="flex-wrap">
+                        <BreadcrumbItem>
+                            <BreadcrumbLink
+                                className="cursor-pointer hover:text-primary transition-colors"
+                                onClick={() => { onBackToChapters?.(); }}
+                            >
+                                Chapitres
+                            </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            {!selectedLesson ? (
+                                <BreadcrumbPage>{chapter.title}</BreadcrumbPage>
+                            ) : (
+                                <BreadcrumbLink
+                                    className="cursor-pointer hover:text-primary transition-colors"
+                                    onClick={() => { handleBackToList(); setLessonView("course"); setActiveActivity(null); setActiveSectionLabel(null); }}
+                                >
+                                    {chapter.title}
+                                </BreadcrumbLink>
+                            )}
+                        </BreadcrumbItem>
+                        {selectedLesson && (
+                            <>
+                                <BreadcrumbSeparator />
+                                <BreadcrumbItem>
+                                    {!activeSectionLabel ? (
+                                        <BreadcrumbPage>{selectedLesson.titleAr || selectedLesson.title}</BreadcrumbPage>
+                                    ) : (
+                                        <BreadcrumbLink
+                                            className="cursor-pointer hover:text-primary transition-colors"
+                                            onClick={() => { setLessonView("course"); setActiveActivity(null); setActiveSectionLabel(null); }}
+                                        >
+                                            {selectedLesson.titleAr || selectedLesson.title}
+                                        </BreadcrumbLink>
+                                    )}
+                                </BreadcrumbItem>
+                            </>
+                        )}
+                        {activeSectionLabel && (
+                            <>
+                                <BreadcrumbSeparator />
+                                <BreadcrumbItem>
+                                    <BreadcrumbPage>{activeSectionLabel}</BreadcrumbPage>
+                                </BreadcrumbItem>
+                            </>
+                        )}
+                    </BreadcrumbList>
+                </Breadcrumb>
+            </div>
+        );
+    };
+
     // Liste des leçons
     const renderLessonsList = () => (
         <div className="mt-2 space-y-2">
+            {renderBreadcrumb()}
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">الدروس - Leçons</h3>
                 {canManage && (
@@ -110,18 +184,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const renderLessonContent = () => {
         return (
             <div>
-                {/* Modern Navigation Breadcrumb */}
-                <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-lg border border-primary/10 mb-6">
-                    <button
-                        onClick={() => { handleBackToList(); setLessonView("course"); setActiveActivity(null); }}
-                        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors text-sm font-medium text-foreground/80 hover:text-foreground"
-                    >
-                        <ChevronLeft className="h-4 w-4" />
-                        <span>Leçons</span>
-                    </button>
-                    <span className="text-muted-foreground/50">/</span>
-                    <span className="text-sm font-medium text-foreground">{selectedLesson?.titleAr || selectedLesson?.title}</span>
-                </div>
+                {renderBreadcrumb()}
 
                 {/* Activity tabs always on top for students */}
                 {!canManage && selectedLesson && (
@@ -136,13 +199,21 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                             setLessonView("activity");
                         }}
                         onSectionChange={(section) => {
+                            const sectionLabels: Record<string, string> = {
+                                exercises: "تمارين",
+                                quiz: "اختبارات",
+                                revision: "Révision",
+                            };
                             if (section !== null) {
                                 setLessonView("activity");
+                                setActiveSectionLabel(sectionLabels[section] || section);
                             } else {
                                 setLessonView("course");
                                 setActiveActivity(null);
+                                setActiveSectionLabel(null);
                             }
                         }}
+                        hiddenBackButton
                     />
                 )}
 

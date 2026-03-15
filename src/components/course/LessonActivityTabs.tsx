@@ -16,6 +16,7 @@ interface LessonActivityTabsProps {
   lessonTitle: string;
   onGenerateAI: (type: "quiz" | "exercise") => void;
   onSectionChange?: (section: string | null) => void;
+  hiddenBackButton?: boolean;
 }
 
 type ActivitySection = "exercises" | "quiz" | "revision" | null;
@@ -27,7 +28,7 @@ const stepConfig: { id: StepLevel; label: string; labelAr: string; icon: typeof 
   { id: "approfondir", label: "Approfondir", labelAr: "تعمّق", icon: Rocket, color: "text-purple-500", description: "Génération par IA" },
 ];
 
-export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonTitle, onGenerateAI, onSectionChange }: LessonActivityTabsProps) {
+export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonTitle, onGenerateAI, onSectionChange, hiddenBackButton }: LessonActivityTabsProps) {
   const [activeSection, setActiveSection] = useState<ActivitySection>(null);
   const [activeStep, setActiveStep] = useState<StepLevel>("decouvrir");
 
@@ -107,9 +108,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   if (activeSection === "revision") {
     return (
       <div className="mt-6 space-y-4">
-        <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>
-          ← العودة
-        </Button>
+        {!hiddenBackButton && (
+          <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>
+            ← العودة
+          </Button>
+        )}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -136,9 +139,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   return (
     <div className="mt-6 space-y-4">
       <div className="flex items-center gap-3">
-        <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>
-          ← العودة
-        </Button>
+        {!hiddenBackButton && (
+          <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>
+            ← العودة
+          </Button>
+        )}
         <div className="flex items-center gap-2">
           <SectionIcon className={cn("h-5 w-5", isQuiz ? "text-primary" : "text-orange-500")} />
           <h2 className="text-lg font-bold" dir="rtl">{sectionTitle}</h2>
