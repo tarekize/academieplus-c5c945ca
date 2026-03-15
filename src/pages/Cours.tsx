@@ -851,21 +851,9 @@ const Cours = () => {
         {/* Content view - Chapter details */}
         {!activeActivity && viewMode === "content" && activeChapter && (
           <div className="space-y-6">
-            {/* Modern Navigation Breadcrumb */}
-            <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-lg border border-primary/10 mb-6">
-              <button
-                onClick={() => { setViewMode("grid"); setInitialLessonId(null); }}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors text-sm font-medium text-foreground/80 hover:text-foreground"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Chapitres</span>
-              </button>
-              <span className="text-muted-foreground/50">/</span>
-              <span className="text-sm font-medium text-foreground">{activeChapter.title}</span>
-            </div>
-
             {/* Affichage adaptatif de la leçon */}
             <AdaptiveLessonContent
+              onBackToChapters={() => { setViewMode("grid"); setInitialLessonId(null); }}
               chapter={activeChapter}
               canManage={canManage}
               fetchCourse={fetchCourse}

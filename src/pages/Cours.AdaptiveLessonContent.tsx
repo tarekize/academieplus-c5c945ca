@@ -10,6 +10,14 @@ import { TableOfContents } from "@/components/course/TableOfContents";
 import { injectHeaderIds } from "@/lib/toc-utils";
 import { AdaptiveActivities } from "@/components/course/AdaptiveActivities";
 import { LessonActivityTabs } from "@/components/course/LessonActivityTabs";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleMarkComplete, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel, showActivityCards, initialLessonId, onInitialLessonHandled }: any) {
     const navigate = useNavigate();
