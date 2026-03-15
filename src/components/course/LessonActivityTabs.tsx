@@ -28,7 +28,7 @@ const stepConfig: { id: StepLevel; label: string; labelAr: string; icon: typeof 
   { id: "approfondir", label: "Approfondir", labelAr: "تعمّق", icon: Rocket, color: "text-purple-500", description: "Génération par IA" },
 ];
 
-export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonTitle, onGenerateAI, onSectionChange }: LessonActivityTabsProps) {
+export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonTitle, onGenerateAI, onSectionChange, hiddenBackButton }: LessonActivityTabsProps) {
   const [activeSection, setActiveSection] = useState<ActivitySection>(null);
   const [activeStep, setActiveStep] = useState<StepLevel>("decouvrir");
 
