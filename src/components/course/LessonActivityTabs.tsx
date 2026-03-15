@@ -108,9 +108,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   if (activeSection === "revision") {
     return (
       <div className="mt-6 space-y-4">
-        <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>
-          ← العودة
-        </Button>
+        {!hiddenBackButton && (
+          <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>
+            ← العودة
+          </Button>
+        )}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
