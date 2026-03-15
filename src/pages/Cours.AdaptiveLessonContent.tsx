@@ -78,9 +78,74 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         setLessonContent("");
     };
 
+    // Unified breadcrumb for all states
+    const renderBreadcrumb = () => {
+        const sectionLabels: Record<string, string> = {
+            exercises: "تمارين",
+            quiz: "اختبارات",
+            revision: "Révision",
+        };
+
+        return (
+            <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-lg border border-primary/10 mb-6">
+                <Breadcrumb>
+                    <BreadcrumbList className="flex-wrap">
+                        <BreadcrumbItem>
+                            <BreadcrumbLink
+                                className="cursor-pointer hover:text-primary transition-colors"
+                                onClick={() => { onBackToChapters?.(); }}
+                            >
+                                Chapitres
+                            </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            {!selectedLesson ? (
+                                <BreadcrumbPage>{chapter.title}</BreadcrumbPage>
+                            ) : (
+                                <BreadcrumbLink
+                                    className="cursor-pointer hover:text-primary transition-colors"
+                                    onClick={() => { handleBackToList(); setLessonView("course"); setActiveActivity(null); setActiveSectionLabel(null); }}
+                                >
+                                    {chapter.title}
+                                </BreadcrumbLink>
+                            )}
+                        </BreadcrumbItem>
+                        {selectedLesson && (
+                            <>
+                                <BreadcrumbSeparator />
+                                <BreadcrumbItem>
+                                    {!activeSectionLabel ? (
+                                        <BreadcrumbPage>{selectedLesson.titleAr || selectedLesson.title}</BreadcrumbPage>
+                                    ) : (
+                                        <BreadcrumbLink
+                                            className="cursor-pointer hover:text-primary transition-colors"
+                                            onClick={() => { setLessonView("course"); setActiveActivity(null); setActiveSectionLabel(null); }}
+                                        >
+                                            {selectedLesson.titleAr || selectedLesson.title}
+                                        </BreadcrumbLink>
+                                    )}
+                                </BreadcrumbItem>
+                            </>
+                        )}
+                        {activeSectionLabel && (
+                            <>
+                                <BreadcrumbSeparator />
+                                <BreadcrumbItem>
+                                    <BreadcrumbPage>{activeSectionLabel}</BreadcrumbPage>
+                                </BreadcrumbItem>
+                            </>
+                        )}
+                    </BreadcrumbList>
+                </Breadcrumb>
+            </div>
+        );
+    };
+
     // Liste des leçons
     const renderLessonsList = () => (
         <div className="mt-2 space-y-2">
+            {renderBreadcrumb()}
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">الدروس - Leçons</h3>
                 {canManage && (
