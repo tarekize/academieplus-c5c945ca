@@ -121,7 +121,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                                     ) : (
                                         <BreadcrumbLink
                                             className="cursor-pointer hover:text-primary transition-colors"
-                                            onClick={() => { setLessonView("course"); setActiveActivity(null); setActiveSectionLabel(null); }}
+                                            onClick={() => { setLessonView("course"); setActiveActivity(null); setActiveSectionLabel(null); setActivityResetKey(k => k + 1); }}
                                         >
                                             {selectedLesson.titleAr || selectedLesson.title}
                                         </BreadcrumbLink>
