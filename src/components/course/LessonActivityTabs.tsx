@@ -139,9 +139,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   return (
     <div className="mt-6 space-y-4">
       <div className="flex items-center gap-3">
-        <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>
-          ← العودة
-        </Button>
+        {!hiddenBackButton && (
+          <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>
+            ← العودة
+          </Button>
+        )}
         <div className="flex items-center gap-2">
           <SectionIcon className={cn("h-5 w-5", isQuiz ? "text-primary" : "text-orange-500")} />
           <h2 className="text-lg font-bold" dir="rtl">{sectionTitle}</h2>
