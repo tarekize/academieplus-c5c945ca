@@ -190,6 +190,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                 {/* Activity tabs always on top for students */}
                 {!canManage && selectedLesson && (
                     <LessonActivityTabs
+                        key={activityResetKey}
                         dbQuizzes={dbQuizzes}
                         dbExercises={dbExercises}
                         chapterId={chapter.id}
