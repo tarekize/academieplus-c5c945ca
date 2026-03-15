@@ -29,6 +29,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const [lessonView, setLessonView] = useState<"course" | "activity">("course");
     const [activeActivity, setActiveActivity] = useState<string | null>(null);
     const [activeSectionLabel, setActiveSectionLabel] = useState<string | null>(null);
+    const [activityResetKey, setActivityResetKey] = useState(0);
 
     // Reset when chapter changes
     useEffect(() => {
