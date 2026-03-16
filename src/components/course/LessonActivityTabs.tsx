@@ -336,7 +336,7 @@ function QuizQuestionCard({ question, index, readOnly }: { question: DBQuizQuest
 }
 
 // Simple exercise card for DB exercises
-function ExerciseCard({ exercise, index }: { exercise: DBExercise; index: number }) {
+function ExerciseCard({ exercise, index, readOnly }: { exercise: DBExercise; index: number; readOnly?: boolean }) {
   const [answer, setAnswer] = useState("");
   const [revealed, setRevealed] = useState(false);
   const [result, setResult] = useState<boolean | null>(null);
@@ -354,7 +354,7 @@ function ExerciseCard({ exercise, index }: { exercise: DBExercise; index: number
         <h4 className="font-semibold" dir="rtl">{index + 1}. {exercise.title}</h4>
         <p className="text-sm" dir="rtl">{exercise.statement}</p>
 
-        {result === null && (
+        {!readOnly && result === null && (
           <div className="flex gap-2" dir="rtl">
             <input
               className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
