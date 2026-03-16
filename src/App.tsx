@@ -75,6 +75,7 @@ const App = () => (
               <Route path="/bot-onboarding" element={<BotOnboardingPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/parent-dashboard" element={<ParentDashboard />} />
+              <Route path="/parent-cours/:childId" element={<ParentCoursView />} />
               <Route path="/account" element={
                 <ProtectedRoute blockAdmin>
                   <Account />
