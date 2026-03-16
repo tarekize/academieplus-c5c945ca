@@ -17,6 +17,7 @@ interface LessonActivityTabsProps {
   onGenerateAI: (type: "quiz" | "exercise") => void;
   onSectionChange?: (section: string | null) => void;
   hiddenBackButton?: boolean;
+  readOnly?: boolean;
 }
 
 type ActivitySection = "exercises" | "quiz" | "revision" | null;
