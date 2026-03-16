@@ -48,6 +48,9 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const discoverExercises = dbExercises.slice(0, halfExercise);
   const understandExercises = dbExercises.slice(halfExercise);
 
+  // Filter steps: hide "approfondir" in readOnly mode
+  const visibleSteps = readOnly ? stepConfig.filter(s => s.id !== "approfondir") : stepConfig;
+
   if (activeSection === null) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
@@ -62,7 +65,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             <div className="flex-1">
               <h3 className="font-bold text-base" dir="rtl">تمارين</h3>
               <p className="text-sm text-muted-foreground" dir="rtl">
-                {dbExercises.length} تمارين + ذكاء اصطناعي
+                {dbExercises.length} تمارين{!readOnly && " + ذكاء اصطناعي"}
               </p>
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -80,7 +83,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             <div className="flex-1">
               <h3 className="font-bold text-base" dir="rtl">اختبارات</h3>
               <p className="text-sm text-muted-foreground" dir="rtl">
-                {dbQuizzes.length} أسئلة + ذكاء اصطناعي
+                {dbQuizzes.length} أسئلة{!readOnly && " + ذكاء اصطناعي"}
               </p>
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
