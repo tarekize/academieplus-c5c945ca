@@ -17,6 +17,7 @@ interface LessonActivityTabsProps {
   onGenerateAI: (type: "quiz" | "exercise") => void;
   onSectionChange?: (section: string | null) => void;
   hiddenBackButton?: boolean;
+  readOnly?: boolean;
 }
 
 type ActivitySection = "exercises" | "quiz" | "revision" | null;
@@ -28,7 +29,7 @@ const stepConfig: { id: StepLevel; label: string; labelAr: string; icon: typeof 
   { id: "approfondir", label: "Approfondir", labelAr: "تعمّق", icon: Rocket, color: "text-purple-500", description: "Génération par IA" },
 ];
 
-export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonTitle, onGenerateAI, onSectionChange, hiddenBackButton }: LessonActivityTabsProps) {
+export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonTitle, onGenerateAI, onSectionChange, hiddenBackButton, readOnly }: LessonActivityTabsProps) {
   const [activeSection, setActiveSection] = useState<ActivitySection>(null);
   const [activeStep, setActiveStep] = useState<StepLevel>("decouvrir");
 
@@ -47,6 +48,9 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const discoverExercises = dbExercises.slice(0, halfExercise);
   const understandExercises = dbExercises.slice(halfExercise);
 
+  // Filter steps: hide "approfondir" in readOnly mode
+  const visibleSteps = readOnly ? stepConfig.filter(s => s.id !== "approfondir") : stepConfig;
+
   if (activeSection === null) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
@@ -61,7 +65,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             <div className="flex-1">
               <h3 className="font-bold text-base" dir="rtl">تمارين</h3>
               <p className="text-sm text-muted-foreground" dir="rtl">
-                {dbExercises.length} تمارين + ذكاء اصطناعي
+                {dbExercises.length} تمارين{!readOnly && " + ذكاء اصطناعي"}
               </p>
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -79,7 +83,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             <div className="flex-1">
               <h3 className="font-bold text-base" dir="rtl">اختبارات</h3>
               <p className="text-sm text-muted-foreground" dir="rtl">
-                {dbQuizzes.length} أسئلة + ذكاء اصطناعي
+                {dbQuizzes.length} أسئلة{!readOnly && " + ذكاء اصطناعي"}
               </p>
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -152,7 +156,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
       {/* Step Stepper */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2">
-        {stepConfig.map((step, idx) => {
+        {visibleSteps.map((step, idx) => {
           const Icon = step.icon;
           const isActive = activeStep === step.id;
           return (
@@ -201,7 +205,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
               discoverQuizzes.length > 0 ? (
                 <div className="space-y-3">
                   {discoverQuizzes.map((q, idx) => (
-                    <QuizQuestionCard key={q.id} question={q} index={idx} />
+                    <QuizQuestionCard key={q.id} question={q} index={idx} readOnly={readOnly} />
                   ))}
                 </div>
               ) : (
@@ -211,7 +215,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
               discoverExercises.length > 0 ? (
                 <div className="space-y-3">
                   {discoverExercises.map((ex, idx) => (
-                    <ExerciseCard key={ex.id} exercise={ex} index={idx} />
+                    <ExerciseCard key={ex.id} exercise={ex} index={idx} readOnly={readOnly} />
                   ))}
                 </div>
               ) : (
@@ -238,7 +242,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
               understandQuizzes.length > 0 ? (
                 <div className="space-y-3">
                   {understandQuizzes.map((q, idx) => (
-                    <QuizQuestionCard key={q.id} question={q} index={idx + halfQuiz} />
+                    <QuizQuestionCard key={q.id} question={q} index={idx + halfQuiz} readOnly={readOnly} />
                   ))}
                 </div>
               ) : (
@@ -248,7 +252,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
               understandExercises.length > 0 ? (
                 <div className="space-y-3">
                   {understandExercises.map((ex, idx) => (
-                    <ExerciseCard key={ex.id} exercise={ex} index={idx + halfExercise} />
+                    <ExerciseCard key={ex.id} exercise={ex} index={idx + halfExercise} readOnly={readOnly} />
                   ))}
                 </div>
               ) : (
@@ -291,7 +295,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 }
 
 // Simple quiz card for DB quizzes (non-AI)
-function QuizQuestionCard({ question, index }: { question: DBQuizQuestion; index: number }) {
+function QuizQuestionCard({ question, index, readOnly }: { question: DBQuizQuestion; index: number; readOnly?: boolean }) {
   const [selected, setSelected] = useState<string | null>(null);
   const isCorrect = selected === question.correct_answer;
   const answered = selected !== null;
@@ -313,8 +317,8 @@ function QuizQuestionCard({ question, index }: { question: DBQuizQuestion; index
                 "justify-start text-right",
                 opt === question.correct_answer && answered && "border-green-500 bg-green-500/10"
               )}
-              onClick={() => !answered && setSelected(opt)}
-              disabled={answered}
+              onClick={() => !readOnly && !answered && setSelected(opt)}
+              disabled={readOnly || answered}
               dir="rtl"
             >
               {opt}
@@ -332,7 +336,7 @@ function QuizQuestionCard({ question, index }: { question: DBQuizQuestion; index
 }
 
 // Simple exercise card for DB exercises
-function ExerciseCard({ exercise, index }: { exercise: DBExercise; index: number }) {
+function ExerciseCard({ exercise, index, readOnly }: { exercise: DBExercise; index: number; readOnly?: boolean }) {
   const [answer, setAnswer] = useState("");
   const [revealed, setRevealed] = useState(false);
   const [result, setResult] = useState<boolean | null>(null);
@@ -350,7 +354,7 @@ function ExerciseCard({ exercise, index }: { exercise: DBExercise; index: number
         <h4 className="font-semibold" dir="rtl">{index + 1}. {exercise.title}</h4>
         <p className="text-sm" dir="rtl">{exercise.statement}</p>
 
-        {result === null && (
+        {!readOnly && result === null && (
           <div className="flex gap-2" dir="rtl">
             <input
               className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"

@@ -22,7 +22,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  GraduationCap, LogOut, User as UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus,
+  GraduationCap, LogOut, User as UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
@@ -482,6 +482,13 @@ const ParentDashboard = () => {
                                 onClick={() => setSelectedChild(link)}
                               >
                                 <Eye className="h-4 w-4 mr-2" />Voir
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/parent-cours/${link.child_id}`)}
+                              >
+                                <BookOpen className="h-4 w-4 mr-2" />Les cours
                               </Button>
                               <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleRemoveChild(link.id)}>
                                 <Trash2 className="h-4 w-4" />
