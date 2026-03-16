@@ -156,7 +156,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
       {/* Step Stepper */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2">
-        {stepConfig.map((step, idx) => {
+        {visibleSteps.map((step, idx) => {
           const Icon = step.icon;
           const isActive = activeStep === step.id;
           return (
