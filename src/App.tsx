@@ -30,6 +30,7 @@ import Paiement from "./pages/Paiement";
 import Parrainage from "./pages/Parrainage";
 import MesDonneesPersonnelles from "./pages/MesDonneesPersonnelles";
 import ParentDashboard from "./pages/ParentDashboard";
+import ParentCoursView from "./pages/ParentCoursView";
 import DashboardEditorial from "./pages/editorial/DashboardEditorial";
 import EditeurCours from "./pages/editorial/EditeurCours";
 import PageRevision from "./pages/editorial/PageRevision";
