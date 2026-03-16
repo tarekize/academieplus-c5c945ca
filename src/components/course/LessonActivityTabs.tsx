@@ -295,7 +295,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 }
 
 // Simple quiz card for DB quizzes (non-AI)
-function QuizQuestionCard({ question, index }: { question: DBQuizQuestion; index: number }) {
+function QuizQuestionCard({ question, index, readOnly }: { question: DBQuizQuestion; index: number; readOnly?: boolean }) {
   const [selected, setSelected] = useState<string | null>(null);
   const isCorrect = selected === question.correct_answer;
   const answered = selected !== null;
@@ -317,8 +317,8 @@ function QuizQuestionCard({ question, index }: { question: DBQuizQuestion; index
                 "justify-start text-right",
                 opt === question.correct_answer && answered && "border-green-500 bg-green-500/10"
               )}
-              onClick={() => !answered && setSelected(opt)}
-              disabled={answered}
+              onClick={() => !readOnly && !answered && setSelected(opt)}
+              disabled={readOnly || answered}
               dir="rtl"
             >
               {opt}
