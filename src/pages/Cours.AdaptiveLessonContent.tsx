@@ -196,6 +196,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         chapterId={chapter.id}
                         chapterTitle={chapter.title}
                         lessonTitle={selectedLesson.titleAr || selectedLesson.title}
+                        readOnly={readOnly}
                         onGenerateAI={(type) => {
                             setActiveActivity(type);
                             setLessonView("activity");
