@@ -205,7 +205,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
               discoverQuizzes.length > 0 ? (
                 <div className="space-y-3">
                   {discoverQuizzes.map((q, idx) => (
-                    <QuizQuestionCard key={q.id} question={q} index={idx} />
+                    <QuizQuestionCard key={q.id} question={q} index={idx} readOnly={readOnly} />
                   ))}
                 </div>
               ) : (
@@ -215,7 +215,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
               discoverExercises.length > 0 ? (
                 <div className="space-y-3">
                   {discoverExercises.map((ex, idx) => (
-                    <ExerciseCard key={ex.id} exercise={ex} index={idx} />
+                    <ExerciseCard key={ex.id} exercise={ex} index={idx} readOnly={readOnly} />
                   ))}
                 </div>
               ) : (
