@@ -483,6 +483,13 @@ const ParentDashboard = () => {
                               >
                                 <Eye className="h-4 w-4 mr-2" />Voir
                               </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/parent-cours/${link.child_id}`)}
+                              >
+                                <BookOpen className="h-4 w-4 mr-2" />Les cours
+                              </Button>
                               <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleRemoveChild(link.id)}>
                                 <Trash2 className="h-4 w-4" />
                               </Button>
