@@ -29,11 +29,13 @@ async function generateForLesson(supabase: any, lessonId: string, API_KEY: strin
 
 اكتب الدرس بشكل شامل مع: مقدمة، شرح المفاهيم، أمثلة محلولة، خصائص، تمارين تطبيقية.`;
 
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${API_KEY}`,
       "Content-Type": "application/json",
+      "HTTP-Referer": "https://academieplus.app",
+      "X-Title": "AcademiePlus",
     },
     body: JSON.stringify({
       model: "google/gemini-2.5-flash",
@@ -64,14 +66,13 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+    if (!API_KEY) throw new Error("OPENROUTER_API_KEY is not configured");
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Single lesson mode
     if (body.lesson_id) {
       const result = await generateForLesson(supabase, body.lesson_id, API_KEY);
       return new Response(JSON.stringify({ success: true, ...result }), {
@@ -79,7 +80,6 @@ serve(async (req) => {
       });
     }
 
-    // Batch mode
     const batchSize = body.batch_size || 3;
     const schoolLevel = body.school_level;
 
@@ -125,7 +125,6 @@ serve(async (req) => {
       }
     }
 
-    // Count remaining
     let remainQuery = supabase
       .from("lessons")
       .select("id", { count: "exact", head: true })

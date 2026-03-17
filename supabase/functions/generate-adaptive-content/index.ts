@@ -26,14 +26,16 @@ function getDifficultyLabel(level: number): string {
 }
 
 async function callAI(prompt: string, systemPrompt: string, apiKey: string): Promise<string> {
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
+      "HTTP-Referer": "https://academieplus.app",
+      "X-Title": "AcademiePlus",
     },
     body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
+      model: "google/gemini-2.5-flash",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt },
@@ -64,8 +66,8 @@ serve(async (req) => {
   try {
     const { lesson_id, chapter_id, content_type, school_level, difficulty_level, lesson_title, chapter_title } = await req.json();
     
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+    if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY not configured");
 
     const levelAr = levelMap[school_level] || school_level;
     const diffLabel = getDifficultyLabel(difficulty_level || 50);
@@ -111,7 +113,7 @@ serve(async (req) => {
 [{"concept":"المفهوم","explanation":"شرح مفصل","example":"مثال توضيحي","key_formula":"الصيغة الرئيسية (إن وجدت)"}]`;
     }
 
-    const content = await callAI(prompt, systemPrompt, LOVABLE_API_KEY);
+    const content = await callAI(prompt, systemPrompt, OPENROUTER_API_KEY);
     const parsed = parseJSON(content);
 
     return new Response(JSON.stringify({ success: true, content: parsed, content_type }), {

@@ -17,12 +17,14 @@ const levelMap: Record<string, string> = {
   "terminale": "الثالثة ثانوي (البكالوريا)",
 };
 
-async function callLovableAI(prompt: string, systemPrompt: string, apiKey: string): Promise<string> {
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+async function callOpenRouterAI(prompt: string, systemPrompt: string, apiKey: string): Promise<string> {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
+      "HTTP-Referer": "https://academieplus.app",
+      "X-Title": "AcademiePlus",
     },
     body: JSON.stringify({
       model: "google/gemini-2.5-flash",
@@ -35,9 +37,9 @@ async function callLovableAI(prompt: string, systemPrompt: string, apiKey: strin
 
   if (!response.ok) {
     if (response.status === 429) throw new Error("Limite de requêtes dépassée, réessayez plus tard.");
-    if (response.status === 402) throw new Error("Crédits épuisés, ajoutez des crédits.");
+    if (response.status === 402) throw new Error("Crédits épuisés.");
     const t = await response.text();
-    throw new Error(`AI Gateway error: ${response.status} ${t}`);
+    throw new Error(`OpenRouter error: ${response.status} ${t}`);
   }
 
   const result = await response.json();
@@ -51,7 +53,7 @@ async function generateQuizzes(chapterTitle: string, schoolLevel: string, apiKey
 أجب فقط بمصفوفة JSON صالحة:
 [{"question":"...","options":["أ","ب","ج","د"],"correct_answer":"الإجابة","explanation":"..."}]`;
 
-  let content = await callLovableAI(prompt, "You are an expert Algerian math teacher. Always respond with valid JSON arrays only.", apiKey);
+  let content = await callOpenRouterAI(prompt, "You are an expert Algerian math teacher. Always respond with valid JSON arrays only.", apiKey);
   content = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
   const jsonMatch = content.match(/\[[\s\S]*\]/);
   return JSON.parse(jsonMatch ? jsonMatch[0] : content);
@@ -63,7 +65,7 @@ async function generateExercises(chapterTitle: string, schoolLevel: string, apiK
 الفصل: ${chapterTitle}
 أجب بمصفوفة JSON صالحة تحتوي على: title, statement, expected_answer, accepted_answers, solution.`;
 
-  let content = await callLovableAI(prompt, "You are an expert Algerian math teacher. Always respond with valid JSON arrays only.", apiKey);
+  let content = await callOpenRouterAI(prompt, "You are an expert Algerian math teacher. Always respond with valid JSON arrays only.", apiKey);
   content = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
   const jsonMatch = content.match(/\[[\s\S]*\]/);
   return JSON.parse(jsonMatch ? jsonMatch[0] : content);
@@ -74,11 +76,11 @@ serve(async (req) => {
 
   try {
     const { chapter_id } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY is not configured");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -87,7 +89,7 @@ serve(async (req) => {
       if (!chapter) throw new Error("Chapter not found");
 
       const chapterTitle = chapter.title_ar || chapter.title;
-      const quizzes = await generateQuizzes(chapterTitle, chapter.school_level, LOVABLE_API_KEY);
+      const quizzes = await generateQuizzes(chapterTitle, chapter.school_level, OPENROUTER_API_KEY);
 
       const quizInserts = quizzes.map((q, i) => ({
         chapter_id,
@@ -99,7 +101,7 @@ serve(async (req) => {
       }));
       await supabase.from("chapter_quizzes").insert(quizInserts);
 
-      const exercises = await generateExercises(chapterTitle, chapter.school_level, LOVABLE_API_KEY);
+      const exercises = await generateExercises(chapterTitle, chapter.school_level, OPENROUTER_API_KEY);
       const exInserts = exercises.map((ex, i) => ({
         chapter_id,
         title: ex.title,
