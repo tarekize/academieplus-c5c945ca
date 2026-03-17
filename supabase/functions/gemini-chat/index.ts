@@ -28,10 +28,9 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+    if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY is not configured");
 
-    // Normaliser le nom de la matière
     const normalizeSubject = (subjectName: string): string => {
       if (!subjectName) return "";
       return subjectName.toLowerCase().trim()
@@ -42,7 +41,6 @@ serve(async (req) => {
 
     const normalizedSubject = normalizeSubject(subject || "");
 
-    // Subject-specific system prompts
     const subjectPrompts: Record<string, string> = {
       mathematiques: `Tu es un professeur de mathématiques pédagogue et bienveillant. 
 RÈGLES IMPORTANTES :
@@ -69,24 +67,24 @@ STRUCTURE : Reformule la question, explique les concepts, détaille la résoluti
     const systemPrompt = subjectPrompts[normalizedSubject] ||
       `Tu es un professeur expert et bienveillant. Détecte la langue de la question et réponds dans cette MÊME langue. Sois pédagogue et encourageant.`;
 
-    // Build messages for the gateway (OpenAI-compatible format)
     const gatewayMessages = [
       { role: "system", content: systemPrompt },
       ...messages.map((msg: any) => {
         if (typeof msg.content === "string") {
           return { role: msg.role, content: msg.content };
         }
-        // For messages with images, convert to text-only (gateway limitation)
         const textParts = msg.content.filter((c: any) => c.type === "text").map((c: any) => c.text);
         return { role: msg.role, content: textParts.join("\n") };
       }),
     ];
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://academieplus.app",
+        "X-Title": "AcademiePlus",
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
@@ -103,20 +101,19 @@ STRUCTURE : Reformule la question, explique les concepts, détaille la résoluti
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Crédits épuisés, ajoutez des crédits à votre workspace Lovable." }), {
+        return new Response(JSON.stringify({ error: "Crédits épuisés sur OpenRouter." }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      return new Response(JSON.stringify({ error: "Erreur AI gateway" }), {
+      console.error("OpenRouter error:", response.status, t);
+      return new Response(JSON.stringify({ error: "Erreur OpenRouter" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Stream the response directly
     return new Response(response.body, {
       headers: {
         ...corsHeaders,

@@ -19,12 +19,12 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+    if (!OPENROUTER_API_KEY) {
+      throw new Error("OPENROUTER_API_KEY is not configured");
     }
 
-    console.log("Calling Lovable AI with subject:", subject);
+    console.log("Calling OpenRouter AI with subject:", subject);
 
     // Initialiser Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -314,11 +314,13 @@ RÈGLES IMPORTANTES :
 
     console.log("Using system prompt for subject:", normalizedSubject, "Found:", !!subjectPrompts[normalizedSubject]);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://academieplus.app",
+        "X-Title": "AcademiePlus",
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
@@ -332,7 +334,7 @@ RÈGLES IMPORTANTES :
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Lovable AI error:", response.status, errorText);
+      console.error("OpenRouter AI error:", response.status, errorText);
 
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requêtes dépassée, veuillez réessayer plus tard." }), {
@@ -342,13 +344,13 @@ RÈGLES IMPORTANTES :
       }
 
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Crédit insuffisant. Veuillez recharger votre compte Lovable AI." }), {
+        return new Response(JSON.stringify({ error: "Crédit insuffisant sur OpenRouter." }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      return new Response(JSON.stringify({ error: "Erreur de l'API Lovable AI" }), {
+      return new Response(JSON.stringify({ error: "Erreur de l'API OpenRouter" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

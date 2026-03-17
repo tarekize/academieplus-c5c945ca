@@ -6,12 +6,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function callLovableAI(apiKey: string, systemPrompt: string, userPrompt: string): Promise<string> {
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+async function callOpenRouterAI(apiKey: string, systemPrompt: string, userPrompt: string): Promise<string> {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       Authorization: "Bearer " + apiKey,
       "Content-Type": "application/json",
+      "HTTP-Referer": "https://academieplus.app",
+      "X-Title": "AcademiePlus",
     },
     body: JSON.stringify({
       model: "google/gemini-2.5-flash",
@@ -51,11 +53,11 @@ serve(async (req) => {
     const body = await req.json();
     const { assessment_data, student_level, days_since_assessment, user_id } = body;
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL") as string;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") as string;
 
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY not configured");
     if (!assessment_data || !assessment_data.report) {
       throw new Error("assessment_data with report is required");
     }
@@ -77,8 +79,8 @@ serve(async (req) => {
 أجب بـ JSON فقط:
 {"advice": "نصيحة مختصرة جملتين", "weaknesses": ["نقطة1"], "exercises": [{"question": "السؤال", "answer": "الجواب", "hint": "تلميح"}]}`;
 
-    const raw = await callLovableAI(
-      LOVABLE_API_KEY,
+    const raw = await callOpenRouterAI(
+      OPENROUTER_API_KEY,
       "أنت معلم خبير. أجب بـ JSON فقط. كن مختصراً.",
       prompt
     );
