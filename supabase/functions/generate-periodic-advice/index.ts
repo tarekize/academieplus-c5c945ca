@@ -53,11 +53,11 @@ serve(async (req) => {
     const body = await req.json();
     const { assessment_data, student_level, days_since_assessment, user_id } = body;
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL") as string;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") as string;
 
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY not configured");
     if (!assessment_data || !assessment_data.report) {
       throw new Error("assessment_data with report is required");
     }
