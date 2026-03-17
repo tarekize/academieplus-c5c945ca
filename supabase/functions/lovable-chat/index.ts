@@ -334,7 +334,7 @@ RÈGLES IMPORTANTES :
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Lovable AI error:", response.status, errorText);
+      console.error("OpenRouter AI error:", response.status, errorText);
 
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requêtes dépassée, veuillez réessayer plus tard." }), {
@@ -344,13 +344,13 @@ RÈGLES IMPORTANTES :
       }
 
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Crédit insuffisant. Veuillez recharger votre compte Lovable AI." }), {
+        return new Response(JSON.stringify({ error: "Crédit insuffisant sur OpenRouter." }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      return new Response(JSON.stringify({ error: "Erreur de l'API Lovable AI" }), {
+      return new Response(JSON.stringify({ error: "Erreur de l'API OpenRouter" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

@@ -79,8 +79,8 @@ serve(async (req) => {
 أجب بـ JSON فقط:
 {"advice": "نصيحة مختصرة جملتين", "weaknesses": ["نقطة1"], "exercises": [{"question": "السؤال", "answer": "الجواب", "hint": "تلميح"}]}`;
 
-    const raw = await callLovableAI(
-      LOVABLE_API_KEY,
+    const raw = await callOpenRouterAI(
+      OPENROUTER_API_KEY,
       "أنت معلم خبير. أجب بـ JSON فقط. كن مختصراً.",
       prompt
     );
