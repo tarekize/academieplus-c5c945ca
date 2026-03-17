@@ -314,11 +314,13 @@ RÈGLES IMPORTANTES :
 
     console.log("Using system prompt for subject:", normalizedSubject, "Found:", !!subjectPrompts[normalizedSubject]);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://academieplus.app",
+        "X-Title": "AcademiePlus",
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
