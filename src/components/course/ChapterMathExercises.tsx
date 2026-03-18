@@ -97,6 +97,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
                 <PenTool className="h-5 w-5 text-orange-500" />
               </div>
               <span dir="rtl">{exercise.title}</span>
+              {exercise.difficulty && <DifficultyPencils level={exercise.difficulty} />}
             </div>
             <div className="flex items-center gap-2">
               {canManage && onRefresh && (
