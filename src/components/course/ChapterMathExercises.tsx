@@ -206,7 +206,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
                       {submitted && correct ? <CheckCircle2 className="h-4 w-4" /> : submitted && !correct ? <XCircle className="h-4 w-4" /> : index + 1}
                     </div>
                     <div dir="rtl">
-                      <h4 className="font-medium">{ex.title}</h4>
+                      <h4 className="font-medium flex items-center">{ex.title}{ex.difficulty && <DifficultyPencils level={ex.difficulty} />}</h4>
                       <span className="text-sm text-muted-foreground line-clamp-1">{ex.statement.substring(0, 60)}...</span>
                     </div>
                   </div>
