@@ -307,7 +307,10 @@ function QuizQuestionCard({ question, index, readOnly }: { question: DBQuizQuest
       answered && !isCorrect && "border-red-500/50 bg-red-500/5"
     )}>
       <CardContent className="p-4">
-        <p className="font-medium mb-3" dir="rtl">{index + 1}. {question.question}</p>
+        <p className="font-medium mb-3 flex items-center" dir="rtl">
+          {index + 1}. {question.question}
+          <DifficultyPencils level={question.difficulty ?? 1} />
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {question.options.map((opt, oIdx) => (
             <Button
@@ -351,7 +354,10 @@ function ExerciseCard({ exercise, index, readOnly }: { exercise: DBExercise; ind
   return (
     <Card>
       <CardContent className="p-4 space-y-3">
-        <h4 className="font-semibold" dir="rtl">{index + 1}. {exercise.title}</h4>
+        <h4 className="font-semibold flex items-center" dir="rtl">
+          {index + 1}. {exercise.title}
+          <DifficultyPencils level={exercise.difficulty ?? 1} />
+        </h4>
         <p className="text-sm" dir="rtl">{exercise.statement}</p>
 
         {!readOnly && result === null && (
@@ -391,5 +397,20 @@ function EmptyState({ text }: { text: string }) {
     <div className="text-center py-8">
       <p className="text-muted-foreground" dir="rtl">{text}</p>
     </div>
+  );
+}
+
+function DifficultyPencils({ level }: { level: number }) {
+  const clamped = Math.max(1, Math.min(5, Math.round(level)));
+
+  return (
+    <span className="inline-flex items-center gap-0.5 ml-2" title={`Difficulté ${clamped}/5`}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <PenTool
+          key={i}
+          className={cn("h-3.5 w-3.5", i < clamped ? "text-primary" : "text-muted-foreground/30")}
+        />
+      ))}
+    </span>
   );
 }

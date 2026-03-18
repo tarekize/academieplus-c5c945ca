@@ -17,6 +17,21 @@ interface AdaptiveActivitiesProps {
   initialTab?: "quiz" | "exercise" | "revision" | null;
 }
 
+function DifficultyPencils({ level }: { level: number }) {
+  const clamped = Math.max(1, Math.min(5, Math.round(level)));
+
+  return (
+    <span className="inline-flex items-center gap-0.5 ml-2" title={`Difficulté ${clamped}/5`}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <PenTool
+          key={i}
+          className={i < clamped ? "h-3.5 w-3.5 text-primary" : "h-3.5 w-3.5 text-muted-foreground/30"}
+        />
+      ))}
+    </span>
+  );
+}
+
 export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, lessonTitle, chapterTitle, initialTab = null }: AdaptiveActivitiesProps) {
   const {
     quizzes, exercises, revisions, loading, score,
@@ -248,7 +263,10 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
               quizzes.map((q, idx) => (
                 <Card key={idx} className={`${quizResults[idx] === true ? "border-green-500/50 bg-green-500/5" : quizResults[idx] === false ? "border-red-500/50 bg-red-500/5" : ""}`}>
                   <CardContent className="p-4">
-                    <p className="font-medium mb-3" dir="rtl">{idx + 1}. {q.question}</p>
+                    <p className="font-medium mb-3 flex items-center" dir="rtl">
+                      {idx + 1}. {q.question}
+                      <DifficultyPencils level={q.difficulty ?? 1} />
+                    </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {q.options.map((opt, oIdx) => (
                         <Button
@@ -321,7 +339,10 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
               exercises.map((ex, idx) => (
                 <Card key={idx}>
                   <CardContent className="p-4 space-y-3">
-                    <h4 className="font-semibold" dir="rtl">{idx + 1}. {ex.title}</h4>
+                    <h4 className="font-semibold flex items-center" dir="rtl">
+                      {idx + 1}. {ex.title}
+                      <DifficultyPencils level={ex.difficulty ?? 1} />
+                    </h4>
                     <p className="text-sm" dir="rtl">{ex.statement}</p>
 
                     {ex.hints && ex.hints.length > 0 && (

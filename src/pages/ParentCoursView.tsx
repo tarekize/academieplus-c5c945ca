@@ -86,8 +86,8 @@ const ParentCoursView = () => {
   const fetchQuizExercises = useCallback(async () => {
     if (!activeChapter) return;
     const [{ data: quizzes }, { data: exercises }] = await Promise.all([
-      supabase.from("chapter_quizzes").select("id, question, options, correct_answer, explanation").eq("chapter_id", activeChapter.id).order("order_index"),
-      supabase.from("chapter_exercises").select("id, title, statement, expected_answer, accepted_answers, solution").eq("chapter_id", activeChapter.id).order("order_index"),
+      supabase.from("chapter_quizzes").select("id, question, options, correct_answer, explanation, difficulty").eq("chapter_id", activeChapter.id).order("order_index"),
+      supabase.from("chapter_exercises").select("id, title, statement, expected_answer, accepted_answers, solution, difficulty").eq("chapter_id", activeChapter.id).order("order_index"),
     ]);
     setDbQuizzes((quizzes || []).map(q => ({ ...q, options: Array.isArray(q.options) ? q.options as string[] : [] })));
     setDbExercises((exercises || []).map(e => ({ ...e, accepted_answers: Array.isArray(e.accepted_answers) ? e.accepted_answers as string[] : [] })));
@@ -209,11 +209,11 @@ const ParentCoursView = () => {
               fetchQuizExercises={fetchQuizExercises}
               subjectId="math"
               progress={{}}
-              handleMarkComplete={() => {}}
-              handleDownloadPDF={() => {}}
+              handleMarkComplete={() => { }}
+              handleDownloadPDF={() => { }}
               handleChapterChange={handleChapterChange}
               chapters={chapters}
-              onActivitySelect={() => {}}
+              onActivitySelect={() => { }}
               userId={childId}
               schoolLevel={schoolLevel}
               showActivityCards={false}

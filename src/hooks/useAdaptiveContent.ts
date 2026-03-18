@@ -7,6 +7,7 @@ interface QuizItem {
   options: string[];
   correct_answer: string;
   explanation: string;
+  difficulty?: number;
 }
 
 interface ExerciseItem {
@@ -15,6 +16,7 @@ interface ExerciseItem {
   expected_answer: string;
   hints: string[];
   solution: string;
+  difficulty?: number;
 }
 
 interface RevisionItem {
