@@ -54,23 +54,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
 
           // Rediriger admin et pédago vers /liste-cours après connexion
-          if ((roleData?.role === 'pedago' || roleData?.role === 'admin') && 
-              (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/')) {
+          if ((roleData?.role === 'pedago' || roleData?.role === 'admin') &&
+            (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/')) {
             window.location.href = '/liste-cours';
             return;
           }
 
           // Rediriger les parents vers /parent-dashboard après connexion
           // Inclure /liste-cours et /cours pour éviter qu'ils soient redirigés vers l'espace élève
-          if (roleData?.role === 'parent' && 
-              (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/' || currentPath.includes('/liste-cours') || currentPath.startsWith('/cours'))) {
+          if (roleData?.role === 'parent' &&
+            (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/' || currentPath.includes('/liste-cours') || currentPath.startsWith('/cours'))) {
             window.location.href = '/parent-dashboard';
             return;
           }
 
           // Rediriger les élèves vers /liste-cours après connexion (depuis auth ou page d'accueil)
-          if (roleData?.role === 'student' && 
-              (currentPath.includes('/auth') || currentPath === '/')) {
+          if (roleData?.role === 'student' &&
+            (currentPath.includes('/auth') || currentPath === '/')) {
             window.location.href = '/liste-cours';
             return;
           }
@@ -78,9 +78,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Rediriger les élèves sans évaluation vers le jeu d'apprentissage
           if (roleData?.role === 'student' && !currentPath.includes('/learning-assessment') && !currentPath.includes('/complete-profile') && !currentPath.includes('/auth')) {
             const { data: styleData } = await supabase
-              .from('learning_styles')
+              .from('student_scores')
               .select('id')
               .eq('user_id', session.user.id)
+              .is('lesson_id', null)
               .maybeSingle();
 
             if (!styleData) {

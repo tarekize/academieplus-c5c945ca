@@ -138,7 +138,12 @@ const LearningAssessment = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate("/auth"); return; }
       setUserId(session.user.id);
-      const { data } = await supabase.from("learning_styles").select("id").eq("user_id", session.user.id).maybeSingle();
+      const { data } = await supabase
+        .from("student_scores")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .is("lesson_id", null)
+        .maybeSingle();
       if (data) navigate("/liste-cours");
     };
     check();
@@ -296,16 +301,42 @@ const LearningAssessment = () => {
     if (!userId) return;
     try {
       const correctCount = answers.filter(a => a.correct).length;
-      const { error } = await supabase.from("learning_styles").insert({
+      const placementScore = questions.length > 0
+        ? Math.round((correctCount / questions.length) * 100)
+        : 0;
+
+      const rowPayload = {
         user_id: userId,
-        visual_score: correctCount,
-        textual_score: questions.length,
-        practical_score: 0,
-        preferred_style: report?.level_label || "mixed",
+        lesson_id: null,
+        chapter_id: null,
+        current_level: placementScore,
         assessment_data: { type: "placement_test", answers, report, score } as any,
         advice_seen: false,
-      });
-      if (error) throw error;
+        periodic_advice: null,
+        report_first_shown_at: null,
+        last_advice_generated_at: null,
+      };
+
+      const { data: existing } = await supabase
+        .from("student_scores")
+        .select("id")
+        .eq("user_id", userId)
+        .is("lesson_id", null)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from("student_scores")
+          .update(rowPayload)
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("student_scores")
+          .insert(rowPayload);
+        if (error) throw error;
+      }
+
       toast.success("Résultats sauvegardés !");
       navigate("/liste-cours");
     } catch (e: any) {

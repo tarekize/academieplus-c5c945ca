@@ -24,8 +24,9 @@ interface PeriodicAdvice {
   generated_at: string;
 }
 
-interface LearningStyleData {
+interface StudentScoreData {
   id: string;
+  current_level: number;
   assessment_data: any;
   advice_seen: boolean | null;
   report_first_shown_at: string | null;
@@ -45,7 +46,7 @@ const getAdviceGenKey = (userId: string) => `its_advice_gen_${userId}`;
 
 export default function ITSRecommendations() {
   const { user } = useAuth();
-  const [learningData, setLearningData] = useState<LearningStyleData | null>(null);
+  const [learningData, setLearningData] = useState<StudentScoreData | null>(null);
   const [loading, setLoading] = useState(true);
   const [reportCountdown, setReportCountdown] = useState<number | null>(null);
   const [adviceCountdown, setAdviceCountdown] = useState<number | null>(null);
@@ -122,7 +123,7 @@ export default function ITSRecommendations() {
   }, []);
 
   // Generate periodic advice
-  const generatePeriodicAdvice = useCallback(async (learningId: string, assessmentData: AssessmentData, level: string) => {
+  const generatePeriodicAdvice = useCallback(async (scoreRowId: string, assessmentData: AssessmentData, level: string) => {
     try {
       const { data, error } = await supabase.functions.invoke("generate-periodic-advice", {
         body: {
@@ -144,12 +145,12 @@ export default function ITSRecommendations() {
         };
 
         await supabase
-          .from("learning_styles")
+          .from("student_scores")
           .update({
             periodic_advice: newAdvice as any,
             last_advice_generated_at: new Date().toISOString()
           } as any)
-          .eq("id", learningId);
+          .eq("id", scoreRowId);
 
         setPeriodicAdvice(newAdvice);
         return newAdvice;
@@ -166,9 +167,10 @@ export default function ITSRecommendations() {
     const fetchData = async () => {
       try {
         const { data: rawData, error } = await supabase
-          .from("learning_styles")
-          .select("id, assessment_data, advice_seen")
+          .from("student_scores")
+          .select("id, current_level, assessment_data, advice_seen, report_first_shown_at, last_advice_generated_at, periodic_advice")
           .eq("user_id", user.id)
+          .is("lesson_id", null)
           .maybeSingle();
 
         if (error || !rawData || !rawData.assessment_data) {
@@ -183,13 +185,14 @@ export default function ITSRecommendations() {
         if (!reportFirstShownAt) {
           reportFirstShownAt = new Date().toISOString();
           await supabase
-            .from("learning_styles")
+            .from("student_scores")
             .update({ report_first_shown_at: reportFirstShownAt } as any)
             .eq("id", data.id);
         }
 
-        const ld: LearningStyleData = {
+        const ld: StudentScoreData = {
           id: data.id,
+          current_level: data.current_level,
           assessment_data: data.assessment_data,
           advice_seen: data.advice_seen ?? false,
           report_first_shown_at: reportFirstShownAt,
@@ -226,9 +229,10 @@ export default function ITSRecommendations() {
           // Reset advice done key so new advice shows
           const adviceGenKey = getAdviceGenKey(user.id);
           const lastShownGen = localStorage.getItem(adviceGenKey);
-          
-          const newAdvice = await generatePeriodicAdvice(data.id, data.assessment_data, data.preferred_style || "mixed");
-          
+
+          const levelLabel = data.assessment_data?.report?.level_label || `Score ${data.current_level}/100`;
+          const newAdvice = await generatePeriodicAdvice(data.id, data.assessment_data, levelLabel);
+
           if (newAdvice) {
             // New advice generated - reset countdown keys so it shows fresh
             if (lastShownGen !== newAdvice.generated_at) {
@@ -244,7 +248,7 @@ export default function ITSRecommendations() {
           const adviceDoneKey = getAdviceDoneKey(user.id);
           const adviceDone = localStorage.getItem(adviceDoneKey) === "done";
           const hasAdvice = data.periodic_advice || shouldGenerateAdvice;
-          
+
           if (hasAdvice && !adviceDone) {
             startCountdown(
               getAdviceStartKey(user.id),
@@ -258,7 +262,7 @@ export default function ITSRecommendations() {
 
         // Mark as seen
         if (!data.advice_seen) {
-          await supabase.from("learning_styles").update({ advice_seen: true }).eq("id", data.id);
+          await supabase.from("student_scores").update({ advice_seen: true }).eq("id", data.id);
         }
 
         setLoading(false);
