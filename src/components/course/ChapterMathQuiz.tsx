@@ -4,8 +4,18 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Trophy, BookOpen, Clock, Pause, Play } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Trophy, BookOpen, Clock, Pause, Play, PenTool } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+function DifficultyPencils({ level }: { level: number }) {
+  return (
+    <span className="inline-flex items-center gap-0.5 ml-2" title={`Difficulté ${level}/5`}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <PenTool key={i} className={cn("h-3.5 w-3.5", i < level ? "text-primary fill-primary/20" : "text-muted-foreground/30")} />
+      ))}
+    </span>
+  );
+}
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { QuizFormDialog, DeleteQuizButton } from "./QuizExerciseCRUD";
 
@@ -15,6 +25,7 @@ export interface DBQuizQuestion {
   options: string[];
   correct_answer: string;
   explanation: string | null;
+  difficulty?: number;
 }
 
 interface ChapterMathQuizProps {
@@ -156,7 +167,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <h3 className="text-lg font-semibold" dir="rtl">{currentQuestion.question}</h3>
+          <h3 className="text-lg font-semibold flex items-center" dir="rtl">{currentQuestion.question}{currentQuestion.difficulty && <DifficultyPencils level={currentQuestion.difficulty} />}</h3>
           <RadioGroup value={selectedAnswer} onValueChange={setSelectedAnswer} disabled={hasAnswered} className="space-y-3">
             {currentQuestion.options.map((option, index) => {
               const isThisCorrect = hasAnswered && option === currentQuestion.correct_answer;

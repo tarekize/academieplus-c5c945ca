@@ -152,6 +152,7 @@ export type Database = {
           accepted_answers: Json
           chapter_id: string
           created_at: string
+          difficulty: number
           expected_answer: string
           id: string
           order_index: number
@@ -164,6 +165,7 @@ export type Database = {
           accepted_answers?: Json
           chapter_id: string
           created_at?: string
+          difficulty?: number
           expected_answer: string
           id?: string
           order_index?: number
@@ -176,6 +178,7 @@ export type Database = {
           accepted_answers?: Json
           chapter_id?: string
           created_at?: string
+          difficulty?: number
           expected_answer?: string
           id?: string
           order_index?: number
@@ -199,6 +202,7 @@ export type Database = {
           chapter_id: string
           correct_answer: string
           created_at: string
+          difficulty: number
           explanation: string | null
           id: string
           options: Json
@@ -210,6 +214,7 @@ export type Database = {
           chapter_id: string
           correct_answer: string
           created_at?: string
+          difficulty?: number
           explanation?: string | null
           id?: string
           options?: Json
@@ -221,6 +226,7 @@ export type Database = {
           chapter_id?: string
           correct_answer?: string
           created_at?: string
+          difficulty?: number
           explanation?: string | null
           id?: string
           options?: Json

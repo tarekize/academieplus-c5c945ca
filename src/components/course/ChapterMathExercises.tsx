@@ -15,6 +15,17 @@ export interface DBExercise {
   expected_answer: string;
   accepted_answers: string[];
   solution: string;
+  difficulty?: number;
+}
+
+function DifficultyPencils({ level }: { level: number }) {
+  return (
+    <span className="inline-flex items-center gap-0.5 ml-2" title={`Difficulté ${level}/5`}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <PenTool key={i} className={cn("h-3.5 w-3.5", i < level ? "text-primary fill-primary/20" : "text-muted-foreground/30")} />
+      ))}
+    </span>
+  );
 }
 
 interface ChapterMathExercisesProps {
@@ -86,6 +97,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
                 <PenTool className="h-5 w-5 text-orange-500" />
               </div>
               <span dir="rtl">{exercise.title}</span>
+              {exercise.difficulty && <DifficultyPencils level={exercise.difficulty} />}
             </div>
             <div className="flex items-center gap-2">
               {canManage && onRefresh && (
@@ -194,7 +206,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
                       {submitted && correct ? <CheckCircle2 className="h-4 w-4" /> : submitted && !correct ? <XCircle className="h-4 w-4" /> : index + 1}
                     </div>
                     <div dir="rtl">
-                      <h4 className="font-medium">{ex.title}</h4>
+                      <h4 className="font-medium flex items-center">{ex.title}{ex.difficulty && <DifficultyPencils level={ex.difficulty} />}</h4>
                       <span className="text-sm text-muted-foreground line-clamp-1">{ex.statement.substring(0, 60)}...</span>
                     </div>
                   </div>
