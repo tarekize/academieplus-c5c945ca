@@ -359,57 +359,6 @@ export type Database = {
           },
         ]
       }
-      learning_styles: {
-        Row: {
-          advice_seen: boolean | null
-          assessment_data: Json | null
-          completed_at: string
-          created_at: string
-          id: string
-          last_advice_generated_at: string | null
-          periodic_advice: Json | null
-          practical_score: number
-          preferred_style: string
-          report_first_shown_at: string | null
-          textual_score: number
-          updated_at: string
-          user_id: string
-          visual_score: number
-        }
-        Insert: {
-          advice_seen?: boolean | null
-          assessment_data?: Json | null
-          completed_at?: string
-          created_at?: string
-          id?: string
-          last_advice_generated_at?: string | null
-          periodic_advice?: Json | null
-          practical_score?: number
-          preferred_style?: string
-          report_first_shown_at?: string | null
-          textual_score?: number
-          updated_at?: string
-          user_id: string
-          visual_score?: number
-        }
-        Update: {
-          advice_seen?: boolean | null
-          assessment_data?: Json | null
-          completed_at?: string
-          created_at?: string
-          id?: string
-          last_advice_generated_at?: string | null
-          periodic_advice?: Json | null
-          practical_score?: number
-          preferred_style?: string
-          report_first_shown_at?: string | null
-          textual_score?: number
-          updated_at?: string
-          user_id?: string
-          visual_score?: number
-        }
-        Relationships: []
-      }
       lessons: {
         Row: {
           chapter_id: string
@@ -666,15 +615,20 @@ export type Database = {
       student_scores: {
         Row: {
           accuracy_rate: number
+          advice_seen: boolean
+          assessment_data: Json | null
           chapter_id: string | null
           correct_answers: number
           created_at: string
           current_level: number
           exercise_time_seconds: number
           id: string
+          last_advice_generated_at: string | null
           lesson_id: string | null
+          periodic_advice: Json | null
           quiz_time_seconds: number
           reading_time_seconds: number
+          report_first_shown_at: string | null
           streak: number
           total_answers: number
           updated_at: string
@@ -682,15 +636,20 @@ export type Database = {
         }
         Insert: {
           accuracy_rate?: number
+          advice_seen?: boolean
+          assessment_data?: Json | null
           chapter_id?: string | null
           correct_answers?: number
           created_at?: string
           current_level?: number
           exercise_time_seconds?: number
           id?: string
+          last_advice_generated_at?: string | null
           lesson_id?: string | null
+          periodic_advice?: Json | null
           quiz_time_seconds?: number
           reading_time_seconds?: number
+          report_first_shown_at?: string | null
           streak?: number
           total_answers?: number
           updated_at?: string
@@ -698,15 +657,20 @@ export type Database = {
         }
         Update: {
           accuracy_rate?: number
+          advice_seen?: boolean
+          assessment_data?: Json | null
           chapter_id?: string | null
           correct_answers?: number
           created_at?: string
           current_level?: number
           exercise_time_seconds?: number
           id?: string
+          last_advice_generated_at?: string | null
           lesson_id?: string | null
+          periodic_advice?: Json | null
           quiz_time_seconds?: number
           reading_time_seconds?: number
+          report_first_shown_at?: string | null
           streak?: number
           total_answers?: number
           updated_at?: string
