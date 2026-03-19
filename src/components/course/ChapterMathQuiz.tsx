@@ -160,7 +160,6 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                   id: currentQuestion.id, question: currentQuestion.question,
                   options: currentQuestion.options, correct_answer: currentQuestion.correct_answer,
                   explanation: currentQuestion.explanation,
-                  difficulty: currentQuestion.difficulty,
                 }} />
                 <DeleteQuizButton quizId={currentQuestion.id} onDeleted={onRefresh} />
               </div>

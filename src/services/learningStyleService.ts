@@ -10,12 +10,6 @@ export interface LearningStyleData {
     practical_score: number;
 }
 
-const mapLevelToStyle = (currentLevel: number): LearningStyle => {
-    if (currentLevel >= 75) return "practical";
-    if (currentLevel >= 45) return "visual";
-    return "textual";
-};
-
 export const learningStyleService = {
     /**
      * Récupère le style d'apprentissage de l'utilisateur
@@ -23,10 +17,9 @@ export const learningStyleService = {
     async getUserLearningStyle(userId: string): Promise<LearningStyle | null> {
         try {
             const { data, error } = await supabase
-                .from("student_scores")
-                .select("current_level")
+                .from("learning_styles")
+                .select("preferred_style")
                 .eq("user_id", userId)
-                .is("lesson_id", null)
                 .maybeSingle();
 
             if (error) {
@@ -34,8 +27,7 @@ export const learningStyleService = {
                 return null;
             }
 
-            if (!data) return null;
-            return mapLevelToStyle(data.current_level);
+            return data?.preferred_style as LearningStyle || null;
         } catch (error) {
             console.error("Erreur:", error);
             return null;
@@ -48,10 +40,9 @@ export const learningStyleService = {
     async getUserLearningStyleFull(userId: string): Promise<LearningStyleData | null> {
         try {
             const { data, error } = await supabase
-                .from("student_scores")
-                .select("user_id, current_level")
+                .from("learning_styles")
+                .select("*")
                 .eq("user_id", userId)
-                .is("lesson_id", null)
                 .maybeSingle();
 
             if (error) {
@@ -61,14 +52,12 @@ export const learningStyleService = {
 
             if (!data) return null;
 
-            const normalized = Math.min(100, Math.max(0, data.current_level));
-
             return {
                 user_id: data.user_id,
-                preferred_style: mapLevelToStyle(normalized),
-                visual_score: normalized,
-                textual_score: normalized,
-                practical_score: normalized,
+                preferred_style: data.preferred_style as LearningStyle,
+                visual_score: data.visual_score,
+                textual_score: data.textual_score,
+                practical_score: data.practical_score,
             };
         } catch (error) {
             console.error("Erreur:", error);

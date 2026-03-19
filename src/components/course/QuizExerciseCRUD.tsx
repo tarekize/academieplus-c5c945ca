@@ -17,7 +17,7 @@ import { toast } from "sonner";
 interface QuizFormProps {
   chapterId: string;
   onSaved: () => void;
-  quiz?: { id: string; question: string; options: string[]; correct_answer: string; explanation: string | null; difficulty?: number };
+  quiz?: { id: string; question: string; options: string[]; correct_answer: string; explanation: string | null };
 }
 
 export function QuizFormDialog({ chapterId, onSaved, quiz }: QuizFormProps) {
@@ -27,7 +27,6 @@ export function QuizFormDialog({ chapterId, onSaved, quiz }: QuizFormProps) {
   const [options, setOptions] = useState<string[]>(quiz?.options || ["", "", "", ""]);
   const [correctAnswer, setCorrectAnswer] = useState(quiz?.correct_answer || "");
   const [explanation, setExplanation] = useState(quiz?.explanation || "");
-  const [difficulty, setDifficulty] = useState<number>(Math.max(1, Math.min(5, quiz?.difficulty ?? 1)));
   const isEdit = !!quiz;
 
   const handleSubmit = async () => {
@@ -43,7 +42,6 @@ export function QuizFormDialog({ chapterId, onSaved, quiz }: QuizFormProps) {
           options: options.filter(o => o.trim()),
           correct_answer: correctAnswer.trim(),
           explanation: explanation.trim() || null,
-          difficulty,
         }).eq("id", quiz.id);
         if (error) throw error;
         toast.success("تم تعديل السؤال");
@@ -54,7 +52,6 @@ export function QuizFormDialog({ chapterId, onSaved, quiz }: QuizFormProps) {
           options: options.filter(o => o.trim()),
           correct_answer: correctAnswer.trim(),
           explanation: explanation.trim() || null,
-          difficulty,
         });
         if (error) throw error;
         toast.success("تمت إضافة السؤال");
@@ -76,14 +73,6 @@ export function QuizFormDialog({ chapterId, onSaved, quiz }: QuizFormProps) {
         setOptions(quiz.options.length >= 4 ? quiz.options : [...quiz.options, ...Array(4 - quiz.options.length).fill("")]);
         setCorrectAnswer(quiz.correct_answer);
         setExplanation(quiz.explanation || "");
-        setDifficulty(Math.max(1, Math.min(5, quiz.difficulty ?? 1)));
-      }
-      if (v && !quiz) {
-        setQuestion("");
-        setOptions(["", "", "", ""]);
-        setCorrectAnswer("");
-        setExplanation("");
-        setDifficulty(1);
       }
     }}>
       <DialogTrigger asChild>
@@ -111,20 +100,6 @@ export function QuizFormDialog({ chapterId, onSaved, quiz }: QuizFormProps) {
           <div>
             <label className="text-sm font-medium">الشرح</label>
             <Textarea value={explanation} onChange={(e) => setExplanation(e.target.value)} placeholder="شرح الإجابة..." />
-          </div>
-          <div>
-            <label className="text-sm font-medium">درجة الصعوبة (1-5)</label>
-            <Input
-              type="number"
-              min={1}
-              max={5}
-              value={difficulty}
-              onChange={(e) => {
-                const parsed = Number.parseInt(e.target.value || "1", 10);
-                setDifficulty(Math.max(1, Math.min(5, Number.isNaN(parsed) ? 1 : parsed)));
-              }}
-              placeholder="1"
-            />
           </div>
         </div>
         <DialogFooter>
@@ -174,7 +149,7 @@ export function DeleteQuizButton({ quizId, onDeleted }: { quizId: string; onDele
 interface ExerciseFormProps {
   chapterId: string;
   onSaved: () => void;
-  exercise?: { id: string; title: string; statement: string; expected_answer: string; accepted_answers: string[]; solution: string; difficulty?: number };
+  exercise?: { id: string; title: string; statement: string; expected_answer: string; accepted_answers: string[]; solution: string };
 }
 
 export function ExerciseFormDialog({ chapterId, onSaved, exercise }: ExerciseFormProps) {
@@ -185,7 +160,6 @@ export function ExerciseFormDialog({ chapterId, onSaved, exercise }: ExerciseFor
   const [expectedAnswer, setExpectedAnswer] = useState(exercise?.expected_answer || "");
   const [acceptedAnswers, setAcceptedAnswers] = useState(exercise?.accepted_answers?.join(", ") || "");
   const [solution, setSolution] = useState(exercise?.solution || "");
-  const [difficulty, setDifficulty] = useState<number>(Math.max(1, Math.min(5, exercise?.difficulty ?? 1)));
   const isEdit = !!exercise;
 
   const handleSubmit = async () => {
@@ -201,7 +175,6 @@ export function ExerciseFormDialog({ chapterId, onSaved, exercise }: ExerciseFor
         expected_answer: expectedAnswer.trim(),
         accepted_answers: acceptedAnswers.split(",").map(s => s.trim()).filter(Boolean),
         solution: solution.trim(),
-        difficulty,
       };
       if (isEdit) {
         const { error } = await supabase.from("chapter_exercises").update(data).eq("id", exercise.id);
@@ -225,15 +198,6 @@ export function ExerciseFormDialog({ chapterId, onSaved, exercise }: ExerciseFor
         setExpectedAnswer(exercise.expected_answer);
         setAcceptedAnswers(exercise.accepted_answers?.join(", ") || "");
         setSolution(exercise.solution);
-        setDifficulty(Math.max(1, Math.min(5, exercise.difficulty ?? 1)));
-      }
-      if (v && !exercise) {
-        setTitle("");
-        setStatement("");
-        setExpectedAnswer("");
-        setAcceptedAnswers("");
-        setSolution("");
-        setDifficulty(1);
       }
     }}>
       <DialogTrigger asChild>
@@ -265,20 +229,6 @@ export function ExerciseFormDialog({ chapterId, onSaved, exercise }: ExerciseFor
           <div>
             <label className="text-sm font-medium">الحل المفصل</label>
             <Textarea value={solution} onChange={(e) => setSolution(e.target.value)} placeholder="خطوات الحل..." className="min-h-[100px]" />
-          </div>
-          <div>
-            <label className="text-sm font-medium">درجة الصعوبة (1-5)</label>
-            <Input
-              type="number"
-              min={1}
-              max={5}
-              value={difficulty}
-              onChange={(e) => {
-                const parsed = Number.parseInt(e.target.value || "1", 10);
-                setDifficulty(Math.max(1, Math.min(5, Number.isNaN(parsed) ? 1 : parsed)));
-              }}
-              placeholder="1"
-            />
           </div>
         </div>
         <DialogFooter>

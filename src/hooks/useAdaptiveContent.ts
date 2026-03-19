@@ -7,7 +7,6 @@ interface QuizItem {
   options: string[];
   correct_answer: string;
   explanation: string;
-  difficulty?: number;
 }
 
 interface ExerciseItem {
@@ -16,7 +15,6 @@ interface ExerciseItem {
   expected_answer: string;
   hints: string[];
   solution: string;
-  difficulty?: number;
 }
 
 interface RevisionItem {
@@ -93,16 +91,16 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           streak: scoreData.streak,
         });
       } else {
-        // Check placement test level stored in the global student score row
+        // Check placement test level
         const { data: learningData } = await supabase
-          .from("student_scores")
-          .select("current_level")
+          .from("learning_styles")
+          .select("visual_score, textual_score, practical_score")
           .eq("user_id", userId)
-          .is("lesson_id", null)
           .maybeSingle();
 
         if (learningData) {
-          setScore(prev => ({ ...prev, current_level: Math.min(100, Math.max(10, learningData.current_level)) }));
+          const avg = Math.round((learningData.visual_score + learningData.textual_score + learningData.practical_score) / 3);
+          setScore(prev => ({ ...prev, current_level: Math.min(100, Math.max(10, avg)) }));
         }
       }
 
@@ -262,7 +260,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     // Every 5 session answers → auto-refresh with smart notification
     if (newSessionTotal > 0 && newSessionTotal % 5 === 0) {
       const sessionAccuracy = Math.round((newSessionCorrect / newSessionTotal) * 100);
-
+      
       if (sessionAccuracy < 50) {
         // Failure notification
         const msg = `لديك ثغرات في هذا الدرس (${newSessionCorrect}/${newSessionTotal}). انقر على "مراجعة" لمراجعة البطاقات ثم "تجديد" لتمارين مكيّفة.`;
@@ -300,7 +298,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
 
       // Auto-regenerate content for the active type
       toast({ title: "🔄 تحديث المستوى", description: "جاري إعادة إنشاء المحتوى حسب مستواك الجديد..." });
-
+      
       // Reset session counters for next batch
       setSessionCorrect(0);
       setSessionTotal(0);
