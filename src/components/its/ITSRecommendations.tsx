@@ -143,7 +143,7 @@ export default function ITSRecommendations() {
           generated_at: new Date().toISOString()
         };
 
-        await supabase
+        await (supabase as any)
           .from("learning_styles")
           .update({
             periodic_advice: newAdvice as any,
