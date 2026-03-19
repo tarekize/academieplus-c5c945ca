@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Brain, PenTool, BookOpen, Sparkles, Eye, Lightbulb, Rocket, ChevronRight, Lock, CheckCircle2, RefreshCw } from "lucide-react";
+import { Brain, PenTool, BookOpen, Sparkles, Eye, Lightbulb, Rocket, ChevronRight, Lock, CheckCircle2, RefreshCw, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,61 +64,213 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [persistedUnlockEx, setPersistedUnlockEx] = useState(false);
   const [persistedUnlockQz, setPersistedUnlockQz] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [triggerReload, setTriggerReload] = useState(0);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
 
-  // Load persisted unlock state on mount
+  // Load userId FIRST (critical for saving)
+  useEffect(() => {
+    const loadUser = async () => {
+      console.log("👤 [LessonActivityTabs] Loading current user...");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        console.log("✅ [LessonActivityTabs] User ID loaded:", user.id);
+        setUserId(user.id);
+      } else {
+        console.warn("⚠️ [LessonActivityTabs] No authenticated user found!");
+      }
+      setIsLoadingUser(false);
+    };
+    loadUser();
+  }, []);
+
+  // Load persisted unlock state on mount and when userId changes
   useEffect(() => {
     const loadProgress = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      setUserId(user.id);
+      if (!userId) {
+        console.warn("⚠️ [loadProgress] userId not available yet, skipping load");
+        return;
+      }
 
-      const { data } = await supabase
+      console.log("🔄 [LessonActivityTabs] Loading progress for chapter:", chapterId, "with userId:", userId);
+
+      const { data, error } = await supabase
         .from("student_scores")
-        .select("assessment_data")
-        .eq("user_id", user.id)
+        .select("id, assessment_data")
+        .eq("user_id", userId)
         .eq("chapter_id", chapterId)
-        .maybeSingle();
+        .is("lesson_id", null);
 
-      if (data?.assessment_data) {
-        const ad = data.assessment_data as Record<string, unknown>;
-        if (ad.exercises_unlocked) setPersistedUnlockEx(true);
-        if (ad.quizzes_unlocked) setPersistedUnlockQz(true);
+      if (error) {
+        console.error("❌ [LessonActivityTabs] Failed to load chapter unlock state:", error);
+        return;
+      }
+
+      const rows = data || [];
+      console.log("📊 [LessonActivityTabs] Loaded", rows.length, "progress rows for chapter", chapterId);
+
+      if (rows.length > 0) {
+        console.log("📋 [LessonActivityTabs] Progress data:", JSON.stringify(rows, null, 2));
+      }
+
+      const hasExercisesUnlocked = rows.some((row) => {
+        const ad = (row.assessment_data || {}) as Record<string, unknown>;
+        return Boolean(ad.exercises_unlocked);
+      });
+
+      const hasQuizzesUnlocked = rows.some((row) => {
+        const ad = (row.assessment_data || {}) as Record<string, unknown>;
+        return Boolean(ad.quizzes_unlocked);
+      });
+
+      // Also restore the actual correct answer counts
+      const exercisesCorrectCount = rows.reduce((max, row) => {
+        const ad = (row.assessment_data || {}) as Record<string, any>;
+        return Math.max(max, ad.exercises_correct_count || 0);
+      }, 0);
+
+      const quizzesCorrectCount = rows.reduce((max, row) => {
+        const ad = (row.assessment_data || {}) as Record<string, any>;
+        return Math.max(max, ad.quizzes_correct_count || 0);
+      }, 0);
+
+      if (hasExercisesUnlocked) {
+        console.log("🔓 [LessonActivityTabs] Setting exercises unlocked: true");
+        setPersistedUnlockEx(true);
+        // If unlocked, show at least the required correct count
+        if (exercisesCorrectCount < REQUIRED_CORRECT) {
+          setDiscoverCorrectEx(REQUIRED_CORRECT);
+          console.log("📊 [LessonActivityTabs] Set exercises correct to", REQUIRED_CORRECT);
+        } else {
+          setDiscoverCorrectEx(exercisesCorrectCount);
+          console.log("📊 [LessonActivityTabs] Set exercises correct to", exercisesCorrectCount);
+        }
+      } else if (exercisesCorrectCount > 0) {
+        setDiscoverCorrectEx(exercisesCorrectCount);
+        console.log("📊 [LessonActivityTabs] Set exercises correct to", exercisesCorrectCount);
+      }
+
+      if (hasQuizzesUnlocked) {
+        console.log("🔓 [LessonActivityTabs] Setting quizzes unlocked: true");
+        setPersistedUnlockQz(true);
+        // If unlocked, show at least the required correct count
+        if (quizzesCorrectCount < REQUIRED_CORRECT) {
+          setDiscoverCorrectQz(REQUIRED_CORRECT);
+          console.log("📊 [LessonActivityTabs] Set quizzes correct to", REQUIRED_CORRECT);
+        } else {
+          setDiscoverCorrectQz(quizzesCorrectCount);
+          console.log("📊 [LessonActivityTabs] Set quizzes correct to", quizzesCorrectCount);
+        }
+      } else if (quizzesCorrectCount > 0) {
+        setDiscoverCorrectQz(quizzesCorrectCount);
+        console.log("📊 [LessonActivityTabs] Set quizzes correct to", quizzesCorrectCount);
       }
     };
+
     loadProgress();
-  }, [chapterId]);
+  }, [chapterId, triggerReload, userId]);
 
   // Save unlock to DB
-  const persistUnlock = useCallback(async (type: "exercises" | "quizzes") => {
-    if (!userId) return;
-    const field = type === "exercises" ? "exercises_unlocked" : "quizzes_unlocked";
+  const persistUnlock = useCallback(async (type: "exercises" | "quizzes", correctCount?: number) => {
+    console.log(`📤 [persistUnlock] Starting to save ${type} unlock, count:`, correctCount);
 
-    // Get existing record
-    const { data: existing } = await supabase
-      .from("student_scores")
-      .select("id, assessment_data")
-      .eq("user_id", userId)
-      .eq("chapter_id", chapterId)
-      .maybeSingle();
-
-    const currentData = (existing?.assessment_data as Record<string, unknown>) || {};
-    const newData = { ...currentData, [field]: true };
-
-    if (existing) {
-      await supabase
-        .from("student_scores")
-        .update({ assessment_data: newData as any })
-        .eq("id", existing.id);
-    } else {
-      await supabase
-        .from("student_scores")
-        .insert({
-          user_id: userId,
-          chapter_id: chapterId,
-          assessment_data: newData as any,
-        });
+    // Get current user directly (don't rely on state!)
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (!user) {
+      console.error("❌ [persistUnlock] No authenticated user found!");
+      return;
     }
-  }, [userId, chapterId]);
+
+
+    const currentUserId = user.id;
+    console.log(`📤 [persistUnlock] User ID: ${currentUserId}, Chapter ID: ${chapterId}, Type: ${type}, Count: ${correctCount}`);
+
+    const field = type === "exercises" ? "exercises_unlocked" : "quizzes_unlocked";
+    const countField = type === "exercises" ? "exercises_correct_count" : "quizzes_correct_count";
+
+    // Query ALL rows for this user+chapter to debug what's going on
+    const { data: allRows, error: scanError } = await supabase
+      .from("student_scores")
+      .select("id, lesson_id, assessment_data")
+      .eq("user_id", currentUserId)
+      .eq("chapter_id", chapterId);
+
+    if (scanError) {
+      console.warn("⚠️  [persistUnlock] Scan error:", scanError.message);
+    } else {
+      console.log(`📋 [persistUnlock] Found ${allRows?.length ?? 0} total rows for chapter (including lessons)`);
+    }
+
+    // Find the specific row for chapter aggregate (lesson_id is null)
+    // We check JS-side to be sure about null handling
+    const targetRow = allRows?.find(r => r.lesson_id === null);
+
+    if (targetRow) {
+      console.log("✅ [persistUnlock] Found existing chapter row via JS filter. ID:", targetRow.id);
+
+      const existingData = (targetRow.assessment_data || {}) as Record<string, unknown>;
+      const mergedData = {
+        ...existingData,
+        [field]: true,
+        ...(correctCount !== undefined && { [countField]: correctCount })
+      };
+
+      console.log("📝 [persistUnlock] Updating existing row...");
+      const { error: updateError } = await supabase
+        .from("student_scores")
+        .update({ assessment_data: mergedData as any })
+        .eq("id", targetRow.id);
+
+      if (updateError) {
+        console.error("❌ [persistUnlock] Update failed:", updateError.message);
+      } else {
+        console.log("✅ [persistUnlock] Update success!");
+      }
+      return;
+    }
+
+    // No existing row found in JS scan, try INSERT
+    console.log("📝 [persistUnlock] No chapter row found. Attempting INSERT...");
+
+    // Check if we have other rows that might conflict if index is only (user, chapter)
+    // If allRows has length > 0, we have lesson rows. 
+    // If index is (user, chapter), we can't insert a second row even if lesson_id is null.
+    // But error 23505 implies unique violation.
+
+    const insertPayload = {
+      user_id: currentUserId,
+      chapter_id: chapterId,
+      lesson_id: null,
+      assessment_data: {
+        [field]: true,
+        ...(correctCount !== undefined && { [countField]: correctCount })
+      } as any,
+    };
+
+    const { error: insertError } = await supabase
+      .from("student_scores")
+      .insert([insertPayload]);
+
+    if (insertError) {
+      console.error("❌ [persistUnlock] INSERT failed:", insertError.message, insertError.code, insertError.details);
+
+      // If code is 23505 (unique_violation), it means a row DOES exist but our SELECT missed it (RLS?)
+      // OR it conflicts with another row (improper index?)
+      if (insertError.code === '23505') {
+        console.error("💀 [persistUnlock] Critical: Row exists (duplicate key) but was not found in SELECT. This is likely an RLS visibility issue or Index scope issue.");
+      }
+    } else {
+      console.log("✅ [persistUnlock] Successfully inserted new row");
+    }
+
+  }, [chapterId]);
+
+
+  /* 
+   * REMOVED: Redundant useEffects that were causing race conditions with direct calls.
+   * Persistence is now handled directly in handleDiscoverAnswer
+   */
+  // useEffect(() => { ... }, [persistedUnlockEx]);
+  // useEffect(() => { ... }, [persistedUnlockQz]);
 
   const isUnlockedEx = persistedUnlockEx || discoverCorrectEx >= REQUIRED_CORRECT;
   const isUnlockedQz = persistedUnlockQz || discoverCorrectQz >= REQUIRED_CORRECT;
@@ -126,21 +278,99 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const isUnlocked = activeSection === "exercises" ? isUnlockedEx : isUnlockedQz;
   const currentCorrect = activeSection === "exercises" ? discoverCorrectEx : discoverCorrectQz;
 
+  // Reload progress from DB (called when user switches sections to ensure fresh data)
+  const reloadProgressFromDB = useCallback(async () => {
+    console.log("🔄 [reloadProgressFromDB] Forcing reload of persisted unlock state");
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.warn("⚠️ [reloadProgressFromDB] No user found");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("student_scores")
+      .select("id, assessment_data")
+      .eq("user_id", user.id)
+      .eq("chapter_id", chapterId)
+      .is("lesson_id", null);
+
+    if (error) {
+      console.error("❌ [reloadProgressFromDB] Failed to load:", error);
+      return;
+    }
+
+    const rows = data || [];
+    console.log("✅ [reloadProgressFromDB] Refresh: Loaded", rows.length, "rows");
+
+    const hasExercisesUnlocked = rows.some((row) => {
+      const ad = (row.assessment_data || {}) as Record<string, unknown>;
+      return Boolean(ad.exercises_unlocked);
+    });
+
+    const hasQuizzesUnlocked = rows.some((row) => {
+      const ad = (row.assessment_data || {}) as Record<string, unknown>;
+      return Boolean(ad.quizzes_unlocked);
+    });
+
+    const exercisesCorrectCount = rows.reduce((max, row) => {
+      const ad = (row.assessment_data || {}) as Record<string, any>;
+      return Math.max(max, ad.exercises_correct_count || 0);
+    }, 0);
+
+    const quizzesCorrectCount = rows.reduce((max, row) => {
+      const ad = (row.assessment_data || {}) as Record<string, any>;
+      return Math.max(max, ad.quizzes_correct_count || 0);
+    }, 0);
+
+    if (hasExercisesUnlocked) {
+      console.log("🔓 [reloadProgressFromDB] exercises_unlocked: true");
+      setPersistedUnlockEx(true);
+      if (exercisesCorrectCount < REQUIRED_CORRECT) {
+        setDiscoverCorrectEx(REQUIRED_CORRECT);
+      } else {
+        setDiscoverCorrectEx(exercisesCorrectCount);
+      }
+    }
+    if (hasQuizzesUnlocked) {
+      console.log("🔓 [reloadProgressFromDB] quizzes_unlocked: true");
+      setPersistedUnlockQz(true);
+      if (quizzesCorrectCount < REQUIRED_CORRECT) {
+        setDiscoverCorrectQz(REQUIRED_CORRECT);
+      } else {
+        setDiscoverCorrectQz(quizzesCorrectCount);
+      }
+    }
+  }, [chapterId]);
+
   const handleSectionChange = (section: ActivitySection) => {
+    console.log("🖱️ [handleSectionChange] Changed to section:", section);
     setActiveSection(section);
     setActiveStep("decouvrir");
+
+    // Reload progress from DB whenever user changes section
+    if (section !== null) {
+      console.log("📥 [handleSectionChange] Reloading progress from DB...");
+      reloadProgressFromDB();
+    }
+
     onSectionChange?.(section);
   };
 
   const handleDiscoverAnswer = useCallback((isCorrect: boolean, type: "exercise" | "quiz") => {
+    console.log(`📝 [handleDiscoverAnswer] ${type}: isCorrect=${isCorrect}`);
+
     if (type === "exercise") {
       setDiscoverTotalEx(prev => prev + 1);
       if (isCorrect) {
         setDiscoverCorrectEx(prev => {
           const next = prev + 1;
+          console.log(`✅ [handleDiscoverAnswer] exercises: ${prev} → ${next} correct (need ${REQUIRED_CORRECT})`);
+
           if (next >= REQUIRED_CORRECT && !persistedUnlockEx) {
+            console.log("🎉 [handleDiscoverAnswer] exercises: UNLOCKING!");
             setPersistedUnlockEx(true);
-            persistUnlock("exercises");
+            persistUnlock("exercises", next);
           }
           return next;
         });
@@ -150,9 +380,12 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       if (isCorrect) {
         setDiscoverCorrectQz(prev => {
           const next = prev + 1;
+          console.log(`✅ [handleDiscoverAnswer] quizzes: ${prev} → ${next} correct (need ${REQUIRED_CORRECT})`);
+
           if (next >= REQUIRED_CORRECT && !persistedUnlockQz) {
+            console.log("🎉 [handleDiscoverAnswer] quizzes: UNLOCKING!");
             setPersistedUnlockQz(true);
-            persistUnlock("quizzes");
+            persistUnlock("quizzes", next);
           }
           return next;
         });
@@ -298,7 +531,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 "flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all whitespace-nowrap relative",
                 isLocked ? "border-border/50 bg-muted/30 opacity-60 cursor-not-allowed"
                   : isActive ? "border-primary bg-primary/5 shadow-sm cursor-pointer"
-                  : "border-border hover:border-primary/30 hover:bg-muted/50 cursor-pointer"
+                    : "border-border hover:border-primary/30 hover:bg-muted/50 cursor-pointer"
               )}
             >
               <div className={cn(
@@ -416,6 +649,23 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
 // --- Sub-components ---
 
+const DifficultyIndicator = ({ level }: { level?: number }) => {
+  if (!level) return null;
+  return (
+    <div className="flex gap-0.5 items-center mr-2 bg-yellow-50/50 px-1.5 py-0.5 rounded-full border border-yellow-100/50" title={`الصعوبة: ${level}/5`}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Pencil
+          key={i}
+          className={cn(
+            "w-3 h-3 transition-colors",
+            i < level ? "text-yellow-500 fill-yellow-500" : "text-gray-200"
+          )}
+        />
+      ))}
+    </div>
+  );
+};
+
 function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DBQuizQuestion; index: number; readOnly?: boolean; onAnswer: (correct: boolean) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const isCorrect = selected === question.correct_answer;
@@ -430,7 +680,10 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
   return (
     <Card className={cn("transition-all", answered && isCorrect && "border-green-500/50 bg-green-500/5", answered && !isCorrect && "border-red-500/50 bg-red-500/5")}>
       <CardContent className="p-4">
-        <p className="font-medium mb-3" dir="rtl">{index + 1}. {question.question}</p>
+        <div className="flex justify-between items-start mb-3">
+          <p className="font-medium flex-1" dir="rtl">{index + 1}. {question.question}</p>
+          <DifficultyIndicator level={question.difficulty} />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {question.options.map((opt, oIdx) => (
             <Button key={oIdx} variant={selected === opt ? (isCorrect ? "default" : "destructive") : "outline"}
@@ -461,7 +714,10 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
   return (
     <Card>
       <CardContent className="p-4 space-y-3">
-        <h4 className="font-semibold" dir="rtl">{index + 1}. {exercise.title}</h4>
+        <div className="flex justify-between items-start">
+          <h4 className="font-semibold flex-1" dir="rtl">{index + 1}. {exercise.title}</h4>
+          <DifficultyIndicator level={exercise.difficulty} />
+        </div>
         <p className="text-sm" dir="rtl">{exercise.statement}</p>
         {!readOnly && result === null && (
           <div className="flex gap-2" dir="rtl">
@@ -489,7 +745,10 @@ function QuizQuestionCard({ question, index, readOnly }: { question: DBQuizQuest
   return (
     <Card className={cn("transition-all", answered && isCorrect && "border-green-500/50 bg-green-500/5", answered && !isCorrect && "border-red-500/50 bg-red-500/5")}>
       <CardContent className="p-4">
-        <p className="font-medium mb-3" dir="rtl">{index + 1}. {question.question}</p>
+        <div className="flex justify-between items-start mb-3">
+          <p className="font-medium flex-1" dir="rtl">{index + 1}. {question.question}</p>
+          <DifficultyIndicator level={question.difficulty} />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {question.options.map((opt, oIdx) => (
             <Button key={oIdx} variant={selected === opt ? (isCorrect ? "default" : "destructive") : "outline"}
@@ -519,7 +778,10 @@ function ExerciseCard({ exercise, index, readOnly }: { exercise: DBExercise; ind
   return (
     <Card>
       <CardContent className="p-4 space-y-3">
-        <h4 className="font-semibold" dir="rtl">{index + 1}. {exercise.title}</h4>
+        <div className="flex justify-between items-start">
+          <h4 className="font-semibold flex-1" dir="rtl">{index + 1}. {exercise.title}</h4>
+          <DifficultyIndicator level={exercise.difficulty} />
+        </div>
         <p className="text-sm" dir="rtl">{exercise.statement}</p>
         {!readOnly && result === null && (
           <div className="flex gap-2" dir="rtl">
