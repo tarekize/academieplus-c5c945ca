@@ -182,7 +182,7 @@ export default function ITSRecommendations() {
         let reportFirstShownAt = data.report_first_shown_at;
         if (!reportFirstShownAt) {
           reportFirstShownAt = new Date().toISOString();
-          await supabase
+          await (supabase as any)
             .from("learning_styles")
             .update({ report_first_shown_at: reportFirstShownAt } as any)
             .eq("id", data.id);
