@@ -16,8 +16,8 @@ export const learningStyleService = {
      */
     async getUserLearningStyle(userId: string): Promise<LearningStyle | null> {
         try {
-            const { data, error } = await supabase
-                .from("learning_styles")
+        const { data, error } = await (supabase as any)
+            .from("learning_styles")
                 .select("preferred_style")
                 .eq("user_id", userId)
                 .maybeSingle();
