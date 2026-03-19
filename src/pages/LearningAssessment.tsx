@@ -138,7 +138,7 @@ const LearningAssessment = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate("/auth"); return; }
       setUserId(session.user.id);
-      const { data } = await supabase.from("learning_styles").select("id").eq("user_id", session.user.id).maybeSingle();
+      const { data } = await (supabase as any).from("learning_styles").select("id").eq("user_id", session.user.id).maybeSingle();
       if (data) navigate("/liste-cours");
     };
     check();
@@ -296,7 +296,7 @@ const LearningAssessment = () => {
     if (!userId) return;
     try {
       const correctCount = answers.filter(a => a.correct).length;
-      const { error } = await supabase.from("learning_styles").insert({
+      const { error } = await (supabase as any).from("learning_styles").insert({
         user_id: userId,
         visual_score: correctCount,
         textual_score: questions.length,

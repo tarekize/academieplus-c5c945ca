@@ -92,7 +92,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
         });
       } else {
         // Check placement test level
-        const { data: learningData } = await supabase
+        const { data: learningData } = await (supabase as any)
           .from("learning_styles")
           .select("visual_score, textual_score, practical_score")
           .eq("user_id", userId)

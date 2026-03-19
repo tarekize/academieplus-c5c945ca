@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           // Rediriger les élèves sans évaluation vers le jeu d'apprentissage
           if (roleData?.role === 'student' && !currentPath.includes('/learning-assessment') && !currentPath.includes('/complete-profile') && !currentPath.includes('/auth')) {
-            const { data: styleData } = await supabase
+            const { data: styleData } = await (supabase as any)
               .from('learning_styles')
               .select('id')
               .eq('user_id', session.user.id)

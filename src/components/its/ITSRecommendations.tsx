@@ -143,7 +143,7 @@ export default function ITSRecommendations() {
           generated_at: new Date().toISOString()
         };
 
-        await supabase
+        await (supabase as any)
           .from("learning_styles")
           .update({
             periodic_advice: newAdvice as any,
@@ -165,7 +165,7 @@ export default function ITSRecommendations() {
 
     const fetchData = async () => {
       try {
-        const { data: rawData, error } = await supabase
+        const { data: rawData, error } = await (supabase as any)
           .from("learning_styles")
           .select("id, assessment_data, advice_seen")
           .eq("user_id", user.id)
@@ -182,7 +182,7 @@ export default function ITSRecommendations() {
         let reportFirstShownAt = data.report_first_shown_at;
         if (!reportFirstShownAt) {
           reportFirstShownAt = new Date().toISOString();
-          await supabase
+          await (supabase as any)
             .from("learning_styles")
             .update({ report_first_shown_at: reportFirstShownAt } as any)
             .eq("id", data.id);
@@ -258,7 +258,7 @@ export default function ITSRecommendations() {
 
         // Mark as seen
         if (!data.advice_seen) {
-          await supabase.from("learning_styles").update({ advice_seen: true }).eq("id", data.id);
+          await (supabase as any).from("learning_styles").update({ advice_seen: true }).eq("id", data.id);
         }
 
         setLoading(false);
