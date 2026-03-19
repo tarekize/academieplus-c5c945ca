@@ -1,10 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Brain, PenTool, BookOpen, Sparkles, Eye, Lightbulb, Rocket, ChevronRight, Lock, CheckCircle2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface DBQuizQuestion {
   id: string;
@@ -59,10 +60,70 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [discoverTotalQz, setDiscoverTotalQz] = useState(0);
   const [resetKey, setResetKey] = useState(0);
 
-  const isUnlocked = activeSection === "exercises"
-    ? discoverCorrectEx >= REQUIRED_CORRECT
-    : discoverCorrectQz >= REQUIRED_CORRECT;
+  // Persisted unlock state from DB
+  const [persistedUnlockEx, setPersistedUnlockEx] = useState(false);
+  const [persistedUnlockQz, setPersistedUnlockQz] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
+  // Load persisted unlock state on mount
+  useEffect(() => {
+    const loadProgress = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      setUserId(user.id);
+
+      const { data } = await supabase
+        .from("student_scores")
+        .select("assessment_data")
+        .eq("user_id", user.id)
+        .eq("chapter_id", chapterId)
+        .maybeSingle();
+
+      if (data?.assessment_data) {
+        const ad = data.assessment_data as Record<string, unknown>;
+        if (ad.exercises_unlocked) setPersistedUnlockEx(true);
+        if (ad.quizzes_unlocked) setPersistedUnlockQz(true);
+      }
+    };
+    loadProgress();
+  }, [chapterId]);
+
+  // Save unlock to DB
+  const persistUnlock = useCallback(async (type: "exercises" | "quizzes") => {
+    if (!userId) return;
+    const field = type === "exercises" ? "exercises_unlocked" : "quizzes_unlocked";
+
+    // Get existing record
+    const { data: existing } = await supabase
+      .from("student_scores")
+      .select("id, assessment_data")
+      .eq("user_id", userId)
+      .eq("chapter_id", chapterId)
+      .maybeSingle();
+
+    const currentData = (existing?.assessment_data as Record<string, unknown>) || {};
+    const newData = { ...currentData, [field]: true };
+
+    if (existing) {
+      await supabase
+        .from("student_scores")
+        .update({ assessment_data: newData as any })
+        .eq("id", existing.id);
+    } else {
+      await supabase
+        .from("student_scores")
+        .insert({
+          user_id: userId,
+          chapter_id: chapterId,
+          assessment_data: newData as any,
+        });
+    }
+  }, [userId, chapterId]);
+
+  const isUnlockedEx = persistedUnlockEx || discoverCorrectEx >= REQUIRED_CORRECT;
+  const isUnlockedQz = persistedUnlockQz || discoverCorrectQz >= REQUIRED_CORRECT;
+
+  const isUnlocked = activeSection === "exercises" ? isUnlockedEx : isUnlockedQz;
   const currentCorrect = activeSection === "exercises" ? discoverCorrectEx : discoverCorrectQz;
 
   const handleSectionChange = (section: ActivitySection) => {
@@ -74,12 +135,30 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const handleDiscoverAnswer = useCallback((isCorrect: boolean, type: "exercise" | "quiz") => {
     if (type === "exercise") {
       setDiscoverTotalEx(prev => prev + 1);
-      if (isCorrect) setDiscoverCorrectEx(prev => prev + 1);
+      if (isCorrect) {
+        setDiscoverCorrectEx(prev => {
+          const next = prev + 1;
+          if (next >= REQUIRED_CORRECT && !persistedUnlockEx) {
+            setPersistedUnlockEx(true);
+            persistUnlock("exercises");
+          }
+          return next;
+        });
+      }
     } else {
       setDiscoverTotalQz(prev => prev + 1);
-      if (isCorrect) setDiscoverCorrectQz(prev => prev + 1);
+      if (isCorrect) {
+        setDiscoverCorrectQz(prev => {
+          const next = prev + 1;
+          if (next >= REQUIRED_CORRECT && !persistedUnlockQz) {
+            setPersistedUnlockQz(true);
+            persistUnlock("quizzes");
+          }
+          return next;
+        });
+      }
     }
-  }, []);
+  }, [persistUnlock, persistedUnlockEx, persistedUnlockQz]);
 
   const handleReloadDiscover = () => {
     if (activeSection === "exercises") {
