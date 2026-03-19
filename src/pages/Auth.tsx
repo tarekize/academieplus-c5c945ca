@@ -126,7 +126,7 @@ const Auth = () => {
 
         // Si élève, vérifier s'il a déjà un style d'apprentissage
         if (roleData?.role === 'student') {
-          const { data: styleData } = await supabase
+          const { data: styleData } = await (supabase as any)
             .from('learning_styles')
             .select('id')
             .eq('user_id', session.user.id)

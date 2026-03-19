@@ -258,7 +258,7 @@ export default function ITSRecommendations() {
 
         // Mark as seen
         if (!data.advice_seen) {
-          await supabase.from("learning_styles").update({ advice_seen: true }).eq("id", data.id);
+          await (supabase as any).from("learning_styles").update({ advice_seen: true }).eq("id", data.id);
         }
 
         setLoading(false);

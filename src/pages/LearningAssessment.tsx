@@ -296,7 +296,7 @@ const LearningAssessment = () => {
     if (!userId) return;
     try {
       const correctCount = answers.filter(a => a.correct).length;
-      const { error } = await supabase.from("learning_styles").insert({
+      const { error } = await (supabase as any).from("learning_styles").insert({
         user_id: userId,
         visual_score: correctCount,
         textual_score: questions.length,
