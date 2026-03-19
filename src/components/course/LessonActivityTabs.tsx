@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Brain, PenTool, BookOpen, Sparkles, Eye, Lightbulb, Rocket, ChevronRight, Lock, CheckCircle2, RefreshCw, Pencil } from "lucide-react";
+import { Brain, PenTool, BookOpen, Sparkles, Eye, Lightbulb, Rocket, ChevronRight, Lock, CheckCircle2, RefreshCw, Pencil, Dices } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
@@ -69,6 +69,32 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [userId, setUserId] = useState<string | null>(null);
   const [triggerReload, setTriggerReload] = useState(0);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
+
+  // State for randomized subsets (Limit 5)
+  const [subsetDiscoverEx, setSubsetDiscoverEx] = useState<DBExercise[]>([]);
+  const [subsetUnderstandEx, setSubsetUnderstandEx] = useState<DBExercise[]>([]);
+  const [subsetDiscoverQz, setSubsetDiscoverQz] = useState<DBQuizQuestion[]>([]);
+  const [subsetUnderstandQz, setSubsetUnderstandQz] = useState<DBQuizQuestion[]>([]);
+
+  // State for notification and reload button
+  const [showUnlockMessage, setShowUnlockMessage] = useState(false);
+  const [showReloadBtn, setShowReloadBtn] = useState(false);
+
+  // Initialize random subsets on mount
+  useEffect(() => {
+    const halfQuiz = Math.ceil(dbQuizzes.length / 2);
+    const poolDiscoverQz = dbQuizzes.slice(0, halfQuiz);
+    const poolUnderstandQz = dbQuizzes.slice(halfQuiz);
+
+    const halfEx = Math.ceil(dbExercises.length / 2);
+    const poolDiscoverEx = dbExercises.slice(0, halfEx);
+    const poolUnderstandEx = dbExercises.slice(halfEx);
+
+    setSubsetDiscoverQz([...poolDiscoverQz].sort(() => 0.5 - Math.random()).slice(0, 5));
+    setSubsetUnderstandQz([...poolUnderstandQz].sort(() => 0.5 - Math.random()).slice(0, 5));
+    setSubsetDiscoverEx([...poolDiscoverEx].sort(() => 0.5 - Math.random()).slice(0, 5));
+    setSubsetUnderstandEx([...poolUnderstandEx].sort(() => 0.5 - Math.random()).slice(0, 5));
+  }, [dbQuizzes, dbExercises]);
 
   // Load userId FIRST (critical for saving)
   useEffect(() => {
@@ -286,6 +312,45 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const isUnlocked = activeSection === "exercises" ? isUnlockedEx : isUnlockedQz;
   const currentCorrect = activeSection === "exercises" ? discoverCorrectEx : discoverCorrectQz;
 
+  // Handle visibility states
+  useEffect(() => {
+    // If it is unlocked and we are not currently showing the success animation (message),
+    // then we must show the reload button.
+    // This covers case: persisted from DB -> show button immediately.
+    // This covers case: animation finished -> show button.
+    if (isUnlocked && !showUnlockMessage) {
+      setShowReloadBtn(true);
+    } else if (!isUnlocked) {
+      // If locked, reset everything.
+      setShowReloadBtn(false);
+      setShowUnlockMessage(false);
+    }
+  }, [isUnlocked, showUnlockMessage]);
+
+  // Handle Reload Random Subset
+  const handleReloadContent = () => {
+    if (activeSection === 'exercises') {
+      const halfEx = Math.ceil(dbExercises.length / 2);
+      if (activeStep === 'decouvrir') {
+        const pool = dbExercises.slice(0, halfEx);
+        setSubsetDiscoverEx([...pool].sort(() => 0.5 - Math.random()).slice(0, 5));
+      } else if (activeStep === 'comprendre') {
+        const pool = dbExercises.slice(halfEx);
+        setSubsetUnderstandEx([...pool].sort(() => 0.5 - Math.random()).slice(0, 5));
+      }
+    } else {
+      const halfQuiz = Math.ceil(dbQuizzes.length / 2);
+      if (activeStep === 'decouvrir') {
+        const pool = dbQuizzes.slice(0, halfQuiz);
+        setSubsetDiscoverQz([...pool].sort(() => 0.5 - Math.random()).slice(0, 5));
+      } else if (activeStep === 'comprendre') {
+        const pool = dbQuizzes.slice(halfQuiz);
+        setSubsetUnderstandQz([...pool].sort(() => 0.5 - Math.random()).slice(0, 5));
+      }
+    }
+    setResetKey(prev => prev + 1);
+  };
+
   // Reload progress from DB (called when user switches sections to ensure fresh data)
   const reloadProgressFromDB = useCallback(async () => {
     console.log("🔄 [reloadProgressFromDB] Forcing reload of persisted unlock state");
@@ -382,6 +447,12 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
           if (next >= REQUIRED_CORRECT && !persistedUnlockEx) {
             console.log("🎉 [handleDiscoverAnswer] exercises: UNLOCKING!");
+            // This is a NEW unlock -> Show animation
+            setShowUnlockMessage(true);
+            setTimeout(() => {
+              setShowUnlockMessage(false);
+            }, 20000);
+
             setPersistedUnlockEx(true);
             persistUnlock("exercises", next);
           }
@@ -397,6 +468,12 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
           if (next >= REQUIRED_CORRECT && !persistedUnlockQz) {
             console.log("🎉 [handleDiscoverAnswer] quizzes: UNLOCKING!");
+            // This is a NEW unlock -> Show animation
+            setShowUnlockMessage(true);
+            setTimeout(() => {
+              setShowUnlockMessage(false);
+            }, 20000);
+
             setPersistedUnlockQz(true);
             persistUnlock("quizzes", next);
           }
@@ -417,14 +494,13 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     setResetKey(prev => prev + 1);
   };
 
-  // Split DB content into discover/understand tiers
+  // Render based on Random Subsets (limits to 5)
+  const discoverQuizzes = subsetDiscoverQz;
+  const understandQuizzes = subsetUnderstandQz;
+  const discoverExercises = subsetDiscoverEx;
+  const understandExercises = subsetUnderstandEx;
   const halfQuiz = Math.ceil(dbQuizzes.length / 2);
-  const discoverQuizzes = dbQuizzes.slice(0, halfQuiz);
-  const understandQuizzes = dbQuizzes.slice(halfQuiz);
-
   const halfExercise = Math.ceil(dbExercises.length / 2);
-  const discoverExercises = dbExercises.slice(0, halfExercise);
-  const understandExercises = dbExercises.slice(halfExercise);
 
   const visibleSteps = readOnly ? stepConfig.filter(s => s.id !== "approfondir") : stepConfig;
 
@@ -501,33 +577,35 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         </div>
       </div>
 
-      {/* Progression Bar */}
-      <Card className="border-blue-500/20 bg-blue-500/5">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium" dir="rtl">تقدمك في مرحلة "اكتشف"</span>
-            <Badge variant={isUnlocked ? "default" : "secondary"} className={isUnlocked ? "bg-green-500" : ""}>
-              {currentCorrect} / {REQUIRED_CORRECT} إجابات صحيحة
-            </Badge>
-          </div>
-          <Progress value={(currentCorrect / REQUIRED_CORRECT) * 100} className="h-2" />
-          {isUnlocked && (
-            <p className="text-xs text-green-600 mt-2 flex items-center gap-1" dir="rtl">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              تم فتح المراحل التالية! يمكنك الآن الانتقال إلى "افهم" و "تعمّق"
-            </p>
-          )}
-          {failedDiscover && (
-            <div className="mt-2 flex items-center justify-between">
-              <p className="text-xs text-red-500" dir="rtl">لم تحقق {REQUIRED_CORRECT} إجابات صحيحة. حاول مرة أخرى!</p>
-              <Button size="sm" variant="outline" onClick={handleReloadDiscover} className="gap-1">
-                <RefreshCw className="h-3.5 w-3.5" />
-                إعادة المحاولة
-              </Button>
+      {/* Progression Bar - Disappears after success and timeout */}
+      {(!isUnlocked || showUnlockMessage) && (
+        <Card className="border-blue-500/20 bg-blue-500/5 transition-all duration-500">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium" dir="rtl">تقدمك في مرحلة "اكتشف"</span>
+              <Badge variant={isUnlocked ? "default" : "secondary"} className={isUnlocked ? "bg-green-500" : ""}>
+                {currentCorrect} / {REQUIRED_CORRECT} إجابات صحيحة
+              </Badge>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <Progress value={(currentCorrect / REQUIRED_CORRECT) * 100} className="h-2" />
+            {showUnlockMessage && (
+              <p className="text-xs text-green-600 mt-2 flex items-center gap-1 animate-in fade-in slide-in-from-top-1" dir="rtl">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                تم فتح المراحل التالية! يمكنك الآن الانتقال إلى "افهم" و "تعمّق"
+              </p>
+            )}
+            {failedDiscover && (
+              <div className="mt-2 flex items-center justify-between">
+                <p className="text-xs text-red-500" dir="rtl">لم تحقق {REQUIRED_CORRECT} إجابات صحيحة. حاول مرة أخرى!</p>
+                <Button size="sm" variant="outline" onClick={handleReloadDiscover} className="gap-1">
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  إعادة المحاولة
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Step Stepper */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-1.5 bg-muted/40 rounded-xl border border-border/40 backdrop-blur-sm">
@@ -603,10 +681,28 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       {activeStep === "decouvrir" && (
         <Card className="border-blue-500/20">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-blue-600">
-              <Eye className="h-5 w-5" />
-              <span dir="rtl">{isQuiz ? "اختبارات تشخيصية" : "تمارين تمهيدية"}</span>
-              <Badge variant="secondary" className="ml-auto">{isQuiz ? discoverQuizzes.length : discoverExercises.length} {isQuiz ? "أسئلة" : "تمارين"}</Badge>
+            <CardTitle className="flex flex-wrap items-center justify-between text-blue-600 gap-2">
+              <div className="flex items-center gap-2">
+                <Eye className="h-5 w-5" />
+                <span dir="rtl">{isQuiz ? "اختبارات تشخيصية" : "تمارين تمهيدية"}</span>
+              </div>
+
+              {showReloadBtn && (
+                <div className="flex-1 flex justify-center">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => { e.stopPropagation(); handleReloadContent(); }}
+                    className="gap-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-950/30 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105"
+                    title="تحميل أسئلة جديدة"
+                  >
+                    <Dices className="h-3.5 w-3.5" />
+                    <span>مجموعة جديدة</span>
+                  </Button>
+                </div>
+              )}
+
+              <Badge variant="secondary" className={!showReloadBtn ? "ml-auto" : ""}>{isQuiz ? discoverQuizzes.length : discoverExercises.length} {isQuiz ? "أسئلة" : "تمارين"}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -634,10 +730,28 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       {activeStep === "comprendre" && isUnlocked && (
         <Card className="border-yellow-500/20">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-yellow-600">
-              <Lightbulb className="h-5 w-5" />
-              <span dir="rtl">{isQuiz ? "اختبارات تطبيقية" : "تمارين تطبيقية"}</span>
-              <Badge variant="secondary" className="ml-auto">{isQuiz ? understandQuizzes.length : understandExercises.length} {isQuiz ? "أسئلة" : "تمارين"}</Badge>
+            <CardTitle className="flex flex-wrap items-center justify-between text-yellow-600 gap-2">
+              <div className="flex items-center gap-2">
+                <Lightbulb className="h-5 w-5" />
+                <span dir="rtl">{isQuiz ? "اختبارات تطبيقية" : "تمارين تطبيقية"}</span>
+              </div>
+
+              {showReloadBtn && (
+                <div className="flex-1 flex justify-center">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => { e.stopPropagation(); handleReloadContent(); }}
+                    className="gap-2 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100 dark:bg-yellow-950/30 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-900/40 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105"
+                    title="تحميل أسئلة جديدة"
+                  >
+                    <Dices className="h-3.5 w-3.5" />
+                    <span>مجموعة جديدة</span>
+                  </Button>
+                </div>
+              )}
+
+              <Badge variant="secondary" className={!showReloadBtn ? "ml-auto" : ""}>{isQuiz ? understandQuizzes.length : understandExercises.length} {isQuiz ? "أسئلة" : "تمارين"}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
