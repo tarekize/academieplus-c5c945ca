@@ -138,7 +138,7 @@ const LearningAssessment = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate("/auth"); return; }
       setUserId(session.user.id);
-      const { data } = await supabase.from("learning_styles").select("id").eq("user_id", session.user.id).maybeSingle();
+      const { data } = await (supabase as any).from("learning_styles").select("id").eq("user_id", session.user.id).maybeSingle();
       if (data) navigate("/liste-cours");
     };
     check();
