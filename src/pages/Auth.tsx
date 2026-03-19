@@ -49,6 +49,35 @@ const Auth = () => {
   const [consentParental, setConsentParental] = useState(false);
   const navigate = useNavigate();
 
+  const hasCompletedPlacementAssessment = async (userId: string): Promise<boolean> => {
+    const { data: scoreRows } = await supabase
+      .from('student_scores')
+      .select('id')
+      .eq('user_id', userId)
+      .is('lesson_id', null)
+      .limit(1);
+
+    if ((scoreRows?.length || 0) > 0) return true;
+
+    // Compatibility: users with only lesson-linked rows should not retake placement.
+    const { data: anyScoreRows } = await supabase
+      .from('student_scores')
+      .select('id')
+      .eq('user_id', userId)
+      .limit(1);
+
+    if ((anyScoreRows?.length || 0) > 0) return true;
+
+    // Legacy fallback for instances where migration is not fully applied.
+    const { data: legacyRows } = await (supabase as any)
+      .from('learning_styles')
+      .select('id')
+      .eq('user_id', userId)
+      .limit(1);
+
+    return (legacyRows?.length || 0) > 0;
+  };
+
   useEffect(() => {
     // Capturer le code de parrainage depuis l'URL
     const params = new URLSearchParams(window.location.search);
@@ -88,12 +117,8 @@ const Auth = () => {
 
           // Pour les nouveaux utilisateurs (sans rôle) ou élèves, vérifier s'ils ont un style d'apprentissage
           if (!roleData?.role || roleData?.role === 'student') {
-            const { data: styleData } = await (supabase as any)
-              .from('learning_styles')
-              .select('id')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
-            if (!styleData) {
+            const hasAssessment = await hasCompletedPlacementAssessment(session.user.id);
+            if (!hasAssessment) {
               // Ne pas rediriger, laisser l'évaluation s'afficher
               return;
             }
@@ -126,12 +151,8 @@ const Auth = () => {
 
         // Si élève, vérifier s'il a déjà un style d'apprentissage
         if (roleData?.role === 'student') {
-          const { data: styleData } = await (supabase as any)
-            .from('learning_styles')
-            .select('id')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-          if (!styleData) {
+          const hasAssessment = await hasCompletedPlacementAssessment(session.user.id);
+          if (!hasAssessment) {
             // Ne pas rediriger, laisser l'évaluation s'afficher
             return;
           }

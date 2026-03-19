@@ -132,14 +132,42 @@ const LearningAssessment = () => {
   const [showExplanation, setShowExplanation] = useState(false);
   const testGeneratedRef = useRef(false);
 
+  const hasCompletedPlacementAssessment = async (id: string): Promise<boolean> => {
+    const { data: scoreRows } = await supabase
+      .from("student_scores")
+      .select("id")
+      .eq("user_id", id)
+      .is("lesson_id", null)
+      .limit(1);
+
+    if ((scoreRows?.length || 0) > 0) return true;
+
+    // Compatibility: users with only lesson-linked rows should not retake placement.
+    const { data: anyScoreRows } = await supabase
+      .from("student_scores")
+      .select("id")
+      .eq("user_id", id)
+      .limit(1);
+
+    if ((anyScoreRows?.length || 0) > 0) return true;
+
+    const { data: legacyRows } = await (supabase as any)
+      .from("learning_styles")
+      .select("id")
+      .eq("user_id", id)
+      .limit(1);
+
+    return (legacyRows?.length || 0) > 0;
+  };
+
   // Vérif auth et évaluation existante
   useEffect(() => {
     const check = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate("/auth"); return; }
       setUserId(session.user.id);
-      const { data } = await (supabase as any).from("learning_styles").select("id").eq("user_id", session.user.id).maybeSingle();
-      if (data) navigate("/liste-cours");
+      const hasAssessment = await hasCompletedPlacementAssessment(session.user.id);
+      if (hasAssessment) navigate("/liste-cours");
     };
     check();
   }, [navigate]);
@@ -294,24 +322,87 @@ const LearningAssessment = () => {
 
   const saveAndContinue = async () => {
     if (!userId) return;
+    const correctCount = answers.filter(a => a.correct).length;
     try {
-      const correctCount = answers.filter(a => a.correct).length;
-      const { error } = await (supabase as any).from("learning_styles").insert({
+      const placementScore = questions.length > 0
+        ? Math.round((correctCount / questions.length) * 100)
+        : 0;
+
+      const payload = {
         user_id: userId,
-        visual_score: correctCount,
-        textual_score: questions.length,
-        practical_score: 0,
-        preferred_style: report?.level_label || "mixed",
+        lesson_id: null,
+        chapter_id: null,
+        current_level: placementScore,
         assessment_data: { type: "placement_test", answers, report, score } as any,
         advice_seen: false,
-      });
-      if (error) throw error;
+        periodic_advice: null,
+        report_first_shown_at: null,
+        last_advice_generated_at: null,
+      };
+
+      const { data: existing } = await supabase
+        .from("student_scores")
+        .select("id")
+        .eq("user_id", userId)
+        .is("lesson_id", null)
+        .limit(1)
+        .maybeSingle();
+
+      if (existing?.id) {
+        const { error: updateError } = await supabase
+          .from("student_scores")
+          .update(payload)
+          .eq("id", existing.id);
+        if (updateError) throw updateError;
+      } else {
+        const { error: insertError } = await supabase
+          .from("student_scores")
+          .insert(payload);
+        if (insertError) throw insertError;
+      }
+
       toast.success("Résultats sauvegardés !");
       navigate("/liste-cours");
     } catch (e: any) {
-      console.error(e);
-      toast.error("Erreur lors de la sauvegarde, redirection quand même...");
-      navigate("/liste-cours");
+      console.error("Primary save to student_scores failed, trying legacy fallback:", e);
+
+      try {
+        const legacyPayload = {
+          user_id: userId,
+          visual_score: correctCount,
+          textual_score: questions.length,
+          practical_score: 0,
+          preferred_style: report?.level_label || "mixed",
+          assessment_data: { type: "placement_test", answers, report, score } as any,
+          advice_seen: false,
+        };
+
+        const { data: legacyExisting } = await (supabase as any)
+          .from("learning_styles")
+          .select("id")
+          .eq("user_id", userId)
+          .limit(1)
+          .maybeSingle();
+
+        if (legacyExisting?.id) {
+          const { error: legacyUpdateError } = await (supabase as any)
+            .from("learning_styles")
+            .update(legacyPayload)
+            .eq("id", legacyExisting.id);
+          if (legacyUpdateError) throw legacyUpdateError;
+        } else {
+          const { error: legacyInsertError } = await (supabase as any)
+            .from("learning_styles")
+            .insert(legacyPayload);
+          if (legacyInsertError) throw legacyInsertError;
+        }
+
+        toast.success("Résultats sauvegardés !");
+        navigate("/liste-cours");
+      } catch (legacyError: any) {
+        console.error("Legacy save failed:", legacyError);
+        toast.error("Erreur lors de la sauvegarde. Veuillez réessayer.");
+      }
     }
   };
 

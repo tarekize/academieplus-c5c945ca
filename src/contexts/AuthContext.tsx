@@ -14,6 +14,39 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+async function hasCompletedPlacementAssessment(userId: string): Promise<boolean> {
+  const { data: scoreRows, error: scoreError } = await supabase
+    .from('student_scores')
+    .select('id')
+    .eq('user_id', userId)
+    .is('lesson_id', null)
+    .limit(1);
+
+  if ((scoreRows?.length || 0) > 0) return true;
+
+  // Compatibility: users with only lesson-linked rows should not be forced to retake placement.
+  const { data: anyScoreRows } = await supabase
+    .from('student_scores')
+    .select('id')
+    .eq('user_id', userId)
+    .limit(1);
+
+  if ((anyScoreRows?.length || 0) > 0) return true;
+
+  // Fallback legacy table for environments not fully migrated yet.
+  const { data: legacyRows, error: legacyError } = await (supabase as any)
+    .from('learning_styles')
+    .select('id')
+    .eq('user_id', userId)
+    .limit(1);
+
+  if (scoreError && legacyError) {
+    console.warn('Unable to verify placement assessment status:', { scoreError, legacyError });
+  }
+
+  return (legacyRows?.length || 0) > 0;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -54,36 +87,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
 
           // Rediriger admin et pédago vers /liste-cours après connexion
-          if ((roleData?.role === 'pedago' || roleData?.role === 'admin') && 
-              (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/')) {
+          if ((roleData?.role === 'pedago' || roleData?.role === 'admin') &&
+            (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/')) {
             window.location.href = '/liste-cours';
             return;
           }
 
           // Rediriger les parents vers /parent-dashboard après connexion
           // Inclure /liste-cours et /cours pour éviter qu'ils soient redirigés vers l'espace élève
-          if (roleData?.role === 'parent' && 
-              (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/' || currentPath.includes('/liste-cours') || currentPath.startsWith('/cours'))) {
+          if (roleData?.role === 'parent' &&
+            (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/' || currentPath.includes('/liste-cours') || currentPath.startsWith('/cours'))) {
             window.location.href = '/parent-dashboard';
             return;
           }
 
           // Rediriger les élèves vers /liste-cours après connexion (depuis auth ou page d'accueil)
-          if (roleData?.role === 'student' && 
-              (currentPath.includes('/auth') || currentPath === '/')) {
+          if (roleData?.role === 'student' &&
+            (currentPath.includes('/auth') || currentPath === '/')) {
             window.location.href = '/liste-cours';
             return;
           }
 
           // Rediriger les élèves sans évaluation vers le jeu d'apprentissage
           if (roleData?.role === 'student' && !currentPath.includes('/learning-assessment') && !currentPath.includes('/complete-profile') && !currentPath.includes('/auth')) {
-            const { data: styleData } = await (supabase as any)
-              .from('learning_styles')
-              .select('id')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
-
-            if (!styleData) {
+            const hasAssessment = await hasCompletedPlacementAssessment(session.user.id);
+            if (!hasAssessment) {
               window.location.href = '/learning-assessment';
             }
           }
