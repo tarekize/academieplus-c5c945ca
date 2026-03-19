@@ -165,7 +165,7 @@ export default function ITSRecommendations() {
 
     const fetchData = async () => {
       try {
-        const { data: rawData, error } = await supabase
+        const { data: rawData, error } = await (supabase as any)
           .from("learning_styles")
           .select("id, assessment_data, advice_seen")
           .eq("user_id", user.id)
