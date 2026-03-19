@@ -10,23 +10,28 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { Plus, Pencil, Trash2, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 // ---- Quiz CRUD ----
 interface QuizFormProps {
   chapterId: string;
+  lessonId?: string;
   onSaved: () => void;
-  quiz?: { id: string; question: string; options: string[]; correct_answer: string; explanation: string | null };
+  quiz?: { id: string; question: string; options: string[]; correct_answer: string; explanation: string | null; difficulty?: number };
 }
 
-export function QuizFormDialog({ chapterId, onSaved, quiz }: QuizFormProps) {
+export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [question, setQuestion] = useState(quiz?.question || "");
   const [options, setOptions] = useState<string[]>(quiz?.options || ["", "", "", ""]);
   const [correctAnswer, setCorrectAnswer] = useState(quiz?.correct_answer || "");
   const [explanation, setExplanation] = useState(quiz?.explanation || "");
+  const [difficulty, setDifficulty] = useState(quiz?.difficulty || 1);
   const isEdit = !!quiz;
 
   const handleSubmit = async () => {
@@ -42,16 +47,19 @@ export function QuizFormDialog({ chapterId, onSaved, quiz }: QuizFormProps) {
           options: options.filter(o => o.trim()),
           correct_answer: correctAnswer.trim(),
           explanation: explanation.trim() || null,
+          difficulty: difficulty,
         }).eq("id", quiz.id);
         if (error) throw error;
         toast.success("تم تعديل السؤال");
       } else {
         const { error } = await supabase.from("chapter_quizzes").insert({
           chapter_id: chapterId,
+          lesson_id: lessonId ?? null,
           question: question.trim(),
           options: options.filter(o => o.trim()),
           correct_answer: correctAnswer.trim(),
           explanation: explanation.trim() || null,
+          difficulty: difficulty,
         });
         if (error) throw error;
         toast.success("تمت إضافة السؤال");
@@ -73,6 +81,7 @@ export function QuizFormDialog({ chapterId, onSaved, quiz }: QuizFormProps) {
         setOptions(quiz.options.length >= 4 ? quiz.options : [...quiz.options, ...Array(4 - quiz.options.length).fill("")]);
         setCorrectAnswer(quiz.correct_answer);
         setExplanation(quiz.explanation || "");
+        setDifficulty(quiz.difficulty || 1);
       }
     }}>
       <DialogTrigger asChild>
@@ -93,9 +102,26 @@ export function QuizFormDialog({ chapterId, onSaved, quiz }: QuizFormProps) {
                 placeholder={`الخيار ${i + 1}`} />
             ))}
           </div>
-          <div>
-            <label className="text-sm font-medium">الإجابة الصحيحة</label>
-            <Input value={correctAnswer} onChange={(e) => setCorrectAnswer(e.target.value)} placeholder="الإجابة الصحيحة" />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium">الإجابة الصحيحة</label>
+              <Input value={correctAnswer} onChange={(e) => setCorrectAnswer(e.target.value)} placeholder="الإجابة الصحيحة" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">مستوى الصعوبة</label>
+              <Select value={difficulty.toString()} onValueChange={(v) => setDifficulty(parseInt(v))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر الصعوبة" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 - سهل جداً</SelectItem>
+                  <SelectItem value="2">2 - سهل</SelectItem>
+                  <SelectItem value="3">3 - متوسط</SelectItem>
+                  <SelectItem value="4">4 - صعب</SelectItem>
+                  <SelectItem value="5">5 - صعب جداً</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div>
             <label className="text-sm font-medium">الشرح</label>
@@ -148,11 +174,12 @@ export function DeleteQuizButton({ quizId, onDeleted }: { quizId: string; onDele
 // ---- Exercise CRUD ----
 interface ExerciseFormProps {
   chapterId: string;
+  lessonId?: string;
   onSaved: () => void;
-  exercise?: { id: string; title: string; statement: string; expected_answer: string; accepted_answers: string[]; solution: string };
+  exercise?: { id: string; title: string; statement: string; expected_answer: string; accepted_answers: string[]; solution: string; difficulty?: number };
 }
 
-export function ExerciseFormDialog({ chapterId, onSaved, exercise }: ExerciseFormProps) {
+export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: ExerciseFormProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState(exercise?.title || "");
@@ -160,6 +187,7 @@ export function ExerciseFormDialog({ chapterId, onSaved, exercise }: ExerciseFor
   const [expectedAnswer, setExpectedAnswer] = useState(exercise?.expected_answer || "");
   const [acceptedAnswers, setAcceptedAnswers] = useState(exercise?.accepted_answers?.join(", ") || "");
   const [solution, setSolution] = useState(exercise?.solution || "");
+  const [difficulty, setDifficulty] = useState(exercise?.difficulty || 1);
   const isEdit = !!exercise;
 
   const handleSubmit = async () => {
@@ -175,13 +203,14 @@ export function ExerciseFormDialog({ chapterId, onSaved, exercise }: ExerciseFor
         expected_answer: expectedAnswer.trim(),
         accepted_answers: acceptedAnswers.split(",").map(s => s.trim()).filter(Boolean),
         solution: solution.trim(),
+        difficulty: difficulty,
       };
       if (isEdit) {
         const { error } = await supabase.from("chapter_exercises").update(data).eq("id", exercise.id);
         if (error) throw error;
         toast.success("تم تعديل التمرين");
       } else {
-        const { error } = await supabase.from("chapter_exercises").insert({ chapter_id: chapterId, ...data });
+        const { error } = await supabase.from("chapter_exercises").insert({ chapter_id: chapterId, lesson_id: lessonId ?? null, ...data });
         if (error) throw error;
         toast.success("تمت إضافة التمرين");
       }
@@ -198,6 +227,7 @@ export function ExerciseFormDialog({ chapterId, onSaved, exercise }: ExerciseFor
         setExpectedAnswer(exercise.expected_answer);
         setAcceptedAnswers(exercise.accepted_answers?.join(", ") || "");
         setSolution(exercise.solution);
+        setDifficulty(exercise.difficulty || 1);
       }
     }}>
       <DialogTrigger asChild>
@@ -218,9 +248,26 @@ export function ExerciseFormDialog({ chapterId, onSaved, exercise }: ExerciseFor
             <label className="text-sm font-medium">نص التمرين</label>
             <Textarea value={statement} onChange={(e) => setStatement(e.target.value)} placeholder="نص التمرين..." className="min-h-[80px]" />
           </div>
-          <div>
-            <label className="text-sm font-medium">الإجابة المتوقعة</label>
-            <Input value={expectedAnswer} onChange={(e) => setExpectedAnswer(e.target.value)} placeholder="الإجابة" />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium">الإجابة المتوقعة</label>
+              <Input value={expectedAnswer} onChange={(e) => setExpectedAnswer(e.target.value)} placeholder="الإجابة" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">مستوى الصعوبة</label>
+              <Select value={difficulty.toString()} onValueChange={(v) => setDifficulty(parseInt(v))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر الصعوبة" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 - سهل جداً</SelectItem>
+                  <SelectItem value="2">2 - سهل</SelectItem>
+                  <SelectItem value="3">3 - متوسط</SelectItem>
+                  <SelectItem value="4">4 - صعب</SelectItem>
+                  <SelectItem value="5">5 - صعب جداً</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div>
             <label className="text-sm font-medium">إجابات مقبولة (مفصولة بفواصل)</label>
@@ -275,17 +322,19 @@ export function DeleteExerciseButton({ exerciseId, onDeleted }: { exerciseId: st
 }
 
 // ---- Generate with AI button ----
-export function GenerateQuizExercisesButton({ chapterId, onGenerated }: { chapterId: string; onGenerated: () => void }) {
+export function GenerateQuizExercisesButton({ chapterId, lessonId, onGenerated }: { chapterId: string; lessonId?: string; onGenerated: () => void }) {
   const [loading, setLoading] = useState(false);
 
   const handleGenerate = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-chapter-quizzes", {
-        body: { chapter_id: chapterId },
+        body: { chapter_id: chapterId, lesson_id: lessonId ?? null },
       });
       if (error) throw error;
-      toast.success(`تم إنشاء ${data.quizzes} أسئلة و ${data.exercises} تمارين`);
+      const quizCount = data?.quizzes ?? 0;
+      const exerciseCount = data?.exercises ?? 0;
+      toast.success(`تم إنشاء ${quizCount} أسئلة و ${exerciseCount} تمارين`);
       onGenerated();
     } catch (err: any) {
       toast.error(err.message || "خطأ في التوليد");

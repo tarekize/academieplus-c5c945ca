@@ -83,11 +83,30 @@ const ParentCoursView = () => {
     }
   }, [childId, navigate, toast]);
 
-  const fetchQuizExercises = useCallback(async () => {
+  const fetchQuizExercises = useCallback(async (lessonId?: string | null) => {
     if (!activeChapter) return;
+
+    let quizzesQuery = supabase
+      .from("chapter_quizzes")
+      .select("id, lesson_id, question, options, correct_answer, explanation")
+      .eq("chapter_id", activeChapter.id);
+
+    let exercisesQuery = supabase
+      .from("chapter_exercises")
+      .select("id, lesson_id, title, statement, expected_answer, accepted_answers, solution")
+      .eq("chapter_id", activeChapter.id);
+
+    if (lessonId) {
+      quizzesQuery = quizzesQuery.eq("lesson_id", lessonId);
+      exercisesQuery = exercisesQuery.eq("lesson_id", lessonId);
+    } else {
+      quizzesQuery = quizzesQuery.is("lesson_id", null);
+      exercisesQuery = exercisesQuery.is("lesson_id", null);
+    }
+
     const [{ data: quizzes }, { data: exercises }] = await Promise.all([
-      supabase.from("chapter_quizzes").select("id, question, options, correct_answer, explanation").eq("chapter_id", activeChapter.id).order("order_index"),
-      supabase.from("chapter_exercises").select("id, title, statement, expected_answer, accepted_answers, solution").eq("chapter_id", activeChapter.id).order("order_index"),
+      quizzesQuery.order("order_index"),
+      exercisesQuery.order("order_index"),
     ]);
     setDbQuizzes((quizzes || []).map(q => ({ ...q, options: Array.isArray(q.options) ? q.options as string[] : [] })));
     setDbExercises((exercises || []).map(e => ({ ...e, accepted_answers: Array.isArray(e.accepted_answers) ? e.accepted_answers as string[] : [] })));
@@ -209,11 +228,11 @@ const ParentCoursView = () => {
               fetchQuizExercises={fetchQuizExercises}
               subjectId="math"
               progress={{}}
-              handleMarkComplete={() => {}}
-              handleDownloadPDF={() => {}}
+              handleMarkComplete={() => { }}
+              handleDownloadPDF={() => { }}
               handleChapterChange={handleChapterChange}
               chapters={chapters}
-              onActivitySelect={() => {}}
+              onActivitySelect={() => { }}
               userId={childId}
               schoolLevel={schoolLevel}
               showActivityCards={false}

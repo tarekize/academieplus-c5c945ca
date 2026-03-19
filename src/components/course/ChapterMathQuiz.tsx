@@ -21,6 +21,7 @@ import { QuizFormDialog, DeleteQuizButton } from "./QuizExerciseCRUD";
 
 export interface DBQuizQuestion {
   id: string;
+  lesson_id?: string | null;
   question: string;
   options: string[];
   correct_answer: string;

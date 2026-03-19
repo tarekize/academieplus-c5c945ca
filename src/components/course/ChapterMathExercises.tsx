@@ -10,6 +10,7 @@ import { ExerciseFormDialog, DeleteExerciseButton } from "./QuizExerciseCRUD";
 
 export interface DBExercise {
   id: string;
+  lesson_id?: string | null;
   title: string;
   statement: string;
   expected_answer: string;
@@ -65,8 +66,8 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
     const userAnswer = userAnswers[ex.id]?.trim().toLowerCase() || "";
     const isCorrect = ex.accepted_answers.some(
       accepted => accepted.toLowerCase().trim() === userAnswer ||
-                  userAnswer.includes(accepted.toLowerCase().trim()) ||
-                  accepted.toLowerCase().trim().includes(userAnswer)
+        userAnswer.includes(accepted.toLowerCase().trim()) ||
+        accepted.toLowerCase().trim().includes(userAnswer)
     );
     setSubmittedAnswers(prev => ({ ...prev, [ex.id]: { submitted: true, correct: isCorrect } }));
   };

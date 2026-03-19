@@ -75,7 +75,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { chapter_id } = await req.json();
+    const { chapter_id, lesson_id } = await req.json();
     const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -88,11 +88,27 @@ serve(async (req) => {
       const { data: chapter } = await supabase.from("chapters").select("*").eq("id", chapter_id).single();
       if (!chapter) throw new Error("Chapter not found");
 
-      const chapterTitle = chapter.title_ar || chapter.title;
-      const quizzes = await generateQuizzes(chapterTitle, chapter.school_level, OPENROUTER_API_KEY);
+      let generationTitle = chapter.title_ar || chapter.title;
+      if (lesson_id) {
+        const { data: lesson } = await supabase
+          .from("lessons")
+          .select("id, title, title_ar")
+          .eq("id", lesson_id)
+          .eq("chapter_id", chapter_id)
+          .maybeSingle();
+
+        if (!lesson) {
+          throw new Error("Lesson not found in chapter");
+        }
+
+        generationTitle = lesson.title_ar || lesson.title;
+      }
+
+      const quizzes = await generateQuizzes(generationTitle, chapter.school_level, OPENROUTER_API_KEY);
 
       const quizInserts = quizzes.map((q, i) => ({
         chapter_id,
+        lesson_id: lesson_id || null,
         question: q.question,
         options: q.options,
         correct_answer: q.correct_answer,
@@ -101,9 +117,10 @@ serve(async (req) => {
       }));
       await supabase.from("chapter_quizzes").insert(quizInserts);
 
-      const exercises = await generateExercises(chapterTitle, chapter.school_level, OPENROUTER_API_KEY);
+      const exercises = await generateExercises(generationTitle, chapter.school_level, OPENROUTER_API_KEY);
       const exInserts = exercises.map((ex, i) => ({
         chapter_id,
+        lesson_id: lesson_id || null,
         title: ex.title,
         statement: ex.statement,
         expected_answer: ex.expected_answer,
@@ -113,7 +130,10 @@ serve(async (req) => {
       }));
       await supabase.from("chapter_exercises").insert(exInserts);
 
-      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(
+        JSON.stringify({ success: true, quizzes: quizInserts.length, exercises: exInserts.length }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     return new Response(JSON.stringify({ error: "Missing chapter_id" }), { status: 400, headers: corsHeaders });

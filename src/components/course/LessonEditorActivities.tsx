@@ -14,6 +14,7 @@ interface DBQuiz {
   correct_answer: string;
   explanation: string | null;
   order_index: number;
+  difficulty: number;
 }
 
 interface DBExercise {
@@ -24,6 +25,7 @@ interface DBExercise {
   accepted_answers: string[];
   solution: string;
   order_index: number;
+  difficulty: number;
 }
 
 const LEVELS = [
@@ -55,19 +57,39 @@ export function LessonEditorActivities({
   };
 
   const fetchData = useCallback(async () => {
+    let quizzesQuery = supabase.from("chapter_quizzes").select("*").eq("chapter_id", chapterId);
+    let exercisesQuery = supabase.from("chapter_exercises").select("*").eq("chapter_id", chapterId);
+
+    if (lessonId) {
+      quizzesQuery = quizzesQuery.eq("lesson_id", lessonId);
+      exercisesQuery = exercisesQuery.eq("lesson_id", lessonId);
+    } else {
+      quizzesQuery = quizzesQuery.is("lesson_id", null);
+      exercisesQuery = exercisesQuery.is("lesson_id", null);
+    }
+
     const [{ data: q }, { data: e }] = await Promise.all([
-      supabase.from("chapter_quizzes").select("*").eq("chapter_id", chapterId).order("order_index"),
-      supabase.from("chapter_exercises").select("*").eq("chapter_id", chapterId).order("order_index"),
+      quizzesQuery.order("order_index"),
+      exercisesQuery.order("order_index"),
     ]);
 
     setQuizzes((q || []).map((item: any) => ({ ...item, options: Array.isArray(item.options) ? item.options : [], accepted_answers: Array.isArray(item.accepted_answers) ? item.accepted_answers : [] })));
     setExercises((e || []).map((item: any) => ({ ...item, accepted_answers: Array.isArray(item.accepted_answers) ? item.accepted_answers : [] })));
-  }, [chapterId]);
+  }, [chapterId, lessonId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // Split items by level - first half discover, second understand
-  const splitByLevel = <T extends any>(items: T[]) => {
+  // Split items by level based on difficulty
+  // Discover: Difficulty 1-2
+  // Understand: Difficulty 3-5
+  const splitByLevel = <T extends { difficulty: number }>(items: T[]) => {
+    if (items.some(i => i.difficulty !== undefined)) {
+      return {
+        discover: items.filter(i => (i.difficulty || 1) <= 2),
+        understand: items.filter(i => (i.difficulty || 1) > 2),
+      };
+    }
+    // Fallback for items without difficulty key if any (shouldn't happen with updated types)
     const mid = Math.ceil(items.length / 2);
     return {
       discover: items.slice(0, mid),
@@ -180,11 +202,13 @@ export function LessonEditorActivities({
                 {isExercises ? (
                   <ExerciseFormDialog
                     chapterId={chapterId}
+                    lessonId={lessonId}
                     onSaved={fetchData}
                   />
                 ) : (
                   <QuizFormDialog
                     chapterId={chapterId}
+                    lessonId={lessonId}
                     onSaved={fetchData}
                   />
                 )}
@@ -249,6 +273,7 @@ export function LessonEditorActivities({
                             <>
                               <ExerciseFormDialog
                                 chapterId={chapterId}
+                                lessonId={lessonId}
                                 onSaved={fetchData}
                                 exercise={item}
                               />
@@ -258,6 +283,7 @@ export function LessonEditorActivities({
                             <>
                               <QuizFormDialog
                                 chapterId={chapterId}
+                                lessonId={lessonId}
                                 onSaved={fetchData}
                                 quiz={item}
                               />

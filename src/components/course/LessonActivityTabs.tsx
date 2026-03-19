@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface DBQuizQuestion {
   id: string;
+  lesson_id?: string | null;
   question: string;
   options: string[];
   correct_answer: string;
@@ -18,6 +19,7 @@ export interface DBQuizQuestion {
 
 export interface DBExercise {
   id: string;
+  lesson_id?: string | null;
   title: string;
   statement: string;
   expected_answer: string;
@@ -31,6 +33,7 @@ interface LessonActivityTabsProps {
   dbExercises: DBExercise[];
   chapterId: string;
   chapterTitle: string;
+  lessonId?: string;
   lessonTitle: string;
   onGenerateAI: (type: "quiz" | "exercise") => void;
   onSectionChange?: (section: string | null) => void;
@@ -49,7 +52,7 @@ const stepConfig: { id: StepLevel; label: string; labelAr: string; icon: typeof 
   { id: "approfondir", label: "Approfondir", labelAr: "تعمّق", icon: Rocket, color: "text-purple-500" },
 ];
 
-export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonTitle, onGenerateAI, onSectionChange, hiddenBackButton, readOnly }: LessonActivityTabsProps) {
+export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonId, lessonTitle, onGenerateAI, onSectionChange, hiddenBackButton, readOnly }: LessonActivityTabsProps) {
   const [activeSection, setActiveSection] = useState<ActivitySection>(null);
   const [activeStep, setActiveStep] = useState<StepLevel>("decouvrir");
 
@@ -93,12 +96,17 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
       console.log("🔄 [LessonActivityTabs] Loading progress for chapter:", chapterId, "with userId:", userId);
 
-      const { data, error } = await supabase
+      let progressQuery = supabase
         .from("student_scores")
         .select("id, assessment_data")
         .eq("user_id", userId)
-        .eq("chapter_id", chapterId)
-        .is("lesson_id", null);
+        .eq("chapter_id", chapterId);
+
+      progressQuery = lessonId
+        ? progressQuery.eq("lesson_id", lessonId)
+        : progressQuery.is("lesson_id", null);
+
+      const { data, error } = await progressQuery;
 
       if (error) {
         console.error("❌ [LessonActivityTabs] Failed to load chapter unlock state:", error);
@@ -167,7 +175,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     };
 
     loadProgress();
-  }, [chapterId, triggerReload, userId]);
+  }, [chapterId, lessonId, triggerReload, userId]);
 
   // Save unlock to DB
   const persistUnlock = useCallback(async (type: "exercises" | "quizzes", correctCount?: number) => {
@@ -200,9 +208,9 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       console.log(`📋 [persistUnlock] Found ${allRows?.length ?? 0} total rows for chapter (including lessons)`);
     }
 
-    // Find the specific row for chapter aggregate (lesson_id is null)
-    // We check JS-side to be sure about null handling
-    const targetRow = allRows?.find(r => r.lesson_id === null);
+    // Find the row scoped to the current lesson when available.
+    // Fallback to chapter aggregate when lessonId is not provided.
+    const targetRow = allRows?.find(r => lessonId ? r.lesson_id === lessonId : r.lesson_id === null);
 
     if (targetRow) {
       console.log("✅ [persistUnlock] Found existing chapter row via JS filter. ID:", targetRow.id);
@@ -239,7 +247,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     const insertPayload = {
       user_id: currentUserId,
       chapter_id: chapterId,
-      lesson_id: null,
+      lesson_id: lessonId ?? null,
       assessment_data: {
         [field]: true,
         ...(correctCount !== undefined && { [countField]: correctCount })
@@ -262,7 +270,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       console.log("✅ [persistUnlock] Successfully inserted new row");
     }
 
-  }, [chapterId]);
+  }, [chapterId, lessonId]);
 
 
   /* 
@@ -288,12 +296,17 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       return;
     }
 
-    const { data, error } = await supabase
+    let progressQuery = supabase
       .from("student_scores")
       .select("id, assessment_data")
       .eq("user_id", user.id)
-      .eq("chapter_id", chapterId)
-      .is("lesson_id", null);
+      .eq("chapter_id", chapterId);
+
+    progressQuery = lessonId
+      ? progressQuery.eq("lesson_id", lessonId)
+      : progressQuery.is("lesson_id", null);
+
+    const { data, error } = await progressQuery;
 
     if (error) {
       console.error("❌ [reloadProgressFromDB] Failed to load:", error);
@@ -341,7 +354,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         setDiscoverCorrectQz(quizzesCorrectCount);
       }
     }
-  }, [chapterId]);
+  }, [chapterId, lessonId]);
 
   const handleSectionChange = (section: ActivitySection) => {
     console.log("🖱️ [handleSectionChange] Changed to section:", section);
@@ -517,36 +530,70 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       </Card>
 
       {/* Step Stepper */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-1.5 bg-muted/40 rounded-xl border border-border/40 backdrop-blur-sm">
         {visibleSteps.map((step, idx) => {
           const Icon = step.icon;
           const isActive = activeStep === step.id;
           const isLocked = (step.id === "comprendre" || step.id === "approfondir") && !isUnlocked;
+
           return (
             <button
               key={step.id}
               onClick={() => !isLocked && setActiveStep(step.id)}
               disabled={isLocked}
               className={cn(
-                "flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all whitespace-nowrap relative",
-                isLocked ? "border-border/50 bg-muted/30 opacity-60 cursor-not-allowed"
-                  : isActive ? "border-primary bg-primary/5 shadow-sm cursor-pointer"
-                    : "border-border hover:border-primary/30 hover:bg-muted/50 cursor-pointer"
+                "relative flex items-center justify-between sm:justify-start gap-4 px-4 py-3 sm:py-2.5 rounded-lg transition-all duration-300 w-full group",
+                isActive
+                  ? "bg-background shadow-md shadow-primary/5 ring-1 ring-border/60 text-foreground scale-[1.02]"
+                  : isLocked
+                    ? "opacity-50 cursor-not-allowed text-muted-foreground bg-transparent"
+                    : "hover:bg-background/60 text-muted-foreground hover:text-foreground hover:shadow-sm"
               )}
             >
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "w-9 h-9 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-sm font-bold transition-colors shadow-sm",
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-primary/20"
+                    : isLocked
+                      ? "bg-muted text-muted-foreground/70"
+                      : "bg-muted text-foreground group-hover:bg-primary/10 group-hover:text-primary"
+                )}>
+                  {isLocked ? <Lock className="h-3.5 w-3.5" /> : idx + 1}
+                </div>
+
+                <div className="flex flex-col items-start gap-0.5">
+                  <span className={cn(
+                    "text-sm font-bold leading-none tracking-tight",
+                    isActive ? "text-primary" : "text-foreground/80"
+                  )}>
+                    {step.label}
+                  </span>
+                  <span className={cn(
+                    "text-[10px] font-medium leading-none font-arabic",
+                    isActive ? "text-primary/80" : "text-muted-foreground"
+                  )}>
+                    {step.labelAr}
+                  </span>
+                </div>
+              </div>
+
+              {/* Status Indicator */}
               <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
-                isLocked ? "bg-muted text-muted-foreground"
-                  : isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                "flex items-center justify-center transition-all bg-muted/50 rounded-md p-1.5",
+                isActive && "bg-primary/10",
+                isLocked && "opacity-0"
               )}>
-                {isLocked ? <Lock className="h-3.5 w-3.5" /> : idx + 1}
+                <Icon className={cn(
+                  "w-4 h-4 transition-transform",
+                  isActive ? step.color : "text-muted-foreground grayscale group-hover:grayscale-0"
+                )} />
               </div>
-              <Icon className={cn("h-4 w-4", isLocked ? "text-muted-foreground" : step.color)} />
-              <div className="text-left">
-                <p className={cn("text-sm font-semibold", isLocked ? "text-muted-foreground" : isActive ? "text-foreground" : "text-muted-foreground")}>{step.label}</p>
-                <p className="text-[10px] text-muted-foreground hidden sm:block">{step.labelAr}</p>
-              </div>
-              {isLocked && <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-[9px] px-1.5 py-0.5 rounded-full font-bold">🔒</span>}
+
+              {/* Active Bottom Bar (Mobile) or Side/Glow (Desktop) */}
+              {isActive && (
+                <div className="absolute inset-x-0 -bottom-[1px] h-[3px] bg-primary rounded-full sm:hidden" />
+              )}
             </button>
           );
         })}

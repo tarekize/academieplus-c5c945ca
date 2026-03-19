@@ -39,6 +39,16 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         setActiveActivity(null);
     }, [chapter.id]);
 
+    useEffect(() => {
+        if (selectedLesson?.id) {
+            fetchQuizExercises?.(selectedLesson.id);
+            return;
+        }
+
+        // Keep chapter-level cards isolated from lesson-specific activities.
+        fetchQuizExercises?.(null);
+    }, [selectedLesson?.id, fetchQuizExercises]);
+
     // Auto-open lesson when coming from search
     useEffect(() => {
         if (initialLessonId && chapter.lessons) {
@@ -195,6 +205,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         dbExercises={dbExercises}
                         chapterId={chapter.id}
                         chapterTitle={chapter.title}
+                        lessonId={selectedLesson.id}
                         lessonTitle={selectedLesson.titleAr || selectedLesson.title}
                         readOnly={readOnly}
                         onGenerateAI={(type) => {

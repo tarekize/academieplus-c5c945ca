@@ -31,7 +31,7 @@ export default function LessonEditor() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [lesson, setLesson] = useState<{ id: string; title: string; title_ar: string | null; content: string | null; chapter_id: string; subject?: string; school_level?: string } | null>(null);
+  const [lesson, setLesson] = useState<{ id: string; title: string; title_ar: string | null; content: string | null; chapter_id: string; subject?: string; school_level?: string; filiere_code?: string } | null>(null);
   const [content, setContent] = useState('');
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   const [canManage, setCanManage] = useState(false);
@@ -59,16 +59,42 @@ export default function LessonEditor() {
       // Get chapter_id + chapter info for back navigation
       const { data: lessonRow } = await supabase.from('lessons').select('chapter_id').eq('id', lessonId).maybeSingle();
       const chId = lessonRow?.chapter_id || '';
-      
+
       let chSubject = '';
       let chSchoolLevel = '';
+      let chFiliereCode = '';
+
       if (chId) {
-        const { data: chapterRow } = await supabase.from('chapters').select('subject, school_level').eq('id', chId).maybeSingle();
-        chSubject = chapterRow?.subject || '';
-        chSchoolLevel = chapterRow?.school_level || '';
+        const { data: chapterRow } = await supabase
+          .from('chapters')
+          .select('subject, school_level, filiere_id')
+          .eq('id', chId)
+          .maybeSingle();
+
+        if (chapterRow) {
+          chSubject = chapterRow.subject;
+          chSchoolLevel = chapterRow.school_level;
+
+          if (chapterRow.filiere_id) {
+            const { data: filiereRow } = await supabase
+              .from('filieres')
+              .select('code')
+              .eq('id', chapterRow.filiere_id)
+              .maybeSingle();
+            if (filiereRow) {
+              chFiliereCode = filiereRow.code;
+            }
+          }
+        }
       }
 
-      setLesson({ ...data, chapter_id: chId, subject: chSubject, school_level: chSchoolLevel });
+      setLesson({
+        ...data,
+        chapter_id: chId,
+        subject: chSubject,
+        school_level: chSchoolLevel,
+        filiere_code: chFiliereCode
+      });
       setContent(data.content || '');
     } catch (err) {
       console.error(err);
@@ -184,8 +210,10 @@ export default function LessonEditor() {
         <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-lg border border-primary/10 mb-6">
           <button
             onClick={() => {
-              if (lesson?.subject && lesson?.school_level && lesson?.chapter_id) {
-                navigate(`/cours/${lesson.subject}?niveau=${lesson.school_level}&chapitre=${lesson.chapter_id}`);
+              if (lesson?.subject && lesson?.chapter_id) {
+                const params = new URLSearchParams();
+                if (lesson.school_level) params.append('niveau', lesson.school_level); if (lesson.filiere_code) params.append('filiere', lesson.filiere_code); params.append('chapitre', lesson.chapter_id);
+                navigate(`/cours/${lesson.subject}?${params.toString()}`);
               } else {
                 navigate(-1 as any);
               }
@@ -207,7 +235,7 @@ export default function LessonEditor() {
         {canManage && lesson.chapter_id && (
           <>
             <div className="flex justify-center mb-4">
-              <GenerateQuizExercisesButton chapterId={lesson.chapter_id} onGenerated={() => window.location.reload()} />
+              <GenerateQuizExercisesButton chapterId={lesson.chapter_id} lessonId={lesson.id} onGenerated={() => window.location.reload()} />
             </div>
             <LessonEditorActivities
               chapterId={lesson.chapter_id}
