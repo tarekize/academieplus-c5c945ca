@@ -545,7 +545,6 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
               <h3 className="font-bold">Révision</h3>
               <p className="text-sm text-muted-foreground">Fiches de révision</p>
             </div>
-
             <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-green-500 transition-colors" />
           </CardContent>
         </Card>
@@ -555,6 +554,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
   if (activeSection === "revision") {
     return (
+
       <div className="mt-6 space-y-4">
         {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>← العودة</Button>}
         <Card>
