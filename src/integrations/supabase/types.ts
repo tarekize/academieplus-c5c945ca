@@ -155,6 +155,7 @@ export type Database = {
           difficulty: number
           expected_answer: string
           id: string
+          lesson_id: string | null
           order_index: number
           solution: string
           statement: string
@@ -168,6 +169,7 @@ export type Database = {
           difficulty?: number
           expected_answer: string
           id?: string
+          lesson_id?: string | null
           order_index?: number
           solution: string
           statement: string
@@ -181,6 +183,7 @@ export type Database = {
           difficulty?: number
           expected_answer?: string
           id?: string
+          lesson_id?: string | null
           order_index?: number
           solution?: string
           statement?: string
@@ -195,6 +198,13 @@ export type Database = {
             referencedRelation: "chapters"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "chapter_exercises_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
         ]
       }
       chapter_quizzes: {
@@ -205,6 +215,7 @@ export type Database = {
           difficulty: number
           explanation: string | null
           id: string
+          lesson_id: string | null
           options: Json
           order_index: number
           question: string
@@ -217,6 +228,7 @@ export type Database = {
           difficulty?: number
           explanation?: string | null
           id?: string
+          lesson_id?: string | null
           options?: Json
           order_index?: number
           question: string
@@ -229,6 +241,7 @@ export type Database = {
           difficulty?: number
           explanation?: string | null
           id?: string
+          lesson_id?: string | null
           options?: Json
           order_index?: number
           question?: string
@@ -240,6 +253,13 @@ export type Database = {
             columns: ["chapter_id"]
             isOneToOne: false
             referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chapter_quizzes_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
             referencedColumns: ["id"]
           },
         ]
