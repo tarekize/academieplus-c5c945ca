@@ -69,6 +69,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [userId, setUserId] = useState<string | null>(null);
   const [triggerReload, setTriggerReload] = useState(0);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
 
   // State for randomized subsets (Limit 5)
   const [subsetDiscoverEx, setSubsetDiscoverEx] = useState<DBExercise[]>([]);
@@ -104,6 +105,28 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       if (user) {
         console.log("✅ [LessonActivityTabs] User ID loaded:", user.id);
         setUserId(user.id);
+
+        // Check subscription status
+        const { data: sub } = await supabase
+          .from("student_subscriptions")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("is_paused", false)
+          .maybeSingle();
+
+        if (sub) {
+          // Simple calculation based on Account.tsx logic
+          const now = new Date();
+          const lastTick = new Date(sub.last_tick_at);
+          const elapsed = (now.getTime() - lastTick.getTime()) / (1000 * 60 * 60 * 24);
+          const totalUsed = (sub.days_used || 0) + elapsed;
+          const remaining = (sub.total_days || 0) - totalUsed;
+
+          if (remaining > 0) {
+            setHasActiveSubscription(true);
+            console.log("✅ [LessonActivityTabs] Active subscription found");
+          }
+        }
       } else {
         console.warn("⚠️ [LessonActivityTabs] No authenticated user found!");
       }
@@ -613,13 +636,23 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         {visibleSteps.map((step, idx) => {
           const Icon = step.icon;
           const isActive = activeStep === step.id;
-          const isLocked = (step.id === "comprendre" || step.id === "approfondir") && !isUnlocked;
+
+          let isLocked = false;
+          if (step.id === "comprendre") {
+            isLocked = !isUnlocked;
+          } else if (step.id === "approfondir") {
+            // Requires 3 correct answers AND Active Subscription
+            isLocked = !isUnlocked || (!hasActiveSubscription && !readOnly); // Keep readOnly logic if relevant, but here we enforce subscription
+          }
 
           return (
             <button
               key={step.id}
-              onClick={() => !isLocked && setActiveStep(step.id)}
+              onClick={() => {
+                if (!isLocked) setActiveStep(step.id);
+              }}
               disabled={isLocked}
+              title={isLocked ? (step.id === "approfondir" && isUnlocked && !hasActiveSubscription ? "Abonnement requis pour accéder à cette section" : "Terminez la phase précédente pour débloquer") : ""}
               className={cn(
                 "relative flex items-center justify-between sm:justify-start gap-4 px-4 py-3 sm:py-2.5 rounded-lg transition-all duration-300 w-full group",
                 isActive
@@ -769,7 +802,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         </Card>
       )}
 
-      {activeStep === "approfondir" && isUnlocked && (
+      {activeStep === "approfondir" && isUnlocked && hasActiveSubscription && (
         <Card className="border-purple-500/20">
           <CardHeader className="pb-3 text-center">
             <CardTitle className="flex items-center justify-center gap-2 text-purple-600">

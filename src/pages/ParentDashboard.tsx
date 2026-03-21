@@ -22,7 +22,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  GraduationCap, LogOut, User as UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen, Key,
+  GraduationCap, LogOut, User as UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen, Key, Check
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
@@ -51,6 +51,13 @@ interface LinkedChild {
     email: string | null;
     school_level: string | null;
     avatar_url: string | null;
+  } | null;
+  subscription?: {
+    id: string;
+    total_days: number;
+    days_used: number;
+    last_tick_at: string;
+    is_paused: boolean;
   } | null;
 }
 
@@ -108,7 +115,38 @@ const ParentDashboard = () => {
         .select(`id, child_id, status, created_at, child:profiles!parent_child_links_child_id_fkey(id, first_name, last_name, email, school_level, avatar_url)`)
         .eq("parent_id", userId);
       if (error) throw error;
-      setChildren((data as any[]) || []);
+
+      let mappedChildren = (data as any[]) || [];
+      const childIds = mappedChildren.map(c => c.child_id);
+
+      if (childIds.length > 0) {
+        const { data: subs } = await supabase
+          .from("student_subscriptions")
+          .select("*")
+          .in("user_id", childIds) // Use in just to be safe
+          .eq("is_paused", false);
+
+        mappedChildren = mappedChildren.map(child => {
+          // Find the active subscription. Note: a student can have multiple rows, we want the "active" one.
+          // Filter expiration manually if needed, but for now we assume non-paused is active.
+          // Better logic: subscription with remaining days > 0
+          const sub = subs?.find(s => s.user_id === child.child_id);
+          if (!sub) return child;
+
+          const now = new Date();
+          const lastTick = new Date(sub.last_tick_at || sub.created_at);
+          const elapsed = (now.getTime() - lastTick.getTime()) / (1000 * 60 * 60 * 24);
+          const totalUsed = (sub.days_used || 0) + elapsed;
+          const remaining = (sub.total_days || 0) - totalUsed;
+
+          if (remaining > 0) {
+            return { ...child, subscription: sub };
+          }
+          return child;
+        });
+      }
+
+      setChildren(mappedChildren);
     } catch (error: any) {
       console.error("Error fetching children:", error);
     } finally {
@@ -578,19 +616,34 @@ const ParentDashboard = () => {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-primary hover:text-primary border-primary/20 bg-primary/5"
-                                onClick={() => {
-                                  setSelectedChildForActivation(link.child_id);
-                                  setActivationCode("");
-                                  setActivationDialogOpen(true);
-                                }}
-                              >
-                                <Key className="h-4 w-4 mr-2" />
-                                Activer
-                              </Button>
+                              {link.subscription ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-green-600 hover:text-green-700 border-green-200 bg-green-50 hover:bg-green-100"
+                                  onClick={() => {
+                                    const rem = Math.ceil((link.subscription!.total_days || 0) - (link.subscription!.days_used || 0));
+                                    sonnerToast.success(`Abonnement actif : ${rem} jours restants`);
+                                  }}
+                                >
+                                  <Check className="h-4 w-4 mr-2" />
+                                  Actif
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-primary hover:text-primary border-primary/20 bg-primary/5"
+                                  onClick={() => {
+                                    setSelectedChildForActivation(link.child_id);
+                                    setActivationCode("");
+                                    setActivationDialogOpen(true);
+                                  }}
+                                >
+                                  <Key className="h-4 w-4 mr-2" />
+                                  Activer
+                                </Button>
+                              )}
                               <Button
                                 variant="outline"
                                 size="sm"
