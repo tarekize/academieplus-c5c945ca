@@ -22,7 +22,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  GraduationCap, LogOut, User as UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen,
+  GraduationCap, LogOut, User as UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen, Key,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
@@ -66,7 +66,7 @@ const ParentDashboard = () => {
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [selectedChild, setSelectedChild] = useState<LinkedChild | null>(null);
-  
+
   // Create child account state
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newChildEmail, setNewChildEmail] = useState("");
@@ -77,6 +77,12 @@ const ParentDashboard = () => {
   const [newChildFiliere, setNewChildFiliere] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+
+  // Activation state
+  const [activationDialogOpen, setActivationDialogOpen] = useState(false);
+  const [selectedChildForActivation, setSelectedChildForActivation] = useState<string | null>(null);
+  const [activationCode, setActivationCode] = useState("");
+  const [activating, setActivating] = useState(false);
 
   const fetchProfile = useCallback(async (userId: string) => {
     try {
@@ -168,6 +174,74 @@ const ParentDashboard = () => {
       sonnerToast.success("Lien supprimé avec succès");
     } catch (error: any) {
       sonnerToast.error("Erreur lors de la suppression du lien");
+    }
+  };
+
+  const handleActivateSubscription = async () => {
+    if (!activationCode.trim() || !selectedChildForActivation || !user) return;
+    setActivating(true);
+
+    try {
+      const { data: anyCode } = await supabase
+        .from("activation_codes")
+        .select("status")
+        .eq("code", activationCode.trim().toUpperCase())
+        .maybeSingle();
+
+      if (!anyCode) {
+        sonnerToast.error("Ce code n'existe pas");
+        setActivating(false);
+        return;
+      }
+
+      if (anyCode.status === "used") {
+        sonnerToast.error("Ce code a déjà été activé");
+        setActivating(false);
+        return;
+      }
+
+      const { data: codeData, error: codeErr } = await supabase
+        .from("activation_codes")
+        .select("*")
+        .eq("code", activationCode.trim().toUpperCase())
+        .eq("status", "free")
+        .single();
+
+      if (codeErr || !codeData) {
+        sonnerToast.error("Impossible d'activer ce code");
+        setActivating(false);
+        return;
+      }
+
+      const { error: updateError } = await supabase
+        .from("activation_codes")
+        .update({ status: "used", used_by: user.id, used_at: new Date().toISOString() })
+        .eq("id", codeData.id);
+
+      if (updateError) throw updateError;
+
+      const totalDays = codeData.plan_type === "annual" ? 360 : 30;
+      const { error: insertError } = await supabase.from("student_subscriptions").insert({
+        user_id: selectedChildForActivation,
+        activation_code_id: codeData.id,
+        plan_type: codeData.plan_type,
+        total_days: totalDays,
+        days_used: 0,
+        is_paused: false,
+        started_at: new Date().toISOString(),
+        last_tick_at: new Date().toISOString(),
+      });
+
+      if (insertError) throw insertError;
+
+      sonnerToast.success(`Abonnement activé (${totalDays} jours)`);
+      setActivationCode("");
+      setActivationDialogOpen(false);
+      setSelectedChildForActivation(null);
+    } catch (err: any) {
+      sonnerToast.error(err.message || "Erreur lors de l'activation");
+    } finally {
+      setActivating(false);
     }
   };
 
@@ -420,6 +494,34 @@ const ParentDashboard = () => {
                   </div>
                 </DialogContent>
               </Dialog>
+
+              {/* Activation Abonnement Dialog */}
+              <Dialog open={activationDialogOpen} onOpenChange={setActivationDialogOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Activer l'abonnement</DialogTitle>
+                    <DialogDescription>
+                      Entrez le code d'activation pour débloquer l'accès complet.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label>Code d'activation</Label>
+                      <Input
+                        placeholder="Ex: A1B2C3D4"
+                        value={activationCode}
+                        onChange={(e) => setActivationCode(e.target.value.toUpperCase())}
+                        maxLength={8}
+                        className="font-mono text-lg tracking-widest uppercase text-center"
+                      />
+                    </div>
+                    <Button onClick={handleActivateSubscription} disabled={activating || !activationCode} className="w-full">
+                      {activating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Key className="h-4 w-4 mr-2" />}
+                      Activer maintenant
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 
@@ -476,6 +578,19 @@ const ParentDashboard = () => {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-primary hover:text-primary border-primary/20 bg-primary/5"
+                                onClick={() => {
+                                  setSelectedChildForActivation(link.child_id);
+                                  setActivationCode("");
+                                  setActivationDialogOpen(true);
+                                }}
+                              >
+                                <Key className="h-4 w-4 mr-2" />
+                                Activer
+                              </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
