@@ -71,6 +71,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
 
+  // Completed items tracking
+  const [completedExerciseIds, setCompletedExerciseIds] = useState<string[]>([]);
+  const [completedQuizIds, setCompletedQuizIds] = useState<string[]>([]);
+  const [showCorrectOnly, setShowCorrectOnly] = useState(false);
+
   // State for randomized subsets (Limit 5)
   const [subsetDiscoverEx, setSubsetDiscoverEx] = useState<DBExercise[]>([]);
   const [subsetUnderstandEx, setSubsetUnderstandEx] = useState<DBExercise[]>([]);
@@ -81,21 +86,34 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [showUnlockMessage, setShowUnlockMessage] = useState(false);
   const [showReloadBtn, setShowReloadBtn] = useState(false);
 
+  // Reset showCorrectOnly on tab change
+  useEffect(() => {
+    setShowCorrectOnly(false);
+  }, [activeStep, activeSection]);
+
   // Initialize random subsets on mount
   useEffect(() => {
+    // Split pools from original source to maintain difficulty tiers
     const halfQuiz = Math.ceil(dbQuizzes.length / 2);
-    const poolDiscoverQz = dbQuizzes.slice(0, halfQuiz);
-    const poolUnderstandQz = dbQuizzes.slice(halfQuiz);
+    const originDiscoverQz = dbQuizzes.slice(0, halfQuiz);
+    const originUnderstandQz = dbQuizzes.slice(halfQuiz);
 
     const halfEx = Math.ceil(dbExercises.length / 2);
-    const poolDiscoverEx = dbExercises.slice(0, halfEx);
-    const poolUnderstandEx = dbExercises.slice(halfEx);
+    const originDiscoverEx = dbExercises.slice(0, halfEx);
+    const originUnderstandEx = dbExercises.slice(halfEx);
+
+    // Apply filter
+    const poolDiscoverQz = originDiscoverQz.filter(q => !completedQuizIds.includes(q.id));
+    const poolUnderstandQz = originUnderstandQz.filter(q => !completedQuizIds.includes(q.id));
+
+    const poolDiscoverEx = originDiscoverEx.filter(e => !completedExerciseIds.includes(e.id));
+    const poolUnderstandEx = originUnderstandEx.filter(e => !completedExerciseIds.includes(e.id));
 
     setSubsetDiscoverQz([...poolDiscoverQz].sort(() => 0.5 - Math.random()).slice(0, 5));
     setSubsetUnderstandQz([...poolUnderstandQz].sort(() => 0.5 - Math.random()).slice(0, 5));
     setSubsetDiscoverEx([...poolDiscoverEx].sort(() => 0.5 - Math.random()).slice(0, 5));
     setSubsetUnderstandEx([...poolUnderstandEx].sort(() => 0.5 - Math.random()).slice(0, 5));
-  }, [dbQuizzes, dbExercises]);
+  }, [dbQuizzes, dbExercises]); // Removed completedExerciseIds and completedQuizIds dependencies to prevent auto-shuffle on answer
 
   // Load userId FIRST (critical for saving)
   useEffect(() => {
@@ -190,6 +208,27 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         return Math.max(max, ad.quizzes_correct_count || 0);
       }, 0);
 
+      // Load completed IDs
+      const completedEx: string[] = [];
+      const completedQz: string[] = [];
+      rows.forEach((row) => {
+        const ad = (row.assessment_data || {}) as Record<string, any>;
+        if (Array.isArray(ad.completed_exercises)) {
+          completedEx.push(...ad.completed_exercises);
+        }
+        if (Array.isArray(ad.completed_quizzes)) {
+          completedQz.push(...ad.completed_quizzes);
+        }
+      });
+
+      // Deduplicate
+      const uniqueEx = Array.from(new Set(completedEx));
+      const uniqueQz = Array.from(new Set(completedQz));
+
+      setCompletedExerciseIds(uniqueEx);
+      setCompletedQuizIds(uniqueQz);
+      console.log("✅ [LessonActivityTabs] Loaded completed items:", uniqueEx.length, "exercises,", uniqueQz.length, "quizzes");
+
       if (hasExercisesUnlocked) {
         console.log("🔓 [LessonActivityTabs] Setting exercises unlocked: true");
         setPersistedUnlockEx(true);
@@ -221,10 +260,30 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         setDiscoverCorrectQz(quizzesCorrectCount);
         console.log("📊 [LessonActivityTabs] Set quizzes correct to", quizzesCorrectCount);
       }
+
+      // Initialize subsets filtering out completed items
+      const halfQuiz = Math.ceil(dbQuizzes.length / 2);
+      const originDiscoverQz = dbQuizzes.slice(0, halfQuiz);
+      const originUnderstandQz = dbQuizzes.slice(halfQuiz);
+
+      const halfEx = Math.ceil(dbExercises.length / 2);
+      const originDiscoverEx = dbExercises.slice(0, halfEx);
+      const originUnderstandEx = dbExercises.slice(halfEx);
+
+      const poolDiscoverQz = originDiscoverQz.filter(q => !uniqueQz.includes(q.id));
+      const poolUnderstandQz = originUnderstandQz.filter(q => !uniqueQz.includes(q.id));
+
+      const poolDiscoverEx = originDiscoverEx.filter(e => !uniqueEx.includes(e.id));
+      const poolUnderstandEx = originUnderstandEx.filter(e => !uniqueEx.includes(e.id));
+
+      setSubsetDiscoverQz([...poolDiscoverQz].sort(() => 0.5 - Math.random()).slice(0, 5));
+      setSubsetUnderstandQz([...poolUnderstandQz].sort(() => 0.5 - Math.random()).slice(0, 5));
+      setSubsetDiscoverEx([...poolDiscoverEx].sort(() => 0.5 - Math.random()).slice(0, 5));
+      setSubsetUnderstandEx([...poolUnderstandEx].sort(() => 0.5 - Math.random()).slice(0, 5));
     };
 
     loadProgress();
-  }, [chapterId, lessonId, triggerReload, userId]);
+  }, [chapterId, lessonId, triggerReload, userId, dbQuizzes, dbExercises]);
 
   // Save unlock to DB
   const persistUnlock = useCallback(async (type: "exercises" | "quizzes", correctCount?: number) => {
@@ -321,6 +380,44 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
   }, [chapterId, lessonId]);
 
+  const persistItemCompletion = useCallback(async (type: "exercises" | "quizzes", itemId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const currentUserId = user.id;
+    const field = type === "exercises" ? "completed_exercises" : "completed_quizzes";
+
+    // Re-fetch current data to avoid overwriting (though optimistic UI update handles display)
+    const { data: rows } = await supabase
+      .from("student_scores")
+      .select("id, lesson_id, assessment_data")
+      .eq("user_id", currentUserId)
+      .eq("chapter_id", chapterId);
+
+    const targetRow = rows?.find(r => lessonId ? r.lesson_id === lessonId : r.lesson_id === null);
+
+    if (targetRow) {
+      const existingData = (targetRow.assessment_data || {}) as Record<string, any>;
+      const currentList: string[] = Array.isArray(existingData[field]) ? existingData[field] : [];
+
+      if (!currentList.includes(itemId)) {
+        const newList = [...currentList, itemId];
+        await supabase
+          .from("student_scores")
+          .update({ assessment_data: { ...existingData, [field]: newList } })
+          .eq("id", targetRow.id);
+      }
+    } else {
+      // Create new row
+      await supabase.from("student_scores").insert([{
+        user_id: currentUserId,
+        chapter_id: chapterId,
+        lesson_id: lessonId ?? null,
+        assessment_data: { [field]: [itemId] } as any
+      }]);
+    }
+  }, [chapterId, lessonId]);
+
 
   /* 
    * REMOVED: Redundant useEffects that were causing race conditions with direct calls.
@@ -354,24 +451,25 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const handleReloadContent = () => {
     if (activeSection === 'exercises') {
       const halfEx = Math.ceil(dbExercises.length / 2);
+
       if (activeStep === 'decouvrir') {
-        const pool = dbExercises.slice(0, halfEx);
+        const pool = dbExercises.slice(0, halfEx).filter(e => !completedExerciseIds.includes(e.id));
         setSubsetDiscoverEx([...pool].sort(() => 0.5 - Math.random()).slice(0, 5));
       } else if (activeStep === 'comprendre') {
-        const pool = dbExercises.slice(halfEx);
+        const pool = dbExercises.slice(halfEx).filter(e => !completedExerciseIds.includes(e.id));
         setSubsetUnderstandEx([...pool].sort(() => 0.5 - Math.random()).slice(0, 5));
       }
     } else {
       const halfQuiz = Math.ceil(dbQuizzes.length / 2);
+
       if (activeStep === 'decouvrir') {
-        const pool = dbQuizzes.slice(0, halfQuiz);
+        const pool = dbQuizzes.slice(0, halfQuiz).filter(q => !completedQuizIds.includes(q.id));
         setSubsetDiscoverQz([...pool].sort(() => 0.5 - Math.random()).slice(0, 5));
       } else if (activeStep === 'comprendre') {
-        const pool = dbQuizzes.slice(halfQuiz);
+        const pool = dbQuizzes.slice(halfQuiz).filter(q => !completedQuizIds.includes(q.id));
         setSubsetUnderstandQz([...pool].sort(() => 0.5 - Math.random()).slice(0, 5));
       }
     }
-    setResetKey(prev => prev + 1);
   };
 
   // Reload progress from DB (called when user switches sections to ensure fresh data)
@@ -458,8 +556,42 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     onSectionChange?.(section);
   };
 
-  const handleDiscoverAnswer = useCallback((isCorrect: boolean, type: "exercise" | "quiz") => {
-    console.log(`📝 [handleDiscoverAnswer] ${type}: isCorrect=${isCorrect}`);
+  const handleUnderstandAnswer = useCallback((isCorrect: boolean, type: "exercise" | "quiz", itemId: string) => {
+    if (isCorrect) {
+      if (type === "exercise") {
+        setCompletedExerciseIds(prev => {
+          if (prev.includes(itemId)) return prev;
+          persistItemCompletion("exercises", itemId);
+          return [...prev, itemId];
+        });
+      } else {
+        setCompletedQuizIds(prev => {
+          if (prev.includes(itemId)) return prev;
+          persistItemCompletion("quizzes", itemId);
+          return [...prev, itemId];
+        });
+      }
+    }
+  }, [persistItemCompletion]);
+
+  const handleDiscoverAnswer = useCallback((isCorrect: boolean, type: "exercise" | "quiz", itemId?: string) => {
+    console.log(`📝 [handleDiscoverAnswer] ${type}: isCorrect=${isCorrect}, id=${itemId}`);
+
+    if (itemId && isCorrect) {
+      if (type === "exercise") {
+        setCompletedExerciseIds(prev => {
+          if (prev.includes(itemId)) return prev;
+          persistItemCompletion("exercises", itemId);
+          return [...prev, itemId];
+        });
+      } else {
+        setCompletedQuizIds(prev => {
+          if (prev.includes(itemId)) return prev;
+          persistItemCompletion("quizzes", itemId);
+          return [...prev, itemId];
+        });
+      }
+    }
 
     if (type === "exercise") {
       setDiscoverTotalEx(prev => prev + 1);
@@ -721,41 +853,83 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 <span dir="rtl">{isQuiz ? "اختبارات تشخيصية" : "تمارين تمهيدية"}</span>
               </div>
 
-              {showReloadBtn && (
-                <div className="flex-1 flex justify-center">
+              <div className="flex-1 flex justify-center gap-2">
+                {/* Show Correct Answers Button */}
+                {(completedExerciseIds.length > 0 || completedQuizIds.length > 0) && (
+                  <Button
+                    size="sm"
+                    variant={showCorrectOnly ? "default" : "outline"}
+                    onClick={(e) => { e.stopPropagation(); setShowCorrectOnly(!showCorrectOnly); }}
+                    className={cn(
+                      "gap-2 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105",
+                      showCorrectOnly ? "bg-green-600 hover:bg-green-700 text-white" : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                    )}
+                    dir="rtl"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    <span>{showCorrectOnly ? "العودة للتمارين" : "إجابات صحيحة"}</span>
+                  </Button>
+                )}
+
+                {showReloadBtn && !showCorrectOnly && (
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={(e) => { e.stopPropagation(); handleReloadContent(); }}
                     className="gap-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-950/30 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105"
                     title="تحميل أسئلة جديدة"
+                    dir="rtl"
                   >
                     <Dices className="h-3.5 w-3.5" />
                     <span>مجموعة جديدة</span>
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
 
-              <Badge variant="secondary" className={!showReloadBtn ? "ml-auto" : ""}>{isQuiz ? discoverQuizzes.length : discoverExercises.length} {isQuiz ? "أسئلة" : "تمارين"}</Badge>
+              <Badge variant="secondary" className={!showReloadBtn ? "ml-auto" : ""}>{
+                showCorrectOnly
+                  ? (isQuiz ? completedQuizIds.length : completedExerciseIds.length)
+                  : (isQuiz ? discoverQuizzes.length : discoverExercises.length)
+              } {isQuiz ? "أسئلة" : "تمارين"}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {isQuiz ? (
-              discoverQuizzes.length > 0 ? (
-                <div className="space-y-3" key={resetKey}>
-                  {discoverQuizzes.map((q, idx) => (
-                    <TrackedQuizCard key={`${q.id}-${resetKey}`} question={q} index={idx} readOnly={readOnly} onAnswer={(c) => handleDiscoverAnswer(c, "quiz")} />
-                  ))}
-                </div>
-              ) : <EmptyState text="لا توجد اختبارات تشخيصية بعد" />
+            {showCorrectOnly ? (
+              // Render ALL completed items
+              <div className="space-y-3 animate-in fade-in zoom-in-50 duration-300">
+                {isQuiz ? (
+                  completedQuizIds.length > 0 ? (
+                    dbQuizzes.filter(q => completedQuizIds.includes(q.id)).map((q, idx) => (
+                      <TrackedQuizCard key={`completed-qz-${q.id}`} question={q} index={idx} readOnly={true} onAnswer={() => { }} />
+                    ))
+                  ) : <EmptyState text="لا توجد إجابات صحيحة بعد" />
+                ) : (
+                  completedExerciseIds.length > 0 ? (
+                    dbExercises.filter(e => completedExerciseIds.includes(e.id)).map((ex, idx) => (
+                      <TrackedExerciseCard key={`completed-ex-${ex.id}`} exercise={ex} index={idx} readOnly={true} onAnswer={() => { }} />
+                    ))
+                  ) : <EmptyState text="لا توجد تمارين صحيحة بعد" />
+                )}
+              </div>
             ) : (
-              discoverExercises.length > 0 ? (
-                <div className="space-y-3" key={resetKey}>
-                  {discoverExercises.map((ex, idx) => (
-                    <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx} readOnly={readOnly} onAnswer={(c) => handleDiscoverAnswer(c, "exercise")} />
-                  ))}
-                </div>
-              ) : <EmptyState text="لا توجد تمارين تمهيدية بعد" />
+              // Render Random Subset
+              isQuiz ? (
+                discoverQuizzes.length > 0 ? (
+                  <div className="space-y-3" key={resetKey}>
+                    {discoverQuizzes.map((q, idx) => (
+                      <TrackedQuizCard key={`${q.id}-${resetKey}`} question={q} index={idx} readOnly={readOnly} onAnswer={(c) => handleDiscoverAnswer(c, "quiz", q.id)} />
+                    ))}
+                  </div>
+                ) : <EmptyState text={completedQuizIds.length > 0 ? "أكملت جميع الاختبارات المتاحة!" : "لا توجد اختبارات تشخيصية بعد"} />
+              ) : (
+                discoverExercises.length > 0 ? (
+                  <div className="space-y-3" key={resetKey}>
+                    {discoverExercises.map((ex, idx) => (
+                      <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx} readOnly={readOnly} onAnswer={(c) => handleDiscoverAnswer(c, "exercise", ex.id)} />
+                    ))}
+                  </div>
+                ) : <EmptyState text={completedExerciseIds.length > 0 ? "أكملت جميع التمارين المتاحة!" : "لا توجد تمارين تمهيدية بعد"} />
+              )
             )}
           </CardContent>
         </Card>
@@ -770,75 +944,132 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 <span dir="rtl">{isQuiz ? "اختبارات تطبيقية" : "تمارين تطبيقية"}</span>
               </div>
 
-              {showReloadBtn && (
-                <div className="flex-1 flex justify-center">
+              <div className="flex-1 flex justify-center gap-2">
+                {(completedExerciseIds.length > 0 || completedQuizIds.length > 0) && (
+                  <Button
+                    size="sm"
+                    variant={showCorrectOnly ? "default" : "outline"}
+                    onClick={(e) => { e.stopPropagation(); setShowCorrectOnly(!showCorrectOnly); }}
+                    className={cn(
+                      "gap-2 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105",
+                      showCorrectOnly ? "bg-green-600 hover:bg-green-700 text-white" : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                    )}
+                    dir="rtl"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    <span>{showCorrectOnly ? "العودة للتمارين" : "إجابات صحيحة"}</span>
+                  </Button>
+                )}
+
+                {!showCorrectOnly && (
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={(e) => { e.stopPropagation(); handleReloadContent(); }}
                     className="gap-2 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100 dark:bg-yellow-950/30 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-900/40 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105"
                     title="تحميل أسئلة جديدة"
+                    dir="rtl"
                   >
                     <Dices className="h-3.5 w-3.5" />
                     <span>مجموعة جديدة</span>
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
 
-              <Badge variant="secondary" className={!showReloadBtn ? "ml-auto" : ""}>{isQuiz ? understandQuizzes.length : understandExercises.length} {isQuiz ? "أسئلة" : "تمارين"}</Badge>
+              <Badge variant="secondary" className={!showReloadBtn ? "ml-auto" : ""}>{
+                showCorrectOnly
+                  ? (isQuiz ? completedQuizIds.length : completedExerciseIds.length)
+                  : (isQuiz ? subsetUnderstandQz.length : subsetUnderstandEx.length)
+              } {isQuiz ? "أسئلة" : "تمارين"}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {isQuiz ? (
-              understandQuizzes.length > 0 ? (
-                <div className="space-y-3">{understandQuizzes.map((q, idx) => <QuizQuestionCard key={q.id} question={q} index={idx + halfQuiz} readOnly={readOnly} />)}</div>
-              ) : <EmptyState text="لا توجد اختبارات تطبيقية بعد" />
+            {showCorrectOnly ? (
+              <div className="space-y-3 animate-in fade-in zoom-in-50 duration-300">
+                {isQuiz ? (
+                  completedQuizIds.length > 0 ? (
+                    dbQuizzes.filter(q => completedQuizIds.includes(q.id)).map((q, idx) => (
+                      <TrackedQuizCard key={`completed-qz-und-${q.id}`} question={q} index={idx} readOnly={true} onAnswer={() => { }} />
+                    ))
+                  ) : <EmptyState text="لا توجد إجابات صحيحة بعد" />
+                ) : (
+                  completedExerciseIds.length > 0 ? (
+                    dbExercises.filter(e => completedExerciseIds.includes(e.id)).map((ex, idx) => (
+                      <TrackedExerciseCard key={`completed-ex-und-${ex.id}`} exercise={ex} index={idx} readOnly={true} onAnswer={() => { }} />
+                    ))
+                  ) : <EmptyState text="لا توجد تمارين صحيحة بعد" />
+                )}
+              </div>
             ) : (
-              understandExercises.length > 0 ? (
-                <div className="space-y-3">{understandExercises.map((ex, idx) => <ExerciseCard key={ex.id} exercise={ex} index={idx + halfExercise} readOnly={readOnly} />)}</div>
-              ) : <EmptyState text="لا توجد تمارين تطبيقية بعد" />
+              isQuiz ? (
+                subsetUnderstandQz.length > 0 ? (
+                  <div className="space-y-3">
+                    {subsetUnderstandQz.map((q, idx) => (
+                      <TrackedQuizCard
+                        key={`${q.id}-${resetKey}`}
+                        question={q}
+                        index={idx + halfQuiz}
+                        readOnly={readOnly}
+                        onAnswer={(c) => handleUnderstandAnswer(c, "quiz", q.id)}
+                      />
+                    ))}
+                  </div>
+                ) : <EmptyState text={completedQuizIds.length > 0 ? "أكملت جميع الاختبارات المتاحة!" : "لا توجد اختبارات تطبيقية بعد"} />
+              ) : (
+                subsetUnderstandEx.length > 0 ? (
+                  <div className="space-y-3">
+                    {subsetUnderstandEx.map((ex, idx) => (
+                      <TrackedExerciseCard
+                        key={`${ex.id}-${resetKey}`}
+                        exercise={ex}
+                        index={idx + halfExercise}
+                        readOnly={readOnly}
+                        onAnswer={(c) => handleUnderstandAnswer(c, "exercise", ex.id)}
+                      />
+                    ))}
+                  </div>
+                ) : <EmptyState text={completedExerciseIds.length > 0 ? "أكملت جميع التمارين المتاحة!" : "لا توجد تمارين تطبيقية بعد"} />
+              )
             )}
+
+            <div className="mt-8 pt-6 border-t border-dashed">
+              <h3 className="font-bold mb-3 flex items-center justify-center gap-2">
+                <Sparkles className="h-4 w-4 text-yellow-500" />
+                <span dir="rtl">{isQuiz ? "اختبارات ذكية" : "تمارين ذكية"} - إنشاء بالذكاء الاصطناعي</span>
+                <Sparkles className="h-4 w-4 text-yellow-500" />
+              </h3>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto" dir="rtl">
+                  {isQuiz ? "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء اختبارات متقدمة تناسب مستواك" : "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء تمارين متقدمة تناسب مستواك"}
+                </p>
+                <Button size="lg" onClick={() => onGenerateAI(isQuiz ? "quiz" : "exercise")} className="bg-purple-600 hover:bg-purple-700 text-white font-bold gap-2 transition-all hover:scale-105 shadow-md shadow-purple-500/20">
+                  <Sparkles className="h-4 w-4 text-yellow-300" />
+                  Générer avec l'IA
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
 
-      {activeStep === "approfondir" && isUnlocked && hasActiveSubscription && (
-        <Card className="border-purple-500/20">
-          <CardHeader className="pb-3 text-center">
-            <CardTitle className="flex items-center justify-center gap-2 text-purple-600">
-              <Sparkles className="h-4 w-4 text-yellow-500" />
-              <span dir="rtl">{isQuiz ? "اختبارات ذكية" : "تمارين ذكية"} - إنشاء بالذكاء الاصطناعي</span>
-              <Sparkles className="h-4 w-4 text-yellow-500" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center py-4">
-            <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto" dir="rtl">
-              {isQuiz ? "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء اختبارات متقدمة تناسب مستواك" : "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء تمارين متقدمة تناسب مستواك"}
-            </p>
-            <Button size="lg" onClick={() => onGenerateAI(isQuiz ? "quiz" : "exercise")} className="bg-purple-600 hover:bg-purple-700 text-white font-bold gap-2 transition-all hover:scale-105 shadow-md shadow-purple-500/20">
-              <Sparkles className="h-4 w-4 text-yellow-300" />
-              Générer avec l'IA
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {(activeStep === "comprendre" || activeStep === "approfondir") && !isUnlocked && (
-        <Card className="border-destructive/20 bg-destructive/5">
-          <CardContent className="p-8 text-center space-y-3">
-            <Lock className="h-12 w-12 text-muted-foreground mx-auto" />
-            <h3 className="font-bold text-lg" dir="rtl">هذه المرحلة مقفلة</h3>
-            <p className="text-sm text-muted-foreground max-w-sm mx-auto" dir="rtl">
-              يجب عليك الإجابة على {REQUIRED_CORRECT} أسئلة صحيحة على الأقل في مرحلة "اكتشف" لفتح هذه المرحلة.
-            </p>
-            <Button variant="outline" onClick={() => setActiveStep("decouvrir")} className="gap-2">
-              <Eye className="h-4 w-4" />
-              العودة إلى "اكتشف"
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+      {
+        (activeStep === "comprendre" || activeStep === "approfondir") && !isUnlocked && (
+          <Card className="border-destructive/20 bg-destructive/5">
+            <CardContent className="p-8 text-center space-y-3">
+              <Lock className="h-12 w-12 text-muted-foreground mx-auto" />
+              <h3 className="font-bold text-lg" dir="rtl">هذه المرحلة مقفلة</h3>
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto" dir="rtl">
+                يجب عليك الإجابة على {REQUIRED_CORRECT} أسئلة صحيحة على الأقل في مرحلة "اكتشف" لفتح هذه المرحلة.
+              </p>
+              <Button variant="outline" onClick={() => setActiveStep("decouvrir")} className="gap-2">
+                <Eye className="h-4 w-4" />
+                العودة إلى "اكتشف"
+              </Button>
+            </CardContent>
+          </Card>
+        )
+      }
+    </div >
   );
 }
 
