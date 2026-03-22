@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { UserPlus, Hash, Trash2, Eye, User, GraduationCap, Loader2 } from "lucide-react";
+import { UserPlus, Hash, Trash2, User, GraduationCap, Loader2 } from "lucide-react";
 import { useLinkedChildren, LinkedChild } from "@/hooks/useProfile";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import { toast } from "sonner";
@@ -225,11 +225,6 @@ function ChildCard({
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm">
-          <Eye className="h-4 w-4 mr-2" />
-          Voir
-        </Button>
-
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="outline" size="sm" className="text-destructive">

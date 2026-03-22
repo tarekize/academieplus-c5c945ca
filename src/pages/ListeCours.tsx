@@ -276,6 +276,10 @@ const ListeCours = () => {
                         <span>Gestion Utilisateurs</span>
                       </DropdownMenuItem>
                     )}
+                    <DropdownMenuItem onClick={() => navigate("/account")}>
+                      <UserIcon className="mr-2 h-4 w-4" />
+                      <span>Gérer mon compte</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                       <GraduationCap className="mr-2 h-4 w-4" />
                       <span>Tableau de bord</span>
@@ -407,6 +411,10 @@ const ListeCours = () => {
                         <span>Gestion Utilisateurs</span>
                       </DropdownMenuItem>
                     )}
+                    <DropdownMenuItem onClick={() => navigate("/account")}>
+                      <UserIcon className="mr-2 h-4 w-4" />
+                      <span>Gérer mon compte</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                       <GraduationCap className="mr-2 h-4 w-4" />
                       <span>Tableau de bord</span>
