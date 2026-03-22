@@ -402,19 +402,31 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
       if (!currentList.includes(itemId)) {
         const newList = [...currentList, itemId];
-        await supabase
+        const { error: updateError } = await supabase
           .from("student_scores")
           .update({ assessment_data: { ...existingData, [field]: newList } })
           .eq("id", targetRow.id);
+        
+        if (updateError) {
+          console.error("❌ Failed to update completion:", updateError);
+        } else {
+          console.log("✅ Saved completion:", itemId);
+        }
       }
     } else {
       // Create new row
-      await supabase.from("student_scores").insert([{
+      const { error: insertError } = await supabase.from("student_scores").insert([{
         user_id: currentUserId,
         chapter_id: chapterId,
         lesson_id: lessonId ?? null,
         assessment_data: { [field]: [itemId] } as any
       }]);
+
+      if (insertError) {
+        console.error("❌ Failed to save new completion row:", insertError);
+      } else {
+        console.log("✅ Created new row for completion:", itemId);
+      }
     }
   }, [chapterId, lessonId]);
 
