@@ -406,7 +406,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           .from("student_scores")
           .update({ assessment_data: { ...existingData, [field]: newList } })
           .eq("id", targetRow.id);
-        
+
         if (updateError) {
           console.error("❌ Failed to update completion:", updateError);
         } else {
@@ -912,7 +912,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 {isQuiz ? (
                   completedQuizIds.length > 0 ? (
                     dbQuizzes.filter(q => completedQuizIds.includes(q.id)).map((q, idx) => (
-                      <TrackedQuizCard key={`completed-qz-${q.id}`} question={q} index={idx} readOnly={true} onAnswer={() => { }} />
+                      <CompletedQuizCard key={`completed-qz-${q.id}`} question={q} index={idx} />
                     ))
                   ) : <EmptyState text="لا توجد إجابات صحيحة بعد" />
                 ) : (
@@ -1001,7 +1001,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 {isQuiz ? (
                   completedQuizIds.length > 0 ? (
                     dbQuizzes.filter(q => completedQuizIds.includes(q.id)).map((q, idx) => (
-                      <TrackedQuizCard key={`completed-qz-und-${q.id}`} question={q} index={idx} readOnly={true} onAnswer={() => { }} />
+                      <CompletedQuizCard key={`completed-qz-und-${q.id}`} question={q} index={idx} />
                     ))
                   ) : <EmptyState text="لا توجد إجابات صحيحة بعد" />
                 ) : (
@@ -1043,22 +1043,33 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 ) : <EmptyState text={completedExerciseIds.length > 0 ? "أكملت جميع التمارين المتاحة!" : "لا توجد تمارين تطبيقية بعد"} />
               )
             )}
+          </CardContent>
+        </Card>
+      )}
 
-            <div className="mt-8 pt-6 border-t border-dashed">
-              <h3 className="font-bold mb-3 flex items-center justify-center gap-2">
-                <Sparkles className="h-4 w-4 text-yellow-500" />
+      {activeStep === "approfondir" && isUnlocked && (
+        <Card className="border-purple-500/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center justify-between text-purple-600">
+              <div className="flex items-center gap-2">
+                <Rocket className="h-5 w-5" />
                 <span dir="rtl">{isQuiz ? "اختبارات ذكية" : "تمارين ذكية"} - إنشاء بالذكاء الاصطناعي</span>
-                <Sparkles className="h-4 w-4 text-yellow-500" />
-              </h3>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto" dir="rtl">
-                  {isQuiz ? "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء اختبارات متقدمة تناسب مستواك" : "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء تمارين متقدمة تناسب مستواك"}
-                </p>
-                <Button size="lg" onClick={() => onGenerateAI(isQuiz ? "quiz" : "exercise")} className="bg-purple-600 hover:bg-purple-700 text-white font-bold gap-2 transition-all hover:scale-105 shadow-md shadow-purple-500/20">
-                  <Sparkles className="h-4 w-4 text-yellow-300" />
-                  Générer avec l'IA
-                </Button>
               </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8">
+              <div className="bg-purple-50 dark:bg-purple-900/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className="text-lg font-bold mb-2">Générer avec l'IA</h3>
+              <p className="text-muted-foreground mb-6 max-w-sm mx-auto" dir="rtl">
+                {isQuiz ? "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء اختبارات متقدمة تناسب مستواك" : "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء تمارين متقدمة تناسب مستواك"}
+              </p>
+              <Button size="lg" onClick={() => onGenerateAI(isQuiz ? "quiz" : "exercise")} className="bg-purple-600 hover:bg-purple-700 text-white font-bold gap-2 transition-all hover:scale-105 shadow-md shadow-purple-500/20">
+                <Sparkles className="h-4 w-4 text-yellow-300" />
+                Générer avec l'IA
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -1103,6 +1114,25 @@ const DifficultyIndicator = ({ level }: { level?: number }) => {
     </div>
   );
 };
+
+function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; index: number }) {
+  return (
+    <Card className="border-green-500/50 bg-green-500/5 transition-all hover:bg-green-500/10">
+      <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex-1 order-2 sm:order-1 w-full text-right">
+          <p className="font-medium text-lg leading-relaxed" dir="rtl">
+            <span className="font-bold text-muted-foreground ml-2">{index + 1}.</span>
+            {question.question}
+          </p>
+        </div>
+        <div className="order-1 sm:order-2 shrink-0 flex flex-row sm:flex-col items-center gap-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-4 py-2 rounded-lg border border-green-200 dark:border-green-800 shadow-sm w-full sm:w-auto justify-between sm:justify-center">
+          <span className="text-xs font-semibold uppercase text-green-600/70 dark:text-green-400/70">الإجابة</span>
+          <span className="font-bold text-lg" dir="rtl">{question.correct_answer}</span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DBQuizQuestion; index: number; readOnly?: boolean; onAnswer: (correct: boolean) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
