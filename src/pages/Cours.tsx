@@ -200,12 +200,12 @@ const Cours = () => {
 
     let quizzesQuery = supabase
       .from("chapter_quizzes")
-      .select("id, lesson_id, question, options, correct_answer, explanation, difficulty")
+      .select("id, lesson_id, question, options, explanation, difficulty")
       .eq("chapter_id", activeChapter.id);
 
     let exercisesQuery = supabase
       .from("chapter_exercises")
-      .select("id, lesson_id, title, statement, expected_answer, accepted_answers, solution, difficulty")
+      .select("id, lesson_id, title, statement, difficulty")
       .eq("chapter_id", activeChapter.id);
 
     if (lessonId) {

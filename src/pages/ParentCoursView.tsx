@@ -88,12 +88,12 @@ const ParentCoursView = () => {
 
     let quizzesQuery = supabase
       .from("chapter_quizzes")
-      .select("id, lesson_id, question, options, correct_answer, explanation")
+      .select("id, lesson_id, question, options, explanation")
       .eq("chapter_id", activeChapter.id);
 
     let exercisesQuery = supabase
       .from("chapter_exercises")
-      .select("id, lesson_id, title, statement, expected_answer, accepted_answers, solution")
+      .select("id, lesson_id, title, statement")
       .eq("chapter_id", activeChapter.id);
 
     if (lessonId) {
