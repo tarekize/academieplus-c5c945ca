@@ -267,6 +267,7 @@ const ListeCours = () => {
                         <p className="text-sm font-medium">{fullName}</p>
                         <p className="text-xs text-muted-foreground">{isAdmin ? 'Administrateur' : 'Pédagogue'}</p>
                       </div>
+
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
