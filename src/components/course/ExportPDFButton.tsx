@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
-import html2pdf from "html2pdf.js";
 
 interface ExportPDFButtonProps {
   chapterTitle: string;
@@ -9,33 +8,38 @@ interface ExportPDFButtonProps {
 }
 
 export const ExportPDFButton = ({ chapterTitle, content }: ExportPDFButtonProps) => {
-  const handleExportPDF = async () => {
+  const handleExportPDF = () => {
     try {
-      toast.info("Génération du PDF en cours...");
+      toast.info("Préparation du PDF...");
 
-      const element = document.createElement('div');
-      element.innerHTML = `
-        <div style="padding: 40px; font-family: Arial, sans-serif;">
-          <div style="border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;">
-            <h1 style="font-size: 28px; font-weight: bold; text-align: center; margin: 0;">${chapterTitle}</h1>
-          </div>
-          <div style="line-height: 1.6; color: #333;">
-            ${content}
-          </div>
-        </div>
-      `;
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        toast.error("Veuillez autoriser les pop-ups pour exporter en PDF");
+        return;
+      }
 
-      const opt = {
-        margin: 10,
-        filename: `${chapterTitle.replace(/[^a-z0-9]/gi, '_')}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
-      };
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${chapterTitle}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+            h1 { font-size: 28px; font-weight: bold; text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+            .content { line-height: 1.6; }
+            @media print { body { padding: 20px; } }
+          </style>
+        </head>
+        <body>
+          <h1>${chapterTitle}</h1>
+          <div class="content">${content}</div>
+          <script>window.onload = function() { window.print(); }<\/script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
 
-      await html2pdf().set(opt).from(element).save();
-      
-      toast.success("PDF exporté avec succès!");
+      toast.success("PDF prêt à l'impression !");
     } catch (error) {
       console.error('Error exporting PDF:', error);
       toast.error("Erreur lors de l'export PDF");

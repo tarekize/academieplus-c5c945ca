@@ -313,18 +313,14 @@ const Cours = () => {
     if (!activeChapter) return;
 
     try {
-      const { jsPDF } = await import("jspdf");
-      const doc = new jsPDF();
-
-      doc.setFontSize(18);
-      doc.text(activeChapter.title, 20, 20);
-
-      doc.setFontSize(12);
       const content = activeChapter.content?.replace(/<[^>]*>/g, '') || 'Contenu non disponible';
-      const lines = doc.splitTextToSize(content, 170);
-      doc.text(lines.slice(0, 40), 20, 35);
-
-      doc.save(`${activeChapter.title}.pdf`);
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        toast({ title: "Erreur", description: "Veuillez autoriser les pop-ups", variant: "destructive" });
+        return;
+      }
+      printWindow.document.write(`<!DOCTYPE html><html><head><title>${activeChapter.title}</title><style>body{font-family:Arial,sans-serif;padding:40px;color:#333}h1{font-size:24px;border-bottom:2px solid #333;padding-bottom:10px}</style></head><body><h1>${activeChapter.title}</h1><p style="line-height:1.6;white-space:pre-wrap">${content}</p><script>window.onload=function(){window.print()}<\/script></body></html>`);
+      printWindow.document.close();
 
       toast({
         title: "PDF téléchargé",
