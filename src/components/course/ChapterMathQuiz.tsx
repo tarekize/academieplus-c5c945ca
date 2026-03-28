@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Trophy, BookOpen, Clock, Pause, Play, PenTool } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Trophy, BookOpen, Clock, Pause, Play, PenTool, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 function DifficultyPencils({ level }: { level: number }) {
   return (
@@ -42,6 +43,10 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [hasAnswered, setHasAnswered] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
+  const [explanation, setExplanation] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [answers, setAnswers] = useState<{ question: string; userAnswer: string; correct: boolean }[]>([]);
@@ -52,15 +57,43 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
   });
 
   const currentQuestion = questions[currentIndex];
-  const isCorrect = selectedAnswer === currentQuestion?.correct_answer;
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
-  const handleSubmit = () => {
-    if (!selectedAnswer) return;
-    setHasAnswered(true);
-    const correct = selectedAnswer === currentQuestion.correct_answer;
-    if (correct) setScore(prev => prev + 1);
-    setAnswers(prev => [...prev, { question: currentQuestion.question, userAnswer: selectedAnswer, correct }]);
+  const handleSubmit = async () => {
+    if (!selectedAnswer || !currentQuestion) return;
+    setIsSubmitting(true);
+
+    try {
+      const { data, error } = await supabase.rpc('check_quiz_answer', {
+        _quiz_id: currentQuestion.id,
+        _user_answer: selectedAnswer,
+      });
+
+      if (error) throw error;
+
+      const result = data as { is_correct: boolean; explanation: string; correct_answer: string | null };
+      setIsCorrect(result.is_correct);
+      setCorrectAnswer(result.correct_answer);
+      setExplanation(result.explanation || currentQuestion.explanation || "");
+      setHasAnswered(true);
+
+      if (result.is_correct) setScore(prev => prev + 1);
+      setAnswers(prev => [...prev, { question: currentQuestion.question, userAnswer: selectedAnswer, correct: result.is_correct }]);
+    } catch (error) {
+      console.error("Error validating answer:", error);
+      // Fallback to client-side if RPC fails and correct_answer is available (admin/pedago)
+      if (currentQuestion.correct_answer) {
+        const correct = selectedAnswer === currentQuestion.correct_answer;
+        setIsCorrect(correct);
+        setCorrectAnswer(correct ? null : currentQuestion.correct_answer);
+        setExplanation(currentQuestion.explanation || "");
+        setHasAnswered(true);
+        if (correct) setScore(prev => prev + 1);
+        setAnswers(prev => [...prev, { question: currentQuestion.question, userAnswer: selectedAnswer, correct }]);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleNext = () => {
@@ -68,6 +101,9 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
       setCurrentIndex(prev => prev + 1);
       setSelectedAnswer("");
       setHasAnswered(false);
+      setIsCorrect(false);
+      setCorrectAnswer(null);
+      setExplanation("");
     } else {
       setShowResults(true);
     }
@@ -76,6 +112,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
   const handleRestart = () => {
     setCurrentIndex(0); setSelectedAnswer(""); setHasAnswered(false);
     setScore(0); setShowResults(false); setAnswers([]);
+    setIsCorrect(false); setCorrectAnswer(null); setExplanation("");
   };
 
   if (showResults) {
@@ -159,7 +196,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                 <QuizFormDialog chapterId={chapterId} onSaved={onRefresh} />
                 <QuizFormDialog chapterId={chapterId} onSaved={onRefresh} quiz={{
                   id: currentQuestion.id, question: currentQuestion.question,
-                  options: currentQuestion.options, correct_answer: currentQuestion.correct_answer,
+                  options: currentQuestion.options, correct_answer: currentQuestion.correct_answer || "",
                   explanation: currentQuestion.explanation,
                 }} />
                 <DeleteQuizButton quizId={currentQuestion.id} onDeleted={onRefresh} />
@@ -169,22 +206,23 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
         </CardHeader>
         <CardContent className="space-y-6">
           <h3 className="text-lg font-semibold flex items-center" dir="rtl">{currentQuestion.question}{currentQuestion.difficulty && <DifficultyPencils level={currentQuestion.difficulty} />}</h3>
-          <RadioGroup value={selectedAnswer} onValueChange={setSelectedAnswer} disabled={hasAnswered} className="space-y-3">
+          <RadioGroup value={selectedAnswer} onValueChange={setSelectedAnswer} disabled={hasAnswered || isSubmitting} className="space-y-3">
             {currentQuestion.options.map((option, index) => {
-              const isThisCorrect = hasAnswered && option === currentQuestion.correct_answer;
+              const isThisCorrect = hasAnswered && correctAnswer !== null ? option === correctAnswer : hasAnswered && isCorrect && option === selectedAnswer;
               const isThisSelected = option === selectedAnswer;
-              const isThisWrong = hasAnswered && isThisSelected && !isThisCorrect;
+              const isThisWrong = hasAnswered && isThisSelected && !isCorrect;
+              const isThisTheCorrectOne = hasAnswered && !isCorrect && option === correctAnswer;
               return (
                 <div key={index} className={cn(
                   "flex items-center space-x-3 p-4 rounded-lg border-2 transition-all",
-                  isThisCorrect && "bg-green-500/10 border-green-500",
+                  (isThisCorrect || isThisTheCorrectOne) && "bg-green-500/10 border-green-500",
                   isThisWrong && "bg-red-500/10 border-red-500",
                   isThisSelected && !hasAnswered && "bg-primary/10 border-primary",
-                  !isThisSelected && !isThisCorrect && !isThisWrong && "border-border hover:bg-accent"
+                  !isThisSelected && !isThisCorrect && !isThisWrong && !isThisTheCorrectOne && "border-border hover:bg-accent"
                 )}>
                   <RadioGroupItem value={option} id={`option-${index}`} />
                   <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer" dir="rtl">{option}</Label>
-                  {isThisCorrect && <CheckCircle2 className="h-5 w-5 text-green-500" />}
+                  {(isThisCorrect || isThisTheCorrectOne) && <CheckCircle2 className="h-5 w-5 text-green-500" />}
                   {isThisWrong && <XCircle className="h-5 w-5 text-red-500" />}
                 </div>
               );
@@ -194,15 +232,18 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           {hasAnswered && (
             <div className={cn("p-4 rounded-lg", isCorrect ? "bg-green-500/10" : "bg-amber-500/10")} dir="rtl">
               <p className="font-medium mb-1">{isCorrect ? "✓ إجابة صحيحة!" : "✗ إجابة خاطئة"}</p>
-              {currentQuestion.explanation && <p className="text-sm text-muted-foreground">{currentQuestion.explanation}</p>}
-              {!isCorrect && <p className="text-sm mt-2 font-medium">الإجابة الصحيحة: {currentQuestion.correct_answer}</p>}
+              {explanation && <p className="text-sm text-muted-foreground">{explanation}</p>}
+              {!isCorrect && correctAnswer && <p className="text-sm mt-2 font-medium">الإجابة الصحيحة: {correctAnswer}</p>}
             </div>
           )}
 
           <div className="flex gap-3">
             <Button variant="outline" onClick={onClose} className="flex-1">خروج</Button>
             {!hasAnswered ? (
-              <Button onClick={handleSubmit} disabled={!selectedAnswer} className="flex-1">تأكيد</Button>
+              <Button onClick={handleSubmit} disabled={!selectedAnswer || isSubmitting} className="flex-1">
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                تأكيد
+              </Button>
             ) : (
               <Button onClick={handleNext} className="flex-1">
                 {currentIndex < questions.length - 1 ? <>التالي <ArrowRight className="h-4 w-4 ml-2" /></> : "عرض النتائج"}
