@@ -101,69 +101,26 @@ const Paiement = () => {
     navigate("/");
   };
 
-  const generateCode = (): string => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let code = "";
-    for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
-    return code;
-  };
-
   const handlePayment = async () => {
     if (!paymentInfo || !profile) return;
     setProcessing(true);
 
     try {
-      const session = await supabase.auth.getSession();
-      const userId = session.data.session?.user.id;
-      if (!userId) throw new Error("Non authentifié");
-
-      // Get active period
-      const { data: periods } = await supabase
-        .from("subscription_periods")
-        .select("id")
-        .eq("is_active", true)
-        .limit(1);
-
-      const periodId = periods && periods.length > 0 ? periods[0].id : null;
-
-      // Insert payment
-      const { data: payment, error: payErr } = await supabase
-        .from("payments")
-        .insert({
-          user_id: userId,
-          amount: paymentInfo.price,
-          plan_type: paymentInfo.billingPeriod,
-          plan_label: paymentInfo.planName,
+      const { data, error } = await supabase.functions.invoke('record-payment', {
+        body: {
+          billing_period: paymentInfo.billingPeriod,
+          plan_name: paymentInfo.planName,
           is_family: paymentInfo.isFamily,
-          children_count: paymentInfo.isFamily ? 3 : 1,
-          period_id: periodId,
-          status: "completed",
-        })
-        .select()
-        .single();
+        },
+      });
 
-      if (payErr) throw payErr;
+      if (error) throw new Error(error.message || 'Payment failed');
+      if (data?.error) throw new Error(data.error);
 
-      // Generate activation codes
-      const codeCount = paymentInfo.isFamily ? 3 : 1;
-      const codes: string[] = [];
-
-      for (let i = 0; i < codeCount; i++) {
-        const code = generateCode();
-        codes.push(code);
-        await supabase.from("activation_codes").insert({
-          code,
-          payment_id: payment.id,
-          created_by: userId,
-          plan_type: paymentInfo.billingPeriod === "annual" ? "annual" : "monthly",
-          is_family: paymentInfo.isFamily,
-          status: "free",
-        });
-      }
-
-      setGeneratedCodes(codes);
+      setGeneratedCodes(data.codes || []);
       setPaymentDone(true);
 
+      const codeCount = data.codes?.length || 1;
       toast({ title: "Paiement effectué !", description: `${codeCount} code(s) d'activation généré(s).` });
     } catch (err: any) {
       toast({ title: "Erreur", description: err.message, variant: "destructive" });
