@@ -24,7 +24,7 @@ export interface DBQuizQuestion {
   lesson_id?: string | null;
   question: string;
   options: string[];
-  correct_answer: string;
+  correct_answer?: string;
   explanation: string | null;
   difficulty?: number;
 }

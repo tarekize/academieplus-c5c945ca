@@ -13,9 +13,9 @@ export interface DBExercise {
   lesson_id?: string | null;
   title: string;
   statement: string;
-  expected_answer: string;
-  accepted_answers: string[];
-  solution: string;
+  expected_answer?: string;
+  accepted_answers?: string[];
+  solution?: string;
   difficulty?: number;
 }
 
