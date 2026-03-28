@@ -88,12 +88,12 @@ const ParentCoursView = () => {
 
     let quizzesQuery = supabase
       .from("chapter_quizzes")
-      .select("id, lesson_id, question, options, correct_answer, explanation")
+      .select("id, lesson_id, question, options, explanation")
       .eq("chapter_id", activeChapter.id);
 
     let exercisesQuery = supabase
       .from("chapter_exercises")
-      .select("id, lesson_id, title, statement, expected_answer, accepted_answers, solution")
+      .select("id, lesson_id, title, statement")
       .eq("chapter_id", activeChapter.id);
 
     if (lessonId) {
@@ -109,7 +109,7 @@ const ParentCoursView = () => {
       exercisesQuery.order("order_index"),
     ]);
     setDbQuizzes((quizzes || []).map(q => ({ ...q, options: Array.isArray(q.options) ? q.options as string[] : [] })));
-    setDbExercises((exercises || []).map(e => ({ ...e, accepted_answers: Array.isArray(e.accepted_answers) ? e.accepted_answers as string[] : [] })));
+    setDbExercises((exercises || []).map(e => ({ ...e })));
   }, [activeChapter]);
 
   useEffect(() => { fetchData(); }, [fetchData]);

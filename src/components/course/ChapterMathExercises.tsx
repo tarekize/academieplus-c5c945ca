@@ -2,20 +2,21 @@ import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, BookOpen, CheckCircle2, XCircle, PenTool, Send, Eye, Clock } from "lucide-react";
+import { ArrowLeft, BookOpen, CheckCircle2, XCircle, PenTool, Send, Eye, Clock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useTimeTracking, formatTime } from "@/hooks/useTimeTracking";
 import { ExerciseFormDialog, DeleteExerciseButton } from "./QuizExerciseCRUD";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface DBExercise {
   id: string;
   lesson_id?: string | null;
   title: string;
   statement: string;
-  expected_answer: string;
-  accepted_answers: string[];
-  solution: string;
+  expected_answer?: string;
+  accepted_answers?: string[];
+  solution?: string;
   difficulty?: number;
 }
 
@@ -41,9 +42,11 @@ interface ChapterMathExercisesProps {
 export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClose, canManage, onRefresh }: ChapterMathExercisesProps) => {
   const [currentExercise, setCurrentExercise] = useState<number | null>(null);
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
-  const [submittedAnswers, setSubmittedAnswers] = useState<Record<string, { submitted: boolean; correct: boolean }>>({});
+  const [submittedAnswers, setSubmittedAnswers] = useState<Record<string, { submitted: boolean; correct: boolean; expected_answer?: string }>>({});
   const [showCorrection, setShowCorrection] = useState<Record<string, boolean>>({});
+  const [exerciseSolutions, setExerciseSolutions] = useState<Record<string, string>>({});
   const [exerciseTimes, setExerciseTimes] = useState<Record<string, number>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const exercise = currentExercise !== null ? exercises[currentExercise] : null;
 
@@ -62,24 +65,51 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
     }
   }, [currentExerciseContentId, elapsedSeconds]);
 
-  const handleSubmit = (ex: DBExercise) => {
-    const userAnswer = userAnswers[ex.id]?.trim().toLowerCase() || "";
-    const isCorrect = ex.accepted_answers.some(
-      accepted => accepted.toLowerCase().trim() === userAnswer ||
-        userAnswer.includes(accepted.toLowerCase().trim()) ||
-        accepted.toLowerCase().trim().includes(userAnswer)
-    );
-    setSubmittedAnswers(prev => ({ ...prev, [ex.id]: { submitted: true, correct: isCorrect } }));
+  const handleSubmit = async (ex: DBExercise) => {
+    const userAnswer = userAnswers[ex.id]?.trim() || "";
+    if (!userAnswer) return;
+    setIsSubmitting(true);
+
+    try {
+      const { data, error } = await supabase.rpc('check_exercise_answer', {
+        _exercise_id: ex.id,
+        _user_answer: userAnswer,
+      });
+
+      if (error) throw error;
+
+      const result = data as { is_correct: boolean; expected_answer: string; solution: string };
+      setSubmittedAnswers(prev => ({ ...prev, [ex.id]: { submitted: true, correct: result.is_correct, expected_answer: result.expected_answer } }));
+      setExerciseSolutions(prev => ({ ...prev, [ex.id]: result.solution }));
+    } catch (error) {
+      console.error("Error validating exercise:", error);
+      // Fallback to client-side if available (admin/pedago with full data)
+      if (ex.accepted_answers) {
+        const userLower = userAnswer.toLowerCase();
+        const isCorrect = ex.accepted_answers.some(
+          accepted => userLower === accepted.toLowerCase().trim() ||
+            userLower.includes(accepted.toLowerCase().trim()) ||
+            accepted.toLowerCase().trim().includes(userLower)
+        );
+        setSubmittedAnswers(prev => ({ ...prev, [ex.id]: { submitted: true, correct: isCorrect, expected_answer: ex.expected_answer } }));
+        if (ex.solution) setExerciseSolutions(prev => ({ ...prev, [ex.id]: ex.solution! }));
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isSubmitted = (id: string) => submittedAnswers[id]?.submitted || false;
   const isCorrectFn = (id: string) => submittedAnswers[id]?.correct || false;
+  const getExpectedAnswer = (id: string) => submittedAnswers[id]?.expected_answer;
   const toggleCorrection = (id: string) => setShowCorrection(prev => ({ ...prev, [id]: !prev[id] }));
 
   if (currentExercise !== null && exercise) {
     const submitted = isSubmitted(exercise.id);
     const correct = isCorrectFn(exercise.id);
+    const expectedAnswer = getExpectedAnswer(exercise.id);
     const correctionVisible = showCorrection[exercise.id];
+    const solution = exerciseSolutions[exercise.id];
 
     return (
       <Card className="max-w-3xl mx-auto">
@@ -126,21 +156,22 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
             <div className="flex gap-3">
               <Input placeholder="أدخل إجابتك..." value={userAnswers[exercise.id] || ""}
                 onChange={(e) => setUserAnswers(prev => ({ ...prev, [exercise.id]: e.target.value }))}
-                disabled={submitted}
+                disabled={submitted || isSubmitting}
                 className={cn("flex-1", submitted && correct && "border-green-500 bg-green-500/10", submitted && !correct && "border-red-500 bg-red-500/10")}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !submitted && userAnswers[exercise.id]?.trim()) handleSubmit(exercise); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !submitted && !isSubmitting && userAnswers[exercise.id]?.trim()) handleSubmit(exercise); }}
               />
-              <Button onClick={() => handleSubmit(exercise)} disabled={submitted || !userAnswers[exercise.id]?.trim()} className="gap-2">
-                <Send className="h-4 w-4" />تأكيد
+              <Button onClick={() => handleSubmit(exercise)} disabled={submitted || isSubmitting || !userAnswers[exercise.id]?.trim()} className="gap-2">
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                تأكيد
               </Button>
             </div>
 
             {submitted && (
               <div className={cn("p-4 rounded-lg flex items-center gap-3", correct ? "bg-green-500/10 border border-green-500/30" : "bg-red-500/10 border border-red-500/30")}>
                 {correct ? (
-                  <><CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" /><div><p className="font-medium text-green-700 dark:text-green-300">إجابة صحيحة! 🎉</p><p className="text-sm text-muted-foreground">الإجابة المتوقعة: {exercise.expected_answer}</p></div></>
+                  <><CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" /><div><p className="font-medium text-green-700 dark:text-green-300">إجابة صحيحة! 🎉</p>{expectedAnswer && <p className="text-sm text-muted-foreground">الإجابة المتوقعة: {expectedAnswer}</p>}</div></>
                 ) : (
-                  <><XCircle className="h-5 w-5 text-red-500 shrink-0" /><div><p className="font-medium text-red-700 dark:text-red-300">إجابة خاطئة</p><p className="text-sm text-muted-foreground">إجابتك: {userAnswers[exercise.id]} — المتوقعة: {exercise.expected_answer}</p></div></>
+                  <><XCircle className="h-5 w-5 text-red-500 shrink-0" /><div><p className="font-medium text-red-700 dark:text-red-300">إجابة خاطئة</p><p className="text-sm text-muted-foreground">إجابتك: {userAnswers[exercise.id]}{expectedAnswer && ` — المتوقعة: ${expectedAnswer}`}</p></div></>
                 )}
               </div>
             )}
@@ -150,10 +181,10 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
             <Eye className="h-4 w-4" />{correctionVisible ? "إخفاء الحل" : "عرض الحل"}
           </Button>
 
-          {correctionVisible && (
+          {correctionVisible && solution && (
             <div className="p-4 bg-muted/30 rounded-lg border" dir="rtl">
               <h4 className="font-semibold mb-3 flex items-center gap-2 text-primary"><CheckCircle2 className="h-4 w-4" />الحل المفصل</h4>
-              <div className="prose prose-sm dark:prose-invert max-w-none"><ReactMarkdown>{exercise.solution}</ReactMarkdown></div>
+              <div className="prose prose-sm dark:prose-invert max-w-none"><ReactMarkdown>{solution}</ReactMarkdown></div>
             </div>
           )}
 

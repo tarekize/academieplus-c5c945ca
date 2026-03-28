@@ -176,7 +176,7 @@ interface ExerciseFormProps {
   chapterId: string;
   lessonId?: string;
   onSaved: () => void;
-  exercise?: { id: string; title: string; statement: string; expected_answer: string; accepted_answers: string[]; solution: string; difficulty?: number };
+  exercise?: { id: string; title: string; statement: string; expected_answer?: string; accepted_answers?: string[]; solution?: string; difficulty?: number };
 }
 
 export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: ExerciseFormProps) {

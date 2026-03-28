@@ -855,6 +855,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_exercise_answer: {
+        Args: { _exercise_id: string; _user_answer: string }
+        Returns: Json
+      }
+      check_quiz_answer: {
+        Args: { _quiz_id: string; _user_answer: string }
+        Returns: Json
+      }
       generate_activation_code: { Args: never; Returns: string }
       has_role: {
         Args: {
