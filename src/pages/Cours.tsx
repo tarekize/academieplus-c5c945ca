@@ -198,31 +198,23 @@ const Cours = () => {
   const fetchQuizExercises = useCallback(async (lessonId?: string | null) => {
     if (!activeChapter) return;
 
-    let quizzesQuery = supabase
-      .from("chapter_quizzes")
-      .select("id, lesson_id, question, options, explanation, difficulty")
-      .eq("chapter_id", activeChapter.id);
+    const quizzesPromise = supabase.rpc('get_student_quizzes' as any, {
+      _chapter_id: activeChapter.id,
+      ...(lessonId ? { _lesson_id: lessonId } : {}),
+    });
 
-    let exercisesQuery = supabase
-      .from("chapter_exercises")
-      .select("id, lesson_id, title, statement, difficulty")
-      .eq("chapter_id", activeChapter.id);
-
-    if (lessonId) {
-      quizzesQuery = quizzesQuery.eq("lesson_id", lessonId);
-      exercisesQuery = exercisesQuery.eq("lesson_id", lessonId);
-    } else {
-      quizzesQuery = quizzesQuery.is("lesson_id", null);
-      exercisesQuery = exercisesQuery.is("lesson_id", null);
-    }
+    const exercisesPromise = supabase.rpc('get_student_exercises' as any, {
+      _chapter_id: activeChapter.id,
+      ...(lessonId ? { _lesson_id: lessonId } : {}),
+    });
 
     const [{ data: quizzes }, { data: exercises }] = await Promise.all([
-      quizzesQuery.order("order_index"),
-      exercisesQuery.order("order_index"),
+      quizzesPromise,
+      exercisesPromise,
     ]);
 
-    setDbQuizzes((quizzes || []).map(q => ({ ...q, options: Array.isArray(q.options) ? q.options as string[] : [] })));
-    setDbExercises((exercises || []).map(e => ({ ...e })));
+    setDbQuizzes(((quizzes as any[]) || []).map(q => ({ ...q, options: Array.isArray(q.options) ? q.options as string[] : [] })));
+    setDbExercises(((exercises as any[]) || []).map(e => ({ ...e })));
   }, [activeChapter]);
 
   useEffect(() => { fetchQuizExercises(); }, [fetchQuizExercises]);
