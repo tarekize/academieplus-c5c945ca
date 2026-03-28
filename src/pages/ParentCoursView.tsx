@@ -109,7 +109,7 @@ const ParentCoursView = () => {
       exercisesQuery.order("order_index"),
     ]);
     setDbQuizzes((quizzes || []).map(q => ({ ...q, options: Array.isArray(q.options) ? q.options as string[] : [] })));
-    setDbExercises((exercises || []).map(e => ({ ...e, accepted_answers: Array.isArray(e.accepted_answers) ? e.accepted_answers as string[] : [] })));
+    setDbExercises((exercises || []).map(e => ({ ...e })));
   }, [activeChapter]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
