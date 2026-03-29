@@ -864,6 +864,30 @@ export type Database = {
         Returns: Json
       }
       generate_activation_code: { Args: never; Returns: string }
+      get_student_exercises: {
+        Args: { _chapter_id: string; _lesson_id?: string }
+        Returns: {
+          chapter_id: string
+          difficulty: number
+          id: string
+          lesson_id: string
+          order_index: number
+          statement: string
+          title: string
+        }[]
+      }
+      get_student_quizzes: {
+        Args: { _chapter_id: string; _lesson_id?: string }
+        Returns: {
+          chapter_id: string
+          difficulty: number
+          id: string
+          lesson_id: string
+          options: Json
+          order_index: number
+          question: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
