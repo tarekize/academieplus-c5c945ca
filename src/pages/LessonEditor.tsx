@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { courseService } from '@/services/courseService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save, Trash2, Pencil, Eye, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Pencil, Eye, Sparkles, Loader2, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import LessonRichEditor from '@/components/course/LessonRichEditor';
 import { TableOfContents } from '@/components/course/TableOfContents';
@@ -31,6 +31,8 @@ export default function LessonEditor() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const [lesson, setLesson] = useState<{ id: string; title: string; title_ar: string | null; content: string | null; chapter_id: string; subject?: string; school_level?: string; filiere_code?: string } | null>(null);
   const [content, setContent] = useState('');
   const [mode, setMode] = useState<'view' | 'edit'>('view');
@@ -106,9 +108,9 @@ export default function LessonEditor() {
 
   useEffect(() => { fetchLesson(); }, [fetchLesson]);
 
-  // Realtime: auto-refresh when lesson content changes
+  // Realtime: auto-refresh when lesson content changes (only if not dirty)
   useEffect(() => {
-    if (!lessonId) return;
+    if (!lessonId || isDirty) return; // Ne pas mettre à jour si on a des modifications locales
     const channel = supabase
       .channel(`lesson-${lessonId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'lessons', filter: `id=eq.${lessonId}` }, (payload) => {
@@ -120,23 +122,30 @@ export default function LessonEditor() {
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [lessonId, mode]);
+  }, [lessonId, mode, isDirty]);
 
   const handleSave = async () => {
+    // Sauvegarde locale uniquement - pas encore publié
+    setIsDirty(true);
+    toast({ title: 'Brouillon sauvegardé', description: 'Le contenu a été sauvegardé localement. Cliquez sur "Envoyer les modifications" pour publier.' });
+    setMode('view');
+  };
+
+  const handlePublish = async () => {
     if (!lessonId) return;
-    setSaving(true);
+    setPublishing(true);
     try {
       const { error } = await supabase.from('lessons').update({ content }).eq('id', lessonId);
       if (error) throw error;
-      toast({ title: 'Sauvegardé', description: 'Le contenu a été mis à jour avec succès.' });
-      setMode('view');
+      toast({ title: 'Publié', description: 'Les modifications ont été envoyées avec succès.' });
+      setIsDirty(false);
       // Update local state
       setLesson(prev => prev ? { ...prev, content } : null);
     } catch (err: any) {
       console.error(err);
-      toast({ title: 'Erreur', description: err.message || 'Impossible de sauvegarder', variant: 'destructive' });
+      toast({ title: 'Erreur', description: err.message || 'Impossible de publier', variant: 'destructive' });
     } finally {
-      setSaving(false);
+      setPublishing(false);
     }
   };
 
@@ -157,8 +166,14 @@ export default function LessonEditor() {
         throw new Error(data.error || 'Erreur lors de la génération');
       }
 
-      await fetchLesson();
-      toast({ title: 'Contenu généré', description: 'Le contenu a été généré avec succès.' });
+      // Récupérer le contenu généré
+      const { data: updatedLesson } = await supabase.from('lessons').select('content').eq('id', lessonId).single();
+      if (updatedLesson) {
+        setContent(updatedLesson.content || '');
+        setIsDirty(true);
+      }
+
+      toast({ title: 'Contenu généré (Brouillon)', description: 'Le contenu a été généré. Cliquez sur "Envoyer les modifications" pour publier.' });
     } catch (err: any) {
       console.error("Détails de l'erreur:", err);
       toast({
@@ -172,18 +187,11 @@ export default function LessonEditor() {
   };
 
   const handleDelete = async () => {
-    if (!lessonId) return;
-    try {
-      const { error } = await supabase.from('lessons').update({ content: null }).eq('id', lessonId);
-      if (error) throw error;
-      toast({ title: 'Contenu supprimé', description: 'Le contenu de la leçon a été effacé.' });
-      setContent('');
-      setLesson(prev => prev ? { ...prev, content: null } : null);
-      setMode('view');
-    } catch (err: any) {
-      console.error(err);
-      toast({ title: 'Erreur', description: err.message || 'Impossible de supprimer', variant: 'destructive' });
-    }
+    // Marquer pour suppression locale - pas encore publié
+    setContent('');
+    setIsDirty(true);
+    toast({ title: 'Contenu marqué pour suppression (Brouillon)', description: 'Cliquez sur "Envoyer les modifications" pour publier la suppression.' });
+    setMode('view');
   };
 
   if (loading) {
@@ -252,53 +260,74 @@ export default function LessonEditor() {
             <div className="flex-1 min-w-0">
               {/* Action bar */}
               {canManage && (
-                <div className="flex items-center gap-2 mb-6">
-                  {mode === 'view' ? (
-                    <>
-                      <Button onClick={() => setMode('edit')}>
-                        <Pencil className="h-4 w-4 mr-2" />
-                        Modifier
-                      </Button>
-                      <Button variant="secondary" onClick={handleGenerateAI} disabled={generating}>
-                        {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                        {generating ? 'Génération...' : 'Généré avec IA'}
-                      </Button>
-                      {lesson.content && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive">
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Supprimer le contenu
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Cette action supprimera tout le contenu de cette leçon. Cette action est irréversible.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Annuler</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <Button onClick={handleSave} disabled={saving}>
-                        <Save className="h-4 w-4 mr-2" />
-                        {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-                      </Button>
-                      <Button variant="outline" onClick={() => { setMode('view'); setContent(lesson.content || ''); }}>
-                        <Eye className="h-4 w-4 mr-2" />
-                        Annuler
-                      </Button>
-                    </>
+                <>
+                  <div className="flex items-center gap-2 mb-6 flex-wrap">
+                    {mode === 'view' ? (
+                      <>
+                        <Button onClick={() => setMode('edit')}>
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Modifier
+                        </Button>
+                        <Button variant="secondary" onClick={handleGenerateAI} disabled={generating}>
+                          {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                          {generating ? 'Génération...' : 'Généré avec IA'}
+                        </Button>
+                        {lesson.content && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive">
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Supprimer le contenu
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Cette action supprimera tout le contenu de cette leçon. Cette action est irréversible.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+
+                        {/* Bouton Envoyer les modifications - Visible si y a des changements */}
+                        {isDirty && (
+                          <Button
+                            onClick={handlePublish}
+                            disabled={publishing}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <Send className="h-4 w-4 mr-2" />
+                            {publishing ? 'Envoi...' : 'Envoyer les modifications'}
+                          </Button>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <Button onClick={handleSave} disabled={saving}>
+                          <Save className="h-4 w-4 mr-2" />
+                          {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+                        </Button>
+                        <Button variant="outline" onClick={() => { setMode('view'); setContent(lesson.content || ''); }}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Annuler
+                        </Button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Indicateur de modifications non publiées */}
+                  {isDirty && (
+                    <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md text-sm text-yellow-800 dark:text-yellow-200">
+                      ⚠️ Vous avez des modifications non publiées. Les autres utilisateurs ne verront ces changements qu'après avoir cliqué sur "Envoyer les modifications".
+                    </div>
                   )}
-                </div>
+                </>
               )}
 
               {/* Content */}
