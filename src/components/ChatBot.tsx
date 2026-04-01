@@ -140,6 +140,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
           messages: updatedMessages,
           subject: subject,
           schoolLevel: schoolLevel,
+          chapterContext: chapterContext,
         }),
       });
 
