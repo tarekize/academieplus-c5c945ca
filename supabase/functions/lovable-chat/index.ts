@@ -118,7 +118,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, subject } = await req.json();
+    const { messages, subject, chapterContext } = await req.json();
     
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Messages array is required" }), {
@@ -183,8 +183,23 @@ STRUCTURE : Comprendre → Concepts clés → Résolution → Réponse finale �
       philosophie: `Tu es un professeur de philosophie expert. Tu ne réponds QU'AUX QUESTIONS DE PHILOSOPHIE. Détecte la langue et réponds dans cette langue.`,
     };
 
-    const systemPrompt = subjectPrompts[normalizedSubject] ||
+    let systemPrompt = subjectPrompts[normalizedSubject] ||
       `Tu es un professeur expert et bienveillant. Détecte la langue de la question et réponds dans cette MÊME langue. Sois pédagogue et encourageant.`;
+
+    // If chapter context is provided, restrict answers to that chapter
+    if (chapterContext && chapterContext.title) {
+      const chapterRestriction = `
+
+CONTEXTE DU CHAPITRE ACTUEL : "${chapterContext.title}"
+${chapterContext.lessonsContent ? `CONTENU DES LEÇONS DU CHAPITRE :\n${chapterContext.lessonsContent}` : ""}
+
+RÈGLE ABSOLUE : Tu ne dois répondre QU'AUX QUESTIONS qui sont en rapport avec le contenu de ce chapitre ("${chapterContext.title}").
+Si l'élève pose une question qui n'est PAS liée à ce chapitre, tu dois répondre poliment :
+- En français : "Cette question ne fait pas partie du chapitre actuel (${chapterContext.title}). Je ne peux répondre qu'aux questions en rapport avec ce chapitre."
+- En arabe : "هذا السؤال خارج نطاق الفصل الحالي (${chapterContext.title}). يمكنني فقط الإجابة على الأسئلة المتعلقة بهذا الفصل."
+Utilise la même langue que celle de l'élève pour cette réponse.`;
+      systemPrompt += chapterRestriction;
+    }
 
     console.log("Subject:", normalizedSubject, "| Calling AI with fallback chain...");
 

@@ -902,6 +902,10 @@ const Cours = () => {
                 messages={chatMessages}
                 setMessages={setChatMessages}
                 schoolLevel={profile?.school_level}
+                chapterContext={activeChapter ? {
+                  title: activeChapter.title,
+                  lessonsContent: (activeChapter.lessons || []).map(l => `${l.title}: ${l.content || ''}`).join('\n'),
+                } : null}
               />
             </div>
           )}

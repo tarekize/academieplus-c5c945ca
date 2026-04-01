@@ -23,9 +23,13 @@ type ChatBotProps = {
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   subject?: string;
   schoolLevel?: string | null;
+  chapterContext?: {
+    title: string;
+    lessonsContent: string;
+  } | null;
 };
 
-export default function ChatBot({ messages, setMessages, subject = "mathématiques", schoolLevel = null }: ChatBotProps) {
+export default function ChatBot({ messages, setMessages, subject = "mathématiques", schoolLevel = null, chapterContext = null }: ChatBotProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; base64: string; type: string }>>([]);
@@ -136,6 +140,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
           messages: updatedMessages,
           subject: subject,
           schoolLevel: schoolLevel,
+          chapterContext: chapterContext,
         }),
       });
 
