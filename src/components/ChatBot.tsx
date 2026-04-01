@@ -23,6 +23,10 @@ type ChatBotProps = {
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   subject?: string;
   schoolLevel?: string | null;
+  chapterContext?: {
+    title: string;
+    lessonsContent: string;
+  } | null;
 };
 
 export default function ChatBot({ messages, setMessages, subject = "mathématiques", schoolLevel = null }: ChatBotProps) {
