@@ -29,7 +29,7 @@ type ChatBotProps = {
   } | null;
 };
 
-export default function ChatBot({ messages, setMessages, subject = "mathématiques", schoolLevel = null }: ChatBotProps) {
+export default function ChatBot({ messages, setMessages, subject = "mathématiques", schoolLevel = null, chapterContext = null }: ChatBotProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; base64: string; type: string }>>([]);
