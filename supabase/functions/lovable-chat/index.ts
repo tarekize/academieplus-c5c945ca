@@ -118,7 +118,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, subject } = await req.json();
+    const { messages, subject, chapterContext } = await req.json();
     
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Messages array is required" }), {
