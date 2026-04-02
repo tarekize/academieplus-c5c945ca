@@ -3,11 +3,7 @@ import * as React from "react";
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
 const TOAST_LIMIT = 1;
-<<<<<<< HEAD
-const TOAST_REMOVE_DELAY = 1000000;
-=======
 const TOAST_REMOVE_DELAY = 100;
->>>>>>> old/main
 
 type ToasterToast = ToastProps & {
   id: string;
@@ -34,23 +30,6 @@ type ActionType = typeof actionTypes;
 
 type Action =
   | {
-<<<<<<< HEAD
-      type: ActionType["ADD_TOAST"];
-      toast: ToasterToast;
-    }
-  | {
-      type: ActionType["UPDATE_TOAST"];
-      toast: Partial<ToasterToast>;
-    }
-  | {
-      type: ActionType["DISMISS_TOAST"];
-      toastId?: ToasterToast["id"];
-    }
-  | {
-      type: ActionType["REMOVE_TOAST"];
-      toastId?: ToasterToast["id"];
-    };
-=======
     type: ActionType["ADD_TOAST"];
     toast: ToasterToast;
   }
@@ -66,7 +45,6 @@ type Action =
     type: ActionType["REMOVE_TOAST"];
     toastId?: ToasterToast["id"];
   };
->>>>>>> old/main
 
 interface State {
   toasts: ToasterToast[];
@@ -107,8 +85,6 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action;
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId);
       } else {
@@ -122,15 +98,9 @@ export const reducer = (state: State, action: Action): State => {
         toasts: state.toasts.map((t) =>
           t.id === toastId || toastId === undefined
             ? {
-<<<<<<< HEAD
-                ...t,
-                open: false,
-              }
-=======
               ...t,
               open: false,
             }
->>>>>>> old/main
             : t,
         ),
       };
