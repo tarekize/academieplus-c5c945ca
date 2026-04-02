@@ -303,9 +303,11 @@ const Cours = () => {
     if (direction === "prev" && currentIndex > 0) {
       setActiveChapter(chapters[currentIndex - 1]);
       setActiveChapterIndex(currentIndex - 1);
+      setInitialLessonId(null);
     } else if (direction === "next" && currentIndex < chapters.length - 1) {
       setActiveChapter(chapters[currentIndex + 1]);
       setActiveChapterIndex(currentIndex + 1);
+      setInitialLessonId(null);
     }
   };
 
@@ -904,6 +906,12 @@ const Cours = () => {
                 // Clear chapitre/lecon URL params to prevent useEffect from re-forcing content view
                 const newParams = new URLSearchParams(searchParams);
                 newParams.delete("chapitre");
+                newParams.delete("lecon");
+                setSearchParams(newParams, { replace: true });
+              }}
+              onBackToLessons={() => {
+                setInitialLessonId(null);
+                const newParams = new URLSearchParams(searchParams);
                 newParams.delete("lecon");
                 setSearchParams(newParams, { replace: true });
               }}
