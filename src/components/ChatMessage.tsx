@@ -57,23 +57,30 @@ export const ChatMessage = ({ role, content, isStreaming, onNavigate }: ChatMess
 
   return (
     <div className={cn(
-      "flex gap-4 p-4 rounded-2xl transition-all duration-300",
-      isUser ? "bg-primary/5 ml-auto max-w-[80%]" : "bg-card shadow-[var(--shadow-card)]"
+      "flex gap-3.5 p-4 rounded-[1.15rem] transition-all duration-500 will-change-transform",
+      isUser
+        ? "bg-[#0A2551] text-white ml-auto max-w-[85%] rounded-br-sm shadow-[0_5px_15px_rgba(10,37,81,0.2)]"
+        : "bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm rounded-tl-sm mr-auto max-w-[90%]"
     )}>
-      <div className={cn(
-        "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all",
-        isUser 
-          ? "bg-primary text-primary-foreground" 
-          : "bg-gradient-to-br from-primary to-accent text-white shadow-[var(--shadow-glow)]"
-      )}>
-        {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-      </div>
-      
-      <div className="flex-1 space-y-2 pt-1">
-        <p className="text-sm font-medium text-foreground/80">
+      {!isUser && (
+        <div className={cn(
+          "flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center shadow-sm border border-[#0A2551]/10 bg-gradient-to-br from-[#0A2551] to-blue-600 text-white mt-1"
+        )}>
+          <Bot strokeWidth={1.5} className="w-5 h-5 drop-shadow-sm" />
+        </div>
+      )}
+
+      <div className="flex-1 space-y-1.5 pt-0.5">
+        <p className={cn(
+          "text-[0.75rem] font-bold tracking-wide uppercase",
+          isUser ? "text-blue-200/80" : "text-[#0A2551]/70 dark:text-blue-400"
+        )}>
           {isUser ? "Vous" : "Assistant Gemini"}
         </p>
-        <div className="prose prose-sm max-w-none text-foreground">
+        <div className={cn(
+          "prose prose-sm max-w-none antialiased leading-relaxed font-medium",
+          isUser ? "text-white prose-p:text-white" : "text-slate-700 dark:text-slate-300"
+        )}>
           {isUser ? (
             <p className="whitespace-pre-wrap">{content}</p>
           ) : (

@@ -5,15 +5,41 @@
   text-align: center;
 }
 
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-30px);
+  }
+}
+
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+
+  50% {
+    opacity: 0.25;
+  }
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -22,6 +48,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+﻿import { useEffect, useState, useCallback, useRef } from "react";
 import { AdaptiveLessonContent } from "./Cours.AdaptiveLessonContent";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -446,7 +446,7 @@ const Cours = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 pt-24 pb-8">
+      <main className={`container mx-auto px-4 pt-24 pb-8 transition-all duration-300 ${isChatOpen ? 'lg:pr-[420px] blur-[2px] saturate-75 opacity-80' : ''}`}>
 
         {/* Progress bar */}
         <div className="mb-6">
@@ -944,14 +944,17 @@ const Cours = () => {
         <>
           <button
             onClick={() => setIsChatOpen(!isChatOpen)}
-            className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors z-50"
+            className={`fixed bottom-6 z-[60] w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 ${isChatOpen
+                ? 'right-6 lg:right-[430px] bg-white text-[#0A2551] border border-slate-200 hover:bg-slate-50'
+                : 'right-6 bg-[#0A2551] text-white hover:bg-[#0A2551]/90'
+              }`}
           >
             {isChatOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
           </button>
 
           {/* Chat Panel */}
           {isChatOpen && (
-            <div className="fixed bottom-24 right-6 w-96 h-[500px] z-50">
+            <div className="fixed top-16 lg:top-20 bottom-0 lg:bottom-4 right-0 lg:right-4 w-full lg:w-[400px] z-50">
               <ChatBot
                 messages={chatMessages}
                 setMessages={setChatMessages}

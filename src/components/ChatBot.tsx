@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, X, Mic, MicOff, Lock, Crown, MessageCircle, Image } from "lucide-react";
+import { Send, Paperclip, X, Mic, MicOff, Lock, Crown, MessageCircle, Image, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -381,16 +381,19 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
   const isBlocked = !canSendMessage && !hasSubscription;
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-950 border-[3px] border-[#0A2551] rounded-2xl overflow-hidden shadow-[0_20px_60px_-15px_rgba(10,37,81,0.4)] backdrop-blur-sm relative z-50">
       {/* Header */}
-      <div className="border-b bg-gradient-to-r from-primary/10 to-secondary/10 p-4">
+      <div className="border-b border-[#0A2551]/10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-5 py-4 shrink-0 shadow-sm">
         <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-semibold text-foreground truncate">Professeur de {subject} AI</h2>
-            <p className="text-sm text-muted-foreground truncate">Posez vos questions de {subject}</p>
+          <div className="flex flex-col min-w-0">
+            <h2 className="text-xl font-bold text-[#0A2551] dark:text-blue-400 truncate flex items-center gap-2">
+              <Bot className="h-6 w-6 text-[#0A2551] dark:text-blue-400" />
+              Professeur de {subject}
+            </h2>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mt-1 truncate">Assistant IA Interactif</p>
           </div>
           {hasSubscription && (
-            <div className="flex items-center gap-1.5 bg-amber-500/10 text-amber-600 px-3 py-1 rounded-full text-xs font-medium">
+            <div className="flex items-center gap-1.5 bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
               <Crown className="h-3.5 w-3.5" />
               <span>Premium</span>
             </div>
@@ -433,22 +436,23 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
         </div>
       )}
 
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4 max-w-3xl mx-auto">
+      <ScrollArea className="flex-1 p-5">
+        <div className="space-y-6 max-w-xl mx-auto">
           {messages.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                <span className="text-3xl">🧮</span>
+            <div className="text-center py-14 flex flex-col items-center justify-center">
+              <div className="flex items-center justify-center w-20 h-20 rounded-[1.25rem] bg-gradient-to-br from-[#0A2551] to-blue-600 text-white shadow-[0_10px_25px_rgba(10,37,81,0.25)] mb-6 ring-4 ring-white dark:ring-slate-900 border border-[#0A2551]/20">
+                <Bot strokeWidth={1.5} className="w-10 h-10 drop-shadow-md" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Bienvenue dans votre classe virtuelle !</h3>
-              <p className="text-muted-foreground">
-                Je suis votre professeur de {subject} personnel. Posez-moi n'importe quelle question de {subject} en
-                français, arabe ou toute autre langue !
+              <h3 className="text-[1.35rem] font-bold text-[#0A2551] dark:text-blue-300 leading-tight mb-3">
+                Bienvenue dans votre classe virtuelle&nbsp;!
+              </h3>
+              <p className="text-[0.95rem] text-slate-600 dark:text-slate-400 font-medium leading-relaxed max-w-[280px]">
+                Je suis votre professeur personnel. Posez-moi n'importe quelle question de mathématiques en français, arabe ou toute autre langue.
               </p>
               {!hasSubscription && !limitsLoading && (
-                <div className="mt-4 inline-flex items-center gap-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 px-4 py-2 rounded-lg text-sm">
-                  <Crown className="h-4 w-4" />
-                  <span>Version gratuite : {FREE_MESSAGE_LIMIT} messages et {FREE_IMAGE_LIMIT} images par jour</span>
+                <div className="mt-8 flex items-center gap-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 px-5 py-2.5 rounded-full text-xs font-semibold shadow-sm">
+                  <Crown className="h-4 w-4 text-amber-500" />
+                  <span>Version Gratuite : {FREE_MESSAGE_LIMIT} msgs &amp; {FREE_IMAGE_LIMIT} img / jour</span>
                 </div>
               )}
             </div>
@@ -497,95 +501,104 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
 
       {/* Input area - hidden when blocked */}
       {!isBlocked && (
-        <div className="border-t p-4 bg-background">
-          <div className="max-w-3xl mx-auto space-y-2">
+        <div className="border-t border-[#0A2551]/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl p-4 shrink-0 shadow-[0_-10px_40px_-20px_rgba(10,37,81,0.15)] relative z-10 rounded-b-[1.05rem]">
+          <div className="max-w-xl mx-auto space-y-3">
             {uploadedFiles.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 px-1">
                 {uploadedFiles.map((file, index) => (
-                  <div key={index} className="flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full text-sm">
-                    <span className="truncate max-w-[200px]">{file.name}</span>
+                  <div key={index} className="flex items-center gap-2 bg-[#0A2551]/5 border border-[#0A2551]/10 px-3 py-1.5 rounded-[0.85rem] text-[0.8rem] font-medium text-[#0A2551] dark:text-blue-200">
+                    <span className="truncate max-w-[160px]">{file.name}</span>
                     <button
                       onClick={() => removeFile(index)}
-                      className="hover:text-destructive transition-colors"
+                      className="hover:text-red-500 transition-colors p-0.5 rounded-full hover:bg-white"
                       disabled={isLoading}
                     >
-                      <X className="h-3 w-3" />
+                      <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 ))}
               </div>
             )}
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,.pdf"
-                onChange={handleFileUpload}
-                className="hidden"
-                disabled={isLoading}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading || isRecording || (!canSendImage && !hasSubscription)}
-                title={!canSendImage && !hasSubscription ? "Limite d'images atteinte" : "Joindre un fichier"}
-              >
-                <Paperclip className="h-4 w-4" />
-              </Button>
-              <div className="relative flex items-center gap-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setVoiceLang(voiceLang === 'fr-FR' ? 'ar-SA' : 'fr-FR')}
-                  disabled={isLoading || isRecording}
-                  className="h-10 w-10 text-xs font-semibold"
-                  title={voiceLang === 'fr-FR' ? 'Français' : 'العربية'}
-                >
-                  {voiceLang === 'fr-FR' ? 'FR' : 'AR'}
-                </Button>
-                <Button
-                  type="button"
-                  variant={isRecording ? "destructive" : "outline"}
-                  size="icon"
-                  onClick={isRecording ? stopRecording : startRecording}
+            <form onSubmit={handleSubmit} className="flex gap-2.5 items-end relative">
+              <div className="flex flex-1 flex-col justify-end bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl transition-all focus-within:ring-2 focus-within:ring-[#0A2551]/20 focus-within:border-[#0A2551]/40 shadow-sm relative pt-1">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={handleFileUpload}
+                  className="hidden"
                   disabled={isLoading}
-                  className="relative"
-                >
-                  {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                </Button>
-                {isRecording && (
-                  <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-destructive/10 px-4 py-2 rounded-full">
-                    {[...Array(5)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="w-1 bg-destructive rounded-full animate-pulse"
-                        style={{
-                          height: `${12 + Math.random() * 16}px`,
-                          animationDelay: `${i * 0.1}s`,
-                          animationDuration: `${0.5 + Math.random() * 0.3}s`
-                        }}
-                      />
-                    ))}
+                />
+
+                <Input
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={`Posez votre question...`}
+                  disabled={isLoading || isRecording}
+                  className={`flex-1 border-0 ring-0 focus-visible:ring-0 bg-transparent min-h-[48px] px-4 font-medium text-[0.95rem] shadow-none placeholder:text-slate-400 ${isRecording ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`}
+                />
+
+                <div className="flex items-center justify-between px-2 pb-2 mt-0.5">
+                  <div className="flex items-center gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isLoading || isRecording || (!canSendImage && !hasSubscription)}
+                      title={!canSendImage && !hasSubscription ? "Limite d'images atteinte" : "Joindre un fichier"}
+                      className="w-10 h-10 rounded-xl text-slate-500 hover:text-[#0A2551] hover:bg-slate-200/50"
+                    >
+                      <Paperclip strokeWidth={1.5} className="h-5 w-5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setVoiceLang(voiceLang === 'fr-FR' ? 'ar-SA' : 'fr-FR')}
+                      disabled={isLoading || isRecording}
+                      className="w-10 h-10 rounded-xl text-slate-500 hover:text-[#0A2551] hover:bg-slate-200/50 text-xs font-bold font-mono tracking-tight"
+                      title={voiceLang === 'fr-FR' ? 'Français' : 'العربية'}
+                    >
+                      {voiceLang === 'fr-FR' ? 'FR' : 'AR'}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={isRecording ? stopRecording : startRecording}
+                      disabled={isLoading}
+                      className={`w-10 h-10 rounded-xl relative hover:bg-slate-200/50 ${isRecording ? 'text-red-500 hover:text-red-600 bg-red-50' : 'text-slate-500 hover:text-[#0A2551]'}`}
+                    >
+                      {isRecording ? <MicOff strokeWidth={1.5} className="h-5 w-5" /> : <Mic strokeWidth={1.5} className="h-5 w-5" />}
+
+                      {isRecording && (
+                        <div className="absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-red-50/90 dark:bg-red-900/90 backdrop-blur-sm border border-red-200 dark:border-red-800 px-4 py-2.5 rounded-full shadow-lg">
+                          {[...Array(5)].map((_, i) => (
+                            <div
+                              key={i}
+                              className="w-1 bg-red-500 rounded-full animate-pulse"
+                              style={{
+                                height: `${10 + Math.random() * 12}px`,
+                                animationDelay: `${i * 0.15}s`,
+                                animationDuration: `${0.4 + Math.random() * 0.4}s`
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </Button>
                   </div>
-                )}
+                </div>
               </div>
-              <Input
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={`Posez votre question de ${subject}...`}
-                disabled={isLoading || isRecording}
-                className={`flex-1 ${isRecording ? 'bg-destructive/10 border-destructive' : ''}`}
-              />
+
               <Button
                 type="submit"
                 disabled={isLoading || isRecording || (!inputValue.trim() && uploadedFiles.length === 0)}
-                className="flex-shrink-0"
+                className="w-12 h-12 flex-shrink-0 rounded-[0.9rem] bg-[#0A2551] hover:bg-[#0A2551]/90 text-white shadow-[0_5px_15px_rgba(10,37,81,0.25)] flex items-center justify-center p-0 transition-transform active:scale-95 disabled:hover:scale-100 disabled:opacity-50"
               >
-                <Send className="h-4 w-4" />
+                <Send strokeWidth={2} className="h-5 w-5 -ml-0.5" />
               </Button>
             </form>
           </div>
