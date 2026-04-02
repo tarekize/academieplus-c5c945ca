@@ -965,6 +965,8 @@ const Cours = () => {
                       setActiveChapterIndex(targetChapterIndex);
                       setViewMode("content");
                       setInitialLessonId(targetLessonId);
+                      // Force remount to reset lesson selection (especially same-chapter nav)
+                      setContentResetKey(k => k + 1);
                     }
                   }
 
