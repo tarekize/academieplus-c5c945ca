@@ -3,7 +3,11 @@ import * as React from "react";
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
 const TOAST_LIMIT = 1;
+<<<<<<< HEAD
 const TOAST_REMOVE_DELAY = 100;
+=======
+const TOAST_REMOVE_DELAY = 1000000;
+>>>>>>> 99a68e82c947d629deda86372b240817a8f1591b
 
 type ToasterToast = ToastProps & {
   id: string;
@@ -30,6 +34,7 @@ type ActionType = typeof actionTypes;
 
 type Action =
   | {
+<<<<<<< HEAD
     type: ActionType["ADD_TOAST"];
     toast: ToasterToast;
   }
@@ -45,6 +50,23 @@ type Action =
     type: ActionType["REMOVE_TOAST"];
     toastId?: ToasterToast["id"];
   };
+=======
+      type: ActionType["ADD_TOAST"];
+      toast: ToasterToast;
+    }
+  | {
+      type: ActionType["UPDATE_TOAST"];
+      toast: Partial<ToasterToast>;
+    }
+  | {
+      type: ActionType["DISMISS_TOAST"];
+      toastId?: ToasterToast["id"];
+    }
+  | {
+      type: ActionType["REMOVE_TOAST"];
+      toastId?: ToasterToast["id"];
+    };
+>>>>>>> 99a68e82c947d629deda86372b240817a8f1591b
 
 interface State {
   toasts: ToasterToast[];
@@ -100,9 +122,15 @@ export const reducer = (state: State, action: Action): State => {
         toasts: state.toasts.map((t) =>
           t.id === toastId || toastId === undefined
             ? {
+<<<<<<< HEAD
               ...t,
               open: false,
             }
+=======
+                ...t,
+                open: false,
+              }
+>>>>>>> 99a68e82c947d629deda86372b240817a8f1591b
             : t,
         ),
       };
