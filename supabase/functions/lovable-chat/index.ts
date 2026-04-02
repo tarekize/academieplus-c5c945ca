@@ -230,11 +230,11 @@ Voici la liste complète des chapitres et leçons disponibles :\n`;
         }
 
         courseMapPrompt += `\n\nINSTRUCTIONS DE NAVIGATION :
-1. Pour toute demande d'emplacement, donne UNE seule phrase avec le numéro et titre du chapitre + numéro et titre de la leçon
-2. N'utilise JAMAIS de liens cliquables, JAMAIS de syntaxe [[NAV:...]]
+1. Pour toute demande d'emplacement, utilise OBLIGATOIREMENT la syntaxe [[BREADCRUMB:chapterId|chapterTitle|lessonId|lessonTitle]]
+2. Utilise les vrais IDs des chapitres et leçons listés ci-dessus
 3. Cherche dans les titres ET dans les sections de contenu pour trouver le bon emplacement
 4. Si le concept est dans une section d'une leçon, indique le chapitre et la leçon qui contient cette section
-5. Pour une demande d'emplacement, ne donne aucun texte supplémentaire inutile\n`;
+5. Pour une demande d'emplacement, ne donne aucun texte supplémentaire inutile - juste une courte phrase + le breadcrumb\n`;
       }
     } catch (err) {
       console.error("Error building course map:", err);
