@@ -191,26 +191,25 @@ serve(async (req) => {
         courseMapPrompt = `\n\n=== CARTE DE NAVIGATION DES COURS ===
 IMPORTANT : Quand un élève demande où se trouve un cours, une leçon, un sujet ou un concept :
 - réponds dans la langue de l'élève
-- réponds avec UNE phrase très courte seulement
-- n'ajoute ni salutation, ni explication, ni résumé, ni liste, ni conseil
-- utilise directement un lien cliquable au format [[NAV:Texte affiché|/cours/${subjectPath}?chapitre=CHAPTER_ID]]
-- pour une leçon spécifique, utilise [[NAV:Texte affiché|/cours/${subjectPath}?chapitre=CHAPTER_ID&lecon=LESSON_ID]]
-Exemples :
-- Français : Voici le lien : [[NAV:Nom du cours|/cours/${subjectPath}?chapitre=CHAPTER_ID]]
-- العربية : إليك رابط الدرس: [[NAV:اسم الدرس|/cours/${subjectPath}?chapitre=CHAPTER_ID]]
+- réponds avec UNE phrase très courte seulement (pas de salutation, pas d'explication, pas de résumé, pas de liste, pas de conseil)
+- donne l'emplacement en texte simple avec le numéro du chapitre et le numéro de la leçon
+- N'utilise PAS de liens cliquables ni de syntaxe spéciale
+Exemples de réponses attendues :
+- En français : "Tu trouveras ce cours dans le chapitre n°3 (Limites et continuité) / leçon n°2 (Limite finie en un point)."
+- En arabe : "ستجد هذا الدرس في الفصل رقم 3 (النهايات والاستمرارية) / الدرس رقم 2 (نهاية منتهية عند عدد حقيقي)."
 
 Voici la liste complète des chapitres et leçons disponibles :\n`;
 
         for (const ch of chaptersData) {
           const chTitle = ch.title + (ch.title_ar ? ` / ${ch.title_ar}` : '');
           courseMapPrompt += `\n📘 Chapitre: "${chTitle}" (ID: ${ch.id})`;
-          courseMapPrompt += `\n   Lien: [[NAV:${ch.title}|/cours/${subjectPath}?chapitre=${ch.id}]]`;
+          // No clickable link, just list chapters with index
           
           const lessons = lessonsByChapter[ch.id] || [];
           for (const les of lessons) {
             const lesTitle = les.title + (les.title_ar ? ` / ${les.title_ar}` : '');
             courseMapPrompt += `\n   📄 Leçon: "${lesTitle}" (ID: ${les.id})`;
-            courseMapPrompt += `\n      Lien: [[NAV:${les.title}|/cours/${subjectPath}?chapitre=${ch.id}&lecon=${les.id}]]`;
+            // No clickable link, just list lessons with index
             
             // Extract headings from lesson content for deeper navigation
             if (les.content) {
@@ -229,12 +228,11 @@ Voici la liste complète des chapitres et leçons disponibles :\n`;
         }
 
         courseMapPrompt += `\n\nINSTRUCTIONS DE NAVIGATION :
-1. Pour toute demande d'emplacement, retourne au moins un lien [[NAV:...]]
-2. Si plusieurs résultats sont plausibles, donne au maximum 3 liens
-3. Le texte affiché du lien doit être court : seulement le titre du chapitre ou de la leçon
-4. Cherche dans les titres ET dans les sections de contenu pour trouver le bon emplacement
-5. Si le concept est dans une section d'une leçon, dirige vers cette leçon avec le lien approprié
-6. Pour une demande d'emplacement, ne donne aucun texte supplémentaire inutile\n`;
+1. Pour toute demande d'emplacement, donne UNE seule phrase avec le numéro et titre du chapitre + numéro et titre de la leçon
+2. N'utilise JAMAIS de liens cliquables, JAMAIS de syntaxe [[NAV:...]]
+3. Cherche dans les titres ET dans les sections de contenu pour trouver le bon emplacement
+4. Si le concept est dans une section d'une leçon, indique le chapitre et la leçon qui contient cette section
+5. Pour une demande d'emplacement, ne donne aucun texte supplémentaire inutile\n`;
       }
     } catch (err) {
       console.error("Error building course map:", err);
