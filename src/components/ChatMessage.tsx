@@ -1,54 +1,15 @@
 import { cn } from "@/lib/utils";
-import { Bot, User, ExternalLink } from "lucide-react";
+import { Bot, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { useNavigate } from "react-router-dom";
-import { useCallback } from "react";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
   content: string;
   isStreaming?: boolean;
-  onNavigate?: (path: string) => void;
 }
 
-/**
- * Strip [[NAV:...]] from markdown so ReactMarkdown doesn't see them,
- * and collect nav links to render separately.
- */
-function extractNavLinksFromContent(content: string): { cleanContent: string; navLinks: Array<{ label: string; path: string }> } {
-  const regex = /\[\[NAV:(.*?)\|(.*?)\]\]/g;
-  const navLinks: Array<{ label: string; path: string }> = [];
-  let match;
-
-  while ((match = regex.exec(content)) !== null) {
-    navLinks.push({ label: match[1], path: match[2] });
-  }
-
-  const cleanContent = content
-    .replace(regex, "")
-    .replace(/[ \t]+\n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-
-  return { cleanContent, navLinks };
-}
-
-export const ChatMessage = ({ role, content, isStreaming, onNavigate }: ChatMessageProps) => {
+export const ChatMessage = ({ role, content, isStreaming }: ChatMessageProps) => {
   const isUser = role === "user";
-  const navigate = useNavigate();
-
-  const handleNavClick = useCallback((path: string) => {
-    if (onNavigate) {
-      onNavigate(path);
-    } else {
-      navigate(path);
-    }
-  }, [onNavigate, navigate]);
-
-  // Extract nav links from assistant messages
-  const { cleanContent, navLinks } = !isUser
-    ? extractNavLinksFromContent(content)
-    : { cleanContent: content, navLinks: [] };
 
   return (
     <div className={cn(
