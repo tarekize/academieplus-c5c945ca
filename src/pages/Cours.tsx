@@ -81,6 +81,7 @@ const Cours = () => {
   const [viewMode, setViewMode] = useState<"grid" | "content">("grid");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatMaximized, setIsChatMaximized] = useState(false);
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; content: string; }[]>([]);
   const [activeActivity, setActiveActivity] = useState<string | null>(null);
   const [canManage, setCanManage] = useState(false);
@@ -945,8 +946,10 @@ const Cours = () => {
           <button
             onClick={() => setIsChatOpen(!isChatOpen)}
             className={`fixed bottom-6 z-[60] w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 ${isChatOpen
-                ? 'right-6 lg:right-[430px] bg-white text-[#0A2551] border border-slate-200 hover:bg-slate-50'
-                : 'right-6 bg-[#0A2551] text-white hover:bg-[#0A2551]/90'
+              ? isChatMaximized
+                ? 'right-6 lg:right-[830px] bg-white text-[#0A2551] border border-slate-200 hover:bg-slate-50'
+                : 'right-6 lg:right-[430px] bg-white text-[#0A2551] border border-slate-200 hover:bg-slate-50'
+              : 'right-6 bg-[#0A2551] text-white hover:bg-[#0A2551]/90'
               }`}
           >
             {isChatOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
@@ -954,8 +957,10 @@ const Cours = () => {
 
           {/* Chat Panel */}
           {isChatOpen && (
-            <div className="fixed top-16 lg:top-20 bottom-0 lg:bottom-4 right-0 lg:right-4 w-full lg:w-[400px] z-50">
+            <div className={`fixed top-16 lg:top-20 bottom-0 lg:bottom-4 right-0 lg:right-4 z-50 transition-all duration-300 ease-in-out ${isChatMaximized ? 'w-full lg:w-[800px]' : 'w-full lg:w-[400px]'}`}>
               <ChatBot
+                isMaximized={isChatMaximized}
+                onToggleMaximize={() => setIsChatMaximized(!isChatMaximized)}
                 messages={chatMessages}
                 setMessages={setChatMessages}
                 schoolLevel={profile?.school_level}
