@@ -896,7 +896,15 @@ const Cours = () => {
           <div className="space-y-6">
             {/* Affichage adaptatif de la leçon */}
             <AdaptiveLessonContent
-              onBackToChapters={() => { setViewMode("grid"); setInitialLessonId(null); }}
+              onBackToChapters={() => {
+                setViewMode("grid");
+                setInitialLessonId(null);
+                // Clear chapitre/lecon URL params to prevent useEffect from re-forcing content view
+                const newParams = new URLSearchParams(searchParams);
+                newParams.delete("chapitre");
+                newParams.delete("lecon");
+                setSearchParams(newParams, { replace: true });
+              }}
               chapter={activeChapter}
               canManage={canManage}
               fetchCourse={fetchCourse}
