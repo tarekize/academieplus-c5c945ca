@@ -191,13 +191,12 @@ serve(async (req) => {
         courseMapPrompt = `\n\n=== CARTE DE NAVIGATION DES COURS ===
 IMPORTANT : Quand un élève demande où se trouve un cours, une leçon, un sujet ou un concept :
 - réponds dans la langue de l'élève
-- réponds avec UNE phrase très courte seulement
-- n'ajoute ni salutation, ni explication, ni résumé, ni liste, ni conseil
-- utilise directement un lien cliquable au format [[NAV:Texte affiché|/cours/${subjectPath}?chapitre=CHAPTER_ID]]
-- pour une leçon spécifique, utilise [[NAV:Texte affiché|/cours/${subjectPath}?chapitre=CHAPTER_ID&lecon=LESSON_ID]]
-Exemples :
-- Français : Voici le lien : [[NAV:Nom du cours|/cours/${subjectPath}?chapitre=CHAPTER_ID]]
-- العربية : إليك رابط الدرس: [[NAV:اسم الدرس|/cours/${subjectPath}?chapitre=CHAPTER_ID]]
+- réponds avec UNE phrase très courte seulement (pas de salutation, pas d'explication, pas de résumé, pas de liste, pas de conseil)
+- donne l'emplacement en texte simple avec le numéro du chapitre et le numéro de la leçon
+- N'utilise PAS de liens cliquables ni de syntaxe spéciale
+Exemples de réponses attendues :
+- En français : "Tu trouveras ce cours dans le chapitre n°3 (Limites et continuité) / leçon n°2 (Limite finie en un point)."
+- En arabe : "ستجد هذا الدرس في الفصل رقم 3 (النهايات والاستمرارية) / الدرس رقم 2 (نهاية منتهية عند عدد حقيقي)."
 
 Voici la liste complète des chapitres et leçons disponibles :\n`;
 
