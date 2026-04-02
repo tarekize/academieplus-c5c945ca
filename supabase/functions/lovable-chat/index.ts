@@ -203,7 +203,7 @@ Voici la liste complète des chapitres et leçons disponibles :\n`;
         for (const ch of chaptersData) {
           const chTitle = ch.title + (ch.title_ar ? ` / ${ch.title_ar}` : '');
           courseMapPrompt += `\n📘 Chapitre: "${chTitle}" (ID: ${ch.id})`;
-          courseMapPrompt += `\n   Lien: [[NAV:${ch.title}|/cours/${subjectPath}?chapitre=${ch.id}]]`;
+          // No clickable link, just list chapters with index
           
           const lessons = lessonsByChapter[ch.id] || [];
           for (const les of lessons) {
