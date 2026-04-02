@@ -1,0 +1,2 @@
+-- The views were already dropped in the previous migration, just clean up any remnants
+-- and verify functions exist. No GRANT needed since we're using RPC functions now, not views.

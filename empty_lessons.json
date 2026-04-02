@@ -1,0 +1,5007 @@
+﻿[
+    {
+        "id":  "d4303c02-0d98-4819-9ca8-b435ba7b3945",
+        "title":  "Proportionnalité",
+        "title_ar":  "التناسبية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال وتنظيم المعطيات",
+                         "order_index":  1,
+                         "school_level":  "2eme_cem"
+                     }
+    },
+    {
+        "id":  "205e0a50-13f6-4ace-aec8-efb80247576c",
+        "title":  "Organisation des données",
+        "title_ar":  "تنظيم معطيات",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال وتنظيم المعطيات",
+                         "order_index":  1,
+                         "school_level":  "2eme_cem"
+                     }
+    },
+    {
+        "id":  "3cb2fc4a-2496-47ab-978d-7690b33de39f",
+        "title":  "Construction de formes géométriques simples",
+        "title_ar":  "إنشاء أشكال هندسية بسيطة",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "2eme_cem"
+                     }
+    },
+    {
+        "id":  "8145834a-cbda-44a6-9541-922a3e182883",
+        "title":  "La symétrie centrale",
+        "title_ar":  "التناظر المركزي",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "2eme_cem"
+                     }
+    },
+    {
+        "id":  "26ffabb6-ed50-44ab-a590-7ce0fdf7fbb2",
+        "title":  "Les angles et le parallélisme",
+        "title_ar":  "الزوايا والتوازي",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "2eme_cem"
+                     }
+    },
+    {
+        "id":  "edb70baa-a10d-4799-947f-059ad94ae185",
+        "title":  "Trigonométrie et cercle",
+        "title_ar":  "المثلثات والدائرة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "2eme_cem"
+                     }
+    },
+    {
+        "id":  "cd6bc7b1-6de6-47a1-91b6-2998ad50d054",
+        "title":  "Le parallélogramme",
+        "title_ar":  "متوازي الأضلاع",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "2eme_cem"
+                     }
+    },
+    {
+        "id":  "73a375f3-14da-41bd-bad5-41ef47ce3f57",
+        "title":  "Le prisme droit et le cylindre",
+        "title_ar":  "الموشور القائم و أسطوانة الدوران",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "2eme_cem"
+                     }
+    },
+    {
+        "id":  "ee026318-1266-4371-b082-387f095c87fe",
+        "title":  "Les nombres relatifs",
+        "title_ar":  "الأعداد النسبية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "3eme_cem"
+                     }
+    },
+    {
+        "id":  "eb2165c0-dc7e-43b6-8d15-485607744baa",
+        "title":  "Opérations sur les fractions et rationnels",
+        "title_ar":  "العمليات على الكسور والأعداد الناطقة",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "3eme_cem"
+                     }
+    },
+    {
+        "id":  "d801abf6-03bb-4e0c-9b10-179a27dd7384",
+        "title":  "Puissances à exposants relatifs",
+        "title_ar":  "القوى ذات أسس نسبية صحيحة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "3eme_cem"
+                     }
+    },
+    {
+        "id":  "a7e2fa55-6c3b-41d4-bc7b-2028d5cce8bc",
+        "title":  "Calcul littéral",
+        "title_ar":  "الحساب الحرفي",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "3eme_cem"
+                     }
+    },
+    {
+        "id":  "f376d360-dc95-4dda-bba4-b986e7d6552f",
+        "title":  "Égalités - Inégalités - Équations",
+        "title_ar":  "المساويات - المتباينات - المعادلات",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "3eme_cem"
+                     }
+    },
+    {
+        "id":  "5db7c6e3-d33b-4aa5-a649-7c9ea65f7dfe",
+        "title":  "Proportionnalité",
+        "title_ar":  "التناسبية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال وتنظيم المعطيات",
+                         "order_index":  1,
+                         "school_level":  "3eme_cem"
+                     }
+    },
+    {
+        "id":  "23a08292-e6f5-452b-a182-e1b956150798",
+        "title":  "Organisation des données",
+        "title_ar":  "تنظيم معطيات",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال وتنظيم المعطيات",
+                         "order_index":  1,
+                         "school_level":  "3eme_cem"
+                     }
+    },
+    {
+        "id":  "347ccefb-9478-466a-8904-c114aed5bb0d",
+        "title":  "Démonstration en mathématiques",
+        "title_ar":  "البرهان في الرياضيات",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "3eme_cem"
+                     }
+    },
+    {
+        "id":  "bf268c80-1eff-4f55-bb7a-5d34b8c5ff49",
+        "title":  "Trigonométrie",
+        "title_ar":  "المثلثات",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "3eme_cem"
+                     }
+    },
+    {
+        "id":  "583a0edc-27b2-457a-b310-36d695b8cf16",
+        "title":  "Triangle rectangle et cercle",
+        "title_ar":  "المثلث القائم و الدائرة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "3eme_cem"
+                     }
+    },
+    {
+        "id":  "cbb0988a-4e3c-40c0-adad-29fd3b60b491",
+        "title":  "Théorème de Pythagore",
+        "title_ar":  "خاصية فيتاغورس، جيب تمام زاوية",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "3eme_cem"
+                     }
+    },
+    {
+        "id":  "3ccbf59a-e99b-4dd5-8020-aa74e1f4e582",
+        "title":  "Homothéties",
+        "title_ar":  "الانسحاب",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "3eme_cem"
+                     }
+    },
+    {
+        "id":  "81e1c950-e22d-4ad6-84cf-9367f523d51f",
+        "title":  "Pyramide et cône de révolution",
+        "title_ar":  "الهرم و مخروط الدوران",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "3eme_cem"
+                     }
+    },
+    {
+        "id":  "bad4f492-ed35-4563-ae09-65581b88944f",
+        "title":  "Les nombres naturels et rationnels",
+        "title_ar":  "الأعداد الطبيعية والأعداد الناطقة",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "4eme_cem"
+                     }
+    },
+    {
+        "id":  "5c8a7a48-6713-4a95-b754-142ed809ab38",
+        "title":  "Calcul sur les racines",
+        "title_ar":  "الحساب على الجذور",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "4eme_cem"
+                     }
+    },
+    {
+        "id":  "5dda33a2-44c2-47c6-8c49-5e356899445b",
+        "title":  "Calcul littéral",
+        "title_ar":  "الحساب الحَرفي",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "4eme_cem"
+                     }
+    },
+    {
+        "id":  "1f9beab0-8cf4-44da-9f91-d22dc53522af",
+        "title":  "Équations et inéquations",
+        "title_ar":  "المعادلات والمتراجحات",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "4eme_cem"
+                     }
+    },
+    {
+        "id":  "5e4f674d-d0b5-4039-b2f5-163967ef3a5c",
+        "title":  "Systèmes d\u0027équations",
+        "title_ar":  "جمل معادلتين من الدّرجة الأولى لمجهولين",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "4eme_cem"
+                     }
+    },
+    {
+        "id":  "2ff765c8-1a56-4441-8a70-08cb10f86750",
+        "title":  "La fonction linéaire et proportionnalité",
+        "title_ar":  "الدالة الخطية والتناسبية ...",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال وتنظيم المعطيات",
+                         "order_index":  1,
+                         "school_level":  "4eme_cem"
+                     }
+    },
+    {
+        "id":  "eb04fbf2-b7cc-4bc4-ae12-186605f05f1b",
+        "title":  "La fonction quadratique",
+        "title_ar":  "الدّالة التآلفية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال وتنظيم المعطيات",
+                         "order_index":  1,
+                         "school_level":  "4eme_cem"
+                     }
+    },
+    {
+        "id":  "6a744a67-4ebe-4861-af8d-0f9d685ee893",
+        "title":  "Statistiques",
+        "title_ar":  "الإحصاء",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال وتنظيم المعطيات",
+                         "order_index":  1,
+                         "school_level":  "4eme_cem"
+                     }
+    },
+    {
+        "id":  "a1557836-267f-4240-a449-c6a5556de812",
+        "title":  "Théorème de Thalès",
+        "title_ar":  "خاصية طالس",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "4eme_cem"
+                     }
+    },
+    {
+        "id":  "cea0d7c8-57c0-439b-b55e-5751b134cac4",
+        "title":  "Trigonométrie dans le triangle rectangle",
+        "title_ar":  "حساب المثلثات في المثلث القائم",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "4eme_cem"
+                     }
+    },
+    {
+        "id":  "b797ca0c-1110-4867-ba7a-4d5e8f7feb14",
+        "title":  "Rayons et homothéties",
+        "title_ar":  "الأشعة والانسحاب",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "4eme_cem"
+                     }
+    },
+    {
+        "id":  "90bc8d6b-77d5-4a48-83d4-8b871e06a771",
+        "title":  "Rayons dans un cercle",
+        "title_ar":  "الأشعة في معلم",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "4eme_cem"
+                     }
+    },
+    {
+        "id":  "67cfe631-6901-4d53-b80b-aae15f187cbb",
+        "title":  "Rotations - Angles - Polygones réguliers",
+        "title_ar":  "الدوران - الزوايا - المضلعات المنتظمة ..",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "4eme_cem"
+                     }
+    },
+    {
+        "id":  "47a8fd30-a0ab-479d-9186-cc325d687b6a",
+        "title":  "Géométrie dans l\u0027espace",
+        "title_ar":  "الهندسة في الفضاء",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "4eme_cem"
+                     }
+    },
+    {
+        "id":  "0ffbb699-84e7-4fdb-bee1-f9db341c86b4",
+        "title":  "Calcul dans les ensembles numériques",
+        "title_ar":  "ممارسة الحساب في مختلف المجموعات العددية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الأعداد والحساب",
+                         "order_index":  0,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "5fb40abd-f538-48bd-8f13-aa21b871546a",
+        "title":  "Maîtrise du calcul algébrique",
+        "title_ar":  "التحكم في الحساب الجبري",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الأعداد والحساب",
+                         "order_index":  0,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "946642ea-d927-42ca-893c-89519661bcb3",
+        "title":  "Équations et inéquations",
+        "title_ar":  "اكتساب إجراءات تتعلق بالتعبير عن مشكلات بمعادلات ومتراجحات وحلها",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الأعداد والحساب",
+                         "order_index":  0,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "a753c78f-5f4c-4dc5-bab1-351430ef1841",
+        "title":  "Utilisation de la calculatrice",
+        "title_ar":  "استخدام الحاسبة العلمية أو البيانية لإجراء حساب",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الأعداد والحساب",
+                         "order_index":  0,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "4159f2e9-ae87-46c5-8d7a-ae1276476755",
+        "title":  "Concept de fonction",
+        "title_ar":  "إدراك مفهوم الدالة بمختلف الصيغ",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال",
+                         "order_index":  1,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "c4856ca5-465e-447a-a036-90021f3efd50",
+        "title":  "Fonctions de référence",
+        "title_ar":  "معرفة واستعمال خواص الدوال المرجعية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال",
+                         "order_index":  1,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "40abb332-b333-4f1e-bb64-e9ef9dec2069",
+        "title":  "Tableaux de variations et courbes",
+        "title_ar":  "قراءة جداول تغيرات ومنحنيات دوال، وتفسيرها",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال",
+                         "order_index":  1,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "cd4b7062-54df-4c81-8fc4-dbcd631ef0d5",
+        "title":  "Résolution de problèmes",
+        "title_ar":  "اكتساب إجراءات للتعبير عن مشكلات - تتعلق بالدوال - وحلها",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الدوال",
+                         "order_index":  1,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "61cacc0e-2a74-4002-8206-3b31749151bd",
+        "title":  "Tracé de courbes avec calculatrice",
+        "title_ar":  "توظيف الحاسبة البيانية لاستخراج منحني دالة",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الدوال",
+                         "order_index":  1,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "563a3279-a45d-495e-a97c-828149814191",
+        "title":  "Calcul vectoriel",
+        "title_ar":  "ممارسة الحساب الشعاعي في الهندسة التحليلية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الهندسة",
+                         "order_index":  2,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "eeb1b3a0-42ad-444e-8be0-cf18051cff30",
+        "title":  "Droites et résolution de problèmes",
+        "title_ar":  "اكتساب إجراءات للتعبير عن مشكلات تتعلق بالمستقيمات، وحلها",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الهندسة",
+                         "order_index":  2,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "5bfa9350-cb7c-49fe-87d2-1719a5e9bd4b",
+        "title":  "Lecture et organisation des données",
+        "title_ar":  "قراءة معطيات وتنظيمها",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الإحصاء",
+                         "order_index":  3,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "0d39085b-fd1d-458d-9688-93452af42355",
+        "title":  "Représentations graphiques",
+        "title_ar":  "عرض نتائج على شكل مخططات بيانية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الإحصاء",
+                         "order_index":  3,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "afb5a4b8-3bc3-4be7-83d0-82cd82a4f32b",
+        "title":  "Indicateurs statistiques",
+        "title_ar":  "تلخيص سلاسل إحصائية بواسطة مؤشرات الموقع",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الإحصاء",
+                         "order_index":  3,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "a5f6df1b-e850-4101-aa92-33eb7404da75",
+        "title":  "Calculatrice et statistiques",
+        "title_ar":  "توظيف الحاسبة العلمية أو البيانية لحساب مؤشرات إحصائية",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الإحصاء",
+                         "order_index":  3,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "29685a6b-ac27-48e7-9f1b-a6816007d69b",
+        "title":  "Utilisation de la calculatrice scientifique",
+        "title_ar":  "استخدام الحاسبة العلمية لبناء تعلّمات",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "تكنولوجيات الإعلام والاتصال",
+                         "order_index":  4,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "9e421009-363d-4459-9cfb-93bba70beea2",
+        "title":  "Logiciels pour expérimentation",
+        "title_ar":  "استخدام البرمجيات والحاسبة للتجريب والتخمين",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "تكنولوجيات الإعلام والاتصال",
+                         "order_index":  4,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "ce5a7877-9404-4781-84d2-0f867a90de3a",
+        "title":  "Tracé de courbes de fonctions",
+        "title_ar":  "توظيف البرمجيات والحاسبة البيانية لاستخراج منحنى دالة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "تكنولوجيات الإعلام والاتصال",
+                         "order_index":  4,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "ccf6eb40-ce67-4351-9589-5b0c053d8b05",
+        "title":  "Indicateurs statistiques",
+        "title_ar":  "توظيف البرمجيات لحساب مؤشرات الموقع",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "تكنولوجيات الإعلام والاتصال",
+                         "order_index":  4,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "460e7aa8-3c35-4349-9d84-f682b158529c",
+        "title":  "Propositions simples et composées",
+        "title_ar":  "الحكم على القضايا البسيطة والمركبة",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "المنطق والبرهان الرياضي",
+                         "order_index":  5,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "12efec88-ee64-4bf2-b8c1-a80c8122f354",
+        "title":  "Démonstration par déduction",
+        "title_ar":  "ممارسة البرهان بالاستنتاج وبالخلف",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "المنطق والبرهان الرياضي",
+                         "order_index":  5,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "801dfa3f-6651-4e52-9811-431071a177cb",
+        "title":  "Reconnaissance et validation de preuves",
+        "title_ar":  "التعرف على نمط برهان معطى وشرحه وتصديقه",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "المنطق والبرهان الرياضي",
+                         "order_index":  5,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "ea331e6b-d302-427d-ac24-3d72edd1094d",
+        "title":  "Distinction des types de démonstration",
+        "title_ar":  "التمييز بين أنماط البرهان",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "المنطق والبرهان الرياضي",
+                         "order_index":  5,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "e3624ffc-b977-4ca9-9999-058092ac4921",
+        "title":  "Lien entre démonstration et formule logique",
+        "title_ar":  "تقريب نمط برهان من صيغة منطقية له",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "المنطق والبرهان الرياضي",
+                         "order_index":  5,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "a6cead03-25ab-4df9-afb2-158e45b3f2bd",
+        "title":  "Calcul dans les ensembles numériques",
+        "title_ar":  "ممارسة الحساب في مختلف المجموعات العددية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الأعداد والحساب",
+                         "order_index":  0,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "b3ec5c71-d53d-4dfb-852e-56ceb7d4a6dd",
+        "title":  "Maîtrise du calcul algébrique",
+        "title_ar":  "التحكم في الحساب الجبري",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الأعداد والحساب",
+                         "order_index":  0,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "cc3b97e1-e106-406e-ac3d-dda1aeb6b112",
+        "title":  "Équations et inéquations",
+        "title_ar":  "اكتساب إجراءات تتعلق بالتعبير عن مشكلات بمعادلات ومتراجحات وحلها",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الأعداد والحساب",
+                         "order_index":  0,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "6275923a-687d-4f8c-b022-93d722e5e447",
+        "title":  "Utilisation de la calculatrice",
+        "title_ar":  "استخدام الحاسبة العلمية أو البيانية لإجراء حساب",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الأعداد والحساب",
+                         "order_index":  0,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "c86206c7-f1b4-4e93-bfba-92749e06fac0",
+        "title":  "Concept de fonction",
+        "title_ar":  "إدراك مفهوم الدالة بمختلف الصيغ",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال",
+                         "order_index":  1,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "2be21208-7661-4411-ba6f-c237fa61a69f",
+        "title":  "Fonctions de référence",
+        "title_ar":  "معرفة واستعمال خواص الدوال المرجعية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال",
+                         "order_index":  1,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "72b2ef0d-2a8a-47bc-9471-7d0667ec574c",
+        "title":  "Tableaux de variations et courbes",
+        "title_ar":  "قراءة جداول تغيرات ومنحنيات دوال، وتفسيرها",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال",
+                         "order_index":  1,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "61ef36ff-1f68-4368-bb15-c5bd77c3a83c",
+        "title":  "Résolution de problèmes",
+        "title_ar":  "اكتساب إجراءات للتعبير عن مشكلات -تتعلق بالدوال - وحلها",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الدوال",
+                         "order_index":  1,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "f6a33a1e-658f-4795-8b20-640430875b8c",
+        "title":  "Calcul vectoriel en géométrie analytique",
+        "title_ar":  "ممارسة الحساب الشعاعي في الهندسة التحليلية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الهندسة",
+                         "order_index":  2,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "d44429ba-e4bf-4400-9755-4a5c5ddd2591",
+        "title":  "Problèmes géométriques vectoriels",
+        "title_ar":  "حل مسائل هندسية تتعلق بالحساب الشعاعي",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الهندسة",
+                         "order_index":  2,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "54246cf0-4dcf-40f4-a79e-bd8336ee4b41",
+        "title":  "Problèmes sur les droites",
+        "title_ar":  "اكتساب إجراءات للتعبير عن مشكلات تتعلق بالمستقيمات، وحلها",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الهندسة",
+                         "order_index":  2,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "1126a865-b8eb-4f8d-9b4f-c53dd65dc3ca",
+        "title":  "Lecture et organisation des données",
+        "title_ar":  "قراءة معطيات وتنظيمها",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الإحصاء",
+                         "order_index":  3,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "96972e22-1f91-4962-a7a7-de3d8e419a29",
+        "title":  "Diagrammes et graphiques",
+        "title_ar":  "عرض نتائج على شكل مخططات بيانية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الإحصاء",
+                         "order_index":  3,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "1788f32d-482d-4ee1-a71d-8400de89f394",
+        "title":  "Indicateurs statistiques",
+        "title_ar":  "تلخيص سلاسل إحصائية بواسطة مؤشرات الموقع",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الإحصاء",
+                         "order_index":  3,
+                         "school_level":  "premiere"
+                     }
+    },
+    {
+        "id":  "d0b59d4e-0280-45cb-b980-50d5d9615310",
+        "title":  "Rappels sur les fonctions",
+        "title_ar":  "تذكير حول الدوال",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال العددية",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "688ce86c-9ddf-4210-bd79-31cb037aea7e",
+        "title":  "Les fonctions de référence",
+        "title_ar":  "الدوال المرجعية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال العددية",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "66f7c5d1-5825-4319-99e4-61c94975d693",
+        "title":  "Opérations sur les fonctions",
+        "title_ar":  "عمليات على الدوال",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال العددية",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "1b407dde-723c-4bbc-83c2-ead1a2865921",
+        "title":  "Sens de variation",
+        "title_ar":  "إتجاه التغير",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الدوال العددية",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "4ada8125-4fee-4a59-b5fd-cea8c62ae970",
+        "title":  "Représentation graphique",
+        "title_ar":  "التمثيل البياني",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الدوال العددية",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "6193aa9b-7a47-414e-ba64-bd1580b4ac1d",
+        "title":  "Opérations sur les polynômes",
+        "title_ar":  "عمليات على كثيرات الحدود",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال كثيرات الحدود",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "bfef1392-56bb-46bd-afe8-d660c631c5c6",
+        "title":  "Équations du second degré",
+        "title_ar":  "المعادلات من الدرجة الثانية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال كثيرات الحدود",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "c5dec85c-221a-4393-a1a9-258398a3d1e3",
+        "title":  "Inéquations du second degré",
+        "title_ar":  "المتراجحات من الدرجة الثانية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال كثيرات الحدود",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "3fb0641e-29de-4154-97ef-78d778becd3c",
+        "title":  "Le nombre dérivé",
+        "title_ar":  "العدد المشتق",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الإشتقاقية",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "ac61dd18-778c-4f00-afdb-ab758fbd98ce",
+        "title":  "Tangente à une courbe en un point",
+        "title_ar":  "مماس لمنحن عند نقطة",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الإشتقاقية",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "84c6b006-dd34-43dc-9b44-dbbfa6c1e47b",
+        "title":  "Approximation affine d\u0027une fonction",
+        "title_ar":  "التقريب التآلفي لدالة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الإشتقاقية",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "fdf662c4-813e-4db2-95b3-f270ed897d9f",
+        "title":  "La fonction dérivée d\u0027une fonction",
+        "title_ar":  "الدالة المشتقة لدالة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الإشتقاقية",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "84fa2b78-3a9e-4ea9-826c-695324bf6d58",
+        "title":  "Opérations sur les fonctions dérivées",
+        "title_ar":  "عمليات على الدوال المشتقة",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الإشتقاقية",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "aa0af8d5-36f4-4a7d-aed1-5da8a4e5c514",
+        "title":  "Sens de variation d\u0027une fonction",
+        "title_ar":  "اتجاه تغير دالة",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "تطبيقات الإشتقاقية",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "fe7699dc-2f93-4254-a595-98bca40334db",
+        "title":  "Extremums locaux",
+        "title_ar":  "القيم الحدية المحلية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "تطبيقات الإشتقاقية",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "d9c193a3-11f6-4278-96ab-1988f89b4279",
+        "title":  "Encadrement d\u0027une fonction",
+        "title_ar":  "حصر دالة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "تطبيقات الإشتقاقية",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "f8b2b54d-8a27-456d-96bb-3590700706c0",
+        "title":  "Points remarquables",
+        "title_ar":  "العناصر الحادة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "تطبيقات الإشتقاقية",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "7b583470-e74a-4cf5-9ade-ab88f987535d",
+        "title":  "Limite infinie en un point réel",
+        "title_ar":  "نهاية غير منتهية عند عدد حقيقي",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "345300b1-edcd-4306-b86e-2565450e7471",
+        "title":  "Limite finie à l\u0027infini",
+        "title_ar":  "نهاية منتهية عند المالانهاية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "2fdf4322-f479-4a0c-ba2c-4a0eed68a8fe",
+        "title":  "Notion de limite",
+        "title_ar":  "مفهوم النهاية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "fb21bca7-0608-454e-97ce-e4a7187a922c",
+        "title":  "Opérations sur les limites",
+        "title_ar":  "عمليات على النهايات",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "ef339e50-31b9-4e00-a530-722ede7c349d",
+        "title":  "Asymptote oblique",
+        "title_ar":  "المستقيم المقارب المائل",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "79faff42-839e-401c-a7d1-6aacfa325d5f",
+        "title":  "Étude d\u0027une fonction",
+        "title_ar":  "دراسة دالة",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "aec7bc43-e373-45d0-9daa-290131830de4",
+        "title":  "Les suites numériques",
+        "title_ar":  "المتتاليات العددية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "5e14e54e-2386-4082-b01c-e6b13190b09a",
+        "title":  "Représentation graphique d\u0027une suite",
+        "title_ar":  "التمثيل البياني لمتتالية عددية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "4a5daa71-b22e-47cc-b722-22aa2c4ea9e0",
+        "title":  "Sens de variation d\u0027une suite",
+        "title_ar":  "إتجاه تغير متتالية عددية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "8f40badf-f2cb-4df4-aa57-2e16ac43c6a7",
+        "title":  "Les suites arithmétiques",
+        "title_ar":  "المتتاليات الحسابية",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "486a9cac-14a3-4e1c-98d5-c019211332b8",
+        "title":  "Les suites géométriques",
+        "title_ar":  "المتتاليات الهندسية",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "49d89c4e-d331-4e5e-8733-1def7591a217",
+        "title":  "Limite d\u0027une suite numérique",
+        "title_ar":  "نهاية متتالية عددية",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "c9106f17-f1cb-4e09-a954-4d173985d44d",
+        "title":  "Limite d\u0027une suite par encadrement",
+        "title_ar":  "نهاية متتالية عددية باستعمال الحصر",
+        "order_index":  6,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "8062a5fd-d910-4f0b-bc2e-352dec2cca1a",
+        "title":  "Limite d\u0027une suite géométrique",
+        "title_ar":  "نهاية متتالية هندسية",
+        "order_index":  7,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "6bb4ba56-24a0-441b-ae35-60f3a0cd39eb",
+        "title":  "Rappels sur les vecteurs",
+        "title_ar":  "تذكير حول الأشعة",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "المرجح في المستوي",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "a5602322-869c-4b5e-b546-564fa6cac544",
+        "title":  "Barycentre de deux points",
+        "title_ar":  "مرجح نقطتين",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "المرجح في المستوي",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "900f1bb4-6f61-45af-825c-f0a2a22ad6b6",
+        "title":  "Barycentre de trois points",
+        "title_ar":  "مرجح ثلاث نقاط",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "المرجح في المستوي",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "578c313b-1136-4463-a71d-873db7ff9529",
+        "title":  "Coordonnées du barycentre",
+        "title_ar":  "إحداثيات مرجح ثلاث نقاط",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "المرجح في المستوي",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "a92ae0b3-5dab-4a43-ac73-bff600b08e7a",
+        "title":  "Barycentre de plusieurs points",
+        "title_ar":  "مرجح عدة نقاط",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "المرجح في المستوي",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "b942f15c-6090-40e3-b805-6fd85473d40d",
+        "title":  "Rapport d\u0027une partie à un tout",
+        "title_ar":  "نسبة الجزء إِلى الكلّ",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "النسب المئوية والمؤشرات",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "63794fd7-292f-4a10-b262-ff484d0d48fa",
+        "title":  "Pourcentage d\u0027un autre pourcentage",
+        "title_ar":  "النسبة المئوية لنسبة مئوية أخرى",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "النسب المئوية والمؤشرات",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "d790ebf5-14fa-40eb-ba97-2830b93b4c41",
+        "title":  "Évolutions et pourcentages",
+        "title_ar":  "التطورات والنسب المئوية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "النسب المئوية والمؤشرات",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "49229e92-ef5c-42f7-9778-baf13a3a291a",
+        "title":  "Indicateurs",
+        "title_ar":  "المؤشرات",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "النسب المئوية والمؤشرات",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "4a8aa61d-f382-47e0-b977-088e0a33885c",
+        "title":  "Séries chronologiques",
+        "title_ar":  "السلاسل الزمنية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الإِحصاء",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "9303ab9e-62c5-4d64-acd4-0cdb153653a0",
+        "title":  "Lissage par moyennes mobiles",
+        "title_ar":  "التمليس بالأوساط المتحركة",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الإِحصاء",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "e2164757-6747-4864-b624-ba5d6dfefe5c",
+        "title":  "Histogrammes",
+        "title_ar":  "المدرجات التكرارية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الإِحصاء",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "88544f1b-5e1c-4bea-86ad-2b9953d04cd9",
+        "title":  "Variance et écart-type",
+        "title_ar":  "التباين-الإنحراف المعياري",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الإِحصاء",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "75c9ec89-1921-40f8-bbc3-5c2b9207c7a3",
+        "title":  "Expérience aléatoire et simulation",
+        "title_ar":  "التجربة العشوائية - المحاكاة",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "الإِحصاء",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "966d64e4-895d-45e6-8a45-153bb9c3f939",
+        "title":  "Fonction \u0027cube\u0027",
+        "title_ar":  "الدالة ((مكعب))",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "عموميات على الدوال",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "aa21c3da-2f62-4da5-938a-680dcf9a4c3f",
+        "title":  "Opérations sur les fonctions",
+        "title_ar":  "العمليات على الدوال",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "عموميات على الدوال",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "875c0df3-f088-430a-91b4-7c8a6ecdaf72",
+        "title":  "Courbes et transformations",
+        "title_ar":  "المنحنيات والتحويلات النقطية البسيطة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "عموميات على الدوال",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "758dc756-207b-478b-bc07-af0e8da51685",
+        "title":  "Éléments de symétrie des courbes",
+        "title_ar":  "عناصر تناظر منحنيات",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "عموميات على الدوال",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "aae27dfa-ae9a-46f7-9d4d-fe6b111585a8",
+        "title":  "Trinôme du second degré",
+        "title_ar":  "ثلاثي الحدود من الدرجة الثانية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "المعادلات والمتراجحات",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "5784b0d4-d57f-45c3-98e7-c86f38f79c4c",
+        "title":  "Équations du second degré",
+        "title_ar":  "المعادلات من الدرجة الثانية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "المعادلات والمتراجحات",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "2e9da105-229b-4dfb-b1de-bad929e76070",
+        "title":  "Inéquations du second degré",
+        "title_ar":  "المتراجحات من الدرجة الثانية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "المعادلات والمتراجحات",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "6b69507a-2b35-416b-a903-de3207174a9f",
+        "title":  "Résolution graphique",
+        "title_ar":  "حلّ معادلات ومتراجحات من الدرجة الثانية بيانيّا",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "المعادلات والمتراجحات",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "4a6423e4-7dc5-44db-bc6c-3a0158ffeb65",
+        "title":  "Nombre dérivé",
+        "title_ar":  "العدد المشتق",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الإِشتقاق",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "6f759608-534b-42f1-8977-76e3acce5226",
+        "title":  "Équation de la tangente",
+        "title_ar":  "معادلة المماس لمنحن عند نقطة",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الإِشتقاق",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "b69b0a29-2486-480f-9962-e5592c887ed3",
+        "title":  "Fonctions dérivées",
+        "title_ar":  "الدوال المشتقة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الإِشتقاق",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "57a7529f-877b-42d4-bc12-83692b2b5f05",
+        "title":  "Opérations sur les fonctions dérivées",
+        "title_ar":  "عمليات على الدوال المشتقة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الإِشتقاق",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "fa27c589-3062-42dc-9431-953531647a14",
+        "title":  "Fonction dérivée et sens de variation",
+        "title_ar":  "الدالة المشتقة وإتجاه التغير",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الإِشتقاق",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "c872378e-f313-4717-821d-fb203b0588fd",
+        "title":  "Extremums d\u0027une fonction",
+        "title_ar":  "القيم الحدية لدالة",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "الإِشتقاق",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "225889f5-d924-4da7-bcb0-5f6cb518709d",
+        "title":  "Approximation affine tangente",
+        "title_ar":  "التقريب التآلفي المماسي لدالة",
+        "order_index":  6,
+        "chapters":  {
+                         "title_ar":  "الإِشتقاق",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "232748f1-f4b6-4940-9cbf-a37899495b0c",
+        "title":  "Limites de fonctions usuelles",
+        "title_ar":  "نهايات دوال مألوفة",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "السلوك التقاربي",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "9de11277-49e0-4774-b193-81344555ce7e",
+        "title":  "Opérations sur les limites",
+        "title_ar":  "العمليات على النهايات",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "السلوك التقاربي",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "5aa3ac0a-6851-4fa4-8f84-db60828c908a",
+        "title":  "Asymptotes",
+        "title_ar":  "المستقيمات المقاربة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "السلوك التقاربي",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "d5520caa-5c16-48ab-8f4d-5d471dcda02b",
+        "title":  "Généralités",
+        "title_ar":  "عموميات",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "96acb02f-7b38-4521-bab5-7e6f2afe6b0a",
+        "title":  "Suites arithmétiques",
+        "title_ar":  "المتتاليات الحسابية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "cf861f39-c909-486c-a5c5-b94596b24c72",
+        "title":  "Suites géométriques",
+        "title_ar":  "المتتاليات االهندسية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "a3c89fa8-9a78-4a6a-9bc0-76ca927792f6",
+        "title":  "Équations linéaires à deux inconnues",
+        "title_ar":  "المعادلات الخطية لمجهولين",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الجمل الخطية",
+                         "order_index":  7,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "4dd037e1-0960-4c44-b227-3d6cc75d1ec9",
+        "title":  "Systèmes de trois équations",
+        "title_ar":  "جمل ثلاث معادلات خطية لثلاثة مجاهيل",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الجمل الخطية",
+                         "order_index":  7,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "0ca8775b-58cb-4e73-9d3e-0c0e84311b74",
+        "title":  "Inéquations linéaires",
+        "title_ar":  "المتراجحات الخطية لمجهولين",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الجمل الخطية",
+                         "order_index":  7,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "896bb478-ea38-452f-a52e-91535e9bde93",
+        "title":  "Vocabulaire des probabilités",
+        "title_ar":  "مفردات الإحتمالات",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الإحتمالات",
+                         "order_index":  8,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "17efbf5b-d82b-48f1-81b8-39a220340013",
+        "title":  "Probabilités",
+        "title_ar":  "الاحتمالات",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الإحتمالات",
+                         "order_index":  8,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "9f06cf42-6be9-40ca-a0ef-b3d590476e40",
+        "title":  "Continuité",
+        "title_ar":  "الاستمرارية",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "النهايات والاستمرارية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "a993024b-751e-4520-b2d8-a3f958ea41af",
+        "title":  "Fonctions continues et strictement monotones",
+        "title_ar":  "الدوال المستمرة والرتيبة تماما",
+        "order_index":  6,
+        "chapters":  {
+                         "title_ar":  "النهايات والاستمرارية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "b5346f5b-7f45-4a1e-bdae-6a7eb6819bda",
+        "title":  "Dérivabilité",
+        "title_ar":  "الاشتقاقية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "207f6bb6-f928-411a-8189-c49bdde402e9",
+        "title":  "Dérivées et opérations",
+        "title_ar":  "المشتقات والعمليات",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "e3782e17-87c9-4332-bd80-644cc5505d1f",
+        "title":  "Sens de variation d\u0027une fonction",
+        "title_ar":  "إتجاه التغير دالة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "c52d64d9-ef8a-4d07-ba46-47b85d57289d",
+        "title":  "Dérivée d\u0027une fonction composée",
+        "title_ar":  "اشتقاق دالة مركبة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "7074b173-36b6-4766-86ac-8f5c04af913b",
+        "title":  "Approximation affine - Méthode d\u0027Euler",
+        "title_ar":  "التقريب التألفي - طريقة أولر",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "b69a64ca-13b4-4c74-9e3b-a56b24cce407",
+        "title":  "Étude de fonction trigonométrique",
+        "title_ar":  "دراسة دالة مثلثية",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "a69fc9bb-486d-4925-82bf-420c2a81c80d",
+        "title":  "Fonction exponentielle",
+        "title_ar":  "الدالة الأسية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "3ce45259-8a0d-4b1c-9441-73033cc8eb45",
+        "title":  "Fonctions exponentielles x ↦ e^x",
+        "title_ar":  "الدوال الأسية x ↦ e^x",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "72aa1300-b838-4e59-9c07-0286491981ba",
+        "title":  "Étude de la fonction exponentielle",
+        "title_ar":  "دراسة الدالة الأسية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "ecda3d9f-5135-40ef-8d41-efb3de2a3a99",
+        "title":  "Étude de la fonction exp(u)",
+        "title_ar":  "دراسة الدالة exp(u)",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "5e98a94b-bc8f-4ce6-89f1-6548a23a378b",
+        "title":  "Fonction logarithme népérien",
+        "title_ar":  "الدالة اللوغاريتمية النيبيرية",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "cede67b8-3e56-4b22-96f2-00e7d8a03fdc",
+        "title":  "Propriétés algébriques",
+        "title_ar":  "الخواص الجبرية",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "c8b5c87d-a3f2-417d-8e70-0fc5d035cd68",
+        "title":  "Étude de la fonction logarithme népérien",
+        "title_ar":  "دراسة الدالة اللوغاريتمية النيبيرية",
+        "order_index":  6,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "bc173cb0-8e75-403e-9423-7b6a53cd22b7",
+        "title":  "Étude de la fonction ln(u)",
+        "title_ar":  "دراسة الدالة ln(u)",
+        "order_index":  8,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "9dbf7221-eb8f-4e13-b444-89ae50df85e2",
+        "title":  "Puissances d\u0027un nombre réel positif",
+        "title_ar":  "قوى عدد حقيقي موجب",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "التزايد المقارن",
+                         "order_index":  3,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "2a5cd254-c8cd-4f3e-b9b6-66b784f69531",
+        "title":  "Étude des fonctions x ↦ a^x et x ↦ ⁿ√x",
+        "title_ar":  "دراسة الدالة x ↦ a^x و x ↦ ⁿ√x",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "التزايد المقارن",
+                         "order_index":  3,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "6b125989-f215-4d87-8d47-450e9c646418",
+        "title":  "Croissance comparée",
+        "title_ar":  "التزايد المقارن",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "التزايد المقارن",
+                         "order_index":  3,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "ea308785-eaeb-4279-a598-6ee1e774ae10",
+        "title":  "Primitives",
+        "title_ar":  "الدوال الأصلية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال الأصلية",
+                         "order_index":  4,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "5c7f065b-1351-4bbd-b51e-bfee7ddf0e79",
+        "title":  "Calcul de primitives",
+        "title_ar":  "حساب الدوال الأصلية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال الأصلية",
+                         "order_index":  4,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "46bd0e3a-2c4a-4dd7-a6a4-8ead8e5ea1cd",
+        "title":  "Équations différentielles",
+        "title_ar":  "المعادلات التفاضلية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال الأصلية",
+                         "order_index":  4,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "dc305851-bb9d-4105-a886-f6e25a36de8e",
+        "title":  "Intégrale d\u0027une fonction",
+        "title_ar":  "تكامل دالة",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "e2c28dd0-54ac-4481-8554-c134c948b2a4",
+        "title":  "Propriétés de l\u0027intégrale",
+        "title_ar":  "خواص التكامل",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "d7b33d21-4453-4aa3-b1f3-5882cf54f47d",
+        "title":  "Valeur moyenne",
+        "title_ar":  "القيمة المتوسطة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "6a95707f-0296-4aca-a8fb-405efa0a8e8c",
+        "title":  "Extension aux fonctions de signe quelconque",
+        "title_ar":  "التمديد إلى دالة إشارتها كيفية",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "66272b74-2758-48ba-9752-bb7e7074eda6",
+        "title":  "Utilisation du calcul intégral",
+        "title_ar":  "توظيف الحساب التكاملي لحساب دوال أصلية",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "c2ad44d4-f3ef-47b0-b224-e77ff3030bda",
+        "title":  "Applications du calcul intégral",
+        "title_ar":  "بعض تطبيقات الحساب التكاملي",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "8f56ac85-4087-499b-bdb1-ca7cf52ff133",
+        "title":  "Dénombrement",
+        "title_ar":  "العد (القوائم - الترتيبات - التبديلات)",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الاحتمالات الشرطية",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "75bc2078-6ee8-4fc0-b7a7-16115f8de022",
+        "title":  "Combinaisons - Formule du binôme",
+        "title_ar":  "التوفيقات - دستور ثنائي الحد",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الاحتمالات الشرطية",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "bc5ccdc5-df10-4113-b2dc-222a4bf697f5",
+        "title":  "Modélisation d\u0027une expérience aléatoire",
+        "title_ar":  "نمذجة تجربة عشوائية: المتغير العشوائي",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الاحتمالات الشرطية",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "704aee09-4097-41f9-838b-990a7408290c",
+        "title":  "Probabilités conditionnelles",
+        "title_ar":  "الاحتمالات الشرطية",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الاحتمالات الشرطية",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "dc1d92be-6f39-4074-b79c-1a04a24f3f05",
+        "title":  "Événements indépendants",
+        "title_ar":  "الحوادث المستقلة والمتغيرات العشوائية المستقلة",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الاحتمالات الشرطية",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "b0a0758e-670b-404d-91db-621ebeabdcf6",
+        "title":  "Loi de Bernoulli",
+        "title_ar":  "قانون برنولي",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "قوانين الاحتمال",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "d6961071-3af4-43cb-a14c-0a0c076c91cf",
+        "title":  "Lois de probabilité continues",
+        "title_ar":  "قوانين الاحتمالات المستمرة",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "قوانين الاحتمال",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "b94922bf-b6a6-4683-a286-8ec3717be1b2",
+        "title":  "Adéquation à une loi équirépartie",
+        "title_ar":  "قياس تلاؤم سلسلة مشاهدة ونموذج احتمالي",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "قوانين الاحتمال",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "70478b88-c1d3-49e3-bdcc-0d359fa22825",
+        "title":  "Loi exponentielle",
+        "title_ar":  "القانون الأسي",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "قوانين الاحتمال",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "c51adb36-ec0c-411b-8a08-d820a743be51",
+        "title":  "Génération et reconnaissance de suites",
+        "title_ar":  "توليد متتالية: التعرف على متتاليات",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "77096514-b778-4743-9544-4ad323a10bbf",
+        "title":  "Suites arithmétiques",
+        "title_ar":  "المتتاليات الحسابية: التعريف ، الحد العام ؛ الوسط الحسابي",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "105dff92-bda2-43da-b998-4bb66d1d978b",
+        "title":  "Somme des premiers termes arithmétiques",
+        "title_ar":  "حساب مجموع الحدود الاولى من متتالية حسابية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "79dd4b00-fec1-4c7a-85ac-41b353e16d2c",
+        "title":  "Suites géométriques",
+        "title_ar":  "المتتاليات الهندسية: التعريف ، الحد العام؛ الوسط الهندسي",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "a8b4e214-c5f6-4c90-85a7-8ffc59d53076",
+        "title":  "Somme des premiers termes géométriques",
+        "title_ar":  "حساب مجموع الحدود الاولى من متتالية هندسية",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "ebdb927f-a8ae-48f0-bd6f-572ee0cdf777",
+        "title":  "Suites récurrentes",
+        "title_ar":  "التعرّف على متتالية بالتراجع - حساب الحدود الأولى",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "dcbe367a-8a8b-41d4-9a19-5becb206889e",
+        "title":  "Monotonie d\u0027une suite",
+        "title_ar":  "مفهوم المتتالية الرتيبة وتعيين اتجاه تغيّرها",
+        "order_index":  6,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "ebfc9c05-d7bb-4efb-b1a7-669a39e9f794",
+        "title":  "Sens de variation",
+        "title_ar":  "تحديد اتجاه تغيّر متتالية حسابية وهندسية",
+        "order_index":  7,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "cfd6a2b1-3d5c-49e3-8911-9784f75b3c65",
+        "title":  "Application des suites",
+        "title_ar":  "استعمال المتتاليات الحسابية والهندسية في حل المشكلات",
+        "order_index":  8,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "0b29e514-f8a6-4ee6-88d2-62d4fbecbbf3",
+        "title":  "Suites arithmotico-géométriques",
+        "title_ar":  "المتتاليات من الشكل Un+1=a Un +b",
+        "order_index":  9,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "a1b9af15-bc25-44e4-ab5d-6f35fdeab8e9",
+        "title":  "Résolution de problèmes",
+        "title_ar":  "حل مشكلات تُستعمل فيها متتاليات من الشكل Un+1=a Un +b",
+        "order_index":  10,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "bb3e8873-8813-40e7-b9a9-c6dd1f6c19c6",
+        "title":  "Division euclidienne dans Z",
+        "title_ar":  "القسمة الإقليدية في Z",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الحساب",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "82226b86-184e-4436-9187-cb1b3e63d357",
+        "title":  "Ensemble des diviseurs",
+        "title_ar":  "تعيين مجموعة قواسم عدد طبيعي",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الحساب",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "80a20260-ab25-4254-9576-715f9a547d30",
+        "title":  "Congruences dans Z",
+        "title_ar":  "الموافقات في Z",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الحساب",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "f9c0519b-5605-45f1-9adc-0dce3beb7e0b",
+        "title":  "Propriétés des congruences",
+        "title_ar":  "معرفة خواص الموافقة واستعمالها في حل المشکلات",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الحساب",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "a5530fd4-6c89-4299-ac56-edd07d47df4a",
+        "title":  "Raisonnement par récurrence",
+        "title_ar":  "الاستدلال بالتراجع",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الحساب",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "22393aca-9eca-4bda-81c1-2deb4a7626ee",
+        "title":  "Rappels : Dérivées et équation de la tangente",
+        "title_ar":  "تذكير حول المشتقات ومعادلة المماس",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "دراسة الدوال",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "3d759ead-256e-4e4b-be80-db9fa8621a49",
+        "title":  "Étude des variations d\u0027une fonction",
+        "title_ar":  "الدراسة والتمثيل البياني لدالة",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "دراسة الدوال",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "c79d32f0-7a3f-424c-aa5c-51925a416d8d",
+        "title":  "Fonctions polynômes",
+        "title_ar":  "الدوال كثيرات الحدود",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "دراسة الدوال",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "dfeb7567-0f2b-4451-a59c-91ae05f66f8a",
+        "title":  "Point d\u0027inflexion",
+        "title_ar":  "تعيين نقطة الانعطاف",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "دراسة الدوال",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "ba690b8b-1e79-4b6e-9098-e839a6a1b615",
+        "title":  "Lecture graphique",
+        "title_ar":  "القراءة البيانية",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "دراسة الدوال",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "164905c6-8cd4-406e-b8c5-15ea33af1b38",
+        "title":  "Résolution graphique",
+        "title_ar":  "استعمال التمثيل البياني لحل معادلات أو متراجحات",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "دراسة الدوال",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "a7014447-6f00-4114-9521-2673cf938efe",
+        "title":  "Fonctions homographiques",
+        "title_ar":  "الدوال التناظرية",
+        "order_index":  6,
+        "chapters":  {
+                         "title_ar":  "دراسة الدوال",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "b53e466d-edab-4b1f-9fdb-b6b4896edf9a",
+        "title":  "Asymptotes et interprétation",
+        "title_ar":  "تعيين المستقيمات المقاربة وتفسيرها بيانيا",
+        "order_index":  7,
+        "chapters":  {
+                         "title_ar":  "دراسة الدوال",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "207475d6-e637-4f6a-8029-c1e7a889bd6c",
+        "title":  "Conjecture des limites",
+        "title_ar":  "استعمال التمثيل البياني لتخمين النهايات",
+        "order_index":  8,
+        "chapters":  {
+                         "title_ar":  "دراسة الدوال",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "7eb8e0b3-a813-44a8-9ceb-ec7348fb8a84",
+        "title":  "Simulation et fréquences",
+        "title_ar":  "محاكاة تجربة عشوائية وملاحظة تواترات القيم",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الإحصاء و الاحتمالات",
+                         "order_index":  3,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "b44063b0-403c-4afa-8780-d6ee404a0326",
+        "title":  "Calcul de la probabilité",
+        "title_ar":  "حساب احتمال حدث بسيط او مركب",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الإحصاء و الاحتمالات",
+                         "order_index":  3,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "7a138071-2716-4349-b7f1-d062753e9fec",
+        "title":  "Loi de probabilité",
+        "title_ar":  "قانون الاحتمال المتعلق بتجربة عشوائية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الإحصاء و الاحتمالات",
+                         "order_index":  3,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "9a8a68c4-eafb-4867-8f09-7de974b78a38",
+        "title":  "Espérance mathématique et variance",
+        "title_ar":  "األمل الرياضياتي والتباين",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الإحصاء و الاحتمالات",
+                         "order_index":  3,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "3c05a945-6547-4039-aca1-4eb464845b47",
+        "title":  "Généralités sur les suites",
+        "title_ar":  "عموميات حول المتتاليات الحسابية والمتتاليات الهندسية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "6a8756f5-5abe-412d-9ee9-0776869face7",
+        "title":  "Raisonnement par récurrence",
+        "title_ar":  "الاستدلال بالتراجع",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "ab3171d2-9964-4d1a-916d-3cc8deb6ef0b",
+        "title":  "Suites bornées",
+        "title_ar":  "المتتاليات المحدودة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "c14cde02-22ba-43b9-af01-0c00a8f010a3",
+        "title":  "Suites monotones",
+        "title_ar":  "المتتاليات الرتيبة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "39bb9f3f-c2c0-4e0b-88ad-537553923ccc",
+        "title":  "Suites convergentes",
+        "title_ar":  "المتتاليات المتقاربة",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "dcdba2d5-78ec-49a7-acc2-30c082942164",
+        "title":  "Suite définie par Un+1 = aUn + b",
+        "title_ar":  "التعرف على متتالية معرفة بالعلاقة : Un+1= aUn+bو حساب حدودها",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "e9c45a18-4235-4760-bba1-527c1fcd6890",
+        "title":  "Convergence d\u0027une suite récurrente",
+        "title_ar":  "تقارب متتالية تراجعية",
+        "order_index":  6,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "cc264f75-e83e-4fa8-b11d-1149eea73c9d",
+        "title":  "Rappel sur la dérivation",
+        "title_ar":  "الاشتقاقية تذكير: العدد المشتق",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية والاستمرارية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "10bb56cd-9ed1-4a01-ae21-839d9cabce80",
+        "title":  "Fonctions dérivées",
+        "title_ar":  "الدوال المشتقة",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية والاستمرارية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "bad91242-1c39-4e17-842c-ff5c018c0fe0",
+        "title":  "Dérivées et extrema locaux",
+        "title_ar":  "المشتقات والقيم الحدية المحلية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية والاستمرارية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "b66d8112-c903-487d-bc7b-f29f28faed57",
+        "title":  "Continuité et TVI",
+        "title_ar":  "الإستمرارية: مبرهنة القيم المتوسطة",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية والاستمرارية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "ee33afcf-a5bf-4108-9b02-b3495ee04b7e",
+        "title":  "Opérations sur les limites",
+        "title_ar":  "العمليات على النهايات",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "4f49a9ce-3eda-4534-bb74-c268b2cb8573",
+        "title":  "Asymptotes",
+        "title_ar":  "المستقيمات المقاربة",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "5dbecfea-ae8b-479b-b63a-dc1b88d088d7",
+        "title":  "Asymptote oblique",
+        "title_ar":  "إثبات وجود مستقيم مقارب مائل",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "دراسة الدوال",
+                         "order_index":  3,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "5914f32c-390e-4f4b-abf5-f036e36c9b07",
+        "title":  "Primitives d\u0027une fonction",
+        "title_ar":  "الدوال الأصلية لدالة على مجال",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال الأصلية والتكاملات",
+                         "order_index":  4,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "6e0ffbf5-f617-4e5c-90ab-acf10d69e984",
+        "title":  "Calcul de primitives",
+        "title_ar":  "حساب دوال اصلة لدوال بسيطة",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال الأصلية والتكاملات",
+                         "order_index":  4,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "c5651afd-0c63-4067-a940-0b14d1048c40",
+        "title":  "Propriétés de l\u0027intégrale",
+        "title_ar":  "خواص التكامل: الخطية - علاقةشال- الترتيب",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال الأصلية والتكاملات",
+                         "order_index":  4,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "748cff7f-7692-48fa-bb5e-dfbd29d2fa07",
+        "title":  "Application de l\u0027intégrale au calcul d\u0027aires",
+        "title_ar":  "توظيف التكامل فى حساب المساحات",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الدوال الأصلية والتكاملات",
+                         "order_index":  4,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "66c9a073-e758-4206-b4b4-280eaa12757c",
+        "title":  "Fonction logarithme népérien",
+        "title_ar":  "الدالة اللوغاريتمية النيبيرية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال اللوغارتمية والأسية",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "e03123e0-d058-485b-98eb-295009da4703",
+        "title":  "Étude de la fonction ln",
+        "title_ar":  "دراسة دوال من الشكل: In",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال اللوغارتمية والأسية",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "3282726b-feb2-4a78-81b9-fe991e245f89",
+        "title":  "Étude de la fonction ln(u)",
+        "title_ar":  "دراسة دوال من الشكل Inou",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال اللوغارتمية والأسية",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "f51c72a9-874e-4b34-90eb-a242a4c24aba",
+        "title":  "Fonction logarithme de base a",
+        "title_ar":  "الدالة اللوغاريتمية ذات الأساس ه",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الدوال اللوغارتمية والأسية",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "37ec657a-6fef-4f80-8948-ff92aafe38e4",
+        "title":  "Fonctions exponentielles",
+        "title_ar":  "الدوال الأسية",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الدوال اللوغارتمية والأسية",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "d0bf7b55-65b2-4ad3-bdac-07b18cccbc00",
+        "title":  "Étude de la fonction exponentielle",
+        "title_ar":  "الدراسة والتمثيل البيانى للدالة الاسية",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "الدوال اللوغارتمية والأسية",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "a57226fd-9de2-466d-8f55-057c56127e9e",
+        "title":  "Série statistique à deux variables",
+        "title_ar":  "تعريف سلسلة إحصائية لمتغيرين حقيقيين",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الإحصاء",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "84eb54eb-3649-48bf-a63a-364748db5a84",
+        "title":  "Nuage de points",
+        "title_ar":  "تمثيل سلسلة إحصائية لمتغيرين حقيقيين بسحابة نقط",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الإحصاء",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "29dc9a16-6c66-4e79-825f-be822ecb1595",
+        "title":  "Point moyen",
+        "title_ar":  "تعيين إحداثيي النقطة المتوسطة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الإحصاء",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "3dd7bb2d-0d76-449f-a8a0-6aa63c0e922a",
+        "title":  "Ajustement linéaire",
+        "title_ar":  "إنشاء مستقيم تعديل خطي",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الإحصاء",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "d1c70785-c6d6-4068-b0ba-6467f22d4540",
+        "title":  "Exemples de séries statistiques",
+        "title_ar":  "أمثلة لسلاسل احصائية من الشكل (X;Iny)",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الإحصاء",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "10ab88dc-174c-48e2-a49c-79f41919965c",
+        "title":  "Loi de probabilité",
+        "title_ar":  "قانون احتمال مرفق بتجربة عشوائية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الإحتمالات",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "4518c663-8dcb-444f-8ce3-b015c3c8cf68",
+        "title":  "Espérance, variance et écart type",
+        "title_ar":  "الأمل الرياضياتي والتباين والانحراف المعياري",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الإحتمالات",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "1ff334a1-0070-488e-ac8c-947bd9f0e06b",
+        "title":  "Arbre pondéré",
+        "title_ar":  "الشجرة المتوازنة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الإحتمالات",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "88eb46d7-fb05-47cc-baf5-6b993c67853f",
+        "title":  "Indépendance de deux événements",
+        "title_ar":  "استقلال حادثتين",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "الإحتمالات",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "539e8c6f-7ec8-4fbf-a982-3c0093927ac1",
+        "title":  "Rappels sur les fonctions",
+        "title_ar":  "تذكير حول الدوال",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال العددية",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "3948511e-cf8f-471f-809f-9e4249afad60",
+        "title":  "Les fonctions de référence",
+        "title_ar":  "الدوال المرجعية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال العددية",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "c379abd5-1308-49d1-9583-357d450ef409",
+        "title":  "Opérations sur les fonctions",
+        "title_ar":  "عمليات على الدوال",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال العددية",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "91769173-882e-4212-a0ff-095349cac6a6",
+        "title":  "Sens de variation",
+        "title_ar":  "إتجاه التغير",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الدوال العددية",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "26bfc075-aca3-4070-bf02-d26dc2c9c736",
+        "title":  "Représentation graphique",
+        "title_ar":  "التمثيل البياني",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الدوال العددية",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "6eb150f6-78f2-4e34-b674-471786526ae8",
+        "title":  "Opérations sur les polynômes",
+        "title_ar":  "عمليات على كثيرات الحدود",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال كثيرات الحدود",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "285fa29a-994c-4115-90ca-2191895cdab3",
+        "title":  "Équations du second degré",
+        "title_ar":  "المعادلات من الدرجة الثانية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال كثيرات الحدود",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "69d3e90d-dd76-41d3-9939-f3531128a0b8",
+        "title":  "Inéquations du second degré",
+        "title_ar":  "المتراجحات من الدرجة الثانية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال كثيرات الحدود",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "24eacb8b-207e-4572-b46c-f85c40fc524f",
+        "title":  "Le nombre dérivé",
+        "title_ar":  "العدد المشتق",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الإشتقاقية",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "4adc2929-99ac-4480-98b9-e71133e8070f",
+        "title":  "Tangente à une courbe en un point",
+        "title_ar":  "مماس لمنحن عند نقطة",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الإشتقاقية",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "1cece62b-1c95-4c55-b9d1-8b178c72e3f6",
+        "title":  "Approximation affine d\u0027une fonction",
+        "title_ar":  "التقريب التآلفي لدالة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الإشتقاقية",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "17efef8e-76e6-48fd-b1e1-586c7b391680",
+        "title":  "La fonction dérivée d\u0027une fonction",
+        "title_ar":  "الدالة المشتقة لدالة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الإشتقاقية",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "3290cc95-bc85-477c-a90e-97a23aff948d",
+        "title":  "Opérations sur les fonctions dérivées",
+        "title_ar":  "عمليات على الدوال المشتقة",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الإشتقاقية",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "bdf872c2-4168-4c68-b36e-63847aaf82c8",
+        "title":  "Sens de variation d\u0027une fonction",
+        "title_ar":  "اتجاه تغير دالة",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "تطبيقات الإشتقاقية",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "7a6513d6-0131-4baa-a3fa-4947266877e0",
+        "title":  "Extremums locaux",
+        "title_ar":  "القيم الحدية المحلية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "تطبيقات الإشتقاقية",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "24c4c65d-7e7e-4844-96f1-3f66af05042a",
+        "title":  "Encadrement d\u0027une fonction",
+        "title_ar":  "حصر دالة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "تطبيقات الإشتقاقية",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "d144d307-fe71-4469-985b-c17419a89919",
+        "title":  "Points remarquables",
+        "title_ar":  "العناصر الحادة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "تطبيقات الإشتقاقية",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "e274f7c6-d27e-43af-b73a-0df246e79536",
+        "title":  "Limite infinie en un point réel",
+        "title_ar":  "نهاية غير منتهية عند عدد حقيقي",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "3ec96233-4a66-4789-8f8c-74d9d9470550",
+        "title":  "Limite finie à l\u0027infini",
+        "title_ar":  "نهاية منتهية عند المالانهاية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "46ef2123-93ed-4131-a229-a398e4112712",
+        "title":  "Notion de limite",
+        "title_ar":  "مفهوم النهاية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "d8cb339b-6955-4257-a36e-961465d7ee8d",
+        "title":  "Opérations sur les limites",
+        "title_ar":  "عمليات على النهايات",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "d0578da9-6aa2-4ed2-967e-e237a6763181",
+        "title":  "Asymptote oblique",
+        "title_ar":  "المستقيم المقارب المائل",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "e84a29ae-3c32-4d4d-bea0-ccc3d031928a",
+        "title":  "Étude d\u0027une fonction",
+        "title_ar":  "دراسة دالة",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "2facb9f7-7544-43d8-887d-2a4e1866166d",
+        "title":  "Les suites numériques",
+        "title_ar":  "المتتاليات العددية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "9bd6430f-bfd2-4d78-b169-eae6a8e844ac",
+        "title":  "Représentation graphique d\u0027une suite",
+        "title_ar":  "التمثيل البياني لمتتالية عددية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "0fe971d4-e796-40a0-8b09-2c2a3671356a",
+        "title":  "Sens de variation d\u0027une suite",
+        "title_ar":  "إتجاه تغير متتالية عددية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "d71e18c0-f37d-401e-8cac-da91676b5508",
+        "title":  "Les suites arithmétiques",
+        "title_ar":  "المتتاليات الحسابية",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "d16a2ba9-ff39-4f78-b421-90e1e4c0d42a",
+        "title":  "Les suites géométriques",
+        "title_ar":  "المتتاليات الهندسية",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "3412ac64-8905-4e89-9b35-dc9207ca8e0a",
+        "title":  "Limite d\u0027une suite numérique",
+        "title_ar":  "نهاية متتالية عددية",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "6349931a-d29d-4502-b58f-dcea423f966e",
+        "title":  "Limite d\u0027une suite par encadrement",
+        "title_ar":  "نهاية متتالية عددية باستعمال الحصر",
+        "order_index":  6,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "95c656ff-cbca-4641-914f-b7d931b95a5d",
+        "title":  "Limite d\u0027une suite géométrique",
+        "title_ar":  "نهاية متتالية هندسية",
+        "order_index":  7,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "2a2e0c08-3f4b-4aa6-83f9-6620ee753a5b",
+        "title":  "Rappels sur les vecteurs",
+        "title_ar":  "تذكير حول الأشعة",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "المرجح في المستوي",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "99f65ea7-6d04-4edb-b266-f37d8a920fb3",
+        "title":  "Barycentre de deux points",
+        "title_ar":  "مرجح نقطتين",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "المرجح في المستوي",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "3b064280-2590-437a-97e9-8ed3d9b90e3d",
+        "title":  "Barycentre de trois points",
+        "title_ar":  "مرجح ثلاث نقاط",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "المرجح في المستوي",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "0a872920-7d44-4050-a78a-cc4519acd78a",
+        "title":  "Coordonnées du barycentre",
+        "title_ar":  "إحداثيات مرجح ثلاث نقاط",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "المرجح في المستوي",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "60590487-c3e2-4e17-9e0e-3755abdb4dae",
+        "title":  "Barycentre de plusieurs points",
+        "title_ar":  "مرجح عدة نقاط",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "المرجح في المستوي",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "c773743b-fa76-4c5f-8a1c-1fcba687ad0b",
+        "title":  "Rappels sur les fonctions",
+        "title_ar":  "تذكير حول الدوال",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال العددية",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "26223f8b-f0ba-4035-9484-44ee3cdcded3",
+        "title":  "Les fonctions de référence",
+        "title_ar":  "الدوال المرجعية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال العددية",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "7de769d4-bcf4-4994-8c06-f87123183f2c",
+        "title":  "Opérations sur les fonctions",
+        "title_ar":  "عمليات على الدوال",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال العددية",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "76944939-80b3-4e3c-96f4-1080d893db20",
+        "title":  "Sens de variation",
+        "title_ar":  "إتجاه التغير",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الدوال العددية",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "3fde44de-14d0-42d9-b39f-2b63564d8c18",
+        "title":  "Représentation graphique",
+        "title_ar":  "التمثيل البياني",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الدوال العددية",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "9c8e2140-e30d-4628-a3fe-9c389fcb4868",
+        "title":  "Opérations sur les polynômes",
+        "title_ar":  "عمليات على كثيرات الحدود",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال كثيرات الحدود",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "dfe134ce-e3f3-418d-943c-5bfbcf79df1a",
+        "title":  "Équations du second degré",
+        "title_ar":  "المعادلات من الدرجة الثانية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال كثيرات الحدود",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "d183fd16-f84c-405b-9c51-e7d1571cc4a5",
+        "title":  "Inéquations du second degré",
+        "title_ar":  "المتراجحات من الدرجة الثانية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال كثيرات الحدود",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "cf4eacb6-8790-4183-9be0-ab7867f091c0",
+        "title":  "Le nombre dérivé",
+        "title_ar":  "العدد المشتق",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الإشتقاقية",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "8800e8fc-a602-4065-b506-ef4cbd4221d7",
+        "title":  "Tangente à une courbe en un point",
+        "title_ar":  "مماس لمنحن عند نقطة",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الإشتقاقية",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "49d2aff8-5821-447f-b62d-7ffc7ef7065e",
+        "title":  "Approximation affine d\u0027une fonction",
+        "title_ar":  "التقريب التآلفي لدالة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الإشتقاقية",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "25564932-76fd-44a9-86ee-a48df31a56ca",
+        "title":  "La fonction dérivée d\u0027une fonction",
+        "title_ar":  "الدالة المشتقة لدالة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الإشتقاقية",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "3e747c58-739a-43f0-b2f0-af1791556125",
+        "title":  "Opérations sur les fonctions dérivées",
+        "title_ar":  "عمليات على الدوال المشتقة",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الإشتقاقية",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "7d176c41-c0b2-42b4-98d3-14852b7486a1",
+        "title":  "Sens de variation d\u0027une fonction",
+        "title_ar":  "اتجاه تغير دالة",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "تطبيقات الإشتقاقية",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "d769bf88-d82d-4679-94a3-122e345e2c8e",
+        "title":  "Extremums locaux",
+        "title_ar":  "القيم الحدية المحلية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "تطبيقات الإشتقاقية",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "9f05d789-e1fa-4c8d-ba91-3b60daf9c47c",
+        "title":  "Encadrement d\u0027une fonction",
+        "title_ar":  "حصر دالة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "تطبيقات الإشتقاقية",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "2d993527-1cab-4249-a0fa-f685e96230b5",
+        "title":  "Points remarquables",
+        "title_ar":  "العناصر الحادة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "تطبيقات الإشتقاقية",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "1b683c6b-3f40-4eed-8375-ad481fa67222",
+        "title":  "Limite infinie en un point réel",
+        "title_ar":  "نهاية غير منتهية عند عدد حقيقي",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "d46207f5-c408-4519-9117-5cde2e08ef3e",
+        "title":  "Limite finie à l\u0027infini",
+        "title_ar":  "نهاية منتهية عند المالانهاية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "88fad4db-f480-4cb9-9c44-ece292a60d41",
+        "title":  "Notion de limite",
+        "title_ar":  "مفهوم النهاية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "37913dff-9587-43ff-a67b-5ddd7d0387ff",
+        "title":  "Opérations sur les limites",
+        "title_ar":  "عمليات على النهايات",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "d17a78b6-799d-4238-b8c6-3dcedb32b078",
+        "title":  "Asymptote oblique",
+        "title_ar":  "المستقيم المقارب المائل",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "2431b964-0a0e-4df7-87da-555dd90895c5",
+        "title":  "Étude d\u0027une fonction",
+        "title_ar":  "دراسة دالة",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "النهايات",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "b5ff499b-b143-448b-b862-f35fd9fc7eed",
+        "title":  "Les suites numériques",
+        "title_ar":  "المتتاليات العددية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "2f87d1ec-885b-469d-86c5-b6a2b8061e2c",
+        "title":  "Représentation graphique d\u0027une suite",
+        "title_ar":  "التمثيل البياني لمتتالية عددية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "2ef8cebd-205e-4e08-ab45-2fe52243c989",
+        "title":  "Sens de variation d\u0027une suite",
+        "title_ar":  "إتجاه تغير متتالية عددية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "aa6c52e2-ba3d-4af2-8f39-54a659041b5f",
+        "title":  "Les suites arithmétiques",
+        "title_ar":  "المتتاليات الحسابية",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "ca285514-30ff-4cdc-a1bf-af67afe4eb0a",
+        "title":  "Les suites géométriques",
+        "title_ar":  "المتتاليات الهندسية",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "647819f8-a1a8-402b-b732-62e8bb75d03b",
+        "title":  "Limite d\u0027une suite numérique",
+        "title_ar":  "نهاية متتالية عددية",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "65dda28a-1c9c-418b-8c1f-22459398745e",
+        "title":  "Limite d\u0027une suite par encadrement",
+        "title_ar":  "نهاية متتالية عددية باستعمال الحصر",
+        "order_index":  6,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "6e3bbd9e-b2a3-4e9d-8ab8-2dce20130723",
+        "title":  "Limite d\u0027une suite géométrique",
+        "title_ar":  "نهاية متتالية هندسية",
+        "order_index":  7,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "1d5660f9-fc35-4d96-8490-047c4c3a45f5",
+        "title":  "Rappels sur les vecteurs",
+        "title_ar":  "تذكير حول الأشعة",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "المرجح في المستوي",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "9349e797-d212-4aa4-9ef8-736a81419e73",
+        "title":  "Barycentre de deux points",
+        "title_ar":  "مرجح نقطتين",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "المرجح في المستوي",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "949eab17-e7d9-4b83-a9ef-a8cdc376efc0",
+        "title":  "Coordonnées du barycentre",
+        "title_ar":  "إحداثيات مرجح ثلاث نقاط",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "المرجح في المستوي",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "79f7509b-4853-4cfe-a794-7b46e22f7467",
+        "title":  "Barycentre de plusieurs points",
+        "title_ar":  "مرجح عدة نقاط",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "المرجح في المستوي",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "aef4aed2-6fd6-49fd-992a-96b6b2f05be1",
+        "title":  "Rapport d\u0027une partie à un tout",
+        "title_ar":  "نسبة الجزء إِلى الكلّ",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "النسب المئوية والمؤشرات",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "f478c6af-b84c-4c4b-9916-4d23c70d6052",
+        "title":  "Pourcentage d\u0027un autre pourcentage",
+        "title_ar":  "النسبة المئوية لنسبة مئوية أخرى",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "النسب المئوية والمؤشرات",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "462306a8-8afc-45dd-a5f3-f3fd51060b45",
+        "title":  "Évolutions et pourcentages",
+        "title_ar":  "التطورات والنسب المئوية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "النسب المئوية والمؤشرات",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "749f3644-a56b-44ad-bef0-be7612e7a26c",
+        "title":  "Indicateurs",
+        "title_ar":  "المؤشرات",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "النسب المئوية والمؤشرات",
+                         "order_index":  0,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "76190620-bcaa-4980-9dfc-c048903a7bbb",
+        "title":  "Séries chronologiques",
+        "title_ar":  "السلاسل الزمنية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الإِحصاء",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "e7f7bfa4-efa5-4296-8652-45cf673dc2b0",
+        "title":  "Étude de la fonction ln(u)",
+        "title_ar":  "دراسة الدالة ln(u)",
+        "order_index":  8,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "e59bc717-f2cc-4799-b6ac-562d1d29a3a5",
+        "title":  "Lissage par moyennes mobiles",
+        "title_ar":  "التمليس بالأوساط المتحركة",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الإِحصاء",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "c80d21d4-2d14-4c4e-a2c6-ece8326b26f0",
+        "title":  "Histogrammes",
+        "title_ar":  "المدرجات التكرارية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الإِحصاء",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "c8e384cc-673b-481f-95ae-6746dbc29b52",
+        "title":  "Variance et écart-type",
+        "title_ar":  "التباين-الإنحراف المعياري",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الإِحصاء",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "52ecbbcd-d34d-4b09-b118-8b1222c246ae",
+        "title":  "Quartiles et diagramme en boîte",
+        "title_ar":  "الربعيات والعشريات-المخطط بالعلبة",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الإِحصاء",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "1f48e978-811d-4cf4-b366-890abc8f9620",
+        "title":  "Expérience aléatoire et simulation",
+        "title_ar":  "التجربة العشوائية - المحاكاة",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "الإِحصاء",
+                         "order_index":  1,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "fbfca351-963b-437d-919f-c300fad71ad8",
+        "title":  "Fonction \u0027cube\u0027",
+        "title_ar":  "الدالة ((مكعب))",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "عموميات على الدوال",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "b0cf8bbf-b9f1-42d3-8ce6-09936a81c19f",
+        "title":  "Opérations sur les fonctions",
+        "title_ar":  "العمليات على الدوال",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "عموميات على الدوال",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "5eb3271e-6a2d-4cd6-925c-1be5e953d884",
+        "title":  "Courbes et transformations",
+        "title_ar":  "المنحنيات والتحويلات النقطية البسيطة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "عموميات على الدوال",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "cbf7bf32-f5af-4cbc-8e4a-5cff1cb03a02",
+        "title":  "Éléments de symétrie des courbes",
+        "title_ar":  "عناصر تناظر منحنيات",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "عموميات على الدوال",
+                         "order_index":  2,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "2acc9f3d-2436-4f4a-8621-6e60451a6cc9",
+        "title":  "Trinôme du second degré",
+        "title_ar":  "ثلاثي الحدود من الدرجة الثانية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "المعادلات والمتراجحات",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "6fe52f8f-8d4e-425e-be0f-714f156a1c63",
+        "title":  "Équations du second degré",
+        "title_ar":  "المعادلات من الدرجة الثانية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "المعادلات والمتراجحات",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "921216a4-dc0a-4317-9b57-c1009f5ff453",
+        "title":  "Inéquations du second degré",
+        "title_ar":  "المتراجحات من الدرجة الثانية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "المعادلات والمتراجحات",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "328cb8cb-e7b9-4fbc-942a-12cc0de161dd",
+        "title":  "Résolution graphique",
+        "title_ar":  "حلّ معادلات ومتراجحات من الدرجة الثانية بيانيّا",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "المعادلات والمتراجحات",
+                         "order_index":  3,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "42b65044-6dee-4f43-8e1c-2e8c5878c95b",
+        "title":  "Nombre dérivé",
+        "title_ar":  "العدد المشتق",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الإِشتقاق",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "638ad39b-410f-4193-87dc-c3268859ce4b",
+        "title":  "Équation de la tangente",
+        "title_ar":  "معادلة المماس لمنحن عند نقطة",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الإِشتقاق",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "5001066d-92ff-426d-84e1-c19d956067f0",
+        "title":  "Fonctions dérivées",
+        "title_ar":  "الدوال المشتقة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الإِشتقاق",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "8492234d-4ee5-4501-a78a-26279a0270af",
+        "title":  "Opérations sur les fonctions dérivées",
+        "title_ar":  "عمليات على الدوال المشتقة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الإِشتقاق",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "147cc6d1-7785-4d5a-b380-915c99a6ca49",
+        "title":  "Fonction dérivée et sens de variation",
+        "title_ar":  "الدالة المشتقة وإتجاه التغير",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الإِشتقاق",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "f586f313-1d35-467a-87d1-bb5bb2a769b5",
+        "title":  "Extremums d\u0027une fonction",
+        "title_ar":  "القيم الحدية لدالة",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "الإِشتقاق",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "a45c01c7-27a8-48e6-8a66-8e8dc7f9e3c2",
+        "title":  "Approximation affine tangente",
+        "title_ar":  "التقريب التآلفي المماسي لدالة",
+        "order_index":  6,
+        "chapters":  {
+                         "title_ar":  "الإِشتقاق",
+                         "order_index":  4,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "e51d37ac-f248-46aa-9c6a-a8cd48ff2473",
+        "title":  "Limites de fonctions usuelles",
+        "title_ar":  "نهايات دوال مألوفة",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "السلوك التقاربي",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "7c986e2e-1ddc-4a50-a463-6f71d2efdc78",
+        "title":  "Opérations sur les limites",
+        "title_ar":  "العمليات على النهايات",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "السلوك التقاربي",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "8bd888b2-a1d3-4a55-989f-f5b2a85a7e51",
+        "title":  "Asymptotes",
+        "title_ar":  "المستقيمات المقاربة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "السلوك التقاربي",
+                         "order_index":  5,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "59927aeb-1b03-4ab4-a17c-d19e298fd00b",
+        "title":  "Généralités",
+        "title_ar":  "عموميات",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "f613d2c0-8271-4a29-9412-54bf3d77058a",
+        "title":  "Suites arithmétiques",
+        "title_ar":  "المتتاليات الحسابية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "d6e85157-e350-45d0-a7d6-aff146e14a9e",
+        "title":  "Suites géométriques",
+        "title_ar":  "المتتاليات االهندسية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "المتتاليات العددية",
+                         "order_index":  6,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "8c58e31f-f503-43c7-9862-84e05abf8213",
+        "title":  "Équations linéaires à deux inconnues",
+        "title_ar":  "المعادلات الخطية لمجهولين",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الجمل الخطية",
+                         "order_index":  7,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "dd951c49-0a6f-4ee4-bd9a-b440081b09f6",
+        "title":  "Systèmes de trois équations",
+        "title_ar":  "جمل ثلاث معادلات خطية لثلاثة مجاهيل",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الجمل الخطية",
+                         "order_index":  7,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "558fa9f1-ee05-4a0c-9a83-0cf5823fd52d",
+        "title":  "Inéquations linéaires",
+        "title_ar":  "المتراجحات الخطية لمجهولين",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الجمل الخطية",
+                         "order_index":  7,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "fda096d6-2910-4e24-a96b-6a98268a2087",
+        "title":  "Vocabulaire des probabilités",
+        "title_ar":  "مفردات الإحتمالات",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الإحتمالات",
+                         "order_index":  8,
+                         "school_level":  "seconde"
+                     }
+    },
+    {
+        "id":  "56602f7c-4122-43c3-8ce4-b88322c6cef0",
+        "title":  "Limite finie ou infinie en ±∞",
+        "title_ar":  "نهاية منتهية أو غير منتهية عند ∞+ أو ∞-",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "النهايات والاستمرارية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "70eabbe7-ac65-4cee-a6ab-fd6186e4200a",
+        "title":  "Limite finie ou infinie en un point",
+        "title_ar":  "نهاية منتهية أو غير منتهية عند عدد حقيقي",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "النهايات والاستمرارية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "1345eaf9-e7e4-456f-81e8-1b0412a9b029",
+        "title":  "Compléments sur les limites",
+        "title_ar":  "تتمات على النهايات",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "النهايات والاستمرارية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "6b106257-d27f-4f35-94fa-4bc741d72f27",
+        "title":  "Limite d\u0027une fonction composée",
+        "title_ar":  "نهاية دالة مركبة - النهايات بالمقارنة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "النهايات والاستمرارية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "d6d4d588-cf9a-474f-b5ee-53fbf8562660",
+        "title":  "Continuité",
+        "title_ar":  "الاستمرارية",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "النهايات والاستمرارية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "cf63dff3-bbc5-479e-a063-7936131f9022",
+        "title":  "Fonctions continues et strictement monotones",
+        "title_ar":  "الدوال المستمرة والرتيبة تماما",
+        "order_index":  6,
+        "chapters":  {
+                         "title_ar":  "النهايات والاستمرارية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "a62f4b1f-e06b-4514-aca2-2e8e158c4750",
+        "title":  "Dérivabilité",
+        "title_ar":  "الاشتقاقية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "af7a114f-7a6a-4a9e-b57c-b06f5b10dfad",
+        "title":  "Dérivées et opérations",
+        "title_ar":  "المشتقات والعمليات",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "bac11588-0685-498f-af92-460307f03352",
+        "title":  "Sens de variation d\u0027une fonction",
+        "title_ar":  "إتجاه التغير دالة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "a087d1bb-cdf4-410d-ba66-60a30f25bf27",
+        "title":  "Approximation affine - Méthode d\u0027Euler",
+        "title_ar":  "التقريب التألفي - طريقة أولر",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "35df967b-2549-4fdd-8e49-7bab940948e3",
+        "title":  "Étude de fonction trigonométrique",
+        "title_ar":  "دراسة دالة مثلثية",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "3b07c9a2-d6b4-40fc-bd4f-1bae5837c0d7",
+        "title":  "Fonction exponentielle",
+        "title_ar":  "الدالة الأسية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "f61f9ff0-9ff6-45a9-81b1-7aebf676a4e6",
+        "title":  "Fonctions exponentielles x ↦ e^x",
+        "title_ar":  "الدوال الأسية x ↦ e^x",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "2e19286f-3bc5-43c2-9b9c-681614ed957c",
+        "title":  "Étude de la fonction exponentielle",
+        "title_ar":  "دراسة الدالة الأسية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "4fb9e091-1844-4219-8221-2d4b4c462c86",
+        "title":  "Étude de la fonction exp(u)",
+        "title_ar":  "دراسة الدالة exp(u)",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "156423a6-53a8-49b3-815b-f77e79068c27",
+        "title":  "Fonction logarithme népérien",
+        "title_ar":  "الدالة اللوغاريتمية النيبيرية",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "b2355fef-207e-45cb-9efb-01a4eb211013",
+        "title":  "Propriétés algébriques",
+        "title_ar":  "الخواص الجبرية",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "931aee2b-f00b-4dd7-98d4-698856019a61",
+        "title":  "Étude de la fonction logarithme népérien",
+        "title_ar":  "دراسة الدالة اللوغاريتمية النيبيرية",
+        "order_index":  6,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "4a95cdde-a02d-4610-b1d2-f018990b685e",
+        "title":  "Fonction logarithme décimal",
+        "title_ar":  "الدالة اللوغاريتمية العشرية",
+        "order_index":  7,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "27378671-5a16-4b21-910a-2da82095ed48",
+        "title":  "Puissances d\u0027un nombre réel positif",
+        "title_ar":  "قوى عدد حقيقي موجب",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "التزايد المقارن",
+                         "order_index":  3,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "2d418167-297f-432f-92cc-e2d81b5a8940",
+        "title":  "Étude des fonctions x ↦ a^x et x ↦ ⁿ√x",
+        "title_ar":  "دراسة الدالة x ↦ a^x و x ↦ ⁿ√x",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "التزايد المقارن",
+                         "order_index":  3,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "5172ba1f-34ba-414c-8ee3-2c9692ad5287",
+        "title":  "Croissance comparée",
+        "title_ar":  "التزايد المقارن",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "التزايد المقارن",
+                         "order_index":  3,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "0c1766b4-dd7f-4fc7-8408-44b1baee2f80",
+        "title":  "Primitives",
+        "title_ar":  "الدوال الأصلية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال الأصلية",
+                         "order_index":  4,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "48726cc6-ebef-404d-bcf7-2790f5f271d0",
+        "title":  "Calcul de primitives",
+        "title_ar":  "حساب الدوال الأصلية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال الأصلية",
+                         "order_index":  4,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "b92cb05d-ea78-40c5-8c44-d10d3b4b2457",
+        "title":  "Équations différentielles",
+        "title_ar":  "المعادلات التفاضلية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال الأصلية",
+                         "order_index":  4,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "b03ec711-d068-4ab3-8118-31924de8b473",
+        "title":  "Intégrale d\u0027une fonction",
+        "title_ar":  "تكامل دالة",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "428b20f4-cd4b-4ae3-aeb5-c280450da745",
+        "title":  "Propriétés de l\u0027intégrale",
+        "title_ar":  "خواص التكامل",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "0d4bdd8f-507a-44cd-bd10-8cb19471ddb8",
+        "title":  "Valeur moyenne",
+        "title_ar":  "القيمة المتوسطة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "60228da7-d5c2-4564-9e07-a62d7a2d0714",
+        "title":  "Extension aux fonctions de signe quelconque",
+        "title_ar":  "التمديد إلى دالة إشارتها كيفية",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "35c496ae-f70e-4669-a5f5-ff55ad52fff8",
+        "title":  "Utilisation du calcul intégral",
+        "title_ar":  "توظيف الحساب التكاملي لحساب دوال أصلية",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "b93a0c6d-eaab-4b25-9cc0-984bd29673a7",
+        "title":  "Applications du calcul intégral",
+        "title_ar":  "بعض تطبيقات الحساب التكاملي",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "253987cb-f762-42ac-b27f-aac56d8cd674",
+        "title":  "Dénombrement",
+        "title_ar":  "العد (القوائم - الترتيبات - التبديلات)",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الاحتمالات الشرطية",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "b95a31c7-f783-499e-a686-9be0100b44a1",
+        "title":  "Combinaisons - Formule du binôme",
+        "title_ar":  "التوفيقات - دستور ثنائي الحد",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الاحتمالات الشرطية",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "14d6a4ae-c18c-42fb-b50d-17f176149e51",
+        "title":  "Modélisation d\u0027une expérience aléatoire",
+        "title_ar":  "نمذجة تجربة عشوائية: المتغير العشوائي",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الاحتمالات الشرطية",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "ac47d216-ad64-4064-a463-65b3783914d9",
+        "title":  "Probabilités conditionnelles",
+        "title_ar":  "الاحتمالات الشرطية",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الاحتمالات الشرطية",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "6d295ca6-640b-4600-b701-d285c3372715",
+        "title":  "Événements indépendants",
+        "title_ar":  "الحوادث المستقلة والمتغيرات العشوائية المستقلة",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الاحتمالات الشرطية",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "4647fb79-006a-46ff-a04e-95b5081b93e6",
+        "title":  "Loi de Bernoulli",
+        "title_ar":  "قانون برنولي",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "قوانين الاحتمال",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "1b0419fe-2f44-4e9f-a3c2-c94aae620837",
+        "title":  "Lois de probabilité continues",
+        "title_ar":  "قوانين الاحتمالات المستمرة",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "قوانين الاحتمال",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "b4bb927e-c75b-420e-9561-773d8a89479d",
+        "title":  "Adéquation à une loi équirépartie",
+        "title_ar":  "قياس تلاؤم سلسلة مشاهدة ونموذج احتمالي",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "قوانين الاحتمال",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "6b190aef-c4f1-4a0a-ba0a-42c47b45d50c",
+        "title":  "Loi exponentielle",
+        "title_ar":  "القانون الأسي",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "قوانين الاحتمال",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "1e03cc03-a1f5-4db4-8578-7a27f9d3dd26",
+        "title":  "Limite finie ou infinie en ±∞",
+        "title_ar":  "نهاية منتهية أو غير منتهية عند ∞+ أو ∞-",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "النهايات والاستمرارية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "3aeed964-62ac-465d-83ca-4ae7005b461a",
+        "title":  "Limite finie ou infinie en un point",
+        "title_ar":  "نهاية منتهية أو غير منتهية عند عدد حقيقي",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "النهايات والاستمرارية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "0b44521d-7c36-4928-a4e8-2e609bdf4825",
+        "title":  "Compléments sur les limites",
+        "title_ar":  "تتمات على النهايات",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "النهايات والاستمرارية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "912159ce-1465-4c20-a896-2d707e308f7a",
+        "title":  "Limite d\u0027une fonction composée",
+        "title_ar":  "نهاية دالة مركبة - النهايات بالمقارنة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "النهايات والاستمرارية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "f0744f40-dfd9-4ffc-b983-5beef30948fa",
+        "title":  "Continuité",
+        "title_ar":  "الاستمرارية",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "النهايات والاستمرارية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "b5c68cb6-6bc0-4284-b45b-d698d68f95d1",
+        "title":  "Théorème des valeurs intermédiaires",
+        "title_ar":  "مبرهنة القيم المتوسطة",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "النهايات والاستمرارية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "aa4f240b-5670-428d-b111-8b4a02a49bab",
+        "title":  "Fonctions continues et strictement monotones",
+        "title_ar":  "الدوال المستمرة والرتيبة تماما",
+        "order_index":  6,
+        "chapters":  {
+                         "title_ar":  "النهايات والاستمرارية",
+                         "order_index":  0,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "3b1d9369-c5a3-4585-be6d-dee75ab3c8a6",
+        "title":  "Dérivabilité",
+        "title_ar":  "الاشتقاقية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "3ae34b73-01d2-4f90-af6d-942636e93c43",
+        "title":  "Dérivées et opérations",
+        "title_ar":  "المشتقات والعمليات",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "566c4f5b-7cc2-4659-a19b-2af4f3b15229",
+        "title":  "Sens de variation d\u0027une fonction",
+        "title_ar":  "إتجاه التغير دالة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "c8473009-2987-43e8-ae76-28474cd7d9fc",
+        "title":  "Dérivée d\u0027une fonction composée",
+        "title_ar":  "اشتقاق دالة مركبة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "0d9fa90e-302d-4a42-b538-dd8a25f22fba",
+        "title":  "Étude de fonction trigonométrique",
+        "title_ar":  "دراسة دالة مثلثية",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "الاشتقاقية",
+                         "order_index":  1,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "2db9a9de-7963-4fc9-bc4a-723b6065d734",
+        "title":  "Fonction exponentielle",
+        "title_ar":  "الدالة الأسية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "2a7644fd-2a2e-4481-a183-6f0ca6a2c475",
+        "title":  "Fonctions exponentielles x ↦ e^x",
+        "title_ar":  "الدوال الأسية x ↦ e^x",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "dd62a165-e2d2-48b3-ab30-e3d927e24a50",
+        "title":  "Étude de la fonction exponentielle",
+        "title_ar":  "دراسة الدالة الأسية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "93453e6d-ff5b-4b65-ae04-05c948c0641a",
+        "title":  "Étude de la fonction exp(u)",
+        "title_ar":  "دراسة الدالة exp(u)",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "3174169a-7b73-4f00-90f0-89779cd61636",
+        "title":  "Propriétés algébriques",
+        "title_ar":  "الخواص الجبرية",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "36158834-0f10-4976-90e5-24be7b0b2ee5",
+        "title":  "Étude de la fonction logarithme népérien",
+        "title_ar":  "دراسة الدالة اللوغاريتمية النيبيرية",
+        "order_index":  6,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "cdc7aea9-7d66-4e24-8f14-4331246eaeb1",
+        "title":  "Fonction logarithme décimal",
+        "title_ar":  "الدالة اللوغاريتمية العشرية",
+        "order_index":  7,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "c620f397-ec7b-41c1-84e1-164e266632e6",
+        "title":  "Étude de la fonction ln(u)",
+        "title_ar":  "دراسة الدالة ln(u)",
+        "order_index":  8,
+        "chapters":  {
+                         "title_ar":  "الدوال الأسية واللوغاريتمية",
+                         "order_index":  2,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "c4a4de9a-5268-4781-94f7-5aa3a435a777",
+        "title":  "Puissances d\u0027un nombre réel positif",
+        "title_ar":  "قوى عدد حقيقي موجب",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "التزايد المقارن",
+                         "order_index":  3,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "c707cd6b-e066-492e-a673-76577f5a76f5",
+        "title":  "Étude des fonctions x ↦ a^x et x ↦ ⁿ√x",
+        "title_ar":  "دراسة الدالة x ↦ a^x و x ↦ ⁿ√x",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "التزايد المقارن",
+                         "order_index":  3,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "687454b4-0011-4a99-adaa-1cc1d84f1ada",
+        "title":  "Croissance comparée",
+        "title_ar":  "التزايد المقارن",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "التزايد المقارن",
+                         "order_index":  3,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "be29691d-353f-41cd-aed8-013de57b9f3b",
+        "title":  "Primitives",
+        "title_ar":  "الدوال الأصلية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال الأصلية",
+                         "order_index":  4,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "cfeb7aff-6213-4380-aa95-40ff8166a8b1",
+        "title":  "Calcul de primitives",
+        "title_ar":  "حساب الدوال الأصلية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال الأصلية",
+                         "order_index":  4,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "a8370c4a-2609-4379-b699-0d86f688f4ba",
+        "title":  "Équations différentielles",
+        "title_ar":  "المعادلات التفاضلية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الدوال الأصلية",
+                         "order_index":  4,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "7d628019-891c-4a68-8ed1-721b076435ee",
+        "title":  "Intégrale d\u0027une fonction",
+        "title_ar":  "تكامل دالة",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "e877e15c-ab90-4199-b9f0-bafe343822c1",
+        "title":  "Propriétés de l\u0027intégrale",
+        "title_ar":  "خواص التكامل",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "1eee0c03-ef75-4a00-b594-c1b005df1e14",
+        "title":  "Valeur moyenne",
+        "title_ar":  "القيمة المتوسطة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "f56ec762-3687-4134-aba7-8604ef9a5c86",
+        "title":  "Extension aux fonctions de signe quelconque",
+        "title_ar":  "التمديد إلى دالة إشارتها كيفية",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "94a2e1c8-f345-403f-b140-17dd2056dc71",
+        "title":  "Utilisation du calcul intégral",
+        "title_ar":  "توظيف الحساب التكاملي لحساب دوال أصلية",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "f0e92e20-05d9-4a86-accd-2c12bb983713",
+        "title":  "Applications du calcul intégral",
+        "title_ar":  "بعض تطبيقات الحساب التكاملي",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "الحساب التكاملي",
+                         "order_index":  5,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "542f74ba-69c9-4e6b-bf97-60e4bde4bde5",
+        "title":  "Dénombrement",
+        "title_ar":  "العد (القوائم - الترتيبات - التبديلات)",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الاحتمالات الشرطية",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "f4a64657-65a8-4e7e-94d7-6c2c02043c60",
+        "title":  "Combinaisons - Formule du binôme",
+        "title_ar":  "التوفيقات - دستور ثنائي الحد",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الاحتمالات الشرطية",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "f3303bfc-6113-4c5a-9e85-9461fabbcc7b",
+        "title":  "Modélisation d\u0027une expérience aléatoire",
+        "title_ar":  "نمذجة تجربة عشوائية: المتغير العشوائي",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "الاحتمالات الشرطية",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "e7833552-7775-4245-a191-93a649a50e6a",
+        "title":  "Probabilités conditionnelles",
+        "title_ar":  "الاحتمالات الشرطية",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "الاحتمالات الشرطية",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "24b01d9c-c3fc-4265-817d-d03516d54d81",
+        "title":  "Événements indépendants",
+        "title_ar":  "الحوادث المستقلة والمتغيرات العشوائية المستقلة",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "الاحتمالات الشرطية",
+                         "order_index":  6,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "3000d350-2722-45d4-921a-f718ef424617",
+        "title":  "Loi de Bernoulli",
+        "title_ar":  "قانون برنولي",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "قوانين الاحتمال",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "e5694187-de57-4d96-9617-176ec248fe47",
+        "title":  "Lois de probabilité continues",
+        "title_ar":  "قوانين الاحتمالات المستمرة",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "قوانين الاحتمال",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "593d5727-b1c1-4956-917a-fe5419f940f3",
+        "title":  "Adéquation à une loi équirépartie",
+        "title_ar":  "قياس تلاؤم سلسلة مشاهدة ونموذج احتمالي",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "قوانين الاحتمال",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "f346ac47-bd19-47b5-8d2c-0d65d9c4a43e",
+        "title":  "Loi exponentielle",
+        "title_ar":  "القانون الأسي",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "قوانين الاحتمال",
+                         "order_index":  7,
+                         "school_level":  "terminale"
+                     }
+    },
+    {
+        "id":  "961f0cc1-7fbb-4a68-bbc3-ec3c11643b9b",
+        "title":  "L\u0027échelle",
+        "title_ar":  "المقياس",
+        "order_index":  8,
+        "chapters":  {
+                         "title_ar":  "الوضعية الانطلاقية 4",
+                         "order_index":  3,
+                         "school_level":  "5eme_primaire"
+                     }
+    },
+    {
+        "id":  "ed096ff6-db4b-45ee-8deb-ef7b97fb527d",
+        "title":  "Mesure de capacités",
+        "title_ar":  "قياس سعات",
+        "order_index":  9,
+        "chapters":  {
+                         "title_ar":  "الوضعية الانطلاقية 4",
+                         "order_index":  3,
+                         "school_level":  "5eme_primaire"
+                     }
+    },
+    {
+        "id":  "7878f68f-94e1-4daa-a49a-87f7ac858a76",
+        "title":  "Situations arithmétiques",
+        "title_ar":  "وضعيات حسابية",
+        "order_index":  10,
+        "chapters":  {
+                         "title_ar":  "الوضعية الانطلاقية 4",
+                         "order_index":  3,
+                         "school_level":  "5eme_primaire"
+                     }
+    },
+    {
+        "id":  "d56963eb-13a2-49bf-b7b4-5ad688fb9f81",
+        "title":  "La vitesse moyenne",
+        "title_ar":  "السرعة المتوسطة",
+        "order_index":  11,
+        "chapters":  {
+                         "title_ar":  "الوضعية الانطلاقية 4",
+                         "order_index":  3,
+                         "school_level":  "5eme_primaire"
+                     }
+    },
+    {
+        "id":  "4f23dbd6-3e8a-4e5f-b748-979b75237305",
+        "title":  "Valeur du chiffre dans un nombre décimal",
+        "title_ar":  "قِيمَةُ الرَّقم حَسْبَ مَنْزِلَتِه",
+        "order_index":  12,
+        "chapters":  {
+                         "title_ar":  "الوضعية الانطلاقية 4",
+                         "order_index":  3,
+                         "school_level":  "5eme_primaire"
+                     }
+    },
+    {
+        "id":  "c93a5ab6-c300-4d9b-a050-9fb6143e1044",
+        "title":  "Méthodologie de résolution de problèmes",
+        "title_ar":  "منهجية حلّ مشكلات",
+        "order_index":  13,
+        "chapters":  {
+                         "title_ar":  "الوضعية الانطلاقية 4",
+                         "order_index":  3,
+                         "school_level":  "5eme_primaire"
+                     }
+    },
+    {
+        "id":  "645bda8e-ce98-4231-8373-b0e55e949415",
+        "title":  "Les nombres naturels et décimaux",
+        "title_ar":  "الأعداد الطبيعية والأعداد العشرية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "1ere_cem"
+                     }
+    },
+    {
+        "id":  "e2e9d54d-6768-4d40-b1b8-31319b7fa897",
+        "title":  "Calcul: addition et soustraction",
+        "title_ar":  "الحساب على الأعداد الطبيعية والأعداد العشرية: الجمع والطرح",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "1ere_cem"
+                     }
+    },
+    {
+        "id":  "d7ad4dc0-c950-4841-9b31-fa1cca6ba453",
+        "title":  "Calcul: multiplication et division",
+        "title_ar":  "الحساب على الأعداد الطبيعية والأعداد العشرية: الضرب والقسمة",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "1ere_cem"
+                     }
+    },
+    {
+        "id":  "2134b451-34df-4097-9eb4-144e74d1e8c9",
+        "title":  "Les écritures fractionnaires",
+        "title_ar":  "الكتابات الكسرية",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "1ere_cem"
+                     }
+    },
+    {
+        "id":  "3b0ddd4e-393e-47c1-a482-db69187d6840",
+        "title":  "Les nombres relatifs",
+        "title_ar":  "الأعداد النسبية",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "1ere_cem"
+                     }
+    },
+    {
+        "id":  "4e0e56f4-c0af-4f46-b61e-620ce2fadbdc",
+        "title":  "Le calcul littéral",
+        "title_ar":  "الحساب الحرفي",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "1ere_cem"
+                     }
+    },
+    {
+        "id":  "40e58840-5a6f-4e3f-ae4b-767545597235",
+        "title":  "La proportionnalité",
+        "title_ar":  "التناسبية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "الدوال وتنظيم المعطيات",
+                         "order_index":  1,
+                         "school_level":  "1ere_cem"
+                     }
+    },
+    {
+        "id":  "af4b5115-cda4-46f7-a729-e90e9c3f9a1f",
+        "title":  "Organisation des données",
+        "title_ar":  "تنظيم معطيات",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "الدوال وتنظيم المعطيات",
+                         "order_index":  1,
+                         "school_level":  "1ere_cem"
+                     }
+    },
+    {
+        "id":  "d03a16df-1c61-4f04-bbdd-c9717d496300",
+        "title":  "Le parallèle et le perpendiculaire",
+        "title_ar":  "التوازي والتعامد",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "1ere_cem"
+                     }
+    },
+    {
+        "id":  "83a1a13f-307b-4765-8d59-24f76d70fa0d",
+        "title":  "Les formes planes",
+        "title_ar":  "الأشكال المستوية",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "1ere_cem"
+                     }
+    },
+    {
+        "id":  "dffc5c23-6dbc-4317-ab2c-78a51695cb8f",
+        "title":  "Les surfaces planes",
+        "title_ar":  "السطوح المستوية: الأطوال، المحيطات، المساحات.",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "1ere_cem"
+                     }
+    },
+    {
+        "id":  "0fbe5e9b-951a-4a68-b18f-f8595f58c28e",
+        "title":  "Les angles",
+        "title_ar":  "الزوايا",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "1ere_cem"
+                     }
+    },
+    {
+        "id":  "e91ac042-f62c-45ad-85a1-323b52764e10",
+        "title":  "La symétrie axiale",
+        "title_ar":  "التناظر المحوري",
+        "order_index":  4,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "1ere_cem"
+                     }
+    },
+    {
+        "id":  "3be49d62-9d37-43c2-a3b0-cbae3e95d32e",
+        "title":  "Les parallélépipèdes et cubes",
+        "title_ar":  "متوازي المستطيلات والمكعّب",
+        "order_index":  5,
+        "chapters":  {
+                         "title_ar":  "أنشطة هندسية",
+                         "order_index":  2,
+                         "school_level":  "1ere_cem"
+                     }
+    },
+    {
+        "id":  "dde807a2-bd34-4f07-ab75-e8fd93645c65",
+        "title":  "Opérations sur les nombres naturels et décimaux",
+        "title_ar":  "العمليات على الأعداد الطبيعية والأعداد العشرية",
+        "order_index":  0,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "2eme_cem"
+                     }
+    },
+    {
+        "id":  "e78c43a7-c254-4521-81f3-e4ccb73ccd93",
+        "title":  "Les fractions et opérations",
+        "title_ar":  "الكسور و العمليات عليها",
+        "order_index":  1,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "2eme_cem"
+                     }
+    },
+    {
+        "id":  "32666c0f-336b-4b9f-9f30-ae18b87857a3",
+        "title":  "Les nombres relatifs",
+        "title_ar":  "الأعداد النسبية",
+        "order_index":  2,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "2eme_cem"
+                     }
+    },
+    {
+        "id":  "59457ba6-cea3-4790-85b3-a1ccf0446c7e",
+        "title":  "Le concept d\u0027équation",
+        "title_ar":  "مفهوم معادلة",
+        "order_index":  3,
+        "chapters":  {
+                         "title_ar":  "أنشطة عددية",
+                         "order_index":  0,
+                         "school_level":  "2eme_cem"
+                     }
+    }
+]
