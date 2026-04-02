@@ -19,7 +19,7 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleMarkComplete, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel, showActivityCards, initialLessonId, onInitialLessonHandled, onBackToChapters, readOnly }: any) {
+export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleMarkComplete, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel, showActivityCards, initialLessonId, onInitialLessonHandled, onBackToChapters, onBackToLessons, readOnly }: any) {
     const navigate = useNavigate();
     const [selectedLesson, setSelectedLesson] = useState<any>(null);
     const [lessonContent, setLessonContent] = useState<string>("");
@@ -68,6 +68,18 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         }
         // Élève → show content inline
         setSelectedLesson(lesson);
+        setLessonView("course");
+        setActiveActivity(null);
+        setActiveSectionLabel(null);
+
+        const cachedContent = lesson.content || "";
+        setLessonContent(cachedContent);
+
+        if (cachedContent) {
+            setLoadingContent(false);
+            return;
+        }
+
         setLoadingContent(true);
         try {
             const { data } = await supabase
@@ -87,6 +99,11 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const handleBackToList = () => {
         setSelectedLesson(null);
         setLessonContent("");
+        setLessonView("course");
+        setActiveActivity(null);
+        setActiveSectionLabel(null);
+        setActivityResetKey(k => k + 1);
+        onBackToLessons?.();
     };
 
     // Unified breadcrumb for all states
@@ -116,7 +133,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                             ) : (
                                 <BreadcrumbLink
                                     className="cursor-pointer hover:text-primary transition-colors"
-                                    onClick={() => { handleBackToList(); setLessonView("course"); setActiveActivity(null); setActiveSectionLabel(null); }}
+                                    onClick={handleBackToList}
                                 >
                                     {chapter.title}
                                 </BreadcrumbLink>
@@ -157,6 +174,16 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const renderLessonsList = () => (
         <div className="mt-2 space-y-2">
             {renderBreadcrumb()}
+            {chapter.content && (
+                <Card className="border-primary/10">
+                    <CardContent className="p-6">
+                        <div
+                            className="prose prose-sm dark:prose-invert max-w-none"
+                            dangerouslySetInnerHTML={{ __html: chapter.content }}
+                        />
+                    </CardContent>
+                </Card>
+            )}
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">الدروس - Leçons</h3>
                 {canManage && (
