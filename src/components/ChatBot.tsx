@@ -367,10 +367,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                       : message.content.find((c) => c.type === "text")?.text || ""
                   }
                   isStreaming={isLoading && index === messages.length - 1 && message.role === "assistant"}
-                  onNavigate={(path) => {
-                    setIsChatOpen?.(false);
-                    onNavigate?.(path);
-                  }}
+                  onNavigate={onNavigate}
                 />
               ))}
             </>
