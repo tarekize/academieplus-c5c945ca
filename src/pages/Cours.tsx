@@ -188,7 +188,11 @@ const Cours = () => {
     if (!chapters.length) return;
 
     if (!chapitreParam) {
-      if (!activeChapter) {
+      const activeChapterStillExists = activeChapter
+        ? chapters.some((chapter) => chapter.id === activeChapter.id)
+        : false;
+
+      if (!activeChapterStillExists) {
         setActiveChapter(chapters[0]);
         setActiveChapterIndex(0);
       }
