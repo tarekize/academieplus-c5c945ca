@@ -1,7 +1,1 @@
 project_id = "lfothlxoixayjiytwwqa"
-
-[functions.generate-adaptive-content]
-verify_jwt = false
-
-[functions.create-child-account]
-verify_jwt = false
