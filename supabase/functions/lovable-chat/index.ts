@@ -192,11 +192,13 @@ serve(async (req) => {
 IMPORTANT : Quand un élève demande où se trouve un cours, une leçon, un sujet ou un concept :
 - réponds dans la langue de l'élève
 - réponds avec UNE phrase très courte seulement (pas de salutation, pas d'explication, pas de résumé, pas de liste, pas de conseil)
-- donne l'emplacement en texte simple avec le numéro du chapitre et le numéro de la leçon
-- N'utilise PAS de liens cliquables ni de syntaxe spéciale
+- utilise OBLIGATOIREMENT la syntaxe de breadcrumb suivante pour indiquer l'emplacement :
+  [[BREADCRUMB:chapterId|chapterTitle|lessonId|lessonTitle]]
+- Cette syntaxe sera transformée en liens cliquables dans l'interface
+- Ne mets RIEN d'autre dans ta réponse que la phrase courte suivie du breadcrumb
 Exemples de réponses attendues :
-- En français : "Tu trouveras ce cours dans le chapitre n°3 (Limites et continuité) / leçon n°2 (Limite finie en un point)."
-- En arabe : "ستجد هذا الدرس في الفصل رقم 3 (النهايات والاستمرارية) / الدرس رقم 2 (نهاية منتهية عند عدد حقيقي)."
+- "ستجد هذا الدرس هنا:\n[[BREADCRUMB:abc123|النهايات والاستمرارية|def456|نهاية منتهية أو غير منتهية عند عدد حقيقي]]"
+- "Tu trouveras ce cours ici:\n[[BREADCRUMB:abc123|Limites et continuité|def456|Limite finie en un point]]"
 
 Voici la liste complète des chapitres et leçons disponibles :\n`;
 
@@ -228,11 +230,11 @@ Voici la liste complète des chapitres et leçons disponibles :\n`;
         }
 
         courseMapPrompt += `\n\nINSTRUCTIONS DE NAVIGATION :
-1. Pour toute demande d'emplacement, donne UNE seule phrase avec le numéro et titre du chapitre + numéro et titre de la leçon
-2. N'utilise JAMAIS de liens cliquables, JAMAIS de syntaxe [[NAV:...]]
+1. Pour toute demande d'emplacement, utilise OBLIGATOIREMENT la syntaxe [[BREADCRUMB:chapterId|chapterTitle|lessonId|lessonTitle]]
+2. Utilise les vrais IDs des chapitres et leçons listés ci-dessus
 3. Cherche dans les titres ET dans les sections de contenu pour trouver le bon emplacement
 4. Si le concept est dans une section d'une leçon, indique le chapitre et la leçon qui contient cette section
-5. Pour une demande d'emplacement, ne donne aucun texte supplémentaire inutile\n`;
+5. Pour une demande d'emplacement, ne donne aucun texte supplémentaire inutile - juste une courte phrase + le breadcrumb\n`;
       }
     } catch (err) {
       console.error("Error building course map:", err);
