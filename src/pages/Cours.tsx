@@ -906,6 +906,10 @@ const Cours = () => {
                   title: activeChapter.title,
                   lessonsContent: (activeChapter.lessons || []).map(l => `${l.title}: ${l.content || ''}`).join('\n'),
                 } : null}
+                onNavigate={(path) => {
+                  setIsChatOpen(false);
+                  navigate(path);
+                }}
               />
             </div>
           )}

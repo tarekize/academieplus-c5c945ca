@@ -49,7 +49,6 @@ async function tryLovableAI(apiKey: string, messages: any[], stream: boolean) {
 }
 
 async function tryGemini(apiKey: string, messages: any[], stream: boolean) {
-  // Use Gemini via OpenRouter with Gemini key as a direct call
   const contents = messages.map((m: any) => ({
     role: m.role === "system" ? "user" : m.role === "assistant" ? "model" : "user",
     parts: [{ text: m.content }],
@@ -75,7 +74,6 @@ async function callAIWithFallback(messages: any[], stream: boolean): Promise<{ r
   const lovableKey = Deno.env.get("LOVABLE_API_KEY");
   const geminiKey = Deno.env.get("GEMINI_API_KEY");
 
-  // Try OpenRouter first
   if (openrouterKey) {
     try {
       console.log("Trying OpenRouter...");
@@ -87,7 +85,6 @@ async function callAIWithFallback(messages: any[], stream: boolean): Promise<{ r
     }
   }
 
-  // Fallback to Lovable AI
   if (lovableKey) {
     try {
       console.log("Trying Lovable AI...");
@@ -99,11 +96,10 @@ async function callAIWithFallback(messages: any[], stream: boolean): Promise<{ r
     }
   }
 
-  // Fallback to Gemini direct
   if (geminiKey) {
     try {
       console.log("Trying Gemini direct...");
-      const resp = await tryGemini(geminiKey, messages, false); // Gemini direct doesn't use SSE format
+      const resp = await tryGemini(geminiKey, messages, false);
       console.log("Gemini direct succeeded");
       return { response: resp, provider: "gemini", isGeminiDirect: true };
     } catch (e) {
@@ -118,7 +114,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, subject, chapterContext } = await req.json();
+    const { messages, subject, schoolLevel, chapterContext } = await req.json();
     
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Messages array is required" }), {
@@ -127,7 +123,6 @@ serve(async (req) => {
       });
     }
 
-    // Initialiser Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -159,6 +154,87 @@ serve(async (req) => {
       }
     }
 
+    // === BUILD COURSE MAP for navigation links ===
+    let courseMapPrompt = "";
+    try {
+      // Build query for chapters
+      let chaptersQuery = supabase
+        .from('chapters')
+        .select('id, title, title_ar, school_level, subject, filiere_id')
+        .eq('subject', subject === 'mathématiques' || subject === 'math' ? 'math' : normalizedSubject)
+        .order('order_index', { ascending: true });
+
+      if (schoolLevel) {
+        chaptersQuery = chaptersQuery.eq('school_level', schoolLevel);
+      }
+
+      const { data: chaptersData } = await chaptersQuery;
+
+      if (chaptersData && chaptersData.length > 0) {
+        const chapterIds = chaptersData.map((c: any) => c.id);
+        
+        const { data: lessonsData } = await supabase
+          .from('lessons')
+          .select('id, title, title_ar, chapter_id, content')
+          .in('chapter_id', chapterIds)
+          .order('order_index', { ascending: true });
+
+        const lessonsByChapter: Record<string, any[]> = {};
+        (lessonsData || []).forEach((l: any) => {
+          if (!lessonsByChapter[l.chapter_id]) lessonsByChapter[l.chapter_id] = [];
+          lessonsByChapter[l.chapter_id].push(l);
+        });
+
+        // Determine subject path for URLs
+        const subjectPath = subject === 'mathématiques' ? 'math' : normalizedSubject;
+
+        courseMapPrompt = `\n\n=== CARTE DE NAVIGATION DES COURS ===
+IMPORTANT : Quand un élève demande où se trouve un cours, une leçon, un sujet, ou un concept, 
+tu DOIS utiliser la syntaxe de lien navigable suivante pour créer des liens cliquables :
+Format : [[NAV:Texte affiché|/cours/${subjectPath}?chapitre=CHAPTER_ID]]
+Pour une leçon spécifique : [[NAV:Texte affiché|/cours/${subjectPath}?chapitre=CHAPTER_ID&lecon=LESSON_ID]]
+
+Voici la liste complète des chapitres et leçons disponibles :\n`;
+
+        for (const ch of chaptersData) {
+          const chTitle = ch.title + (ch.title_ar ? ` / ${ch.title_ar}` : '');
+          courseMapPrompt += `\n📘 Chapitre: "${chTitle}" (ID: ${ch.id})`;
+          courseMapPrompt += `\n   Lien: [[NAV:${ch.title}|/cours/${subjectPath}?chapitre=${ch.id}]]`;
+          
+          const lessons = lessonsByChapter[ch.id] || [];
+          for (const les of lessons) {
+            const lesTitle = les.title + (les.title_ar ? ` / ${les.title_ar}` : '');
+            courseMapPrompt += `\n   📄 Leçon: "${lesTitle}" (ID: ${les.id})`;
+            courseMapPrompt += `\n      Lien: [[NAV:${les.title}|/cours/${subjectPath}?chapitre=${ch.id}&lecon=${les.id}]]`;
+            
+            // Extract headings from lesson content for deeper navigation
+            if (les.content) {
+              const headingMatches = les.content.match(/<h[1-3][^>]*>(.*?)<\/h[1-3]>/gi);
+              if (headingMatches) {
+                const headings = headingMatches
+                  .map((h: string) => h.replace(/<[^>]+>/g, '').trim())
+                  .filter((h: string) => h.length > 0)
+                  .slice(0, 10); // Limit to 10 headings per lesson
+                if (headings.length > 0) {
+                  courseMapPrompt += `\n      Sections: ${headings.join(', ')}`;
+                }
+              }
+            }
+          }
+        }
+
+        courseMapPrompt += `\n\nINSTRUCTIONS DE NAVIGATION :
+1. Quand l'élève cherche un cours/leçon/concept, TOUJOURS inclure le lien navigable [[NAV:...]]
+2. Tu peux inclure plusieurs liens si pertinent
+3. Le texte affiché doit être clair et descriptif (ex: "📘 Aller au chapitre Limites et continuité")
+4. Cherche dans les titres ET dans les sections de contenu pour trouver le bon emplacement
+5. Si le concept est dans une section d'une leçon, dirige vers cette leçon avec le lien approprié
+6. Réponds dans la même langue que l'élève (français ou arabe)\n`;
+      }
+    } catch (err) {
+      console.error("Error building course map:", err);
+    }
+
     const subjectPrompts: Record<string, string> = {
       mathematiques: `Tu es un professeur de mathématiques pédagogue et bienveillant. 
 RÈGLES IMPORTANTES :
@@ -186,6 +262,9 @@ STRUCTURE : Comprendre → Concepts clés → Résolution → Réponse finale �
     let systemPrompt = subjectPrompts[normalizedSubject] ||
       `Tu es un professeur expert et bienveillant. Détecte la langue de la question et réponds dans cette MÊME langue. Sois pédagogue et encourageant.`;
 
+    // Add course navigation map
+    systemPrompt += courseMapPrompt;
+
     // If chapter context is provided, restrict answers to that chapter
     if (chapterContext && chapterContext.title) {
       const chapterRestriction = `
@@ -211,12 +290,10 @@ Utilise la même langue que celle de l'élève pour cette réponse.`;
     const { response, provider, isGeminiDirect } = await callAIWithFallback(aiMessages, true);
     console.log("AI response from provider:", provider);
 
-    // If Gemini direct, convert response to SSE format for client compatibility
     if (isGeminiDirect) {
       const geminiData = await response.json();
       const text = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "Désolé, je n'ai pas pu générer de réponse.";
       
-      // Convert to SSE format
       const sseData = `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n\n`;
       
       return new Response(sseData, {

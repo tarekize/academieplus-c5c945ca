@@ -27,9 +27,10 @@ type ChatBotProps = {
     title: string;
     lessonsContent: string;
   } | null;
+  onNavigate?: (path: string) => void;
 };
 
-export default function ChatBot({ messages, setMessages, subject = "mathématiques", schoolLevel = null, chapterContext = null }: ChatBotProps) {
+export default function ChatBot({ messages, setMessages, subject = "mathématiques", schoolLevel = null, chapterContext = null, onNavigate }: ChatBotProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; base64: string; type: string }>>([]);
@@ -356,7 +357,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
             </div>
           ) : (
             <>
-              {messages.map((message, index) => (
+               {messages.map((message, index) => (
                 <ChatMessage
                   key={index}
                   role={message.role}
@@ -366,6 +367,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                       : message.content.find((c) => c.type === "text")?.text || ""
                   }
                   isStreaming={isLoading && index === messages.length - 1 && message.role === "assistant"}
+                  onNavigate={onNavigate}
                 />
               ))}
             </>
