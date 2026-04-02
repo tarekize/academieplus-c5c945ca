@@ -192,11 +192,13 @@ serve(async (req) => {
 IMPORTANT : Quand un élève demande où se trouve un cours, une leçon, un sujet ou un concept :
 - réponds dans la langue de l'élève
 - réponds avec UNE phrase très courte seulement (pas de salutation, pas d'explication, pas de résumé, pas de liste, pas de conseil)
-- donne l'emplacement en texte simple avec le numéro du chapitre et le numéro de la leçon
-- N'utilise PAS de liens cliquables ni de syntaxe spéciale
+- utilise OBLIGATOIREMENT la syntaxe de breadcrumb suivante pour indiquer l'emplacement :
+  [[BREADCRUMB:chapterId|chapterTitle|lessonId|lessonTitle]]
+- Cette syntaxe sera transformée en liens cliquables dans l'interface
+- Ne mets RIEN d'autre dans ta réponse que la phrase courte suivie du breadcrumb
 Exemples de réponses attendues :
-- En français : "Tu trouveras ce cours dans le chapitre n°3 (Limites et continuité) / leçon n°2 (Limite finie en un point)."
-- En arabe : "ستجد هذا الدرس في الفصل رقم 3 (النهايات والاستمرارية) / الدرس رقم 2 (نهاية منتهية عند عدد حقيقي)."
+- "ستجد هذا الدرس هنا:\n[[BREADCRUMB:abc123|النهايات والاستمرارية|def456|نهاية منتهية أو غير منتهية عند عدد حقيقي]]"
+- "Tu trouveras ce cours ici:\n[[BREADCRUMB:abc123|Limites et continuité|def456|Limite finie en un point]]"
 
 Voici la liste complète des chapitres et leçons disponibles :\n`;
 
