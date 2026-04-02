@@ -12,7 +12,7 @@ interface BreadcrumbNav {
 
 function parseBreadcrumbs(content: string): { cleanContent: string; breadcrumbs: BreadcrumbNav[] } {
   const breadcrumbs: BreadcrumbNav[] = [];
-  const regex = /\[\[BREADCRUMB:([^|]+)\|([^|]+)\|([^|]+)\|([^\]]+)\]\]/g;
+  const regex = /\[\[BREADCRUMB:([^|]+)\|([^|]+)\|([^|]+)\|([^\]]+?)\]\]/g;
   let match;
 
   while ((match = regex.exec(content)) !== null) {
@@ -24,7 +24,7 @@ function parseBreadcrumbs(content: string): { cleanContent: string; breadcrumbs:
     });
   }
 
-  const cleanContent = content.replace(regex, "").trim();
+  const cleanContent = content.replace(/\[\[BREADCRUMB:([^|]+)\|([^|]+)\|([^|]+)\|([^\]]+?)\]\]/g, "").trim();
   return { cleanContent, breadcrumbs };
 }
 
