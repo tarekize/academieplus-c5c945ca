@@ -46,13 +46,13 @@ export const ChatMessage = ({ role, content, isStreaming, onNavigate }: ChatMess
   const handleChapterClick = (bc: BreadcrumbNav) => {
     const path = `/cours/math?chapitre=${bc.chapterId}`;
     if (onNavigate) onNavigate(path);
-    navigate(path);
+    else navigate(path);
   };
 
   const handleLessonClick = (bc: BreadcrumbNav) => {
     const path = `/cours/math?chapitre=${bc.chapterId}&lecon=${bc.lessonId}`;
     if (onNavigate) onNavigate(path);
-    navigate(path);
+    else navigate(path);
   };
 
   return (
