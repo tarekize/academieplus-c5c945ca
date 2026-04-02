@@ -65,7 +65,7 @@ interface Chapter {
 
 const Cours = () => {
   const { subjectId } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const adminNiveau = searchParams.get("niveau");
   const adminFiliere = searchParams.get("filiere");
   const chapitreParam = searchParams.get("chapitre");
@@ -896,7 +896,15 @@ const Cours = () => {
           <div className="space-y-6">
             {/* Affichage adaptatif de la leçon */}
             <AdaptiveLessonContent
-              onBackToChapters={() => { setViewMode("grid"); setInitialLessonId(null); }}
+              onBackToChapters={() => {
+                setViewMode("grid");
+                setInitialLessonId(null);
+                // Clear chapitre/lecon URL params to prevent useEffect from re-forcing content view
+                const newParams = new URLSearchParams(searchParams);
+                newParams.delete("chapitre");
+                newParams.delete("lecon");
+                setSearchParams(newParams, { replace: true });
+              }}
               chapter={activeChapter}
               canManage={canManage}
               fetchCourse={fetchCourse}
@@ -959,7 +967,13 @@ const Cours = () => {
                     }
                   }
 
-                  navigate(`${targetUrl.pathname}${targetUrl.search}`);
+                  // Update URL params so back button can clear them properly
+                  const newParams = new URLSearchParams(searchParams);
+                  if (targetChapterId) newParams.set("chapitre", targetChapterId);
+                  else newParams.delete("chapitre");
+                  if (targetLessonId) newParams.set("lecon", targetLessonId);
+                  else newParams.delete("lecon");
+                  setSearchParams(newParams, { replace: true });
                 }}
               />
             </div>
