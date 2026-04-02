@@ -69,6 +69,7 @@ const Cours = () => {
   const adminNiveau = searchParams.get("niveau");
   const adminFiliere = searchParams.get("filiere");
   const chapitreParam = searchParams.get("chapitre");
+  const leconParam = searchParams.get("lecon");
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -160,26 +161,15 @@ const Cours = () => {
           }));
 
           setChapters(mappedChapters);
-
-          // If chapitre param is present, auto-select that chapter and show content view
-          const targetChapter = chapitreParam
-            ? mappedChapters.find(c => c.id === chapitreParam)
-            : null;
-
-          if (targetChapter) {
-            const targetIndex = mappedChapters.indexOf(targetChapter);
-            setActiveChapter(targetChapter);
-            setActiveChapterIndex(targetIndex);
-            setViewMode("content");
-          } else if (mappedChapters.length > 0) {
-            setActiveChapter(mappedChapters[0]);
-            setActiveChapterIndex(0);
-          }
         } else {
           setChapters([]);
+          setActiveChapter(null);
+          setActiveChapterIndex(0);
         }
       } else {
         setChapters([]);
+        setActiveChapter(null);
+        setActiveChapterIndex(0);
       }
 
     } catch (error: any) {
@@ -193,6 +183,47 @@ const Cours = () => {
       setLoading(false);
     }
   }, [subjectId, adminNiveau, adminFiliere, navigate, toast]);
+
+  useEffect(() => {
+    if (!chapters.length) return;
+
+    if (!chapitreParam) {
+      if (!activeChapter) {
+        setActiveChapter(chapters[0]);
+        setActiveChapterIndex(0);
+      }
+      return;
+    }
+
+    const targetChapterIndex = chapters.findIndex((chapter) => chapter.id === chapitreParam);
+    if (targetChapterIndex === -1) return;
+
+    const targetChapter = chapters[targetChapterIndex];
+
+    if (activeChapter?.id !== targetChapter.id) {
+      setActiveChapter(targetChapter);
+    }
+
+    if (activeChapterIndex !== targetChapterIndex) {
+      setActiveChapterIndex(targetChapterIndex);
+    }
+
+    if (viewMode !== "content") {
+      setViewMode("content");
+    }
+
+    if (initialLessonId !== leconParam) {
+      setInitialLessonId(leconParam);
+    }
+  }, [
+    chapters,
+    chapitreParam,
+    leconParam,
+    activeChapter?.id,
+    activeChapterIndex,
+    initialLessonId,
+    viewMode,
+  ]);
 
   // Load quizzes/exercises from DB for a lesson, or chapter-level content when lessonId is null
   const fetchQuizExercises = useCallback(async (lessonId?: string | null) => {
@@ -907,8 +938,24 @@ const Cours = () => {
                   lessonsContent: (activeChapter.lessons || []).map(l => `${l.title}: ${l.content || ''}`).join('\n'),
                 } : null}
                 onNavigate={(path) => {
+                  const targetUrl = new URL(path, window.location.origin);
+                  const targetChapterId = targetUrl.searchParams.get("chapitre");
+                  const targetLessonId = targetUrl.searchParams.get("lecon");
+
                   setIsChatOpen(false);
-                  navigate(path);
+
+                  if (targetChapterId) {
+                    const targetChapterIndex = chapters.findIndex((chapter) => chapter.id === targetChapterId);
+
+                    if (targetChapterIndex >= 0) {
+                      setActiveChapter(chapters[targetChapterIndex]);
+                      setActiveChapterIndex(targetChapterIndex);
+                      setViewMode("content");
+                      setInitialLessonId(targetLessonId);
+                    }
+                  }
+
+                  navigate(`${targetUrl.pathname}${targetUrl.search}`);
                 }}
               />
             </div>
