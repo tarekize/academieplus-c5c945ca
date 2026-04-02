@@ -189,10 +189,15 @@ serve(async (req) => {
         const subjectPath = subject === 'mathématiques' ? 'math' : normalizedSubject;
 
         courseMapPrompt = `\n\n=== CARTE DE NAVIGATION DES COURS ===
-IMPORTANT : Quand un élève demande où se trouve un cours, une leçon, un sujet, ou un concept, 
-tu DOIS utiliser la syntaxe de lien navigable suivante pour créer des liens cliquables :
-Format : [[NAV:Texte affiché|/cours/${subjectPath}?chapitre=CHAPTER_ID]]
-Pour une leçon spécifique : [[NAV:Texte affiché|/cours/${subjectPath}?chapitre=CHAPTER_ID&lecon=LESSON_ID]]
+IMPORTANT : Quand un élève demande où se trouve un cours, une leçon, un sujet ou un concept :
+- réponds dans la langue de l'élève
+- réponds avec UNE phrase très courte seulement
+- n'ajoute ni salutation, ni explication, ni résumé, ni liste, ni conseil
+- utilise directement un lien cliquable au format [[NAV:Texte affiché|/cours/${subjectPath}?chapitre=CHAPTER_ID]]
+- pour une leçon spécifique, utilise [[NAV:Texte affiché|/cours/${subjectPath}?chapitre=CHAPTER_ID&lecon=LESSON_ID]]
+Exemples :
+- Français : Voici le lien : [[NAV:Nom du cours|/cours/${subjectPath}?chapitre=CHAPTER_ID]]
+- العربية : إليك رابط الدرس: [[NAV:اسم الدرس|/cours/${subjectPath}?chapitre=CHAPTER_ID]]
 
 Voici la liste complète des chapitres et leçons disponibles :\n`;
 
@@ -224,12 +229,12 @@ Voici la liste complète des chapitres et leçons disponibles :\n`;
         }
 
         courseMapPrompt += `\n\nINSTRUCTIONS DE NAVIGATION :
-1. Quand l'élève cherche un cours/leçon/concept, TOUJOURS inclure le lien navigable [[NAV:...]]
-2. Tu peux inclure plusieurs liens si pertinent
-3. Le texte affiché doit être clair et descriptif (ex: "📘 Aller au chapitre Limites et continuité")
+1. Pour toute demande d'emplacement, retourne au moins un lien [[NAV:...]]
+2. Si plusieurs résultats sont plausibles, donne au maximum 3 liens
+3. Le texte affiché du lien doit être court : seulement le titre du chapitre ou de la leçon
 4. Cherche dans les titres ET dans les sections de contenu pour trouver le bon emplacement
 5. Si le concept est dans une section d'une leçon, dirige vers cette leçon avec le lien approprié
-6. Réponds dans la même langue que l'élève (français ou arabe)\n`;
+6. Pour une demande d'emplacement, ne donne aucun texte supplémentaire inutile\n`;
       }
     } catch (err) {
       console.error("Error building course map:", err);
@@ -272,7 +277,8 @@ STRUCTURE : Comprendre → Concepts clés → Résolution → Réponse finale �
 CONTEXTE DU CHAPITRE ACTUEL : "${chapterContext.title}"
 ${chapterContext.lessonsContent ? `CONTENU DES LEÇONS DU CHAPITRE :\n${chapterContext.lessonsContent}` : ""}
 
-RÈGLE ABSOLUE : Tu ne dois répondre QU'AUX QUESTIONS qui sont en rapport avec le contenu de ce chapitre ("${chapterContext.title}").
+ RÈGLE ABSOLUE : Tu ne dois répondre QU'AUX QUESTIONS qui sont en rapport avec le contenu de ce chapitre ("${chapterContext.title}").
+ EXCEPTION : si l'élève demande où trouver un cours, une leçon, un titre ou un concept, tu peux répondre avec un lien de navigation même si ce contenu est hors du chapitre actuel.
 Si l'élève pose une question qui n'est PAS liée à ce chapitre, tu dois répondre poliment :
 - En français : "Cette question ne fait pas partie du chapitre actuel (${chapterContext.title}). Je ne peux répondre qu'aux questions en rapport avec ce chapitre."
 - En arabe : "هذا السؤال خارج نطاق الفصل الحالي (${chapterContext.title}). يمكنني فقط الإجابة على الأسئلة المتعلقة بهذا الفصل."

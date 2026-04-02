@@ -12,30 +12,6 @@ interface ChatMessageProps {
 }
 
 /**
- * Parse [[NAV:label|path]] patterns and return mixed text/link segments
- */
-function parseNavLinks(text: string): Array<{ type: "text"; value: string } | { type: "nav"; label: string; path: string }> {
-  const regex = /\[\[NAV:(.*?)\|(.*?)\]\]/g;
-  const segments: Array<{ type: "text"; value: string } | { type: "nav"; label: string; path: string }> = [];
-  let lastIndex = 0;
-  let match;
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      segments.push({ type: "text", value: text.slice(lastIndex, match.index) });
-    }
-    segments.push({ type: "nav", label: match[1], path: match[2] });
-    lastIndex = match.index + match[0].length;
-  }
-
-  if (lastIndex < text.length) {
-    segments.push({ type: "text", value: text.slice(lastIndex) });
-  }
-
-  return segments;
-}
-
-/**
  * Strip [[NAV:...]] from markdown so ReactMarkdown doesn't see them,
  * and collect nav links to render separately.
  */
@@ -48,8 +24,11 @@ function extractNavLinksFromContent(content: string): { cleanContent: string; na
     navLinks.push({ label: match[1], path: match[2] });
   }
 
-  // Replace NAV links in the text with a styled inline placeholder
-  const cleanContent = content.replace(regex, '**🔗 $1**');
+  const cleanContent = content
+    .replace(regex, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 
   return { cleanContent, navLinks };
 }
@@ -94,73 +73,76 @@ export const ChatMessage = ({ role, content, isStreaming, onNavigate }: ChatMess
             <p className="whitespace-pre-wrap">{content}</p>
           ) : (
             <>
-              <ReactMarkdown
-                className="space-y-3"
-                components={{
-                  h1: ({ children }) => (
-                    <h1 className="text-2xl font-bold text-primary mb-3 mt-4 pb-2 border-b-2 border-primary/30">
-                      {children}
-                    </h1>
-                  ),
-                  h2: ({ children }) => (
-                    <h2 className="text-xl font-bold text-primary mb-2 mt-3">
-                      {children}
-                    </h2>
-                  ),
-                  h3: ({ children }) => (
-                    <h3 className="text-lg font-semibold text-secondary mb-2 mt-2">
-                      {children}
-                    </h3>
-                  ),
-                  strong: ({ children }) => (
-                    <strong className="font-bold text-primary">{children}</strong>
-                  ),
-                  em: ({ children }) => (
-                    <em className="italic text-accent">{children}</em>
-                  ),
-                  p: ({ children }) => (
-                    <p className="leading-relaxed mb-2">{children}</p>
-                  ),
-                  ul: ({ children }) => (
-                    <ul className="list-disc list-inside space-y-1 ml-2 text-foreground">
-                      {children}
-                    </ul>
-                  ),
-                  ol: ({ children }) => (
-                    <ol className="list-decimal list-inside space-y-1 ml-2 text-foreground">
-                      {children}
-                    </ol>
-                  ),
-                  li: ({ children }) => (
-                    <li className="ml-4 marker:text-primary">{children}</li>
-                  ),
-                  code: ({ children, className }) => {
-                    const isInline = !className;
-                    return isInline ? (
-                      <code className="bg-primary/10 text-primary px-1.5 py-0.5 rounded font-mono text-sm">
+              {cleanContent ? (
+                <ReactMarkdown
+                  className="space-y-3"
+                  components={{
+                    h1: ({ children }) => (
+                      <h1 className="text-2xl font-bold text-primary mb-3 mt-4 pb-2 border-b-2 border-primary/30">
                         {children}
-                      </code>
-                    ) : (
-                      <code className="block bg-muted p-3 rounded-lg overflow-x-auto font-mono text-sm">
+                      </h1>
+                    ),
+                    h2: ({ children }) => (
+                      <h2 className="text-xl font-bold text-primary mb-2 mt-3">
                         {children}
-                      </code>
-                    );
-                  },
-                  blockquote: ({ children }) => (
-                    <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground my-2">
-                      {children}
-                    </blockquote>
-                  ),
-                }}
-              >
-                {cleanContent}
-              </ReactMarkdown>
+                      </h2>
+                    ),
+                    h3: ({ children }) => (
+                      <h3 className="text-lg font-semibold text-secondary mb-2 mt-2">
+                        {children}
+                      </h3>
+                    ),
+                    strong: ({ children }) => (
+                      <strong className="font-bold text-primary">{children}</strong>
+                    ),
+                    em: ({ children }) => (
+                      <em className="italic text-accent">{children}</em>
+                    ),
+                    p: ({ children }) => (
+                      <p className="leading-relaxed mb-2">{children}</p>
+                    ),
+                    ul: ({ children }) => (
+                      <ul className="list-disc list-inside space-y-1 ml-2 text-foreground">
+                        {children}
+                      </ul>
+                    ),
+                    ol: ({ children }) => (
+                      <ol className="list-decimal list-inside space-y-1 ml-2 text-foreground">
+                        {children}
+                      </ol>
+                    ),
+                    li: ({ children }) => (
+                      <li className="ml-4 marker:text-primary">{children}</li>
+                    ),
+                    code: ({ children, className }) => {
+                      const isInline = !className;
+                      return isInline ? (
+                        <code className="bg-primary/10 text-primary px-1.5 py-0.5 rounded font-mono text-sm">
+                          {children}
+                        </code>
+                      ) : (
+                        <code className="block bg-muted p-3 rounded-lg overflow-x-auto font-mono text-sm">
+                          {children}
+                        </code>
+                      );
+                    },
+                    blockquote: ({ children }) => (
+                      <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground my-2">
+                        {children}
+                      </blockquote>
+                    ),
+                  }}
+                >
+                  {cleanContent}
+                </ReactMarkdown>
+              ) : null}
 
               {/* Render clickable navigation buttons */}
               {navLinks.length > 0 && !isStreaming && (
                 <div className="flex flex-wrap gap-2 mt-3">
                   {navLinks.map((link, i) => (
                     <button
+                      type="button"
                       key={i}
                       onClick={() => handleNavClick(link.path)}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-medium text-sm transition-all border border-primary/20 hover:border-primary/40 cursor-pointer"
