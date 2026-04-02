@@ -89,6 +89,7 @@ const Cours = () => {
   const [initialLessonId, setInitialLessonId] = useState<string | null>(null);
   const [dbQuizzes, setDbQuizzes] = useState<DBQuizQuestion[]>([]);
   const [dbExercises, setDbExercises] = useState<DBExercise[]>([]);
+  const [contentResetKey, setContentResetKey] = useState(0);
 
   const subject = subjectId ? staticSubjects[subjectId] || { id: subjectId, name: subjectId, icon: "📖" } : null;
 
@@ -896,6 +897,7 @@ const Cours = () => {
           <div className="space-y-6">
             {/* Affichage adaptatif de la leçon */}
             <AdaptiveLessonContent
+              key={`${activeChapter.id}-${contentResetKey}`}
               onBackToChapters={() => {
                 setViewMode("grid");
                 setInitialLessonId(null);
@@ -964,6 +966,8 @@ const Cours = () => {
                       setActiveChapterIndex(targetChapterIndex);
                       setViewMode("content");
                       setInitialLessonId(targetLessonId);
+                      // Force remount to reset lesson selection (especially same-chapter nav)
+                      setContentResetKey(k => k + 1);
                     }
                   }
 
