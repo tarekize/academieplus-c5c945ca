@@ -89,6 +89,7 @@ const Cours = () => {
   const [initialLessonId, setInitialLessonId] = useState<string | null>(null);
   const [dbQuizzes, setDbQuizzes] = useState<DBQuizQuestion[]>([]);
   const [dbExercises, setDbExercises] = useState<DBExercise[]>([]);
+  const [contentResetKey, setContentResetKey] = useState(0);
 
   const subject = subjectId ? staticSubjects[subjectId] || { id: subjectId, name: subjectId, icon: "📖" } : null;
 
