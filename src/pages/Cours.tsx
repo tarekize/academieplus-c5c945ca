@@ -967,7 +967,13 @@ const Cours = () => {
                     }
                   }
 
-                  navigate(`${targetUrl.pathname}${targetUrl.search}`);
+                  // Update URL params so back button can clear them properly
+                  const newParams = new URLSearchParams(searchParams);
+                  if (targetChapterId) newParams.set("chapitre", targetChapterId);
+                  else newParams.delete("chapitre");
+                  if (targetLessonId) newParams.set("lecon", targetLessonId);
+                  else newParams.delete("lecon");
+                  setSearchParams(newParams, { replace: true });
                 }}
               />
             </div>
