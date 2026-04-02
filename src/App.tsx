@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import Index from "./pages/Index.tsx";
-import NotFound from "./pages/NotFound.tsx";
-=======
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -56,25 +47,11 @@ import BotOnboardingPage from "./pages/BotOnboardingPage";
 import LessonEditor from "./pages/LessonEditor";
 import ContentGeneration from "./pages/ContentGeneration";
 import ProtectedRoute from "@/components/ProtectedRoute";
->>>>>>> old/main
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-<<<<<<< HEAD
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-=======
     <I18nextProvider i18n={i18n}>
       <TooltipProvider>
         <Toaster />
@@ -139,8 +116,7 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </I18nextProvider>
->>>>>>> old/main
-  </QueryClientProvider>
+  </QueryClientProvider >
 );
 
 export default App;
