@@ -418,15 +418,6 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                 </span>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs h-7 gap-1 text-primary hover:text-primary shrink-0"
-              onClick={() => navigate('/abonnements')}
-            >
-              <Crown className="h-3 w-3" />
-              Passer Premium
-            </Button>
           </div>
           {/* Progress bars */}
           <div className="flex gap-4 mt-1.5 max-w-3xl mx-auto">
