@@ -1,11 +1,14 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, X, Mic, MicOff } from "lucide-react";
+import { Send, Paperclip, X, Mic, MicOff, Lock, Crown, MessageCircle, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { ChatMessage } from "./ChatMessage";
 import { supabase } from "@/integrations/supabase/client";
+import { useChatLimits } from "@/hooks/useChatLimits";
+import { Progress } from "@/components/ui/progress";
+import { useNavigate } from "react-router-dom";
 
 type MessageContent = {
   type: "text" | "image_url";
@@ -40,6 +43,20 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const {
+    hasSubscription,
+    canSendMessage,
+    canSendImage,
+    messagesRemaining,
+    imagesRemaining,
+    recordMessage,
+    recordImage,
+    isLoading: limitsLoading,
+    FREE_MESSAGE_LIMIT,
+    FREE_IMAGE_LIMIT,
+  } = useChatLimits();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -53,8 +70,19 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    // Check image limit for non-subscribers
+    if (!canSendImage) {
+      toast({
+        title: "Limite d'images atteinte",
+        description: `Vous avez utilisé vos ${FREE_IMAGE_LIMIT} images gratuites du jour. Abonnez-vous pour un accès illimité.`,
+        variant: "destructive",
+      });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     const file = files[0];
-    const maxSize = 20 * 1024 * 1024; // 20MB
+    const maxSize = 20 * 1024 * 1024;
 
     if (file.size > maxSize) {
       toast({
@@ -65,7 +93,6 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
       return;
     }
 
-    // Vérifier le type de fichier
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"];
     if (!allowedTypes.includes(file.type)) {
       toast({
@@ -94,7 +121,6 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
     };
     reader.readAsDataURL(file);
 
-    // Reset l'input file pour permettre de sélectionner le même fichier à nouveau
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -107,7 +133,26 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
   const sendMessage = async (content: string) => {
     if ((!content.trim() && uploadedFiles.length === 0) || isLoading) return;
 
-    // Construire le contenu du message
+    // Check message limit
+    if (!canSendMessage) {
+      toast({
+        title: "Limite de messages atteinte",
+        description: `Vous avez utilisé vos ${FREE_MESSAGE_LIMIT} messages gratuits du jour. Abonnez-vous pour un accès illimité.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check image limit if files are attached
+    if (uploadedFiles.length > 0 && !canSendImage) {
+      toast({
+        title: "Limite d'images atteinte",
+        description: `Vous avez utilisé vos ${FREE_IMAGE_LIMIT} images gratuites du jour. Abonnez-vous pour un accès illimité.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     let messageContent: string | MessageContent[];
 
     if (uploadedFiles.length > 0) {
@@ -120,6 +165,12 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
       ];
     } else {
       messageContent = content.trim();
+    }
+
+    // Record usage BEFORE sending
+    recordMessage();
+    if (uploadedFiles.length > 0) {
+      recordImage(uploadedFiles.length);
     }
 
     const userMessage: Message = { role: "user", content: messageContent };
@@ -157,14 +208,12 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
       let assistantMessage = "";
       let buffer = "";
 
-      // Ajouter le message assistant vide initial
       setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
       while (true) {
         const { done, value } = await reader.read();
 
         if (done) {
-          // Traiter les données restantes dans le buffer
           if (buffer.trim()) {
             const lines = buffer.split("\n");
             for (const line of lines) {
@@ -178,7 +227,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
-        buffer = lines.pop() || ""; // Garder la dernière ligne incomplète
+        buffer = lines.pop() || "";
 
         for (const line of lines) {
           await processLine(line, assistantMessage, (newContent) => {
@@ -187,7 +236,6 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
         }
       }
 
-      // Vérifier si on a reçu le signal [DONE]
       if (buffer.includes("[DONE]")) {
         console.log("Stream completed");
       }
@@ -203,7 +251,6 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
               : "Impossible d'envoyer le message. Veuillez réessayer.",
         variant: "destructive",
       });
-      // Retirer le message assistant qui n'a pas été complété
       setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
@@ -330,17 +377,70 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
     }
   };
 
+  const showLimitBanner = !hasSubscription && !limitsLoading;
+  const isBlocked = !canSendMessage && !hasSubscription;
+
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* Header avec bouton de fermeture */}
+      {/* Header */}
       <div className="border-b bg-gradient-to-r from-primary/10 to-secondary/10 p-4">
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <h2 className="text-xl font-semibold text-foreground truncate">Professeur de {subject} AI</h2>
             <p className="text-sm text-muted-foreground truncate">Posez vos questions de {subject}</p>
           </div>
+          {hasSubscription && (
+            <div className="flex items-center gap-1.5 bg-amber-500/10 text-amber-600 px-3 py-1 rounded-full text-xs font-medium">
+              <Crown className="h-3.5 w-3.5" />
+              <span>Premium</span>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Usage banner for free users */}
+      {showLimitBanner && (
+        <div className="border-b bg-muted/30 px-4 py-2.5">
+          <div className="flex items-center justify-between gap-3 max-w-3xl mx-auto">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 text-xs">
+                <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-muted-foreground">Messages:</span>
+                <span className={`font-semibold ${messagesRemaining === 0 ? 'text-destructive' : 'text-foreground'}`}>
+                  {messagesRemaining}/{FREE_MESSAGE_LIMIT}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs">
+                <Image className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-muted-foreground">Images:</span>
+                <span className={`font-semibold ${imagesRemaining === 0 ? 'text-destructive' : 'text-foreground'}`}>
+                  {imagesRemaining}/{FREE_IMAGE_LIMIT}
+                </span>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs h-7 gap-1 text-primary hover:text-primary shrink-0"
+              onClick={() => navigate('/abonnements')}
+            >
+              <Crown className="h-3 w-3" />
+              Passer Premium
+            </Button>
+          </div>
+          {/* Progress bars */}
+          <div className="flex gap-4 mt-1.5 max-w-3xl mx-auto">
+            <Progress
+              value={(messagesRemaining / FREE_MESSAGE_LIMIT) * 100}
+              className="h-1 flex-1"
+            />
+            <Progress
+              value={(imagesRemaining / FREE_IMAGE_LIMIT) * 100}
+              className="h-1 w-20"
+            />
+          </div>
+        </div>
+      )}
 
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4 max-w-3xl mx-auto">
@@ -354,11 +454,17 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                 Je suis votre professeur de {subject} personnel. Posez-moi n'importe quelle question de {subject} en
                 français, arabe ou toute autre langue !
               </p>
+              {!hasSubscription && !limitsLoading && (
+                <div className="mt-4 inline-flex items-center gap-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 px-4 py-2 rounded-lg text-sm">
+                  <Crown className="h-4 w-4" />
+                  <span>Version gratuite : {FREE_MESSAGE_LIMIT} messages et {FREE_IMAGE_LIMIT} images par jour</span>
+                </div>
+              )}
             </div>
           ) : (
             <>
-               {messages.map((message, index) => (
-               <ChatMessage
+              {messages.map((message, index) => (
+                <ChatMessage
                   key={index}
                   role={message.role}
                   content={
@@ -376,98 +482,124 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
         </div>
       </ScrollArea>
 
-      <div className="border-t p-4 bg-background">
-        <div className="max-w-3xl mx-auto space-y-2">
-          {uploadedFiles.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {uploadedFiles.map((file, index) => (
-                <div key={index} className="flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full text-sm">
-                  <span className="truncate max-w-[200px]">{file.name}</span>
-                  <button
-                    onClick={() => removeFile(index)}
-                    className="hover:text-destructive transition-colors"
-                    disabled={isLoading}
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
+      {/* Blocked overlay when limits reached */}
+      {isBlocked && (
+        <div className="border-t bg-gradient-to-r from-destructive/5 to-amber-500/5 p-4">
+          <div className="max-w-3xl mx-auto text-center space-y-3">
+            <div className="flex items-center justify-center gap-2 text-destructive">
+              <Lock className="h-5 w-5" />
+              <span className="font-semibold">Limite quotidienne atteinte</span>
             </div>
-          )}
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*,.pdf"
-              onChange={handleFileUpload}
-              className="hidden"
-              disabled={isLoading}
-            />
+            <p className="text-sm text-muted-foreground">
+              Vous avez utilisé tous vos messages gratuits pour aujourd'hui. Abonnez-vous pour profiter d'un accès illimité au chatbot et aux images.
+            </p>
             <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading || isRecording}
+              className="gap-2"
+              onClick={() => navigate('/abonnements')}
             >
-              <Paperclip className="h-4 w-4" />
+              <Crown className="h-4 w-4" />
+              Débloquer l'accès illimité
             </Button>
-            <div className="relative flex items-center gap-1">
+          </div>
+        </div>
+      )}
+
+      {/* Input area - hidden when blocked */}
+      {!isBlocked && (
+        <div className="border-t p-4 bg-background">
+          <div className="max-w-3xl mx-auto space-y-2">
+            {uploadedFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {uploadedFiles.map((file, index) => (
+                  <div key={index} className="flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full text-sm">
+                    <span className="truncate max-w-[200px]">{file.name}</span>
+                    <button
+                      onClick={() => removeFile(index)}
+                      className="hover:text-destructive transition-colors"
+                      disabled={isLoading}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <form onSubmit={handleSubmit} className="flex gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleFileUpload}
+                className="hidden"
+                disabled={isLoading}
+              />
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={() => setVoiceLang(voiceLang === 'fr-FR' ? 'ar-SA' : 'fr-FR')}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading || isRecording || (!canSendImage && !hasSubscription)}
+                title={!canSendImage && !hasSubscription ? "Limite d'images atteinte" : "Joindre un fichier"}
+              >
+                <Paperclip className="h-4 w-4" />
+              </Button>
+              <div className="relative flex items-center gap-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setVoiceLang(voiceLang === 'fr-FR' ? 'ar-SA' : 'fr-FR')}
+                  disabled={isLoading || isRecording}
+                  className="h-10 w-10 text-xs font-semibold"
+                  title={voiceLang === 'fr-FR' ? 'Français' : 'العربية'}
+                >
+                  {voiceLang === 'fr-FR' ? 'FR' : 'AR'}
+                </Button>
+                <Button
+                  type="button"
+                  variant={isRecording ? "destructive" : "outline"}
+                  size="icon"
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={isLoading}
+                  className="relative"
+                >
+                  {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                </Button>
+                {isRecording && (
+                  <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-destructive/10 px-4 py-2 rounded-full">
+                    {[...Array(5)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="w-1 bg-destructive rounded-full animate-pulse"
+                        style={{
+                          height: `${12 + Math.random() * 16}px`,
+                          animationDelay: `${i * 0.1}s`,
+                          animationDuration: `${0.5 + Math.random() * 0.3}s`
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+              <Input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={`Posez votre question de ${subject}...`}
                 disabled={isLoading || isRecording}
-                className="h-10 w-10 text-xs font-semibold"
-                title={voiceLang === 'fr-FR' ? 'Français' : 'العربية'}
-              >
-                {voiceLang === 'fr-FR' ? 'FR' : 'AR'}
-              </Button>
+                className={`flex-1 ${isRecording ? 'bg-destructive/10 border-destructive' : ''}`}
+              />
               <Button
-                type="button"
-                variant={isRecording ? "destructive" : "outline"}
-                size="icon"
-                onClick={isRecording ? stopRecording : startRecording}
-                disabled={isLoading}
-                className="relative"
+                type="submit"
+                disabled={isLoading || isRecording || (!inputValue.trim() && uploadedFiles.length === 0)}
+                className="flex-shrink-0"
               >
-                {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                <Send className="h-4 w-4" />
               </Button>
-              {isRecording && (
-                <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-destructive/10 px-4 py-2 rounded-full">
-                  {[...Array(5)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-1 bg-destructive rounded-full animate-pulse"
-                      style={{
-                        height: `${12 + Math.random() * 16}px`,
-                        animationDelay: `${i * 0.1}s`,
-                        animationDuration: `${0.5 + Math.random() * 0.3}s`
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-            <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={`Posez votre question de ${subject}...`}
-              disabled={isLoading || isRecording}
-              className={`flex-1 ${isRecording ? 'bg-destructive/10 border-destructive' : ''}`}
-            />
-            <Button
-              type="submit"
-              disabled={isLoading || isRecording || (!inputValue.trim() && uploadedFiles.length === 0)}
-              className="flex-shrink-0"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
