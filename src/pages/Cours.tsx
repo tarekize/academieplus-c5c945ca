@@ -65,7 +65,7 @@ interface Chapter {
 
 const Cours = () => {
   const { subjectId } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const adminNiveau = searchParams.get("niveau");
   const adminFiliere = searchParams.get("filiere");
   const chapitreParam = searchParams.get("chapitre");
