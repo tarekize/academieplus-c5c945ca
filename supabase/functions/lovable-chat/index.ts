@@ -209,7 +209,7 @@ Voici la liste complète des chapitres et leçons disponibles :\n`;
           for (const les of lessons) {
             const lesTitle = les.title + (les.title_ar ? ` / ${les.title_ar}` : '');
             courseMapPrompt += `\n   📄 Leçon: "${lesTitle}" (ID: ${les.id})`;
-            courseMapPrompt += `\n      Lien: [[NAV:${les.title}|/cours/${subjectPath}?chapitre=${ch.id}&lecon=${les.id}]]`;
+            // No clickable link, just list lessons with index
             
             // Extract headings from lesson content for deeper navigation
             if (les.content) {
