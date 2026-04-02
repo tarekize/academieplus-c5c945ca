@@ -27,6 +27,7 @@ type ChatBotProps = {
     title: string;
     lessonsContent: string;
   } | null;
+  onNavigate?: (path: string) => void;
 };
 
 export default function ChatBot({ messages, setMessages, subject = "mathématiques", schoolLevel = null, chapterContext = null }: ChatBotProps) {
