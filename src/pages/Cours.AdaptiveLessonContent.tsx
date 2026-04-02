@@ -119,11 +119,14 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                 <Breadcrumb>
                     <BreadcrumbList className="flex-wrap">
                         <BreadcrumbItem>
-                            <BreadcrumbLink
-                                className="cursor-pointer hover:text-primary transition-colors"
-                                onClick={() => { onBackToChapters?.(); }}
-                            >
-                                Chapitres
+                            <BreadcrumbLink asChild>
+                                <button
+                                    type="button"
+                                    className="cursor-pointer hover:text-primary transition-colors"
+                                    onClick={() => { onBackToChapters?.(); }}
+                                >
+                                    Chapitres
+                                </button>
                             </BreadcrumbLink>
                         </BreadcrumbItem>
                         <BreadcrumbSeparator />
@@ -131,11 +134,14 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                             {!selectedLesson ? (
                                 <BreadcrumbPage>{chapter.title}</BreadcrumbPage>
                             ) : (
-                                <BreadcrumbLink
-                                    className="cursor-pointer hover:text-primary transition-colors"
-                                    onClick={handleBackToList}
-                                >
-                                    {chapter.title}
+                                <BreadcrumbLink asChild>
+                                    <button
+                                        type="button"
+                                        className="cursor-pointer hover:text-primary transition-colors"
+                                        onClick={handleBackToList}
+                                    >
+                                        {chapter.title}
+                                    </button>
                                 </BreadcrumbLink>
                             )}
                         </BreadcrumbItem>
@@ -146,11 +152,14 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                                     {!activeSectionLabel ? (
                                         <BreadcrumbPage>{selectedLesson.titleAr || selectedLesson.title}</BreadcrumbPage>
                                     ) : (
-                                        <BreadcrumbLink
-                                            className="cursor-pointer hover:text-primary transition-colors"
-                                            onClick={() => { setLessonView("course"); setActiveActivity(null); setActiveSectionLabel(null); setActivityResetKey(k => k + 1); }}
-                                        >
-                                            {selectedLesson.titleAr || selectedLesson.title}
+                                        <BreadcrumbLink asChild>
+                                            <button
+                                                type="button"
+                                                className="cursor-pointer hover:text-primary transition-colors"
+                                                onClick={() => { setLessonView("course"); setActiveActivity(null); setActiveSectionLabel(null); setActivityResetKey(k => k + 1); }}
+                                            >
+                                                {selectedLesson.titleAr || selectedLesson.title}
+                                            </button>
                                         </BreadcrumbLink>
                                     )}
                                 </BreadcrumbItem>

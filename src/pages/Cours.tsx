@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { AdaptiveLessonContent } from "./Cours.AdaptiveLessonContent";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -90,6 +90,7 @@ const Cours = () => {
   const [dbQuizzes, setDbQuizzes] = useState<DBQuizQuestion[]>([]);
   const [dbExercises, setDbExercises] = useState<DBExercise[]>([]);
   const [contentResetKey, setContentResetKey] = useState(0);
+  const lastSyncedLessonParamRef = useRef<string | null>(null);
 
   const subject = subjectId ? staticSubjects[subjectId] || { id: subjectId, name: subjectId, icon: "📖" } : null;
 
@@ -217,8 +218,9 @@ const Cours = () => {
       setViewMode("content");
     }
 
-    if (initialLessonId !== leconParam) {
+    if (lastSyncedLessonParamRef.current !== leconParam) {
       setInitialLessonId(leconParam);
+      lastSyncedLessonParamRef.current = leconParam;
     }
   }, [
     chapters,
@@ -226,7 +228,6 @@ const Cours = () => {
     leconParam,
     activeChapter?.id,
     activeChapterIndex,
-    initialLessonId,
     viewMode,
   ]);
 
