@@ -2,7 +2,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Toast, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport } from "@/components/ui/toast";
 
 export function Toaster() {
-<<<<<<< HEAD
   const { toasts, dismiss } = useToast();
   const hasToasts = toasts.length > 0;
 
@@ -14,12 +13,6 @@ export function Toaster() {
           onClick={() => dismiss()}
         />
       )}
-=======
-  const { toasts } = useToast();
-
-  return (
-    <ToastProvider>
->>>>>>> 99a68e82c947d629deda86372b240817a8f1591b
       {toasts.map(function ({ id, title, description, action, ...props }) {
         return (
           <Toast key={id} {...props}>

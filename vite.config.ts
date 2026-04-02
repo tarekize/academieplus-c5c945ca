@@ -18,7 +18,6 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
-<<<<<<< HEAD
   },
   build: {
     commonjsOptions: {
@@ -27,7 +26,5 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     include: ['katex', 'react-katex'],
-=======
->>>>>>> 99a68e82c947d629deda86372b240817a8f1591b
   },
 }));

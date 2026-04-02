@@ -1,12 +1,8 @@
 {
   "compilerOptions": {
-<<<<<<< HEAD
     "types": [
       "vitest/globals"
     ],
-=======
-    "types": ["vitest/globals"],
->>>>>>> 99a68e82c947d629deda86372b240817a8f1591b
     "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": [
@@ -31,7 +27,6 @@
     "noFallthroughCasesInSwitch": false,
     "baseUrl": ".",
     "paths": {
-<<<<<<< HEAD
       "@/*": [
         "./src/*"
       ]
@@ -41,10 +36,3 @@
     "src"
   ]
 }
-=======
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": ["src"]
-}
->>>>>>> 99a68e82c947d629deda86372b240817a8f1591b
