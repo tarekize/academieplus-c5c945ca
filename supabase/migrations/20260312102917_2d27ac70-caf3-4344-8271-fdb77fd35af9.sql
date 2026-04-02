@@ -1,1 +1,0 @@
-UPDATE parent_child_links SET status = 'active' WHERE status = 'pending';
