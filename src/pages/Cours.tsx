@@ -897,6 +897,7 @@ const Cours = () => {
           <div className="space-y-6">
             {/* Affichage adaptatif de la leçon */}
             <AdaptiveLessonContent
+              key={`${activeChapter.id}-${contentResetKey}`}
               onBackToChapters={() => {
                 setViewMode("grid");
                 setInitialLessonId(null);
