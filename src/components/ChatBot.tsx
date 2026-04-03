@@ -397,24 +397,70 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
 
   return (
     <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-950 border-[3px] border-[#0A2551] rounded-2xl overflow-hidden shadow-[0_20px_60px_-15px_rgba(10,37,81,0.4)] backdrop-blur-sm relative z-50">
-      {/* Header */}
-      <div className="border-b border-[#0A2551]/10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-5 py-4 shrink-0 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col min-w-0">
-            <h2 className="text-xl font-bold text-[#0A2551] dark:text-blue-400 truncate flex items-center gap-2">
-              <Bot className="h-6 w-6 text-[#0A2551] dark:text-blue-400" />
-              Professeur de {subject}
-            </h2>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mt-1 truncate">Assistant IA Interactif</p>
-          </div>
-          {hasSubscription && (
-            <div className="flex items-center gap-1.5 bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
-              <Crown className="h-3.5 w-3.5" />
-              <span>Premium</span>
+      {/* History Panel */}
+      {showHistory && (
+        <ChatHistory
+          chapterId={chapterId}
+          activeConversationId={conversationId}
+          onSelectConversation={(msgs, id) => {
+            setMessages(msgs as Message[]);
+            loadConversation(msgs as Message[], id);
+            setShowHistory(false);
+          }}
+          onNewConversation={() => {
+            setMessages([]);
+            newConversation();
+            setShowHistory(false);
+          }}
+          onClose={() => setShowHistory(false)}
+        />
+      )}
+
+      {/* Main Chat UI - hidden when history is shown */}
+      {!showHistory && (
+        <>
+          {/* Header */}
+          <div className="border-b border-[#0A2551]/10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-5 py-4 shrink-0 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col min-w-0 flex-1">
+                <h2 className="text-xl font-bold text-[#0A2551] dark:text-blue-400 truncate flex items-center gap-2">
+                  <Bot className="h-6 w-6 text-[#0A2551] dark:text-blue-400" />
+                  Professeur de {subject}
+                </h2>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mt-1 truncate">Assistant IA Interactif</p>
+              </div>
+              <div className="flex items-center gap-1">
+                {/* History button */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowHistory(true)}
+                  className="h-9 w-9 rounded-xl text-[#0A2551]/60 hover:text-[#0A2551] hover:bg-[#0A2551]/5"
+                  title="Historique des conversations"
+                >
+                  <History className="h-5 w-5" />
+                </Button>
+                {/* Expand button */}
+                {onToggleExpand && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onToggleExpand}
+                    className="h-9 w-9 rounded-xl text-[#0A2551]/60 hover:text-[#0A2551] hover:bg-[#0A2551]/5"
+                    title={isExpanded ? "Réduire" : "Agrandir"}
+                  >
+                    {isExpanded ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+                  </Button>
+                )}
+                {hasSubscription && (
+                  <div className="flex items-center gap-1.5 bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ml-1">
+                    <Crown className="h-3.5 w-3.5" />
+                    <span>Premium</span>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
       {/* Usage banner for free users */}
       {showLimitBanner && (
