@@ -311,6 +311,33 @@ export type Database = {
           },
         ]
       }
+      chat_usage: {
+        Row: {
+          id: string
+          image_count: number
+          message_count: number
+          updated_at: string
+          usage_date: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          image_count?: number
+          message_count?: number
+          updated_at?: string
+          usage_date?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          image_count?: number
+          message_count?: number
+          updated_at?: string
+          usage_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       filieres: {
         Row: {
           code: string

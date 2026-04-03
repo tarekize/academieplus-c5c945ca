@@ -1,49 +1,36 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-const STORAGE_KEY = 'chat_daily_usage';
 const FREE_MESSAGE_LIMIT = 10;
 const FREE_IMAGE_LIMIT = 3;
-
-interface DailyUsage {
-  date: string;
-  messageCount: number;
-  imageCount: number;
-}
 
 function getTodayKey(): string {
   return new Date().toISOString().split('T')[0];
 }
 
-function getUsage(): DailyUsage {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed: DailyUsage = JSON.parse(stored);
-      if (parsed.date === getTodayKey()) return parsed;
-    }
-  } catch {}
-  return { date: getTodayKey(), messageCount: 0, imageCount: 0 };
-}
-
-function saveUsage(usage: DailyUsage) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(usage));
+interface UsageState {
+  messageCount: number;
+  imageCount: number;
 }
 
 export function useChatLimits() {
-  const [usage, setUsage] = useState<DailyUsage>(getUsage);
+  const [usage, setUsage] = useState<UsageState>({ messageCount: 0, imageCount: 0 });
   const [hasSubscription, setHasSubscription] = useState<boolean | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  // Check subscription status
+  // Check subscription and load usage from Supabase
   useEffect(() => {
-    const checkSubscription = async () => {
+    const init = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setHasSubscription(false);
         return;
       }
 
-      const { data } = await supabase
+      setUserId(user.id);
+
+      // Check subscription
+      const { data: sub } = await supabase
         .from('student_subscriptions')
         .select('id, days_used, total_days, is_paused')
         .eq('user_id', user.id)
@@ -51,14 +38,30 @@ export function useChatLimits() {
         .limit(1)
         .maybeSingle();
 
-      if (data && data.days_used < data.total_days && !data.is_paused) {
+      if (sub && sub.days_used < sub.total_days && !sub.is_paused) {
         setHasSubscription(true);
       } else {
         setHasSubscription(false);
       }
+
+      // Load today's usage from Supabase
+      const today = getTodayKey();
+      const { data: usageData } = await supabase
+        .from('chat_usage')
+        .select('message_count, image_count')
+        .eq('user_id', user.id)
+        .eq('usage_date', today)
+        .maybeSingle();
+
+      if (usageData) {
+        setUsage({
+          messageCount: usageData.message_count,
+          imageCount: usageData.image_count,
+        });
+      }
     };
 
-    checkSubscription();
+    init();
   }, []);
 
   const messagesRemaining = hasSubscription
@@ -72,21 +75,36 @@ export function useChatLimits() {
   const canSendMessage = hasSubscription || usage.messageCount < FREE_MESSAGE_LIMIT;
   const canSendImage = hasSubscription || usage.imageCount < FREE_IMAGE_LIMIT;
 
-  const recordMessage = useCallback(() => {
-    if (hasSubscription) return;
-    const current = getUsage();
-    current.messageCount += 1;
-    saveUsage(current);
-    setUsage({ ...current });
-  }, [hasSubscription]);
+  const recordMessage = useCallback(async () => {
+    if (hasSubscription || !userId) return;
+    const today = getTodayKey();
+    const newCount = usage.messageCount + 1;
 
-  const recordImage = useCallback((count: number = 1) => {
-    if (hasSubscription) return;
-    const current = getUsage();
-    current.imageCount += count;
-    saveUsage(current);
-    setUsage({ ...current });
-  }, [hasSubscription]);
+    // Upsert in Supabase
+    await supabase
+      .from('chat_usage')
+      .upsert(
+        { user_id: userId, usage_date: today, message_count: newCount, image_count: usage.imageCount },
+        { onConflict: 'user_id,usage_date' }
+      );
+
+    setUsage(prev => ({ ...prev, messageCount: newCount }));
+  }, [hasSubscription, userId, usage]);
+
+  const recordImage = useCallback(async (count: number = 1) => {
+    if (hasSubscription || !userId) return;
+    const today = getTodayKey();
+    const newCount = usage.imageCount + count;
+
+    await supabase
+      .from('chat_usage')
+      .upsert(
+        { user_id: userId, usage_date: today, message_count: usage.messageCount, image_count: newCount },
+        { onConflict: 'user_id,usage_date' }
+      );
+
+    setUsage(prev => ({ ...prev, imageCount: newCount }));
+  }, [hasSubscription, userId, usage]);
 
   return {
     hasSubscription,
