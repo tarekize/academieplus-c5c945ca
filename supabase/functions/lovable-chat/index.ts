@@ -44,7 +44,7 @@ Niveau scolaire de l'élève: ${schoolLevel || "non spécifié"}.
    - Génère un lien cliquable au format BREADCRUMB
    - Si le sujet correspond au chapitre actuel, dis-lui qu'il est au bon endroit
 
-4. **Format des réponses**:
+5. **Format des réponses**:
    - Réponds dans la langue de l'élève (français ou arabe)
    - Utilise le format markdown pour les formules et la mise en forme
    - Sois concis et pédagogique
