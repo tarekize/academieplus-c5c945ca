@@ -81,7 +81,9 @@ const Cours = () => {
   const [viewMode, setViewMode] = useState<"grid" | "content">("grid");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; content: string; }[]>([]);
+  const [chatChapterId, setChatChapterId] = useState<string | null>(null);
   const [activeActivity, setActiveActivity] = useState<string | null>(null);
   const [canManage, setCanManage] = useState(false);
   const [filiereId, setFiliereId] = useState<string | null>(null);
