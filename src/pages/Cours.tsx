@@ -96,6 +96,16 @@ const Cours = () => {
 
   const subject = subjectId ? staticSubjects[subjectId] || { id: subjectId, name: subjectId, icon: "📖" } : null;
 
+  // Reset chat when chapter changes
+  useEffect(() => {
+    if (activeChapter) {
+      if (chatChapterId !== activeChapter.id) {
+        setChatMessages([]);
+        setChatChapterId(activeChapter.id);
+      }
+    }
+  }, [activeChapter?.id]);
+
 
 
   const fetchCourse = useCallback(async () => {
