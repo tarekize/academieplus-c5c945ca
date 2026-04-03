@@ -74,6 +74,13 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
     scrollToBottom();
   }, [messages]);
 
+  // Auto-save conversation to database
+  useEffect(() => {
+    if (messages.length > 0) {
+      debouncedSave(messages);
+    }
+  }, [messages, debouncedSave]);
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
