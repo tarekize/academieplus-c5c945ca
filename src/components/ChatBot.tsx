@@ -33,6 +33,7 @@ type ChatBotProps = {
     title: string;
     lessonsContent: string;
   } | null;
+  allChapters?: { id: string; title: string; lessons: { id: string; title: string }[] }[] | null;
   onNavigate?: (path: string) => void;
   isExpanded?: boolean;
   onToggleExpand?: () => void;
