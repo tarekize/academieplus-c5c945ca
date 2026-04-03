@@ -44,11 +44,14 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
   const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; base64: string; type: string }>>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [voiceLang, setVoiceLang] = useState<'fr-FR' | 'ar-SA'>('fr-FR');
+  const [showHistory, setShowHistory] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const { conversationId, debouncedSave, loadConversation, newConversation } = useChatHistory(chapterId);
 
   const {
     hasSubscription,
