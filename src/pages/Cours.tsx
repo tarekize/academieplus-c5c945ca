@@ -982,7 +982,6 @@ const Cours = () => {
                   title: activeChapter.title,
                   lessonsContent: (activeChapter.lessons || []).map(l => `${l.title}: ${l.content || ''}`).join('\n'),
                 } : null}
-                allChapters={chapters.map(ch => ({ id: ch.id, title: ch.title }))}
                 onNavigate={(path) => {
                   const targetUrl = new URL(path, window.location.origin);
                   const targetChapterId = targetUrl.searchParams.get("chapitre");

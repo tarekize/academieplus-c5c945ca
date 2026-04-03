@@ -33,13 +33,12 @@ type ChatBotProps = {
     title: string;
     lessonsContent: string;
   } | null;
-  allChapters?: { id: string; title: string }[] | null;
   onNavigate?: (path: string) => void;
   isExpanded?: boolean;
   onToggleExpand?: () => void;
 };
 
-export default function ChatBot({ messages, setMessages, subject = "mathématiques", schoolLevel = null, chapterId = null, chapterContext = null, allChapters = null, onNavigate, isExpanded = false, onToggleExpand }: ChatBotProps) {
+export default function ChatBot({ messages, setMessages, subject = "mathématiques", schoolLevel = null, chapterId = null, chapterContext = null, onNavigate, isExpanded = false, onToggleExpand }: ChatBotProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; base64: string; type: string }>>([]);
@@ -209,7 +208,6 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
           subject: subject,
           schoolLevel: schoolLevel,
           chapterContext: chapterContext,
-          allChapters: allChapters,
         }),
       });
 
