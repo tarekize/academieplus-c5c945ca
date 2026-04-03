@@ -665,6 +665,8 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
           </div>
         </div>
       )}
+        </>
+      )}
     </div>
   );
 }
