@@ -209,6 +209,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
           subject: subject,
           schoolLevel: schoolLevel,
           chapterContext: chapterContext,
+          allChapters: allChapters,
         }),
       });
 
