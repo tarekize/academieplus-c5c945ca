@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, X, Mic, MicOff, Lock, Crown, MessageCircle, Image, Bot, Maximize2, Minimize2 } from "lucide-react";
+import { Send, Paperclip, X, Mic, MicOff, Lock, Crown, MessageCircle, Image, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -31,20 +31,9 @@ type ChatBotProps = {
     lessonsContent: string;
   } | null;
   onNavigate?: (path: string) => void;
-  isMaximized?: boolean;
-  onToggleMaximize?: () => void;
 };
 
-export default function ChatBot({
-  messages,
-  setMessages,
-  subject = "mathématiques",
-  schoolLevel = null,
-  chapterContext = null,
-  onNavigate,
-  isMaximized,
-  onToggleMaximize
-}: ChatBotProps) {
+export default function ChatBot({ messages, setMessages, subject = "mathématiques", schoolLevel = null, chapterContext = null, onNavigate }: ChatBotProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; base64: string; type: string }>>([]);
@@ -394,29 +383,20 @@ export default function ChatBot({
   return (
     <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-950 border-[3px] border-[#0A2551] rounded-2xl overflow-hidden shadow-[0_20px_60px_-15px_rgba(10,37,81,0.4)] backdrop-blur-sm relative z-50">
       {/* Header */}
-      <div className="border-b border-[#0A2551]/10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-5 py-4 shrink-0 shadow-sm flex items-center justify-between">
-        <div className="flex flex-col min-w-0">
-          <h2 className="text-xl font-bold text-[#0A2551] dark:text-blue-400 truncate flex items-center gap-2">
-            <Bot className="h-6 w-6 text-[#0A2551] dark:text-blue-400" />
-            Professeur de {subject}
-          </h2>
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mt-1 truncate">Assistant IA Interactif</p>
-        </div>
-        <div className="flex items-center gap-3">
+      <div className="border-b border-[#0A2551]/10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-5 py-4 shrink-0 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col min-w-0">
+            <h2 className="text-xl font-bold text-[#0A2551] dark:text-blue-400 truncate flex items-center gap-2">
+              <Bot className="h-6 w-6 text-[#0A2551] dark:text-blue-400" />
+              Professeur de {subject}
+            </h2>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mt-1 truncate">Assistant IA Interactif</p>
+          </div>
           {hasSubscription && (
             <div className="flex items-center gap-1.5 bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
               <Crown className="h-3.5 w-3.5" />
               <span>Premium</span>
             </div>
-          )}
-          {onToggleMaximize && (
-            <button
-              onClick={onToggleMaximize}
-              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-              title={isMaximized ? "Réduire" : "Agrandir"}
-            >
-              {isMaximized ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
-            </button>
           )}
         </div>
       </div>
