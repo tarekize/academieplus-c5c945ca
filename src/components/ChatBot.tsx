@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, X, Mic, MicOff, Lock, Crown, MessageCircle, Image, Bot } from "lucide-react";
+import { Send, Paperclip, X, Mic, MicOff, Lock, Crown, MessageCircle, Image, Bot, Maximize2, Minimize2, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useChatLimits } from "@/hooks/useChatLimits";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
+import ChatHistory from "./ChatHistory";
+import { useChatHistory } from "@/hooks/useChatHistory";
 
 type MessageContent = {
   type: "text" | "image_url";
@@ -26,11 +28,14 @@ type ChatBotProps = {
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   subject?: string;
   schoolLevel?: string | null;
+  chapterId?: string | null;
   chapterContext?: {
     title: string;
     lessonsContent: string;
   } | null;
   onNavigate?: (path: string) => void;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 };
 
 export default function ChatBot({ messages, setMessages, subject = "mathématiques", schoolLevel = null, chapterContext = null, onNavigate }: ChatBotProps) {
