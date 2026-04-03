@@ -978,6 +978,11 @@ const Cours = () => {
                 chapterId={activeChapter?.id || null}
                 isExpanded={isChatExpanded}
                 onToggleExpand={() => setIsChatExpanded(prev => !prev)}
+                allChapters={chapters.map(ch => ({
+                  id: ch.id,
+                  title: ch.title,
+                  lessons: (ch.lessons || []).map(l => ({ id: l.id, title: l.title })),
+                }))}
                 chapterContext={activeChapter ? {
                   title: activeChapter.title,
                   lessonsContent: (activeChapter.lessons || []).map(l => `${l.title}: ${l.content || ''}`).join('\n'),
