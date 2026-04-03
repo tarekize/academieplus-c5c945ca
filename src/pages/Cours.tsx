@@ -81,7 +81,9 @@ const Cours = () => {
   const [viewMode, setViewMode] = useState<"grid" | "content">("grid");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; content: string; }[]>([]);
+  const [chatChapterId, setChatChapterId] = useState<string | null>(null);
   const [activeActivity, setActiveActivity] = useState<string | null>(null);
   const [canManage, setCanManage] = useState(false);
   const [filiereId, setFiliereId] = useState<string | null>(null);
@@ -93,6 +95,16 @@ const Cours = () => {
   const lastSyncedLessonParamRef = useRef<string | null>(null);
 
   const subject = subjectId ? staticSubjects[subjectId] || { id: subjectId, name: subjectId, icon: "📖" } : null;
+
+  // Reset chat when chapter changes
+  useEffect(() => {
+    if (activeChapter) {
+      if (chatChapterId !== activeChapter.id) {
+        setChatMessages([]);
+        setChatChapterId(activeChapter.id);
+      }
+    }
+  }, [activeChapter?.id]);
 
 
 
@@ -943,9 +955,11 @@ const Cours = () => {
       {viewMode === "content" && (
         <>
           <button
-            onClick={() => setIsChatOpen(!isChatOpen)}
+            onClick={() => { setIsChatOpen(!isChatOpen); setIsChatExpanded(false); }}
             className={`fixed bottom-6 z-[60] w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 ${isChatOpen
-                ? 'right-6 lg:right-[430px] bg-white text-[#0A2551] border border-slate-200 hover:bg-slate-50'
+                ? isChatExpanded
+                  ? 'right-6 bg-white text-[#0A2551] border border-slate-200 hover:bg-slate-50'
+                  : 'right-6 lg:right-[430px] bg-white text-[#0A2551] border border-slate-200 hover:bg-slate-50'
                 : 'right-6 bg-[#0A2551] text-white hover:bg-[#0A2551]/90'
               }`}
           >
@@ -954,11 +968,16 @@ const Cours = () => {
 
           {/* Chat Panel */}
           {isChatOpen && (
-            <div className="fixed top-16 lg:top-20 bottom-0 lg:bottom-4 right-0 lg:right-4 w-full lg:w-[400px] z-50">
+            <div className={`fixed top-16 lg:top-20 bottom-0 lg:bottom-4 right-0 lg:right-4 z-50 transition-all duration-300 ${
+              isChatExpanded ? 'w-full lg:w-[800px]' : 'w-full lg:w-[400px]'
+            }`}>
               <ChatBot
                 messages={chatMessages}
                 setMessages={setChatMessages}
                 schoolLevel={profile?.school_level}
+                chapterId={activeChapter?.id || null}
+                isExpanded={isChatExpanded}
+                onToggleExpand={() => setIsChatExpanded(prev => !prev)}
                 chapterContext={activeChapter ? {
                   title: activeChapter.title,
                   lessonsContent: (activeChapter.lessons || []).map(l => `${l.title}: ${l.content || ''}`).join('\n'),
@@ -978,12 +997,10 @@ const Cours = () => {
                       setActiveChapterIndex(targetChapterIndex);
                       setViewMode("content");
                       setInitialLessonId(targetLessonId);
-                      // Force remount to reset lesson selection (especially same-chapter nav)
                       setContentResetKey(k => k + 1);
                     }
                   }
 
-                  // Update URL params so back button can clear them properly
                   const newParams = new URLSearchParams(searchParams);
                   if (targetChapterId) newParams.set("chapitre", targetChapterId);
                   else newParams.delete("chapitre");
