@@ -1,5 +1,5 @@
-﻿// Programme de MathÃ©matiques - Seconde (Sciences, Math techniques, MathÃ©matiques)
-// Curriculum structurÃ© en 7 chapitres - Version Arabe
+// Programme de Mathématiques - Seconde (Sciences, Math techniques, Mathématiques)
+// Curriculum structuré en 7 chapitres - Version Arabe
 
 export interface Lesson {
   id: string;
@@ -17,7 +17,7 @@ export interface Chapter {
 export const mathSecondeChaptersAr: Chapter[] = [
   {
     id: "chap-1-fonctions-numeriques",
-    title: "Les fonctions numÃ©riques",
+    title: "Les fonctions numériques",
     titleAr: "Ø§Ù„Ø¯ÙˆØ§Ù„ Ø§Ù„Ø¹Ø¯Ø¯ÙŠØ©",
     lessons: [
       {
@@ -27,12 +27,12 @@ export const mathSecondeChaptersAr: Chapter[] = [
       },
       {
         id: "lesson-1-2",
-        title: "Les fonctions de rÃ©fÃ©rence",
+        title: "Les fonctions de référence",
         titleAr: "Ø§Ù„Ø¯ÙˆØ§Ù„ Ø§Ù„Ù…Ø±Ø¬Ø¹ÙŠØ©",
       },
       {
         id: "lesson-1-3",
-        title: "OpÃ©rations sur les fonctions",
+        title: "Opérations sur les fonctions",
         titleAr: "Ø¹Ù…Ù„ÙŠØ§Øª Ø¹Ù„Ù‰ Ø§Ù„Ø¯ÙˆØ§Ù„",
       },
       {
@@ -42,41 +42,41 @@ export const mathSecondeChaptersAr: Chapter[] = [
       },
       {
         id: "lesson-1-5",
-        title: "ReprÃ©sentation graphique",
+        title: "Représentation graphique",
         titleAr: "Ø§Ù„ØªÙ…Ø«ÙŠÙ„ Ø§Ù„Ø¨ÙŠØ§Ù†ÙŠ",
       },
     ],
   },
   {
     id: "chap-2-polynomes",
-    title: "Les fonctions polynÃ´mes",
+    title: "Les fonctions polynômes",
     titleAr: "Ø§Ù„Ø¯ÙˆØ§Ù„ ÙƒØ«ÙŠØ±Ø§Øª Ø§Ù„Ø­Ø¯ÙˆØ¯",
     lessons: [
       {
         id: "lesson-2-1",
-        title: "OpÃ©rations sur les polynÃ´mes",
+        title: "Opérations sur les polynômes",
         titleAr: "Ø¹Ù…Ù„ÙŠØ§Øª Ø¹Ù„Ù‰ ÙƒØ«ÙŠØ±Ø§Øª Ø§Ù„Ø­Ø¯ÙˆØ¯",
       },
       {
         id: "lesson-2-2",
-        title: "Ã‰quations du second degrÃ©",
+        title: "Équations du second degré",
         titleAr: "Ø§Ù„Ù…Ø¹Ø§Ø¯Ù„Ø§Øª Ù…Ù† Ø§Ù„Ø¯Ø±Ø¬Ø© Ø§Ù„Ø«Ø§Ù†ÙŠØ©",
       },
       {
         id: "lesson-2-3",
-        title: "InÃ©quations du second degrÃ©",
+        title: "Inéquations du second degré",
         titleAr: "Ø§Ù„Ù…ØªØ±Ø§Ø¬Ø­Ø§Øª Ù…Ù† Ø§Ù„Ø¯Ø±Ø¬Ø© Ø§Ù„Ø«Ø§Ù†ÙŠØ©",
       },
     ],
   },
   {
     id: "chap-3-derivabilite",
-    title: "La dÃ©rivabilitÃ©",
+    title: "La dérivabilité",
     titleAr: "Ø§Ù„Ø¥Ø´ØªÙ‚Ø§Ù‚ÙŠØ©",
     lessons: [
       {
         id: "lesson-3-1",
-        title: "Le nombre dÃ©rivÃ©",
+        title: "Le nombre dérivé",
         titleAr: "Ø§Ù„Ø¹Ø¯Ø¯ Ø§Ù„Ù…Ø´ØªÙ‚",
       },
       {
@@ -91,19 +91,19 @@ export const mathSecondeChaptersAr: Chapter[] = [
       },
       {
         id: "lesson-3-4",
-        title: "La fonction dÃ©rivÃ©e d'une fonction",
+        title: "La fonction dérivée d'une fonction",
         titleAr: "Ø§Ù„Ø¯Ø§Ù„Ø© Ø§Ù„Ù…Ø´ØªÙ‚Ø© Ù„Ø¯Ø§Ù„Ø©",
       },
       {
         id: "lesson-3-5",
-        title: "OpÃ©rations sur les fonctions dÃ©rivÃ©es",
+        title: "Opérations sur les fonctions dérivées",
         titleAr: "Ø¹Ù…Ù„ÙŠØ§Øª Ø¹Ù„Ù‰ Ø§Ù„Ø¯ÙˆØ§Ù„ Ø§Ù„Ù…Ø´ØªÙ‚Ø©",
       },
     ],
   },
   {
     id: "chap-4-applications-derivabilite",
-    title: "Applications de la dÃ©rivabilitÃ©",
+    title: "Applications de la dérivabilité",
     titleAr: "ØªØ·Ø¨ÙŠÙ‚Ø§Øª Ø§Ù„Ø¥Ø´ØªÙ‚Ø§Ù‚ÙŠØ©",
     lessons: [
       {
@@ -135,7 +135,7 @@ export const mathSecondeChaptersAr: Chapter[] = [
     lessons: [
       {
         id: "lesson-5-1",
-        title: "Limite infinie en un point rÃ©el",
+        title: "Limite infinie en un point réel",
         titleAr: "Ù†Ù‡Ø§ÙŠØ© ØºÙŠØ± Ù…Ù†ØªÙ‡ÙŠØ© Ø¹Ù†Ø¯ Ø¹Ø¯Ø¯ Ø­Ù‚ÙŠÙ‚ÙŠ",
       },
       {
@@ -150,7 +150,7 @@ export const mathSecondeChaptersAr: Chapter[] = [
       },
       {
         id: "lesson-5-4",
-        title: "OpÃ©rations sur les limites",
+        title: "Opérations sur les limites",
         titleAr: "Ø¹Ù…Ù„ÙŠØ§Øª Ø¹Ù„Ù‰ Ø§Ù„Ù†Ù‡Ø§ÙŠØ§Øª",
       },
       {
@@ -160,24 +160,24 @@ export const mathSecondeChaptersAr: Chapter[] = [
       },
       {
         id: "lesson-5-6",
-        title: "Ã‰tude d'une fonction",
+        title: "Étude d'une fonction",
         titleAr: "Ø¯Ø±Ø§Ø³Ø© Ø¯Ø§Ù„Ø©",
       },
     ],
   },
   {
     id: "chap-6-suites",
-    title: "Les suites numÃ©riques",
+    title: "Les suites numériques",
     titleAr: "Ø§Ù„Ù…ØªØªØ§Ù„ÙŠØ§Øª Ø§Ù„Ø¹Ø¯Ø¯ÙŠØ©",
     lessons: [
       {
         id: "lesson-6-1",
-        title: "Les suites numÃ©riques",
+        title: "Les suites numériques",
         titleAr: "Ø§Ù„Ù…ØªØªØ§Ù„ÙŠØ§Øª Ø§Ù„Ø¹Ø¯Ø¯ÙŠØ©",
       },
       {
         id: "lesson-6-2",
-        title: "ReprÃ©sentation graphique d'une suite",
+        title: "Représentation graphique d'une suite",
         titleAr: "Ø§Ù„ØªÙ…Ø«ÙŠÙ„ Ø§Ù„Ø¨ÙŠØ§Ù†ÙŠ Ù„Ù…ØªØªØ§Ù„ÙŠØ© Ø¹Ø¯Ø¯ÙŠØ©",
       },
       {
@@ -187,17 +187,17 @@ export const mathSecondeChaptersAr: Chapter[] = [
       },
       {
         id: "lesson-6-4",
-        title: "Les suites arithmÃ©tiques",
+        title: "Les suites arithmétiques",
         titleAr: "Ø§Ù„Ù…ØªØªØ§Ù„ÙŠØ§Øª Ø§Ù„Ø­Ø³Ø§Ø¨ÙŠØ©",
       },
       {
         id: "lesson-6-5",
-        title: "Les suites gÃ©omÃ©triques",
+        title: "Les suites géométriques",
         titleAr: "Ø§Ù„Ù…ØªØªØ§Ù„ÙŠØ§Øª Ø§Ù„Ù‡Ù†Ø¯Ø³ÙŠØ©",
       },
       {
         id: "lesson-6-6",
-        title: "Limite d'une suite numÃ©rique",
+        title: "Limite d'une suite numérique",
         titleAr: "Ù†Ù‡Ø§ÙŠØ© Ù…ØªØªØ§Ù„ÙŠØ© Ø¹Ø¯Ø¯ÙŠØ©",
       },
       {
@@ -207,7 +207,7 @@ export const mathSecondeChaptersAr: Chapter[] = [
       },
       {
         id: "lesson-6-8",
-        title: "Limite d'une suite gÃ©omÃ©trique",
+        title: "Limite d'une suite géométrique",
         titleAr: "Ù†Ù‡Ø§ÙŠØ© Ù…ØªØªØ§Ù„ÙŠØ© Ù‡Ù†Ø¯Ø³ÙŠØ©",
       },
     ],
@@ -234,7 +234,7 @@ export const mathSecondeChaptersAr: Chapter[] = [
       },
       {
         id: "lesson-7-4",
-        title: "CoordonnÃ©es du barycentre de trois points",
+        title: "Coordonnées du barycentre de trois points",
         titleAr: "Ø¥Ø­Ø¯Ø§Ø«ÙŠØ§Øª Ù…Ø±Ø¬Ø­ Ø«Ù„Ø§Ø« Ù†Ù‚Ø§Ø·",
       },
       {
@@ -247,8 +247,8 @@ export const mathSecondeChaptersAr: Chapter[] = [
 ];
 
 export const getSecondeArCourseInfo = () => ({
-  title: "MathÃ©matiques - Seconde",
+  title: "Mathématiques - Seconde",
   titleAr: "Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª - Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø«Ø§Ù†ÙŠØ© Ø«Ø§Ù†ÙˆÙŠ",
-  description: "Programme de mathÃ©matiques pour la Seconde annÃ©e (Sciences, Math techniques, MathÃ©matiques)",
+  description: "Programme de mathématiques pour la Seconde année (Sciences, Math techniques, Mathématiques)",
   descriptionAr: "Ø¨Ø±Ù†Ø§Ù…Ø¬ Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª Ù„Ù„Ø³Ù†Ø© Ø§Ù„Ø«Ø§Ù†ÙŠØ© Ø«Ø§Ù†ÙˆÙŠ - Ø¹Ù„ÙˆÙ…ØŒ ØªÙ‚Ù†ÙŠ Ø±ÙŠØ§Ø¶ÙŠØŒ Ø±ÙŠØ§Ø¶ÙŠØ§Øª",
 });

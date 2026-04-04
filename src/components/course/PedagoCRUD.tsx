@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +62,7 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
           .eq("id", chapter.id);
 
         if (error) throw error;
-        toast.success("Chapitre modifiÃ© avec succÃ¨s");
+        toast.success("Chapitre modifié avec succès");
       } else {
         // Get max order_index
         const { data: existing } = await supabase
@@ -87,7 +87,7 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
 
         const { error } = await supabase.from("chapters").insert(insertData);
         if (error) throw error;
-        toast.success("Chapitre ajoutÃ© avec succÃ¨s");
+        toast.success("Chapitre ajouté avec succès");
       }
 
       setOpen(false);
@@ -126,7 +126,7 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div>
-            <label className="text-sm font-medium mb-1 block">Titre (FranÃ§ais) *</label>
+            <label className="text-sm font-medium mb-1 block">Titre (Français) *</label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Les fonctions affines" />
           </div>
           <div>
@@ -160,7 +160,7 @@ export function DeleteChapterButton({ chapterId, onDeleted }: { chapterId: strin
       await supabase.from("lessons").delete().eq("chapter_id", chapterId);
       const { error } = await supabase.from("chapters").delete().eq("id", chapterId);
       if (error) throw error;
-      toast.success("Chapitre supprimÃ©");
+      toast.success("Chapitre supprimé");
       onDeleted();
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de la suppression");
@@ -180,7 +180,7 @@ export function DeleteChapterButton({ chapterId, onDeleted }: { chapterId: strin
         <AlertDialogHeader>
           <AlertDialogTitle>Supprimer le chapitre ?</AlertDialogTitle>
           <AlertDialogDescription>
-            Cette action est irrÃ©versible. Toutes les leçons associÃ©es seront Ã©galement supprimÃ©es.
+            Cette action est irréversible. Toutes les leçons associées seront également supprimées.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -222,7 +222,7 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
           .update({ title: title.trim(), title_ar: titleAr.trim() || null })
           .eq("id", lesson.id);
         if (error) throw error;
-        toast.success("Leçon modifiÃ©e");
+        toast.success("Leçon modifiée");
       } else {
         const { data: existing } = await supabase
           .from("lessons")
@@ -240,7 +240,7 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
           order_index: nextIndex,
         });
         if (error) throw error;
-        toast.success("Leçon ajoutÃ©e");
+        toast.success("Leçon ajoutée");
       }
 
       setOpen(false);
@@ -274,7 +274,7 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div>
-            <label className="text-sm font-medium mb-1 block">Titre (FranÃ§ais) *</label>
+            <label className="text-sm font-medium mb-1 block">Titre (Français) *</label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Introduction aux fonctions" />
           </div>
           <div>
@@ -302,7 +302,7 @@ export function DeleteLessonButton({ lessonId, onDeleted }: { lessonId: string; 
     try {
       const { error } = await supabase.from("lessons").delete().eq("id", lessonId);
       if (error) throw error;
-      toast.success("Leçon supprimÃ©e");
+      toast.success("Leçon supprimée");
       onDeleted();
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de la suppression");
@@ -321,7 +321,7 @@ export function DeleteLessonButton({ lessonId, onDeleted }: { lessonId: string; 
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Supprimer la leçon ?</AlertDialogTitle>
-          <AlertDialogDescription>Cette action est irrÃ©versible.</AlertDialogDescription>
+          <AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Annuler</AlertDialogCancel>

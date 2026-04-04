@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { mathSecondeChapters, ChapterQuizQuestion } from "@/data/mathSecondeChapters";
@@ -137,7 +137,7 @@ const Simulation = () => {
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <h2 className="text-2xl font-bold mb-4">Aucune question disponible</h2>
         <p className="text-muted-foreground mb-6">
-          Les simulations d'examen ne sont pas encore disponibles pour cette matiÃ¨re et ce niveau.
+          Les simulations d'examen ne sont pas encore disponibles pour cette matière et ce niveau.
         </p>
         <Button onClick={() => navigate("/liste-cours")}>
           Retour au catalogue
@@ -156,7 +156,7 @@ const Simulation = () => {
         <div className="container mx-auto px-4 py-8 max-w-2xl">
           <Card className="text-center p-8">
             <CardHeader>
-              <CardTitle className="text-3xl">RÃ©sultats de l'examen</CardTitle>
+              <CardTitle className="text-3xl">Résultats de l'examen</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className={`text-6xl font-bold ${percentage >= 50 ? 'text-green-600' : 'text-red-600'}`}>
@@ -166,11 +166,11 @@ const Simulation = () => {
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div className="p-4 bg-green-500/10 rounded-lg">
                   <p className="text-2xl font-bold text-green-600">{score}</p>
-                  <p className="text-sm text-muted-foreground">Bonnes rÃ©ponses</p>
+                  <p className="text-sm text-muted-foreground">Bonnes réponses</p>
                 </div>
                 <div className="p-4 bg-red-500/10 rounded-lg">
                   <p className="text-2xl font-bold text-red-600">{questions.length - score}</p>
-                  <p className="text-sm text-muted-foreground">Mauvaises rÃ©ponses</p>
+                  <p className="text-sm text-muted-foreground">Mauvaises réponses</p>
                 </div>
               </div>
 
@@ -209,7 +209,7 @@ const Simulation = () => {
           <Button
             variant="ghost"
             onClick={() => {
-              if (confirm("ÃŠtes-vous sÃ»r de vouloir quitter l'examen ?")) {
+              if (confirm("ÃŠtes-vous sûr de vouloir quitter l'examen ?")) {
                 navigate("/liste-cours");
               }
             }}

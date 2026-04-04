@@ -1,9 +1,9 @@
-﻿// Version service - stubbed as editorial tables don't exist in the database
+// Version service - stubbed as editorial tables don't exist in the database
 
 export const versionService = {
   async createSnapshot(coursId: number, commentaire = '') {
     console.warn('versionService.createSnapshot: tables not available');
-    throw new Error('Les tables Ã©ditorial ne sont pas disponibles');
+    throw new Error('Les tables éditorial ne sont pas disponibles');
   },
 
   async list(coursId: number) {
@@ -18,7 +18,7 @@ export const versionService = {
 
   async restore(versionId: number) {
     console.warn('versionService.restore: tables not available');
-    throw new Error('Les tables Ã©ditorial ne sont pas disponibles');
+    throw new Error('Les tables éditorial ne sont pas disponibles');
   },
 
   async compare(versionId1: number, versionId2: number) {

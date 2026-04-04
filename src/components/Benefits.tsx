@@ -1,4 +1,4 @@
-﻿import { BookOpen, Users, TrendingUp, Award } from "lucide-react";
+import { BookOpen, Users, TrendingUp, Award } from "lucide-react";
 import { Card } from "./ui/card";
 import studentTutoringImage from "@/assets/student-tutoring-teen.jpg";
 import { useTranslation } from "react-i18next";
@@ -70,7 +70,7 @@ const Benefits = () => {
           <div className="relative rounded-2xl overflow-hidden shadow-2xl">
             <img 
               src={studentTutoringImage} 
-              alt="Ã‰lÃ¨ve lycÃ©en(ne) de 16 ans avec son tuteur dans un environnement d'apprentissage moderne"
+              alt="Élève lycéen(ne) de 16 ans avec son tuteur dans un environnement d'apprentissage moderne"
               className="w-full h-full object-cover"
             />
           </div>

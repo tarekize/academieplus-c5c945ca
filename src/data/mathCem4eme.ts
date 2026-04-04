@@ -1,5 +1,5 @@
-﻿// MathÃ©matiques - 4Ã¨me CEM
-// Programme structurÃ© en 3 chapitres
+// Mathématiques - 4ème CEM
+// Programme structuré en 3 chapitres
 
 export interface Chapter {
     id: string;
@@ -17,7 +17,7 @@ export interface Lesson {
 export const mathCem4emeChapters: Chapter[] = [
     {
         id: "ch1-activites-numeriques",
-        title: "ActivitÃ©s numÃ©riques",
+        title: "Activités numériques",
         titleAr: "Ø£Ù†Ø´Ø·Ø© Ø¹Ø¯Ø¯ÙŠØ©",
         lessons: [
             {
@@ -32,29 +32,29 @@ export const mathCem4emeChapters: Chapter[] = [
             },
             {
                 id: "ch1-l3-calcul-litteral",
-                title: "Calcul littÃ©ral",
+                title: "Calcul littéral",
                 titleAr: "Ø§Ù„Ø­Ø³Ø§Ø¨ Ø§Ù„Ø­ÙŽØ±ÙÙŠ"
             },
             {
                 id: "ch1-l4-equations-inequations",
-                title: "Ã‰quations et inÃ©quations",
+                title: "Équations et inéquations",
                 titleAr: "Ø§Ù„Ù…Ø¹Ø§Ø¯Ù„Ø§Øª ÙˆØ§Ù„Ù…ØªØ±Ø§Ø¬Ø­Ø§Øª"
             },
             {
                 id: "ch1-l5-systemes-equations",
-                title: "SystÃ¨mes d'Ã©quations du premier degrÃ© Ã  deux inconnues",
+                title: "Systèmes d'équations du premier degré Ã  deux inconnues",
                 titleAr: "Ø¬Ù…Ù„ Ù…Ø¹Ø§Ø¯Ù„ØªÙŠÙ† Ù…Ù† Ø§Ù„Ø¯Ù‘Ø±Ø¬Ø© Ø§Ù„Ø£ÙˆÙ„Ù‰ Ù„Ù…Ø¬Ù‡ÙˆÙ„ÙŠÙ†"
             }
         ]
     },
     {
         id: "ch2-fonctions-organisation-donnees",
-        title: "Fonctions et organisation des donnÃ©es",
+        title: "Fonctions et organisation des données",
         titleAr: "Ø§Ù„Ø¯ÙˆØ§Ù„ ÙˆØªÙ†Ø¸ÙŠÙ… Ø§Ù„Ù…Ø¹Ø·ÙŠØ§Øª",
         lessons: [
             {
                 id: "ch2-l1-fonction-lineaire-proportionnalite",
-                title: "La fonction linÃ©aire et la proportionnalitÃ©",
+                title: "La fonction linéaire et la proportionnalité",
                 titleAr: "Ø§Ù„Ø¯Ø§Ù„Ø© Ø§Ù„Ø®Ø·ÙŠØ© ÙˆØ§Ù„ØªÙ†Ø§Ø³Ø¨ÙŠØ© ..."
             },
             {
@@ -71,22 +71,22 @@ export const mathCem4emeChapters: Chapter[] = [
     },
     {
         id: "ch3-activites-geometriques",
-        title: "ActivitÃ©s gÃ©omÃ©triques",
+        title: "Activités géométriques",
         titleAr: "Ø£Ù†Ø´Ø·Ø© Ù‡Ù†Ø¯Ø³ÙŠØ©",
         lessons: [
             {
                 id: "ch3-l1-theoreme-thales",
-                title: "ThÃ©orÃ¨me de ThalÃ¨s",
+                title: "Théorème de Thalès",
                 titleAr: "Ø®Ø§ØµÙŠØ© Ø·Ø§Ù„Ø³"
             },
             {
                 id: "ch3-l2-trigonometrie-triangle-rectangle",
-                title: "TrigonomÃ©trie dans le triangle rectangle",
+                title: "Trigonométrie dans le triangle rectangle",
                 titleAr: "Ø­Ø³Ø§Ø¨ Ø§Ù„Ù…Ø«Ù„Ø«Ø§Øª ÙÙŠ Ø§Ù„Ù…Ø«Ù„Ø« Ø§Ù„Ù‚Ø§Ø¦Ù…"
             },
             {
                 id: "ch3-l3-rayons-homotheti",
-                title: "Rayons et homothÃ©ties",
+                title: "Rayons et homothéties",
                 titleAr: "Ø§Ù„Ø£Ø´Ø¹Ø© ÙˆØ§Ù„Ø§Ù†Ø³Ø­Ø§Ø¨"
             },
             {
@@ -96,12 +96,12 @@ export const mathCem4emeChapters: Chapter[] = [
             },
             {
                 id: "ch3-l5-rotations-angles-polygones",
-                title: "Rotations - Angles - Polygones rÃ©guliers",
+                title: "Rotations - Angles - Polygones réguliers",
                 titleAr: "Ø§Ù„Ø¯ÙˆØ±Ø§Ù† - Ø§Ù„Ø²ÙˆØ§ÙŠØ§ - Ø§Ù„Ù…Ø¶Ù„Ø¹Ø§Øª Ø§Ù„Ù…Ù†ØªØ¸Ù…Ø© .."
             },
             {
                 id: "ch3-l6-geometrie-espace",
-                title: "GÃ©omÃ©trie dans l'espace",
+                title: "Géométrie dans l'espace",
                 titleAr: "Ø§Ù„Ù‡Ù†Ø¯Ø³Ø© ÙÙŠ Ø§Ù„ÙØ¶Ø§Ø¡"
             }
         ]
@@ -109,8 +109,8 @@ export const mathCem4emeChapters: Chapter[] = [
 ];
 
 export const getCem4emeCourseInfo = () => ({
-    title: "MathÃ©matiques - 4Ã¨me CEM",
+    title: "Mathématiques - 4ème CEM",
     titleAr: "Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª - Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø±Ø§Ø¨Ø¹Ø© Ø¥Ø¹Ø¯Ø§Ø¯ÙŠ",
-    description: "Programme de mathÃ©matiques pour la 4Ã¨me annÃ©e du CollÃ¨ge d'Enseignement Moyen",
+    description: "Programme de mathématiques pour la 4ème année du Collège d'Enseignement Moyen",
     descriptionAr: "Ø¨Ø±Ù†Ø§Ù…Ø¬ Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª Ù„Ù„Ø³Ù†Ø© Ø§Ù„Ø±Ø§Ø¨Ø¹Ø© Ø¥Ø¹Ø¯Ø§Ø¯ÙŠ"
 });

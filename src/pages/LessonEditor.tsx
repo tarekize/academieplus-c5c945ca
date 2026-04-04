@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
@@ -125,9 +125,9 @@ export default function LessonEditor() {
   }, [lessonId, mode, isDirty]);
 
   const handleSave = async () => {
-    // Sauvegarde locale uniquement - pas encore publiÃ©
+    // Sauvegarde locale uniquement - pas encore publié
     setIsDirty(true);
-    toast({ title: 'Brouillon sauvegardÃ©', description: 'Le contenu a Ã©tÃ© sauvegardÃ© localement. Cliquez sur "Envoyer les modifications" pour publier.' });
+    toast({ title: 'Brouillon sauvegardé', description: 'Le contenu a été sauvegardé localement. Cliquez sur "Envoyer les modifications" pour publier.' });
     setMode('view');
   };
 
@@ -137,7 +137,7 @@ export default function LessonEditor() {
     try {
       const { error } = await supabase.from('lessons').update({ content }).eq('id', lessonId);
       if (error) throw error;
-      toast({ title: 'PubliÃ©', description: 'Les modifications ont Ã©tÃ© envoyÃ©es avec succÃ¨s.' });
+      toast({ title: 'Publié', description: 'Les modifications ont été envoyées avec succès.' });
       setIsDirty(false);
       // Update local state
       setLesson(prev => prev ? { ...prev, content } : null);
@@ -159,26 +159,26 @@ export default function LessonEditor() {
 
       if (error) {
         console.error("Erreur technique Supabase:", error);
-        throw new Error(`Erreur rÃ©seau/auth: ${error.message}`);
+        throw new Error(`Erreur réseau/auth: ${error.message}`);
       }
 
       if (data && data.success === false) {
-        throw new Error(data.error || 'Erreur lors de la gÃ©nÃ©ration');
+        throw new Error(data.error || 'Erreur lors de la génération');
       }
 
-      // RÃ©cupÃ©rer le contenu gÃ©nÃ©rÃ©
+      // Récupérer le contenu généré
       const { data: updatedLesson } = await supabase.from('lessons').select('content').eq('id', lessonId).single();
       if (updatedLesson) {
         setContent(updatedLesson.content || '');
         setIsDirty(true);
       }
 
-      toast({ title: 'Contenu gÃ©nÃ©rÃ© (Brouillon)', description: 'Le contenu a Ã©tÃ© gÃ©nÃ©rÃ©. Cliquez sur "Envoyer les modifications" pour publier.' });
+      toast({ title: 'Contenu généré (Brouillon)', description: 'Le contenu a été généré. Cliquez sur "Envoyer les modifications" pour publier.' });
     } catch (err: any) {
-      console.error("DÃ©tails de l'erreur:", err);
+      console.error("Détails de l'erreur:", err);
       toast({
         title: 'Erreur',
-        description: err.message || 'Impossible de gÃ©nÃ©rer le contenu',
+        description: err.message || 'Impossible de générer le contenu',
         variant: 'destructive'
       });
     } finally {
@@ -187,10 +187,10 @@ export default function LessonEditor() {
   };
 
   const handleDelete = async () => {
-    // Marquer pour suppression locale - pas encore publiÃ©
+    // Marquer pour suppression locale - pas encore publié
     setContent('');
     setIsDirty(true);
-    toast({ title: 'Contenu marquÃ© pour suppression (Brouillon)', description: 'Cliquez sur "Envoyer les modifications" pour publier la suppression.' });
+    toast({ title: 'Contenu marqué pour suppression (Brouillon)', description: 'Cliquez sur "Envoyer les modifications" pour publier la suppression.' });
     setMode('view');
   };
 
@@ -270,7 +270,7 @@ export default function LessonEditor() {
                         </Button>
                         <Button variant="secondary" onClick={handleGenerateAI} disabled={generating}>
                           {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                          {generating ? 'GÃ©nÃ©ration...' : 'GÃ©nÃ©rÃ© avec IA'}
+                          {generating ? 'Génération...' : 'Généré avec IA'}
                         </Button>
                         {lesson.content && (
                           <AlertDialog>
@@ -284,7 +284,7 @@ export default function LessonEditor() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Cette action supprimera tout le contenu de cette leçon. Cette action est irrÃ©versible.
+                                  Cette action supprimera tout le contenu de cette leçon. Cette action est irréversible.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -321,10 +321,10 @@ export default function LessonEditor() {
                     )}
                   </div>
 
-                  {/* Indicateur de modifications non publiÃ©es */}
+                  {/* Indicateur de modifications non publiées */}
                   {isDirty && (
                     <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md text-sm text-yellow-800 dark:text-yellow-200">
-                      âš ï¸ Vous avez des modifications non publiÃ©es. Les autres utilisateurs ne verront ces changements qu'aprÃ¨s avoir cliquÃ© sur "Envoyer les modifications".
+                      âš ï¸ Vous avez des modifications non publiées. Les autres utilisateurs ne verront ces changements qu'après avoir cliqué sur "Envoyer les modifications".
                     </div>
                   )}
                 </>
@@ -333,7 +333,7 @@ export default function LessonEditor() {
               {/* Content */}
               <Card>
                 <CardHeader>
-                  <CardTitle>{mode === 'edit' ? 'Ã‰diteur de contenu' : 'Contenu du cours'}</CardTitle>
+                  <CardTitle>{mode === 'edit' ? 'Éditeur de contenu' : 'Contenu du cours'}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {mode === 'edit' ? (

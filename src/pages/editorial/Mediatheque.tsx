@@ -1,4 +1,4 @@
-﻿import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Image as ImageIcon } from "lucide-react";
@@ -16,17 +16,17 @@ export default function Mediatheque() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour au tableau de bord
         </Button>
-        <h1 className="text-3xl font-bold">MÃ©diathÃ¨que</h1>
+        <h1 className="text-3xl font-bold">Médiathèque</h1>
         <p className="text-muted-foreground mt-1">
-          GÃ©rez vos images et mÃ©dias
+          Gérez vos images et médias
         </p>
       </div>
 
       <Card className="p-12 text-center">
         <ImageIcon className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-        <h2 className="text-xl font-semibold mb-4">FonctionnalitÃ© non disponible</h2>
+        <h2 className="text-xl font-semibold mb-4">Fonctionnalité non disponible</h2>
         <p className="text-muted-foreground mb-6">
-          La mÃ©diathÃ¨que nÃ©cessite la table 'medias' qui n'est pas encore configurÃ©e dans la base de donnÃ©es.
+          La médiathèque nécessite la table 'medias' qui n'est pas encore configurée dans la base de données.
         </p>
         <Button onClick={() => navigate('/editorial')}>
           Retour au tableau de bord

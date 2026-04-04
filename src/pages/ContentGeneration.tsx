@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -10,13 +10,13 @@ import { useToast } from '@/hooks/use-toast';
 
 const SCHOOL_LEVELS = [
   { value: 'all', label: 'Tous les niveaux' },
-  { value: '5eme_primaire', label: '5Ã¨me Primaire' },
-  { value: '1ere_cem', label: '1Ã¨re CEM' },
-  { value: '2eme_cem', label: '2Ã¨me CEM' },
-  { value: '3eme_cem', label: '3Ã¨me CEM' },
-  { value: '4eme_cem', label: '4Ã¨me CEM' },
-  { value: 'premiere', label: '1Ã¨re Secondaire' },
-  { value: 'seconde', label: '2Ã¨me Secondaire' },
+  { value: '5eme_primaire', label: '5ème Primaire' },
+  { value: '1ere_cem', label: '1ère CEM' },
+  { value: '2eme_cem', label: '2ème CEM' },
+  { value: '3eme_cem', label: '3ème CEM' },
+  { value: '4eme_cem', label: '4ème CEM' },
+  { value: 'premiere', label: '1ère Secondaire' },
+  { value: 'seconde', label: '2ème Secondaire' },
   { value: 'terminale', label: 'Terminale' },
 ];
 
@@ -58,10 +58,10 @@ export default function ContentGeneration() {
       if (error) throw error;
 
       if (data.processed === 0) {
-        toast({ title: 'TerminÃ©', description: 'Toutes les leçons ont du contenu.' });
+        toast({ title: 'Terminé', description: 'Toutes les leçons ont du contenu.' });
       } else {
         setLog(prev => [...data.results, ...prev].slice(0, 50));
-        toast({ title: `${data.processed} leçon(s) gÃ©nÃ©rÃ©e(s)`, description: `${data.remaining} restante(s)` });
+        toast({ title: `${data.processed} leçon(s) générée(s)`, description: `${data.remaining} restante(s)` });
       }
       await refreshStats();
     } catch (err: any) {
@@ -88,7 +88,7 @@ export default function ContentGeneration() {
         break;
       }
     }
-    toast({ title: 'GÃ©nÃ©ration terminÃ©e' });
+    toast({ title: 'Génération terminée' });
     setRunning(false);
   };
 
@@ -104,7 +104,7 @@ export default function ContentGeneration() {
           Retour
         </Button>
 
-        <h1 className="text-3xl font-bold mb-6">GÃ©nÃ©ration de contenu pÃ©dagogique</h1>
+        <h1 className="text-3xl font-bold mb-6">Génération de contenu pédagogique</h1>
 
         <Card className="mb-6">
           <CardHeader>
@@ -120,7 +120,7 @@ export default function ContentGeneration() {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Générer du contenu</CardTitle>
-            <CardDescription>Utilisez l'IA pour gÃ©nÃ©rer du contenu en arabe pour les leçons vides</CardDescription>
+            <CardDescription>Utilisez l'IA pour générer du contenu en arabe pour les leçons vides</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Select value={level} onValueChange={setLevel}>
@@ -150,7 +150,7 @@ export default function ContentGeneration() {
         {log.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Journal de gÃ©nÃ©ration</CardTitle>
+              <CardTitle>Journal de génération</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-1 max-h-64 overflow-y-auto text-sm">

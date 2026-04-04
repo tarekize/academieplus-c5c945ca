@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -101,10 +101,10 @@ export function SectionEditor({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="definition">DÃ©finition</SelectItem>
-                  <SelectItem value="propriete">PropriÃ©tÃ©</SelectItem>
+                  <SelectItem value="definition">Définition</SelectItem>
+                  <SelectItem value="propriete">Propriété</SelectItem>
                   <SelectItem value="exemple">Exemple</SelectItem>
-                  <SelectItem value="methode">MÃ©thode</SelectItem>
+                  <SelectItem value="methode">Méthode</SelectItem>
                   <SelectItem value="remarque">Remarque</SelectItem>
                 </SelectContent>
               </Select>
@@ -122,7 +122,7 @@ export function SectionEditor({
                   size="sm"
                   onClick={() => setShowPreview(!showPreview)}
                 >
-                  {showPreview ? "Ã‰diter" : "AperÃ§u"}
+                  {showPreview ? "Éditer" : "Aperçu"}
                 </Button>
               </div>
               
@@ -136,7 +136,7 @@ export function SectionEditor({
                   onChange={(e) =>
                     onChange({ ...section, contenu_texte: e.target.value })
                   }
-                  placeholder="Ã‰crivez le contenu en Markdown..."
+                  placeholder="Écrivez le contenu en Markdown..."
                   rows={8}
                   className="font-mono text-sm"
                 />

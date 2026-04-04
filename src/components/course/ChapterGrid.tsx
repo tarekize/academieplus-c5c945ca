@@ -1,4 +1,4 @@
-﻿import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Clock } from "lucide-react";
 import { useChaptersTimes, formatTime } from "@/hooks/useTimeTracking";
@@ -19,7 +19,7 @@ interface ChapterGridProps {
 }
 
 export const ChapterGrid = ({ chapters, onChapterSelect, subjectId }: ChapterGridProps) => {
-  // SÃ©parer Histoire et GÃ©ographie uniquement pour le cours d'histoire-gÃ©ographie
+  // Séparer Histoire et Géographie uniquement pour le cours d'histoire-géographie
   const isHistGeo = subjectId === "histoire";
   const historyChapters = isHistGeo ? chapters.filter(c => c.order_index < 8) : [];
   const geographyChapters = isHistGeo ? chapters.filter(c => c.order_index >= 8) : [];
@@ -28,7 +28,7 @@ export const ChapterGrid = ({ chapters, onChapterSelect, subjectId }: ChapterGri
   const chapterIds = useMemo(() => chapters.map(c => c.id), [chapters]);
   const { times: chapterTimes } = useChaptersTimes(chapterIds);
 
-  // Si ce n'est pas hist-gÃ©o, afficher tous les chapitres sans sÃ©paration
+  // Si ce n'est pas hist-géo, afficher tous les chapitres sans séparation
   if (!isHistGeo) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -52,7 +52,7 @@ export const ChapterGrid = ({ chapters, onChapterSelect, subjectId }: ChapterGri
                 </div>
                 <p className="text-muted-foreground mb-4">{chapter.title}</p>
                 
-                {/* Temps passÃ© */}
+                {/* Temps passé */}
                 {timeSpent > 0 && (
                   <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
                     <Clock className="h-4 w-4" />
@@ -114,11 +114,11 @@ export const ChapterGrid = ({ chapters, onChapterSelect, subjectId }: ChapterGri
         </div>
       )}
 
-      {/* GÃ©ographie Section */}
+      {/* Géographie Section */}
       {geographyChapters.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-3xl font-bold text-primary border-b-4 border-primary pb-3">
-            GÃ©ographie
+            Géographie
           </h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {geographyChapters.map((chapter) => {

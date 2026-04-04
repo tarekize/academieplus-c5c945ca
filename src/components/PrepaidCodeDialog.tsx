@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -27,7 +27,7 @@ export const PrepaidCodeDialog = ({ open, onOpenChange }: PrepaidCodeDialogProps
     if (!code.trim()) {
       toast({
         title: "Code requis",
-        description: "Veuillez entrer un code prÃ©payÃ©",
+        description: "Veuillez entrer un code prépayé",
         variant: "destructive",
       });
       return;
@@ -39,8 +39,8 @@ export const PrepaidCodeDialog = ({ open, onOpenChange }: PrepaidCodeDialogProps
       // TODO: Implement prepaid code activation when the function exists
       // For now, show a message that this feature is coming soon
       toast({
-        title: "FonctionnalitÃ© bientÃ´t disponible",
-        description: "L'activation des codes prÃ©payÃ©s sera disponible prochainement.",
+        title: "Fonctionnalité bientôt disponible",
+        description: "L'activation des codes prépayés sera disponible prochainement.",
       });
       onOpenChange(false);
       setCode("");
@@ -63,17 +63,17 @@ export const PrepaidCodeDialog = ({ open, onOpenChange }: PrepaidCodeDialogProps
             <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center">
               <Gift className="h-6 w-6 text-pink-600" />
             </div>
-            <DialogTitle className="text-2xl">Activer un code prÃ©payÃ©</DialogTitle>
+            <DialogTitle className="text-2xl">Activer un code prépayé</DialogTitle>
           </div>
           <DialogDescription>
-            Entrez votre code prÃ©payÃ© pour activer votre compte et votre abonnement
+            Entrez votre code prépayé pour activer votre compte et votre abonnement
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <label htmlFor="code" className="text-sm font-medium">
-              Code prÃ©payÃ©
+              Code prépayé
             </label>
             <Input
               id="code"
@@ -112,9 +112,9 @@ export const PrepaidCodeDialog = ({ open, onOpenChange }: PrepaidCodeDialogProps
         <div className="bg-muted/50 rounded-lg p-4 text-sm">
           <p className="font-medium mb-2">ðŸ’¡ Informations importantes :</p>
           <ul className="space-y-1 text-muted-foreground text-xs">
-            <li>â€¢ Le code ne peut Ãªtre utilisÃ© qu'une seule fois</li>
-            <li>â€¢ Votre compte sera activÃ© automatiquement</li>
-            <li>â€¢ Votre abonnement dÃ©marrera immÃ©diatement</li>
+            <li>â€¢ Le code ne peut être utilisé qu'une seule fois</li>
+            <li>â€¢ Votre compte sera activé automatiquement</li>
+            <li>â€¢ Votre abonnement démarrera immédiatement</li>
           </ul>
         </div>
       </DialogContent>

@@ -1,4 +1,4 @@
-﻿import { motion } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface BotCompanionProps {
     expression?:
@@ -87,7 +87,7 @@ export const BotCompanion = ({
                 >
                     {current.emoji}
                 </div>
-                {/* Petite aura de lumiÃ¨re */}
+                {/* Petite aura de lumière */}
                 <motion.div
                     className="absolute inset-0 rounded-full border-2 border-primary/20"
                     animate={{

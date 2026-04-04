@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,12 +61,12 @@ function formatTime(seconds: number) {
 }
 
 const SCHOOL_LEVELS: Record<string, string> = {
-  "5eme_primaire": "5Ã¨me Primaire",
-  "1ere_cem": "1Ã¨re CEM",
-  "2eme_cem": "2Ã¨me CEM",
-  "3eme_cem": "3Ã¨me CEM",
-  "4eme_cem": "4Ã¨me CEM",
-  premiere: "PremiÃ¨re",
+  "5eme_primaire": "5ème Primaire",
+  "1ere_cem": "1ère CEM",
+  "2eme_cem": "2ème CEM",
+  "3eme_cem": "3ème CEM",
+  "4eme_cem": "4ème CEM",
+  premiere: "Première",
   seconde: "Seconde",
   terminale: "Terminale",
 };

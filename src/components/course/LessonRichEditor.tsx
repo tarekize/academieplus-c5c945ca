@@ -1,4 +1,4 @@
-﻿import { useEditor, EditorContent, Extension } from '@tiptap/react';
+import { useEditor, EditorContent, Extension } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
@@ -190,10 +190,10 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
         <ToolBtn active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} title="Italique">
           <Italic className="h-4 w-4" />
         </ToolBtn>
-        <ToolBtn active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()} title="SoulignÃ©">
+        <ToolBtn active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Souligné">
           <UnderlineIcon className="h-4 w-4" />
         </ToolBtn>
-        <ToolBtn active={editor.isActive('strike')} onClick={() => editor.chain().focus().toggleStrike().run()} title="BarrÃ©">
+        <ToolBtn active={editor.isActive('strike')} onClick={() => editor.chain().focus().toggleStrike().run()} title="Barré">
           <Strikethrough className="h-4 w-4" />
         </ToolBtn>
 
@@ -244,7 +244,7 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
         <ToolBtn active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Liste Ã  puces">
           <List className="h-4 w-4" />
         </ToolBtn>
-        <ToolBtn active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Liste numÃ©rotÃ©e">
+        <ToolBtn active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Liste numérotée">
           <ListOrdered className="h-4 w-4" />
         </ToolBtn>
 
@@ -253,7 +253,7 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
         {/* Image */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" title="InsÃ©rer une image">
+            <Button variant="ghost" size="icon" className="h-8 w-8" title="Insérer une image">
               <ImageIcon className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
@@ -266,7 +266,7 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
                 onChange={(e) => setImageUrl(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addImage()}
               />
-              <Button size="sm" className="w-full" onClick={addImage}>InsÃ©rer</Button>
+              <Button size="sm" className="w-full" onClick={addImage}>Insérer</Button>
             </div>
           </PopoverContent>
         </Popover>
@@ -274,7 +274,7 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
         {/* LaTeX */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" title="Formule mathÃ©matique (LaTeX)">
+            <Button variant="ghost" size="icon" className="h-8 w-8" title="Formule mathématique (LaTeX)">
               <Sigma className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
@@ -287,8 +287,8 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
                 onChange={(e) => setLatexInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && insertLatex()}
               />
-              <p className="text-xs text-muted-foreground">Tapez $formule$ dans l'Ã©diteur ou insÃ©rez ici.</p>
-              <Button size="sm" className="w-full" onClick={insertLatex}>InsÃ©rer</Button>
+              <p className="text-xs text-muted-foreground">Tapez $formule$ dans l'éditeur ou insérez ici.</p>
+              <Button size="sm" className="w-full" onClick={insertLatex}>Insérer</Button>
             </div>
           </PopoverContent>
         </Popover>

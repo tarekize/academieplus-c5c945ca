@@ -1,5 +1,5 @@
-﻿// Programme de MathÃ©matiques - PremiÃ¨re (Tronc Commun Lettres)
-// Curriculum structurÃ© en 4 chapitres
+// Programme de Mathématiques - Première (Tronc Commun Lettres)
+// Curriculum structuré en 4 chapitres
 
 export interface Lesson {
   id: string;
@@ -22,17 +22,17 @@ export const mathPremiereTCLChapters: Chapter[] = [
     lessons: [
       {
         id: "lesson-1-1",
-        title: "Calcul dans les ensembles numÃ©riques",
+        title: "Calcul dans les ensembles numériques",
         titleAr: "Ù…Ù…Ø§Ø±Ø³Ø© Ø§Ù„Ø­Ø³Ø§Ø¨ ÙÙŠ Ù…Ø®ØªÙ„Ù Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø§Øª Ø§Ù„Ø¹Ø¯Ø¯ÙŠØ©",
       },
       {
         id: "lesson-1-2",
-        title: "MaÃ®trise du calcul algÃ©brique",
+        title: "Maîtrise du calcul algébrique",
         titleAr: "Ø§Ù„ØªØ­ÙƒÙ… ÙÙŠ Ø§Ù„Ø­Ø³Ø§Ø¨ Ø§Ù„Ø¬Ø¨Ø±ÙŠ",
       },
       {
         id: "lesson-1-3",
-        title: "Ã‰quations et inÃ©quations",
+        title: "Équations et inéquations",
         titleAr: "Ø§ÙƒØªØ³Ø§Ø¨ Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª ØªØªØ¹Ù„Ù‚ Ø¨Ø§Ù„ØªØ¹Ø¨ÙŠØ± Ø¹Ù† Ù…Ø´ÙƒÙ„Ø§Øª Ø¨Ù…Ø¹Ø§Ø¯Ù„Ø§Øª ÙˆÙ…ØªØ±Ø§Ø¬Ø­Ø§Øª ÙˆØ­Ù„Ù‡Ø§",
       },
       {
@@ -54,7 +54,7 @@ export const mathPremiereTCLChapters: Chapter[] = [
       },
       {
         id: "lesson-2-2",
-        title: "Fonctions de rÃ©fÃ©rence",
+        title: "Fonctions de référence",
         titleAr: "Ù…Ø¹Ø±ÙØ© ÙˆØ§Ø³ØªØ¹Ù…Ø§Ù„ Ø®ÙˆØ§Øµ Ø§Ù„Ø¯ÙˆØ§Ù„ Ø§Ù„Ù…Ø±Ø¬Ø¹ÙŠØ© Ø§Ù„ØªÙŠ ØªÙ…Ù‡Ø¯ Ù„Ø¯Ø±Ø§Ø³Ø© Ø§Ù„Ø¯ÙˆØ§Ù„",
       },
       {
@@ -64,34 +64,34 @@ export const mathPremiereTCLChapters: Chapter[] = [
       },
       {
         id: "lesson-2-4",
-        title: "RÃ©solution de problÃ¨mes",
+        title: "Résolution de problèmes",
         titleAr: "Ø§ÙƒØªØ³Ø§Ø¨ Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª Ù„Ù„ØªØ¹Ø¨ÙŠØ± Ø¹Ù† Ù…Ø´ÙƒÙ„Ø§Øª -ØªØªØ¹Ù„Ù‚ Ø¨Ø§Ù„Ø¯ÙˆØ§Ù„ - ÙˆØ­Ù„Ù‡Ø§",
       },
       {
         id: "lesson-2-5",
-        title: "TracÃ© de courbes avec calculatrice",
+        title: "Tracé de courbes avec calculatrice",
         titleAr: "ØªÙˆØ¸ÙŠÙ Ø§Ù„Ø­Ø§Ø³Ø¨Ø© Ø§Ù„Ø¨ÙŠØ§Ù†ÙŠØ© Ù„Ø§Ø³ØªØ®Ø±Ø§Ø¬ Ù…Ù†Ø­Ù†ÙŠ Ø¯Ø§Ù„Ø©",
       },
     ],
   },
   {
     id: "chap-3-geometrie",
-    title: "GÃ©omÃ©trie",
+    title: "Géométrie",
     titleAr: "Ø§Ù„Ù‡Ù†Ø¯Ø³Ø©",
     lessons: [
       {
         id: "lesson-3-1",
-        title: "Calcul vectoriel en gÃ©omÃ©trie analytique",
+        title: "Calcul vectoriel en géométrie analytique",
         titleAr: "Ù…Ù…Ø§Ø±Ø³Ø© Ø§Ù„Ø­Ø³Ø§Ø¨ Ø§Ù„Ø´Ø¹Ø§Ø¹ÙŠ ÙÙŠ Ø§Ù„Ù‡Ù†Ø¯Ø³Ø© Ø§Ù„ØªØ­Ù„ÙŠÙ„ÙŠØ©",
       },
       {
         id: "lesson-3-2",
-        title: "ProblÃ¨mes gÃ©omÃ©triques vectoriels",
+        title: "Problèmes géométriques vectoriels",
         titleAr: "Ø­Ù„ Ù…Ø³Ø§Ø¦Ù„ Ù‡Ù†Ø¯Ø³ÙŠØ© ØªØªØ¹Ù„Ù‚ Ø¨Ø§Ù„Ø­Ø³Ø§Ø¨ Ø§Ù„Ø´Ø¹Ø§Ø¹ÙŠ ÙÙŠ Ø§Ù„Ù‡Ù†Ø¯Ø³Ø© Ø§Ù„ØªØ­Ù„ÙŠÙ„ÙŠØ©",
       },
       {
         id: "lesson-3-3",
-        title: "ProblÃ¨mes sur les droites",
+        title: "Problèmes sur les droites",
         titleAr: "Ø§ÙƒØªØ³Ø§Ø¨ Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª Ù„Ù„ØªØ¹Ø¨ÙŠØ± Ø¹Ù† Ù…Ø´ÙƒÙ„Ø§Øª ØªØªØ¹Ù„Ù‚ Ø¨Ø§Ù„Ù…Ø³ØªÙ‚ÙŠÙ…Ø§ØªØŒ ÙˆØ­Ù„Ù‡Ø§",
       },
     ],
@@ -103,7 +103,7 @@ export const mathPremiereTCLChapters: Chapter[] = [
     lessons: [
       {
         id: "lesson-4-1",
-        title: "Lecture et organisation des donnÃ©es",
+        title: "Lecture et organisation des données",
         titleAr: "Ù‚Ø±Ø§Ø¡Ø© Ù…Ø¹Ø·ÙŠØ§Øª ÙˆØªÙ†Ø¸ÙŠÙ…Ù‡Ø§",
       },
       {
@@ -126,8 +126,8 @@ export const mathPremiereTCLChapters: Chapter[] = [
 ];
 
 export const getCourseInfo = () => ({
-  title: "MathÃ©matiques - PremiÃ¨re (Tronc Commun Lettres)",
+  title: "Mathématiques - Première (Tronc Commun Lettres)",
   titleAr: "Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª - Ø§Ù„Ø£ÙˆÙ„Ù‰ Ø«Ø§Ù†ÙˆÙŠ (Ø¬Ø°Ø¹ Ù…Ø´ØªØ±Ùƒ Ø¢Ø¯Ø§Ø¨)",
-  description: "Programme de mathÃ©matiques pour la PremiÃ¨re annÃ©e du Tronc Commun Lettres",
+  description: "Programme de mathématiques pour la Première année du Tronc Commun Lettres",
   descriptionAr: "Ø¨Ø±Ù†Ø§Ù…Ø¬ Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª Ù„Ù„Ø³Ù†Ø© Ø§Ù„Ø£ÙˆÙ„Ù‰ Ø«Ø§Ù†ÙˆÙŠ - Ø¬Ø°Ø¹ Ù…Ø´ØªØ±Ùƒ Ø¢Ø¯Ø§Ø¨",
 });

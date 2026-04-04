@@ -1,5 +1,5 @@
-﻿// Programme de MathÃ©matiques - Classe de Seconde
-// BasÃ© sur le programme officiel
+// Programme de Mathématiques - Classe de Seconde
+// Basé sur le programme officiel
 
 export interface QuizQuestion {
   id: string;
@@ -38,11 +38,11 @@ export const mathQuizQuestions: QuizQuestion[] = [
   },
   {
     id: "q3",
-    question: "DÃ©velopper et rÃ©duire : (2x + 3)(x - 1)",
+    question: "Développer et réduire : (2x + 3)(x - 1)",
     options: ["2xÂ² + x - 3", "2xÂ² - x - 3", "2xÂ² + 5x - 3", "2xÂ² - 5x + 3"],
     correctAnswer: "2xÂ² + x - 3",
-    explanation: "(2x + 3)(x - 1) = 2xÂ·x + 2xÂ·(-1) + 3Â·x + 3Â·(-1) = 2xÂ² - 2x + 3x - 3 = 2xÂ² + x - 3",
-    category: "DÃ©veloppement/rÃ©duction"
+    explanation: "(2x + 3)(x - 1) = 2x·x + 2x·(-1) + 3·x + 3·(-1) = 2xÂ² - 2x + 3x - 3 = 2xÂ² + x - 3",
+    category: "Développement/réduction"
   },
   {
     id: "q4",
@@ -50,40 +50,40 @@ export const mathQuizQuestions: QuizQuestion[] = [
     options: ["1", "-1", "6", "11"],
     correctAnswer: "1",
     explanation: "f(3) = 2Ã—3 - 5 = 6 - 5 = 1. L'image de 3 par f est 1.",
-    category: "Images et antÃ©cÃ©dents"
+    category: "Images et antécédents"
   },
   {
     id: "q5",
-    question: "Quelles sont les coordonnÃ©es du milieu du segment [AB] avec A(2, 4) et B(6, 8) ?",
+    question: "Quelles sont les coordonnées du milieu du segment [AB] avec A(2, 4) et B(6, 8) ?",
     options: ["(4, 6)", "(8, 12)", "(3, 5)", "(2, 2)"],
     correctAnswer: "(4, 6)",
-    explanation: "Le milieu M a pour coordonnÃ©es : xâ‚˜ = (xâ‚ + x_b)/2 = (2+6)/2 = 4 et yâ‚˜ = (yâ‚ + y_b)/2 = (4+8)/2 = 6",
-    category: "CoordonnÃ©es de milieu"
+    explanation: "Le milieu M a pour coordonnées : xâ‚˜ = (xâ‚ + x_b)/2 = (2+6)/2 = 4 et yâ‚˜ = (yâ‚ + y_b)/2 = (4+8)/2 = 6",
+    category: "Coordonnées de milieu"
   },
   {
     id: "q6",
-    question: "RÃ©soudre l'Ã©quation : 3x - 7 = 2x + 5",
+    question: "Résoudre l'équation : 3x - 7 = 2x + 5",
     options: ["x = 12", "x = -2", "x = 2", "x = -12"],
     correctAnswer: "x = 12",
     explanation: "3x - 7 = 2x + 5 âŸ¹ 3x - 2x = 5 + 7 âŸ¹ x = 12",
-    category: "Ã‰quations du premier degrÃ©"
+    category: "Équations du premier degré"
   },
   {
     id: "q7",
-    question: "La fonction carrÃ© f(x) = xÂ² est :",
+    question: "La fonction carré f(x) = xÂ² est :",
     options: [
       "Croissante sur â„",
-      "DÃ©croissante sur â„",
-      "DÃ©croissante sur ]-âˆž; 0] et croissante sur [0; +âˆž[",
-      "Croissante sur ]-âˆž; 0] et dÃ©croissante sur [0; +âˆž["
+      "Décroissante sur â„",
+      "Décroissante sur ]-âˆž; 0] et croissante sur [0; +âˆž[",
+      "Croissante sur ]-âˆž; 0] et décroissante sur [0; +âˆž["
     ],
-    correctAnswer: "DÃ©croissante sur ]-âˆž; 0] et croissante sur [0; +âˆž[",
-    explanation: "La fonction carrÃ© admet un minimum en x = 0. Elle dÃ©croÃ®t avant et croÃ®t aprÃ¨s.",
+    correctAnswer: "Décroissante sur ]-âˆž; 0] et croissante sur [0; +âˆž[",
+    explanation: "La fonction carré admet un minimum en x = 0. Elle décroît avant et croît après.",
     category: "Fonctions"
   },
   {
     id: "q8",
-    question: "Dans un repÃ¨re, l'Ã©quation y = 2x + 3 reprÃ©sente :",
+    question: "Dans un repère, l'équation y = 2x + 3 représente :",
     options: [
       "Une parabole",
       "Une droite de coefficient directeur 3",
@@ -91,24 +91,24 @@ export const mathQuizQuestions: QuizQuestion[] = [
       "Un cercle"
     ],
     correctAnswer: "Une droite de coefficient directeur 2",
-    explanation: "L'Ã©quation y = ax + b reprÃ©sente une droite. Ici a = 2 est le coefficient directeur.",
-    category: "Ã‰quations de droites"
+    explanation: "L'équation y = ax + b représente une droite. Ici a = 2 est le coefficient directeur.",
+    category: "Équations de droites"
   },
   {
     id: "q9",
-    question: "On lance un dÃ© Ã©quilibrÃ©. Quelle est la probabilitÃ© d'obtenir un nombre pair ?",
+    question: "On lance un dé équilibré. Quelle est la probabilité d'obtenir un nombre pair ?",
     options: ["1/6", "1/3", "1/2", "2/3"],
     correctAnswer: "1/2",
-    explanation: "Les nombres pairs sur un dÃ© sont 2, 4, 6 (3 issues favorables sur 6 possibles). P = 3/6 = 1/2",
-    category: "ProbabilitÃ©s"
+    explanation: "Les nombres pairs sur un dé sont 2, 4, 6 (3 issues favorables sur 6 possibles). P = 3/6 = 1/2",
+    category: "Probabilités"
   },
   {
     id: "q10",
-    question: "Quel est l'intervalle solution de l'inÃ©quation 2x - 4 â‰¥ 0 ?",
+    question: "Quel est l'intervalle solution de l'inéquation 2x - 4 â‰¥ 0 ?",
     options: ["]-âˆž; 2]", "[2; +âˆž[", "]-âˆž; 2[", "]2; +âˆž["],
     correctAnswer: "[2; +âˆž[",
     explanation: "2x - 4 â‰¥ 0 âŸ¹ 2x â‰¥ 4 âŸ¹ x â‰¥ 2. L'ensemble solution est [2; +âˆž[",
-    category: "InÃ©quations"
+    category: "Inéquations"
   }
 ];
 
@@ -116,31 +116,31 @@ export const mathQuizQuestions: QuizQuestion[] = [
 export const mathExercises: Exercise[] = [
   {
     id: "ex1",
-    title: "RÃ©solution d'Ã©quation du premier degrÃ©",
-    category: "Ã‰quations",
-    statement: "RÃ©soudre l'Ã©quation suivante dans â„ :\n\n**5(x - 2) - 3(2x + 1) = 4x - 17**",
-    solution: `**Ã‰tape 1 : DÃ©velopper**
+    title: "Résolution d'équation du premier degré",
+    category: "Équations",
+    statement: "Résoudre l'équation suivante dans â„ :\n\n**5(x - 2) - 3(2x + 1) = 4x - 17**",
+    solution: `**Étape 1 : Développer**
 5(x - 2) - 3(2x + 1) = 4x - 17
 5x - 10 - 6x - 3 = 4x - 17
 
-**Ã‰tape 2 : RÃ©duire le membre de gauche**
+**Étape 2 : Réduire le membre de gauche**
 -x - 13 = 4x - 17
 
-**Ã‰tape 3 : Isoler x**
+**Étape 3 : Isoler x**
 -x - 4x = -17 + 13
 -5x = -4
 x = -4 / -5 = **4/5** ou **0.8**
 
-**VÃ©rification :** 5(0.8 - 2) - 3(2Ã—0.8 + 1) = 5(-1.2) - 3(2.6) = -6 - 7.8 = -13.8
+**Vérification :** 5(0.8 - 2) - 3(2Ã—0.8 + 1) = 5(-1.2) - 3(2.6) = -6 - 7.8 = -13.8
 4Ã—0.8 - 17 = 3.2 - 17 = -13.8 âœ“`
   },
   {
     id: "ex2",
-    title: "ThÃ©orÃ¨me de Pythagore",
-    category: "GÃ©omÃ©trie",
+    title: "Théorème de Pythagore",
+    category: "Géométrie",
     statement: "Dans un triangle ABC rectangle en A, on donne AB = 6 cm et AC = 8 cm.\n\n1. Calculer BC.\n2. Calculer l'aire du triangle ABC.",
-    solution: `**1. Calcul de BC (hypotÃ©nuse)**
-D'aprÃ¨s le thÃ©orÃ¨me de Pythagore :
+    solution: `**1. Calcul de BC (hypoténuse)**
+D'après le théorème de Pythagore :
 BCÂ² = ABÂ² + ACÂ²
 BCÂ² = 6Â² + 8Â² = 36 + 64 = 100
 BC = âˆš100 = **10 cm**
@@ -152,35 +152,35 @@ A = (AB Ã— AC) / 2 = (6 Ã— 8) / 2 = **24 cmÂ²**`
   },
   {
     id: "ex3",
-    title: "ThÃ©orÃ¨me de ThalÃ¨s",
-    category: "GÃ©omÃ©trie repÃ©rÃ©e",
-    statement: "Les droites (MN) et (BC) sont parallÃ¨les. On donne :\n- AM = 4 cm, AB = 10 cm\n- AN = 3 cm\n\n1. Calculer AC.\n2. Calculer MN si BC = 7.5 cm.",
+    title: "Théorème de Thalès",
+    category: "Géométrie repérée",
+    statement: "Les droites (MN) et (BC) sont parallèles. On donne :\n- AM = 4 cm, AB = 10 cm\n- AN = 3 cm\n\n1. Calculer AC.\n2. Calculer MN si BC = 7.5 cm.",
     solution: `**1. Calcul de AC**
-D'aprÃ¨s le thÃ©orÃ¨me de ThalÃ¨s :
+D'après le théorème de Thalès :
 AM/AB = AN/AC
 4/10 = 3/AC
 AC = (3 Ã— 10) / 4 = **7.5 cm**
 
 **2. Calcul de MN**
-D'aprÃ¨s le thÃ©orÃ¨me de ThalÃ¨s :
+D'après le théorème de Thalès :
 AM/AB = MN/BC
 4/10 = MN/7.5
 MN = (4 Ã— 7.5) / 10 = **3 cm**`
   },
   {
     id: "ex4",
-    title: "Calcul de frÃ©quences cumulÃ©es",
+    title: "Calcul de fréquences cumulées",
     category: "Statistiques",
-    statement: "Dans une classe de 25 Ã©lÃ¨ves, on a relevÃ© les notes obtenues Ã  un contrÃ´le :\n\n| Note | 8 | 10 | 12 | 14 | 16 |\n|------|---|----|----|----|----|----|\n| Effectif | 3 | 5 | 8 | 6 | 3 |\n\nCalculer :\n1. La moyenne de la sÃ©rie.\n2. Les frÃ©quences et frÃ©quences cumulÃ©es croissantes.",
+    statement: "Dans une classe de 25 élèves, on a relevé les notes obtenues Ã  un contrôle :\n\n| Note | 8 | 10 | 12 | 14 | 16 |\n|------|---|----|----|----|----|----|\n| Effectif | 3 | 5 | 8 | 6 | 3 |\n\nCalculer :\n1. La moyenne de la série.\n2. Les fréquences et fréquences cumulées croissantes.",
     solution: `**1. Calcul de la moyenne**
 Moyenne = Î£(note Ã— effectif) / effectif total
 = (8Ã—3 + 10Ã—5 + 12Ã—8 + 14Ã—6 + 16Ã—3) / 25
 = (24 + 50 + 96 + 84 + 48) / 25
 = 302 / 25 = **12.08**
 
-**2. Tableau des frÃ©quences**
+**2. Tableau des fréquences**
 
-| Note | Effectif | FrÃ©quence | FrÃ©q. cum. croissante |
+| Note | Effectif | Fréquence | Fréq. cum. croissante |
 |------|----------|-----------|----------------------|
 | 8 | 3 | 3/25 = 0.12 | 0.12 |
 | 10 | 5 | 5/25 = 0.20 | 0.32 |
@@ -190,23 +190,23 @@ Moyenne = Î£(note Ã— effectif) / effectif total
   },
   {
     id: "ex5",
-    title: "Ã‰tude d'une fonction affine",
+    title: "Étude d'une fonction affine",
     category: "Fonctions",
-    statement: "Soit f la fonction dÃ©finie sur â„ par f(x) = -2x + 6.\n\n1. Calculer f(0), f(3) et f(-1).\n2. DÃ©terminer l'antÃ©cÃ©dent de 0 par f.\n3. Dresser le tableau de variations de f.",
+    statement: "Soit f la fonction définie sur â„ par f(x) = -2x + 6.\n\n1. Calculer f(0), f(3) et f(-1).\n2. Déterminer l'antécédent de 0 par f.\n3. Dresser le tableau de variations de f.",
     solution: `**1. Images**
 - f(0) = -2(0) + 6 = **6**
 - f(3) = -2(3) + 6 = -6 + 6 = **0**
 - f(-1) = -2(-1) + 6 = 2 + 6 = **8**
 
-**2. AntÃ©cÃ©dent de 0**
-On rÃ©sout f(x) = 0
+**2. Antécédent de 0**
+On résout f(x) = 0
 -2x + 6 = 0
 -2x = -6
 x = **3**
 
 **3. Tableau de variations**
 f est une fonction affine avec a = -2 < 0
-Donc f est **dÃ©croissante** sur â„.
+Donc f est **décroissante** sur â„.
 
 | x | -âˆž â€”â€”â€”â€”â€”â€”â€”â€”â†’ +âˆž |
 |---|------------------|
@@ -216,10 +216,10 @@ Donc f est **dÃ©croissante** sur â„.
     id: "ex6",
     title: "Algorithmique - Suite de Syracuse",
     category: "Algorithmique",
-    statement: "On considÃ¨re l'algorithme suivant Ã©crit en Python :\n\n```python\nn = int(input(\"Entrer un entier n > 0 : \"))\nwhile n != 1:\n    if n % 2 == 0:\n        n = n // 2\n    else:\n        n = 3 * n + 1\n    print(n)\n```\n\nExÃ©cuter cet algorithme pour n = 6 et donner la suite des valeurs affichÃ©es.",
-    solution: `**ExÃ©cution pour n = 6 :**
+    statement: "On considère l'algorithme suivant écrit en Python :\n\n```python\nn = int(input(\"Entrer un entier n > 0 : \"))\nwhile n != 1:\n    if n % 2 == 0:\n        n = n // 2\n    else:\n        n = 3 * n + 1\n    print(n)\n```\n\nExécuter cet algorithme pour n = 6 et donner la suite des valeurs affichées.",
+    solution: `**Exécution pour n = 6 :**
 
-| Ã‰tape | n | n pair ? | Calcul | Nouveau n |
+| Étape | n | n pair ? | Calcul | Nouveau n |
 |-------|---|----------|--------|-----------|
 | 1 | 6 | Oui | 6 // 2 | 3 |
 | 2 | 3 | Non | 3Ã—3 + 1 | 10 |
@@ -230,23 +230,23 @@ Donc f est **dÃ©croissante** sur â„.
 | 7 | 4 | Oui | 4 // 2 | 2 |
 | 8 | 2 | Oui | 2 // 2 | 1 |
 
-**Suite affichÃ©e : 3, 10, 5, 16, 8, 4, 2, 1**
+**Suite affichée : 3, 10, 5, 16, 8, 4, 2, 1**
 
-L'algorithme s'arrÃªte car n = 1 (condition de sortie de la boucle).`
+L'algorithme s'arrête car n = 1 (condition de sortie de la boucle).`
   },
   {
     id: "ex7",
-    title: "Vecteurs et coordonnÃ©es",
+    title: "Vecteurs et coordonnées",
     category: "Vecteurs",
-    statement: "Dans un repÃ¨re orthonormÃ©, on donne A(1, 2), B(4, 6) et C(-2, 5).\n\n1. Calculer les coordonnÃ©es du vecteur AB.\n2. Calculer la norme ||AB||.\n3. D est tel que ABCD est un parallÃ©logramme. Trouver les coordonnÃ©es de D.",
-    solution: `**1. CoordonnÃ©es de AB**
+    statement: "Dans un repère orthonormé, on donne A(1, 2), B(4, 6) et C(-2, 5).\n\n1. Calculer les coordonnées du vecteur AB.\n2. Calculer la norme ||AB||.\n3. D est tel que ABCD est un parallélogramme. Trouver les coordonnées de D.",
+    solution: `**1. Coordonnées de AB**
 AB = (x_B - x_A ; y_B - y_A) = (4 - 1 ; 6 - 2) = **(3 ; 4)**
 
 **2. Norme de AB**
 ||AB|| = âˆš(3Â² + 4Â²) = âˆš(9 + 16) = âˆš25 = **5**
 
-**3. CoordonnÃ©es de D**
-ABCD parallÃ©logramme âŸ¹ AB = DC
+**3. Coordonnées de D**
+ABCD parallélogramme âŸ¹ AB = DC
 Donc D est tel que : C + AB = D (non !)
 En fait : AB = DC âŸ¹ D + DC = C âŸ¹ D = C - AB... Non.
 Reprenons : DC = AB
@@ -258,9 +258,9 @@ Reprenons : DC = AB
   },
   {
     id: "ex8",
-    title: "ProbabilitÃ©s - ExpÃ©rience alÃ©atoire",
-    category: "ProbabilitÃ©s",
-    statement: "Une urne contient 4 boules rouges, 3 boules bleues et 2 boules vertes. On tire une boule au hasard.\n\n1. Calculer la probabilitÃ© de tirer une boule rouge.\n2. Calculer la probabilitÃ© de tirer une boule qui n'est pas verte.\n3. Calculer la probabilitÃ© de tirer une boule rouge ou bleue.",
+    title: "Probabilités - Expérience aléatoire",
+    category: "Probabilités",
+    statement: "Une urne contient 4 boules rouges, 3 boules bleues et 2 boules vertes. On tire une boule au hasard.\n\n1. Calculer la probabilité de tirer une boule rouge.\n2. Calculer la probabilité de tirer une boule qui n'est pas verte.\n3. Calculer la probabilité de tirer une boule rouge ou bleue.",
     solution: `**Univers :** 4 + 3 + 2 = 9 boules au total
 
 **1. P(Rouge)**
@@ -272,25 +272,25 @@ P(non verte) = 1 - P(verte) = 1 - 2/9 = **7/9**
 Ou directement : P(non verte) = (4 + 3) / 9 = 7/9
 
 **3. P(Rouge ou Bleue)**
-P(R âˆª B) = P(R) + P(B) (Ã©vÃ©nements incompatibles)
+P(R âˆª B) = P(R) + P(B) (événements incompatibles)
 = 4/9 + 3/9 = **7/9**`
   },
   {
     id: "ex9",
-    title: "Ã‰tude de la fonction carrÃ©",
-    category: "Fonctions de rÃ©fÃ©rence",
-    statement: "Soit f(x) = xÂ².\n\n1. ComplÃ©ter le tableau de valeurs pour x âˆˆ {-3, -2, -1, 0, 1, 2, 3}.\n2. RÃ©soudre graphiquement f(x) = 4.\n3. RÃ©soudre algÃ©briquement f(x) = 9.",
+    title: "Étude de la fonction carré",
+    category: "Fonctions de référence",
+    statement: "Soit f(x) = xÂ².\n\n1. Compléter le tableau de valeurs pour x âˆˆ {-3, -2, -1, 0, 1, 2, 3}.\n2. Résoudre graphiquement f(x) = 4.\n3. Résoudre algébriquement f(x) = 9.",
     solution: `**1. Tableau de valeurs**
 
 | x | -3 | -2 | -1 | 0 | 1 | 2 | 3 |
 |---|----|----|----|----|---|---|---|
 | f(x) | 9 | 4 | 1 | 0 | 1 | 4 | 9 |
 
-**2. RÃ©solution graphique de f(x) = 4**
+**2. Résolution graphique de f(x) = 4**
 On cherche les abscisses des points d'intersection de la parabole y = xÂ² et de la droite horizontale y = 4.
-D'aprÃ¨s le tableau : **x = -2 ou x = 2**
+D'après le tableau : **x = -2 ou x = 2**
 
-**3. RÃ©solution algÃ©brique de f(x) = 9**
+**3. Résolution algébrique de f(x) = 9**
 xÂ² = 9
 xÂ² - 9 = 0
 (x - 3)(x + 3) = 0
@@ -300,11 +300,11 @@ x = 3 ou x = -3
   },
   {
     id: "ex10",
-    title: "TrigonomÃ©trie - Cercle trigonomÃ©trique",
-    category: "TrigonomÃ©trie",
-    statement: "En utilisant le cercle trigonomÃ©trique :\n\n1. Donner les valeurs exactes de cos(Ï€/3) et sin(Ï€/3).\n2. Calculer cosÂ²(Ï€/3) + sinÂ²(Ï€/3).\n3. RÃ©soudre l'Ã©quation cos(x) = 1/2 pour x âˆˆ [0 ; 2Ï€].",
+    title: "Trigonométrie - Cercle trigonométrique",
+    category: "Trigonométrie",
+    statement: "En utilisant le cercle trigonométrique :\n\n1. Donner les valeurs exactes de cos(Ï€/3) et sin(Ï€/3).\n2. Calculer cosÂ²(Ï€/3) + sinÂ²(Ï€/3).\n3. Résoudre l'équation cos(x) = 1/2 pour x âˆˆ [0 ; 2Ï€].",
     solution: `**1. Valeurs remarquables**
-Pour Ï€/3 (60Â°) :
+Pour Ï€/3 (60°) :
 - **cos(Ï€/3) = 1/2**
 - **sin(Ï€/3) = âˆš3/2**
 
@@ -315,12 +315,12 @@ cosÂ²(Ï€/3) + sinÂ²(Ï€/3) = (1/2)Â² + (âˆš3/2)Â²
 
 (On retrouve la relation fondamentale cosÂ²x + sinÂ²x = 1)
 
-**3. RÃ©solution de cos(x) = 1/2 sur [0 ; 2Ï€]**
+**3. Résolution de cos(x) = 1/2 sur [0 ; 2Ï€]**
 cos(x) = 1/2 = cos(Ï€/3)
 
 Les solutions sont :
 - x = Ï€/3 (premier quadrant)
-- x = 2Ï€ - Ï€/3 = 5Ï€/3 (quatriÃ¨me quadrant)
+- x = 2Ï€ - Ï€/3 = 5Ï€/3 (quatrième quadrant)
 
 **S = {Ï€/3 ; 5Ï€/3}**`
   }
@@ -328,46 +328,46 @@ Les solutions sont :
 
 // Structure du programme de Seconde
 export const programmeSeconde = {
-  title: "MathÃ©matiques - Classe de Seconde",
+  title: "Mathématiques - Classe de Seconde",
   themes: [
     {
       name: "Nombres et calculs",
       topics: [
         "Ensembles de nombres (â„•, â„¤, â„š, â„)",
         "Intervalles de â„",
-        "Calcul littÃ©ral (dÃ©velopper, factoriser, rÃ©duire)",
-        "Ã‰quations et inÃ©quations du premier degrÃ©"
+        "Calcul littéral (développer, factoriser, réduire)",
+        "Équations et inéquations du premier degré"
       ]
     },
     {
       name: "Fonctions",
       topics: [
         "Notion de fonction",
-        "Image et antÃ©cÃ©dent",
-        "Courbe reprÃ©sentative",
+        "Image et antécédent",
+        "Courbe représentative",
         "Sens de variation",
         "Fonctions affines",
-        "Fonctions carrÃ© et inverse"
+        "Fonctions carré et inverse"
       ]
     },
     {
-      name: "GÃ©omÃ©trie",
+      name: "Géométrie",
       topics: [
         "Vecteurs du plan",
-        "RepÃ©rage dans le plan",
-        "Ã‰quations de droites",
-        "GÃ©omÃ©trie dans l'espace",
-        "TrigonomÃ©trie"
+        "Repérage dans le plan",
+        "Équations de droites",
+        "Géométrie dans l'espace",
+        "Trigonométrie"
       ]
     },
     {
-      name: "Statistiques et ProbabilitÃ©s",
+      name: "Statistiques et Probabilités",
       topics: [
         "Statistiques descriptives",
         "Indicateurs de position et de dispersion",
-        "ProbabilitÃ©s",
-        "ModÃ©lisation d'expÃ©riences alÃ©atoires",
-        "Fluctuation d'Ã©chantillonnage"
+        "Probabilités",
+        "Modélisation d'expériences aléatoires",
+        "Fluctuation d'échantillonnage"
       ]
     }
   ]

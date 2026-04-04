@@ -1,4 +1,4 @@
-﻿import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Bot, User, ChevronRight } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
@@ -75,7 +75,7 @@ export const ChatMessage = ({ role, content, isStreaming, onNavigate }: ChatMess
           "text-[0.75rem] font-bold tracking-wide uppercase",
           isUser ? "text-blue-200/80" : "text-[#0A2551]/70 dark:text-blue-400"
         )}>
-          {isUser ? "Vous" : "Assistant mathÃ©matique"}
+          {isUser ? "Vous" : "Assistant mathématique"}
         </p>
         <div className={cn(
           "prose prose-sm max-w-none antialiased leading-relaxed font-medium",

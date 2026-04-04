@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, CreditCard, GraduationCap, LogOut, User as UserIcon, Shield, Lock, CheckCircle, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -89,15 +89,15 @@ const Paiement = () => {
 
   const getSchoolLevelName = (level: string) => {
     const levels: Record<string, string> = {
-      "6eme": "6Ã¨me", "5eme": "5Ã¨me", "4eme": "4Ã¨me", "3eme": "3Ã¨me",
-      seconde: "Seconde", premiere: "PremiÃ¨re", terminale: "Terminale",
+      "6eme": "6ème", "5eme": "5ème", "4eme": "4ème", "3eme": "3ème",
+      seconde: "Seconde", premiere: "Première", terminale: "Terminale",
     };
     return levels[level] || level || "Votre classe";
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast({ title: "DÃ©connexion", description: "Vous avez Ã©tÃ© dÃ©connectÃ© avec succÃ¨s" });
+    toast({ title: "Déconnexion", description: "Vous avez été déconnecté avec succès" });
     navigate("/");
   };
 
@@ -121,7 +121,7 @@ const Paiement = () => {
       setPaymentDone(true);
 
       const codeCount = data.codes?.length || 1;
-      toast({ title: "Paiement effectuÃ© !", description: `${codeCount} code(s) d'activation gÃ©nÃ©rÃ©(s).` });
+      toast({ title: "Paiement effectué !", description: `${codeCount} code(s) d'activation généré(s).` });
     } catch (err: any) {
       toast({ title: "Erreur", description: err.message, variant: "destructive" });
     } finally {
@@ -131,7 +131,7 @@ const Paiement = () => {
 
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
-    toast({ title: "Code copiÃ© !", description: code });
+    toast({ title: "Code copié !", description: code });
   };
 
   const getBillingDetails = () => {
@@ -147,7 +147,7 @@ const Paiement = () => {
       monthlyPrice,
       totalPrice: paymentInfo.price,
       months,
-      periodLabel: isAnnual ? '1 annÃ©e scolaire' : 'mensuel',
+      periodLabel: isAnnual ? '1 année scolaire' : 'mensuel',
       startDate: formatDate(now),
       endDate: formatDate(endDate),
       renewalDate: formatDate(endDate),
@@ -175,14 +175,14 @@ const Paiement = () => {
                 <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                   <GraduationCap className="h-6 w-6 text-primary-foreground" />
                 </div>
-                <span className="text-xl font-bold text-foreground">AcadÃ©miePlus</span>
+                <span className="text-xl font-bold text-foreground">AcadémiePlus</span>
               </div>
             </div>
           </div>
         </header>
         <main className="pt-24 pb-12">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-3xl font-bold mb-4 text-foreground">Aucune formule sÃ©lectionnÃ©e</h1>
+            <h1 className="text-3xl font-bold mb-4 text-foreground">Aucune formule sélectionnée</h1>
             <p className="text-muted-foreground mb-8">Veuillez d'abord choisir une formule d'abonnement.</p>
             <Button onClick={() => navigate("/abonnements")}>Voir les formules</Button>
           </div>
@@ -204,7 +204,7 @@ const Paiement = () => {
                 <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                   <GraduationCap className="h-6 w-6 text-primary-foreground" />
                 </div>
-                <span className="text-xl font-bold text-foreground">AcadÃ©miePlus</span>
+                <span className="text-xl font-bold text-foreground">AcadémiePlus</span>
               </div>
             </div>
           </div>
@@ -214,7 +214,7 @@ const Paiement = () => {
           <div className="container mx-auto px-4 max-w-lg">
             <Card className="p-8 text-center">
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-foreground mb-2">Paiement rÃ©ussi !</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-2">Paiement réussi !</h1>
               <p className="text-muted-foreground mb-6">
                 Voici {generatedCodes.length > 1 ? "vos codes" : "votre code"} d'activation Ã  transmettre Ã  {generatedCodes.length > 1 ? "vos enfants" : "votre enfant"} :
               </p>
@@ -259,7 +259,7 @@ const Paiement = () => {
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                 <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold text-foreground">AcadÃ©miePlus</span>
+              <span className="text-xl font-bold text-foreground">AcadémiePlus</span>
             </div>
             <div className="flex items-center gap-4">
               <DropdownMenu>
@@ -276,10 +276,10 @@ const Paiement = () => {
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/account")}><UserIcon className="mr-2 h-4 w-4" /><span>GÃ©rer mon compte</span></DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/account")}><UserIcon className="mr-2 h-4 w-4" /><span>Gérer mon compte</span></DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/dashboard")}><GraduationCap className="mr-2 h-4 w-4" /><span>Tableau de bord</span></DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" /><span>Se dÃ©connecter</span></DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" /><span>Se déconnecter</span></DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -304,9 +304,9 @@ const Paiement = () => {
             {/* Left Column */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-foreground">Formule sÃ©lectionnÃ©e</h1>
+                <h1 className="text-2xl font-bold text-foreground">Formule sélectionnée</h1>
                 <span className="text-muted-foreground underline underline-offset-4">
-                  Contenus - {billing?.isAnnual ? '1 annÃ©e scolaire' : 'mensuel'}
+                  Contenus - {billing?.isAnnual ? '1 année scolaire' : 'mensuel'}
                 </span>
               </div>
               <Separator />
@@ -340,7 +340,7 @@ const Paiement = () => {
 
                 <div className="flex items-center gap-2 text-muted-foreground text-sm">
                   <Shield className="h-4 w-4 flex-shrink-0" />
-                  <span>HÃ©bergement entiÃ¨rement sÃ©curisÃ©. AcadÃ©miePlus n'enregistre pas votre moyen de paiement.</span>
+                  <span>Hébergement entièrement sécurisé. AcadémiePlus n'enregistre pas votre moyen de paiement.</span>
                 </div>
 
                 <Button
@@ -353,16 +353,16 @@ const Paiement = () => {
                 </Button>
 
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  En cliquant sur ce bouton, je confirme avoir lu et acceptÃ© les{" "}
+                  En cliquant sur ce bouton, je confirme avoir lu et accepté les{" "}
                   <span className="font-semibold text-foreground cursor-pointer hover:underline" onClick={() => navigate("/mentions-legales")}>
-                    Conditions gÃ©nÃ©rales d'utilisation
+                    Conditions générales d'utilisation
                   </span>
                   , la{" "}
                   <span className="font-semibold text-foreground cursor-pointer hover:underline" onClick={() => navigate("/politique-confidentialite")}>
-                    politique de confidentialitÃ©
+                    politique de confidentialité
                   </span>
                   , ainsi que les{" "}
-                  <span className="font-semibold text-foreground">Conditions gÃ©nÃ©rales de vente d'AcadÃ©miePlus</span>.
+                  <span className="font-semibold text-foreground">Conditions générales de vente d'AcadémiePlus</span>.
                 </p>
               </div>
             </div>
@@ -384,10 +384,10 @@ const Paiement = () => {
                   <div>
                     <h4 className="font-bold text-foreground mb-1">Facturation :</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      PrÃ©lÃ¨vement immÃ©diat de{" "}
+                      Prélèvement immédiat de{" "}
                       <span className="font-semibold text-foreground">{paymentInfo.price.toLocaleString('fr-DZ')} DA</span>
                       {billing?.isAnnual
-                        ? <> pour une pÃ©riode de {billing.months} mois, soit du {billing.startDate} au {billing.endDate}.</>
+                        ? <> pour une période de {billing.months} mois, soit du {billing.startDate} au {billing.endDate}.</>
                         : <> pour un mois, soit du {billing?.startDate} au {billing?.endDate}.</>}
                     </p>
                   </div>
@@ -395,16 +395,16 @@ const Paiement = () => {
                     <h4 className="font-bold text-foreground mb-1">Codes d'activation :</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       {paymentInfo.isFamily
-                        ? "3 codes d'activation seront gÃ©nÃ©rÃ©s pour vos enfants."
-                        : "1 code d'activation sera gÃ©nÃ©rÃ© pour votre enfant."}
+                        ? "3 codes d'activation seront générés pour vos enfants."
+                        : "1 code d'activation sera généré pour votre enfant."}
                     </p>
                   </div>
                   <div>
-                    <h4 className="font-bold text-foreground mb-1">DurÃ©e :</h4>
+                    <h4 className="font-bold text-foreground mb-1">Durée :</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       {billing?.isAnnual
-                        ? "360 jours de crÃ©dit temps avec possibilitÃ© de pause."
-                        : "30 jours de crÃ©dit temps sans pause."}
+                        ? "360 jours de crédit temps avec possibilité de pause."
+                        : "30 jours de crédit temps sans pause."}
                     </p>
                   </div>
                   {paymentInfo.isFamily && (

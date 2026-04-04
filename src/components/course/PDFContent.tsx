@@ -1,4 +1,4 @@
-﻿interface PDFContentProps {
+interface PDFContentProps {
   chapterTitle: string;
   content: string;
 }
@@ -6,12 +6,12 @@
 export const PDFContent = ({ chapterTitle, content }: PDFContentProps) => {
   return (
     <div className="bg-white text-black p-8 max-w-4xl mx-auto">
-      {/* En-tÃªte du document */}
+      {/* En-tête du document */}
       <div className="mb-8 pb-4 border-b-2 border-gray-800">
         <h1 className="text-3xl font-bold text-center mb-2">{chapterTitle}</h1>
       </div>
 
-      {/* Contenu formatÃ© pour PDF */}
+      {/* Contenu formaté pour PDF */}
       <div 
         className="prose prose-slate max-w-none
           [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mt-8 [&_h2]:mb-4 [&_h2]:text-black

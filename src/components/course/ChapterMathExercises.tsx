@@ -1,4 +1,4 @@
-﻿import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,7 @@ export interface DBExercise {
 
 function DifficultyPencils({ level }: { level: number }) {
   return (
-    <span className="inline-flex items-center gap-0.5 ml-2" title={`DifficultÃ© ${level}/5`}>
+    <span className="inline-flex items-center gap-0.5 ml-2" title={`Difficulté ${level}/5`}>
       {Array.from({ length: 5 }).map((_, i) => (
         <PenTool key={i} className={cn("h-3.5 w-3.5", i < level ? "text-primary fill-primary/20" : "text-muted-foreground/30")} />
       ))}

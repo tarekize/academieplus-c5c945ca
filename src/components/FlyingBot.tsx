@@ -1,4 +1,4 @@
-﻿import { motion, Variants } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 
 interface FlyingBotProps {
     expression?: "welcome" | "thinking" | "happy" | "encouraging" | "celebrating";
@@ -71,7 +71,7 @@ export const FlyingBot = ({
                 </div>
             </motion.div>
 
-            {/* Aura animÃ©e */}
+            {/* Aura animée */}
             <motion.div
                 className="absolute inset-0 rounded-full border-2 border-primary/20 blur-sm"
                 animate={{

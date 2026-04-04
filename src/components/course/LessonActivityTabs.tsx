@@ -1,4 +1,4 @@
-﻿import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -796,7 +796,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 if (!isLocked) setActiveStep(step.id);
               }}
               disabled={isLocked}
-              title={isLocked ? (step.id === "approfondir" && isUnlocked && !hasActiveSubscription ? "Abonnement requis pour accÃ©der Ã  cette section" : "Terminez la phase précédente pour dÃ©bloquer") : ""}
+              title={isLocked ? (step.id === "approfondir" && isUnlocked && !hasActiveSubscription ? "Abonnement requis pour accéder Ã  cette section" : "Terminez la phase précédente pour débloquer") : ""}
               className={cn(
                 "relative flex items-center justify-between sm:justify-start gap-4 px-4 py-3 sm:py-2.5 rounded-lg transition-all duration-300 w-full group",
                 isActive

@@ -1,23 +1,23 @@
-﻿// Bot Onboarding Messages in French and Arabic
+// Bot Onboarding Messages in French and Arabic
 export const botOnboardingMessages = {
     welcome: {
-        fr: "Salut ! Moi c'est EduBot. Avant de commencer tes leçons, j'aimerais savoir comment ton cerveau prÃ©fÃ¨re apprendre ! ðŸ§ ",
+        fr: "Salut ! Moi c'est EduBot. Avant de commencer tes leçons, j'aimerais savoir comment ton cerveau préfère apprendre ! ðŸ§ ",
         ar: "Ø£Ù‡Ù„Ø§Ù‹ Ø¨Ùƒ ÙŠØ§ Ø¨Ø·Ù„! Ø£Ù†Ø§ Ø±ÙÙŠÙ‚ÙƒØŒ ÙˆØ³Ø£Ø±Ø§ÙÙ‚Ùƒ ÙÙŠ Ø±Ø­Ù„ØªÙƒ Ø§Ù„ØªØ¹Ù„ÙŠÙ…ÙŠØ©. ðŸš€",
     },
     explanation: {
-        fr: "On va faire un petit jeu de quelques questions. Il n'y a pas de mauvaises rÃ©ponses ! C'est juste pour dÃ©couvrir comment tu apprends le mieux.",
+        fr: "On va faire un petit jeu de quelques questions. Il n'y a pas de mauvaises réponses ! C'est juste pour découvrir comment tu apprends le mieux.",
         ar: "Ø³ÙˆÙ Ù†Ù‚ÙˆÙ… Ø¨Ø¹Ù…Ù„ Ù„Ø¹Ø¨Ø© ØµØºÙŠØ±Ø© Ù…Ù† Ø§Ù„Ø£Ø³Ø¦Ù„Ø©. Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¥Ø¬Ø§Ø¨Ø§Øª Ø®Ø§Ø·Ø¦Ø©! ÙÙ‚Ø· Ù„Ù…Ø¹Ø±ÙØ© Ù…Ø§ Ø¥Ø°Ø§ ÙƒÙ†Øª Ù…ØªØ¹Ù„Ù…Ø§Ù‹ Ø¨ØµØ±ÙŠØ§Ù‹ Ø£Ù… Ø³Ù…Ø¹ÙŠØ§Ù‹ Ø£Ù… Ø­Ø±ÙƒÙŠØ§Ù‹.",
     },
     explanationDetail: {
-        fr: "En d'autres termes, tu vas dÃ©couvrir ton super-pouvoir d'apprentissage et je vais personnaliser tes cours en fonction ! ðŸ’ª",
+        fr: "En d'autres termes, tu vas découvrir ton super-pouvoir d'apprentissage et je vais personnaliser tes cours en fonction ! ðŸ’ª",
         ar: "Ø¨Ù…Ø¹Ù†Ù‰ Ø¢Ø®Ø±ØŒ Ø³ØªÙƒØªØ´Ù Ù‚ÙˆØªÙƒ Ø§Ù„Ø®Ø§Ø±Ù‚Ø© ÙÙŠ Ø§Ù„ØªØ¹Ù„Ù… ÙˆØ³Ø£Ù‚ÙˆÙ… Ø¨ØªØ®ØµÙŠØµ Ø¯Ø±ÙˆØ³Ùƒ ÙˆÙÙ‚Ø§Ù‹ Ù„Ø°Ù„Ùƒ! ðŸ’ª",
     },
     reassurance: {
-        fr: "Ne t'inquiÃ¨te pas, ce n'est pas un test scolaire ! Juste un petit dÃ©fi pour dÃ©couvrir ton style d'apprentissage unique. ðŸ’ª",
+        fr: "Ne t'inquiète pas, ce n'est pas un test scolaire ! Juste un petit défi pour découvrir ton style d'apprentissage unique. ðŸ’ª",
         ar: "Ù„Ø§ ØªÙ‚Ù„Ù‚ØŒ Ù‡Ø°Ø§ Ù„ÙŠØ³ Ø§Ø®ØªØ¨Ø§Ø±Ø§Ù‹ Ù…Ø¯Ø±Ø³ÙŠØ§Ù‹! Ù‡Ùˆ Ù…Ø¬Ø±Ø¯ ØªØ­Ø¯Ù Ø¨Ø³ÙŠØ· Ù„Ù†ÙƒØªØ´Ù Ø£Ø³Ù„ÙˆØ¨Ùƒ Ø§Ù„Ø®Ø§Øµ.",
     },
     readyQuestion: {
-        fr: "Tu es prÃªt Ã  dÃ©couvrir ton super-pouvoir d'apprentissage ?",
+        fr: "Tu es prêt Ã  découvrir ton super-pouvoir d'apprentissage ?",
         ar: "Ù‡Ù„ Ø£Ù†Øª Ù…Ø³ØªØ¹Ø¯ Ù„Ø§ÙƒØªØ´Ø§Ù Ù‚ÙˆØªÙƒ Ø§Ù„Ø®Ø§Ø±Ù‚Ø© ÙÙŠ Ø§Ù„ØªØ¹Ù„Ù…ØŸ",
     },
     buttonStart: {
@@ -29,7 +29,7 @@ export const botOnboardingMessages = {
         ar: "Ø´Ø±Ø­ Ø£ÙƒØ«Ø± Ù‚Ù„ÙŠÙ„Ø§Ù‹",
     },
     explainMoreTitle: {
-        fr: "Bien sÃ»r! Laisse-moi t'expliquer en dÃ©tail ðŸ“š",
+        fr: "Bien sûr! Laisse-moi t'expliquer en détail ðŸ“š",
         ar: "Ø¨Ø§Ù„ØªØ£ÙƒÙŠØ¯! Ø¯Ø¹Ù†ÙŠ Ø£Ø´Ø±Ø­ Ù„Ùƒ Ø¨Ø§Ù„ØªÙØµÙŠÙ„ ðŸ“š",
     },
     testExplanation: {
@@ -45,15 +45,15 @@ export const botOnboardingMessages = {
 // Learning Style Questions in French and Arabic
 export const learningStyleQuestions = {
     question1: {
-        fr: "Comment prÃ©fÃ¨res-tu apprendre un nouveau concept en maths ?",
+        fr: "Comment préfères-tu apprendre un nouveau concept en maths ?",
         ar: "ÙƒÙŠÙ ØªÙØ¶Ù„ ØªØ¹Ù„Ù… Ù…ÙÙ‡ÙˆÙ… Ø¬Ø¯ÙŠØ¯ ÙÙŠ Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§ØªØŸ",
         options: {
             visual: {
-                fr: "Regarder une vidÃ©o explicative",
+                fr: "Regarder une vidéo explicative",
                 ar: "Ù…Ø´Ø§Ù‡Ø¯Ø© ÙÙŠØ¯ÙŠÙˆ Ø´Ø§Ø±Ø­ ðŸ“º",
             },
             auditory: {
-                fr: "Lire le cours Ã©crit",
+                fr: "Lire le cours écrit",
                 ar: "Ø³Ù…Ø§Ø¹ Ø´Ø±Ø­ ØµÙˆØªÙŠ ðŸŽ§",
             },
             kinesthetic: {
@@ -63,15 +63,15 @@ export const learningStyleQuestions = {
         },
     },
     question2: {
-        fr: "Quand tu ne comprends pas un exercice, tu prÃ©fÃ¨res :",
+        fr: "Quand tu ne comprends pas un exercice, tu préfères :",
         ar: "Ø¹Ù†Ø¯Ù…Ø§ Ù„Ø§ ØªÙÙ‡Ù… ØªÙ…Ø±ÙŠÙ†Ø§Ù‹ØŒ ØªÙØ¶Ù„:",
         options: {
             visual: {
-                fr: "Voir un schÃ©ma ou un dessin",
+                fr: "Voir un schéma ou un dessin",
                 ar: "Ø±Ø¤ÙŠØ© Ø±Ø³Ù… ØªØ®Ø·ÙŠØ·ÙŠ Ø£Ùˆ ØµÙˆØ±Ø© ðŸ“Š",
             },
             auditory: {
-                fr: "Relire la rÃ¨gle ou la formule",
+                fr: "Relire la règle ou la formule",
                 ar: "Ù‚Ø±Ø§Ø¡Ø© Ø§Ù„Ù‚Ø§Ø¹Ø¯Ø© Ø£Ùˆ Ø§Ù„ØµÙŠØºØ© ðŸ“–",
             },
             kinesthetic: {
@@ -85,15 +85,15 @@ export const learningStyleQuestions = {
         ar: "Ù…Ø§ Ù†ÙˆØ¹ Ø§Ù„Ù…ÙˆØ±Ø¯ Ø§Ù„Ø°ÙŠ ÙŠØ³Ø§Ø¹Ø¯Ùƒ Ø£ÙƒØ«Ø±ØŸ",
         options: {
             visual: {
-                fr: "Des infographies colorÃ©es et des diagrammes",
+                fr: "Des infographies colorées et des diagrammes",
                 ar: "Ø±Ø³ÙˆÙ…Ø§Øª Ø¨ÙŠØ§Ù†ÙŠØ© Ù…Ù„ÙˆÙ†Ø© ÙˆÙ…ÙŠØ²Ø§Ù†ÙŠØ§Øª ðŸŽ¨",
             },
             auditory: {
-                fr: "Des explications dÃ©taillÃ©es par Ã©crit",
+                fr: "Des explications détaillées par écrit",
                 ar: "Ø´Ø±ÙˆØ­Ø§Øª Ù…ÙØµÙ„Ø© Ø¹Ù„Ù‰ Ø§Ù„Ù†Øµ ðŸ“",
             },
             kinesthetic: {
-                fr: "Des projets pratiques et des dÃ©fis",
+                fr: "Des projets pratiques et des défis",
                 ar: "Ù…Ø´Ø§Ø±ÙŠØ¹ Ø¹Ù…Ù„ÙŠØ© ÙˆØªØ­Ø¯ÙŠØ§Øª ðŸ’ª",
             },
         },
@@ -106,7 +106,7 @@ export const learningStyleResults = {
         fr: {
             title: "Apprenant Visuel ðŸ‘€",
             description:
-                "Tu apprends mieux avec des images, vidÃ©os et schÃ©mas. Tes cours incluront beaucoup de visuels et de graphiques !",
+                "Tu apprends mieux avec des images, vidéos et schémas. Tes cours incluront beaucoup de visuels et de graphiques !",
         },
         ar: {
             title: "Ù…ØªØ¹Ù„Ù… Ø¨ØµØ±ÙŠ ðŸ‘€",
@@ -118,7 +118,7 @@ export const learningStyleResults = {
         fr: {
             title: "Apprenant Auditif ðŸŽ§",
             description:
-                "Tu apprends mieux en lisant et en Ã©coutant les explications. Tes ressources seront riches en textes dÃ©taillÃ©s et explications !",
+                "Tu apprends mieux en lisant et en écoutant les explications. Tes ressources seront riches en textes détaillés et explications !",
         },
         ar: {
             title: "Ù…ØªØ¹Ù„Ù… Ø³Ù…Ø¹ÙŠ ðŸŽ§",
@@ -130,7 +130,7 @@ export const learningStyleResults = {
         fr: {
             title: "Apprenant Pratique ðŸ› ï¸",
             description:
-                "Tu apprends mieux en faisant des exercices et en pratiquant. Tes cours seront remplis de dÃ©fis et d'activitÃ©s interactives !",
+                "Tu apprends mieux en faisant des exercices et en pratiquant. Tes cours seront remplis de défis et d'activités interactives !",
         },
         ar: {
             title: "Ù…ØªØ¹Ù„Ù… Ø¹Ù…Ù„ÙŠ ðŸ› ï¸",
@@ -144,7 +144,7 @@ export const learningStyleDescriptions = {
     visual: {
         fr: {
             title: "ðŸ‘€ Apprenant Visuel",
-            description: "Tu apprends mieux avec des images, des diagrammes et des vidÃ©os. Tes cours incluront beaucoup de visuels!",
+            description: "Tu apprends mieux avec des images, des diagrammes et des vidéos. Tes cours incluront beaucoup de visuels!",
         },
         ar: {
             title: "ðŸ‘€ Ø§Ù„Ù…ØªØ¹Ù„Ù… Ø§Ù„Ø¨ØµØ±ÙŠ",
@@ -154,7 +154,7 @@ export const learningStyleDescriptions = {
     auditory: {
         fr: {
             title: "ðŸŽ§ Apprenant Auditif",
-            description: "Tu apprends mieux en Ã©coutant des explications verbales. Tes cours comprendront des explications audio dÃ©taillÃ©es!",
+            description: "Tu apprends mieux en écoutant des explications verbales. Tes cours comprendront des explications audio détaillées!",
         },
         ar: {
             title: "ðŸŽ§ Ø§Ù„Ù…ØªØ¹Ù„Ù… Ø§Ù„Ø³Ù…Ø¹ÙŠ",
@@ -163,7 +163,7 @@ export const learningStyleDescriptions = {
     },
     kinesthetic: {
         fr: {
-            title: "ðŸ› ï¸ Apprenant KinesthÃ©sique",
+            title: "ðŸ› ï¸ Apprenant Kinesthésique",
             description: "Tu apprends mieux en pratiquant et en faisant des exercices. Tes cours mettront l'accent sur la pratique!",
         },
         ar: {

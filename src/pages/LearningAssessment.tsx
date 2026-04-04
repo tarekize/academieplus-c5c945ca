@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
@@ -35,7 +35,7 @@ interface Report {
 type Phase = "loading" | "intro" | "quiz" | "evaluating" | "result";
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Questions de secours par niveau (utilisÃ©es si l'Edge Function est indisponible)
+// Questions de secours par niveau (utilisées si l'Edge Function est indisponible)
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const FALLBACK_QUESTIONS: Record<string, Question[]> = {
   "5eme_primaire": [
@@ -61,7 +61,7 @@ const FALLBACK_QUESTIONS: Record<string, Question[]> = {
   ],
   "3eme_cem": [
     { question: "Ù…Ø§ Ù‡Ùˆ Ù†Ø§ØªØ¬: (2x + 3)Â²ØŸ", options: ["4xÂ² + 9", "4xÂ² + 12x + 9", "4xÂ² + 6x + 9", "2xÂ² + 12x + 9"], correct_index: 1, chapter_ref: "Ø§Ù„Ù‡ÙˆÙŠØ§Øª Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ©", explanation: "(a+b)Â² = aÂ² + 2ab + bÂ² â†’ (2x+3)Â² = 4xÂ² + 12x + 9" },
-    { question: "Ù…Ø§ Ù‡Ùˆ cos(0Â°)ØŸ", options: ["0", "1", "-1", "1/2"], correct_index: 1, chapter_ref: "Ø§Ù„Ù…Ø«Ù„Ø«Ø§Øª", explanation: "cos(0Â°) = 1" },
+    { question: "Ù…Ø§ Ù‡Ùˆ cos(0°)ØŸ", options: ["0", "1", "-1", "1/2"], correct_index: 1, chapter_ref: "Ø§Ù„Ù…Ø«Ù„Ø«Ø§Øª", explanation: "cos(0°) = 1" },
     { question: "Ù…Ø§ Ù‡Ùˆ Ø­Ù„ Ø§Ù„Ù†Ø¸Ø§Ù…: x+y=5 Ùˆ x-y=1ØŸ", options: ["x=2, y=3", "x=3, y=2", "x=4, y=1", "x=1, y=4"], correct_index: 1, chapter_ref: "Ù…Ù†Ø¸ÙˆÙ…Ø© Ø§Ù„Ù…Ø¹Ø§Ø¯Ù„Ø§Øª", explanation: "Ø¨Ø§Ù„Ø¬Ù…Ø¹: 2x=6 â†’ x=3, y=2" },
     { question: "Ù…Ø§ Ù‡ÙŠ Ø§Ù„Ù…Ø´ØªÙ‚Ø© (Ø§Ù„ÙØ±Ù‚) Ù„Ù€ f(x) = 3xÂ²ØŸ", options: ["3x", "6x", "6xÂ²", "3xÂ³"], correct_index: 1, chapter_ref: "Ø§Ù„Ù…Ø´ØªÙ‚Ø§Øª (Ù…Ù‚Ø¯Ù…Ø©)", explanation: "f'(x) = 2 Ã— 3x = 6x" },
     { question: "Ù…Ø§ Ù‡Ùˆ Ø§Ù„Ù…ÙŠÙ„ (Ù…Ø¹Ø§Ù…Ù„ Ø§Ù„Ø§ØªØ¬Ø§Ù‡) Ù„Ù„Ù…Ø³ØªÙ‚ÙŠÙ… y = 2x + 5ØŸ", options: ["5", "2", "7", "-2"], correct_index: 1, chapter_ref: "Ø§Ù„Ù…Ø¹Ø§Ø¯Ù„Ø© Ø§Ù„Ù…Ø³ØªÙ‚ÙŠÙ…ÙŠØ©", explanation: "y = mx + b â†’ Ø§Ù„Ù…ÙŠÙ„ m = 2" },
@@ -69,7 +69,7 @@ const FALLBACK_QUESTIONS: Record<string, Question[]> = {
   "4eme_cem": [
     { question: "Ù…Ø§ Ù‡Ùˆ Ø­Ù„: xÂ² - 5x + 6 = 0ØŸ", options: ["x=1 Ø£Ùˆ x=6", "x=2 Ø£Ùˆ x=3", "x=-2 Ø£Ùˆ x=-3", "x=3 Ø£Ùˆ x=4"], correct_index: 1, chapter_ref: "Ø§Ù„Ù…Ø¹Ø§Ø¯Ù„Ø§Øª Ø§Ù„ØªØ±Ø¨ÙŠØ¹ÙŠØ©", explanation: "xÂ² - 5x + 6 = (x-2)(x-3) = 0 â†’ x=2 Ø£Ùˆ x=3" },
     { question: "Ù…Ø§ Ù‡Ùˆ Ù†Ø·Ø§Ù‚ Ø§Ù„Ø¯Ø§Ù„Ø© f(x) = âˆšxØŸ", options: ["â„", "[0, +âˆž[", "]-âˆž, 0]", "â„*"], correct_index: 1, chapter_ref: "Ø§Ù„Ø¯ÙˆØ§Ù„", explanation: "Ø§Ù„Ø¬Ø°Ø± Ø§Ù„ØªØ±Ø¨ÙŠØ¹ÙŠ Ù…Ø¹Ø±Ù ÙÙ‚Ø· Ù„Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ù…ÙˆØ¬Ø¨Ø© Ø£Ùˆ Ø§Ù„ØµÙØ±" },
-    { question: "Ù…Ø§ Ù‡Ùˆ sin(30Â°)ØŸ", options: ["âˆš3/2", "1/2", "âˆš2/2", "1"], correct_index: 1, chapter_ref: "Ø§Ù„Ù…Ø«Ù„Ø«Ø§Øª", explanation: "sin(30Â°) = 1/2" },
+    { question: "Ù…Ø§ Ù‡Ùˆ sin(30°)ØŸ", options: ["âˆš3/2", "1/2", "âˆš2/2", "1"], correct_index: 1, chapter_ref: "Ø§Ù„Ù…Ø«Ù„Ø«Ø§Øª", explanation: "sin(30°) = 1/2" },
     { question: "Ù…Ø§ Ù‡Ùˆ Ù…ØªÙˆØ³Ø· (Ù…Ø¹Ø¯Ù„): 12, 15, 18, 9, 6ØŸ", options: ["10", "12", "14", "15"], correct_index: 1, chapter_ref: "Ø§Ù„Ø¥Ø­ØµØ§Ø¡", explanation: "Ø§Ù„Ù…Ø¹Ø¯Ù„ = (12+15+18+9+6) Ã· 5 = 60 Ã· 5 = 12" },
     { question: "Ù…Ø§ Ù‡Ùˆ ØªÙ…ÙŠÙŠØ² (discriminant) Ù…Ø¹Ø§Ø¯Ù„Ø© 2xÂ² - 4x + 2 = 0ØŸ", options: ["0", "4", "8", "-4"], correct_index: 0, chapter_ref: "Ø§Ù„Ù…Ø¹Ø§Ø¯Ù„Ø§Øª Ø§Ù„ØªØ±Ø¨ÙŠØ¹ÙŠØ©", explanation: "Î” = bÂ² - 4ac = 16 - 16 = 0" },
   ],
@@ -79,11 +79,11 @@ const FALLBACK_QUESTIONS: Record<string, Question[]> = {
 const getFallbackQuestions = (schoolLevel: string): Question[] => {
   return (
     FALLBACK_QUESTIONS[schoolLevel] ||
-    FALLBACK_QUESTIONS["3eme_cem"] // fallback gÃ©nÃ©ral
+    FALLBACK_QUESTIONS["3eme_cem"] // fallback général
   );
 };
 
-// Ã‰valuation locale (si l'Edge Function evaluate Ã©choue)
+// Évaluation locale (si l'Edge Function evaluate échoue)
 const getLocalEvaluation = (correctCount: number, total: number): Report => {
   const pct = Math.round((correctCount / total) * 100);
   if (pct >= 80) return {
@@ -160,7 +160,7 @@ const LearningAssessment = () => {
     return (legacyRows?.length || 0) > 0;
   };
 
-  // VÃ©rif auth et Ã©valuation existante
+  // Vérif auth et évaluation existante
   useEffect(() => {
     const check = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -172,7 +172,7 @@ const LearningAssessment = () => {
     check();
   }, [navigate]);
 
-  // Générer le test dÃ¨s que school_level est disponible
+  // Générer le test dès que school_level est disponible
   useEffect(() => {
     if (testGeneratedRef.current) return;
 
@@ -192,7 +192,7 @@ const LearningAssessment = () => {
     tryGenerate();
   }, [profile, profileLoading]);
 
-  // Fallback polling aprÃ¨s 3s si le profil n'est toujours pas prÃªt
+  // Fallback polling après 3s si le profil n'est toujours pas prêt
   useEffect(() => {
     if (testGeneratedRef.current) return;
 
@@ -213,7 +213,7 @@ const LearningAssessment = () => {
         testGeneratedRef.current = true;
         generateTest(profileData.school_level);
       } else {
-        // Niveau inconnu â†’ utiliser les questions gÃ©nÃ©rales
+        // Niveau inconnu â†’ utiliser les questions générales
         testGeneratedRef.current = true;
         generateTest("3eme_cem");
       }
@@ -231,7 +231,7 @@ const LearningAssessment = () => {
 
       // Si l'Edge Function retourne une erreur HTTP
       if (error) throw error;
-      // Si l'Edge Function retourne une erreur mÃ©tier
+      // Si l'Edge Function retourne une erreur métier
       if (data?.error) throw new Error(data.error);
 
       if (data?.questions?.length > 0) {
@@ -240,7 +240,7 @@ const LearningAssessment = () => {
         return;
       }
 
-      throw new Error("Aucune question reÃ§ue de l'IA");
+      throw new Error("Aucune question reçue de l'IA");
 
     } catch (err: any) {
       console.warn("Edge Function indisponible, utilisation des questions locales:", err?.message);
@@ -288,7 +288,7 @@ const LearningAssessment = () => {
         });
       }
 
-      // RÃ©cupÃ©rer school_level depuis le profil ou les mÃ©tadonnÃ©es
+      // Récupérer school_level depuis le profil ou les métadonnées
       const { data: { session } } = await supabase.auth.getSession();
       const schoolLevel = profile?.school_level || session?.user?.user_metadata?.school_level;
       const studentName = profile?.first_name || session?.user?.user_metadata?.first_name;
@@ -310,8 +310,8 @@ const LearningAssessment = () => {
       setPhase("result");
 
     } catch (err: any) {
-      console.warn("Ã‰valuation IA indisponible, utilisation de l'Ã©valuation locale:", err?.message);
-      // âœ… Ã‰valuation locale de secours
+      console.warn("Évaluation IA indisponible, utilisation de l'évaluation locale:", err?.message);
+      // âœ… Évaluation locale de secours
       const correctCount = answers.filter(a => a.correct).length;
       const total = answers.length;
       setReport(getLocalEvaluation(correctCount, total));
@@ -361,7 +361,7 @@ const LearningAssessment = () => {
         if (insertError) throw insertError;
       }
 
-      toast.success("RÃ©sultats sauvegardÃ©s !");
+      toast.success("Résultats sauvegardés !");
       navigate("/liste-cours");
     } catch (e: any) {
       console.error("Primary save to student_scores failed, trying legacy fallback:", e);
@@ -397,11 +397,11 @@ const LearningAssessment = () => {
           if (legacyInsertError) throw legacyInsertError;
         }
 
-        toast.success("RÃ©sultats sauvegardÃ©s !");
+        toast.success("Résultats sauvegardés !");
         navigate("/liste-cours");
       } catch (legacyError: any) {
         console.error("Legacy save failed:", legacyError);
-        toast.error("Erreur lors de la sauvegarde. Veuillez rÃ©essayer.");
+        toast.error("Erreur lors de la sauvegarde. Veuillez réessayer.");
       }
     }
   };

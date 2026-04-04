@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,20 +90,20 @@ export const TwoFactorSettings = () => {
 
   const handleVerify = async () => {
     if (!factorId || !verifyCode) {
-      toast.error("Veuillez entrer le code de vÃ©rification");
+      toast.error("Veuillez entrer le code de vérification");
       return;
     }
 
     setLoading(true);
     try {
-      // D'abord crÃ©er un challenge
+      // D'abord créer un challenge
       const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
         factorId: factorId
       });
 
       if (challengeError) throw challengeError;
 
-      // Ensuite vÃ©rifier avec le code
+      // Ensuite vérifier avec le code
       const { error: verifyError } = await supabase.auth.mfa.verify({
         factorId: factorId,
         challengeId: challengeData.id,
@@ -112,7 +112,7 @@ export const TwoFactorSettings = () => {
 
       if (verifyError) throw verifyError;
 
-      toast.success("Double authentification activÃ©e avec succÃ¨s !");
+      toast.success("Double authentification activée avec succès !");
       setShowEnrollDialog(false);
       setQrCode(null);
       setSecret(null);
@@ -121,7 +121,7 @@ export const TwoFactorSettings = () => {
       loadFactors();
     } catch (error: any) {
       console.error("Error verifying MFA:", error);
-      toast.error(error.message || "Code invalide. Veuillez rÃ©essayer.");
+      toast.error(error.message || "Code invalide. Veuillez réessayer.");
     } finally {
       setLoading(false);
     }
@@ -136,11 +136,11 @@ export const TwoFactorSettings = () => {
 
       if (error) throw error;
 
-      toast.success("Double authentification dÃ©sactivÃ©e");
+      toast.success("Double authentification désactivée");
       loadFactors();
     } catch (error: any) {
       console.error("Error unenrolling MFA:", error);
-      toast.error(error.message || "Erreur lors de la dÃ©sactivation de la 2FA");
+      toast.error(error.message || "Erreur lors de la désactivation de la 2FA");
     } finally {
       setLoading(false);
     }
@@ -157,7 +157,7 @@ export const TwoFactorSettings = () => {
           Double Authentification (2FA)
         </CardTitle>
         <CardDescription>
-          Renforcez la sÃ©curitÃ© de votre compte avec une authentification Ã  deux facteurs
+          Renforcez la sécurité de votre compte avec une authentification Ã  deux facteurs
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -170,17 +170,17 @@ export const TwoFactorSettings = () => {
             )}
             <div>
               <p className="font-medium">
-                {hasMfaEnabled ? "2FA activÃ©e" : "2FA non activÃ©e"}
+                {hasMfaEnabled ? "2FA activée" : "2FA non activée"}
               </p>
               <p className="text-sm text-muted-foreground">
                 {hasMfaEnabled 
-                  ? "Votre compte est protÃ©gÃ© par une authentification Ã  deux facteurs" 
-                  : "Activez la 2FA pour renforcer la sÃ©curitÃ© de votre compte"}
+                  ? "Votre compte est protégé par une authentification Ã  deux facteurs" 
+                  : "Activez la 2FA pour renforcer la sécurité de votre compte"}
               </p>
             </div>
           </div>
           <Badge variant={hasMfaEnabled ? "default" : "secondary"}>
-            {hasMfaEnabled ? "ActivÃ©e" : "DÃ©sactivÃ©e"}
+            {hasMfaEnabled ? "Activée" : "Désactivée"}
           </Badge>
         </div>
 
@@ -192,7 +192,7 @@ export const TwoFactorSettings = () => {
           <>
             {verifiedFactors.length > 0 && (
               <div className="space-y-3">
-                <Label>MÃ©thodes d'authentification configurÃ©es</Label>
+                <Label>Méthodes d'authentification configurées</Label>
                 {verifiedFactors.map((factor) => (
                   <div 
                     key={factor.id} 
@@ -203,7 +203,7 @@ export const TwoFactorSettings = () => {
                       <div>
                         <p className="font-medium">{factor.friendly_name || "Application Authenticator"}</p>
                         <p className="text-xs text-muted-foreground">
-                          AjoutÃ© le {new Date(factor.created_at).toLocaleDateString('fr-FR')}
+                          Ajouté le {new Date(factor.created_at).toLocaleDateString('fr-FR')}
                         </p>
                       </div>
                     </div>
@@ -215,10 +215,10 @@ export const TwoFactorSettings = () => {
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>DÃ©sactiver la 2FA ?</AlertDialogTitle>
+                          <AlertDialogTitle>Désactiver la 2FA ?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Cette action dÃ©sactivera l'authentification Ã  deux facteurs pour votre compte.
-                            Votre compte sera moins sÃ©curisÃ©.
+                            Cette action désactivera l'authentification Ã  deux facteurs pour votre compte.
+                            Votre compte sera moins sécurisé.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -227,7 +227,7 @@ export const TwoFactorSettings = () => {
                             onClick={() => handleUnenroll(factor.id)}
                             className="bg-destructive hover:bg-destructive/90"
                           >
-                            DÃ©sactiver
+                            Désactiver
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -284,7 +284,7 @@ export const TwoFactorSettings = () => {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="verify-code">Code de vÃ©rification</Label>
+                <Label htmlFor="verify-code">Code de vérification</Label>
                 <Input
                   id="verify-code"
                   type="text"
@@ -297,7 +297,7 @@ export const TwoFactorSettings = () => {
                   className="text-center text-2xl tracking-widest"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Entrez le code Ã  6 chiffres affichÃ© dans votre application
+                  Entrez le code Ã  6 chiffres affiché dans votre application
                 </p>
               </div>
             </div>
@@ -310,10 +310,10 @@ export const TwoFactorSettings = () => {
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    VÃ©rification...
+                    Vérification...
                   </>
                 ) : (
-                  "VÃ©rifier et activer"
+                  "Vérifier et activer"
                 )}
               </Button>
             </DialogFooter>

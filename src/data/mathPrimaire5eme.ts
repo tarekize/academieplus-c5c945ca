@@ -1,5 +1,5 @@
-﻿// MathÃ©matiques - 5Ã¨me Primaire
-// Programme structurÃ© en 4 chapitres
+// Mathématiques - 5ème Primaire
+// Programme structuré en 4 chapitres
 
 export interface Chapter {
     id: string;
@@ -17,12 +17,12 @@ export interface Lesson {
 export const mathPrimaire5emeChapters: Chapter[] = [
     {
         id: "ch1-wadaiya-intilakiya-1",
-        title: "Situation de dÃ©part 1",
+        title: "Situation de départ 1",
         titleAr: "Ø§Ù„ÙˆØ¶Ø¹ÙŠØ© Ø§Ù„Ø§Ù†Ø·Ù„Ø§Ù‚ÙŠØ© 1",
         lessons: [
             {
                 id: "ch1-l1-aadad-ila-999999-1",
-                title: "Les nombres jusqu'Ã  999 999 '1' (Ã©criture, lecture et dÃ©composition des nombres jusqu'Ã  999 999)",
+                title: "Les nombres jusqu'Ã  999 999 '1' (écriture, lecture et décomposition des nombres jusqu'Ã  999 999)",
                 titleAr: "Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø¥Ù„Ù‰ 999999 '1'(ÙƒØªØ§Ø¨Ø© ÙˆÙ‚Ø±Ø§Ø¡Ø© ÙˆØªÙÙƒÙŠÙƒ Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø¥Ù„Ù‰999999 )"
             },
             {
@@ -37,7 +37,7 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch1-l4-aadad-ila-999999-2",
-                title: "Les nombres jusqu'Ã  999 999 '2' (comparaison, classement et dÃ©nombrement jusqu'Ã  999 999)",
+                title: "Les nombres jusqu'Ã  999 999 '2' (comparaison, classement et dénombrement jusqu'Ã  999 999)",
                 titleAr: "Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø¥Ù„Ù‰ 999 999 '2'(Ù…Ù‚Ø§Ø±Ù†Ø© ÙˆØªØ±ØªÙŠØ¨ ÙˆØ­ØµØ± Ø§Ù„Ø£Ø¹Ù…Ø§Ø¯ Ø¥Ù„Ù‰999999)"
             },
             {
@@ -62,7 +62,7 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch1-l9-alaqat-hisabiya",
-                title: "Relations arithmÃ©tiques entre nombres naturels",
+                title: "Relations arithmétiques entre nombres naturels",
                 titleAr: "Ø¹Ù„Ø§Ù‚Ø§Øª Ø­Ø³Ø§Ø¨ÙŠØ© Ø¨ÙŠÙ† Ø£Ø¹Ø¯Ø§Ø¯ Ø·Ø¨ÙŠØ¹ÙŠØ©"
             },
             {
@@ -87,39 +87,39 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch1-l14-mustaqimat-mutawazi",
-                title: "Droites parallÃ¨les et droites perpendiculaires",
+                title: "Droites parallèles et droites perpendiculaires",
                 titleAr: "Ù…Ø³ØªÙ‚ÙŠÙ…Ø§Øª Ù…ØªÙˆØ§Ø²ÙŠØ© ÙˆÙ…Ø³ØªÙ‚ÙŠÙ…Ø§Øª Ù…ØªØ¹Ø§Ù…Ø¯Ø©"
             },
             {
                 id: "ch1-l15-aadad-ila-999999999-1",
-                title: "Les nombres jusqu'Ã  999 999 999 '1' (lecture, Ã©criture et dÃ©composition des nombres jusqu'Ã  999 999 999)",
+                title: "Les nombres jusqu'Ã  999 999 999 '1' (lecture, écriture et décomposition des nombres jusqu'Ã  999 999 999)",
                 titleAr: "Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø¥Ù„Ù‰ 999 999 999 '1'(Ù‚Ø±Ø§Ø¡Ø© ÙˆÙƒØªØ§Ø¨Ø© ÙˆØªÙÙƒÙŠÙƒ Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø¥Ù„Ù‰ 999 999 999)"
             },
             {
                 id: "ch1-l16-aadad-ila-999999999-2",
-                title: "Les nombres jusqu'Ã  999 999 999 '2' (comparaison, classement et dÃ©nombrement des nombres jusqu'Ã  999 999 999)",
+                title: "Les nombres jusqu'Ã  999 999 999 '2' (comparaison, classement et dénombrement des nombres jusqu'Ã  999 999 999)",
                 titleAr: "Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø¥Ù„Ù‰ 999 999 999 '2'(Ù…Ù‚Ø§Ø±Ù†Ø© ÙˆØªØ±ØªÙŠØ¨ ÙˆØ­ØµØ± Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø¥Ù„Ù‰ 999 999 999)"
             },
             {
                 id: "ch1-l17-alhasiba",
-                title: "La calculatrice (dÃ©couverte des touches mÃ©moire et leur contrÃ´le)",
+                title: "La calculatrice (découverte des touches mémoire et leur contrôle)",
                 titleAr: "Ø§Ù„Ø­Ø§Ø³Ø¨Ø© (Ø§ÙƒØªØ´Ø§Ù Ø§Ù„Ù…Ø³Ø§Øª Ø§Ù„Ø°Ø§ÙƒØ±Ø© ÙˆØ§Ù„ØªØ­ÙƒÙ… ÙÙŠÙ‡Ø§ )"
             },
             {
                 id: "ch1-l18-ad-kamiyat-kabira",
-                title: "DÃ©nombrement de grandes quantitÃ©s",
+                title: "Dénombrement de grandes quantités",
                 titleAr: "Ø¹Ø¯ ÙƒÙ…ÙŠØ§Øª ÙƒØ¨ÙŠØ±Ø©"
             },
             {
                 id: "ch1-l19-manhajiya-hall-mushkilat",
-                title: "MÃ©thodologie de rÃ©solution de problÃ¨mes",
+                title: "Méthodologie de résolution de problèmes",
                 titleAr: "Ù…Ù†Ù‡Ø¬ÙŠØ© Ø­Ù„ Ù…Ø´ÙƒÙ„Ø§Øª"
             }
         ]
     },
     {
         id: "ch2-wadaiya-intilakiya-2",
-        title: "Situation de dÃ©part 2",
+        title: "Situation de départ 2",
         titleAr: "Ø§Ù„ÙˆØ¶Ø¹ÙŠØ© Ø§Ù„Ø§Ù†Ø·Ù„Ø§Ù‚ÙŠØ© 2",
         lessons: [
             {
@@ -134,7 +134,7 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch2-l3-qima-raqm",
-                title: "Valeur du chiffre selon sa position dans l'Ã©criture d'un nombre naturel",
+                title: "Valeur du chiffre selon sa position dans l'écriture d'un nombre naturel",
                 titleAr: "Ù‚ÙÙŠÙ…ÙŽØ©Ù Ø§Ù„Ø±ÙŽÙ‘Ù‚Ù… Ø­ÙŽØ³Ù’Ø¨ÙŽ Ù…ÙŽÙ†Ù’Ø²ÙÙ„ÙŽØªÙÙ‡Ù ÙÙŠ ÙƒÙØªÙŽØ§Ø¨ÙŽØ©Ù Ø¹Ø¯Ø¯Ù Ø·ÙŽØ¨ÙŠØ¹ÙŠÙÙ‘"
             },
             {
@@ -144,17 +144,17 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch2-l5-alkusur-alashira",
-                title: "Les fractions dÃ©cimales et les nombres dÃ©cimaux",
+                title: "Les fractions décimales et les nombres décimaux",
                 titleAr: "Ø§Ù„ÙƒØ³ÙˆØ± Ø§Ù„Ø¹Ø´Ø±ÙŠØ© ÙˆØ§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø¹Ø´Ø±ÙŠØ©"
             },
             {
                 id: "ch2-l6-tanasubiya-1",
-                title: "ProportionnalitÃ© 1 (classification d'une situation en utilisant le critÃ¨re de proportionnalitÃ©)",
+                title: "Proportionnalité 1 (classification d'une situation en utilisant le critère de proportionnalité)",
                 titleAr: "Ø§Ù„ØªÙ†Ø§Ø³Ø¨ÙŠØ©1 (ØªØµÙ†ÙŠÙ ÙˆØ¶Ø¹ÙŠØ© Ø¨Ø§Ø³ØªØ¹Ù…Ø§Ù„ Ù…Ø¹ÙŠØ§Ø± Ø§Ù„ØªÙ†Ø§Ø³Ø¨ÙŠØ©)"
             },
             {
                 id: "ch2-l7-muhit-muraba-wa-mustatil",
-                title: "PÃ©rimÃ¨tre du carrÃ© et du rectangle",
+                title: "Périmètre du carré et du rectangle",
                 titleAr: "Ù…Ø­ÙŠØ· Ø§Ù„Ù…Ø±Ø¨Ø¹ ÙˆØ§Ù„Ù…Ø³ØªØ·ÙŠÙ„"
             },
             {
@@ -164,17 +164,17 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch2-l9-tanazir-1",
-                title: "SymÃ©trie 1 (vÃ©rifier qu'une figure a un axe de symÃ©trie ou plus en utilisant diffÃ©rentes techniques)",
+                title: "Symétrie 1 (vérifier qu'une figure a un axe de symétrie ou plus en utilisant différentes techniques)",
                 titleAr: "Ø§Ù„ØªÙ†Ø§Ø¸Ø±1 (Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø£Ù†Ù‘ Ù„Ø´ÙƒÙ„ Ù…Ø§ Ù…Ø­ÙˆØ± ØªÙ†Ø§Ø¸Ø± Ø£Ùˆ Ø£ÙƒØ«Ø± Ø¨Ø§Ø³ØªØ¹Ù…Ø§Ù„ ØªÙ‚Ù†ÙŠØ§Øª Ù…Ø®ØªÙ„ÙØ©.)"
             },
             {
                 id: "ch2-l10-tanasubiya-2",
-                title: "ProportionnalitÃ© 2 (rÃ©soudre des situations de proportionnalitÃ© en utilisant les propriÃ©tÃ©s de linÃ©aritÃ© et le coefficient de proportionnalitÃ©)",
+                title: "Proportionnalité 2 (résoudre des situations de proportionnalité en utilisant les propriétés de linéarité et le coefficient de proportionnalité)",
                 titleAr: "Ø§Ù„ØªÙ†Ø§Ø³Ø¨ÙŠØ©2 (Ø­Ù„ ÙˆØ¶Ø¹ÙŠØ§Øª ØªÙ†Ø§Ø³Ø¨ÙŠØ© Ø¨Ø§Ø³ØªØ¹Ù…Ø§Ù„ Ø®ÙˆØ§Øµ Ø§Ù„Ø®Ø·ÙŠØ© ÙˆÙ…Ø¹Ø§Ù…Ù„ Ø§Ù„ØªÙ†Ø§Ø³Ø¨ÙŠØ©.)"
             },
             {
                 id: "ch2-l11-jam-wa-tarh-1",
-                title: "Addition et soustraction de nombres naturels et dÃ©cimaux (1)",
+                title: "Addition et soustraction de nombres naturels et décimaux (1)",
                 titleAr: "Ø­Ù…Ø¹ ÙˆØ·Ø±Ø­ Ø£Ø¹Ø¯Ø§Ø¯ Ø·Ø¨ÙŠØ¹ÙŠØ© ÙˆØ¹Ø´Ø±ÙŠØ© (1)"
             },
             {
@@ -184,7 +184,7 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch2-l13-tanazir-2",
-                title: "SymÃ©trie 2 (tracer l'image d'une figure par rapport Ã  une droite donnÃ©e sur papier quadrillÃ©)",
+                title: "Symétrie 2 (tracer l'image d'une figure par rapport Ã  une droite donnée sur papier quadrillé)",
                 titleAr: "Ø§Ù„ØªÙ†Ø§Ø¸Ø±2 (Ø±Ø³Ù… Ù†Ø¸ÙŠØ± Ø´ÙƒÙ„ Ø¨Ø§Ù„Ù†Ø³Ø¨Ø© Ø¥Ù„Ù‰ Ù…Ø³ØªÙ‚ÙŠÙ… Ù…Ø¹Ø·Ù‰ Ø¹Ù„Ù‰ ÙˆØ±Ù‚Ø© Ù…Ø±ØµÙˆÙØ©.)"
             },
             {
@@ -194,29 +194,29 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch2-l15-alashkal-alhandasiya",
-                title: "Les figures gÃ©omÃ©triques familiÃ¨res",
+                title: "Les figures géométriques familières",
                 titleAr: "Ø§Ù„Ø£Ø´ÙƒØ§Ù„ Ø§Ù„Ù‡Ù†Ø¯Ø³ÙŠØ© Ø§Ù„Ù…Ø£Ù„ÙˆÙØ©"
             },
             {
                 id: "ch2-l16-manhajiya-hall-mushkilat",
-                title: "MÃ©thodologie de rÃ©solution de problÃ¨mes",
+                title: "Méthodologie de résolution de problèmes",
                 titleAr: "Ù…Ù†Ù‡Ø¬ÙŠØ© Ø­Ù„Ù‘ Ù…Ø´ÙƒÙ„Ø§Øª"
             }
         ]
     },
     {
         id: "ch3-wadaiya-intilakiya-3",
-        title: "Situation de dÃ©part 3",
+        title: "Situation de départ 3",
         titleAr: "Ø§Ù„ÙˆØ¶Ø¹ÙŠØ© Ø§Ù„Ø§Ù†Ø·Ù„Ø§Ù‚ÙŠØ© 3",
         lessons: [
             {
                 id: "ch3-l1-aadad-ashira-wa-mustaqim",
-                title: "Les nombres dÃ©cimaux et la droite graduÃ©e",
+                title: "Les nombres décimaux et la droite graduée",
                 titleAr: "Ø§Ù„Ø§Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø¹Ø´Ø±ÙŠØ© ÙˆØ§Ù„Ù…Ø³ØªÙ‚ÙŠÙ… Ø§Ù„Ù…Ø¯Ø±Ø¬"
             },
             {
                 id: "ch3-l2-muqarana-wa-tartib-ashira",
-                title: "Comparaison et classement de nombres dÃ©cimaux",
+                title: "Comparaison et classement de nombres décimaux",
                 titleAr: "Ù…Ù‚Ø§Ø±Ù†Ø© ÙˆØªØ±ØªÙŠØ¨ Ø£Ø¹Ø¯Ø§Ø¯ Ø¹Ø´Ø±ÙŠØ©"
             },
             {
@@ -226,17 +226,17 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch3-l4-tanasubiya-3",
-                title: "ProportionnalitÃ© (3)",
+                title: "Proportionnalité (3)",
                 titleAr: "Ø§Ù„ØªÙ†Ø§Ø³Ø¨ÙŠØ© (3)"
             },
             {
                 id: "ch3-l5-darb-adad-ashiri",
-                title: "Multiplication d'un nombre dÃ©cimal par un nombre naturel",
+                title: "Multiplication d'un nombre décimal par un nombre naturel",
                 titleAr: "Ø¶Ø±Ø¨ Ø¹Ø¯Ø¯ Ø¹Ø´Ø±ÙŠ ÙÙŠ Ø¹Ø¯Ø¯ Ø·Ø¨ÙŠØ¹ÙŠ"
             },
             {
                 id: "ch3-l6-tafkik-adad-ashiri-1",
-                title: "DÃ©composition d'un nombre dÃ©cimal (1)",
+                title: "Décomposition d'un nombre décimal (1)",
                 titleAr: "Ù†ÙÙƒÙŠÙƒ Ø¹Ø¯Ø¯ Ø¹Ø´Ø±ÙŠ (1)"
             },
             {
@@ -251,12 +251,12 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch3-l9-masaha-muraba-wa-mustatil",
-                title: "Aire du carrÃ© et du rectangle",
+                title: "Aire du carré et du rectangle",
                 titleAr: "Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ù…Ø±Ø¨Ø¹ ÙˆØ§Ù„Ù…Ø³ØªØ·ÙŠÙ„"
             },
             {
                 id: "ch3-l10-alaqat-hisabiya-ashira",
-                title: "Relations arithmÃ©tiques entre nombres dÃ©cimaux",
+                title: "Relations arithmétiques entre nombres décimaux",
                 titleAr: "Ø¹Ù„Ø§Ù‚Ø§Øª Ø­Ø³Ø§Ø¨ÙŠØ© Ø¨ÙŠÙ† Ø£Ø¹Ø¯Ø§Ø¯ Ø¹Ø´Ø±ÙŠØ©"
             },
             {
@@ -266,7 +266,7 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch3-l12-alrubaiyat-alkhassa",
-                title: "Les quadrilatÃ¨res particuliers",
+                title: "Les quadrilatères particuliers",
                 titleAr: "Ø§Ù„Ø±Ø¨Ø§Ø¹ÙŠØ§Øª Ø§Ù„Ø®Ø§ØµØ©"
             },
             {
@@ -281,7 +281,7 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch3-l15-tamthilat-bayaniya",
-                title: "ReprÃ©sentations graphiques et diagrammes",
+                title: "Représentations graphiques et diagrammes",
                 titleAr: "ØªÙ…Ø«ÙŠÙ„Ø§Øª Ø¨ÙŠØ§Ù†ÙŠØ© ÙˆÙ…Ø®Ø·Ø·Ø§Øª"
             },
             {
@@ -296,19 +296,19 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch3-l18-aadad-ashira-wa-qiyas",
-                title: "Les nombres dÃ©cimaux et la mesure de grandeurs",
+                title: "Les nombres décimaux et la mesure de grandeurs",
                 titleAr: "Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø¹Ø´Ø±ÙŠØ© ÙˆÙ‚ÙŠØ§Ø³ Ù…Ù‚Ø§Ø¯ÙŠØ±"
             },
             {
                 id: "ch3-l19-manhajiya-hall-mushkilat",
-                title: "MÃ©thodologie de rÃ©solution de problÃ¨mes",
+                title: "Méthodologie de résolution de problèmes",
                 titleAr: "Ù…Ù†Ù‡Ø¬ÙŠØ© Ø­Ù„ Ù…Ø´ÙƒÙ„Ø§Øª"
             }
         ]
     },
     {
         id: "ch4-wadaiya-intilakiya-4",
-        title: "Situation de dÃ©part 4",
+        title: "Situation de départ 4",
         titleAr: "Ø§Ù„ÙˆØ¶Ø¹ÙŠØ© Ø§Ù„Ø§Ù†Ø·Ù„Ø§Ù‚ÙŠØ© 4",
         lessons: [
             {
@@ -323,17 +323,17 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch4-l3-naql-shakl",
-                title: "Translation d'une figure ou son achÃ¨vement",
+                title: "Translation d'une figure ou son achèvement",
                 titleAr: "Ù†Ù‚Ù„ Ø´ÙƒÙ„ Ø£Ùˆ Ø¥ØªÙ…Ø§Ù…Ù‡"
             },
             {
                 id: "ch4-l4-insha-ashkal-handasiya",
-                title: "Construction de figures gÃ©omÃ©triques",
+                title: "Construction de figures géométriques",
                 titleAr: "Ø¥Ù†Ø´Ø§Ø¡ Ø£Ø´ÙƒØ§Ù„ Ù‡Ù†Ø¯Ø³ÙŠØ©"
             },
             {
                 id: "ch4-l5-alkusur-wa-aadad-ashira",
-                title: "Les fractions et les nombres dÃ©cimaux",
+                title: "Les fractions et les nombres décimaux",
                 titleAr: "Ø§Ù„ÙƒØ³ÙˆØ± ÙˆØ§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø¹Ø´Ø±ÙŠØ©"
             },
             {
@@ -343,27 +343,27 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch4-l7-qiyas-mudud",
-                title: "Mesure de durÃ©es",
+                title: "Mesure de durées",
                 titleAr: "Ù‚ÙŠØ§Ø³ Ù…Ø¯Ø¯"
             },
             {
                 id: "ch4-l8-tafkik-adad-ashiri",
-                title: "DÃ©composition d'un nombre dÃ©cimal",
+                title: "Décomposition d'un nombre décimal",
                 titleAr: "ØªÙÙƒÙŠÙƒ Ø¹Ø¯Ø¯ Ø¹Ø´Ø±ÙŠ"
             },
             {
                 id: "ch4-l9-almqiyas",
-                title: "L'Ã©chelle",
+                title: "L'échelle",
                 titleAr: "Ø§Ù„Ù…Ù‚ÙŠØ§Ø³"
             },
             {
                 id: "ch4-l10-qiyas-saiat",
-                title: "Mesure de capacitÃ©s",
+                title: "Mesure de capacités",
                 titleAr: "Ù‚ÙŠØ§Ø³ Ø³Ø¹Ø§Øª"
             },
             {
                 id: "ch4-l11-wadaiyat-hisabiya",
-                title: "Situations arithmÃ©tiques",
+                title: "Situations arithmétiques",
                 titleAr: "ÙˆØ¶Ø¹ÙŠØ§Øª Ø­Ø³Ø§Ø¨ÙŠØ©"
             },
             {
@@ -373,12 +373,12 @@ export const mathPrimaire5emeChapters: Chapter[] = [
             },
             {
                 id: "ch4-l13-qima-raqm-ashiri",
-                title: "Valeur du chiffre selon sa position dans l'Ã©criture d'un nombre dÃ©cimal",
+                title: "Valeur du chiffre selon sa position dans l'écriture d'un nombre décimal",
                 titleAr: "Ù‚ÙÙŠÙ…ÙŽØ©Ù Ø§Ù„Ø±ÙŽÙ‘Ù‚Ù… Ø­ÙŽØ³Ù’Ø¨ÙŽ Ù…ÙŽÙ†Ù’Ø²ÙÙ„ÙŽØªÙÙ‡ ÙÙŠ ÙƒÙØªÙŽØ§Ø¨ÙŽØ© Ø¹Ø¯Ø¯Ù Ø¹Ø´Ø±ÙŠ"
             },
             {
                 id: "ch4-l14-manhajiya-hall-mushkilat",
-                title: "MÃ©thodologie de rÃ©solution de problÃ¨mes",
+                title: "Méthodologie de résolution de problèmes",
                 titleAr: "Ù…Ù†Ù‡Ø¬ÙŠØ© Ø­Ù„Ù‘ Ù…Ø´ÙƒÙ„Ø§Øª"
             }
         ]
@@ -386,8 +386,8 @@ export const mathPrimaire5emeChapters: Chapter[] = [
 ];
 
 export const getPrimaire5emeCourseInfo = () => ({
-    title: "MathÃ©matiques - 5Ã¨me Primaire",
+    title: "Mathématiques - 5ème Primaire",
     titleAr: "Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª - Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø®Ø§Ù…Ø³Ø© Ø§Ø¨ØªØ¯Ø§Ø¦ÙŠ",
-    description: "Programme de mathÃ©matiques pour la 5Ã¨me annÃ©e du primaire",
+    description: "Programme de mathématiques pour la 5ème année du primaire",
     descriptionAr: "Ø¨Ø±Ù†Ø§Ù…Ø¬ Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª Ù„Ù„Ø³Ù†Ø© Ø§Ù„Ø®Ø§Ù…Ø³Ø© Ø§Ø¨ØªØ¯Ø§Ø¦ÙŠ"
 });

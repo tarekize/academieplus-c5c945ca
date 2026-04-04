@@ -1,4 +1,4 @@
-﻿import { Trophy, Target, Clock, TrendingUp } from "lucide-react";
+import { Trophy, Target, Clock, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -24,10 +24,10 @@ export const ResultsSummary = ({
 
   const getGrade = (percentage: number) => {
     if (percentage >= 90) return { text: "Excellent !", color: "text-green-500", icon: "ðŸ†" };
-    if (percentage >= 75) return { text: "TrÃ¨s bien", color: "text-blue-500", icon: "â­" };
+    if (percentage >= 75) return { text: "Très bien", color: "text-blue-500", icon: "â­" };
     if (percentage >= 60) return { text: "Bien", color: "text-yellow-500", icon: "ðŸ‘" };
     if (percentage >= 50) return { text: "Passable", color: "text-orange-500", icon: "ðŸ“š" };
-    return { text: "Ã€ revoir", color: "text-red-500", icon: "ðŸ’ª" };
+    return { text: "À revoir", color: "text-red-500", icon: "ðŸ’ª" };
   };
 
   const grade = getGrade(percentage);
@@ -43,7 +43,7 @@ export const ResultsSummary = ({
               {grade.text}
             </h2>
             <p className="text-muted-foreground">
-              Vous avez terminÃ© votre examen
+              Vous avez terminé votre examen
             </p>
           </div>
 
@@ -59,7 +59,7 @@ export const ResultsSummary = ({
             <div className="space-y-2">
               <Target className="h-6 w-6 mx-auto text-primary" />
               <div className="text-2xl font-bold">{score}/{totalQuestions}</div>
-              <div className="text-xs text-muted-foreground">Bonnes rÃ©ponses</div>
+              <div className="text-xs text-muted-foreground">Bonnes réponses</div>
             </div>
 
             <div className="space-y-2">
@@ -67,13 +67,13 @@ export const ResultsSummary = ({
               <div className="text-2xl font-bold">
                 {minutes}:{String(seconds).padStart(2, "0")}
               </div>
-              <div className="text-xs text-muted-foreground">Temps Ã©coulÃ©</div>
+              <div className="text-xs text-muted-foreground">Temps écoulé</div>
             </div>
 
             <div className="space-y-2">
               <TrendingUp className="h-6 w-6 mx-auto text-primary" />
               <div className="text-2xl font-bold">{percentage}%</div>
-              <div className="text-xs text-muted-foreground">PrÃ©cision</div>
+              <div className="text-xs text-muted-foreground">Précision</div>
             </div>
           </div>
         </CardContent>
@@ -85,7 +85,7 @@ export const ResultsSummary = ({
         </Button>
         <Button onClick={onRetry} className="flex-1">
           <Trophy className="h-4 w-4 mr-2" />
-          RÃ©essayer
+          Réessayer
         </Button>
       </div>
     </div>

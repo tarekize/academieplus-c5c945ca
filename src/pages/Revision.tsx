@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { mathSecondeChapters } from "@/data/mathSecondeChapters";
@@ -96,8 +96,8 @@ const Revision = () => {
     setReviewed(prev => new Set([...prev, currentIndex]));
     if (known) {
       toast({
-        title: "Bien jouÃ© ! âœ“",
-        description: "Cette carte est marquÃ©e comme connue.",
+        title: "Bien joué ! âœ“",
+        description: "Cette carte est marquée comme connue.",
       });
     }
     handleNext();
@@ -123,7 +123,7 @@ const Revision = () => {
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <h2 className="text-2xl font-bold mb-4">Aucune carte disponible</h2>
         <p className="text-muted-foreground mb-6">
-          Les cartes de révision ne sont pas encore disponibles pour cette matiÃ¨re et ce niveau.
+          Les cartes de révision ne sont pas encore disponibles pour cette matière et ce niveau.
         </p>
         <Button onClick={() => navigate("/liste-cours")}>
           Retour au catalogue
@@ -163,7 +163,7 @@ const Revision = () => {
                 Carte {currentIndex + 1} sur {cards.length}
               </span>
               <span className="text-sm font-medium">
-                {reviewed.size} rÃ©visÃ©es
+                {reviewed.size} révisées
               </span>
             </div>
             <Progress value={progress} className="h-2" />
@@ -176,7 +176,7 @@ const Revision = () => {
           >
             <CardHeader>
               <CardTitle className="text-lg text-muted-foreground">
-                {isFlipped ? "RÃ©ponse" : "Question"}
+                {isFlipped ? "Réponse" : "Question"}
               </CardTitle>
             </CardHeader>
             <CardContent className="flex items-center justify-center min-h-[200px]">
@@ -204,7 +204,7 @@ const Revision = () => {
               disabled={currentIndex === 0}
             >
               <ChevronLeft className="h-4 w-4 mr-2" />
-              PrÃ©cÃ©dente
+              Précédente
             </Button>
 
             {isFlipped && (
@@ -215,7 +215,7 @@ const Revision = () => {
                   className="text-orange-600 border-orange-200 hover:bg-orange-50"
                 >
                   <X className="h-4 w-4 mr-2" />
-                  Ã€ revoir
+                  À revoir
                 </Button>
                 <Button
                   onClick={() => handleMarkReviewed(true)}
@@ -241,7 +241,7 @@ const Revision = () => {
             <Card className="p-6 text-center border-2 border-green-500/50 bg-green-500/5">
               <h3 className="text-2xl font-bold mb-2">Bravo ! ðŸŽ‰</h3>
               <p className="text-muted-foreground mb-4">
-                Vous avez rÃ©visÃ© toutes les cartes !
+                Vous avez révisé toutes les cartes !
               </p>
               <Button onClick={handleReset}>
                 Recommencer la session

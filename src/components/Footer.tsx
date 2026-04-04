@@ -1,4 +1,4 @@
-﻿import { GraduationCap, Mail, Phone, MapPin } from "lucide-react";
+import { GraduationCap, Mail, Phone, MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const Footer = () => {

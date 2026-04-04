@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -30,9 +30,9 @@ const MesDonneesPersonnelles = () => {
   }, []);
 
   const getFullName = (profile: Profile | null): string => {
-    if (!profile) return "Non renseignÃ©";
+    if (!profile) return "Non renseigné";
     const parts = [profile.first_name, profile.last_name].filter(Boolean);
-    return parts.length > 0 ? parts.join(" ") : "Non renseignÃ©";
+    return parts.length > 0 ? parts.join(" ") : "Non renseigné";
   };
 
   const loadUserData = async () => {
@@ -62,7 +62,7 @@ const MesDonneesPersonnelles = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast.error("Session expirÃ©e. Veuillez vous reconnecter.");
+        toast.error("Session expirée. Veuillez vous reconnecter.");
         return;
       }
 
@@ -85,11 +85,11 @@ const MesDonneesPersonnelles = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast.success("Vos donnÃ©es ont Ã©tÃ© exportÃ©es avec succÃ¨s !");
+      toast.success("Vos données ont été exportées avec succès !");
 
     } catch (error: any) {
       console.error('Export error:', error);
-      toast.error(error.message || "Erreur lors de l'export des donnÃ©es");
+      toast.error(error.message || "Erreur lors de l'export des données");
     } finally {
       setLoading(false);
     }
@@ -102,7 +102,7 @@ const MesDonneesPersonnelles = () => {
       if (!user) return;
 
       toast.success(
-        "Demande de suppression enregistrÃ©e. Votre compte sera supprimÃ© dans 30 jours.",
+        "Demande de suppression enregistrée. Votre compte sera supprimé dans 30 jours.",
         { duration: 8000 }
       );
 
@@ -122,10 +122,10 @@ const MesDonneesPersonnelles = () => {
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-foreground mb-2">
-              Mes DonnÃ©es Personnelles
+              Mes Données Personnelles
             </h1>
             <p className="text-muted-foreground">
-              GÃ©rez vos donnÃ©es conformÃ©ment au RGPD - Vos droits : accÃ¨s, rectification, portabilitÃ©, oubli
+              Gérez vos données conformément au RGPD - Vos droits : accès, rectification, portabilité, oubli
             </p>
           </div>
 
@@ -138,7 +138,7 @@ const MesDonneesPersonnelles = () => {
                   Mes Informations
                 </CardTitle>
                 <CardDescription>
-                  Consultez et modifiez vos donnÃ©es personnelles
+                  Consultez et modifiez vos données personnelles
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -151,7 +151,7 @@ const MesDonneesPersonnelles = () => {
                       <span className="font-medium">Email:</span> {profile.email}
                     </div>
                     <div>
-                      <span className="font-medium">Niveau:</span> {profile.school_level || 'Non renseignÃ©'}
+                      <span className="font-medium">Niveau:</span> {profile.school_level || 'Non renseigné'}
                     </div>
                     <div>
                       <span className="font-medium">Compte actif:</span>{' '}
@@ -172,15 +172,15 @@ const MesDonneesPersonnelles = () => {
               </CardContent>
             </Card>
 
-            {/* Export de donnÃ©es */}
+            {/* Export de données */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Download className="h-5 w-5" />
-                  Exporter mes donnÃ©es
+                  Exporter mes données
                 </CardTitle>
                 <CardDescription>
-                  TÃ©lÃ©chargez toutes vos donnÃ©es au format JSON (droit Ã  la portabilitÃ©)
+                  Téléchargez toutes vos données au format JSON (droit Ã  la portabilité)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -190,7 +190,7 @@ const MesDonneesPersonnelles = () => {
                 <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
                   <li>Vos informations de profil</li>
                   <li>Vos liens parent-enfant</li>
-                  <li>Vos logs d'activitÃ©</li>
+                  <li>Vos logs d'activité</li>
                 </ul>
                 <Button 
                   onClick={handleExportData} 
@@ -198,7 +198,7 @@ const MesDonneesPersonnelles = () => {
                   className="w-full"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  {loading ? 'Export en cours...' : 'Exporter mes donnÃ©es'}
+                  {loading ? 'Export en cours...' : 'Exporter mes données'}
                 </Button>
               </CardContent>
             </Card>
@@ -216,24 +216,24 @@ const MesDonneesPersonnelles = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  En utilisant ce service, vous avez acceptÃ© nos conditions d'utilisation et notre politique de confidentialitÃ©.
+                  En utilisant ce service, vous avez accepté nos conditions d'utilisation et notre politique de confidentialité.
                 </p>
               </CardContent>
             </Card>
 
-            {/* Historique d'accÃ¨s */}
+            {/* Historique d'accès */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Historique d'accÃ¨s
+                  Historique d'accès
                 </CardTitle>
                 <CardDescription>
-                  Derniers accÃ¨s Ã  vos donnÃ©es personnelles
+                  Derniers accès Ã  vos données personnelles
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">Aucun accÃ¨s enregistrÃ© rÃ©cemment</p>
+                <p className="text-sm text-muted-foreground">Aucun accès enregistré récemment</p>
               </CardContent>
             </Card>
           </div>
@@ -246,17 +246,17 @@ const MesDonneesPersonnelles = () => {
                 Supprimer mon compte
               </CardTitle>
               <CardDescription>
-                Action irrÃ©versible - PÃ©riode de grÃ¢ce de 30 jours
+                Action irréversible - Période de grâce de 30 jours
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-destructive/10 p-4 rounded-lg space-y-2 text-sm">
                 <p className="font-medium">âš ï¸ Avant de supprimer votre compte :</p>
                 <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                  <li>Toutes vos donnÃ©es personnelles seront supprimÃ©es</li>
-                  <li>Vos abonnements seront annulÃ©s</li>
-                  <li>Vous disposerez d'une pÃ©riode de grÃ¢ce de 30 jours pour annuler</li>
-                  <li>Cette action est dÃ©finitive aprÃ¨s 30 jours</li>
+                  <li>Toutes vos données personnelles seront supprimées</li>
+                  <li>Vos abonnements seront annulés</li>
+                  <li>Vous disposerez d'une période de grâce de 30 jours pour annuler</li>
+                  <li>Cette action est définitive après 30 jours</li>
                 </ul>
               </div>
 
@@ -269,10 +269,10 @@ const MesDonneesPersonnelles = () => {
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>ÃŠtes-vous absolument sÃ»r ?</AlertDialogTitle>
+                    <AlertDialogTitle>ÃŠtes-vous absolument sûr ?</AlertDialogTitle>
                     <AlertDialogDescription>
                       Cette action planifiera la suppression de votre compte dans 30 jours.
-                      Vous recevrez un email de confirmation et pourrez annuler Ã  tout moment pendant cette pÃ©riode.
+                      Vous recevrez un email de confirmation et pourrez annuler Ã  tout moment pendant cette période.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -289,10 +289,10 @@ const MesDonneesPersonnelles = () => {
           {/* Liens utiles */}
           <div className="mt-8 flex flex-wrap gap-4 justify-center">
             <Button variant="outline" onClick={() => navigate('/politique-confidentialite')}>
-              Politique de confidentialitÃ©
+              Politique de confidentialité
             </Button>
             <Button variant="outline" onClick={() => navigate('/mentions-legales')}>
-              Mentions lÃ©gales
+              Mentions légales
             </Button>
           </div>
         </div>

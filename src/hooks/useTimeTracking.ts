@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TimeTrackingOptions {
@@ -59,7 +59,7 @@ export const useTimeTracking = ({
     elapsedRef.current = elapsedSeconds;
   }, [elapsedSeconds]);
 
-  // DÃ©marrer le compteur
+  // Démarrer le compteur
   const start = useCallback(() => {
     if (isRunning || !enabled) return;
 
@@ -110,7 +110,7 @@ export const useTimeTracking = ({
     setIsPaused(false);
   }, []);
 
-  // Auto-start si demandÃ©
+  // Auto-start si demandé
   useEffect(() => {
     if (autoStart && enabled && contentId && contentId !== "none") {
       start();

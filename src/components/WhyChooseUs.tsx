@@ -1,4 +1,4 @@
-﻿import { User, Brain, TrendingUp, GraduationCap } from "lucide-react";
+import { User, Brain, TrendingUp, GraduationCap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import studentsImage from "@/assets/student-tutoring-teen.jpg";
 
@@ -73,7 +73,7 @@ const WhyChooseUs = () => {
             <div className="relative rounded-2xl overflow-hidden shadow-xl h-full">
               <img
                 src={studentsImage}
-                alt="Ã‰tudiants travaillant ensemble"
+                alt="Étudiants travaillant ensemble"
                 className="w-full h-full object-cover min-h-[500px]"
               />
             </div>

@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -35,7 +35,7 @@ export const QuizQuestion = ({
     
     setValidating(true);
     try {
-      // Appeler l'edge function pour valider la rÃ©ponse
+      // Appeler l'edge function pour valider la réponse
       const { data, error } = await supabase.functions.invoke('validate-quiz-answer', {
         body: {
           question_id: questionId,
@@ -116,7 +116,7 @@ export const QuizQuestion = ({
             <p className="text-sm">{serverExplanation}</p>
             {!isCorrect && correctAnswer && (
               <p className="text-sm mt-2 font-medium">
-                Bonne rÃ©ponse : {correctAnswer}
+                Bonne réponse : {correctAnswer}
               </p>
             )}
           </div>

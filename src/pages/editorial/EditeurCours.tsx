@@ -1,4 +1,4 @@
-﻿import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
@@ -19,10 +19,10 @@ export default function EditeurCours() {
         </Button>
 
         <Card className="p-12 text-center">
-          <h2 className="text-xl font-semibold mb-4">Ã‰diteur de cours</h2>
+          <h2 className="text-xl font-semibold mb-4">Éditeur de cours</h2>
           <p className="text-muted-foreground mb-6">
-            L'Ã©diteur de cours nÃ©cessite les tables Ã©ditorial (cours, sections, matieres, niveaux) 
-            qui ne sont pas encore configurÃ©es dans la base de donnÃ©es.
+            L'éditeur de cours nécessite les tables éditorial (cours, sections, matieres, niveaux) 
+            qui ne sont pas encore configurées dans la base de données.
           </p>
           <Button onClick={() => navigate('/editorial')}>
             Retour au tableau de bord

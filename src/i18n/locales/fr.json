@@ -1,69 +1,69 @@
-﻿{
+{
   "header": {
-    "logo": "AcadÃ©miePlus",
-    "discoverPlans": "DÃ©couvrir les formules",
+    "logo": "AcadémiePlus",
+    "discoverPlans": "Découvrir les formules",
     "phone": "023 21 00 00",
     "login": "Se connecter",
-    "logout": "DÃ©connexion",
+    "logout": "Déconnexion",
     "freeTrial": "Inscrivez-vous"
   },
   "hero": {
-    "badge": "Soutien scolaire en mathÃ©matiques Via l'IA (Intelligence Artificielle)",
-    "title": "MaÃ®trisez les mathÃ©matiques, de la 5Ã¨me annÃ©e Ã  la terminale.",
-    "cta": "DÃ©couvrir les cours",
-    "programs": "BientÃ´t, toutes les autres matiÃ¨res seront disponibles."
+    "badge": "Soutien scolaire en mathématiques Via l'IA (Intelligence Artificielle)",
+    "title": "Maîtrisez les mathématiques, de la 5ème année Ã  la terminale.",
+    "cta": "Découvrir les cours",
+    "programs": "Bientôt, toutes les autres matières seront disponibles."
   },
   "whyChooseUs": {
     "title": "Pourquoi nous choisir ?",
-    "subtitle": "Une approche unique qui transforme les difficultÃ©s en rÃ©ussites",
+    "subtitle": "Une approche unique qui transforme les difficultés en réussites",
     "personalizedSupport": {
-      "title": "Suivi personnalisÃ©",
-      "description": "GrÃ¢ce Ã  un tableau de bord dÃ©taillÃ©, les Ã©lÃ¨ves et les parents peuvent suivre l'Ã©volution des apprentissages, accÃ©der Ã  des outils d'aide aux devoirs et bÃ©nÃ©ficier d'un suivi pÃ©dagogique personnalisÃ©."
+      "title": "Suivi personnalisé",
+      "description": "Grâce Ã  un tableau de bord détaillé, les élèves et les parents peuvent suivre l'évolution des apprentissages, accéder Ã  des outils d'aide aux devoirs et bénéficier d'un suivi pédagogique personnalisé."
     },
     "aiPedagogy": {
-      "title": "L'intelligence artificielle au cÅ“ur de la pÃ©dagogie",
-      "description": "Notre plateforme intÃ¨gre les avancÃ©es de l'IA pour proposer des contenus adaptÃ©s et sur-mesure, amÃ©liorer la comprÃ©hension et accompagner chaque Ã©lÃ¨ve dans sa progression."
+      "title": "L'intelligence artificielle au cÅ“ur de la pédagogie",
+      "description": "Notre plateforme intègre les avancées de l'IA pour proposer des contenus adaptés et sur-mesure, améliorer la compréhension et accompagner chaque élève dans sa progression."
     },
     "rapidProgress": {
       "title": "Progression rapide",
-      "description": "Des cours et exercices conÃ§us pour renforcer les connaissances, combler les lacunes et faire Ã©voluer les rÃ©sultats en un temps record."
+      "description": "Des cours et exercices conçus pour renforcer les connaissances, combler les lacunes et faire évoluer les résultats en un temps record."
     },
     "certifiedTeachers": {
-      "title": "Professeurs certifiÃ©s",
-      "description": "Enseignants qualifiÃ©s et expÃ©rimentÃ©s, passionnÃ©s par la transmission du savoir."
+      "title": "Professeurs certifiés",
+      "description": "Enseignants qualifiés et expérimentés, passionnés par la transmission du savoir."
     }
   },
   "subjects": {
-    "title": "Un programme de mathÃ©matiques complet",
+    "title": "Un programme de mathématiques complet",
     "features": {
-      "downloadablePdf": "Cours tÃ©lÃ©chargeables en PDF",
-      "examPrep": "PrÃ©paration au Brevet et au Bac",
-      "exercises": "Cours, exercices & quiz corrigÃ©s, fiches, flashcards ..."
+      "downloadablePdf": "Cours téléchargeables en PDF",
+      "examPrep": "Préparation au Brevet et au Bac",
+      "exercises": "Cours, exercices & quiz corrigés, fiches, flashcards ..."
     },
-    "math": "MathÃ©matiques",
-    "algebra": "AlgÃ¨bre",
-    "geometry": "GÃ©omÃ©trie",
-    "trigonometry": "TrigonomÃ©trie",
+    "math": "Mathématiques",
+    "algebra": "Algèbre",
+    "geometry": "Géométrie",
+    "trigonometry": "Trigonométrie",
     "calculus": "Analyse",
-    "probability": "ProbabilitÃ©s & Statistiques"
+    "probability": "Probabilités & Statistiques"
   },
   "results": {
-    "title": "Des rÃ©sultats qui parlent",
-    "subtitle": "La preuve de notre efficacitÃ© Ã  travers les chiffres",
+    "title": "Des résultats qui parlent",
+    "subtitle": "La preuve de notre efficacité Ã  travers les chiffres",
     "successRate": {
       "value": "98%",
-      "label": "Taux de rÃ©ussite aux examens",
-      "description": "Nos Ã©lÃ¨ves excellent dans leurs Ã©valuations"
+      "label": "Taux de réussite aux examens",
+      "description": "Nos élèves excellent dans leurs évaluations"
     },
     "averageGain": {
       "value": "+2.5",
-      "label": "Points de moyenne gagnÃ©s",
+      "label": "Points de moyenne gagnés",
       "description": "Progression moyenne en 3 mois"
     },
     "studentsHelped": {
       "value": "15 000+",
-      "label": "Ã‰lÃ¨ves accompagnÃ©s",
-      "description": "Depuis notre crÃ©ation"
+      "label": "Élèves accompagnés",
+      "description": "Depuis notre création"
     },
     "satisfaction": {
       "value": "4.9/5",
@@ -71,32 +71,32 @@
       "description": "Note moyenne sur l'ensemble de nos services"
     },
     "confidence": {
-      "title": "Confiance retrouvÃ©e",
-      "description": "Nos Ã©lÃ¨ves regagnent confiance en leurs capacitÃ©s et dÃ©veloppent l'autonomie nÃ©cessaire pour rÃ©ussir leur parcours scolaire."
+      "title": "Confiance retrouvée",
+      "description": "Nos élèves regagnent confiance en leurs capacités et développent l'autonomie nécessaire pour réussir leur parcours scolaire."
     },
     "flexibility": {
-      "title": "FlexibilitÃ© totale",
-      "description": "Cours en prÃ©sentiel ou en ligne, horaires adaptÃ©s : nous nous ajustons Ã  votre emploi du temps pour un accompagnement optimal."
+      "title": "Flexibilité totale",
+      "description": "Cours en présentiel ou en ligne, horaires adaptés : nous nous ajustons Ã  votre emploi du temps pour un accompagnement optimal."
     }
   },
   "excellence": {
-    "title": "Une PÃ©dagogie d'Excellence, ValidÃ©e par l'ExpÃ©rience",
+    "title": "Une Pédagogie d'Excellence, Validée par l'Expérience",
     "subtitle": "La garantie d'un contenu fiable et efficace",
-    "intro1": "Chez <strong>AcadÃ©miePlus</strong>, la qualitÃ© de l'enseignement est notre prioritÃ© absolue. C'est pourquoi tous nos cours, fiches de révision et exercices sont Ã©laborÃ©s par une Ã©quipe d'enseignants certifiÃ©s et passionnÃ©s, dotÃ©s d'une expÃ©rience pÃ©dagogique de plus de 20 ans dans l'Ã‰ducation Nationale.",
-    "intro2": "Leur expertise garantit un contenu non seulement conforme aux programmes officiels, mais aussi adaptÃ© aux besoins rÃ©els des Ã©lÃ¨ves, avec des mÃ©thodes qui ont fait leurs preuves sur le terrain. Nous mettons leur savoir-faire au service de la rÃ©ussite de votre enfant.",
+    "intro1": "Chez <strong>AcadémiePlus</strong>, la qualité de l'enseignement est notre priorité absolue. C'est pourquoi tous nos cours, fiches de révision et exercices sont élaborés par une équipe d'enseignants certifiés et passionnés, dotés d'une expérience pédagogique de plus de 20 ans dans l'Éducation Nationale.",
+    "intro2": "Leur expertise garantit un contenu non seulement conforme aux programmes officiels, mais aussi adapté aux besoins réels des élèves, avec des méthodes qui ont fait leurs preuves sur le terrain. Nous mettons leur savoir-faire au service de la réussite de votre enfant.",
     "certifiedExpertise": {
-      "title": "Expertise CertifiÃ©e",
-      "description": "Une Ã©quipe d'enseignants diplÃ´mÃ©s de l'Ã‰ducation Nationale"
+      "title": "Expertise Certifiée",
+      "description": "Une équipe d'enseignants diplômés de l'Éducation Nationale"
     },
     "experience": {
-      "title": "Plus de 20 ans d'expÃ©rience",
-      "description": "Des pÃ©dagogues chevronnÃ©s qui connaissent les dÃ©fis de chaque niveau"
+      "title": "Plus de 20 ans d'expérience",
+      "description": "Des pédagogues chevronnés qui connaissent les défis de chaque niveau"
     },
     "validatedContent": {
-      "title": "Contenu ValidÃ©",
-      "description": "Des supports pÃ©dagogiques rigoureusement Ã©laborÃ©s et testÃ©s"
+      "title": "Contenu Validé",
+      "description": "Des supports pédagogiques rigoureusement élaborés et testés"
     },
-    "cta": "Consulter nos programmes de mathÃ©matiques"
+    "cta": "Consulter nos programmes de mathématiques"
   },
   "pricing": {
     "title": "Choisissez la formule qui vous convient",
@@ -104,29 +104,29 @@
     "switchOneChild": "1 Enfant",
     "switchFamily": "Famille (2 Ã  3 enfants)",
     "discovery": {
-      "name": "Formule dÃ©couverte",
+      "name": "Formule découverte",
       "price": "Gratuit",
       "period": "",
       "description": "",
       "features": {
-        "subjects": "AccÃ¨s Ã  3 matiÃ¨res",
+        "subjects": "Accès Ã  3 matières",
         "exercises": "100+ exercices interactifs",
         "tracking": "Suivi de progression",
         "support": "Support par email"
       }
     },
     "regular": {
-      "name": "Formule AnnÃ©e scolaire",
+      "name": "Formule Année scolaire",
       "price": "4 990 DA",
       "period": "/mois",
       "description": "Le plus populaire",
-      "immediatePayment": "Paiement immÃ©diat de",
-      "paymentPeriod": "pour une pÃ©riode de 10 mois allant jusqu'au 31 juillet",
+      "immediatePayment": "Paiement immédiat de",
+      "paymentPeriod": "pour une période de 10 mois allant jusqu'au 31 juillet",
       "features": {
-        "allSubjects": "AccÃ¨s Ã  toutes les matiÃ¨res",
+        "allSubjects": "Accès Ã  toutes les matières",
         "exercises": "500+ exercices interactifs",
-        "videos": "VidÃ©os de cours",
-        "tracking": "Suivi personnalisÃ©",
+        "videos": "Vidéos de cours",
+        "tracking": "Suivi personnalisé",
         "priority": "Support prioritaire",
         "exams": "Examens blancs"
       }
@@ -137,75 +137,75 @@
       "period": "/mois",
       "description": "",
       "features": {
-        "everything": "Tout du plan RÃ©gulier",
+        "everything": "Tout du plan Régulier",
         "liveCourses": "Cours en direct chaque semaine",
-        "correction": "Correction personnalisÃ©e",
+        "correction": "Correction personnalisée",
         "revision": "Révisions avant examens",
-        "unlimited": "AccÃ¨s illimitÃ© 24/7",
-        "guarantee": "Garantie rÃ©sultats"
+        "unlimited": "Accès illimité 24/7",
+        "guarantee": "Garantie résultats"
       }
     },
     "popular": "POPULAIRE",
     "choose": "Choisir"
   },
   "faq": {
-    "title": "Questions FrÃ©quentes",
+    "title": "Questions Fréquentes",
     "subtitle": "Tout ce que vous devez savoir sur nos cours en ligne",
     "questions": {
       "howItWorks": {
         "question": "Comment fonctionne la plateforme de cours en ligne ?",
-        "answer": "Notre plateforme vous donne accÃ¨s 24h/24 et 7j/7 Ã  des cours vidÃ©o de qualitÃ©, des exercices interactifs avec correction automatique, et un suivi personnalisÃ© de votre progression. Vous pouvez apprendre Ã  votre rythme depuis n'importe quel appareil."
+        "answer": "Notre plateforme vous donne accès 24h/24 et 7j/7 Ã  des cours vidéo de qualité, des exercices interactifs avec correction automatique, et un suivi personnalisé de votre progression. Vous pouvez apprendre Ã  votre rythme depuis n'importe quel appareil."
       },
       "subjects": {
-        "question": "Quelles matiÃ¨res sont disponibles ?",
-        "answer": "Actuellement, nous nous concentrons exclusivement sur les mathÃ©matiques pour tous les niveaux, de la 5Ã¨me annÃ©e Ã  la terminale. Nous prÃ©voyons d'ajouter d'autres matiÃ¨res Ã  l'avenir."
+        "question": "Quelles matières sont disponibles ?",
+        "answer": "Actuellement, nous nous concentrons exclusivement sur les mathématiques pour tous les niveaux, de la 5ème année Ã  la terminale. Nous prévoyons d'ajouter d'autres matières Ã  l'avenir."
       },
       "freeTrial": {
         "question": "Puis-je essayer gratuitement avant de m'abonner ?",
-        "answer": "Oui ! Nous offrons un essai gratuit de 7 jours pour que vous puissiez explorer la plateforme, accÃ©der aux cours et exercices, et voir si notre mÃ©thode vous convient avant de vous engager."
+        "answer": "Oui ! Nous offrons un essai gratuit de 7 jours pour que vous puissiez explorer la plateforme, accéder aux cours et exercices, et voir si notre méthode vous convient avant de vous engager."
       },
       "tracking": {
         "question": "Comment puis-je suivre ma progression ?",
-        "answer": "Chaque Ã©lÃ¨ve dispose d'un tableau de bord personnel qui affiche sa progression en mathÃ©matiques, ses scores aux exercices, le temps passÃ© sur la plateforme, et des recommandations personnalisÃ©es pour amÃ©liorer ses points faibles."
+        "answer": "Chaque élève dispose d'un tableau de bord personnel qui affiche sa progression en mathématiques, ses scores aux exercices, le temps passé sur la plateforme, et des recommandations personnalisées pour améliorer ses points faibles."
       },
       "support": {
         "question": "Y a-t-il un support en cas de questions ?",
-        "answer": "Absolument ! Notre Ã©quipe pÃ©dagogique est disponible par email et chat pour rÃ©pondre Ã  toutes vos questions. Les abonnÃ©s Premium et Intensif bÃ©nÃ©ficient Ã©galement d'un support prioritaire et de sessions de tutorat en direct."
+        "answer": "Absolument ! Notre équipe pédagogique est disponible par email et chat pour répondre Ã  toutes vos questions. Les abonnés Premium et Intensif bénéficient également d'un support prioritaire et de sessions de tutorat en direct."
       },
       "algerian": {
-        "question": "Les cours sont-ils conformes au programme algÃ©rien ?",
-        "answer": "Oui, tous nos contenus sont crÃ©Ã©s en stricte conformitÃ© avec les programmes officiels du ministÃ¨re de l'Ã‰ducation nationale algÃ©rien. Nos cours sont Ã©laborÃ©s par des enseignants certifiÃ©s et expÃ©rimentÃ©s."
+        "question": "Les cours sont-ils conformes au programme algérien ?",
+        "answer": "Oui, tous nos contenus sont créés en stricte conformité avec les programmes officiels du ministère de l'Éducation nationale algérien. Nos cours sont élaborés par des enseignants certifiés et expérimentés."
       },
       "changePlan": {
         "question": "Puis-je changer de formule Ã  tout moment ?",
-        "answer": "Oui, vous pouvez passer Ã  une formule supÃ©rieure ou infÃ©rieure Ã  tout moment. Le changement prendra effet immÃ©diatement et sera pris en compte sur votre prochaine facturation."
+        "answer": "Oui, vous pouvez passer Ã  une formule supérieure ou inférieure Ã  tout moment. Le changement prendra effet immédiatement et sera pris en compte sur votre prochaine facturation."
       }
     }
   },
   "cta": {
-    "title": "PrÃªt Ã  commencer ton parcours vers la rÃ©ussite ?",
-    "subtitle": "Rejoins des milliers d'Ã©lÃ¨ves qui progressent chaque jour avec nos cours en ligne",
+    "title": "Prêt Ã  commencer ton parcours vers la réussite ?",
+    "subtitle": "Rejoins des milliers d'élèves qui progressent chaque jour avec nos cours en ligne",
     "button": "Commencer l'essai gratuit",
     "noCommitment": "Sans engagement â€¢ 7 jours gratuits â€¢ Annulation Ã  tout moment"
   },
   "footer": {
-    "description": "La plateforme de cours en ligne qui accompagne les Ã©lÃ¨ves algÃ©riens vers la rÃ©ussite scolaire.",
+    "description": "La plateforme de cours en ligne qui accompagne les élèves algériens vers la réussite scolaire.",
     "navigation": "Navigation",
     "home": "Accueil",
     "plans": "Formules",
     "faq": "FAQ",
-    "legal": "Mentions lÃ©gales",
-    "subjects": "MatiÃ¨res",
-    "math": "MathÃ©matiques",
+    "legal": "Mentions légales",
+    "subjects": "Matières",
+    "math": "Mathématiques",
     "physics": "Physique",
     "science": "Sciences Naturelles",
-    "french": "FranÃ§ais",
+    "french": "Français",
     "arabic": "Arabe",
     "english": "Anglais",
     "contact": "Contact",
-    "location": "Alger, AlgÃ©rie",
-    "rights": "Tous droits rÃ©servÃ©s.",
-    "conformity": "Conforme aux programmes officiels de l'Ã©ducation nationale algÃ©rienne ðŸ‡©ðŸ‡¿"
+    "location": "Alger, Algérie",
+    "rights": "Tous droits réservés.",
+    "conformity": "Conforme aux programmes officiels de l'éducation nationale algérienne ðŸ‡©ðŸ‡¿"
   }
 }
 

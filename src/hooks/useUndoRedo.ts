@@ -1,4 +1,4 @@
-﻿import { useReducer, useCallback } from 'react';
+import { useReducer, useCallback } from 'react';
 
 interface HistoryState<T> {
   past: T[];

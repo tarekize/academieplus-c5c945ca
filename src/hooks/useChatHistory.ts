@@ -1,4 +1,4 @@
-﻿import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Message = {
@@ -27,7 +27,7 @@ export function useChatHistory(chapterId?: string | null) {
             title = content.slice(0, 100);
           } else if (Array.isArray(content)) {
             const textPart = content.find((c: any) => c.type === "text");
-            title = textPart?.text?.slice(0, 100) || "Image envoyÃ©e";
+            title = textPart?.text?.slice(0, 100) || "Image envoyée";
           }
         }
 

@@ -1,4 +1,4 @@
-﻿import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 export const mediaService = {
   // Upload fichier vers Supabase Storage
@@ -17,7 +17,7 @@ export const mediaService = {
 
     if (error) throw error;
 
-    // RÃ©cupÃ©rer URL publique
+    // Récupérer URL publique
     const { data: { publicUrl } } = supabase.storage
       .from(bucket)
       .getPublicUrl(fileName);
