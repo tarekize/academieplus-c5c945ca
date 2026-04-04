@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
@@ -39,7 +39,7 @@ export const FlashCard = ({ question, answer, onNext, onDifficulty }: FlashCardP
             <p className="text-2xl font-medium">{question}</p>
             <div className="mt-8 text-sm text-muted-foreground flex items-center gap-2">
               <RotateCcw className="h-4 w-4" />
-              Cliquez pour voir la rÃ©ponse
+              Cliquez pour voir la réponse
             </div>
           </CardContent>
         </Card>
@@ -50,12 +50,12 @@ export const FlashCard = ({ question, answer, onNext, onDifficulty }: FlashCardP
           isFlipped ? "block" : "hidden"
         )}>
           <CardContent className="flex flex-col items-center justify-center h-full p-8 text-center">
-            <div className="mb-4 text-sm text-muted-foreground">RÃ©ponse</div>
+            <div className="mb-4 text-sm text-muted-foreground">Réponse</div>
             <p className="text-xl mb-8">{answer}</p>
             
             <div className="space-y-3 w-full max-w-xs">
               <p className="text-sm text-muted-foreground mb-2">
-                Comment Ã©valuez-vous cette carte ?
+                Comment évaluez-vous cette carte ?
               </p>
               <div className="flex gap-2">
                 <Button

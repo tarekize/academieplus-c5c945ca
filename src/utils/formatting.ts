@@ -1,4 +1,4 @@
-﻿import { format, formatDistanceToNow, parseISO } from 'date-fns';
+import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export function formatDate(date: string | Date): string {
@@ -48,21 +48,21 @@ export function capitalizeFirst(text: string): string {
 
 export function getDifficultyLabel(level: number): string {
   const labels: Record<number, string> = {
-    1: 'TrÃ¨s facile',
+    1: 'Très facile',
     2: 'Facile',
     3: 'Moyen',
     4: 'Difficile',
-    5: 'TrÃ¨s difficile',
+    5: 'Très difficile',
   };
-  return labels[level] || 'Non dÃ©fini';
+  return labels[level] || 'Non défini';
 }
 
 export function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     'brouillon': 'Brouillon',
     'en_revision': 'En révision',
-    'publiÃ©': 'PubliÃ©',
-    'archivÃ©': 'ArchivÃ©',
+    'publié': 'Publié',
+    'archivé': 'Archivé',
   };
   return labels[status] || status;
 }

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -31,7 +31,7 @@ export const AdaptiveLessonContainer = ({
                 const fetchedVideos = await videoService.getVideosByLessonTitle(lessonTitle);
                 setVideos(fetchedVideos);
             } catch (err) {
-                setError("Erreur lors du chargement des vidÃ©os");
+                setError("Erreur lors du chargement des vidéos");
                 console.error(err);
             } finally {
                 setLoading(false);

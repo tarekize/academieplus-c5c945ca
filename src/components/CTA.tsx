@@ -1,4 +1,4 @@
-﻿import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "./ui/button";
 import studentsImage from "@/assets/students-success.jpg";
 import { useTranslation } from "react-i18next";
@@ -13,7 +13,7 @@ const CTA = () => {
       <div className="absolute inset-0 z-0">
         <img 
           src={studentsImage} 
-          alt="Ã‰lÃ¨ves rÃ©ussissant leurs examens"
+          alt="Élèves réussissant leurs examens"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-indigo-900/90" />

@@ -1,4 +1,4 @@
-﻿import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -62,11 +62,11 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
 
     const handleLessonClick = async (lesson: any) => {
         if (canManage) {
-            // PÃ©dagogue â†’ navigate to lesson editor
+            // Pédagogue â†’ navigate to lesson editor
             navigate(`/lecon/${lesson.id}`);
             return;
         }
-        // Ã‰lÃ¨ve â†’ show content inline
+        // Élève â†’ show content inline
         setSelectedLesson(lesson);
         setLessonView("course");
         setActiveActivity(null);

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -96,7 +96,7 @@ export function useProfile() {
       });
 
       setProfile((prev) => (prev ? { ...prev, ...updates, updated_at: new Date().toISOString() } : null));
-      toast.success("Profil mis Ã  jour avec succÃ¨s");
+      toast.success("Profil mis Ã  jour avec succès");
       return true;
     } catch (error: any) {
       console.error("Error updating profile:", error);
@@ -126,7 +126,7 @@ export function useProfile() {
       return data.publicUrl;
     } catch (error: any) {
       console.error("Error uploading avatar:", error);
-      toast.error("Erreur lors du tÃ©lÃ©chargement de l'avatar");
+      toast.error("Erreur lors du téléchargement de l'avatar");
       return null;
     }
   };
@@ -186,13 +186,13 @@ export function useLinkedChildren() {
   }, [fetchChildren]);
 
   const addChildByCode = async (code: string): Promise<{ success: boolean; message: string }> => {
-    if (!user) return { success: false, message: "Non authentifiÃ©" };
+    if (!user) return { success: false, message: "Non authentifié" };
 
     const trimmedCode = code.trim();
 
     // Validate code format (8 hex characters)
     if (!/^[a-f0-9]{8}$/i.test(trimmedCode)) {
-      return { success: false, message: "Format de code invalide (8 caractÃ¨res attendus)" };
+      return { success: false, message: "Format de code invalide (8 caractères attendus)" };
     }
 
     try {
@@ -211,7 +211,7 @@ export function useLinkedChildren() {
       }
 
       await fetchChildren();
-      return { success: true, message: data?.message || "Demande de liaison envoyÃ©e" };
+      return { success: true, message: data?.message || "Demande de liaison envoyée" };
     } catch (error: any) {
       console.error("Error adding child by code:", error);
       return { success: false, message: error.message };
@@ -228,7 +228,7 @@ export function useLinkedChildren() {
       if (error) throw error;
 
       await fetchChildren();
-      toast.success("Lien supprimÃ© avec succÃ¨s");
+      toast.success("Lien supprimé avec succès");
       return true;
     } catch (error: any) {
       console.error("Error removing child:", error);
@@ -295,7 +295,7 @@ export function useLinkedParents() {
               id: link.parent_id,
               first_name: null,
               last_name: null,
-              email: "Parent liÃ©",
+              email: "Parent lié",
             },
           } as any);
         }
@@ -337,11 +337,11 @@ export function useLinkedParents() {
       if (error) throw error;
 
       await fetchParents();
-      toast.success(accept ? "Lien acceptÃ©" : "Demande refusÃ©e");
+      toast.success(accept ? "Lien accepté" : "Demande refusée");
       return { success: true };
     } catch (error: any) {
       console.error("Error responding to request:", error);
-      toast.error("Erreur lors de la rÃ©ponse");
+      toast.error("Erreur lors de la réponse");
       return { success: false };
     }
   };
@@ -356,7 +356,7 @@ export function useLinkedParents() {
       if (error) throw error;
 
       await fetchParents();
-      toast.success("Lien supprimÃ© avec succÃ¨s");
+      toast.success("Lien supprimé avec succès");
       return true;
     } catch (error: any) {
       console.error("Error removing parent:", error);

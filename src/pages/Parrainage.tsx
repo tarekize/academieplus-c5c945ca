@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -47,7 +47,7 @@ const Parrainage = () => {
         return;
       }
 
-      // RÃ©cupÃ©rer le profil
+      // Récupérer le profil
       const { data: profileData } = await supabase
         .from("profiles")
         .select("*")
@@ -72,8 +72,8 @@ const Parrainage = () => {
       navigator.clipboard.writeText(referralUrl);
       setCopied(true);
       toast({
-        title: "Lien copiÃ© !",
-        description: "Le lien de parrainage a Ã©tÃ© copiÃ© dans le presse-papier.",
+        title: "Lien copié !",
+        description: "Le lien de parrainage a été copié dans le presse-papier.",
       });
       setTimeout(() => setCopied(false), 2000);
     }
@@ -92,12 +92,12 @@ const Parrainage = () => {
 
   const getSchoolLevelName = (level: string) => {
     const levels: Record<string, string> = {
-      "6eme": "6Ã¨me",
-      "5eme": "5Ã¨me",
-      "4eme": "4Ã¨me",
-      "3eme": "3Ã¨me",
+      "6eme": "6ème",
+      "5eme": "5ème",
+      "4eme": "4ème",
+      "3eme": "3ème",
       "seconde": "Seconde",
-      "premiere": "PremiÃ¨re",
+      "premiere": "Première",
       "terminale": "Terminale",
     };
     return levels[level] || level;
@@ -117,7 +117,7 @@ const Parrainage = () => {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/liste-cours")}>
             <GraduationCap className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold">AcadÃ©miePlus</span>
+            <span className="text-xl font-bold">AcadémiePlus</span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -149,7 +149,7 @@ const Parrainage = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
-                  DÃ©connexion
+                  Déconnexion
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -171,7 +171,7 @@ const Parrainage = () => {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Programme de Parrainage</h1>
           <p className="text-lg text-muted-foreground">
-            Parrainez vos amis et bÃ©nÃ©ficiez de rÃ©ductions sur votre abonnement !
+            Parrainez vos amis et bénéficiez de réductions sur votre abonnement !
           </p>
         </div>
 
@@ -182,13 +182,13 @@ const Parrainage = () => {
               <h3 className="text-sm font-semibold">Filleuls</h3>
             </div>
             <p className="text-3xl font-bold text-primary">0</p>
-            <p className="text-sm text-muted-foreground">Invitations acceptÃ©es</p>
+            <p className="text-sm text-muted-foreground">Invitations acceptées</p>
           </Card>
 
           <Card className="p-6 bg-green-500/5 border-green-500/20">
             <div className="flex items-center gap-3 mb-2">
               <Wallet className="h-8 w-8 text-green-600" />
-              <h3 className="text-sm font-semibold">CrÃ©dit</h3>
+              <h3 className="text-sm font-semibold">Crédit</h3>
             </div>
             <p className="text-3xl font-bold text-green-600">0 â‚¬</p>
             <p className="text-sm text-muted-foreground">Solde disponible</p>
@@ -197,7 +197,7 @@ const Parrainage = () => {
           <Card className="p-6 bg-purple-500/5 border-purple-500/20">
             <div className="flex items-center gap-3 mb-2">
               <TrendingUp className="h-8 w-8 text-purple-600" />
-              <h3 className="text-sm font-semibold">RÃ©duction Max</h3>
+              <h3 className="text-sm font-semibold">Réduction Max</h3>
             </div>
             <p className="text-3xl font-bold text-purple-600">50%</p>
             <p className="text-sm text-muted-foreground">Plafond atteint</p>
@@ -210,7 +210,7 @@ const Parrainage = () => {
           </div>
           <p className="text-muted-foreground mb-6">
             Partagez ce code avec vos amis. Chaque fois qu'un ami s'inscrit avec votre code,
-            vous recevez tous les deux une rÃ©duction !
+            vous recevez tous les deux une réduction !
           </p>
 
           {referralCode ? (
@@ -218,7 +218,7 @@ const Parrainage = () => {
               <code className="text-2xl font-mono font-bold flex-1">{referralCode}</code>
               <Button onClick={handleCopyCode} variant="outline">
                 {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-                {copied ? "CopiÃ© !" : "Copier le lien"}
+                {copied ? "Copié !" : "Copier le lien"}
               </Button>
               <Button onClick={() => setShareDialogOpen(true)}>
                 <LinkIcon className="h-4 w-4 mr-2" />
@@ -230,11 +230,11 @@ const Parrainage = () => {
           )}
 
           <div className="mt-6 p-4 bg-primary/5 border-l-4 border-primary rounded">
-            <h3 className="font-semibold mb-2">Comment Ã§a marche ?</h3>
+            <h3 className="font-semibold mb-2">Comment ça marche ?</h3>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>â€¢ <strong>5% de crÃ©dit</strong> par filleul basÃ© sur son abonnement</li>
+              <li>â€¢ <strong>5% de crédit</strong> par filleul basé sur son abonnement</li>
               <li>â€¢ <strong>Maximum 10 filleuls</strong> par parrain</li>
-              <li>â€¢ CrÃ©dits <strong>sans limite de durÃ©e</strong></li>
+              <li>â€¢ Crédits <strong>sans limite de durée</strong></li>
               <li>â€¢ Utilisable comme <strong>moyen de paiement</strong> sur vos abonnements</li>
             </ul>
           </div>
@@ -248,7 +248,7 @@ const Parrainage = () => {
                 <TableHead>Filleul</TableHead>
                 <TableHead>Date d'inscription</TableHead>
                 <TableHead>Statut</TableHead>
-                <TableHead>CrÃ©dit obtenu</TableHead>
+                <TableHead>Crédit obtenu</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

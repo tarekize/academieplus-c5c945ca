@@ -1,4 +1,4 @@
-﻿import { GraduationCap, LogOut, Globe, Menu, X, Phone } from "lucide-react";
+import { GraduationCap, LogOut, Globe, Menu, X, Phone } from "lucide-react";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,8 +32,8 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) { toast.error("Erreur lors de la dÃ©connexion"); }
-    else { toast.success("DÃ©connexion rÃ©ussie"); navigate("/"); }
+    if (error) { toast.error("Erreur lors de la déconnexion"); }
+    else { toast.success("Déconnexion réussie"); navigate("/"); }
   };
 
   const scrollToSection = (id: string) => {
@@ -181,7 +181,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
                   i18n.language === "fr" ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground"
                 }`}
               >
-                ðŸ‡«ðŸ‡· FranÃ§ais
+                ðŸ‡«ðŸ‡· Français
               </button>
               <button
                 onClick={() => changeLanguage("ar")}

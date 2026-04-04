@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -67,7 +67,7 @@ const Analytics = () => {
       console.error('Error loading analytics:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger les donnÃ©es d'analyse",
+        description: "Impossible de charger les données d'analyse",
         variant: "destructive",
       });
     } finally {
@@ -133,8 +133,8 @@ const Analytics = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Logs rÃ©cents</CardTitle>
-          <CardDescription>Les 50 derniÃ¨res activitÃ©s</CardDescription>
+          <CardTitle>Logs récents</CardTitle>
+          <CardDescription>Les 50 dernières activités</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>

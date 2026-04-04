@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,7 +31,7 @@ export function ChangePasswordButton() {
 
   const validatePassword = (password: string): string | null => {
     if (password.length < 8) {
-      return "Le mot de passe doit contenir au moins 8 caractÃ¨res.";
+      return "Le mot de passe doit contenir au moins 8 caractères.";
     }
     if (!/[A-Z]/.test(password)) {
       return "Le mot de passe doit contenir au moins une lettre majuscule.";
@@ -106,15 +106,15 @@ export function ChangePasswordButton() {
 
       if (updateError) throw updateError;
 
-      toast.success("Mot de passe modifiÃ© avec succÃ¨s !");
+      toast.success("Mot de passe modifié avec succès !");
       setOpen(false);
       resetForm();
     } catch (error: any) {
       console.error("Error during MFA verification:", error);
       if (error.message?.includes("Invalid TOTP code")) {
-        toast.error("Code de vÃ©rification invalide. Veuillez rÃ©essayer.");
+        toast.error("Code de vérification invalide. Veuillez réessayer.");
       } else {
-        toast.error(error.message || "Erreur lors de la vÃ©rification MFA.");
+        toast.error(error.message || "Erreur lors de la vérification MFA.");
       }
       setMfaCode("");
     } finally {
@@ -166,7 +166,7 @@ export function ChangePasswordButton() {
         throw error;
       }
 
-      toast.success("Mot de passe modifiÃ© avec succÃ¨s !");
+      toast.success("Mot de passe modifié avec succès !");
       setOpen(false);
       resetForm();
     } catch (error: any) {
@@ -202,7 +202,7 @@ export function ChangePasswordButton() {
             <DialogHeader>
               <DialogTitle>Modifier le mot de passe</DialogTitle>
               <DialogDescription>
-                Entrez votre nouveau mot de passe. Il doit contenir au moins 8 caractÃ¨res, une majuscule et un chiffre.
+                Entrez votre nouveau mot de passe. Il doit contenir au moins 8 caractères, une majuscule et un chiffre.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
@@ -256,7 +256,7 @@ export function ChangePasswordButton() {
                   {loading ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      VÃ©rification...
+                      Vérification...
                     </>
                   ) : (
                     "Modifier"
@@ -270,7 +270,7 @@ export function ChangePasswordButton() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-primary" />
-                VÃ©rification requise
+                Vérification requise
               </DialogTitle>
               <DialogDescription>
                 Pour modifier votre mot de passe, veuillez entrer le code de votre application d'authentification.
@@ -303,10 +303,10 @@ export function ChangePasswordButton() {
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    VÃ©rification...
+                    Vérification...
                   </>
                 ) : (
-                  "VÃ©rifier et modifier"
+                  "Vérifier et modifier"
                 )}
               </Button>
             </DialogFooter>

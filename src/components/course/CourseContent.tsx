@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Download, BookmarkIcon } from "lucide-react";
 import { DocumentList } from "./DocumentList";
@@ -150,7 +150,7 @@ export const CourseContent = ({
                   className="bg-primary hover:bg-primary/90 w-full shadow-lg"
                 >
                   <Download className="h-5 w-5 mr-2" />
-                  TÃ©lÃ©charger en PDF
+                  Télécharger en PDF
                 </Button>
               )}
               
@@ -199,7 +199,7 @@ export const CourseContent = ({
           disabled={!hasPrevious}
         >
           <ChevronLeft className="h-4 w-4 mr-2" />
-          PrÃ©cÃ©dent
+          Précédent
         </Button>
 
         <Button

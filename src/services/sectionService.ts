@@ -1,4 +1,4 @@
-﻿// Section service - stubbed as the 'sections' table doesn't exist in the database
+// Section service - stubbed as the 'sections' table doesn't exist in the database
 
 export const sectionService = {
   async create(coursId: number, sectionData: any) {

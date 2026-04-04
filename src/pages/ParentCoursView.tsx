@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { courseService } from "@/services/courseService";
@@ -45,7 +45,7 @@ const ParentCoursView = () => {
         .single();
 
       if (!childProfile?.school_level) {
-        toast({ title: "Erreur", description: "Niveau scolaire non dÃ©fini", variant: "destructive" });
+        toast({ title: "Erreur", description: "Niveau scolaire non défini", variant: "destructive" });
         navigate("/parent-dashboard");
         return;
       }
@@ -144,7 +144,7 @@ const ParentCoursView = () => {
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                 <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">AcadÃ©miePlus</span>
+              <span className="text-xl font-bold">AcadémiePlus</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Cours de {childName} â€” {schoolLevel}
@@ -156,7 +156,7 @@ const ParentCoursView = () => {
       <main className="container mx-auto px-4 pt-24 pb-8">
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
-            <h1 className="text-2xl font-bold">MathÃ©matiques</h1>
+            <h1 className="text-2xl font-bold">Mathématiques</h1>
             <span className="text-sm text-muted-foreground">{chapters.length} chapitres</span>
           </div>
           <Progress value={0} className="h-2" />

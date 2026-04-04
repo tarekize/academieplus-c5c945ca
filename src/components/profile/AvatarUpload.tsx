@@ -1,4 +1,4 @@
-﻿import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,7 +24,7 @@ export function AvatarUpload({ url, onUpload, onDelete }: AvatarUploadProps) {
       setUploading(true);
 
       if (!event.target.files || event.target.files.length === 0) {
-        throw new Error("Vous devez sÃ©lectionner une image Ã  tÃ©lÃ©charger.");
+        throw new Error("Vous devez sélectionner une image Ã  télécharger.");
       }
 
       const file = event.target.files[0];
@@ -33,7 +33,7 @@ export function AvatarUpload({ url, onUpload, onDelete }: AvatarUploadProps) {
       // Validate file type
       const allowedTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
       if (!fileExt || !allowedTypes.includes(fileExt)) {
-        throw new Error("Format de fichier non supportÃ©. Utilisez JPG, PNG, GIF ou WebP.");
+        throw new Error("Format de fichier non supporté. Utilisez JPG, PNG, GIF ou WebP.");
       }
 
       // Validate file size (max 5MB)
@@ -69,14 +69,14 @@ export function AvatarUpload({ url, onUpload, onDelete }: AvatarUploadProps) {
 
       onUpload(publicUrl);
       toast({
-        title: "SuccÃ¨s",
-        description: "Votre photo de profil a Ã©tÃ© mise Ã  jour.",
+        title: "Succès",
+        description: "Votre photo de profil a été mise Ã  jour.",
       });
     } catch (error: any) {
       console.error("Avatar upload error:", error);
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de tÃ©lÃ©charger l'image",
+        description: error.message || "Impossible de télécharger l'image",
         variant: "destructive",
       });
     } finally {

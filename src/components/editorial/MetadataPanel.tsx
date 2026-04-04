@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,7 +38,7 @@ export function MetadataPanel({ course, onChange }: MetadataPanelProps) {
             <Label htmlFor="meta-title">
               Meta Title
               <span className="text-xs text-muted-foreground ml-2">
-                ({course.meta_title?.length || 0}/60 caractÃ¨res)
+                ({course.meta_title?.length || 0}/60 caractères)
               </span>
             </Label>
             <Input
@@ -47,7 +47,7 @@ export function MetadataPanel({ course, onChange }: MetadataPanelProps) {
               onChange={(e) =>
                 onChange({ ...course, meta_title: e.target.value.slice(0, 60) })
               }
-              placeholder="Titre optimisÃ© pour les moteurs de recherche"
+              placeholder="Titre optimisé pour les moteurs de recherche"
               maxLength={60}
             />
           </div>
@@ -56,7 +56,7 @@ export function MetadataPanel({ course, onChange }: MetadataPanelProps) {
             <Label htmlFor="meta-description">
               Meta Description
               <span className="text-xs text-muted-foreground ml-2">
-                ({course.meta_description?.length || 0}/160 caractÃ¨res)
+                ({course.meta_description?.length || 0}/160 caractères)
               </span>
             </Label>
             <Textarea
@@ -68,7 +68,7 @@ export function MetadataPanel({ course, onChange }: MetadataPanelProps) {
                   meta_description: e.target.value.slice(0, 160),
                 })
               }
-              placeholder="Description pour les rÃ©sultats de recherche"
+              placeholder="Description pour les résultats de recherche"
               rows={3}
               maxLength={160}
             />
@@ -78,7 +78,7 @@ export function MetadataPanel({ course, onChange }: MetadataPanelProps) {
             <Label htmlFor="slug">
               Slug (URL)
               <span className="text-xs text-muted-foreground ml-2">
-                (auto-gÃ©nÃ©rÃ©)
+                (auto-généré)
               </span>
             </Label>
             <Input

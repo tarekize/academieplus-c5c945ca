@@ -1,4 +1,4 @@
-﻿import { ClipboardCheck, PenTool, Zap } from "lucide-react";
+import { ClipboardCheck, PenTool, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -79,7 +79,7 @@ export const ActivityCards = ({ onCardClick, activeCard }: ActivityCardsProps) =
               
               {!card.available && (
                 <span className="absolute top-1 right-1 text-[10px] bg-muted px-1.5 py-0.5 rounded">
-                  BientÃ´t
+                  Bientôt
                 </span>
               )}
             </CardContent>

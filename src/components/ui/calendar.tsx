@@ -1,4 +1,4 @@
-﻿import * as React from "react";
+import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker, CaptionProps } from "react-day-picker";
 
@@ -12,8 +12,8 @@ function CustomCaption({ displayMonth }: CaptionProps) {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
   const months = [
-    "Janvier", "FÃ©vrier", "Mars", "Avril", "Mai", "Juin",
-    "Juillet", "AoÃ»t", "Septembre", "Octobre", "Novembre", "DÃ©cembre"
+    "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+    "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
   ];
 
   return (
@@ -65,8 +65,8 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
 
   const handleMonthChange = (value: string) => {
     const months = [
-      "Janvier", "FÃ©vrier", "Mars", "Avril", "Mai", "Juin",
-      "Juillet", "AoÃ»t", "Septembre", "Octobre", "Novembre", "DÃ©cembre"
+      "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+      "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
     ];
     const monthIndex = months.indexOf(value);
     const newDate = new Date(month.getFullYear(), monthIndex, 1);
@@ -81,8 +81,8 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
   const months = [
-    "Janvier", "FÃ©vrier", "Mars", "Avril", "Mai", "Juin",
-    "Juillet", "AoÃ»t", "Septembre", "Octobre", "Novembre", "DÃ©cembre"
+    "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+    "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
   ];
 
   return (

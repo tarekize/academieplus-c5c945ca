@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ const defaultFAQItems: FAQItem[] = [
   {
     id: "1",
     question: "Comment fonctionne l'abonnement ?",
-    answer: "L'abonnement vous donne accÃ¨s Ã  tous les cours et exercices de la plateforme.",
+    answer: "L'abonnement vous donne accès Ã  tous les cours et exercices de la plateforme.",
     category: "paiement",
     order_index: 1,
     is_active: true,
@@ -60,7 +60,7 @@ const FAQAdmin = () => {
           : item
       ));
       toast({
-        title: "SuccÃ¨s",
+        title: "Succès",
         description: "Question FAQ mise Ã  jour",
       });
     } else {
@@ -70,8 +70,8 @@ const FAQAdmin = () => {
       };
       setItems(prev => [...prev, newItem]);
       toast({
-        title: "SuccÃ¨s",
-        description: "Nouvelle question FAQ ajoutÃ©e",
+        title: "Succès",
+        description: "Nouvelle question FAQ ajoutée",
       });
     }
 
@@ -97,11 +97,11 @@ const FAQAdmin = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm("ÃŠtes-vous sÃ»r de vouloir supprimer cette question ?")) return;
+    if (!confirm("ÃŠtes-vous sûr de vouloir supprimer cette question ?")) return;
     setItems(prev => prev.filter(item => item.id !== id));
     toast({
-      title: "SuccÃ¨s",
-      description: "Question FAQ supprimÃ©e",
+      title: "Succès",
+      description: "Question FAQ supprimée",
     });
   };
 
@@ -113,7 +113,7 @@ const FAQAdmin = () => {
         <CardHeader>
           <CardTitle>{editingId ? "Modifier" : "Ajouter"} une question FAQ</CardTitle>
           <CardDescription>
-            CrÃ©ez ou modifiez les questions frÃ©quemment posÃ©es
+            Créez ou modifiez les questions fréquemment posées
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -130,20 +130,20 @@ const FAQAdmin = () => {
             </div>
 
             <div>
-              <Label htmlFor="answer">RÃ©ponse</Label>
+              <Label htmlFor="answer">Réponse</Label>
               <Textarea
                 id="answer"
                 value={formData.answer}
                 onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
                 required
-                placeholder="Entrez la rÃ©ponse..."
+                placeholder="Entrez la réponse..."
                 rows={4}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="category">CatÃ©gorie</Label>
+                <Label htmlFor="category">Catégorie</Label>
                 <Select
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
@@ -152,7 +152,7 @@ const FAQAdmin = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="general">GÃ©nÃ©ral</SelectItem>
+                    <SelectItem value="general">Général</SelectItem>
                     <SelectItem value="cours">Cours</SelectItem>
                     <SelectItem value="paiement">Paiement</SelectItem>
                     <SelectItem value="compte">Compte</SelectItem>

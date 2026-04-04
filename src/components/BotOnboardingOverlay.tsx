@@ -1,4 +1,4 @@
-﻿import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import FlyingBot from "./FlyingBot";
 import BotMessage from "./BotMessage";
@@ -224,7 +224,7 @@ export const BotOnboardingOverlay = ({
                                                 variant="outline"
                                                 className="flex-1"
                                             >
-                                                {isArabic ? "Ø´Ø±Ø­ Ø£ÙƒØ«Ø±" : "Plus de dÃ©tails"}
+                                                {isArabic ? "Ø´Ø±Ø­ Ø£ÙƒØ«Ø±" : "Plus de détails"}
                                             </Button>
                                         </motion.div>
                                     )}

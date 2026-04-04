@@ -1,4 +1,4 @@
-﻿import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Edit, Trash2 } from 'lucide-react';
@@ -14,10 +14,10 @@ export default function CourseTable({ courses, onRefresh }: CourseTableProps) {
 
   const getStatusBadge = (statut: string) => {
     const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-      'publiÃ©': 'default',
+      'publié': 'default',
       'brouillon': 'secondary',
       'en_revision': 'outline',
-      'archivÃ©': 'destructive',
+      'archivé': 'destructive',
     };
 
     return <Badge variant={variants[statut] || 'secondary'}>{statut}</Badge>;
@@ -29,10 +29,10 @@ export default function CourseTable({ courses, onRefresh }: CourseTableProps) {
         <TableHeader>
           <TableRow>
             <TableHead>Titre</TableHead>
-            <TableHead>MatiÃ¨re</TableHead>
+            <TableHead>Matière</TableHead>
             <TableHead>Niveau</TableHead>
             <TableHead>Statut</TableHead>
-            <TableHead>DerniÃ¨re modification</TableHead>
+            <TableHead>Dernière modification</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>

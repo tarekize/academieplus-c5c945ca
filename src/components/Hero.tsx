@@ -1,4 +1,4 @@
-﻿import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import heroImage from "@/assets/hero-students.jpg";
 import { useTranslation } from "react-i18next";
@@ -12,7 +12,7 @@ const Hero = () => {
   return (
     <section id="accueil" className="relative min-h-screen flex items-center pt-20">
       <div className="absolute inset-0 z-0">
-        <img src={heroImage} alt="Ã‰lÃ¨ves souriants travaillant ensemble" className="w-full h-full object-cover" loading="eager" />
+        <img src={heroImage} alt="Élèves souriants travaillant ensemble" className="w-full h-full object-cover" loading="eager" />
         <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-primary/60 to-accent/40" />
       </div>
 

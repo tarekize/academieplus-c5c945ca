@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -40,7 +40,7 @@ export const useEditConflictDetection = (courseId: number, currentUserId: string
 
         if (editors.length > 0) {
           const editorNames = editors.map(e => e.user_name).join(', ');
-          toast.warning(`Attention: ${editorNames} modifie Ã©galement ce cours`, {
+          toast.warning(`Attention: ${editorNames} modifie également ce cours`, {
             duration: 5000,
           });
         }
@@ -48,14 +48,14 @@ export const useEditConflictDetection = (courseId: number, currentUserId: string
       .on('presence', { event: 'join' }, ({ newPresences }) => {
         newPresences.forEach((presence: any) => {
           if (presence.user_id !== currentUserId) {
-            toast.info(`${presence.user_name} a commencÃ© Ã  modifier ce cours`);
+            toast.info(`${presence.user_name} a commencé Ã  modifier ce cours`);
           }
         });
       })
       .on('presence', { event: 'leave' }, ({ leftPresences }) => {
         leftPresences.forEach((presence: any) => {
           if (presence.user_id !== currentUserId) {
-            toast.info(`${presence.user_name} a quittÃ© l'Ã©dition`);
+            toast.info(`${presence.user_name} a quitté l'édition`);
           }
         });
       })

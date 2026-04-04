@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -95,7 +95,7 @@ export default function ChatHistory({
     const content = firstUserMsg.content;
     if (typeof content === "string") return content.slice(0, 80);
     const textPart = (content as any[]).find((c: any) => c.type === "text");
-    return textPart?.text?.slice(0, 80) || "Image envoyÃ©e";
+    return textPart?.text?.slice(0, 80) || "Image envoyée";
   };
 
   return (
@@ -130,7 +130,7 @@ export default function ChatHistory({
             <MessageCircle className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
             <p className="text-sm text-muted-foreground">Aucune conversation</p>
             <p className="text-xs text-muted-foreground/70 mt-1">
-              Vos conversations seront sauvegardÃ©es ici
+              Vos conversations seront sauvegardées ici
             </p>
           </div>
         ) : (

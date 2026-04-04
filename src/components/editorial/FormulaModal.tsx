@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -42,7 +42,7 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
     const closeBraces = (input.match(/\}/g) || []).length;
     
     if (openBraces !== closeBraces) {
-      setError("Accolades non Ã©quilibrÃ©es");
+      setError("Accolades non équilibrées");
       setIsValidating(false);
       return false;
     }
@@ -50,7 +50,7 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
     // Check for common LaTeX commands
     const invalidChars = /[<>]/g;
     if (invalidChars.test(input)) {
-      setError("CaractÃ¨res invalides dÃ©tectÃ©s");
+      setError("Caractères invalides détectés");
       setIsValidating(false);
       return false;
     }
@@ -85,7 +85,7 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
     }
 
     if (error) {
-      toast.error("Corrigez les erreurs avant d'insÃ©rer");
+      toast.error("Corrigez les erreurs avant d'insérer");
       return;
     }
 
@@ -102,7 +102,7 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
     setDisplayMode("block");
     setError("");
     onClose();
-    toast.success("Formule ajoutÃ©e");
+    toast.success("Formule ajoutée");
   };
 
   const commonSymbols = [
@@ -176,7 +176,7 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="block" id="block" />
                 <Label htmlFor="block" className="font-normal">
-                  Bloc (centrÃ©, grande taille)
+                  Bloc (centré, grande taille)
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
@@ -190,18 +190,18 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
 
           {/* Legend */}
           <div className="space-y-2">
-            <Label htmlFor="legende">LÃ©gende (optionnelle)</Label>
+            <Label htmlFor="legende">Légende (optionnelle)</Label>
             <Input
               id="legende"
               value={legende}
               onChange={(e) => setLegende(e.target.value)}
-              placeholder="Ex: Fonction logarithme nÃ©pÃ©rien"
+              placeholder="Ex: Fonction logarithme népérien"
             />
           </div>
 
           {/* Preview */}
           <div className="space-y-2">
-            <Label>AperÃ§u</Label>
+            <Label>Aperçu</Label>
             <div className="border rounded-lg p-4 bg-muted/50 min-h-[100px] flex items-center justify-center">
               {!error && latex ? (
                 <div className="text-center">
@@ -213,7 +213,7 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
                 </div>
               ) : (
                 <p className="text-muted-foreground text-sm">
-                  Saisissez du code LaTeX pour voir l'aperÃ§u
+                  Saisissez du code LaTeX pour voir l'aperçu
                 </p>
               )}
             </div>
@@ -225,7 +225,7 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
             Annuler
           </Button>
           <Button onClick={handleInsert} disabled={!latex || !!error}>
-            InsÃ©rer formule
+            Insérer formule
           </Button>
         </DialogFooter>
       </DialogContent>

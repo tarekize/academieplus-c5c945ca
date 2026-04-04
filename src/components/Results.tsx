@@ -1,4 +1,4 @@
-﻿import { Card } from "./ui/card";
+import { Card } from "./ui/card";
 import studentsSuccessImage from "@/assets/students-success.jpg";
 import studentOnlineImage from "@/assets/student-online.jpg";
 import { useTranslation } from "react-i18next";
@@ -64,7 +64,7 @@ const Results = () => {
           <Card className="overflow-hidden bg-card">
             <img 
               src={studentsSuccessImage} 
-              alt="Ã‰lÃ¨ves cÃ©lÃ©brant leur rÃ©ussite"
+              alt="Élèves célébrant leur réussite"
               className="w-full h-64 object-cover"
             />
             <div className="p-6">
@@ -80,7 +80,7 @@ const Results = () => {
           <Card className="overflow-hidden bg-card">
             <img 
               src={studentOnlineImage} 
-              alt="Ã‰lÃ¨ve suivant un cours en ligne"
+              alt="Élève suivant un cours en ligne"
               className="w-full h-64 object-cover"
             />
             <div className="p-6">

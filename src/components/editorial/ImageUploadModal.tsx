@@ -1,4 +1,4 @@
-﻿import { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -33,12 +33,12 @@ export function ImageUploadModal({
 
   const handleFileUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
-      toast.error("Veuillez sÃ©lectionner une image");
+      toast.error("Veuillez sélectionner une image");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("L'image ne doit pas dÃ©passer 5 MB");
+      toast.error("L'image ne doit pas dépasser 5 MB");
       return;
     }
 
@@ -54,7 +54,7 @@ export function ImageUploadModal({
       };
       reader.readAsDataURL(file);
 
-      toast.success("Image chargÃ©e");
+      toast.success("Image chargée");
     } catch (error) {
       toast.error("Erreur lors du chargement de l'image");
     } finally {
@@ -77,7 +77,7 @@ export function ImageUploadModal({
     }
 
     if (!altText) {
-      toast.error("Le texte alternatif est obligatoire (accessibilitÃ©)");
+      toast.error("Le texte alternatif est obligatoire (accessibilité)");
       return;
     }
 
@@ -97,7 +97,7 @@ export function ImageUploadModal({
     setLegende("");
     setPreview("");
     onClose();
-    toast.success("Image ajoutÃ©e");
+    toast.success("Image ajoutée");
   };
 
   const handleUrlChange = (value: string) => {
@@ -145,10 +145,10 @@ export function ImageUploadModal({
               />
               <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <p className="text-lg font-medium mb-2">
-                Glissez-dÃ©posez votre image ici
+                Glissez-déposez votre image ici
               </p>
               <p className="text-sm text-muted-foreground">
-                ou cliquez pour sÃ©lectionner
+                ou cliquez pour sélectionner
               </p>
               <p className="text-xs text-muted-foreground mt-2">
                 PNG, JPG, SVG (max 5 MB)
@@ -174,7 +174,7 @@ export function ImageUploadModal({
           {/* Preview */}
           {preview && (
             <div className="space-y-2">
-              <Label>AperÃ§u</Label>
+              <Label>Aperçu</Label>
               <div className="border rounded-lg p-4 bg-muted/50">
                 <img
                   src={preview}
@@ -190,25 +190,25 @@ export function ImageUploadModal({
             <Label htmlFor="alt-text">
               Texte alternatif (obligatoire)
               <span className="text-xs text-muted-foreground ml-2">
-                Pour l'accessibilitÃ©
+                Pour l'accessibilité
               </span>
             </Label>
             <Input
               id="alt-text"
               value={altText}
               onChange={(e) => setAltText(e.target.value)}
-              placeholder="Description de l'image pour les lecteurs d'Ã©cran"
+              placeholder="Description de l'image pour les lecteurs d'écran"
             />
           </div>
 
           {/* Legend */}
           <div className="space-y-2">
-            <Label htmlFor="legende">LÃ©gende (optionnelle)</Label>
+            <Label htmlFor="legende">Légende (optionnelle)</Label>
             <Input
               id="legende"
               value={legende}
               onChange={(e) => setLegende(e.target.value)}
-              placeholder="Ex: ReprÃ©sentation graphique de la fonction"
+              placeholder="Ex: Représentation graphique de la fonction"
             />
           </div>
         </div>
@@ -218,7 +218,7 @@ export function ImageUploadModal({
             Annuler
           </Button>
           <Button onClick={handleInsert} disabled={!url || !altText || uploading}>
-            {uploading ? "Chargement..." : "InsÃ©rer image"}
+            {uploading ? "Chargement..." : "Insérer image"}
           </Button>
         </DialogFooter>
       </DialogContent>

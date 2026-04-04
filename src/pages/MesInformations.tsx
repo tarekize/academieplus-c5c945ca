@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -52,9 +52,9 @@ import {
 } from "@/components/ui/select";
 
 const profileSchema = z.object({
-  first_name: z.string().trim().min(1, "Le prÃ©nom est requis").max(100, "Le prÃ©nom ne peut pas dÃ©passer 100 caractÃ¨res"),
-  last_name: z.string().trim().min(1, "Le nom est requis").max(100, "Le nom ne peut pas dÃ©passer 100 caractÃ¨res"),
-  phone: z.string().trim().max(20, "Le tÃ©lÃ©phone ne peut pas dÃ©passer 20 caractÃ¨res").optional().nullable(),
+  first_name: z.string().trim().min(1, "Le prénom est requis").max(100, "Le prénom ne peut pas dépasser 100 caractères"),
+  last_name: z.string().trim().min(1, "Le nom est requis").max(100, "Le nom ne peut pas dépasser 100 caractères"),
+  phone: z.string().trim().max(20, "Le téléphone ne peut pas dépasser 20 caractères").optional().nullable(),
   school_level: z.string().optional().nullable(),
   filiere: z.string().optional().nullable(),
   email: z.string().email("L'adresse email n'est pas valide"),
@@ -187,7 +187,7 @@ const MesInformations = () => {
 
         if (sessionError || !sessionData.session) {
           toast({
-            title: "Session expirÃ©e",
+            title: "Session expirée",
             description: "Veuillez vous reconnecter pour modifier votre email.",
             variant: "destructive",
           });
@@ -205,7 +205,7 @@ const MesInformations = () => {
 
         toast({
           title: "Email mis Ã  jour",
-          description: "Votre email a Ã©tÃ© modifiÃ© avec succÃ¨s. Vous pouvez maintenant vous connecter avec votre nouvelle adresse.",
+          description: "Votre email a été modifié avec succès. Vous pouvez maintenant vous connecter avec votre nouvelle adresse.",
         });
       }
 
@@ -261,8 +261,8 @@ const MesInformations = () => {
       if (error) throw error;
 
       toast({
-        title: "Compte supprimÃ©",
-        description: "Votre compte a Ã©tÃ© supprimÃ© avec succÃ¨s",
+        title: "Compte supprimé",
+        description: "Votre compte a été supprimé avec succès",
       });
 
       await supabase.auth.signOut();
@@ -279,13 +279,13 @@ const MesInformations = () => {
 
   const getSchoolLevelName = (level: string) => {
     const levels: Record<string, string> = {
-      "5eme_primaire": "5Ã¨me Primaire",
-      "1ere_cem": "1Ã¨re CEM",
-      "2eme_cem": "2Ã¨me CEM",
-      "3eme_cem": "3Ã¨me CEM",
-      "4eme_cem": "4Ã¨me CEM",
+      "5eme_primaire": "5ème Primaire",
+      "1ere_cem": "1ère CEM",
+      "2eme_cem": "2ème CEM",
+      "3eme_cem": "3ème CEM",
+      "4eme_cem": "4ème CEM",
       seconde: "Seconde",
-      premiere: "PremiÃ¨re",
+      premiere: "Première",
       terminale: "Terminale",
     };
     return levels[level] || level || "Votre classe";
@@ -299,7 +299,7 @@ const MesInformations = () => {
       lettres: "Lettres",
       gestion: "Gestion",
       math_techniques: "Math techniques",
-      mathematiques: "MathÃ©matiques",
+      mathematiques: "Mathématiques",
     };
     return filieres[filiere] || filiere;
   };
@@ -318,15 +318,15 @@ const MesInformations = () => {
       { value: "lettres", label: "Lettres" },
       { value: "gestion", label: "Gestion" },
       { value: "math_techniques", label: "Math techniques" },
-      { value: "mathematiques", label: "MathÃ©matiques" },
+      { value: "mathematiques", label: "Mathématiques" },
     ];
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast({
-      title: "DÃ©connexion",
-      description: "Vous avez Ã©tÃ© dÃ©connectÃ© avec succÃ¨s",
+      title: "Déconnexion",
+      description: "Vous avez été déconnecté avec succès",
     });
     navigate("/");
   };
@@ -354,7 +354,7 @@ const MesInformations = () => {
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                 <GraduationCap className="h-6 w-6 text-white" />
               </div>
-              <span className="text-xl font-bold">AcadÃ©miePlus</span>
+              <span className="text-xl font-bold">AcadémiePlus</span>
             </div>
 
             <div className="flex items-center gap-4">
@@ -378,7 +378,7 @@ const MesInformations = () => {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem onClick={() => navigate("/account")}>
                     <UserIcon className="mr-2 h-4 w-4" />
-                    <span>GÃ©rer mon compte</span>
+                    <span>Gérer mon compte</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate(userRole === 'parent' ? "/parent-dashboard" : "/dashboard")}>
                     <GraduationCap className="mr-2 h-4 w-4" />
@@ -387,7 +387,7 @@ const MesInformations = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Se dÃ©connecter</span>
+                    <span>Se déconnecter</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -402,7 +402,7 @@ const MesInformations = () => {
           className="mb-6 inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-primary/10 text-primary font-medium text-sm border border-primary/20 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 group"
         >
           <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
-          Retour vers GÃ©rer mon compte
+          Retour vers Gérer mon compte
         </button>
 
         <div className="max-w-3xl mx-auto space-y-6">
@@ -419,12 +419,12 @@ const MesInformations = () => {
               />
               <div className="grid gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="first_name">PrÃ©nom</Label>
+                  <Label htmlFor="first_name">Prénom</Label>
                   <Input
                     id="first_name"
                     value={formData.first_name}
                     onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                    placeholder="Votre prÃ©nom"
+                    placeholder="Votre prénom"
                   />
                 </div>
 
@@ -448,17 +448,17 @@ const MesInformations = () => {
                     placeholder="Votre adresse email"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Un email de confirmation sera envoyÃ© si vous modifiez votre adresse.
+                    Un email de confirmation sera envoyé si vous modifiez votre adresse.
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">TÃ©lÃ©phone</Label>
+                  <Label htmlFor="phone">Téléphone</Label>
                   <Input
                     id="phone"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="NumÃ©ro de tÃ©lÃ©phone"
+                    placeholder="Numéro de téléphone"
                   />
                 </div>
 
@@ -476,7 +476,7 @@ const MesInformations = () => {
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {formData.date_of_birth
                           ? format(formData.date_of_birth, "dd/MM/yyyy")
-                          : "SÃ©lectionnez votre date de naissance"}
+                          : "Sélectionnez votre date de naissance"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -497,7 +497,7 @@ const MesInformations = () => {
                   </Popover>
                 </div>
 
-                {/* Wilaya, Ville, Ã‰cole - pour Ã©lÃ¨ve et parent */}
+                {/* Wilaya, Ville, École - pour élève et parent */}
                 {(userRole === 'student' || userRole === 'parent') && (
                   <LocationFields
                     wilaya={formData.wilaya}
@@ -520,7 +520,7 @@ const MesInformations = () => {
                           setFormData({
                             ...formData,
                             school_level: value,
-                            // Reset filiÃ¨re when changing level
+                            // Reset filière when changing level
                             filiere: ["premiere", "seconde", "terminale"].includes(value) ? formData.filiere : ""
                           });
                         }}
@@ -529,13 +529,13 @@ const MesInformations = () => {
 
                     {showFiliereSelector && (
                       <div className="space-y-2">
-                        <Label htmlFor="filiere">FiliÃ¨re</Label>
+                        <Label htmlFor="filiere">Filière</Label>
                         <Select
                           value={formData.filiere}
                           onValueChange={(value) => setFormData({ ...formData, filiere: value })}
                         >
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="SÃ©lectionnez votre filiÃ¨re" />
+                            <SelectValue placeholder="Sélectionnez votre filière" />
                           </SelectTrigger>
                           <SelectContent>
                             {getFilieresForLevel(formData.school_level).map((f) => (
@@ -550,7 +550,7 @@ const MesInformations = () => {
                   </>
                 )}
 
-                {/* Code de liaison pour les Ã©lÃ¨ves */}
+                {/* Code de liaison pour les élèves */}
                 {userRole === 'student' && profile?.linking_code && (
                   <div className="space-y-2 p-4 bg-primary/5 rounded-lg border border-primary/20">
                     <Label className="text-primary font-semibold">Code de liaison parent</Label>
@@ -568,8 +568,8 @@ const MesInformations = () => {
                           navigator.clipboard.writeText(profile.linking_code!);
                           setCodeCopied(true);
                           toast({
-                            title: "CopiÃ© !",
-                            description: "Le code a Ã©tÃ© copiÃ© dans le presse-papiers",
+                            title: "Copié !",
+                            description: "Le code a été copié dans le presse-papiers",
                           });
                           setTimeout(() => setCodeCopied(false), 2000);
                         }}
@@ -578,7 +578,7 @@ const MesInformations = () => {
                       </Button>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Partagez ce code avec vos parents pour qu'ils puissent lier leur compte au vÃ´tre.
+                      Partagez ce code avec vos parents pour qu'ils puissent lier leur compte au vôtre.
                     </p>
                   </div>
                 )}
@@ -593,16 +593,16 @@ const MesInformations = () => {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>ÃŠtes-vous absolument sÃ»r ?</AlertDialogTitle>
+                      <AlertDialogTitle>ÃŠtes-vous absolument sûr ?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Cette action est irrÃ©versible. Cela supprimera dÃ©finitivement votre compte et toutes vos
-                        donnÃ©es associÃ©es.
+                        Cette action est irréversible. Cela supprimera définitivement votre compte et toutes vos
+                        données associées.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Annuler</AlertDialogCancel>
                       <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        Supprimer dÃ©finitivement
+                        Supprimer définitivement
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -615,7 +615,7 @@ const MesInformations = () => {
             </CardContent>
           </Card>
 
-          {/* Section Parent/Enfant selon le rÃ´le */}
+          {/* Section Parent/Enfant selon le rôle */}
           {userRole === 'parent' && <LinkedChildrenSection />}
           {userRole === 'student' && <LinkedParentsSection />}
         </div>
