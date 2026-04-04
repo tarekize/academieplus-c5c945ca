@@ -1,4 +1,4 @@
-// Stockage temporaire en localStorage (en attente de la migration Supabase video_mappings)
+﻿// Stockage temporaire en localStorage (en attente de la migration Supabase video_mappings)
 export type VideoType = "main" | "reel";
 
 export interface Video {
@@ -22,7 +22,7 @@ export interface VideoMapping {
     reel_videos: ReelVideo[];
 }
 
-// Stockage local des vidéos (migration vers Supabase video_mappings une fois appliquée)
+// Stockage local des vidÃ©os (migration vers Supabase video_mappings une fois appliquÃ©e)
 const STORAGE_KEY = "video_mappings";
 
 const getStoredMappings = (): Record<string, VideoMapping> => {
@@ -40,26 +40,26 @@ const saveMappings = (mappings: Record<string, VideoMapping>) => {
 
 export const videoService = {
     /**
-     * Récupère les vidéos YouTube pour une leçon selon son titre
+     * RÃ©cupÃ¨re les vidÃ©os YouTube pour une leçon selon son titre
      */
     async getVideosByLessonTitle(lessonTitle: string): Promise<Video[]> {
         try {
             const mappings = getStoredMappings();
 
-            // Recherche par titre exact ou approchée (case-insensitive)
+            // Recherche par titre exact ou approchÃ©e (case-insensitive)
             const matchingKey = Object.keys(mappings).find(key =>
                 key.toLowerCase().includes(lessonTitle.toLowerCase())
             );
 
             if (!matchingKey) {
-                console.log(`Aucune vidéo trouvée pour: ${lessonTitle}`);
+                console.log(`Aucune vidÃ©o trouvÃ©e pour: ${lessonTitle}`);
                 return [];
             }
 
             const data = mappings[matchingKey];
             const videos: Video[] = [];
 
-            // Ajouter la vidéo principale
+            // Ajouter la vidÃ©o principale
             if (data.main_video_url) {
                 videos.push({
                     id: `${matchingKey}-main`,
@@ -70,7 +70,7 @@ export const videoService = {
                 });
             }
 
-            // Ajouter les micro-vidéos
+            // Ajouter les micro-vidÃ©os
             if (data.reel_videos && Array.isArray(data.reel_videos)) {
                 data.reel_videos.forEach((reel: ReelVideo, idx: number) => {
                     videos.push({
@@ -91,7 +91,7 @@ export const videoService = {
     },
 
     /**
-     * Ajoute ou met à jour les vidéos pour une leçon
+     * Ajoute ou met Ã  jour les vidÃ©os pour une leçon
      */
     async upsertVideoMapping(
         lessonTitle: string,
@@ -117,7 +117,7 @@ export const videoService = {
     },
 
     /**
-     * Supprime les vidéos d'une leçon
+     * Supprime les vidÃ©os d'une leçon
      */
     async deleteVideoMapping(lessonTitle: string): Promise<boolean> {
         try {
@@ -132,7 +132,7 @@ export const videoService = {
     },
 
     /**
-     * Récupère tous les mappings vidéo (pour admin)
+     * RÃ©cupÃ¨re tous les mappings vidÃ©o (pour admin)
      */
     async getAllVideoMappings(): Promise<VideoMapping[]> {
         try {

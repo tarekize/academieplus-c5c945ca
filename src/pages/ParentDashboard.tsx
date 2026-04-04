@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+﻿import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -168,14 +168,14 @@ const ParentDashboard = () => {
   };
 
   const getChildFullName = (child: LinkedChild["child"]): string => {
-    if (!child) return "Compte élève";
+    if (!child) return "Compte Ã©lÃ¨ve";
     const parts = [child.first_name, child.last_name].filter(Boolean);
     return parts.length > 0 ? parts.join(" ") : "Sans nom";
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast({ title: "Déconnexion", description: "Vous avez été déconnecté avec succès" });
+    toast({ title: "DÃ©connexion", description: "Vous avez Ã©tÃ© dÃ©connectÃ© avec succÃ¨s" });
     navigate("/");
   };
 
@@ -184,7 +184,7 @@ const ParentDashboard = () => {
     if (!trimmedCode) { sonnerToast.error("Veuillez entrer un code"); return; }
     if (!user) return;
     if (!/^[a-f0-9]{8}$/i.test(trimmedCode)) {
-      sonnerToast.error("Format de code invalide (8 caractères attendus)"); return;
+      sonnerToast.error("Format de code invalide (8 caractÃ¨res attendus)"); return;
     }
     setSubmitting(true);
     try {
@@ -193,7 +193,7 @@ const ParentDashboard = () => {
       });
       if (error) { sonnerToast.error(error.message || "Erreur lors de la liaison"); return; }
       if (data?.error) { sonnerToast.error(data.error); return; }
-      sonnerToast.success(data?.message || "Demande de liaison envoyée");
+      sonnerToast.success(data?.message || "Demande de liaison envoyÃ©e");
       setCode("");
       setDialogOpen(false);
       fetchChildren(user.id);
@@ -209,7 +209,7 @@ const ParentDashboard = () => {
       const { error } = await supabase.from("parent_child_links").delete().eq("id", linkId);
       if (error) throw error;
       if (user) fetchChildren(user.id);
-      sonnerToast.success("Lien supprimé avec succès");
+      sonnerToast.success("Lien supprimÃ© avec succÃ¨s");
     } catch (error: any) {
       sonnerToast.error("Erreur lors de la suppression du lien");
     }
@@ -233,7 +233,7 @@ const ParentDashboard = () => {
       }
 
       if (anyCode.status === "used") {
-        sonnerToast.error("Ce code a déjà été activé");
+        sonnerToast.error("Ce code a dÃ©jÃ  Ã©tÃ© activÃ©");
         setActivating(false);
         return;
       }
@@ -272,7 +272,7 @@ const ParentDashboard = () => {
 
       if (insertError) throw insertError;
 
-      sonnerToast.success(`Abonnement activé (${totalDays} jours)`);
+      sonnerToast.success(`Abonnement activÃ© (${totalDays} jours)`);
       setActivationCode("");
       setActivationDialogOpen(false);
       setSelectedChildForActivation(null);
@@ -294,14 +294,14 @@ const ParentDashboard = () => {
       { value: "Lettres", label: "Lettres" },
       { value: "Gestion", label: "Gestion" },
       { value: "Math techniques", label: "Math techniques" },
-      { value: "Mathématiques", label: "Mathématiques" },
+      { value: "MathÃ©matiques", label: "MathÃ©matiques" },
     ],
     terminale: [
       { value: "Sciences", label: "Sciences" },
       { value: "Lettres", label: "Lettres" },
       { value: "Gestion", label: "Gestion" },
       { value: "Math techniques", label: "Math techniques" },
-      { value: "Mathématiques", label: "Mathématiques" },
+      { value: "MathÃ©matiques", label: "MathÃ©matiques" },
     ],
   };
 
@@ -312,11 +312,11 @@ const ParentDashboard = () => {
       return;
     }
     if (newChildPassword.length < 8) {
-      setCreateError("Le mot de passe doit contenir au moins 8 caractères");
+      setCreateError("Le mot de passe doit contenir au moins 8 caractÃ¨res");
       return;
     }
     if (needsFiliere && !newChildFiliere) {
-      setCreateError("Veuillez sélectionner une filière");
+      setCreateError("Veuillez sÃ©lectionner une filiÃ¨re");
       return;
     }
 
@@ -332,9 +332,9 @@ const ParentDashboard = () => {
           filiere: newChildFiliere || null,
         },
       });
-      if (error) { setCreateError(error.message || "Erreur lors de la création"); return; }
+      if (error) { setCreateError(error.message || "Erreur lors de la crÃ©ation"); return; }
       if (data?.error) { setCreateError(data.error); return; }
-      sonnerToast.success(data?.message || "Compte élève créé avec succès");
+      sonnerToast.success(data?.message || "Compte Ã©lÃ¨ve crÃ©Ã© avec succÃ¨s");
       setNewChildEmail(""); setNewChildPassword(""); setNewChildFirstName("");
       setNewChildLastName(""); setNewChildLevel(""); setNewChildFiliere("");
       setCreateDialogOpen(false);
@@ -372,7 +372,7 @@ const ParentDashboard = () => {
                 <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                   <GraduationCap className="h-6 w-6 text-primary-foreground" />
                 </div>
-                <span className="text-xl font-bold">AcadémiePlus</span>
+                <span className="text-xl font-bold">AcadÃ©miePlus</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Progression de {getChildFullName(selectedChild.child)}
@@ -403,7 +403,7 @@ const ParentDashboard = () => {
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                 <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">AcadémiePlus</span>
+              <span className="text-xl font-bold">AcadÃ©miePlus</span>
             </div>
             <div className="flex items-center gap-3">
               <ChangePasswordButton />
@@ -422,11 +422,11 @@ const ParentDashboard = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem onClick={() => navigate("/account")}>
-                    <UserIcon className="mr-2 h-4 w-4" /><span>Gérer mon compte</span>
+                    <UserIcon className="mr-2 h-4 w-4" /><span>GÃ©rer mon compte</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" /><span>Se déconnecter</span>
+                    <LogOut className="mr-2 h-4 w-4" /><span>Se dÃ©connecter</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -439,30 +439,30 @@ const ParentDashboard = () => {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Bonjour {fullName} 👋</h1>
+              <h1 className="text-3xl font-bold mb-2">Bonjour {fullName} ðŸ‘‹</h1>
               <p className="text-muted-foreground">Suivez la progression de vos enfants</p>
             </div>
             <div className="flex flex-wrap gap-3">
-              {/* Ajouter un élève - création de compte */}
+              {/* Ajouter un Ã©lÃ¨ve - crÃ©ation de compte */}
               <Dialog open={createDialogOpen} onOpenChange={(open) => { setCreateDialogOpen(open); if (!open) setCreateError(null); }}>
                 <DialogTrigger asChild>
-                  <Button size="lg" className="gap-2"><Plus className="h-5 w-5" />Ajouter un élève</Button>
+                  <Button size="lg" className="gap-2"><Plus className="h-5 w-5" />Ajouter un Ã©lÃ¨ve</Button>
                 </DialogTrigger>
                 <DialogContent className="max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Créer un compte élève</DialogTitle>
-                    <DialogDescription>Créez un compte pour votre enfant. Le lien de parenté sera établi automatiquement.</DialogDescription>
+                    <DialogTitle>CrÃ©er un compte Ã©lÃ¨ve</DialogTitle>
+                    <DialogDescription>CrÃ©ez un compte pour votre enfant. Le lien de parentÃ© sera Ã©tabli automatiquement.</DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 mt-4">
                     {createError && (
                       <div className="p-3 rounded-md bg-destructive/10 border border-destructive/30 text-destructive text-sm font-medium">
-                        ⚠️ {createError}
+                        âš ï¸ {createError}
                       </div>
                     )}
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        <Label>Prénom</Label>
-                        <Input placeholder="Prénom" value={newChildFirstName} onChange={(e) => setNewChildFirstName(e.target.value)} />
+                        <Label>PrÃ©nom</Label>
+                        <Input placeholder="PrÃ©nom" value={newChildFirstName} onChange={(e) => setNewChildFirstName(e.target.value)} />
                       </div>
                       <div className="space-y-2">
                         <Label>Nom</Label>
@@ -475,12 +475,12 @@ const ParentDashboard = () => {
                     </div>
                     <div className="space-y-2">
                       <Label>Mot de passe</Label>
-                      <Input type="password" placeholder="Min. 8 caractères" value={newChildPassword} onChange={(e) => setNewChildPassword(e.target.value)} />
+                      <Input type="password" placeholder="Min. 8 caractÃ¨res" value={newChildPassword} onChange={(e) => setNewChildPassword(e.target.value)} />
                     </div>
                     <div className="space-y-2">
                       <Label>Niveau scolaire</Label>
                       <Select value={newChildLevel} onValueChange={(v) => { setNewChildLevel(v); setNewChildFiliere(""); }}>
-                        <SelectTrigger><SelectValue placeholder="Sélectionner le niveau" /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder="SÃ©lectionner le niveau" /></SelectTrigger>
                         <SelectContent>
                           {allSchoolLevels.map((l) => (
                             <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
@@ -490,9 +490,9 @@ const ParentDashboard = () => {
                     </div>
                     {needsFiliere && filiereOptions[newChildLevel] && (
                       <div className="space-y-2">
-                        <Label>{newChildLevel === "premiere" ? "Tronc commun" : "Filière"}</Label>
+                        <Label>{newChildLevel === "premiere" ? "Tronc commun" : "FiliÃ¨re"}</Label>
                         <Select value={newChildFiliere} onValueChange={setNewChildFiliere}>
-                          <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                          <SelectTrigger><SelectValue placeholder="SÃ©lectionner" /></SelectTrigger>
                           <SelectContent>
                             {filiereOptions[newChildLevel].map((f) => (
                               <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
@@ -503,27 +503,27 @@ const ParentDashboard = () => {
                     )}
                     <Button onClick={handleCreateChild} disabled={creating} className="w-full">
                       {creating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
-                      Créer le compte élève
+                      CrÃ©er le compte Ã©lÃ¨ve
                     </Button>
                   </div>
                 </DialogContent>
               </Dialog>
 
-              {/* Ajouter un lien de parenté - par code */}
+              {/* Ajouter un lien de parentÃ© - par code */}
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button size="lg" variant="outline" className="gap-2"><UserPlus className="h-5 w-5" />Ajouter un lien de parenté</Button>
+                  <Button size="lg" variant="outline" className="gap-2"><UserPlus className="h-5 w-5" />Ajouter un lien de parentÃ©</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Ajouter un lien de parenté</DialogTitle>
+                    <DialogTitle>Ajouter un lien de parentÃ©</DialogTitle>
                     <DialogDescription>Liez le compte de votre enfant en utilisant son code de liaison</DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 mt-4">
                     <div className="space-y-2">
                       <Label>Code de liaison</Label>
                       <Input placeholder="ABC123" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={8} />
-                      <p className="text-sm text-muted-foreground">Demandez à votre enfant de générer un code depuis son profil</p>
+                      <p className="text-sm text-muted-foreground">Demandez Ã  votre enfant de gÃ©nÃ©rer un code depuis son profil</p>
                     </div>
                     <Button onClick={handleAddByCode} disabled={submitting} className="w-full">
                       {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Hash className="h-4 w-4 mr-2" />}
@@ -539,7 +539,7 @@ const ParentDashboard = () => {
                   <DialogHeader>
                     <DialogTitle>Activer l'abonnement</DialogTitle>
                     <DialogDescription>
-                      Entrez le code d'activation pour débloquer l'accès complet.
+                      Entrez le code d'activation pour dÃ©bloquer l'accÃ¨s complet.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 mt-4">
@@ -574,7 +574,7 @@ const ParentDashboard = () => {
               ) : children.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <UserIcon className="h-16 w-16 mx-auto mb-4 opacity-30" />
-                  <p className="text-lg font-medium">Aucun enfant lié pour le moment</p>
+                  <p className="text-lg font-medium">Aucun enfant liÃ© pour le moment</p>
                   <p className="text-sm">Cliquez sur "Ajouter un enfant" pour commencer</p>
                 </div>
               ) : (
@@ -603,11 +603,11 @@ const ParentDashboard = () => {
                               <span className="font-medium">{childName}</span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-muted-foreground">{link.child?.email ?? "—"}</TableCell>
+                          <TableCell className="text-muted-foreground">{link.child?.email ?? "â€”"}</TableCell>
                           <TableCell>
                             {link.child?.school_level ? (
                               <Badge variant="outline">{getSchoolLevelLabel(link.child.school_level)}</Badge>
-                            ) : <span className="text-muted-foreground">—</span>}
+                            ) : <span className="text-muted-foreground">â€”</span>}
                           </TableCell>
                           <TableCell>
                             <Badge variant={link.status === "active" ? "default" : "secondary"}>

@@ -1,5 +1,5 @@
-// Mathématiques - 3ème CEM
-// Programme structuré en 3 chapitres
+﻿// MathÃ©matiques - 3Ã¨me CEM
+// Programme structurÃ© en 3 chapitres
 
 export interface Chapter {
     id: string;
@@ -17,95 +17,95 @@ export interface Lesson {
 export const mathCem3emeChapters: Chapter[] = [
     {
         id: "ch1-activites-numeriques-3eme",
-        title: "Activités numériques",
-        titleAr: "أنشطة عددية",
+        title: "ActivitÃ©s numÃ©riques",
+        titleAr: "Ø£Ù†Ø´Ø·Ø© Ø¹Ø¯Ø¯ÙŠØ©",
         lessons: [
             {
                 id: "ch1-l1-nombres-relatifs",
                 title: "Les nombres relatifs",
-                titleAr: "الأعداد النسبية"
+                titleAr: "Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ù†Ø³Ø¨ÙŠØ©"
             },
             {
                 id: "ch1-l2-operations-fractions-rationnels",
-                title: "Opérations sur les fractions et les nombres rationnels",
-                titleAr: "العمليات على الكسور والأعداد الناطقة"
+                title: "OpÃ©rations sur les fractions et les nombres rationnels",
+                titleAr: "Ø§Ù„Ø¹Ù…Ù„ÙŠØ§Øª Ø¹Ù„Ù‰ Ø§Ù„ÙƒØ³ÙˆØ± ÙˆØ§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ù†Ø§Ø·Ù‚Ø©"
             },
             {
                 id: "ch1-l3-puissances-relatifs",
-                title: "Puissances à exposants relatifs entiers",
-                titleAr: "القوى ذات أسس نسبية صحيحة"
+                title: "Puissances Ã  exposants relatifs entiers",
+                titleAr: "Ø§Ù„Ù‚ÙˆÙ‰ Ø°Ø§Øª Ø£Ø³Ø³ Ù†Ø³Ø¨ÙŠØ© ØµØ­ÙŠØ­Ø©"
             },
             {
                 id: "ch1-l4-calcul-litteral-3eme",
-                title: "Calcul littéral",
-                titleAr: "الحساب الحرفي"
+                title: "Calcul littÃ©ral",
+                titleAr: "Ø§Ù„Ø­Ø³Ø§Ø¨ Ø§Ù„Ø­Ø±ÙÙŠ"
             },
             {
                 id: "ch1-l5-egalites-inegalites-equations",
-                title: "Égalités - Inégalités - Équations",
-                titleAr: "المساويات - المتباينات - المعادلات"
+                title: "Ã‰galitÃ©s - InÃ©galitÃ©s - Ã‰quations",
+                titleAr: "Ø§Ù„Ù…Ø³Ø§ÙˆÙŠØ§Øª - Ø§Ù„Ù…ØªØ¨Ø§ÙŠÙ†Ø§Øª - Ø§Ù„Ù…Ø¹Ø§Ø¯Ù„Ø§Øª"
             }
         ]
     },
     {
         id: "ch2-fonctions-organisation-donnees-3eme",
-        title: "Fonctions et organisation des données",
-        titleAr: "الدوال وتنظيم المعطيات",
+        title: "Fonctions et organisation des donnÃ©es",
+        titleAr: "Ø§Ù„Ø¯ÙˆØ§Ù„ ÙˆØªÙ†Ø¸ÙŠÙ… Ø§Ù„Ù…Ø¹Ø·ÙŠØ§Øª",
         lessons: [
             {
                 id: "ch2-l1-proportionnalite",
-                title: "Proportionnalité",
-                titleAr: "التناسبية"
+                title: "ProportionnalitÃ©",
+                titleAr: "Ø§Ù„ØªÙ†Ø§Ø³Ø¨ÙŠØ©"
             },
             {
                 id: "ch2-l2-organisation-donnees",
-                title: "Organisation des données",
-                titleAr: "تنظيم معطيات"
+                title: "Organisation des donnÃ©es",
+                titleAr: "ØªÙ†Ø¸ÙŠÙ… Ù…Ø¹Ø·ÙŠØ§Øª"
             }
         ]
     },
     {
         id: "ch3-activites-geometriques-3eme",
-        title: "Activités géométriques",
-        titleAr: "أنشطة هندسية",
+        title: "ActivitÃ©s gÃ©omÃ©triques",
+        titleAr: "Ø£Ù†Ø´Ø·Ø© Ù‡Ù†Ø¯Ø³ÙŠØ©",
         lessons: [
             {
                 id: "ch3-l1-demonstration-mathematiques",
-                title: "Démonstration en mathématiques",
-                titleAr: "البرهان في الرياضيات"
+                title: "DÃ©monstration en mathÃ©matiques",
+                titleAr: "Ø§Ù„Ø¨Ø±Ù‡Ø§Ù† ÙÙŠ Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª"
             },
             {
                 id: "ch3-l2-trigonometrie",
-                title: "Trigonométrie",
-                titleAr: "المثلثات"
+                title: "TrigonomÃ©trie",
+                titleAr: "Ø§Ù„Ù…Ø«Ù„Ø«Ø§Øª"
             },
             {
                 id: "ch3-l3-triangle-rectangle-cercle",
                 title: "Triangle rectangle et cercle",
-                titleAr: "المثلث القائم و الدائرة"
+                titleAr: "Ø§Ù„Ù…Ø«Ù„Ø« Ø§Ù„Ù‚Ø§Ø¦Ù… Ùˆ Ø§Ù„Ø¯Ø§Ø¦Ø±Ø©"
             },
             {
                 id: "ch3-l4-pythagore-cosecante",
-                title: "Théorème de Pythagore, cosécante d'un angle",
-                titleAr: "خاصية فيتاغورس، جيب تمام زاوية"
+                title: "ThÃ©orÃ¨me de Pythagore, cosÃ©cante d'un angle",
+                titleAr: "Ø®Ø§ØµÙŠØ© ÙÙŠØªØ§ØºÙˆØ±Ø³ØŒ Ø¬ÙŠØ¨ ØªÙ…Ø§Ù… Ø²Ø§ÙˆÙŠØ©"
             },
             {
                 id: "ch3-l5-homotheti",
-                title: "Homothéties",
-                titleAr: "الانسحاب"
+                title: "HomothÃ©ties",
+                titleAr: "Ø§Ù„Ø§Ù†Ø³Ø­Ø§Ø¨"
             },
             {
                 id: "ch3-l6-pyramide-cone-revolution",
-                title: "Pyramide et cône de révolution",
-                titleAr: "الهرم و مخروط الدوران"
+                title: "Pyramide et cÃ´ne de rÃ©volution",
+                titleAr: "Ø§Ù„Ù‡Ø±Ù… Ùˆ Ù…Ø®Ø±ÙˆØ· Ø§Ù„Ø¯ÙˆØ±Ø§Ù†"
             }
         ]
     }
 ];
 
 export const getCem3emeCourseInfo = () => ({
-    title: "Mathématiques - 3ème CEM",
-    titleAr: "الرياضيات - السنة الثالثة إعدادي",
-    description: "Programme de mathématiques pour la 3ème année du Collège d'Enseignement Moyen",
-    descriptionAr: "برنامج الرياضيات للسنة الثالثة إعدادي"
+    title: "MathÃ©matiques - 3Ã¨me CEM",
+    titleAr: "Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª - Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø«Ø§Ù„Ø«Ø© Ø¥Ø¹Ø¯Ø§Ø¯ÙŠ",
+    description: "Programme de mathÃ©matiques pour la 3Ã¨me annÃ©e du CollÃ¨ge d'Enseignement Moyen",
+    descriptionAr: "Ø¨Ø±Ù†Ø§Ù…Ø¬ Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª Ù„Ù„Ø³Ù†Ø© Ø§Ù„Ø«Ø§Ù„Ø«Ø© Ø¥Ø¹Ø¯Ø§Ø¯ÙŠ"
 });

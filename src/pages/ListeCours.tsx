@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -51,17 +51,17 @@ interface SchoolLevel {
 
 // Only Mathematics is available for students currently
 const staticSubjects: Subject[] = [
-  { id: "math", name: "Mathématiques", icon: Calculator, color: "#3B82F6", available: true },
+  { id: "math", name: "MathÃ©matiques", icon: Calculator, color: "#3B82F6", available: true },
 ];
 
 // School levels matching DB enum
 const schoolLevels: SchoolLevel[] = [
-  { id: "5eme_primaire", name: "5ème Primaire", color: "#8B5CF6" },
-  { id: "1ere_cem", name: "1ère CEM", color: "#06B6D4" },
-  { id: "2eme_cem", name: "2ème CEM", color: "#10B981" },
-  { id: "3eme_cem", name: "3ème CEM", color: "#F59E0B" },
-  { id: "4eme_cem", name: "4ème CEM", color: "#EF4444" },
-  { id: "premiere", name: "Première", color: "#EC4899" },
+  { id: "5eme_primaire", name: "5Ã¨me Primaire", color: "#8B5CF6" },
+  { id: "1ere_cem", name: "1Ã¨re CEM", color: "#06B6D4" },
+  { id: "2eme_cem", name: "2Ã¨me CEM", color: "#10B981" },
+  { id: "3eme_cem", name: "3Ã¨me CEM", color: "#F59E0B" },
+  { id: "4eme_cem", name: "4Ã¨me CEM", color: "#EF4444" },
+  { id: "premiere", name: "PremiÃ¨re", color: "#EC4899" },
   { id: "seconde", name: "Seconde", color: "#7C3AED" },
   { id: "terminale", name: "Terminale", color: "#D97706" },
 ];
@@ -153,12 +153,12 @@ const ListeCours = () => {
 
   const getSchoolLevelName = (level: string) => {
     const levels: Record<string, string> = {
-      "6eme": "6ème",
-      "5eme": "5ème",
-      "4eme": "4ème",
-      "3eme": "3ème",
+      "6eme": "6Ã¨me",
+      "5eme": "5Ã¨me",
+      "4eme": "4Ã¨me",
+      "3eme": "3Ã¨me",
       seconde: "Seconde",
-      premiere: "Première",
+      premiere: "PremiÃ¨re",
       terminale: "Terminale",
     };
     return levels[level] || level || "Votre classe";
@@ -167,8 +167,8 @@ const ListeCours = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast({
-      title: "Déconnexion",
-      description: "Vous avez été déconnecté avec succès",
+      title: "DÃ©connexion",
+      description: "Vous avez Ã©tÃ© dÃ©connectÃ© avec succÃ¨s",
     });
     navigate("/");
   };
@@ -237,7 +237,7 @@ const ListeCours = () => {
 
   const fullName = getFullName(profile);
 
-  // Admin/Pédago view - Level Selection
+  // Admin/PÃ©dago view - Level Selection
   if ((isAdmin || isPedago) && !selectedLevel) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
@@ -252,7 +252,7 @@ const ListeCours = () => {
                 <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                   <GraduationCap className="h-6 w-6 text-white" />
                 </div>
-                <span className="text-xl font-bold">AcadémiePlus</span>
+                <span className="text-xl font-bold">AcadÃ©miePlus</span>
               </div>
 
               <div className="flex items-center gap-4">
@@ -265,7 +265,7 @@ const ListeCours = () => {
                       </Avatar>
                       <div className="text-left hidden md:block">
                         <p className="text-sm font-medium">{fullName}</p>
-                        <p className="text-xs text-muted-foreground">{isAdmin ? 'Administrateur' : 'Pédagogue'}</p>
+                        <p className="text-xs text-muted-foreground">{isAdmin ? 'Administrateur' : 'PÃ©dagogue'}</p>
                       </div>
 
                     </div>
@@ -279,7 +279,7 @@ const ListeCours = () => {
                     )}
                     <DropdownMenuItem onClick={() => navigate("/account")}>
                       <UserIcon className="mr-2 h-4 w-4" />
-                      <span>Gérer mon compte</span>
+                      <span>GÃ©rer mon compte</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                       <GraduationCap className="mr-2 h-4 w-4" />
@@ -288,7 +288,7 @@ const ListeCours = () => {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                       <LogOut className="mr-2 h-4 w-4" />
-                      <span>Se déconnecter</span>
+                      <span>Se dÃ©connecter</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -302,10 +302,10 @@ const ListeCours = () => {
             {/* Hero Section */}
             <div className="text-center mb-12 animate-fade-in">
               <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Contenu Pédagogique par Niveau
+                Contenu PÃ©dagogique par Niveau
               </h1>
               <p className="text-xl text-muted-foreground mb-8">
-                Sélectionnez un niveau pour voir les cours disponibles 📚
+                SÃ©lectionnez un niveau pour voir les cours disponibles ðŸ“š
               </p>
 
               {/* Search Bar */}
@@ -363,7 +363,7 @@ const ListeCours = () => {
             {/* No Results */}
             {filteredLevels.length === 0 && (
               <div className="text-center py-16">
-                <p className="text-xl text-muted-foreground">Aucun niveau trouvé pour "{searchQuery}"</p>
+                <p className="text-xl text-muted-foreground">Aucun niveau trouvÃ© pour "{searchQuery}"</p>
               </div>
             )}
           </div>
@@ -372,7 +372,7 @@ const ListeCours = () => {
     );
   }
 
-  // Admin/Pédago view - Filiere selection for selected level
+  // Admin/PÃ©dago view - Filiere selection for selected level
   if ((isAdmin || isPedago) && selectedLevel) {
     const levelName = schoolLevels.find(l => l.id === selectedLevel)?.name || selectedLevel;
     const levelColor = schoolLevels.find(l => l.id === selectedLevel)?.color || "#8B5CF6";
@@ -389,7 +389,7 @@ const ListeCours = () => {
                 <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                   <GraduationCap className="h-6 w-6 text-white" />
                 </div>
-                <span className="text-xl font-bold">AcadémiePlus</span>
+                <span className="text-xl font-bold">AcadÃ©miePlus</span>
               </div>
               <div className="flex items-center gap-4">
                 <DropdownMenu>
@@ -401,7 +401,7 @@ const ListeCours = () => {
                       </Avatar>
                       <div className="text-left hidden md:block">
                         <p className="text-sm font-medium">{fullName}</p>
-                        <p className="text-xs text-muted-foreground">{isAdmin ? 'Administrateur' : 'Pédagogue'}</p>
+                        <p className="text-xs text-muted-foreground">{isAdmin ? 'Administrateur' : 'PÃ©dagogue'}</p>
                       </div>
                     </div>
                   </DropdownMenuTrigger>
@@ -414,7 +414,7 @@ const ListeCours = () => {
                     )}
                     <DropdownMenuItem onClick={() => navigate("/account")}>
                       <UserIcon className="mr-2 h-4 w-4" />
-                      <span>Gérer mon compte</span>
+                      <span>GÃ©rer mon compte</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                       <GraduationCap className="mr-2 h-4 w-4" />
@@ -423,7 +423,7 @@ const ListeCours = () => {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                       <LogOut className="mr-2 h-4 w-4" />
-                      <span>Se déconnecter</span>
+                      <span>Se dÃ©connecter</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -441,10 +441,10 @@ const ListeCours = () => {
 
             <div className="text-center mb-12 animate-fade-in">
               <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                {levelName} - Choisir une filière
+                {levelName} - Choisir une filiÃ¨re
               </h1>
               <p className="text-xl text-muted-foreground mb-8">
-                Sélectionnez une filière pour voir les cours disponibles 📚
+                SÃ©lectionnez une filiÃ¨re pour voir les cours disponibles ðŸ“š
               </p>
             </div>
 
@@ -487,7 +487,7 @@ const ListeCours = () => {
 
             {!loadingFilieres && filieres.length === 0 && (
               <div className="text-center py-16">
-                <p className="text-xl text-muted-foreground">Aucune filière disponible pour ce niveau</p>
+                <p className="text-xl text-muted-foreground">Aucune filiÃ¨re disponible pour ce niveau</p>
               </div>
             )}
           </div>
@@ -510,7 +510,7 @@ const ListeCours = () => {
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                 <GraduationCap className="h-6 w-6 text-white" />
               </div>
-              <span className="text-xl font-bold">AcadémiePlus</span>
+              <span className="text-xl font-bold">AcadÃ©miePlus</span>
             </div>
 
             <div className="flex items-center gap-3">
@@ -534,7 +534,7 @@ const ListeCours = () => {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem onClick={() => navigate("/account")}>
                     <UserIcon className="mr-2 h-4 w-4" />
-                    <span>Gérer mon compte</span>
+                    <span>GÃ©rer mon compte</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                     <GraduationCap className="mr-2 h-4 w-4" />
@@ -543,7 +543,7 @@ const ListeCours = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Se déconnecter</span>
+                    <span>Se dÃ©connecter</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -557,10 +557,10 @@ const ListeCours = () => {
           {/* Hero Section */}
           <div className="text-center mb-12 animate-fade-in">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Matières de {profile?.school_level ? getSchoolLevelName(profile.school_level) : "ta classe"}
+              MatiÃ¨res de {profile?.school_level ? getSchoolLevelName(profile.school_level) : "ta classe"}
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
-              Découvre tous les cours de ta classe et prépare-toi à réussir ! 🚀
+              DÃ©couvre tous les cours de ta classe et prÃ©pare-toi Ã  rÃ©ussir ! ðŸš€
             </p>
 
             {/* Search Bar */}
@@ -569,7 +569,7 @@ const ListeCours = () => {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Rechercher une matière..."
+                  placeholder="Rechercher une matiÃ¨re..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-12 h-14 text-lg rounded-full shadow-lg border-2 focus:border-primary"
@@ -583,7 +583,7 @@ const ListeCours = () => {
             <section className="mb-12">
               <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                 <BookOpen className="h-6 w-6 text-primary" />
-                Toutes les matières
+                Toutes les matiÃ¨res
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {filteredSubjects.map((subject, index) => {
@@ -610,7 +610,7 @@ const ListeCours = () => {
                           <div>
                             <h3 className="font-semibold text-lg leading-tight">{subject.name}</h3>
                             {!subject.available && (
-                              <span className="text-xs text-muted-foreground">Bientôt disponible</span>
+                              <span className="text-xs text-muted-foreground">BientÃ´t disponible</span>
                             )}
                           </div>
                         </div>
@@ -625,7 +625,7 @@ const ListeCours = () => {
           {/* No Results */}
           {filteredSubjects.length === 0 && (
             <div className="text-center py-16">
-              <p className="text-xl text-muted-foreground">Aucune matière trouvée pour "{searchQuery}"</p>
+              <p className="text-xl text-muted-foreground">Aucune matiÃ¨re trouvÃ©e pour "{searchQuery}"</p>
             </div>
           )}
         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -72,13 +72,13 @@ export function ReviewModal({ open, onClose, courseId, onSuccess }: ReviewModalP
       }
     } catch (error) {
       console.error('Error loading reviewers:', error);
-      toast.error("Erreur lors du chargement des réviseurs");
+      toast.error("Erreur lors du chargement des rÃ©viseurs");
     }
   };
 
   const handleSendToReview = async () => {
     if (!selectedReviewer) {
-      toast.error("Veuillez sélectionner un réviseur");
+      toast.error("Veuillez sÃ©lectionner un rÃ©viseur");
       return;
     }
 
@@ -92,7 +92,7 @@ export function ReviewModal({ open, onClose, courseId, onSuccess }: ReviewModalP
         _details: { course_id: courseId, message: message || null },
       });
 
-      toast.success("Cours envoyé en révision");
+      toast.success("Cours envoyÃ© en révision");
       onSuccess();
       onClose();
       
@@ -124,10 +124,10 @@ export function ReviewModal({ open, onClose, courseId, onSuccess }: ReviewModalP
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="reviewer">Sélectionner un réviseur *</Label>
+            <Label htmlFor="reviewer">SÃ©lectionner un rÃ©viseur *</Label>
             <Select value={selectedReviewer} onValueChange={setSelectedReviewer}>
               <SelectTrigger id="reviewer">
-                <SelectValue placeholder="Choisir un réviseur..." />
+                <SelectValue placeholder="Choisir un rÃ©viseur..." />
               </SelectTrigger>
               <SelectContent>
                 {reviewers.map((reviewer) => (
@@ -137,7 +137,7 @@ export function ReviewModal({ open, onClose, courseId, onSuccess }: ReviewModalP
                 ))}
                 {reviewers.length === 0 && (
                   <SelectItem value="none" disabled>
-                    Aucun réviseur disponible
+                    Aucun rÃ©viseur disponible
                   </SelectItem>
                 )}
               </SelectContent>
@@ -159,18 +159,18 @@ export function ReviewModal({ open, onClose, courseId, onSuccess }: ReviewModalP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="message">Message/Notes pour le réviseur</Label>
+            <Label htmlFor="message">Message/Notes pour le rÃ©viseur</Label>
             <Textarea
               id="message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Veuillez vérifier la conformité avec le nouveau programme 2025-2026..."
+              placeholder="Veuillez vÃ©rifier la conformitÃ© avec le nouveau programme 2025-2026..."
               className="min-h-[100px]"
             />
           </div>
 
           <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
-            Le cours sera visible aux réviseurs et marqué comme "en révision"
+            Le cours sera visible aux rÃ©viseurs et marquÃ© comme "en révision"
           </div>
         </div>
 

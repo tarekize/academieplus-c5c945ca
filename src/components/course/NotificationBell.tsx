@@ -1,4 +1,4 @@
-import { Bell } from "lucide-react";
+﻿import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -32,17 +32,17 @@ export function NotificationBell({ userId }: NotificationBellProps) {
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
         <div className="flex items-center justify-between p-3 border-b">
-          <h3 className="font-semibold text-sm">الإشعارات</h3>
+          <h3 className="font-semibold text-sm">Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª</h3>
           {unreadCount > 0 && (
             <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs">
-              تحديد الكل كمقروء
+              ØªØ­Ø¯ÙŠØ¯ Ø§Ù„ÙƒÙ„ ÙƒÙ…Ù‚Ø±ÙˆØ¡
             </Button>
           )}
         </div>
         <ScrollArea className="max-h-80">
           {notifications.length === 0 ? (
             <div className="p-6 text-center text-sm text-muted-foreground" dir="rtl">
-              لا توجد إشعارات
+              Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¥Ø´Ø¹Ø§Ø±Ø§Øª
             </div>
           ) : (
             notifications.map((n) => (
@@ -53,7 +53,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
                 dir="rtl"
               >
                 <div className="flex items-start gap-2">
-                  <span className="text-lg">{n.notification_type === "performance_drop" ? "📉" : n.notification_type === "improvement" ? "📈" : "🔔"}</span>
+                  <span className="text-lg">{n.notification_type === "performance_drop" ? "ðŸ“‰" : n.notification_type === "improvement" ? "ðŸ“ˆ" : "ðŸ””"}</span>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm">{n.title}</p>
                     <p className="text-xs text-muted-foreground mt-1">{n.message}</p>

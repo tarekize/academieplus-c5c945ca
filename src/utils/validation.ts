@@ -1,13 +1,13 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
 export const courseSchema = z.object({
-  titre: z.string().min(3, 'Le titre doit contenir au moins 3 caractères'),
+  titre: z.string().min(3, 'Le titre doit contenir au moins 3 caractÃ¨res'),
   description: z.string().optional(),
-  matiere_id: z.number().positive('Veuillez sélectionner une matière'),
-  niveau_id: z.number().positive('Veuillez sélectionner un niveau'),
+  matiere_id: z.number().positive('Veuillez sÃ©lectionner une matiÃ¨re'),
+  niveau_id: z.number().positive('Veuillez sÃ©lectionner un niveau'),
   difficulte: z.number().min(1).max(5),
   duree_lecture: z.number().min(1),
-  statut: z.enum(['brouillon', 'en_revision', 'publié', 'archivé']),
+  statut: z.enum(['brouillon', 'en_revision', 'publiÃ©', 'archivÃ©']),
 });
 
 export const sectionSchema = z.object({
@@ -18,7 +18,7 @@ export const sectionSchema = z.object({
 });
 
 export const formulaSchema = z.object({
-  latex_source: z.string().min(1, 'La formule ne peut pas être vide'),
+  latex_source: z.string().min(1, 'La formule ne peut pas Ãªtre vide'),
   mode_affichage: z.enum(['inline', 'block']).default('block'),
 });
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { List } from "lucide-react";
 
@@ -15,7 +15,7 @@ interface TableOfContentsProps {
     dir?: "rtl" | "ltr";
 }
 
-export function TableOfContents({ htmlContent, className, title = "Table des matières", dir = "rtl" }: TableOfContentsProps) {
+export function TableOfContents({ htmlContent, className, title = "Table des matiÃ¨res", dir = "rtl" }: TableOfContentsProps) {
     const [items, setItems] = useState<TocItem[]>([]);
 
     useEffect(() => {
@@ -91,8 +91,8 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
             ) : (
                 <p className={cn("text-xs text-muted-foreground italic leading-relaxed", dir === "rtl" ? "text-right" : "text-left")}>
                     {dir === "rtl"
-                        ? "سيظهر فهرس الدروس هنا تلقائياً عند إضافة العناوين الرئيسية للمحتوى."
-                        : "Le plan du cours s'affichera ici automatiquement après l'ajout de titres."}
+                        ? "Ø³ÙŠØ¸Ù‡Ø± ÙÙ‡Ø±Ø³ الدروس Ù‡Ù†Ø§ ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹ Ø¹Ù†Ø¯ Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø¹Ù†Ø§ÙˆÙŠÙ† Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ© Ù„Ù„Ù…Ø­ØªÙˆÙ‰."
+                        : "Le plan du cours s'affichera ici automatiquement aprÃ¨s l'ajout de titres."}
                 </p>
             )}
         </div>

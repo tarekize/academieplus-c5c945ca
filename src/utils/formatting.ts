@@ -1,4 +1,4 @@
-import { format, formatDistanceToNow, parseISO } from 'date-fns';
+﻿import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export function formatDate(date: string | Date): string {
@@ -8,7 +8,7 @@ export function formatDate(date: string | Date): string {
 
 export function formatDateTime(date: string | Date): string {
   const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  return format(dateObj, 'dd/MM/yyyy à HH:mm', { locale: fr });
+  return format(dateObj, 'dd/MM/yyyy Ã  HH:mm', { locale: fr });
 }
 
 export function formatRelativeTime(date: string | Date): string {
@@ -48,21 +48,21 @@ export function capitalizeFirst(text: string): string {
 
 export function getDifficultyLabel(level: number): string {
   const labels: Record<number, string> = {
-    1: 'Très facile',
+    1: 'TrÃ¨s facile',
     2: 'Facile',
     3: 'Moyen',
     4: 'Difficile',
-    5: 'Très difficile',
+    5: 'TrÃ¨s difficile',
   };
-  return labels[level] || 'Non défini';
+  return labels[level] || 'Non dÃ©fini';
 }
 
 export function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     'brouillon': 'Brouillon',
     'en_revision': 'En révision',
-    'publié': 'Publié',
-    'archivé': 'Archivé',
+    'publiÃ©': 'PubliÃ©',
+    'archivÃ©': 'ArchivÃ©',
   };
   return labels[status] || status;
 }

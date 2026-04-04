@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -145,7 +145,7 @@ const Account = () => {
       })
       .eq("id", subscription.id);
 
-    toast({ title: "Abonnement mis en pause", description: "Le décompte de vos jours est suspendu." });
+    toast({ title: "Abonnement mis en pause", description: "Le dÃ©compte de vos jours est suspendu." });
     fetchSubscription(user.id);
   };
 
@@ -161,7 +161,7 @@ const Account = () => {
       })
       .eq("id", subscription.id);
 
-    toast({ title: "Abonnement réactivé", description: "Le décompte de vos jours reprend." });
+    toast({ title: "Abonnement rÃ©activÃ©", description: "Le dÃ©compte de vos jours reprend." });
     fetchSubscription(user.id);
   };
 
@@ -174,15 +174,15 @@ const Account = () => {
   const getSchoolLevelName = (level: string) => {
     const levels: Record<string, string> = {
       cp: 'CP', ce1: 'CE1', ce2: 'CE2', cm1: 'CM1', cm2: 'CM2',
-      sixieme: '6ème', cinquieme: '5ème', quatrieme: '4ème', troisieme: '3ème',
-      seconde: 'Seconde', premiere: 'Première', terminale: 'Terminale'
+      sixieme: '6Ã¨me', cinquieme: '5Ã¨me', quatrieme: '4Ã¨me', troisieme: '3Ã¨me',
+      seconde: 'Seconde', premiere: 'PremiÃ¨re', terminale: 'Terminale'
     };
     return levels[level] || 'Votre classe';
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast({ title: "Déconnexion", description: "Vous avez été déconnecté avec succès" });
+    toast({ title: "DÃ©connexion", description: "Vous avez Ã©tÃ© dÃ©connectÃ© avec succÃ¨s" });
     navigate("/");
   };
 
@@ -200,7 +200,7 @@ const Account = () => {
   const studentCards = [
     {
       title: "Mes Informations",
-      description: "Gérer mes informations personnelles",
+      description: "GÃ©rer mes informations personnelles",
       icon: UserCircle,
       color: "text-blue-600",
       onClick: () => navigate("/mes-informations"),
@@ -210,7 +210,7 @@ const Account = () => {
       description: "Voir mes statistiques d'apprentissage",
       icon: BarChart3,
       color: "text-indigo-600",
-      onClick: () => toast({ title: "Mes statistiques", description: "Section en cours de développement" }),
+      onClick: () => toast({ title: "Mes statistiques", description: "Section en cours de dÃ©veloppement" }),
     },
   ];
 
@@ -218,21 +218,21 @@ const Account = () => {
   const parentCards = [
     {
       title: "Mes Informations",
-      description: "Gérer mes informations personnelles",
+      description: "GÃ©rer mes informations personnelles",
       icon: UserCircle,
       color: "text-blue-600",
       onClick: () => navigate("/mes-informations"),
     },
     {
       title: "Les abonnements",
-      description: "Gérer mes abonnements et plans",
+      description: "GÃ©rer mes abonnements et plans",
       icon: Key,
       color: "text-purple-600",
       onClick: () => navigate("/abonnements"),
     },
     {
       title: "Facturation",
-      description: "Consulter et télécharger mes factures",
+      description: "Consulter et tÃ©lÃ©charger mes factures",
       icon: FileText,
       color: "text-emerald-600",
       onClick: () => navigate("/factures"),
@@ -242,7 +242,7 @@ const Account = () => {
       description: "Voir mes statistiques d'apprentissage",
       icon: BarChart3,
       color: "text-indigo-600",
-      onClick: () => toast({ title: "Mes statistiques", description: "Section en cours de développement" }),
+      onClick: () => toast({ title: "Mes statistiques", description: "Section en cours de dÃ©veloppement" }),
     },
   ];
 
@@ -263,7 +263,7 @@ const Account = () => {
               <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md">
                 <GraduationCap className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">AcadémiePlus</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">AcadÃ©miePlus</span>
             </div>
 
             <div className="flex items-center gap-3">
@@ -286,7 +286,7 @@ const Account = () => {
                 <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-border/50">
                   <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg">
                     <UserIcon className="mr-2 h-4 w-4" />
-                    <span>Gérer mon compte</span>
+                    <span>GÃ©rer mon compte</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate(isParent ? "/parent-dashboard" : "/dashboard")} className="rounded-lg">
                     <GraduationCap className="mr-2 h-4 w-4" />
@@ -295,7 +295,7 @@ const Account = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg">
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Se déconnecter</span>
+                    <span>Se dÃ©connecter</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -312,7 +312,7 @@ const Account = () => {
               className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-primary/10 text-primary font-medium text-sm border border-primary/20 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 group"
             >
               <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
-              Retour vers liste des matières
+              Retour vers liste des matiÃ¨res
             </button>
             <button
               onClick={() => navigate("/dashboard")}

@@ -1,4 +1,4 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+﻿import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 
@@ -24,20 +24,20 @@ export default function CourseFilters({ onChange }: CourseFiltersProps) {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Tous les statuts</SelectItem>
-          <SelectItem value="publié">Publié</SelectItem>
+          <SelectItem value="publiÃ©">PubliÃ©</SelectItem>
           <SelectItem value="brouillon">Brouillon</SelectItem>
           <SelectItem value="en_revision">En révision</SelectItem>
-          <SelectItem value="archivé">Archivé</SelectItem>
+          <SelectItem value="archivÃ©">ArchivÃ©</SelectItem>
         </SelectContent>
       </Select>
 
       <Select onValueChange={(value) => onChange({ matiere: value })}>
         <SelectTrigger className="w-48">
-          <SelectValue placeholder="Toutes matières" />
+          <SelectValue placeholder="Toutes matiÃ¨res" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Toutes matières</SelectItem>
-          <SelectItem value="mathematiques">Mathématiques</SelectItem>
+          <SelectItem value="all">Toutes matiÃ¨res</SelectItem>
+          <SelectItem value="mathematiques">MathÃ©matiques</SelectItem>
           <SelectItem value="physique">Physique</SelectItem>
           <SelectItem value="svt">SVT</SelectItem>
         </SelectContent>

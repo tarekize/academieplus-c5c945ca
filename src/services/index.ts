@@ -1,4 +1,4 @@
-// Export centralisé de tous les services
+﻿// Export centralisÃ© de tous les services
 export { sectionService } from './sectionService';
 export { mediaService } from './mediaService';
 export { versionService } from './versionService';

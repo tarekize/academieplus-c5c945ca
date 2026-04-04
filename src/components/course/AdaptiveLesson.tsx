@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -28,7 +28,7 @@ const YoutubePlayer = ({ url, title }: { url: string; title: string }) => {
     if (!youtubeId) {
         return (
             <div className="bg-muted rounded-lg p-8 text-center text-muted-foreground">
-                Vidéo non disponible
+                VidÃ©o non disponible
             </div>
         );
     }
@@ -52,7 +52,7 @@ export const AdaptiveLesson = ({
     videos,
     learningStyle,
 }: AdaptiveLessonProps) => {
-    // Visuel → affiche vidéos par défaut ; Textuel → affiche texte par défaut
+    // Visuel â†’ affiche vidÃ©os par dÃ©faut ; Textuel â†’ affiche texte par dÃ©faut
     const [showVideos, setShowVideos] = useState(learningStyle === "visual");
 
     const mainVideo = videos.find((v) => v.type === "main");
@@ -74,7 +74,7 @@ export const AdaptiveLesson = ({
                         {showVideos ? (
                             <><BookOpen className="h-4 w-4" /> Voir le texte</>
                         ) : (
-                            <><Play className="h-4 w-4" /> Voir les vidéos</>
+                            <><Play className="h-4 w-4" /> Voir les vidÃ©os</>
                         )}
                     </Button>
                 )}
@@ -93,7 +93,7 @@ export const AdaptiveLesson = ({
                         {mainVideo ? (
                             <div>
                                 <h2 className="text-xl font-semibold text-foreground mb-3">
-                                    Vidéo principale
+                                    VidÃ©o principale
                                 </h2>
                                 <YoutubePlayer url={mainVideo.youtubeUrl} title={mainVideo.title} />
                             </div>
@@ -102,7 +102,7 @@ export const AdaptiveLesson = ({
                         {reelVideos.length > 0 && (
                             <div>
                                 <h2 className="text-lg font-semibold text-foreground mb-3">
-                                    Vidéos complément
+                                    VidÃ©os complÃ©ment
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {reelVideos.map((reel) => (
@@ -123,7 +123,7 @@ export const AdaptiveLesson = ({
                     <Alert>
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>
-                            Aucune vidéo disponible pour cette leçon.
+                            Aucune vidÃ©o disponible pour cette leçon.
                         </AlertDescription>
                     </Alert>
                 )}

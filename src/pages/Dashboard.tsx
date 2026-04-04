@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -87,8 +87,8 @@ const Dashboard = () => {
 
   const getSchoolLevelName = (level: string) => {
     const levels: Record<string, string> = {
-      "5eme_primaire": "5ème Primaire", "1ere_cem": "1ère CEM", "2eme_cem": "2ème CEM",
-      "3eme_cem": "3ème CEM", "4eme_cem": "4ème CEM", premiere: "Première",
+      "5eme_primaire": "5Ã¨me Primaire", "1ere_cem": "1Ã¨re CEM", "2eme_cem": "2Ã¨me CEM",
+      "3eme_cem": "3Ã¨me CEM", "4eme_cem": "4Ã¨me CEM", premiere: "PremiÃ¨re",
       seconde: "Seconde", terminale: "Terminale",
     };
     return levels[level] || level;
@@ -96,7 +96,7 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast({ title: "Déconnexion", description: "Vous avez été déconnecté avec succès" });
+    toast({ title: "DÃ©connexion", description: "Vous avez Ã©tÃ© dÃ©connectÃ© avec succÃ¨s" });
     navigate("/");
   };
 
@@ -122,13 +122,13 @@ const Dashboard = () => {
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                 <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">AcadémiePlus</span>
+              <span className="text-xl font-bold">AcadÃ©miePlus</span>
             </div>
 
             <div className="flex-1 max-w-xl mx-8">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input type="text" placeholder="Rechercher un cours, une matière..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 w-full" />
+                <Input type="text" placeholder="Rechercher un cours, une matiÃ¨re..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 w-full" />
               </div>
             </div>
 
@@ -159,7 +159,7 @@ const Dashboard = () => {
                     {!isAdmin && (
                       <DropdownMenuItem onClick={() => navigate("/account")}>
                         <UserIcon className="mr-2 h-4 w-4" />
-                        <span>Gérer mon compte</span>
+                        <span>GÃ©rer mon compte</span>
                       </DropdownMenuItem>
                     )}
                     {isAdmin && (
@@ -171,7 +171,7 @@ const Dashboard = () => {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                       <LogOut className="mr-2 h-4 w-4" />
-                      <span>Se déconnecter</span>
+                      <span>Se dÃ©connecter</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -192,7 +192,7 @@ const Dashboard = () => {
           {!isStudent && (
             <>
               <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2">Bonjour {fullName} 👋</h1>
+                <h1 className="text-3xl font-bold mb-2">Bonjour {fullName} ðŸ‘‹</h1>
                 <p className="text-muted-foreground">
                   {isAdmin ? "Bienvenue sur votre espace d'administration" : "Bienvenue sur votre tableau de bord"}
                 </p>
@@ -215,7 +215,7 @@ const Dashboard = () => {
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" />Gestion Utilisateurs</CardTitle>
                       </CardHeader>
-                      <CardContent><p className="text-muted-foreground">Gérez les utilisateurs de la plateforme</p></CardContent>
+                      <CardContent><p className="text-muted-foreground">GÃ©rez les utilisateurs de la plateforme</p></CardContent>
                     </Card>
                     <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/analytics")}>
                       <CardHeader>
@@ -225,9 +225,9 @@ const Dashboard = () => {
                     </Card>
                     <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/admin/abonnements")}>
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><CreditCard className="h-5 w-5" />Gérer les Abonnements</CardTitle>
+                        <CardTitle className="flex items-center gap-2"><CreditCard className="h-5 w-5" />GÃ©rer les Abonnements</CardTitle>
                       </CardHeader>
-                      <CardContent><p className="text-muted-foreground">Configurez les tarifs, périodes et consultez les paiements</p></CardContent>
+                      <CardContent><p className="text-muted-foreground">Configurez les tarifs, pÃ©riodes et consultez les paiements</p></CardContent>
                     </Card>
                   </>
                 )}
@@ -236,7 +236,7 @@ const Dashboard = () => {
                     <CardTitle className="flex items-center gap-2"><GraduationCap className="h-5 w-5" />{isAdmin ? "Voir les Cours" : "Mes Cours"}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground">{isAdmin ? "Consultez les cours par niveau" : "Accédez à vos cours et leçons"}</p>
+                    <p className="text-muted-foreground">{isAdmin ? "Consultez les cours par niveau" : "AccÃ©dez Ã  vos cours et leçons"}</p>
                   </CardContent>
                 </Card>
               </div>

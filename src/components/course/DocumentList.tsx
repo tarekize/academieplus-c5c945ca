@@ -1,4 +1,4 @@
-import { Download, FileText, Link, Image } from "lucide-react";
+﻿import { Download, FileText, Link, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -56,7 +56,7 @@ export const DocumentList = ({ documents }: DocumentListProps) => {
                     download={doc.type === "pdf"}
                   >
                     <Download className="h-4 w-4 mr-2" />
-                    {doc.type === "pdf" ? "Télécharger" : "Ouvrir"}
+                    {doc.type === "pdf" ? "TÃ©lÃ©charger" : "Ouvrir"}
                   </a>
                 </Button>
               </div>

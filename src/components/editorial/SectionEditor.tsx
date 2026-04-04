@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -101,10 +101,10 @@ export function SectionEditor({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="definition">Définition</SelectItem>
-                  <SelectItem value="propriete">Propriété</SelectItem>
+                  <SelectItem value="definition">DÃ©finition</SelectItem>
+                  <SelectItem value="propriete">PropriÃ©tÃ©</SelectItem>
                   <SelectItem value="exemple">Exemple</SelectItem>
-                  <SelectItem value="methode">Méthode</SelectItem>
+                  <SelectItem value="methode">MÃ©thode</SelectItem>
                   <SelectItem value="remarque">Remarque</SelectItem>
                 </SelectContent>
               </Select>
@@ -122,7 +122,7 @@ export function SectionEditor({
                   size="sm"
                   onClick={() => setShowPreview(!showPreview)}
                 >
-                  {showPreview ? "Éditer" : "Aperçu"}
+                  {showPreview ? "Ã‰diter" : "AperÃ§u"}
                 </Button>
               </div>
               
@@ -136,7 +136,7 @@ export function SectionEditor({
                   onChange={(e) =>
                     onChange({ ...section, contenu_texte: e.target.value })
                   }
-                  placeholder="Écrivez le contenu en Markdown..."
+                  placeholder="Ã‰crivez le contenu en Markdown..."
                   rows={8}
                   className="font-mono text-sm"
                 />
@@ -150,14 +150,14 @@ export function SectionEditor({
                 size="sm"
                 onClick={() => setShowFormulaModal(true)}
               >
-                <Plus className="h-4 w-4 mr-2" />∑ Formule LaTeX
+                <Plus className="h-4 w-4 mr-2" />âˆ‘ Formule LaTeX
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowImageModal(true)}
               >
-                <Plus className="h-4 w-4 mr-2" />📷 Image
+                <Plus className="h-4 w-4 mr-2" />ðŸ“· Image
               </Button>
             </div>
 

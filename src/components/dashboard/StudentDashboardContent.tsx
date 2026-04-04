@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,10 +40,10 @@ interface DayEntry {
 }
 
 const LEVEL_LABELS: Record<string, { label: string; color: string }> = {
-  advanced: { label: "متقدم", color: "bg-primary text-primary-foreground" },
-  intermediate: { label: "متوسط", color: "bg-accent text-accent-foreground" },
-  beginner: { label: "مبتدئ", color: "bg-secondary text-secondary-foreground" },
-  needs_work: { label: "يحتاج عمل", color: "bg-destructive text-destructive-foreground" },
+  advanced: { label: "Ù…ØªÙ‚Ø¯Ù…", color: "bg-primary text-primary-foreground" },
+  intermediate: { label: "Ù…ØªÙˆØ³Ø·", color: "bg-accent text-accent-foreground" },
+  beginner: { label: "Ù…Ø¨ØªØ¯Ø¦", color: "bg-secondary text-secondary-foreground" },
+  needs_work: { label: "ÙŠØ­ØªØ§Ø¬ Ø¹Ù…Ù„", color: "bg-destructive text-destructive-foreground" },
 };
 
 function getLevelBadge(accuracy: number) {
@@ -61,12 +61,12 @@ function formatTime(seconds: number) {
 }
 
 const SCHOOL_LEVELS: Record<string, string> = {
-  "5eme_primaire": "5ème Primaire",
-  "1ere_cem": "1ère CEM",
-  "2eme_cem": "2ème CEM",
-  "3eme_cem": "3ème CEM",
-  "4eme_cem": "4ème CEM",
-  premiere: "Première",
+  "5eme_primaire": "5Ã¨me Primaire",
+  "1ere_cem": "1Ã¨re CEM",
+  "2eme_cem": "2Ã¨me CEM",
+  "3eme_cem": "3Ã¨me CEM",
+  "4eme_cem": "4Ã¨me CEM",
+  premiere: "PremiÃ¨re",
   seconde: "Seconde",
   terminale: "Terminale",
 };
@@ -101,7 +101,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
       const cId = s.chapter_id || "unknown";
       const existing = chapterMap.get(cId) || {
         chapterId: cId,
-        chapterTitle: s.chapter?.title_ar || s.chapter?.title || "—",
+        chapterTitle: s.chapter?.title_ar || s.chapter?.title || "â€”",
         totalTime: 0, quizAccuracy: 0, exerciseAccuracy: 0, level: 0,
       };
       existing.totalTime += (s.reading_time_seconds || 0) + (s.quiz_time_seconds || 0) + (s.exercise_time_seconds || 0);
@@ -168,10 +168,10 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
   const ringOffset = ringCircumference - (avgLevel / 100) * ringCircumference;
 
   const stats = [
-    { icon: Clock, label: "وقت الدراسة", value: formatTime(totalTime), color: "text-primary", bg: "bg-primary/10" },
-    { icon: TrendingUp, label: "متوسط يومي", value: `${avgPerDay} min`, color: "text-accent", bg: "bg-accent/10" },
-    { icon: Target, label: "دقة الإجابات", value: `${avgAccuracy}%`, color: "text-primary", bg: "bg-primary/10" },
-    { icon: GraduationCap, label: "المستوى", value: SCHOOL_LEVELS[profile.school_level || ""] || "—", color: "text-muted-foreground", bg: "bg-muted" },
+    { icon: Clock, label: "ÙˆÙ‚Øª Ø§Ù„Ø¯Ø±Ø§Ø³Ø©", value: formatTime(totalTime), color: "text-primary", bg: "bg-primary/10" },
+    { icon: TrendingUp, label: "Ù…ØªÙˆØ³Ø· ÙŠÙˆÙ…ÙŠ", value: `${avgPerDay} min`, color: "text-accent", bg: "bg-accent/10" },
+    { icon: Target, label: "Ø¯Ù‚Ø© Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª", value: `${avgAccuracy}%`, color: "text-primary", bg: "bg-primary/10" },
+    { icon: GraduationCap, label: "Ø§Ù„Ù…Ø³ØªÙˆÙ‰", value: SCHOOL_LEVELS[profile.school_level || ""] || "â€”", color: "text-muted-foreground", bg: "bg-muted" },
   ];
 
   return (
@@ -181,8 +181,8 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
         {/* Welcome + Stats */}
         <Card className="overflow-hidden">
           <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-transparent p-6 pb-2">
-            <h2 className="text-2xl font-bold text-foreground">مرحباً {profile.first_name || fullName} 👋</h2>
-            <p className="text-sm text-muted-foreground mt-1">ملخص نشاطك التعليمي</p>
+            <h2 className="text-2xl font-bold text-foreground">Ù…Ø±Ø­Ø¨Ø§Ù‹ {profile.first_name || fullName} ðŸ‘‹</h2>
+            <p className="text-sm text-muted-foreground mt-1">Ù…Ù„Ø®Øµ Ù†Ø´Ø§Ø·Ùƒ Ø§Ù„ØªØ¹Ù„ÙŠÙ…ÙŠ</p>
           </div>
           <CardContent className="p-6 pt-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -204,14 +204,14 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <TrendingUp className="h-4 w-4 text-primary" />
-              التطور والتوزيع
+              Ø§Ù„ØªØ·ÙˆØ± ÙˆØ§Ù„ØªÙˆØ²ÙŠØ¹
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Bar Chart */}
               <div>
-                <p className="text-xs text-muted-foreground mb-2">الوقت (دقائق) — آخر 14 يوماً</p>
+                <p className="text-xs text-muted-foreground mb-2">Ø§Ù„ÙˆÙ‚Øª (Ø¯Ù‚Ø§Ø¦Ù‚) â€” Ø¢Ø®Ø± 14 ÙŠÙˆÙ…Ø§Ù‹</p>
                 <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full h-auto" style={{ maxHeight: 200 }}>
                   {/* Grid */}
                   {[0, 0.5, 1].map(f => {
@@ -244,11 +244,11 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
 
               {/* Activity + Level Ring */}
               <div className="space-y-4">
-                <p className="text-xs text-muted-foreground">توزيع النشاط</p>
+                <p className="text-xs text-muted-foreground">ØªÙˆØ²ÙŠØ¹ Ø§Ù„Ù†Ø´Ø§Ø·</p>
                 <div className="space-y-3">
                   {[
-                    { label: "قراءة الدروس", icon: BookOpen, pct: readPct, color: "bg-primary" },
-                    { label: "اختبارات", icon: Brain, pct: quizPct, color: "bg-accent" },
+                    { label: "Ù‚Ø±Ø§Ø¡Ø© الدروس", icon: BookOpen, pct: readPct, color: "bg-primary" },
+                    { label: "اسئله متعدده الاختيارات", icon: Brain, pct: quizPct, color: "bg-accent" },
                     { label: "تمارين", icon: FileText, pct: exPct, color: "bg-muted-foreground/50" },
                   ].map((item, i) => (
                     <div key={i}>
@@ -280,7 +280,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className="text-2xl font-bold text-primary">{avgLevel}%</span>
-                      <span className="text-[10px] text-muted-foreground">المستوى العام</span>
+                      <span className="text-[10px] text-muted-foreground">Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø¹Ø§Ù…</span>
                     </div>
                   </div>
                 </div>
@@ -292,13 +292,13 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
         {/* Chapter Table */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">تفاصيل حسب الفصل</CardTitle>
+            <CardTitle className="text-base">ØªÙØ§ØµÙŠÙ„ Ø­Ø³Ø¨ Ø§Ù„ÙØµÙ„</CardTitle>
           </CardHeader>
           <CardContent>
             {chapterStats.length === 0 ? (
               <div className="text-center py-12">
                 <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
-                <p className="text-muted-foreground">لا توجد بيانات بعد. ابدأ بدراسة الدروس!</p>
+                <p className="text-muted-foreground">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¨ÙŠØ§Ù†Ø§Øª Ø¨Ø¹Ø¯. Ø§Ø¨Ø¯Ø£ Ø¨Ø¯Ø±Ø§Ø³Ø© الدروس!</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -306,11 +306,11 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-10">#</TableHead>
-                      <TableHead>الفصل</TableHead>
-                      <TableHead>الوقت</TableHead>
-                      <TableHead>اختبار</TableHead>
+                      <TableHead>Ø§Ù„ÙØµÙ„</TableHead>
+                      <TableHead>Ø§Ù„ÙˆÙ‚Øª</TableHead>
+                      <TableHead>Ø§Ø®ØªØ¨Ø§Ø±</TableHead>
                       <TableHead>تمارين</TableHead>
-                      <TableHead>المستوى</TableHead>
+                      <TableHead>Ø§Ù„Ù…Ø³ØªÙˆÙ‰</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -349,16 +349,16 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
             <h3 className="font-semibold text-lg text-foreground">{fullName}</h3>
             <p className="text-xs text-muted-foreground mt-0.5">{profile.email}</p>
             <Badge variant="outline" className="mt-2">
-              {SCHOOL_LEVELS[profile.school_level || ""] || profile.school_level || "—"}
+              {SCHOOL_LEVELS[profile.school_level || ""] || profile.school_level || "â€”"}
             </Badge>
           </div>
           <CardContent className="p-5">
             <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
-              <span>التفاعل اليومي</span>
+              <span>Ø§Ù„ØªÙØ§Ø¹Ù„ Ø§Ù„ÙŠÙˆÙ…ÙŠ</span>
               <span>{todayMinutes} / 60 min</span>
             </div>
             <Progress value={engagementPct} className="h-2.5" />
-            <p className="text-[10px] text-muted-foreground mt-1 text-center">الهدف: 1 ساعة يومياً</p>
+            <p className="text-[10px] text-muted-foreground mt-1 text-center">Ø§Ù„Ù‡Ø¯Ù: 1 Ø³Ø§Ø¹Ø© ÙŠÙˆÙ…ÙŠØ§Ù‹</p>
           </CardContent>
         </Card>
 
@@ -366,17 +366,17 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
         {!hideActions && (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">إجراءات سريعة</CardTitle>
+              <CardTitle className="text-sm">Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª Ø³Ø±ÙŠØ¹Ø©</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <Button className="w-full justify-start gap-2" onClick={() => navigate("/liste-cours")}>
-                <BookOpen className="h-4 w-4" /> فتح دروسي
+                <BookOpen className="h-4 w-4" /> ÙØªØ­ Ø¯Ø±ÙˆØ³ÙŠ
               </Button>
               <Button variant="outline" className="w-full justify-start gap-2" onClick={() => navigate("/liste-cours")}>
-                <Brain className="h-4 w-4" /> إجراء اختبار
+                <Brain className="h-4 w-4" /> Ø¥Ø¬Ø±Ø§Ø¡ Ø§Ø®ØªØ¨Ø§Ø±
               </Button>
               <Button variant="secondary" className="w-full justify-start gap-2" onClick={() => navigate("/liste-cours")}>
-                <FileText className="h-4 w-4" /> مراجعة
+                <FileText className="h-4 w-4" /> Ù…Ø±Ø§Ø¬Ø¹Ø©
               </Button>
             </CardContent>
           </Card>
@@ -386,7 +386,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
         <Card className="bg-primary/5 border-primary/10">
           <CardContent className="p-6 text-center">
             <p className="text-4xl font-bold text-primary">{totalAnswers}</p>
-            <p className="text-xs text-muted-foreground mt-1">إجمالي الإجابات</p>
+            <p className="text-xs text-muted-foreground mt-1">Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª</p>
           </CardContent>
         </Card>
       </div>

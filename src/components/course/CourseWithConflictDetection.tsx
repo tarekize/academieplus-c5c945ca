@@ -1,4 +1,4 @@
-import { useEditConflictDetection } from "@/hooks/useEditConflictDetection";
+﻿import { useEditConflictDetection } from "@/hooks/useEditConflictDetection";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Users } from "lucide-react";
 
@@ -25,7 +25,7 @@ export const CourseWithConflictDetection = ({
           <AlertDescription className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             <span className="font-semibold">
-              Édition simultanée détectée:
+              Ã‰dition simultanÃ©e dÃ©tectÃ©e:
             </span>
             {activeEditors.map((editor, idx) => (
               <span key={editor.user_id}>
@@ -33,7 +33,7 @@ export const CourseWithConflictDetection = ({
                 {idx < activeEditors.length - 1 && ", "}
               </span>
             ))}
-            travaillent également sur ce cours. Sauvegardez régulièrement pour éviter les conflits.
+            travaillent Ã©galement sur ce cours. Sauvegardez rÃ©guliÃ¨rement pour Ã©viter les conflits.
           </AlertDescription>
         </Alert>
       )}

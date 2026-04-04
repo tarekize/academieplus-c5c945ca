@@ -1,4 +1,4 @@
-import { useNavigate, Link } from "react-router-dom";
+﻿import { useNavigate, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,18 +24,18 @@ export default function DashboardEditorial() {
         <div>
           <Button variant="ghost" onClick={() => navigate('/')} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour à l'accueil
+            Retour Ã  l'accueil
           </Button>
-          <h1 className="text-3xl font-bold">Tableau de bord éditorial</h1>
+          <h1 className="text-3xl font-bold">Tableau de bord Ã©ditorial</h1>
           <p className="text-muted-foreground mt-1">
-            Gérez vos cours et contenus pédagogiques
+            GÃ©rez vos cours et contenus pÃ©dagogiques
           </p>
         </div>
         <div className="flex gap-2">
           <Link to="/editorial/equipe">
             <Button variant="outline">
               <Users className="h-4 w-4 mr-2" />
-              Gestion équipe
+              Gestion Ã©quipe
             </Button>
           </Link>
           <Button disabled>
@@ -50,7 +50,7 @@ export default function DashboardEditorial() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Publiés</p>
+              <p className="text-sm text-muted-foreground">PubliÃ©s</p>
               <p className="text-3xl font-bold mt-2">0</p>
             </div>
             <CheckCircle className="h-8 w-8 text-green-500" />
@@ -62,7 +62,7 @@ export default function DashboardEditorial() {
             <div>
               <p className="text-sm text-muted-foreground">Brouillons</p>
               <p className="text-3xl font-bold mt-2">0</p>
-              <p className="text-xs text-muted-foreground mt-1">À finaliser</p>
+              <p className="text-xs text-muted-foreground mt-1">Ã€ finaliser</p>
             </div>
             <FileEdit className="h-8 w-8 text-muted-foreground" />
           </div>
@@ -82,7 +82,7 @@ export default function DashboardEditorial() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">À modifier</p>
+              <p className="text-sm text-muted-foreground">Ã€ modifier</p>
               <p className="text-3xl font-bold mt-2">0</p>
               <p className="text-xs text-muted-foreground mt-1">Non conforme</p>
             </div>
@@ -95,11 +95,11 @@ export default function DashboardEditorial() {
       <Card className="p-12 text-center">
         <h2 className="text-xl font-semibold mb-4">Configuration requise</h2>
         <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
-          Le module éditorial nécessite des tables supplémentaires dans la base de données 
-          (cours, sections, matieres, niveaux, historique_versions) qui ne sont pas encore configurées.
+          Le module Ã©ditorial nÃ©cessite des tables supplÃ©mentaires dans la base de donnÃ©es 
+          (cours, sections, matieres, niveaux, historique_versions) qui ne sont pas encore configurÃ©es.
         </p>
         <p className="text-sm text-muted-foreground">
-          En attendant, les cours de mathématiques sont disponibles via les données statiques.
+          En attendant, les cours de mathÃ©matiques sont disponibles via les donnÃ©es statiques.
         </p>
         <Button className="mt-6" onClick={() => navigate('/liste-cours')}>
           Voir les cours disponibles

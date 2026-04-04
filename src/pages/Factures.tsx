@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -105,15 +105,15 @@ const Factures = () => {
   const getSchoolLevelName = (level: string) => {
     const levels: Record<string, string> = {
       cp: 'CP', ce1: 'CE1', ce2: 'CE2', cm1: 'CM1', cm2: 'CM2',
-      sixieme: '6ème', cinquieme: '5ème', quatrieme: '4ème', troisieme: '3ème',
-      seconde: 'Seconde', premiere: 'Première', terminale: 'Terminale'
+      sixieme: '6Ã¨me', cinquieme: '5Ã¨me', quatrieme: '4Ã¨me', troisieme: '3Ã¨me',
+      seconde: 'Seconde', premiere: 'PremiÃ¨re', terminale: 'Terminale'
     };
     return levels[level] || 'Votre classe';
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast({ title: "Déconnexion", description: "Vous avez été déconnecté avec succès" });
+    toast({ title: "DÃ©connexion", description: "Vous avez Ã©tÃ© dÃ©connectÃ© avec succÃ¨s" });
     navigate("/");
   };
 
@@ -141,7 +141,7 @@ const Factures = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-        return <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20">Payé</Badge>;
+        return <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20">PayÃ©</Badge>;
       case "pending":
         return <Badge variant="outline" className="text-amber-600 border-amber-500/30 bg-amber-500/10">En attente</Badge>;
       default:
@@ -159,14 +159,14 @@ const Factures = () => {
     const typeLabel = payment.is_family
       ? `Famille (${payment.children_count} enfant${payment.children_count > 1 ? "s" : ""})`
       : "Individuel";
-    const statusText = payment.status === "completed" ? "PAYÉ" : "EN ATTENTE";
+    const statusText = payment.status === "completed" ? "PAYÃ‰" : "EN ATTENTE";
     const statusColor = payment.status === "completed" ? "#16a34a" : "#a16207";
     const statusBg = payment.status === "completed" ? "#dcfce7" : "#fef9c3";
     const userName = getFullName(profile);
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      toast({ title: "Erreur", description: "Veuillez autoriser les pop-ups pour télécharger la facture", variant: "destructive" });
+      toast({ title: "Erreur", description: "Veuillez autoriser les pop-ups pour tÃ©lÃ©charger la facture", variant: "destructive" });
       return;
     }
 
@@ -209,26 +209,26 @@ const Factures = () => {
       <div class="header">
         <div>
           <div class="brand"><div class="logo">A+</div><div class="brand-name">Academie<span>Plus</span></div></div>
-          <p style="font-size:11px;color:#64748b;margin-top:4px;margin-left:60px">Votre partenaire éducatif de confiance</p>
+          <p style="font-size:11px;color:#64748b;margin-top:4px;margin-left:60px">Votre partenaire Ã©ducatif de confiance</p>
         </div>
         <div>
           <div class="badge">FACTURE</div>
-          <div class="meta"><p>N° ${invoiceNum}</p><p>Date : ${formatDateTimeFull(payment.payment_date)}</p></div>
+          <div class="meta"><p>NÂ° ${invoiceNum}</p><p>Date : ${formatDateTimeFull(payment.payment_date)}</p></div>
         </div>
       </div>
       <div class="info-grid">
         <div class="info-box left">
-          <div class="info-label">Facturé à</div>
+          <div class="info-label">FacturÃ© Ã </div>
           <div class="info-name">${userName}</div>
-          <div class="info-email">${profile?.email || "—"}</div>
+          <div class="info-email">${profile?.email || "â€”"}</div>
         </div>
         <div class="info-box right">
-          <div class="info-label">Détails de facturation</div>
+          <div class="info-label">DÃ©tails de facturation</div>
           <p style="font-size:12px;margin-top:4px">Type : ${typeLabel}</p>
           <p style="font-size:12px">Formule : ${payment.plan_label}</p>
         </div>
       </div>
-      <table><thead><tr><th>DESCRIPTION</th><th>QTÉ</th><th>MONTANT</th></tr></thead>
+      <table><thead><tr><th>DESCRIPTION</th><th>QTÃ‰</th><th>MONTANT</th></tr></thead>
       <tbody><tr><td>${payment.plan_label}</td><td>1</td><td>${formatCurrency(payment.amount)}</td></tr></tbody></table>
       <div style="display:flex;justify-content:space-between;align-items:start">
         <div class="status" style="color:${statusColor};background:${statusBg};border-color:${statusColor}">${statusText}</div>
@@ -237,12 +237,12 @@ const Factures = () => {
           <div class="total-final"><span>TOTAL TTC</span><span>${formatCurrency(payment.amount)}</span></div>
         </div>
       </div>
-      <div class="thanks"><h3>Merci pour votre confiance !</h3><p>Pour toute question, contactez-nous à support@academieplus.dz</p></div>
-      <div class="footer"><p>AcadémiePlus - Votre partenaire éducatif de confiance</p><p>www.academieplus.dz | contact@academieplus.dz</p></div>
+      <div class="thanks"><h3>Merci pour votre confiance !</h3><p>Pour toute question, contactez-nous Ã  support@academieplus.dz</p></div>
+      <div class="footer"><p>AcadÃ©miePlus - Votre partenaire Ã©ducatif de confiance</p><p>www.academieplus.dz | contact@academieplus.dz</p></div>
       <script>window.onload=function(){window.print()}<\/script>
     </body></html>`);
     printWindow.document.close();
-    toast({ title: "Facture prête", description: `${invoiceNum} - utilisez Ctrl+P pour enregistrer en PDF` });
+    toast({ title: "Facture prÃªte", description: `${invoiceNum} - utilisez Ctrl+P pour enregistrer en PDF` });
   };
 
   if (loading) {
@@ -266,7 +266,7 @@ const Factures = () => {
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                 <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">AcadémiePlus</span>
+              <span className="text-xl font-bold">AcadÃ©miePlus</span>
             </div>
             <div className="flex items-center gap-4">
               <DropdownMenu>
@@ -283,10 +283,10 @@ const Factures = () => {
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/account")}><UserIcon className="mr-2 h-4 w-4" /><span>Gérer mon compte</span></DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/account")}><UserIcon className="mr-2 h-4 w-4" /><span>GÃ©rer mon compte</span></DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/dashboard")}><GraduationCap className="mr-2 h-4 w-4" /><span>Tableau de bord</span></DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" /><span>Se déconnecter</span></DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" /><span>Se dÃ©connecter</span></DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -301,7 +301,7 @@ const Factures = () => {
               <BreadcrumbItem>
                 <BreadcrumbLink onClick={() => navigate("/account")} className="cursor-pointer flex items-center gap-2">
                   <ArrowLeft className="h-4 w-4" />
-                  Retour vers Gérer mon compte
+                  Retour vers GÃ©rer mon compte
                 </BreadcrumbLink>
               </BreadcrumbItem>
             </BreadcrumbList>
@@ -327,7 +327,7 @@ const Factures = () => {
                     <CreditCard className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Total payé</p>
+                    <p className="text-sm text-muted-foreground">Total payÃ©</p>
                     <p className="text-xl font-bold">{formatCurrency(totalPaid)}</p>
                   </div>
                 </div>
@@ -355,7 +355,7 @@ const Factures = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Dernier paiement</p>
                     <p className="text-xl font-bold">
-                      {payments.length > 0 ? formatDate(payments[0].payment_date) : "—"}
+                      {payments.length > 0 ? formatDate(payments[0].payment_date) : "â€”"}
                     </p>
                   </div>
                 </div>
@@ -376,7 +376,7 @@ const Factures = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/20 hover:bg-muted/20">
-                      <TableHead className="font-semibold">N° Facture</TableHead>
+                      <TableHead className="font-semibold">NÂ° Facture</TableHead>
                       <TableHead className="font-semibold">Date</TableHead>
                       <TableHead className="font-semibold">Formule</TableHead>
                       <TableHead className="font-semibold">Type</TableHead>
@@ -418,7 +418,7 @@ const Factures = () => {
                             className="opacity-60 group-hover:opacity-100 transition-opacity hover:bg-primary/10 hover:text-primary"
                           >
                             <Download className="h-4 w-4 mr-1" />
-                            <span className="hidden sm:inline">Télécharger</span>
+                            <span className="hidden sm:inline">TÃ©lÃ©charger</span>
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -435,7 +435,7 @@ const Factures = () => {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Aucune facture</h3>
                 <p className="text-muted-foreground max-w-md mx-auto">
-                  Vos factures apparaîtront ici après votre premier paiement. Rendez-vous sur la page des abonnements pour commencer.
+                  Vos factures apparaÃ®tront ici aprÃ¨s votre premier paiement. Rendez-vous sur la page des abonnements pour commencer.
                 </p>
                 <Button variant="outline" className="mt-6" onClick={() => navigate("/abonnements")}>
                   Voir les abonnements

@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 
 interface BotCompanionProps {
     expression?:
@@ -20,32 +20,32 @@ export const BotCompanion = ({
         { emoji: string; motion: string; scale: number }
     > = {
         welcome: {
-            emoji: "👋",
+            emoji: "ðŸ‘‹",
             motion: "wave",
             scale: 1,
         },
         excited: {
-            emoji: "🎉",
+            emoji: "ðŸŽ‰",
             motion: "bounce",
             scale: 1.1,
         },
         thinking: {
-            emoji: "🤔",
+            emoji: "ðŸ¤”",
             motion: "pulse",
             scale: 1,
         },
         happy: {
-            emoji: "😊",
+            emoji: "ðŸ˜Š",
             motion: "bounce",
             scale: 1,
         },
         encouraging: {
-            emoji: "💪",
+            emoji: "ðŸ’ª",
             motion: "pulse",
             scale: 1.05,
         },
         celebrating: {
-            emoji: "🏆",
+            emoji: "ðŸ†",
             motion: "bounce",
             scale: 1.2,
         },
@@ -87,7 +87,7 @@ export const BotCompanion = ({
                 >
                     {current.emoji}
                 </div>
-                {/* Petite aura de lumière */}
+                {/* Petite aura de lumiÃ¨re */}
                 <motion.div
                     className="absolute inset-0 rounded-full border-2 border-primary/20"
                     animate={{

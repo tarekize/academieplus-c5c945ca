@@ -1,4 +1,4 @@
-import { Check, BookOpen, Calculator, Brain, Beaker, Languages } from "lucide-react";
+﻿import { Check, BookOpen, Calculator, Brain, Beaker, Languages } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const SubjectsCarousel = () => {

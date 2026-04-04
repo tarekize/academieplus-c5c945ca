@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,7 +31,7 @@ export function ChangePasswordButton() {
 
   const validatePassword = (password: string): string | null => {
     if (password.length < 8) {
-      return "Le mot de passe doit contenir au moins 8 caractères.";
+      return "Le mot de passe doit contenir au moins 8 caractÃ¨res.";
     }
     if (!/[A-Z]/.test(password)) {
       return "Le mot de passe doit contenir au moins une lettre majuscule.";
@@ -77,7 +77,7 @@ export function ChangePasswordButton() {
 
   const verifyMfaAndUpdate = async () => {
     if (!factorId || mfaCode.length !== 6) {
-      toast.error("Veuillez entrer le code à 6 chiffres.");
+      toast.error("Veuillez entrer le code Ã  6 chiffres.");
       return;
     }
 
@@ -106,15 +106,15 @@ export function ChangePasswordButton() {
 
       if (updateError) throw updateError;
 
-      toast.success("Mot de passe modifié avec succès !");
+      toast.success("Mot de passe modifiÃ© avec succÃ¨s !");
       setOpen(false);
       resetForm();
     } catch (error: any) {
       console.error("Error during MFA verification:", error);
       if (error.message?.includes("Invalid TOTP code")) {
-        toast.error("Code de vérification invalide. Veuillez réessayer.");
+        toast.error("Code de vÃ©rification invalide. Veuillez rÃ©essayer.");
       } else {
-        toast.error(error.message || "Erreur lors de la vérification MFA.");
+        toast.error(error.message || "Erreur lors de la vÃ©rification MFA.");
       }
       setMfaCode("");
     } finally {
@@ -166,7 +166,7 @@ export function ChangePasswordButton() {
         throw error;
       }
 
-      toast.success("Mot de passe modifié avec succès !");
+      toast.success("Mot de passe modifiÃ© avec succÃ¨s !");
       setOpen(false);
       resetForm();
     } catch (error: any) {
@@ -202,7 +202,7 @@ export function ChangePasswordButton() {
             <DialogHeader>
               <DialogTitle>Modifier le mot de passe</DialogTitle>
               <DialogDescription>
-                Entrez votre nouveau mot de passe. Il doit contenir au moins 8 caractères, une majuscule et un chiffre.
+                Entrez votre nouveau mot de passe. Il doit contenir au moins 8 caractÃ¨res, une majuscule et un chiffre.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
@@ -256,7 +256,7 @@ export function ChangePasswordButton() {
                   {loading ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Vérification...
+                      VÃ©rification...
                     </>
                   ) : (
                     "Modifier"
@@ -270,7 +270,7 @@ export function ChangePasswordButton() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-primary" />
-                Vérification requise
+                VÃ©rification requise
               </DialogTitle>
               <DialogDescription>
                 Pour modifier votre mot de passe, veuillez entrer le code de votre application d'authentification.
@@ -292,7 +292,7 @@ export function ChangePasswordButton() {
                 </InputOTPGroup>
               </InputOTP>
               <p className="text-sm text-muted-foreground text-center">
-                Ouvrez votre application d'authentification et entrez le code à 6 chiffres.
+                Ouvrez votre application d'authentification et entrez le code Ã  6 chiffres.
               </p>
             </div>
             <DialogFooter>
@@ -303,10 +303,10 @@ export function ChangePasswordButton() {
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Vérification...
+                    VÃ©rification...
                   </>
                 ) : (
-                  "Vérifier et modifier"
+                  "VÃ©rifier et modifier"
                 )}
               </Button>
             </DialogFooter>

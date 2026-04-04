@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -68,15 +68,15 @@ export const MathQuiz = ({ onClose }: MathQuizProps) => {
           <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
             <Trophy className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Quiz terminé !</CardTitle>
+          <CardTitle className="text-2xl">Quiz terminÃ© !</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="text-center">
             <div className="text-5xl font-bold text-primary mb-2">{score}/{mathQuizQuestions.length}</div>
             <p className="text-muted-foreground">
-              {percentage >= 80 ? "Excellent travail ! 🎉" : 
-               percentage >= 60 ? "Bien joué ! Continue comme ça 👍" : 
-               "Continue à t'entraîner ! 💪"}
+              {percentage >= 80 ? "Excellent travail ! ðŸŽ‰" : 
+               percentage >= 60 ? "Bien jouÃ© ! Continue comme Ã§a ðŸ‘" : 
+               "Continue Ã  t'entraÃ®ner ! ðŸ’ª"}
             </p>
           </div>
 
@@ -173,12 +173,12 @@ export const MathQuiz = ({ onClose }: MathQuizProps) => {
             isCorrect ? "bg-green-500/10" : "bg-amber-500/10"
           )}>
             <p className="font-medium mb-1">
-              {isCorrect ? "✓ Bonne réponse !" : "✗ Réponse incorrecte"}
+              {isCorrect ? "âœ“ Bonne rÃ©ponse !" : "âœ— RÃ©ponse incorrecte"}
             </p>
             <p className="text-sm text-muted-foreground">{currentQuestion.explanation}</p>
             {!isCorrect && (
               <p className="text-sm mt-2 font-medium">
-                Bonne réponse : <span className="font-mono">{currentQuestion.correctAnswer}</span>
+                Bonne rÃ©ponse : <span className="font-mono">{currentQuestion.correctAnswer}</span>
               </p>
             )}
           </div>
@@ -204,7 +204,7 @@ export const MathQuiz = ({ onClose }: MathQuizProps) => {
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </>
               ) : (
-                "Voir les résultats"
+                "Voir les rÃ©sultats"
               )}
             </Button>
           )}

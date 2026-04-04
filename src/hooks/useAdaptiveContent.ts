@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+﻿import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -173,10 +173,10 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
         });
       }
 
-      toast({ title: "✅ تم إنشاء المحتوى", description: "تم إنشاء المحتوى بنجاح حسب مستواك" });
+      toast({ title: "âœ… ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ù…Ø­ØªÙˆÙ‰", description: "ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ù…Ø­ØªÙˆÙ‰ Ø¨Ù†Ø¬Ø§Ø­ Ø­Ø³Ø¨ Ù…Ø³ØªÙˆØ§Ùƒ" });
     } catch (err: any) {
       console.error("Generate error:", err);
-      toast({ title: "خطأ", description: err.message || "فشل في إنشاء المحتوى", variant: "destructive" });
+      toast({ title: "Ø®Ø·Ø£", description: err.message || "ÙØ´Ù„ ÙÙŠ Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ù…Ø­ØªÙˆÙ‰", variant: "destructive" });
     } finally {
       setLoading(prev => ({ ...prev, [contentType]: false }));
     }
@@ -257,13 +257,13 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       await supabase.from("student_scores").insert(scoreRow);
     }
 
-    // Every 5 session answers → auto-refresh with smart notification
+    // Every 5 session answers â†’ auto-refresh with smart notification
     if (newSessionTotal > 0 && newSessionTotal % 5 === 0) {
       const sessionAccuracy = Math.round((newSessionCorrect / newSessionTotal) * 100);
       
       if (sessionAccuracy < 50) {
         // Failure notification
-        const msg = `لديك ثغرات في هذا الدرس (${newSessionCorrect}/${newSessionTotal}). انقر على "مراجعة" لمراجعة البطاقات ثم "تجديد" لتمارين مكيّفة.`;
+        const msg = `Ù„Ø¯ÙŠÙƒ Ø«ØºØ±Ø§Øª ÙÙŠ Ù‡Ø°Ø§ Ø§Ù„Ø¯Ø±Ø³ (${newSessionCorrect}/${newSessionTotal}). Ø§Ù†Ù‚Ø± Ø¹Ù„Ù‰ "Ù…Ø±Ø§Ø¬Ø¹Ø©" Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª Ø«Ù… "ØªØ¬Ø¯ÙŠØ¯" Ù„تمارين Ù…ÙƒÙŠÙ‘ÙØ©.`;
         setLevelUpMessage(msg);
 
         await supabase.from("student_notifications").insert({
@@ -271,14 +271,14 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           lesson_id: lessonId,
           chapter_id: chapterId,
           notification_type: "performance_drop",
-          title: "📉 انخفاض في الأداء",
+          title: "ðŸ“‰ Ø§Ù†Ø®ÙØ§Ø¶ ÙÙŠ Ø§Ù„Ø£Ø¯Ø§Ø¡",
           message: msg,
-          diagnostic: `نسبة الإجابات الصحيحة: ${sessionAccuracy}% (${newSessionCorrect}/${newSessionTotal})`,
-          advice: "لقد أعدنا إنشاء تمارين واختبارات مكيفة مع مستواك الحالي لمساعدتك على التحسن.",
+          diagnostic: `Ù†Ø³Ø¨Ø© Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª Ø§Ù„ØµØ­ÙŠØ­Ø©: ${sessionAccuracy}% (${newSessionCorrect}/${newSessionTotal})`,
+          advice: "Ù„Ù‚Ø¯ Ø£Ø¹Ø¯Ù†Ø§ Ø¥Ù†Ø´Ø§Ø¡ تمارين Ùˆاسئله متعدده الاختيارات Ù…ÙƒÙŠÙØ© Ù…Ø¹ Ù…Ø³ØªÙˆØ§Ùƒ Ø§Ù„Ø­Ø§Ù„ÙŠ Ù„Ù…Ø³Ø§Ø¹Ø¯ØªÙƒ Ø¹Ù„Ù‰ Ø§Ù„ØªØ­Ø³Ù†.",
         });
       } else if (sessionAccuracy >= 80) {
         // Success notification
-        const msg = `تهانينا! أنت تتقن هذا المستوى (${newSessionCorrect}/${newSessionTotal}). انقر على "تجديد" للانتقال إلى تحديات أصعب!`;
+        const msg = `ØªÙ‡Ø§Ù†ÙŠÙ†Ø§! Ø£Ù†Øª ØªØªÙ‚Ù† Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³ØªÙˆÙ‰ (${newSessionCorrect}/${newSessionTotal}). Ø§Ù†Ù‚Ø± Ø¹Ù„Ù‰ "ØªØ¬Ø¯ÙŠØ¯" Ù„Ù„Ø§Ù†ØªÙ‚Ø§Ù„ Ø¥Ù„Ù‰ ØªØ­Ø¯ÙŠØ§Øª Ø£ØµØ¹Ø¨!`;
         setLevelUpMessage(msg);
 
         await supabase.from("student_notifications").insert({
@@ -286,18 +286,18 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           lesson_id: lessonId,
           chapter_id: chapterId,
           notification_type: "level_up",
-          title: "🎉 مستوى ممتاز!",
+          title: "ðŸŽ‰ Ù…Ø³ØªÙˆÙ‰ Ù…Ù…ØªØ§Ø²!",
           message: msg,
-          diagnostic: `نسبة الإجابات الصحيحة: ${sessionAccuracy}%`,
-          advice: "تم رفع مستوى الصعوبة. استمر في التقدم!",
+          diagnostic: `Ù†Ø³Ø¨Ø© Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª Ø§Ù„ØµØ­ÙŠØ­Ø©: ${sessionAccuracy}%`,
+          advice: "ØªÙ… Ø±ÙØ¹ Ù…Ø³ØªÙˆÙ‰ Ø§Ù„ØµØ¹ÙˆØ¨Ø©. Ø§Ø³ØªÙ…Ø± ÙÙŠ Ø§Ù„ØªÙ‚Ø¯Ù…!",
         });
       } else {
-        const msg = `تم تحليل أدائك (${newSessionCorrect}/${newSessionTotal}). يتم تحديث المحتوى حسب مستواك الجديد.`;
+        const msg = `ØªÙ… ØªØ­Ù„ÙŠÙ„ Ø£Ø¯Ø§Ø¦Ùƒ (${newSessionCorrect}/${newSessionTotal}). ÙŠØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ø­ØªÙˆÙ‰ Ø­Ø³Ø¨ Ù…Ø³ØªÙˆØ§Ùƒ Ø§Ù„Ø¬Ø¯ÙŠØ¯.`;
         setLevelUpMessage(msg);
       }
 
       // Auto-regenerate content for the active type
-      toast({ title: "🔄 تحديث المستوى", description: "جاري إعادة إنشاء المحتوى حسب مستواك الجديد..." });
+      toast({ title: "ðŸ”„ ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ø³ØªÙˆÙ‰", description: "Ø¬Ø§Ø±ÙŠ Ø¥Ø¹Ø§Ø¯Ø© Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ù…Ø­ØªÙˆÙ‰ Ø­Ø³Ø¨ Ù…Ø³ØªÙˆØ§Ùƒ Ø§Ù„Ø¬Ø¯ÙŠØ¯..." });
       
       // Reset session counters for next batch
       setSessionCorrect(0);
@@ -358,3 +358,4 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     resetSessionCounters,
   };
 }
+

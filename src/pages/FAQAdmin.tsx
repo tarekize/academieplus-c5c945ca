@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ const defaultFAQItems: FAQItem[] = [
   {
     id: "1",
     question: "Comment fonctionne l'abonnement ?",
-    answer: "L'abonnement vous donne accès à tous les cours et exercices de la plateforme.",
+    answer: "L'abonnement vous donne accÃ¨s Ã  tous les cours et exercices de la plateforme.",
     category: "paiement",
     order_index: 1,
     is_active: true,
@@ -60,8 +60,8 @@ const FAQAdmin = () => {
           : item
       ));
       toast({
-        title: "Succès",
-        description: "Question FAQ mise à jour",
+        title: "SuccÃ¨s",
+        description: "Question FAQ mise Ã  jour",
       });
     } else {
       const newItem: FAQItem = {
@@ -70,8 +70,8 @@ const FAQAdmin = () => {
       };
       setItems(prev => [...prev, newItem]);
       toast({
-        title: "Succès",
-        description: "Nouvelle question FAQ ajoutée",
+        title: "SuccÃ¨s",
+        description: "Nouvelle question FAQ ajoutÃ©e",
       });
     }
 
@@ -97,11 +97,11 @@ const FAQAdmin = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette question ?")) return;
+    if (!confirm("ÃŠtes-vous sÃ»r de vouloir supprimer cette question ?")) return;
     setItems(prev => prev.filter(item => item.id !== id));
     toast({
-      title: "Succès",
-      description: "Question FAQ supprimée",
+      title: "SuccÃ¨s",
+      description: "Question FAQ supprimÃ©e",
     });
   };
 
@@ -113,7 +113,7 @@ const FAQAdmin = () => {
         <CardHeader>
           <CardTitle>{editingId ? "Modifier" : "Ajouter"} une question FAQ</CardTitle>
           <CardDescription>
-            Créez ou modifiez les questions fréquemment posées
+            CrÃ©ez ou modifiez les questions frÃ©quemment posÃ©es
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -130,20 +130,20 @@ const FAQAdmin = () => {
             </div>
 
             <div>
-              <Label htmlFor="answer">Réponse</Label>
+              <Label htmlFor="answer">RÃ©ponse</Label>
               <Textarea
                 id="answer"
                 value={formData.answer}
                 onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
                 required
-                placeholder="Entrez la réponse..."
+                placeholder="Entrez la rÃ©ponse..."
                 rows={4}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="category">Catégorie</Label>
+                <Label htmlFor="category">CatÃ©gorie</Label>
                 <Select
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
@@ -152,7 +152,7 @@ const FAQAdmin = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="general">Général</SelectItem>
+                    <SelectItem value="general">GÃ©nÃ©ral</SelectItem>
                     <SelectItem value="cours">Cours</SelectItem>
                     <SelectItem value="paiement">Paiement</SelectItem>
                     <SelectItem value="compte">Compte</SelectItem>
@@ -184,7 +184,7 @@ const FAQAdmin = () => {
             <div className="flex gap-2">
               <Button type="submit">
                 <Plus className="mr-2 h-4 w-4" />
-                {editingId ? "Mettre à jour" : "Ajouter"}
+                {editingId ? "Mettre Ã  jour" : "Ajouter"}
               </Button>
               {editingId && (
                 <Button
@@ -225,7 +225,7 @@ const FAQAdmin = () => {
                       <div className="flex-1">
                         <CardTitle className="text-lg">{item.question}</CardTitle>
                         <CardDescription>
-                          {item.category} • Ordre: {item.order_index} • {item.is_active ? "Active" : "Inactive"}
+                          {item.category} â€¢ Ordre: {item.order_index} â€¢ {item.is_active ? "Active" : "Inactive"}
                         </CardDescription>
                       </div>
                       <div className="flex gap-2">

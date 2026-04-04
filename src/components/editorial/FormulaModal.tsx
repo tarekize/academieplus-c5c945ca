@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -42,7 +42,7 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
     const closeBraces = (input.match(/\}/g) || []).length;
     
     if (openBraces !== closeBraces) {
-      setError("Accolades non équilibrées");
+      setError("Accolades non Ã©quilibrÃ©es");
       setIsValidating(false);
       return false;
     }
@@ -50,7 +50,7 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
     // Check for common LaTeX commands
     const invalidChars = /[<>]/g;
     if (invalidChars.test(input)) {
-      setError("Caractères invalides détectés");
+      setError("CaractÃ¨res invalides dÃ©tectÃ©s");
       setIsValidating(false);
       return false;
     }
@@ -85,7 +85,7 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
     }
 
     if (error) {
-      toast.error("Corrigez les erreurs avant d'insérer");
+      toast.error("Corrigez les erreurs avant d'insÃ©rer");
       return;
     }
 
@@ -102,22 +102,22 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
     setDisplayMode("block");
     setError("");
     onClose();
-    toast.success("Formule ajoutée");
+    toast.success("Formule ajoutÃ©e");
   };
 
   const commonSymbols = [
-    { label: "√", latex: "\\sqrt{}" },
-    { label: "∫", latex: "\\int" },
-    { label: "∑", latex: "\\sum" },
-    { label: "∞", latex: "\\infty" },
-    { label: "α", latex: "\\alpha" },
-    { label: "β", latex: "\\beta" },
-    { label: "≤", latex: "\\leq" },
-    { label: "≥", latex: "\\geq" },
-    { label: "≠", latex: "\\neq" },
-    { label: "×", latex: "\\times" },
-    { label: "÷", latex: "\\div" },
-    { label: "±", latex: "\\pm" },
+    { label: "âˆš", latex: "\\sqrt{}" },
+    { label: "âˆ«", latex: "\\int" },
+    { label: "âˆ‘", latex: "\\sum" },
+    { label: "âˆž", latex: "\\infty" },
+    { label: "Î±", latex: "\\alpha" },
+    { label: "Î²", latex: "\\beta" },
+    { label: "â‰¤", latex: "\\leq" },
+    { label: "â‰¥", latex: "\\geq" },
+    { label: "â‰ ", latex: "\\neq" },
+    { label: "Ã—", latex: "\\times" },
+    { label: "Ã·", latex: "\\div" },
+    { label: "Â±", latex: "\\pm" },
   ];
 
   return (
@@ -176,7 +176,7 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="block" id="block" />
                 <Label htmlFor="block" className="font-normal">
-                  Bloc (centré, grande taille)
+                  Bloc (centrÃ©, grande taille)
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
@@ -190,18 +190,18 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
 
           {/* Legend */}
           <div className="space-y-2">
-            <Label htmlFor="legende">Légende (optionnelle)</Label>
+            <Label htmlFor="legende">LÃ©gende (optionnelle)</Label>
             <Input
               id="legende"
               value={legende}
               onChange={(e) => setLegende(e.target.value)}
-              placeholder="Ex: Fonction logarithme népérien"
+              placeholder="Ex: Fonction logarithme nÃ©pÃ©rien"
             />
           </div>
 
           {/* Preview */}
           <div className="space-y-2">
-            <Label>Aperçu</Label>
+            <Label>AperÃ§u</Label>
             <div className="border rounded-lg p-4 bg-muted/50 min-h-[100px] flex items-center justify-center">
               {!error && latex ? (
                 <div className="text-center">
@@ -213,7 +213,7 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
                 </div>
               ) : (
                 <p className="text-muted-foreground text-sm">
-                  Saisissez du code LaTeX pour voir l'aperçu
+                  Saisissez du code LaTeX pour voir l'aperÃ§u
                 </p>
               )}
             </div>
@@ -225,7 +225,7 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
             Annuler
           </Button>
           <Button onClick={handleInsert} disabled={!latex || !!error}>
-            Insérer formule
+            InsÃ©rer formule
           </Button>
         </DialogFooter>
       </DialogContent>

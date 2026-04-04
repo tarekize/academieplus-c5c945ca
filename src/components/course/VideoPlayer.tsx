@@ -1,4 +1,4 @@
-import { Play } from "lucide-react";
+﻿import { Play } from "lucide-react";
 
 interface VideoPlayerProps {
   url: string;
@@ -41,7 +41,7 @@ export const VideoPlayer = ({ url, title }: VideoPlayerProps) => {
             className="w-full h-full"
             title={title}
           >
-            Votre navigateur ne supporte pas la lecture de vidéos.
+            Votre navigateur ne supporte pas la lecture de vidÃ©os.
           </video>
         )}
       </div>

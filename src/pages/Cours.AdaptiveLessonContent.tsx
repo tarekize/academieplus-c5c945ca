@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+﻿import { Button } from "@/components/ui/button";
 import { LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -62,11 +62,11 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
 
     const handleLessonClick = async (lesson: any) => {
         if (canManage) {
-            // Pédagogue → navigate to lesson editor
+            // PÃ©dagogue â†’ navigate to lesson editor
             navigate(`/lecon/${lesson.id}`);
             return;
         }
-        // Élève → show content inline
+        // Ã‰lÃ¨ve â†’ show content inline
         setSelectedLesson(lesson);
         setLessonView("course");
         setActiveActivity(null);
@@ -110,7 +110,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const renderBreadcrumb = () => {
         const sectionLabels: Record<string, string> = {
             exercises: "تمارين",
-            quiz: "اختبارات",
+            quiz: "اسئله متعدده الاختيارات",
             revision: "Révision",
         };
 
@@ -251,7 +251,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         onSectionChange={(section) => {
                             const sectionLabels: Record<string, string> = {
                                 exercises: "تمارين",
-                                quiz: "اختبارات",
+                                quiz: "اسئله متعدده الاختيارات",
                                 revision: "Révision",
                             };
                             if (section !== null) {
@@ -318,8 +318,8 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                             <Brain className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-semibold" dir="rtl">اختبارات</h3>
-                            <p className="text-sm text-muted-foreground" dir="rtl">{dbQuizzes.length} أسئلة</p>
+                            <h3 className="font-semibold" dir="rtl">اسئله متعدده الاختيارات</h3>
+                            <p className="text-sm text-muted-foreground" dir="rtl">{dbQuizzes.length} Ø£Ø³Ø¦Ù„Ø©</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -447,3 +447,4 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         </>
     );
 }
+

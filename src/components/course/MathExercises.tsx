@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,7 +33,7 @@ export const MathExercises = ({ onClose }: MathExercisesProps) => {
           <div className="flex items-center justify-between">
             <Button variant="ghost" size="sm" onClick={() => setCurrentExercise(null)}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour à la liste
+              Retour Ã  la liste
             </Button>
             <span className="text-sm px-2 py-1 rounded-full bg-primary/10 text-primary">
               {exercise.category}
@@ -47,11 +47,11 @@ export const MathExercises = ({ onClose }: MathExercisesProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Énoncé */}
+          {/* Ã‰noncÃ© */}
           <div className="p-4 bg-muted/50 rounded-lg">
             <h4 className="font-semibold mb-3 flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
-              Énoncé
+              Ã‰noncÃ©
             </h4>
             <div className="prose prose-sm dark:prose-invert max-w-none">
               <ReactMarkdown
@@ -160,14 +160,14 @@ export const MathExercises = ({ onClose }: MathExercisesProps) => {
             <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
               <PenTool className="h-5 w-5 text-white" />
             </div>
-            Exercices de Mathématiques
+            Exercices de MathÃ©matiques
           </CardTitle>
           <Button variant="outline" onClick={onClose}>
             Retour au cours
           </Button>
         </div>
         <p className="text-muted-foreground mt-2">
-          10 exercices pour s'entraîner sur le programme de Seconde
+          10 exercices pour s'entraÃ®ner sur le programme de Seconde
         </p>
       </CardHeader>
       <CardContent>
@@ -197,7 +197,7 @@ export const MathExercises = ({ onClose }: MathExercisesProps) => {
                     <span className="text-sm text-muted-foreground">{ex.category}</span>
                   </div>
                 </div>
-                <span className="text-primary">→</span>
+                <span className="text-primary">â†’</span>
               </button>
             );
           })}

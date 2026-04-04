@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, Copy, Key } from "lucide-react";
@@ -128,21 +128,21 @@ const Abonnements = () => {
   const getSchoolLevelName = (level: string) => {
     const levels: Record<string, string> = {
       cp: 'CP', ce1: 'CE1', ce2: 'CE2', cm1: 'CM1', cm2: 'CM2',
-      sixieme: '6ème', cinquieme: '5ème', quatrieme: '4ème', troisieme: '3ème',
-      seconde: 'Seconde', premiere: 'Première', terminale: 'Terminale'
+      sixieme: '6Ã¨me', cinquieme: '5Ã¨me', quatrieme: '4Ã¨me', troisieme: '3Ã¨me',
+      seconde: 'Seconde', premiere: 'PremiÃ¨re', terminale: 'Terminale'
     };
     return levels[level] || 'Votre classe';
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast({ title: "Déconnexion", description: "Vous avez été déconnecté avec succès" });
+    toast({ title: "DÃ©connexion", description: "Vous avez Ã©tÃ© dÃ©connectÃ© avec succÃ¨s" });
     navigate("/");
   };
 
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
-    toast({ title: "Code copié !", description: code });
+    toast({ title: "Code copiÃ© !", description: code });
   };
 
   const getEndDate = (code: ActivationCode) => {
@@ -172,7 +172,7 @@ const Abonnements = () => {
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                 <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">AcadémiePlus</span>
+              <span className="text-xl font-bold">AcadÃ©miePlus</span>
             </div>
             <div className="flex items-center gap-4">
               <DropdownMenu>
@@ -189,10 +189,10 @@ const Abonnements = () => {
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/account")}><UserIcon className="mr-2 h-4 w-4" /><span>Gérer mon compte</span></DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/account")}><UserIcon className="mr-2 h-4 w-4" /><span>GÃ©rer mon compte</span></DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/dashboard")}><GraduationCap className="mr-2 h-4 w-4" /><span>Tableau de bord</span></DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" /><span>Se déconnecter</span></DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" /><span>Se dÃ©connecter</span></DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -207,7 +207,7 @@ const Abonnements = () => {
               <BreadcrumbItem>
                 <BreadcrumbLink onClick={() => navigate("/account")} className="cursor-pointer flex items-center gap-2">
                   <ArrowLeft className="h-4 w-4" />
-                  Retour vers Gérer mon compte
+                  Retour vers GÃ©rer mon compte
                 </BreadcrumbLink>
               </BreadcrumbItem>
             </BreadcrumbList>
@@ -249,7 +249,7 @@ const Abonnements = () => {
                     <div>
                       <h3 className="font-semibold text-lg">Mes Codes d'Activation</h3>
                       <p className="text-sm text-muted-foreground">
-                        {codes.length} code{codes.length > 1 ? "s" : ""} • {codes.filter(c => c.status === "free").length} disponible{codes.filter(c => c.status === "free").length > 1 ? "s" : ""}
+                        {codes.length} code{codes.length > 1 ? "s" : ""} â€¢ {codes.filter(c => c.status === "free").length} disponible{codes.filter(c => c.status === "free").length > 1 ? "s" : ""}
                       </p>
                     </div>
                   </div>
@@ -273,8 +273,8 @@ const Abonnements = () => {
                           <TableHead className="font-semibold">Code</TableHead>
                           <TableHead className="font-semibold">Formule</TableHead>
                           <TableHead className="font-semibold">Statut</TableHead>
-                          <TableHead className="font-semibold">État</TableHead>
-                          <TableHead className="font-semibold">Date de début</TableHead>
+                          <TableHead className="font-semibold">Ã‰tat</TableHead>
+                          <TableHead className="font-semibold">Date de dÃ©but</TableHead>
                           <TableHead className="font-semibold">Date de fin</TableHead>
                           <TableHead></TableHead>
                         </TableRow>
@@ -289,7 +289,7 @@ const Abonnements = () => {
                                 variant={code.status === "used" ? "secondary" : "default"}
                                 className={code.status === "free" ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20" : ""}
                               >
-                                {code.status === "used" ? "Utilisé" : "Disponible"}
+                                {code.status === "used" ? "UtilisÃ©" : "Disponible"}
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -298,7 +298,7 @@ const Abonnements = () => {
                                   {subStatuses[code.id]?.is_paused ? "En pause" : "Actif"}
                                 </Badge>
                               ) : (
-                                <span className="text-muted-foreground">—</span>
+                                <span className="text-muted-foreground">â€”</span>
                               )}
                             </TableCell>
                             <TableCell className="text-muted-foreground">

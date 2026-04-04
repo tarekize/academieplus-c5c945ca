@@ -1,4 +1,4 @@
-export function injectHeaderIds(html: string): string {
+﻿export function injectHeaderIds(html: string): string {
     if (!html) return '';
 
     const parser = new DOMParser();

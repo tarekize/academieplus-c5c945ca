@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 interface BotMessageProps {
@@ -12,7 +12,7 @@ interface BotMessageProps {
 export const BotMessage = ({
     text,
     isTyping = true,
-    emoji = "🧠",
+    emoji = "ðŸ§ ",
     delay = 0,
     onComplete,
 }: BotMessageProps) => {

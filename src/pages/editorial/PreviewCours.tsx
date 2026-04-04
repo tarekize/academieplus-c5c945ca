@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+﻿import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, BookOpen } from "lucide-react";
@@ -19,10 +19,10 @@ export default function PreviewCours() {
 
         <Card className="p-12 text-center">
           <BookOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-          <h2 className="text-xl font-semibold mb-4">Prévisualisation non disponible</h2>
+          <h2 className="text-xl font-semibold mb-4">PrÃ©visualisation non disponible</h2>
           <p className="text-muted-foreground mb-6">
-            La prévisualisation de cours nécessite les tables éditorial (cours, sections) 
-            qui ne sont pas encore configurées dans la base de données.
+            La prÃ©visualisation de cours nÃ©cessite les tables Ã©ditorial (cours, sections) 
+            qui ne sont pas encore configurÃ©es dans la base de donnÃ©es.
           </p>
           <Button onClick={() => navigate('/editorial')}>
             Retour au tableau de bord

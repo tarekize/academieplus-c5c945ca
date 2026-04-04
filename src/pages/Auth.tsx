@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -87,7 +87,7 @@ const Auth = () => {
       // Stocker dans sessionStorage pour le conserver
       sessionStorage.setItem('referralCode', refCode);
     } else {
-      // Vérifier si on a un code en sessionStorage
+      // VÃ©rifier si on a un code en sessionStorage
       const storedCode = sessionStorage.getItem('referralCode');
       if (storedCode) {
         setReferralCode(storedCode);
@@ -115,11 +115,11 @@ const Auth = () => {
             .limit(1)
             .maybeSingle();
 
-          // Pour les nouveaux utilisateurs (sans rôle) ou élèves, vérifier s'ils ont un style d'apprentissage
+          // Pour les nouveaux utilisateurs (sans rÃ´le) ou Ã©lÃ¨ves, vÃ©rifier s'ils ont un style d'apprentissage
           if (!roleData?.role || roleData?.role === 'student') {
             const hasAssessment = await hasCompletedPlacementAssessment(session.user.id);
             if (!hasAssessment) {
-              // Ne pas rediriger, laisser l'évaluation s'afficher
+              // Ne pas rediriger, laisser l'Ã©valuation s'afficher
               return;
             }
           }
@@ -149,11 +149,11 @@ const Auth = () => {
           .limit(1)
           .maybeSingle();
 
-        // Si élève, vérifier s'il a déjà un style d'apprentissage
+        // Si Ã©lÃ¨ve, vÃ©rifier s'il a dÃ©jÃ  un style d'apprentissage
         if (roleData?.role === 'student') {
           const hasAssessment = await hasCompletedPlacementAssessment(session.user.id);
           if (!hasAssessment) {
-            // Ne pas rediriger, laisser l'évaluation s'afficher
+            // Ne pas rediriger, laisser l'Ã©valuation s'afficher
             return;
           }
         }
@@ -173,7 +173,7 @@ const Auth = () => {
 
   const validatePassword = (password: string): string | null => {
     if (password.length < 8) {
-      return "Le mot de passe doit contenir au moins 8 caractères.";
+      return "Le mot de passe doit contenir au moins 8 caractÃ¨res.";
     }
     if (!/[A-Z]/.test(password)) {
       return "Le mot de passe doit contenir au moins une lettre majuscule.";
@@ -202,18 +202,18 @@ const Auth = () => {
       }
 
       if (profileType === 'enfant' && !classLevel) {
-        toast.error("Veuillez sélectionner votre classe.");
+        toast.error("Veuillez sÃ©lectionner votre classe.");
         return;
       }
 
-      const needsFiliere = ["Terminale", "Seconde", "Première"].includes(classLevel);
+      const needsFiliere = ["Terminale", "Seconde", "PremiÃ¨re"].includes(classLevel);
       if (profileType === 'enfant' && needsFiliere && !filiere) {
-        toast.error("Veuillez sélectionner votre filière.");
+        toast.error("Veuillez sÃ©lectionner votre filiÃ¨re.");
         return;
       }
 
       if (!consentDataProcessing || !consentTermsPrivacy) {
-        toast.error("Vous devez accepter le traitement des données et la politique de confidentialité pour vous inscrire.");
+        toast.error("Vous devez accepter le traitement des donnÃ©es et la politique de confidentialitÃ© pour vous inscrire.");
         return;
       }
 
@@ -225,10 +225,10 @@ const Auth = () => {
         }
       }
 
-      // ✅ AFFICHER L'OVERLAY IMMÉDIATEMENT - SANS ATTENDRE LE SERVEUR
+      // âœ… AFFICHER L'OVERLAY IMMÃ‰DIATEMENT - SANS ATTENDRE LE SERVEUR
       setIsRegistering(true);
 
-      // Envoyer l'inscription en arrière-plan
+      // Envoyer l'inscription en arriÃ¨re-plan
       performSignUp(firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth, wilaya, ville, ecole, phone);
     } else {
       // LOGIN
@@ -240,16 +240,16 @@ const Auth = () => {
         });
 
         if (error) throw error;
-        toast.success("Connexion réussie !");
+        toast.success("Connexion rÃ©ussie !");
       } catch (error: any) {
         if (error.message.includes("Email not confirmed")) {
-          toast.error("Veuillez d'abord confirmer votre email en cliquant sur le lien envoyé dans votre boîte de réception.", {
+          toast.error("Veuillez d'abord confirmer votre email en cliquant sur le lien envoyÃ© dans votre boÃ®te de rÃ©ception.", {
             duration: 6000,
           });
         } else if (error.message.includes("Invalid login credentials")) {
           toast.error("Email ou mot de passe incorrect.");
         } else if (error.message.includes("User already registered")) {
-          toast.error("Un compte existe déjà avec cet email.");
+          toast.error("Un compte existe dÃ©jÃ  avec cet email.");
         } else {
           toast.error(error.message || "Une erreur s'est produite.");
         }
@@ -275,12 +275,12 @@ const Auth = () => {
   ) => {
     try {
       const schoolLevelMapping: Record<string, string> = {
-        "5ème Primaire": "5eme_primaire",
-        "1ère CEM": "1ere_cem",
-        "2ème CEM": "2eme_cem",
-        "3ème CEM": "3eme_cem",
-        "4ème CEM": "4eme_cem",
-        "Première": "premiere",
+        "5Ã¨me Primaire": "5eme_primaire",
+        "1Ã¨re CEM": "1ere_cem",
+        "2Ã¨me CEM": "2eme_cem",
+        "3Ã¨me CEM": "3eme_cem",
+        "4Ã¨me CEM": "4eme_cem",
+        "PremiÃ¨re": "premiere",
         "Seconde": "seconde",
         "Terminale": "terminale",
       };
@@ -307,7 +307,7 @@ const Auth = () => {
             "Lettres": "lettres",
             "Gestion": "gestion",
             "Math techniques": "math_techniques",
-            "Mathématiques": "mathematiques",
+            "MathÃ©matiques": "mathematiques",
           };
           userData.filiere = filiereMapping[filiere] || filiere.toLowerCase().replace(/\s+/g, '_');
         }
@@ -329,17 +329,17 @@ const Auth = () => {
 
       if (error) throw error;
       setRegistrationEmail(email);
-      // Naviguer vers l'évaluation d'apprentissage APRÈS que le signup soit réussi
+      // Naviguer vers l'Ã©valuation d'apprentissage APRÃˆS que le signup soit rÃ©ussi
       navigate('/learning-assessment');
     } catch (error: any) {
       if (error.message.includes("Email not confirmed")) {
-        toast.error("Veuillez d'abord confirmer votre email en cliquant sur le lien envoyé dans votre boîte de réception.", {
+        toast.error("Veuillez d'abord confirmer votre email en cliquant sur le lien envoyÃ© dans votre boÃ®te de rÃ©ception.", {
           duration: 6000,
         });
       } else if (error.message.includes("Invalid login credentials")) {
         toast.error("Email ou mot de passe incorrect.");
       } else if (error.message.includes("User already registered")) {
-        toast.error("Un compte existe déjà avec cet email.");
+        toast.error("Un compte existe dÃ©jÃ  avec cet email.");
       } else {
         toast.error(error.message || "Une erreur s'est produite.");
       }
@@ -376,7 +376,7 @@ const Auth = () => {
       });
 
       if (error) throw error;
-      toast.success("Email de réinitialisation envoyé !");
+      toast.success("Email de rÃ©initialisation envoyÃ© !");
       setShowForgotPassword(false);
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de l'envoi de l'email.");
@@ -388,14 +388,14 @@ const Auth = () => {
   // Ne pas masquer l'interface si on est sur /learning-assessment, /complete-profile, ou pendant l'inscription
   const isOnboardingOrAssessment = ["/learning-assessment", "/complete-profile"].some((path) => window.location.pathname.startsWith(path));
 
-  // ⚠️ IMPORTANT: Ne PAS retourner null pendant l'inscription (isRegistering)
-  // car la session Supabase est créée AVANT la navigation vers /learning-assessment
+  // âš ï¸ IMPORTANT: Ne PAS retourner null pendant l'inscription (isRegistering)
+  // car la session Supabase est crÃ©Ã©e AVANT la navigation vers /learning-assessment
   // ce qui causait une page blanche entre les deux
   if (session && !isOnboardingOrAssessment && !isRegistering) {
     return null;
   }
 
-  // Écran de chargement pendant l'inscription en cours
+  // Ã‰cran de chargement pendant l'inscription en cours
   if (isRegistering) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background via-secondary to-background gap-6">
@@ -406,8 +406,8 @@ const Auth = () => {
           </div>
         </div>
         <div className="text-center space-y-2">
-          <h2 className="text-xl font-semibold text-foreground">Création de votre compte...</h2>
-          <p className="text-muted-foreground text-sm">Préparation de votre test de niveau</p>
+          <h2 className="text-xl font-semibold text-foreground">CrÃ©ation de votre compte...</h2>
+          <p className="text-muted-foreground text-sm">PrÃ©paration de votre test de niveau</p>
         </div>
       </div>
     );
@@ -421,7 +421,7 @@ const Auth = () => {
           <div className="bg-card rounded-2xl shadow-[var(--shadow-elegant)] p-8 border border-border">
             {/* Title */}
             <h1 className="text-3xl font-bold text-center text-foreground mb-8">
-              {showForgotPassword ? "Mot de passe oublié" : isLogin ? "Connecte-toi !" : "Inscription"}
+              {showForgotPassword ? "Mot de passe oubliÃ©" : isLogin ? "Connecte-toi !" : "Inscription"}
             </h1>
 
             {showForgotPassword ? (
@@ -437,15 +437,15 @@ const Auth = () => {
                     required
                   />
                   <p className="text-sm text-muted-foreground mt-2">
-                    Entrez l'adresse e-mail avec laquelle vous vous êtes inscrit. Nous allons vous envoyer un e-mail avec votre nom d'utilisateur et un lien pour réinitialiser votre mot de passe.
+                    Entrez l'adresse e-mail avec laquelle vous vous Ãªtes inscrit. Nous allons vous envoyer un e-mail avec votre nom d'utilisateur et un lien pour rÃ©initialiser votre mot de passe.
                   </p>
                   <p className="text-sm font-medium text-warning mt-2">
-                    ⚠️ Ce lien expirera dans 1 heure.
+                    âš ï¸ Ce lien expirera dans 1 heure.
                   </p>
                 </div>
 
                 <Button type="submit" className="w-full bg-primary" disabled={loading}>
-                  {loading ? "Envoi..." : "Réinitialiser le mot de passe"}
+                  {loading ? "Envoi..." : "RÃ©initialiser le mot de passe"}
                 </Button>
 
                 <Button
@@ -454,7 +454,7 @@ const Auth = () => {
                   className="w-full"
                   onClick={() => setShowForgotPassword(false)}
                 >
-                  Retour à la connexion
+                  Retour Ã  la connexion
                 </Button>
               </form>
             ) : (
@@ -507,7 +507,7 @@ const Auth = () => {
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           type="text"
-                          placeholder="Prénom"
+                          placeholder="PrÃ©nom"
                           value={firstName}
                           onChange={(e) => {
                             setFirstName(e.target.value);
@@ -553,7 +553,7 @@ const Auth = () => {
                               (submitted || touched.dateOfBirth) && !dateOfBirth ? "border-red-500 border-2" : "border-border"
                             )}
                           >
-                            {dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy") : "Sélectionnez votre date de naissance"}
+                            {dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy") : "SÃ©lectionnez votre date de naissance"}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -575,7 +575,7 @@ const Auth = () => {
 
                     <Input
                       type="tel"
-                      placeholder="Numéro de téléphone (ex: 0555 123 456)"
+                      placeholder="NumÃ©ro de tÃ©lÃ©phone (ex: 0555 123 456)"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       className="bg-secondary/20 border-border"
@@ -647,8 +647,8 @@ const Auth = () => {
                             )}
                           >
                             <RadioGroupItem value="enfant" id="enfant" className="sr-only" />
-                            <img src={iconStudent} alt="Élève" className="h-20 w-20 mb-2 object-contain" />
-                            <span className="font-semibold">Élève</span>
+                            <img src={iconStudent} alt="Ã‰lÃ¨ve" className="h-20 w-20 mb-2 object-contain" />
+                            <span className="font-semibold">Ã‰lÃ¨ve</span>
                           </Label>
                           <Label
                             htmlFor="parent"
@@ -675,7 +675,7 @@ const Auth = () => {
                             value={classLevel}
                             onValueChange={(value) => {
                               setClassLevel(value);
-                              setFiliere(""); // Reset filière when class changes
+                              setFiliere(""); // Reset filiÃ¨re when class changes
                               setTouched(prev => ({ ...prev, classLevel: true, filiere: false }));
                             }}
                             required
@@ -684,7 +684,7 @@ const Auth = () => {
                               "grid grid-cols-2 gap-3 p-1 rounded-lg",
                               (submitted || touched.classLevel) && !classLevel && profileType === "enfant" ? "ring-2 ring-red-500" : ""
                             )}>
-                              {["5ème Primaire", "1ère CEM", "2ème CEM", "3ème CEM", "4ème CEM", "Première", "Seconde", "Terminale"].map((level) => (
+                              {["5Ã¨me Primaire", "1Ã¨re CEM", "2Ã¨me CEM", "3Ã¨me CEM", "4Ã¨me CEM", "PremiÃ¨re", "Seconde", "Terminale"].map((level) => (
                                 <Label
                                   key={level}
                                   htmlFor={level}
@@ -703,10 +703,10 @@ const Auth = () => {
                           </RadioGroup>
                         </div>
 
-                        {/* Filières pour Terminale et Seconde */}
+                        {/* FiliÃ¨res pour Terminale et Seconde */}
                         {(classLevel === "Terminale" || classLevel === "Seconde") && (
                           <div className="space-y-2">
-                            <Label className="text-foreground">Quelle est ta filière ?</Label>
+                            <Label className="text-foreground">Quelle est ta filiÃ¨re ?</Label>
                             <RadioGroup
                               value={filiere}
                               onValueChange={(value) => {
@@ -719,7 +719,7 @@ const Auth = () => {
                                 "grid grid-cols-2 gap-3 p-1 rounded-lg",
                                 (submitted || touched.filiere) && !filiere ? "ring-2 ring-red-500" : ""
                               )}>
-                                {["Sciences", "Lettres", "Gestion", "Math techniques", "Mathématiques"].map((f) => (
+                                {["Sciences", "Lettres", "Gestion", "Math techniques", "MathÃ©matiques"].map((f) => (
                                   <Label
                                     key={f}
                                     htmlFor={`filiere-${f}`}
@@ -739,8 +739,8 @@ const Auth = () => {
                           </div>
                         )}
 
-                        {/* Filières pour Première (tronc commun) */}
-                        {classLevel === "Première" && (
+                        {/* FiliÃ¨res pour PremiÃ¨re (tronc commun) */}
+                        {classLevel === "PremiÃ¨re" && (
                           <div className="space-y-2">
                             <Label className="text-foreground">Quel est ton tronc commun ?</Label>
                             <RadioGroup
@@ -777,7 +777,7 @@ const Auth = () => {
                       </div>
                     )}
 
-                    {/* Wilaya, Ville, École - toujours affiché */}
+                    {/* Wilaya, Ville, Ã‰cole - toujours affichÃ© */}
                     <LocationFields
                       wilaya={wilaya}
                       ville={ville}
@@ -800,7 +800,7 @@ const Auth = () => {
                           htmlFor="consentDataProcessing"
                           className="text-sm text-foreground cursor-pointer leading-relaxed"
                         >
-                          <span className="text-red-500">*</span> J'accepte le traitement de mes données personnelles conformément au RGPD
+                          <span className="text-red-500">*</span> J'accepte le traitement de mes donnÃ©es personnelles conformÃ©ment au RGPD
                         </label>
                       </div>
 
@@ -821,7 +821,7 @@ const Auth = () => {
                             target="_blank"
                             className="text-primary hover:underline font-medium"
                           >
-                            Conditions Générales d'Utilisation
+                            Conditions GÃ©nÃ©rales d'Utilisation
                           </a>
                           {" "}et la{" "}
                           <a
@@ -829,7 +829,7 @@ const Auth = () => {
                             target="_blank"
                             className="text-primary hover:underline font-medium"
                           >
-                            Politique de Confidentialité
+                            Politique de ConfidentialitÃ©
                           </a>
                         </label>
                       </div>
@@ -846,20 +846,20 @@ const Auth = () => {
                             htmlFor="consentParental"
                             className="text-sm text-foreground cursor-pointer leading-relaxed"
                           >
-                            <span className="text-red-500">*</span> Je certifie que mes parents/tuteurs légaux consentent à mon inscription et au traitement de mes données personnelles (requis pour les mineurs de moins de 15 ans)
+                            <span className="text-red-500">*</span> Je certifie que mes parents/tuteurs lÃ©gaux consentent Ã  mon inscription et au traitement de mes donnÃ©es personnelles (requis pour les mineurs de moins de 15 ans)
                           </label>
                         </div>
                       )}
 
                       <p className="text-xs text-muted-foreground">
                         <span className="text-red-500">*</span> Champs obligatoires.
-                        Pour en savoir plus sur la protection de vos données, consultez notre{" "}
+                        Pour en savoir plus sur la protection de vos donnÃ©es, consultez notre{" "}
                         <a
                           href="/politique-confidentialite"
                           target="_blank"
                           className="text-primary hover:underline"
                         >
-                          Politique de Confidentialité
+                          Politique de ConfidentialitÃ©
                         </a>.
                       </p>
                     </div>
@@ -962,7 +962,7 @@ const Auth = () => {
                           onClick={() => setShowForgotPassword(true)}
                           className="text-sm text-primary hover:underline"
                         >
-                          Mot de passe oublié ?
+                          Mot de passe oubliÃ© ?
                         </button>
                       </div>
 
@@ -980,7 +980,7 @@ const Auth = () => {
                     onClick={() => setIsLogin(!isLogin)}
                     className="text-sm text-foreground"
                   >
-                    {isLogin ? "Pas encore de compte ? " : "Déjà un compte ? "}
+                    {isLogin ? "Pas encore de compte ? " : "DÃ©jÃ  un compte ? "}
                     <span className="text-primary hover:underline font-medium">
                       {isLogin ? "Inscris-toi" : "Connecte-toi"}
                     </span>

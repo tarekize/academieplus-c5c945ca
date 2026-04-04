@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,7 @@ import { toast } from "sonner";
 
 // Helper to get full name from child profile
 const getChildFullName = (child: LinkedChild["child"]): string => {
-  if (!child) return "Compte élève";
+  if (!child) return "Compte Ã©lÃ¨ve";
   const parts = [child.first_name, child.last_name].filter(Boolean);
   return parts.length > 0 ? parts.join(" ") : "Sans nom";
 };
@@ -97,7 +97,7 @@ export function LinkedChildrenSection() {
               Mes enfants
             </CardTitle>
             <CardDescription>
-              Gérez les liens avec les comptes de vos enfants
+              GÃ©rez les liens avec les comptes de vos enfants
             </CardDescription>
           </div>
 
@@ -105,21 +105,21 @@ export function LinkedChildrenSection() {
             <DialogTrigger asChild>
               <Button>
                 <UserPlus className="h-4 w-4 mr-2" />
-                Ajouter un lien de parenté
+                Ajouter un lien de parentÃ©
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Ajouter un lien de parenté</DialogTitle>
+                <DialogTitle>Ajouter un lien de parentÃ©</DialogTitle>
                 <DialogDescription>
-                  Liez le compte de votre enfant à votre profil parent en utilisant son code de liaison
+                  Liez le compte de votre enfant Ã  votre profil parent en utilisant son code de liaison
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 mt-4">
                 {error && (
                   <div className="p-3 rounded-md bg-destructive/10 border border-destructive/30 text-destructive text-sm font-medium">
-                    ⚠️ {error}
+                    âš ï¸ {error}
                   </div>
                 )}
                 <div className="space-y-2">
@@ -132,7 +132,7 @@ export function LinkedChildrenSection() {
                     className={error ? "border-destructive" : ""}
                   />
                   <p className="text-sm text-muted-foreground">
-                    Demandez à votre enfant de générer un code depuis son profil
+                    Demandez Ã  votre enfant de gÃ©nÃ©rer un code depuis son profil
                   </p>
                 </div>
                 <Button
@@ -157,8 +157,8 @@ export function LinkedChildrenSection() {
         {children.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <User className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>Aucun enfant lié pour le moment</p>
-            <p className="text-sm">Cliquez sur "Ajouter un lien de parenté" pour commencer</p>
+            <p>Aucun enfant liÃ© pour le moment</p>
+            <p className="text-sm">Cliquez sur "Ajouter un lien de parentÃ©" pour commencer</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -236,7 +236,7 @@ function ChildCard({
               <AlertDialogTitle>Supprimer le lien ?</AlertDialogTitle>
               <AlertDialogDescription>
                 Voulez-vous vraiment supprimer le lien avec {fullName} ?
-                Cette action est réversible, vous pourrez recréer le lien ultérieurement.
+                Cette action est rÃ©versible, vous pourrez recrÃ©er le lien ultÃ©rieurement.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

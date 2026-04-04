@@ -1,4 +1,4 @@
-import { Card } from "@/components/ui/card";
+﻿import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Clock } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
@@ -29,8 +29,8 @@ export function PreviewSidebar({ course, matieres, niveaux }: PreviewSidebarProp
   return (
     <div className="w-96 bg-muted/30 border-l h-full overflow-y-auto">
       <div className="p-4 border-b bg-background sticky top-0 z-10">
-        <h3 className="font-semibold">Prévisualisation</h3>
-        <p className="text-xs text-muted-foreground">Vue élève en temps réel</p>
+        <h3 className="font-semibold">PrÃ©visualisation</h3>
+        <p className="text-xs text-muted-foreground">Vue Ã©lÃ¨ve en temps rÃ©el</p>
       </div>
 
       <div className="p-4 space-y-4">
@@ -59,7 +59,7 @@ export function PreviewSidebar({ course, matieres, niveaux }: PreviewSidebarProp
               {course.difficulte > 0 && (
                 <div className="flex items-center gap-1">
                   <BookOpen className="w-3 h-3" />
-                  <span>Difficulté: {course.difficulte}/5</span>
+                  <span>DifficultÃ©: {course.difficulte}/5</span>
                 </div>
               )}
             </div>
@@ -136,7 +136,7 @@ export function PreviewSidebar({ course, matieres, niveaux }: PreviewSidebarProp
           <Card className="p-6 text-center">
             <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm text-muted-foreground">
-              Ajoutez des sections pour voir la prévisualisation
+              Ajoutez des sections pour voir la prÃ©visualisation
             </p>
           </Card>
         )}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,8 +21,8 @@ const Contact = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast({
-      title: "Message envoyé !",
-      description: "Nous vous répondrons dans les plus brefs délais.",
+      title: "Message envoyÃ© !",
+      description: "Nous vous rÃ©pondrons dans les plus brefs dÃ©lais.",
     });
     setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
   };
@@ -45,7 +45,7 @@ const Contact = () => {
               Contactez-nous
             </h1>
             <p className="text-xl text-white/90 max-w-2xl mx-auto">
-              Une question ? Besoin d'informations ? Notre équipe est à votre écoute
+              Une question ? Besoin d'informations ? Notre Ã©quipe est Ã  votre Ã©coute
             </p>
           </div>
         </section>
@@ -62,7 +62,7 @@ const Contact = () => {
                       <Phone className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground mb-2">Téléphone</h3>
+                      <h3 className="font-semibold text-foreground mb-2">TÃ©lÃ©phone</h3>
                       <p className="text-muted-foreground text-sm mb-1">Lun - Sam: 9h-19h</p>
                       <a href="tel:0123456789" className="text-primary font-semibold hover:underline">
                         01 23 45 67 89
@@ -78,7 +78,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground mb-2">Email</h3>
-                      <p className="text-muted-foreground text-sm mb-1">Réponse sous 24h</p>
+                      <p className="text-muted-foreground text-sm mb-1">RÃ©ponse sous 24h</p>
                       <a href="mailto:contact@edusuccess.fr" className="text-primary font-semibold hover:underline">
                         contact@edusuccess.fr
                       </a>
@@ -94,7 +94,7 @@ const Contact = () => {
                     <div>
                       <h3 className="font-semibold text-foreground mb-2">Adresse</h3>
                       <p className="text-muted-foreground text-sm">
-                        123 Avenue des Champs-Élysées<br />
+                        123 Avenue des Champs-Ã‰lysÃ©es<br />
                         75008 Paris, France
                       </p>
                     </div>
@@ -124,7 +124,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-2">
-                        Téléphone
+                        TÃ©lÃ©phone
                       </label>
                       <Input
                         id="phone"

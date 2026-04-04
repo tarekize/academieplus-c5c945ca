@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -290,7 +290,7 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
                         <h4 className="font-semibold">Formule Scolaire (Pack Famille)</h4>
                         <p className="text-sm text-muted-foreground">
                           {familySubs.length} codes inclus
-                          {allFree && " — aucun code utilise (remboursement total)"}
+                          {allFree && " â€” aucun code utilise (remboursement total)"}
                         </p>
                       </div>
                       <Badge variant="default">
@@ -438,7 +438,7 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
                   <p className="text-3xl font-bold text-destructive">{refund}DA</p>
                   <p className="text-xs text-muted-foreground">
                     {isFamilyGroup 
-                      ? `Pack famille — ${familySubs.length} codes seront supprimes`
+                      ? `Pack famille â€” ${familySubs.length} codes seront supprimes`
                       : `Apres ${monthsConsumed} mois d'utilisation`
                     }
                   </p>

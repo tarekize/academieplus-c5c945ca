@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+﻿import { supabase } from "@/integrations/supabase/client";
 
 export type LearningStyle = "visual" | "textual" | "practical";
 
@@ -12,7 +12,7 @@ export interface LearningStyleData {
 
 export const learningStyleService = {
     /**
-     * Récupère le style d'apprentissage de l'utilisateur
+     * RÃ©cupÃ¨re le style d'apprentissage de l'utilisateur
      */
     async getUserLearningStyle(userId: string): Promise<LearningStyle | null> {
         try {
@@ -23,7 +23,7 @@ export const learningStyleService = {
                 .maybeSingle();
 
             if (error) {
-                console.error("Erreur lors de la récupération du style:", error);
+                console.error("Erreur lors de la rÃ©cupÃ©ration du style:", error);
                 return null;
             }
 
@@ -35,7 +35,7 @@ export const learningStyleService = {
     },
 
     /**
-     * Récupère les données complètes du style d'apprentissage
+     * RÃ©cupÃ¨re les donnÃ©es complÃ¨tes du style d'apprentissage
      */
     async getUserLearningStyleFull(userId: string): Promise<LearningStyleData | null> {
         try {
@@ -46,7 +46,7 @@ export const learningStyleService = {
                 .maybeSingle();
 
             if (error) {
-                console.error("Erreur lors de la récupération:", error);
+                console.error("Erreur lors de la rÃ©cupÃ©ration:", error);
                 return null;
             }
 
@@ -66,7 +66,7 @@ export const learningStyleService = {
     },
 
     /**
-     * Détermine le style dominant basé sur les scores
+     * DÃ©termine le style dominant basÃ© sur les scores
      */
     determineStyle(
         visualScore: number,

@@ -1,4 +1,4 @@
-import { useEditor, EditorContent, Extension } from '@tiptap/react';
+﻿import { useEditor, EditorContent, Extension } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
@@ -190,10 +190,10 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
         <ToolBtn active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} title="Italique">
           <Italic className="h-4 w-4" />
         </ToolBtn>
-        <ToolBtn active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Souligné">
+        <ToolBtn active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()} title="SoulignÃ©">
           <UnderlineIcon className="h-4 w-4" />
         </ToolBtn>
-        <ToolBtn active={editor.isActive('strike')} onClick={() => editor.chain().focus().toggleStrike().run()} title="Barré">
+        <ToolBtn active={editor.isActive('strike')} onClick={() => editor.chain().focus().toggleStrike().run()} title="BarrÃ©">
           <Strikethrough className="h-4 w-4" />
         </ToolBtn>
 
@@ -226,13 +226,13 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
 
         <Separator orientation="vertical" className="h-6 mx-1" />
 
-        <ToolBtn active={editor.isActive({ textAlign: 'left' })} onClick={() => editor.chain().focus().setTextAlign('left').run()} title="Aligner à gauche">
+        <ToolBtn active={editor.isActive({ textAlign: 'left' })} onClick={() => editor.chain().focus().setTextAlign('left').run()} title="Aligner Ã  gauche">
           <AlignLeft className="h-4 w-4" />
         </ToolBtn>
         <ToolBtn active={editor.isActive({ textAlign: 'center' })} onClick={() => editor.chain().focus().setTextAlign('center').run()} title="Centrer">
           <AlignCenter className="h-4 w-4" />
         </ToolBtn>
-        <ToolBtn active={editor.isActive({ textAlign: 'right' })} onClick={() => editor.chain().focus().setTextAlign('right').run()} title="Aligner à droite">
+        <ToolBtn active={editor.isActive({ textAlign: 'right' })} onClick={() => editor.chain().focus().setTextAlign('right').run()} title="Aligner Ã  droite">
           <AlignRight className="h-4 w-4" />
         </ToolBtn>
         <ToolBtn active={editor.isActive({ textAlign: 'justify' })} onClick={() => editor.chain().focus().setTextAlign('justify').run()} title="Justifier">
@@ -241,10 +241,10 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
 
         <Separator orientation="vertical" className="h-6 mx-1" />
 
-        <ToolBtn active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Liste à puces">
+        <ToolBtn active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Liste Ã  puces">
           <List className="h-4 w-4" />
         </ToolBtn>
-        <ToolBtn active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Liste numérotée">
+        <ToolBtn active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Liste numÃ©rotÃ©e">
           <ListOrdered className="h-4 w-4" />
         </ToolBtn>
 
@@ -253,7 +253,7 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
         {/* Image */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" title="Insérer une image">
+            <Button variant="ghost" size="icon" className="h-8 w-8" title="InsÃ©rer une image">
               <ImageIcon className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
@@ -266,7 +266,7 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
                 onChange={(e) => setImageUrl(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addImage()}
               />
-              <Button size="sm" className="w-full" onClick={addImage}>Insérer</Button>
+              <Button size="sm" className="w-full" onClick={addImage}>InsÃ©rer</Button>
             </div>
           </PopoverContent>
         </Popover>
@@ -274,7 +274,7 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
         {/* LaTeX */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" title="Formule mathématique (LaTeX)">
+            <Button variant="ghost" size="icon" className="h-8 w-8" title="Formule mathÃ©matique (LaTeX)">
               <Sigma className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
@@ -287,8 +287,8 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
                 onChange={(e) => setLatexInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && insertLatex()}
               />
-              <p className="text-xs text-muted-foreground">Tapez $formule$ dans l'éditeur ou insérez ici.</p>
-              <Button size="sm" className="w-full" onClick={insertLatex}>Insérer</Button>
+              <p className="text-xs text-muted-foreground">Tapez $formule$ dans l'Ã©diteur ou insÃ©rez ici.</p>
+              <Button size="sm" className="w-full" onClick={insertLatex}>InsÃ©rer</Button>
             </div>
           </PopoverContent>
         </Popover>

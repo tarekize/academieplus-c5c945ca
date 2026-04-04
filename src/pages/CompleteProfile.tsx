@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -84,25 +84,25 @@ const CompleteProfile = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!profileType) { toast.error("Veuillez sélectionner votre profil."); return; }
-    if (!firstName || !lastName) { toast.error("Veuillez renseigner votre prénom et nom."); return; }
-    if (profileType === 'enfant' && !classLevel) { toast.error("Veuillez sélectionner votre classe."); return; }
-    if (profileType === 'enfant' && (classLevel === "Première" || classLevel === "Seconde" || classLevel === "Terminale") && !filiere) {
-      toast.error("Veuillez sélectionner votre filière / tronc commun.");
+    if (!profileType) { toast.error("Veuillez sÃ©lectionner votre profil."); return; }
+    if (!firstName || !lastName) { toast.error("Veuillez renseigner votre prÃ©nom et nom."); return; }
+    if (profileType === 'enfant' && !classLevel) { toast.error("Veuillez sÃ©lectionner votre classe."); return; }
+    if (profileType === 'enfant' && (classLevel === "PremiÃ¨re" || classLevel === "Seconde" || classLevel === "Terminale") && !filiere) {
+      toast.error("Veuillez sÃ©lectionner votre filiÃ¨re / tronc commun.");
       return;
     }
-    if (!userId) { toast.error("Session expirée."); navigate("/auth"); return; }
+    if (!userId) { toast.error("Session expirÃ©e."); navigate("/auth"); return; }
 
     setLoading(true);
 
     try {
       const schoolLevelMapping: Record<string, string> = {
-        "5ème Primaire": "5eme_primaire",
-        "1ère CEM": "1ere_cem",
-        "2ème CEM": "2eme_cem",
-        "3ème CEM": "3eme_cem",
-        "4ème CEM": "4eme_cem",
-        "Première": "premiere",
+        "5Ã¨me Primaire": "5eme_primaire",
+        "1Ã¨re CEM": "1ere_cem",
+        "2Ã¨me CEM": "2eme_cem",
+        "3Ã¨me CEM": "3eme_cem",
+        "4Ã¨me CEM": "4eme_cem",
+        "PremiÃ¨re": "premiere",
         "Seconde": "seconde",
         "Terminale": "terminale",
       };
@@ -141,7 +141,7 @@ const CompleteProfile = () => {
 
       if (roleError && !roleError.message.includes('duplicate')) throw roleError;
 
-      toast.success("Profil complété avec succès !");
+      toast.success("Profil complÃ©tÃ© avec succÃ¨s !");
 
       if (role === 'parent') {
         navigate("/parent-dashboard");
@@ -156,7 +156,7 @@ const CompleteProfile = () => {
     }
   };
 
-  const schoolLevels = ["5ème Primaire", "1ère CEM", "2ème CEM", "3ème CEM", "4ème CEM", "Première", "Seconde", "Terminale"];
+  const schoolLevels = ["5Ã¨me Primaire", "1Ã¨re CEM", "2Ã¨me CEM", "3Ã¨me CEM", "4Ã¨me CEM", "PremiÃ¨re", "Seconde", "Terminale"];
 
   return (
     <>
@@ -168,15 +168,15 @@ const CompleteProfile = () => {
               <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
                 <User className="h-8 w-8 text-primary-foreground" />
               </div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">Compléter votre profil</h1>
-              <p className="text-muted-foreground">Pour finaliser votre inscription, veuillez compléter vos informations.</p>
+              <h1 className="text-3xl font-bold text-foreground mb-2">ComplÃ©ter votre profil</h1>
+              <p className="text-muted-foreground">Pour finaliser votre inscription, veuillez complÃ©ter vos informations.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">Prénom</Label>
-                  <Input id="firstName" placeholder="Prénom" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="bg-secondary/20 border-border" required />
+                  <Label htmlFor="firstName">PrÃ©nom</Label>
+                  <Input id="firstName" placeholder="PrÃ©nom" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="bg-secondary/20 border-border" required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Nom</Label>
@@ -186,7 +186,7 @@ const CompleteProfile = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Téléphone</Label>
+                  <Label htmlFor="phone">TÃ©lÃ©phone</Label>
                   <Input id="phone" type="tel" placeholder="0555 123 456" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-secondary/20 border-border" />
                 </div>
                 <div className="space-y-2">
@@ -195,7 +195,7 @@ const CompleteProfile = () => {
                     <PopoverTrigger asChild>
                       <Button variant="outline" className={cn("w-full justify-start text-left font-normal bg-secondary/20 border-border", !dateOfBirth && "text-muted-foreground")}>
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy") : "Sélectionnez votre date"}
+                        {dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy") : "SÃ©lectionnez votre date"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -206,7 +206,7 @@ const CompleteProfile = () => {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-foreground">Qui êtes-vous ?</Label>
+                <Label className="text-foreground">Qui Ãªtes-vous ?</Label>
                 <RadioGroup value={profileType} onValueChange={setProfileType}>
                   <div className="grid grid-cols-2 gap-4">
                     <Label htmlFor="enfant-complete" className={cn(
@@ -214,8 +214,8 @@ const CompleteProfile = () => {
                       profileType === "enfant" ? "bg-primary text-primary-foreground border-primary shadow-lg" : "bg-secondary/20 border-border hover:bg-secondary/30"
                     )}>
                       <RadioGroupItem value="enfant" id="enfant-complete" className="sr-only" />
-                      <img src={iconStudent} alt="Élève" className="h-16 w-16 mb-2 object-contain" />
-                      <span className="font-semibold">Élève</span>
+                      <img src={iconStudent} alt="Ã‰lÃ¨ve" className="h-16 w-16 mb-2 object-contain" />
+                      <span className="font-semibold">Ã‰lÃ¨ve</span>
                     </Label>
                     <Label htmlFor="parent-complete" className={cn(
                       "flex flex-col items-center justify-center h-32 px-4 rounded-lg border-2 cursor-pointer transition-all",
@@ -232,7 +232,7 @@ const CompleteProfile = () => {
               {profileType === "enfant" && (
                 <>
                   <div className="space-y-2">
-                    <Label className="text-foreground">En quelle classe êtes-vous ?</Label>
+                    <Label className="text-foreground">En quelle classe Ãªtes-vous ?</Label>
                     <RadioGroup value={classLevel} onValueChange={setClassLevel}>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {schoolLevels.map((level) => (
@@ -248,7 +248,7 @@ const CompleteProfile = () => {
                     </RadioGroup>
                   </div>
 
-                  {classLevel === "Première" && (
+                  {classLevel === "PremiÃ¨re" && (
                     <div className="space-y-2">
                       <Label className="text-foreground">Quel est ton tronc commun ?</Label>
                       <RadioGroup value={filiere} onValueChange={setFiliere}>
@@ -269,10 +269,10 @@ const CompleteProfile = () => {
 
                   {(classLevel === "Seconde" || classLevel === "Terminale") && (
                     <div className="space-y-2">
-                      <Label className="text-foreground">Quelle est ta filière ?</Label>
+                      <Label className="text-foreground">Quelle est ta filiÃ¨re ?</Label>
                       <RadioGroup value={filiere} onValueChange={setFiliere}>
                         <div className="grid grid-cols-2 gap-3">
-                          {["Sciences", "Lettres", "Gestion", "Math techniques", "Mathématiques"].map((f) => (
+                          {["Sciences", "Lettres", "Gestion", "Math techniques", "MathÃ©matiques"].map((f) => (
                             <Label key={f} htmlFor={`filiere-cp-${f}`} className={cn(
                               "flex items-center justify-center h-10 px-4 rounded-md border-2 cursor-pointer transition-all font-medium text-sm",
                               filiere === f ? "bg-accent text-accent-foreground border-accent shadow-md" : "bg-secondary/20 border-border hover:bg-secondary/30 hover:border-accent"

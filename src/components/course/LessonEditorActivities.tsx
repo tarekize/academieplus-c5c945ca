@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -115,7 +115,7 @@ export function LessonEditorActivities({
               </div>
               <div>
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white" dir="rtl">تمارين (Exercices)</h3>
-                <p className="text-sm font-medium text-muted-foreground mt-1" dir="rtl">{exercises.length} تمارين متاحة</p>
+                <p className="text-sm font-medium text-muted-foreground mt-1" dir="rtl">{exercises.length} تمارين Ù…ØªØ§Ø­Ø©</p>
               </div>
             </CardContent>
           </Card>
@@ -129,8 +129,8 @@ export function LessonEditorActivities({
                 <Brain className="h-7 w-7 text-primary group-hover:text-white transition-colors" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-800 dark:text-white" dir="rtl">اختبارات (Quizzes)</h3>
-                <p className="text-sm font-medium text-muted-foreground mt-1" dir="rtl">{quizzes.length} أسئلة متاحة</p>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-white" dir="rtl">اسئله متعدده الاختيارات (Quizzes)</h3>
+                <p className="text-sm font-medium text-muted-foreground mt-1" dir="rtl">{quizzes.length} أسئلة Ù…ØªØ§Ø­Ø©</p>
               </div>
             </CardContent>
           </Card>
@@ -150,12 +150,12 @@ export function LessonEditorActivities({
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={() => handleTabChange(null)} className="h-9 px-4 gap-2 hover:bg-primary hover:text-primary-foreground transition-colors group">
             <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-            <span dir="rtl" className="font-medium">العودة إلى محتوى الدرس</span>
+            <span dir="rtl" className="font-medium">Ø§Ù„Ø¹ÙˆØ¯Ø© Ø¥Ù„Ù‰ Ù…Ø­ØªÙˆÙ‰ Ø§Ù„Ø¯Ø±Ø³</span>
           </Button>
           <div className="mr-4">
             <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
               {isExercises ? <PenTool className="h-6 w-6" /> : <Brain className="h-6 w-6" />}
-              <span dir="rtl">{isExercises ? "إدارة التمارين" : "إدارة الاختبارات"}</span>
+              <span dir="rtl">{isExercises ? "إدارة التمارين" : "إدارة اسئله متعدده الاختيارات"}</span>
             </h2>
             {lessonTitle && <p className="text-sm text-muted-foreground mt-1" dir="rtl">{lessonTitle}</p>}
           </div>
@@ -220,10 +220,10 @@ export function LessonEditorActivities({
                     <Icon className="h-8 w-8 opacity-50" />
                   </div>
                   <h4 className="text-lg font-semibold text-foreground" dir="rtl">
-                    لا توجد {isExercises ? "تمارين" : "اختبارات"} في هذا المستوى
+                    لا توجد {isExercises ? "تمارين" : "اسئله متعدده الاختيارات"} في هذا المستوى
                   </h4>
                   <p className="text-sm text-muted-foreground max-w-md mt-2" dir="rtl">
-                    ابدأ في إثراء هذا الدرس عن طريق إضافة {isExercises ? "أول تمرين لك" : "أول سؤال لك"}. سيساعد ذلك الطلاب على {level.labelAr}.
+                    Ø§Ø¨Ø¯Ø£ ÙÙŠ Ø¥Ø«Ø±Ø§Ø¡ Ù‡Ø°Ø§ Ø§Ù„Ø¯Ø±Ø³ Ø¹Ù† Ø·Ø±ÙŠÙ‚ Ø¥Ø¶Ø§ÙØ© {isExercises ? "Ø£ÙˆÙ„ ØªÙ…Ø±ÙŠÙ† Ù„Ùƒ" : "Ø£ÙˆÙ„ Ø³Ø¤Ø§Ù„ Ù„Ùƒ"}. Ø³ÙŠØ³Ø§Ø¹Ø¯ Ø°Ù„Ùƒ Ø§Ù„Ø·Ù„Ø§Ø¨ Ø¹Ù„Ù‰ {level.labelAr}.
                   </p>
                 </div>
               ) : (

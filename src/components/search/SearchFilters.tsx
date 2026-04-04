@@ -1,4 +1,4 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+﻿import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 
@@ -52,25 +52,25 @@ export const SearchFilters = ({
               <SelectItem value="ce2">CE2</SelectItem>
               <SelectItem value="cm1">CM1</SelectItem>
               <SelectItem value="cm2">CM2</SelectItem>
-              <SelectItem value="sixieme">6ème</SelectItem>
-              <SelectItem value="cinquieme">5ème</SelectItem>
-              <SelectItem value="quatrieme">4ème</SelectItem>
-              <SelectItem value="troisieme">3ème</SelectItem>
+              <SelectItem value="sixieme">6Ã¨me</SelectItem>
+              <SelectItem value="cinquieme">5Ã¨me</SelectItem>
+              <SelectItem value="quatrieme">4Ã¨me</SelectItem>
+              <SelectItem value="troisieme">3Ã¨me</SelectItem>
               <SelectItem value="seconde">Seconde</SelectItem>
-              <SelectItem value="premiere">Première</SelectItem>
+              <SelectItem value="premiere">PremiÃ¨re</SelectItem>
               <SelectItem value="terminale">Terminale</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div>
-          <label className="text-sm font-medium mb-2 block">Difficulté</label>
+          <label className="text-sm font-medium mb-2 block">DifficultÃ©</label>
           <Select value={difficulty} onValueChange={onDifficultyChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Toutes difficultés" />
+              <SelectValue placeholder="Toutes difficultÃ©s" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Toutes difficultés</SelectItem>
+              <SelectItem value="all">Toutes difficultÃ©s</SelectItem>
               <SelectItem value="facile">Facile</SelectItem>
               <SelectItem value="moyen">Moyen</SelectItem>
               <SelectItem value="difficile">Difficile</SelectItem>
@@ -79,15 +79,15 @@ export const SearchFilters = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium mb-2 block">Catégorie</label>
+          <label className="text-sm font-medium mb-2 block">CatÃ©gorie</label>
           <Select value={category} onValueChange={onCategoryChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Toutes catégories" />
+              <SelectValue placeholder="Toutes catÃ©gories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Toutes catégories</SelectItem>
-              <SelectItem value="general">Matières générales</SelectItem>
-              <SelectItem value="speciality">Spécialités</SelectItem>
+              <SelectItem value="all">Toutes catÃ©gories</SelectItem>
+              <SelectItem value="general">MatiÃ¨res gÃ©nÃ©rales</SelectItem>
+              <SelectItem value="speciality">SpÃ©cialitÃ©s</SelectItem>
             </SelectContent>
           </Select>
         </div>

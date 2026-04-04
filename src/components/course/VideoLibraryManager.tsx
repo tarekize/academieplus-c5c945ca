@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -49,7 +49,7 @@ export const VideoLibraryManager = () => {
                     mainVideoDuration: "15:00",
                     reelsJson: "",
                 });
-                toast({ description: "Mapping vidéo ajouté avec succès" });
+                toast({ description: "Mapping vidÃ©o ajoutÃ© avec succÃ¨s" });
             }
         } catch (error) {
             toast({ description: "Erreur lors de l'ajout du mapping" });
@@ -59,15 +59,15 @@ export const VideoLibraryManager = () => {
     const handleDelete = async (title: string) => {
         if (await videoService.deleteVideoMapping(title)) {
             setMappings(JSON.parse(localStorage.getItem("video_mappings") || "{}"));
-            toast({ description: "Mapping supprimé" });
+            toast({ description: "Mapping supprimÃ©" });
         }
     };
 
     return (
         <div className="space-y-6 p-6">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestionnaire de Vidéos</h1>
-                <p className="text-gray-600">Mappez les titres de cours aux vidéos YouTube</p>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestionnaire de VidÃ©os</h1>
+                <p className="text-gray-600">Mappez les titres de cours aux vidÃ©os YouTube</p>
             </div>
 
             <Dialog>
@@ -79,9 +79,9 @@ export const VideoLibraryManager = () => {
                 </DialogTrigger>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Nouveau Mapping Vidéo</DialogTitle>
+                        <DialogTitle>Nouveau Mapping VidÃ©o</DialogTitle>
                         <DialogDescription>
-                            Créez un mapping entre un titre de cours et ses vidéos YouTube
+                            CrÃ©ez un mapping entre un titre de cours et ses vidÃ©os YouTube
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
@@ -89,7 +89,7 @@ export const VideoLibraryManager = () => {
                             <Label htmlFor="lessonTitle">Titre du Cours*</Label>
                             <Input
                                 id="lessonTitle"
-                                placeholder="Ex: Les Équations du 1er degré"
+                                placeholder="Ex: Les Ã‰quations du 1er degrÃ©"
                                 value={formData.lessonTitle}
                                 onChange={(e) =>
                                     setFormData({ ...formData, lessonTitle: e.target.value })
@@ -97,7 +97,7 @@ export const VideoLibraryManager = () => {
                             />
                         </div>
                         <div>
-                            <Label htmlFor="mainVideoUrl">URL Vidéo Principale*</Label>
+                            <Label htmlFor="mainVideoUrl">URL VidÃ©o Principale*</Label>
                             <Input
                                 id="mainVideoUrl"
                                 placeholder="https://youtu.be/..."
@@ -108,7 +108,7 @@ export const VideoLibraryManager = () => {
                             />
                         </div>
                         <div>
-                            <Label htmlFor="mainVideoDuration">Durée</Label>
+                            <Label htmlFor="mainVideoDuration">DurÃ©e</Label>
                             <Input
                                 id="mainVideoDuration"
                                 placeholder="15:00"
@@ -122,7 +122,7 @@ export const VideoLibraryManager = () => {
                             />
                         </div>
                         <div>
-                            <Label htmlFor="reelsJson">Vidéos Complémentaires (JSON)</Label>
+                            <Label htmlFor="reelsJson">VidÃ©os ComplÃ©mentaires (JSON)</Label>
                             <Textarea
                                 id="reelsJson"
                                 placeholder='[{"title": "Intro", "url": "https://youtu.be/...", "duration": "5:00"}]'
@@ -158,15 +158,15 @@ export const VideoLibraryManager = () => {
                         <CardContent className="space-y-2 text-sm">
                             {mapping.main_video_url && (
                                 <div>
-                                    <p className="font-semibold text-gray-700">Vidéo principale:</p>
+                                    <p className="font-semibold text-gray-700">VidÃ©o principale:</p>
                                     <p className="text-blue-600 break-all">{mapping.main_video_url}</p>
-                                    <p className="text-gray-600">Durée: {mapping.main_video_duration}</p>
+                                    <p className="text-gray-600">DurÃ©e: {mapping.main_video_duration}</p>
                                 </div>
                             )}
                             {mapping.reel_videos && mapping.reel_videos.length > 0 && (
                                 <div>
                                     <p className="font-semibold text-gray-700">
-                                        Vidéos complémentaires ({mapping.reel_videos.length}):
+                                        VidÃ©os complÃ©mentaires ({mapping.reel_videos.length}):
                                     </p>
                                     {mapping.reel_videos.map((reel, idx) => (
                                         <div key={idx} className="ml-2 border-l-2 border-gray-300 pl-2">
@@ -182,7 +182,7 @@ export const VideoLibraryManager = () => {
                 {Object.keys(mappings).length === 0 && (
                     <Card className="bg-gray-50 border-dashed">
                         <CardContent className="p-8 text-center text-gray-500">
-                            Aucun mapping vidéo yet. Commencez par en ajouter un!
+                            Aucun mapping vidÃ©o yet. Commencez par en ajouter un!
                         </CardContent>
                     </Card>
                 )}

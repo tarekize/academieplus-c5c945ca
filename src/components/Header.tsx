@@ -1,4 +1,4 @@
-import { GraduationCap, LogOut, Globe, Menu, X, Phone } from "lucide-react";
+﻿import { GraduationCap, LogOut, Globe, Menu, X, Phone } from "lucide-react";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,8 +32,8 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) { toast.error("Erreur lors de la déconnexion"); }
-    else { toast.success("Déconnexion réussie"); navigate("/"); }
+    if (error) { toast.error("Erreur lors de la dÃ©connexion"); }
+    else { toast.success("DÃ©connexion rÃ©ussie"); navigate("/"); }
   };
 
   const scrollToSection = (id: string) => {
@@ -114,7 +114,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
                     i18n.language === "fr" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  🇫🇷 FR
+                  ðŸ‡«ðŸ‡· FR
                 </button>
                 <button
                   onClick={() => changeLanguage("ar")}
@@ -122,7 +122,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
                     i18n.language === "ar" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  🇩🇿 AR
+                  ðŸ‡©ðŸ‡¿ AR
                 </button>
               </div>
             </div>
@@ -150,7 +150,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
               href={`tel:${t("header.phone").replace(/\s/g, "")}`}
               className="block text-center text-lg text-foreground font-semibold hover:text-primary py-2"
             >
-              📞 {t("header.phone")}
+              ðŸ“ž {t("header.phone")}
             </a>
 
             {session ? (
@@ -181,7 +181,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
                   i18n.language === "fr" ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground"
                 }`}
               >
-                🇫🇷 Français
+                ðŸ‡«ðŸ‡· FranÃ§ais
               </button>
               <button
                 onClick={() => changeLanguage("ar")}
@@ -189,7 +189,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
                   i18n.language === "ar" ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground"
                 }`}
               >
-                🇩🇿 العربية
+                ðŸ‡©ðŸ‡¿ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©
               </button>
             </div>
           </div>

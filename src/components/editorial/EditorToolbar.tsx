@@ -1,4 +1,4 @@
-import { Save, Upload, FileCheck, Loader2 } from 'lucide-react';
+﻿import { Save, Upload, FileCheck, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface EditorToolbarProps {
@@ -23,7 +23,7 @@ export default function EditorToolbar({ course, isSaving, onSave, onPublish }: E
               ) : (
                 <span className="flex items-center gap-2">
                   <FileCheck className="w-4 h-4 text-green-600" />
-                  Sauvegardé
+                  SauvegardÃ©
                 </span>
               )}
             </div>

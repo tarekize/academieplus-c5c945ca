@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import FlyingBot from '@/components/FlyingBot';
@@ -117,7 +117,7 @@ export default function BotOnboardingPage() {
                                 <div className="space-y-4">
                                     <BotMessage
                                         text={botOnboardingMessages.welcome.ar}
-                                        emoji="👋"
+                                        emoji="ðŸ‘‹"
                                         isTyping={true}
                                         onComplete={() => setMessageComplete(true)}
                                     />
@@ -128,7 +128,7 @@ export default function BotOnboardingPage() {
                                             onClick={handleContinue}
                                             className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all"
                                         >
-                                            فهمت ✓
+                                            ÙÙ‡Ù…Øª âœ“
                                         </motion.button>
                                     )}
                                 </div>
@@ -142,7 +142,7 @@ export default function BotOnboardingPage() {
                                 <div className="space-y-4">
                                     <BotMessage
                                         text={botOnboardingMessages.explanation.ar}
-                                        emoji="💭"
+                                        emoji="ðŸ’­"
                                         isTyping={true}
                                         onComplete={() => setMessageComplete(true)}
                                     />
@@ -158,7 +158,7 @@ export default function BotOnboardingPage() {
                                                 onClick={handleContinue}
                                                 className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all"
                                             >
-                                                فهمت ✓
+                                                ÙÙ‡Ù…Øª âœ“
                                             </motion.button>
                                             <motion.button
                                                 initial={{ opacity: 0, y: 10 }}
@@ -166,7 +166,7 @@ export default function BotOnboardingPage() {
                                                 onClick={handleReadMore}
                                                 className="flex-1 px-6 py-3 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary/10 transition-all"
                                             >
-                                                شرح أكثر
+                                                Ø´Ø±Ø­ Ø£ÙƒØ«Ø±
                                             </motion.button>
                                         </motion.div>
                                     )}
@@ -181,7 +181,7 @@ export default function BotOnboardingPage() {
                                 <div className="space-y-4">
                                     <BotMessage
                                         text={botOnboardingMessages.reassurance.ar}
-                                        emoji="💪"
+                                        emoji="ðŸ’ª"
                                         isTyping={true}
                                         onComplete={() => setMessageComplete(true)}
                                     />
@@ -205,8 +205,8 @@ export default function BotOnboardingPage() {
                                 <FlyingBot expression="thinking" size="md" isFlying={false} />
                                 <div className="space-y-4">
                                     <BotMessage
-                                        text={`سؤال ${currentQuestion + 1} من ${questionsArray.length}`}
-                                        emoji="❓"
+                                        text={`Ø³Ø¤Ø§Ù„ ${currentQuestion + 1} Ù…Ù† ${questionsArray.length}`}
+                                        emoji="â“"
                                         isTyping={true}
                                     />
                                     <div className="bg-white/50 p-6 rounded-lg border border-purple-200">
@@ -233,8 +233,8 @@ export default function BotOnboardingPage() {
                                 <FlyingBot expression="celebrating" size="md" isFlying={false} />
                                 <div className="space-y-4">
                                     <BotMessage
-                                        text={`مبروك! أسلوبك التعليمي هو: ${learningStyle}`}
-                                        emoji="🎉"
+                                        text={`Ù…Ø¨Ø±ÙˆÙƒ! Ø£Ø³Ù„ÙˆØ¨Ùƒ Ø§Ù„ØªØ¹Ù„ÙŠÙ…ÙŠ Ù‡Ùˆ: ${learningStyle}`}
+                                        emoji="ðŸŽ‰"
                                         isTyping={true}
                                         onComplete={() => setMessageComplete(true)}
                                     />
@@ -245,7 +245,7 @@ export default function BotOnboardingPage() {
                                             onClick={handleFinish}
                                             className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all"
                                         >
-                                            ابدأ الآن! 🚀
+                                            Ø§Ø¨Ø¯Ø£ Ø§Ù„Ø¢Ù†! ðŸš€
                                         </motion.button>
                                     )}
                                 </div>

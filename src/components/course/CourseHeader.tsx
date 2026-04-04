@@ -1,4 +1,4 @@
-import { Clock, BarChart3, BookOpen, Download } from "lucide-react";
+﻿import { Clock, BarChart3, BookOpen, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -45,7 +45,7 @@ export const CourseHeader = ({
               onClick={onDownloadPDF}
             >
               <Download className="h-5 w-5 mr-2" />
-              Télécharger PDF
+              TÃ©lÃ©charger PDF
             </Button>
           )}
           

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -139,7 +139,7 @@ export default function AdminAbonnements() {
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Succès", description: "Prix mis à jour avec succès" });
+      toast({ title: "SuccÃ¨s", description: "Prix mis Ã  jour avec succÃ¨s" });
       fetchConfigs();
     }
     setSaving(false);
@@ -153,13 +153,13 @@ export default function AdminAbonnements() {
         .update({ label: periodForm.label, start_date: periodForm.start_date, end_date: periodForm.end_date, updated_at: new Date().toISOString() })
         .eq("id", editingPeriod.id);
       if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" });
-      else toast({ title: "Succès", description: "Période mise à jour" });
+      else toast({ title: "SuccÃ¨s", description: "PÃ©riode mise Ã  jour" });
     } else {
       const { error } = await supabase
         .from("subscription_periods")
         .insert({ label: periodForm.label, start_date: periodForm.start_date, end_date: periodForm.end_date });
       if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" });
-      else toast({ title: "Succès", description: "Période créée" });
+      else toast({ title: "SuccÃ¨s", description: "PÃ©riode crÃ©Ã©e" });
     }
     setPeriodDialog(false);
     setEditingPeriod(null);
@@ -203,7 +203,7 @@ export default function AdminAbonnements() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold">Gestion des Abonnements</h1>
-                <p className="text-sm text-muted-foreground">Configurez les tarifs, périodes et consultez les paiements</p>
+                <p className="text-sm text-muted-foreground">Configurez les tarifs, pÃ©riodes et consultez les paiements</p>
               </div>
             </div>
           </div>
@@ -271,7 +271,7 @@ export default function AdminAbonnements() {
           </CardContent>
         </Card>
 
-        {/* Section 2: Périodes scolaires */}
+        {/* Section 2: PÃ©riodes scolaires */}
         <Card className="border-0 shadow-lg">
           <CardHeader className="border-b bg-muted/30">
             <div className="flex items-center justify-between">
@@ -280,12 +280,12 @@ export default function AdminAbonnements() {
                   <Calendar className="h-5 w-5 text-orange-500" />
                 </div>
                 <div>
-                  <CardTitle>Périodes Scolaires</CardTitle>
-                  <CardDescription>Définissez les dates de début et fin de l'année scolaire</CardDescription>
+                  <CardTitle>PÃ©riodes Scolaires</CardTitle>
+                  <CardDescription>DÃ©finissez les dates de dÃ©but et fin de l'annÃ©e scolaire</CardDescription>
                 </div>
               </div>
               <Button onClick={openNewPeriod}>
-                <Plus className="h-4 w-4 mr-2" /> Nouvelle période
+                <Plus className="h-4 w-4 mr-2" /> Nouvelle pÃ©riode
               </Button>
             </div>
           </CardHeader>
@@ -293,8 +293,8 @@ export default function AdminAbonnements() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30">
-                  <TableHead>Libellé</TableHead>
-                  <TableHead>Date début</TableHead>
+                  <TableHead>LibellÃ©</TableHead>
+                  <TableHead>Date dÃ©but</TableHead>
                   <TableHead>Date fin</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -304,7 +304,7 @@ export default function AdminAbonnements() {
                 {periods.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      Aucune période définie. Créez-en une pour commencer.
+                      Aucune pÃ©riode dÃ©finie. CrÃ©ez-en une pour commencer.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -341,7 +341,7 @@ export default function AdminAbonnements() {
                 </div>
                 <div>
                   <CardTitle>Historique des Paiements</CardTitle>
-                  <CardDescription>Consultez toutes les transactions effectuées</CardDescription>
+                  <CardDescription>Consultez toutes les transactions effectuÃ©es</CardDescription>
                 </div>
               </div>
               <Button variant="outline" onClick={() => setShowPayments(!showPayments)}>
@@ -368,7 +368,7 @@ export default function AdminAbonnements() {
                     {payments.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                          Aucun paiement enregistré pour le moment.
+                          Aucun paiement enregistrÃ© pour le moment.
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -376,7 +376,7 @@ export default function AdminAbonnements() {
                         <TableRow key={p.id}>
                           <TableCell className="font-medium">{p.user_name}</TableCell>
                           <TableCell className="text-muted-foreground">{p.user_email}</TableCell>
-                          <TableCell>{format(new Date(p.payment_date), "dd MMM yyyy à HH:mm", { locale: fr })}</TableCell>
+                          <TableCell>{format(new Date(p.payment_date), "dd MMM yyyy Ã  HH:mm", { locale: fr })}</TableCell>
                           <TableCell>
                             <Badge variant={p.plan_type === "annual" ? "default" : "secondary"}>
                               {p.plan_label}
@@ -386,7 +386,7 @@ export default function AdminAbonnements() {
                           <TableCell className="text-center">{p.is_family ? p.children_count : 1}</TableCell>
                           <TableCell>
                             <Badge variant={p.status === "completed" ? "default" : "destructive"}>
-                              {p.status === "completed" ? "Complété" : p.status}
+                              {p.status === "completed" ? "ComplÃ©tÃ©" : p.status}
                             </Badge>
                           </TableCell>
                         </TableRow>
@@ -404,19 +404,19 @@ export default function AdminAbonnements() {
       <Dialog open={periodDialog} onOpenChange={setPeriodDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingPeriod ? "Modifier la période" : "Nouvelle période scolaire"}</DialogTitle>
+            <DialogTitle>{editingPeriod ? "Modifier la pÃ©riode" : "Nouvelle pÃ©riode scolaire"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label>Libellé (ex: Année scolaire 2025-2026)</Label>
+              <Label>LibellÃ© (ex: AnnÃ©e scolaire 2025-2026)</Label>
               <Input
                 value={periodForm.label}
                 onChange={(e) => setPeriodForm((f) => ({ ...f, label: e.target.value }))}
-                placeholder="Année scolaire 2025-2026"
+                placeholder="AnnÃ©e scolaire 2025-2026"
               />
             </div>
             <div>
-              <Label>Date de début</Label>
+              <Label>Date de dÃ©but</Label>
               <Input
                 type="date"
                 value={periodForm.start_date}
@@ -435,7 +435,7 @@ export default function AdminAbonnements() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setPeriodDialog(false)}>Annuler</Button>
             <Button onClick={handleSavePeriod} disabled={saving || !periodForm.label || !periodForm.start_date || !periodForm.end_date}>
-              <Save className="h-4 w-4 mr-2" /> {editingPeriod ? "Mettre à jour" : "Créer"}
+              <Save className="h-4 w-4 mr-2" /> {editingPeriod ? "Mettre Ã  jour" : "CrÃ©er"}
             </Button>
           </DialogFooter>
         </DialogContent>

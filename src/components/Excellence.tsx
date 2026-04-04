@@ -1,4 +1,4 @@
-import { GraduationCap, Calendar, Shield } from "lucide-react";
+﻿import { GraduationCap, Calendar, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import teachersImage from "@/assets/teachers-team.jpg";
 import { useTranslation } from "react-i18next";
@@ -55,7 +55,7 @@ const Excellence = () => {
             <div className="relative rounded-2xl overflow-hidden shadow-xl">
               <img
                 src={teachersImage}
-                alt="Équipe d'enseignants expérimentés"
+                alt="Ã‰quipe d'enseignants expÃ©rimentÃ©s"
                 className="w-full h-full object-cover"
               />
             </div>

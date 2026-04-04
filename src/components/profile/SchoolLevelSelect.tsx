@@ -1,4 +1,4 @@
-import {
+﻿import {
   Select,
   SelectContent,
   SelectGroup,
@@ -23,7 +23,7 @@ export function SchoolLevelSelect({
   return (
     <Select value={value} onValueChange={onValueChange} disabled={disabled}>
       <SelectTrigger className="w-full">
-        <SelectValue placeholder="Sélectionnez votre niveau" />
+        <SelectValue placeholder="SÃ©lectionnez votre niveau" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
@@ -43,7 +43,7 @@ export function SchoolLevelSelect({
           ))}
         </SelectGroup>
         <SelectGroup>
-          <SelectLabel className="text-primary font-semibold">Lycée</SelectLabel>
+          <SelectLabel className="text-primary font-semibold">LycÃ©e</SelectLabel>
           {schoolLevels.lycee.map((level) => (
             <SelectItem key={level.value} value={level.value}>
               {level.label}

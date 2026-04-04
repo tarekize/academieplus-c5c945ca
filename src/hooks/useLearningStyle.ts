@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { learningStyleService, type LearningStyle } from "@/services/learningStyleService";
 
@@ -20,9 +20,9 @@ export const useLearningStyle = () => {
                 }
 
                 const style = await learningStyleService.getUserLearningStyle(user.id);
-                setLearningStyle(style || "textual"); // Par défaut: textual
+                setLearningStyle(style || "textual"); // Par dÃ©faut: textual
             } catch (err) {
-                console.error("Erreur lors de la récupération du style:", err);
+                console.error("Erreur lors de la rÃ©cupÃ©ration du style:", err);
                 setError("Impossible de charger le style d'apprentissage");
                 setLearningStyle("textual"); // Fallback
             } finally {

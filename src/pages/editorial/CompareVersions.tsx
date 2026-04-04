@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -36,9 +36,9 @@ export default function CompareVersions() {
         </div>
 
         <Card className="p-12 text-center">
-          <h2 className="text-xl font-semibold mb-4">Fonctionnalité non disponible</h2>
+          <h2 className="text-xl font-semibold mb-4">FonctionnalitÃ© non disponible</h2>
           <p className="text-muted-foreground mb-6">
-            La comparaison de versions nécessite les tables éditorial qui ne sont pas encore configurées dans la base de données.
+            La comparaison de versions nÃ©cessite les tables Ã©ditorial qui ne sont pas encore configurÃ©es dans la base de donnÃ©es.
           </p>
           <Button onClick={() => navigate('/editorial')}>
             Retour au tableau de bord

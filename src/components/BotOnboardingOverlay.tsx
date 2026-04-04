@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from "framer-motion";
+﻿import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import FlyingBot from "./FlyingBot";
 import BotMessage from "./BotMessage";
@@ -169,7 +169,7 @@ export const BotOnboardingOverlay = ({
                                     >
                                         <BotMessage
                                             text={getMessages()}
-                                            emoji="👋"
+                                            emoji="ðŸ‘‹"
                                             isTyping={true}
                                             onComplete={() => setMessageComplete(true)}
                                         />
@@ -183,7 +183,7 @@ export const BotOnboardingOverlay = ({
                                                     size="lg"
                                                     className="w-full"
                                                 >
-                                                    {isArabic ? "تابع" : "Continuer"}
+                                                    {isArabic ? "ØªØ§Ø¨Ø¹" : "Continuer"}
                                                 </Button>
                                             </motion.div>
                                         )}
@@ -203,7 +203,7 @@ export const BotOnboardingOverlay = ({
                                 <div className="space-y-4">
                                     <BotMessage
                                         text={getMessages()}
-                                        emoji="💭"
+                                        emoji="ðŸ’­"
                                         isTyping={true}
                                         onComplete={() => setMessageComplete(true)}
                                     />
@@ -217,14 +217,14 @@ export const BotOnboardingOverlay = ({
                                                 onClick={handlePhaseTransition}
                                                 className="flex-1"
                                             >
-                                                {isArabic ? "فهمت" : "J'ai compris"}
+                                                {isArabic ? "ÙÙ‡Ù…Øª" : "J'ai compris"}
                                             </Button>
                                             <Button
                                                 onClick={handleReadMore}
                                                 variant="outline"
                                                 className="flex-1"
                                             >
-                                                {isArabic ? "شرح أكثر" : "Plus de détails"}
+                                                {isArabic ? "Ø´Ø±Ø­ Ø£ÙƒØ«Ø±" : "Plus de dÃ©tails"}
                                             </Button>
                                         </motion.div>
                                     )}
@@ -243,7 +243,7 @@ export const BotOnboardingOverlay = ({
                                 <div className="space-y-4">
                                     <BotMessage
                                         text={getMessages()}
-                                        emoji="💪"
+                                        emoji="ðŸ’ª"
                                         isTyping={true}
                                         onComplete={() => setMessageComplete(true)}
                                     />
@@ -259,7 +259,7 @@ export const BotOnboardingOverlay = ({
                                                         ? botOnboardingMessages.readyQuestion.ar
                                                         : botOnboardingMessages.readyQuestion.fr
                                                 }
-                                                emoji="🚀"
+                                                emoji="ðŸš€"
                                                 isTyping={true}
                                                 delay={300}
                                             />
@@ -299,7 +299,7 @@ export const BotOnboardingOverlay = ({
                                                 ? Object.values(learningStyleQuestions)[currentQuestion].ar
                                                 : Object.values(learningStyleQuestions)[currentQuestion].fr
                                         }
-                                        emoji="❓"
+                                        emoji="â“"
                                         isTyping={true}
                                         onComplete={() => setMessageComplete(true)}
                                     />
@@ -341,7 +341,7 @@ export const BotOnboardingOverlay = ({
                                                 disabled={!selectedAnswer}
                                                 className="w-full"
                                             >
-                                                {isArabic ? "التالي" : "Suivant"}
+                                                {isArabic ? "Ø§Ù„ØªØ§Ù„ÙŠ" : "Suivant"}
                                             </Button>
                                         </motion.div>
                                     )}
@@ -379,7 +379,7 @@ export const BotOnboardingOverlay = ({
                                         size="lg"
                                         className="w-full"
                                     >
-                                        {isArabic ? "ابدأ الآن" : "Commencer maintenant"}
+                                        {isArabic ? "Ø§Ø¨Ø¯Ø£ Ø§Ù„Ø¢Ù†" : "Commencer maintenant"}
                                     </Button>
                                 </div>
                             </div>

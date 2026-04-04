@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+﻿import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
 
@@ -10,7 +10,7 @@ interface ExportPDFButtonProps {
 export const ExportPDFButton = ({ chapterTitle, content }: ExportPDFButtonProps) => {
   const handleExportPDF = () => {
     try {
-      toast.info("Préparation du PDF...");
+      toast.info("PrÃ©paration du PDF...");
 
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
@@ -39,7 +39,7 @@ export const ExportPDFButton = ({ chapterTitle, content }: ExportPDFButtonProps)
       `);
       printWindow.document.close();
 
-      toast.success("PDF prêt à l'impression !");
+      toast.success("PDF prÃªt Ã  l'impression !");
     } catch (error) {
       console.error('Error exporting PDF:', error);
       toast.error("Erreur lors de l'export PDF");

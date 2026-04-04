@@ -1,4 +1,4 @@
-import {
+﻿import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -24,14 +24,14 @@ export const ReferralShareDialog = ({
 }: ReferralShareDialogProps) => {
   const { toast } = useToast();
 
-  const shareMessage = `Rejoins-moi sur AcadémiePlus de soutien scolaire ! Utilise mon code de parrainage : ${referralCode} et nous recevrons tous les deux 5% de réduction ! ${referralUrl}`;
+  const shareMessage = `Rejoins-moi sur AcadÃ©miePlus de soutien scolaire ! Utilise mon code de parrainage : ${referralCode} et nous recevrons tous les deux 5% de rÃ©duction ! ${referralUrl}`;
 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(referralUrl);
       toast({
-        title: "Lien copié !",
-        description: "Le lien de parrainage a été copié dans le presse-papier.",
+        title: "Lien copiÃ© !",
+        description: "Le lien de parrainage a Ã©tÃ© copiÃ© dans le presse-papier.",
       });
     } catch (error) {
       // Fallback pour les navigateurs qui ne supportent pas l'API clipboard
@@ -44,8 +44,8 @@ export const ReferralShareDialog = ({
       try {
         document.execCommand('copy');
         toast({
-          title: "Lien copié !",
-          description: "Le lien de parrainage a été copié dans le presse-papier.",
+          title: "Lien copiÃ© !",
+          description: "Le lien de parrainage a Ã©tÃ© copiÃ© dans le presse-papier.",
         });
       } catch (err) {
         toast({
@@ -64,7 +64,7 @@ export const ReferralShareDialog = ({
   };
 
   const handleShareEmail = () => {
-    const subject = "Rejoins-moi sur AcadémiePlus !";
+    const subject = "Rejoins-moi sur AcadÃ©miePlus !";
     const body = shareMessage;
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
@@ -111,7 +111,7 @@ export const ReferralShareDialog = ({
               <Share2 className="h-7 w-7" />
             </div>
             <p className="text-gray-700 font-medium text-base">
-              Partagez avec vos amis et gagnez 5% de réduction !
+              Partagez avec vos amis et gagnez 5% de rÃ©duction !
             </p>
           </div>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -72,7 +72,7 @@ export default function GestionEquipe() {
     setIsAdmin(hasAdminRole || false);
 
     if (!hasAdminRole) {
-      toast.error("Accès refusé - Administrateurs uniquement");
+      toast.error("AccÃ¨s refusÃ© - Administrateurs uniquement");
       navigate('/editorial');
     }
   };
@@ -104,7 +104,7 @@ export default function GestionEquipe() {
       setTeam(teamWithRoles);
     } catch (error) {
       console.error('Error loading team:', error);
-      toast.error("Erreur lors du chargement de l'équipe");
+      toast.error("Erreur lors du chargement de l'Ã©quipe");
     } finally {
       setLoading(false);
     }
@@ -123,7 +123,7 @@ export default function GestionEquipe() {
           .insert([{ user_id: userId, role: role as any }]);
 
         if (error) throw error;
-        toast.success(`Rôle ${role} ajouté`);
+        toast.success(`RÃ´le ${role} ajoutÃ©`);
       } else {
         const { error } = await supabase
           .from('user_roles')
@@ -132,13 +132,13 @@ export default function GestionEquipe() {
           .eq('role', role as any);
 
         if (error) throw error;
-        toast.success(`Rôle ${role} retiré`);
+        toast.success(`RÃ´le ${role} retirÃ©`);
       }
 
       await loadTeam();
     } catch (error) {
       console.error('Error updating role:', error);
-      toast.error("Erreur lors de la mise à jour du rôle");
+      toast.error("Erreur lors de la mise Ã  jour du rÃ´le");
     }
   };
 
@@ -151,7 +151,7 @@ export default function GestionEquipe() {
 
       if (error) throw error;
 
-      toast.success(currentStatus ? "Utilisateur désactivé" : "Utilisateur activé");
+      toast.success(currentStatus ? "Utilisateur dÃ©sactivÃ©" : "Utilisateur activÃ©");
       await loadTeam();
     } catch (error) {
       console.error('Error toggling status:', error);
@@ -177,7 +177,7 @@ export default function GestionEquipe() {
 
       if (error) throw error;
 
-      toast.success("Utilisateur supprimé");
+      toast.success("Utilisateur supprimÃ©");
       setShowDeleteDialog(false);
       setSelectedMember(null);
       await loadTeam();
@@ -234,10 +234,10 @@ export default function GestionEquipe() {
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2">
                 <Shield className="w-8 h-8" />
-                Gestion de l'équipe
+                Gestion de l'Ã©quipe
               </h1>
               <p className="text-muted-foreground mt-1">
-                Gérez les membres et leurs rôles
+                GÃ©rez les membres et leurs rÃ´les
               </p>
             </div>
           </div>
@@ -265,7 +265,7 @@ export default function GestionEquipe() {
               <TableRow>
                 <TableHead>Nom</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Rôles</TableHead>
+                <TableHead>RÃ´les</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -289,21 +289,21 @@ export default function GestionEquipe() {
                               className="h-6 w-6 p-0"
                               onClick={() => updateRole(member.id, role, 'remove')}
                             >
-                              ×
+                              Ã—
                             </Button>
                           </div>
                         ))
                       ) : (
-                        <span className="text-muted-foreground text-sm">Aucun rôle</span>
+                        <span className="text-muted-foreground text-sm">Aucun rÃ´le</span>
                       )}
                       <Select onValueChange={(value) => updateRole(member.id, value, 'add')}>
                         <SelectTrigger className="w-[120px] h-7">
-                          <SelectValue placeholder="+ Rôle" />
+                          <SelectValue placeholder="+ RÃ´le" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="admin">Admin</SelectItem>
                           <SelectItem value="parent">Parent</SelectItem>
-                          <SelectItem value="student">Élève</SelectItem>
+                          <SelectItem value="student">Ã‰lÃ¨ve</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -320,7 +320,7 @@ export default function GestionEquipe() {
                         size="sm"
                         onClick={() => toggleUserStatus(member.id, member.is_active)}
                       >
-                        {member.is_active ? "Désactiver" : "Activer"}
+                        {member.is_active ? "DÃ©sactiver" : "Activer"}
                       </Button>
                       <Button
                         variant="destructive"
@@ -341,7 +341,7 @@ export default function GestionEquipe() {
 
           {filteredTeam.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
-              Aucun membre trouvé
+              Aucun membre trouvÃ©
             </div>
           )}
         </Card>
@@ -352,8 +352,8 @@ export default function GestionEquipe() {
             <AlertDialogHeader>
               <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
               <AlertDialogDescription>
-                Êtes-vous sûr de vouloir supprimer {selectedMember ? getFullName(selectedMember) : ''} ?
-                Cette action est irréversible.
+                ÃŠtes-vous sÃ»r de vouloir supprimer {selectedMember ? getFullName(selectedMember) : ''} ?
+                Cette action est irrÃ©versible.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

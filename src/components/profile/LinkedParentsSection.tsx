@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,7 +32,7 @@ export function LinkedParentsSection() {
     if (linkingCode) {
       navigator.clipboard.writeText(linkingCode);
       setCopied(true);
-      toast.success("Code copié !");
+      toast.success("Code copiÃ© !");
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -77,7 +77,7 @@ export function LinkedParentsSection() {
               Demandes en attente
             </CardTitle>
             <CardDescription>
-              Des parents souhaitent se lier à votre compte
+              Des parents souhaitent se lier Ã  votre compte
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -100,7 +100,7 @@ export function LinkedParentsSection() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Mes parents liés
+                Mes parents liÃ©s
               </CardTitle>
               <CardDescription>
                 Les parents qui peuvent suivre votre progression
@@ -118,7 +118,7 @@ export function LinkedParentsSection() {
                 <DialogHeader>
                   <DialogTitle>Code de liaison</DialogTitle>
                   <DialogDescription>
-                    Partagez ce code avec votre parent pour qu'il puisse se lier à votre compte
+                    Partagez ce code avec votre parent pour qu'il puisse se lier Ã  votre compte
                   </DialogDescription>
                 </DialogHeader>
 
@@ -142,7 +142,7 @@ export function LinkedParentsSection() {
                         </Button>
                       </div>
                       <p className="text-sm text-center text-muted-foreground">
-                        Ce code est unique à votre compte
+                        Ce code est unique Ã  votre compte
                       </p>
                     </>
                   ) : (
@@ -160,7 +160,7 @@ export function LinkedParentsSection() {
           {activeLinks.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>Aucun parent lié pour le moment</p>
+              <p>Aucun parent liÃ© pour le moment</p>
               <p className="text-sm">
                 Partagez votre code de liaison avec vos parents
               </p>
@@ -263,7 +263,7 @@ function ParentCard({
           {parent?.email ? (
             <p className="text-sm text-muted-foreground">{parent.email}</p>
           ) : parent?.first_name || parent?.last_name ? (
-            <p className="text-sm text-muted-foreground">Compte parent lié</p>
+            <p className="text-sm text-muted-foreground">Compte parent liÃ©</p>
           ) : (
             <p className="text-sm text-muted-foreground">Compte parent</p>
           )}

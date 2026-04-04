@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+﻿import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
 type SchoolLevel = Database["public"]["Enums"]["school_level"];
@@ -31,7 +31,7 @@ export interface Filiere {
 
 export const courseService = {
   /**
-   * Récupère les filières disponibles pour un niveau scolaire
+   * RÃ©cupÃ¨re les filiÃ¨res disponibles pour un niveau scolaire
    */
   async getFilieresByLevel(schoolLevel: SchoolLevel): Promise<Filiere[]> {
     const { data, error } = await supabase
@@ -49,7 +49,7 @@ export const courseService = {
   },
 
   /**
-   * Récupère les chapitres et leçons pour un niveau, une filière et une matière
+   * RÃ©cupÃ¨re les chapitres et leçons pour un niveau, une filiÃ¨re et une matiÃ¨re
    */
   async getChaptersWithLessons(
     schoolLevel: SchoolLevel,
@@ -77,7 +77,7 @@ export const courseService = {
       .eq("subject", subject)
       .order("order_index");
 
-    // Si une filière est spécifiée, filtrer par filière
+    // Si une filiÃ¨re est spÃ©cifiÃ©e, filtrer par filiÃ¨re
     if (filiereCode) {
       const { data: filiereData } = await supabase
         .from("filieres")
@@ -89,11 +89,11 @@ export const courseService = {
       if (filiereData) {
         query = query.eq("filiere_id", filiereData.id);
       } else {
-        // Si la filière n'existe pas, chercher les chapitres sans filière
+        // Si la filiÃ¨re n'existe pas, chercher les chapitres sans filiÃ¨re
         query = query.is("filiere_id", null);
       }
     } else {
-      // Si pas de filière, chercher les chapitres sans filière
+      // Si pas de filiÃ¨re, chercher les chapitres sans filiÃ¨re
       query = query.is("filiere_id", null);
     }
 
@@ -112,7 +112,7 @@ export const courseService = {
   },
 
   /**
-   * Récupère un chapitre spécifique avec ses leçons
+   * RÃ©cupÃ¨re un chapitre spÃ©cifique avec ses leçons
    */
   async getChapterById(chapterId: string): Promise<Chapter | null> {
     const { data, error } = await supabase
@@ -149,7 +149,7 @@ export const courseService = {
   },
 
   /**
-   * Récupère une leçon spécifique
+   * RÃ©cupÃ¨re une leçon spÃ©cifique
    */
   async getLessonById(lessonId: string): Promise<Lesson | null> {
     const { data, error } = await supabase

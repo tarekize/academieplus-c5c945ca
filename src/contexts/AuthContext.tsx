@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+﻿import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       setLoading(false);
 
-      // Vérifier si l'utilisateur SSO a besoin de compléter son profil
+      // VÃ©rifier si l'utilisateur SSO a besoin de complÃ©ter son profil
       if (session?.user) {
         setTimeout(async () => {
           const { data: roleData } = await supabase
@@ -80,35 +80,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           const currentPath = window.location.pathname;
 
-          // Si pas de rôle et qu'on n'est pas déjà sur la page de complétion ou d'évaluation
+          // Si pas de rÃ´le et qu'on n'est pas dÃ©jÃ  sur la page de complÃ©tion ou d'Ã©valuation
           if (!roleData?.role && !currentPath.includes('/complete-profile') && !currentPath.includes('/auth') && !currentPath.includes('/learning-assessment')) {
             window.location.href = '/complete-profile';
             return;
           }
 
-          // Rediriger admin et pédago vers /liste-cours après connexion
+          // Rediriger admin et pÃ©dago vers /liste-cours aprÃ¨s connexion
           if ((roleData?.role === 'pedago' || roleData?.role === 'admin') &&
             (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/')) {
             window.location.href = '/liste-cours';
             return;
           }
 
-          // Rediriger les parents vers /parent-dashboard après connexion
-          // Inclure /liste-cours et /cours pour éviter qu'ils soient redirigés vers l'espace élève
+          // Rediriger les parents vers /parent-dashboard aprÃ¨s connexion
+          // Inclure /liste-cours et /cours pour Ã©viter qu'ils soient redirigÃ©s vers l'espace Ã©lÃ¨ve
           if (roleData?.role === 'parent' &&
             (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/' || currentPath.includes('/liste-cours') || currentPath.startsWith('/cours'))) {
             window.location.href = '/parent-dashboard';
             return;
           }
 
-          // Rediriger les élèves vers /liste-cours après connexion (depuis auth ou page d'accueil)
+          // Rediriger les Ã©lÃ¨ves vers /liste-cours aprÃ¨s connexion (depuis auth ou page d'accueil)
           if (roleData?.role === 'student' &&
             (currentPath.includes('/auth') || currentPath === '/')) {
             window.location.href = '/liste-cours';
             return;
           }
 
-          // Rediriger les élèves sans évaluation vers le jeu d'apprentissage
+          // Rediriger les Ã©lÃ¨ves sans Ã©valuation vers le jeu d'apprentissage
           if (roleData?.role === 'student' && !currentPath.includes('/learning-assessment') && !currentPath.includes('/complete-profile') && !currentPath.includes('/auth')) {
             const hasAssessment = await hasCompletedPlacementAssessment(session.user.id);
             if (!hasAssessment) {

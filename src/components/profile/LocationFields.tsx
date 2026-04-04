@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -66,7 +66,7 @@ const LocationFields = ({
           onVilleChange("");
         }}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Sélectionnez votre wilaya" />
+            <SelectValue placeholder="SÃ©lectionnez votre wilaya" />
           </SelectTrigger>
           <SelectContent className="max-h-60">
             {wilayas.map((w) => (
@@ -87,7 +87,7 @@ const LocationFields = ({
               disabled={!wilaya}
               className="w-full justify-between font-normal"
             >
-              {ville || (wilaya ? "Sélectionnez ou saisissez votre ville" : "Sélectionnez d'abord une wilaya")}
+              {ville || (wilaya ? "SÃ©lectionnez ou saisissez votre ville" : "SÃ©lectionnez d'abord une wilaya")}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -130,7 +130,7 @@ const LocationFields = ({
                 ))
               ) : search ? (
                 <div className="px-3 py-2 text-sm text-muted-foreground">
-                  Appuyez sur Entrée pour utiliser "{search}"
+                  Appuyez sur EntrÃ©e pour utiliser "{search}"
                 </div>
               ) : null}
             </div>
@@ -140,12 +140,12 @@ const LocationFields = ({
 
       {!hideEcole && (
         <div className="space-y-2">
-          <Label htmlFor="ecole">École / Établissement</Label>
+          <Label htmlFor="ecole">Ã‰cole / Ã‰tablissement</Label>
           <Input
             id="ecole"
             value={ecole}
             onChange={(e) => onEcoleChange(e.target.value)}
-            placeholder="Nom de votre école ou établissement"
+            placeholder="Nom de votre Ã©cole ou Ã©tablissement"
           />
         </div>
       )}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Save, Eye, FileText, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,7 @@ export default function EditorNavBar({ course, onChange, onSave, onPreview }: Ed
           {onPreview && (
             <Button variant="outline" onClick={onPreview}>
               <Eye className="w-4 h-4 mr-2" />
-              Aperçu
+              AperÃ§u
             </Button>
           )}
           {onSave && (

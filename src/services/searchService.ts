@@ -1,4 +1,4 @@
-// Search service - stubbed as the 'cours' table doesn't exist in the database
+﻿// Search service - stubbed as the 'cours' table doesn't exist in the database
 
 export const searchService = {
   async search(query: string, filters: any = {}) {

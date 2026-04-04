@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, X, Mic, MicOff, Lock, Crown, MessageCircle, Image, Bot, Maximize2, Minimize2, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,7 @@ type ChatBotProps = {
   onToggleExpand?: () => void;
 };
 
-export default function ChatBot({ messages, setMessages, subject = "mathématiques", schoolLevel = null, chapterId = null, chapterContext = null, allChapters = null, onNavigate, isExpanded = false, onToggleExpand }: ChatBotProps) {
+export default function ChatBot({ messages, setMessages, subject = "mathÃ©matiques", schoolLevel = null, chapterId = null, chapterContext = null, allChapters = null, onNavigate, isExpanded = false, onToggleExpand }: ChatBotProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; base64: string; type: string }>>([]);
@@ -90,7 +90,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
     if (!canSendImage) {
       toast({
         title: "Limite d'images atteinte",
-        description: `Vous avez utilisé vos ${FREE_IMAGE_LIMIT} images gratuites du jour. Abonnez-vous pour un accès illimité.`,
+        description: `Vous avez utilisÃ© vos ${FREE_IMAGE_LIMIT} images gratuites du jour. Abonnez-vous pour un accÃ¨s illimitÃ©.`,
         variant: "destructive",
       });
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -113,7 +113,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
     if (!allowedTypes.includes(file.type)) {
       toast({
         title: "Erreur",
-        description: "Type de fichier non supporté. Utilisez des images ou PDF.",
+        description: "Type de fichier non supportÃ©. Utilisez des images ou PDF.",
         variant: "destructive",
       });
       return;
@@ -124,8 +124,8 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
       const base64 = event.target?.result as string;
       setUploadedFiles((prev) => [...prev, { name: file.name, base64, type: file.type }]);
       toast({
-        title: "Fichier ajouté",
-        description: `${file.name} est prêt à être envoyé`,
+        title: "Fichier ajoutÃ©",
+        description: `${file.name} est prÃªt Ã  Ãªtre envoyÃ©`,
       });
     };
     reader.onerror = () => {
@@ -153,7 +153,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
     if (!canSendMessage) {
       toast({
         title: "Limite de messages atteinte",
-        description: `Vous avez utilisé vos ${FREE_MESSAGE_LIMIT} messages gratuits du jour. Abonnez-vous pour un accès illimité.`,
+        description: `Vous avez utilisÃ© vos ${FREE_MESSAGE_LIMIT} messages gratuits du jour. Abonnez-vous pour un accÃ¨s illimitÃ©.`,
         variant: "destructive",
       });
       return;
@@ -163,7 +163,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
     if (uploadedFiles.length > 0 && !canSendImage) {
       toast({
         title: "Limite d'images atteinte",
-        description: `Vous avez utilisé vos ${FREE_IMAGE_LIMIT} images gratuites du jour. Abonnez-vous pour un accès illimité.`,
+        description: `Vous avez utilisÃ© vos ${FREE_IMAGE_LIMIT} images gratuites du jour. Abonnez-vous pour un accÃ¨s illimitÃ©.`,
         variant: "destructive",
       });
       return;
@@ -173,7 +173,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
 
     if (uploadedFiles.length > 0) {
       messageContent = [
-        { type: "text", text: content.trim() || "Analysez ce fichier et répondez aux questions qu'il contient." },
+        { type: "text", text: content.trim() || "Analysez ce fichier et rÃ©pondez aux questions qu'il contient." },
         ...uploadedFiles.map((file) => ({
           type: "image_url" as const,
           image_url: { url: file.base64 },
@@ -262,10 +262,10 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
         title: "Erreur",
         description:
           error.message === "Insufficient credits"
-            ? "Crédits insuffisants pour utiliser l'IA"
+            ? "CrÃ©dits insuffisants pour utiliser l'IA"
             : error.message === "Rate limit exceeded"
-              ? "Limite de taux dépassée, veuillez réessayer plus tard"
-              : "Impossible d'envoyer le message. Veuillez réessayer.",
+              ? "Limite de taux dÃ©passÃ©e, veuillez rÃ©essayer plus tard"
+              : "Impossible d'envoyer le message. Veuillez rÃ©essayer.",
         variant: "destructive",
       });
       setMessages((prev) => prev.slice(0, -1));
@@ -335,7 +335,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
 
       if (!SpeechRecognition) {
         toast({
-          title: "Non supporté",
+          title: "Non supportÃ©",
           description: "Votre navigateur ne supporte pas la reconnaissance vocale",
           variant: "destructive",
         });
@@ -381,7 +381,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
       console.error('Error starting speech recognition:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de démarrer la reconnaissance vocale",
+        description: "Impossible de dÃ©marrer la reconnaissance vocale",
         variant: "destructive",
       });
     }
@@ -449,7 +449,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                     size="icon"
                     onClick={onToggleExpand}
                     className="h-9 w-9 rounded-xl text-[#0A2551]/60 hover:text-[#0A2551] hover:bg-[#0A2551]/5"
-                    title={isExpanded ? "Réduire" : "Agrandir"}
+                    title={isExpanded ? "RÃ©duire" : "Agrandir"}
                   >
                     {isExpanded ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
                   </Button>
@@ -510,7 +510,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                 Bienvenue dans votre classe virtuelle&nbsp;!
               </h3>
               <p className="text-[0.95rem] text-slate-600 dark:text-slate-400 font-medium leading-relaxed max-w-[280px]">
-                Je suis votre professeur personnel. Posez-moi n'importe quelle question de mathématiques en français, arabe ou toute autre langue.
+                Je suis votre professeur personnel. Posez-moi n'importe quelle question de mathÃ©matiques en franÃ§ais, arabe ou toute autre langue.
               </p>
               {!hasSubscription && !limitsLoading && (
                 <div className="mt-8 flex items-center gap-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 px-5 py-2.5 rounded-full text-xs font-semibold shadow-sm">
@@ -549,14 +549,14 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
               <span className="font-semibold">Limite quotidienne atteinte</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Vous avez utilisé tous vos messages gratuits pour aujourd'hui. Abonnez-vous pour profiter d'un accès illimité au chatbot et aux images.
+              Vous avez utilisÃ© tous vos messages gratuits pour aujourd'hui. Abonnez-vous pour profiter d'un accÃ¨s illimitÃ© au chatbot et aux images.
             </p>
             <Button
               className="gap-2"
               onClick={() => navigate('/abonnements')}
             >
               <Crown className="h-4 w-4" />
-              Débloquer l'accès illimité
+              DÃ©bloquer l'accÃ¨s illimitÃ©
             </Button>
           </div>
         </div>
@@ -622,7 +622,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                       onClick={() => setVoiceLang(voiceLang === 'fr-FR' ? 'ar-SA' : 'fr-FR')}
                       disabled={isLoading || isRecording}
                       className="w-10 h-10 rounded-xl text-slate-500 hover:text-[#0A2551] hover:bg-slate-200/50 text-xs font-bold font-mono tracking-tight"
-                      title={voiceLang === 'fr-FR' ? 'Français' : 'العربية'}
+                      title={voiceLang === 'fr-FR' ? 'FranÃ§ais' : 'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©'}
                     >
                       {voiceLang === 'fr-FR' ? 'FR' : 'AR'}
                     </Button>

@@ -1,9 +1,9 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 
 // Password validation: min 8 chars, 1 uppercase, 1 number
 export const passwordSchema = z
   .string()
-  .min(8, "Le mot de passe doit contenir au moins 8 caractères")
+  .min(8, "Le mot de passe doit contenir au moins 8 caractÃ¨res")
   .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule")
   .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre");
 
@@ -18,7 +18,7 @@ export const phoneSchema = z
   .string()
   .regex(
     /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/,
-    "Numéro de téléphone invalide (format français attendu)"
+    "NumÃ©ro de tÃ©lÃ©phone invalide (format franÃ§ais attendu)"
   )
   .optional()
   .or(z.literal(""));
@@ -26,8 +26,8 @@ export const phoneSchema = z
 // Name validation
 export const nameSchema = z
   .string()
-  .min(2, "Le nom doit contenir au moins 2 caractères")
-  .max(50, "Le nom ne peut pas dépasser 50 caractères");
+  .min(2, "Le nom doit contenir au moins 2 caractÃ¨res")
+  .max(50, "Le nom ne peut pas dÃ©passer 50 caractÃ¨res");
 
 // Registration schema for students
 export const studentRegistrationSchema = z.object({
@@ -37,9 +37,9 @@ export const studentRegistrationSchema = z.object({
   firstName: nameSchema,
   lastName: nameSchema,
   dateOfBirth: z.date().optional(),
-  schoolLevel: z.string().min(1, "Veuillez sélectionner votre niveau scolaire"),
+  schoolLevel: z.string().min(1, "Veuillez sÃ©lectionner votre niveau scolaire"),
   consentDataProcessing: z.boolean().refine((val) => val === true, {
-    message: "Vous devez accepter le traitement des données",
+    message: "Vous devez accepter le traitement des donnÃ©es",
   }),
   consentTermsPrivacy: z.boolean().refine((val) => val === true, {
     message: "Vous devez accepter les conditions d'utilisation",
@@ -58,7 +58,7 @@ export const parentRegistrationSchema = z.object({
   lastName: nameSchema,
   phone: phoneSchema,
   consentDataProcessing: z.boolean().refine((val) => val === true, {
-    message: "Vous devez accepter le traitement des données",
+    message: "Vous devez accepter le traitement des donnÃ©es",
   }),
   consentTermsPrivacy: z.boolean().refine((val) => val === true, {
     message: "Vous devez accepter les conditions d'utilisation",
@@ -94,7 +94,7 @@ export function validatePassword(password: string): { valid: boolean; errors: st
   const errors: string[] = [];
   
   if (password.length < 8) {
-    errors.push("Au moins 8 caractères");
+    errors.push("Au moins 8 caractÃ¨res");
   }
   if (!/[A-Z]/.test(password)) {
     errors.push("Au moins une majuscule");
@@ -112,16 +112,16 @@ export function validatePassword(password: string): { valid: boolean; errors: st
 // School levels configuration - values match the database enum
 export const schoolLevels = {
   primaire: [
-    { value: "5eme_primaire", label: "5ème Primaire" },
+    { value: "5eme_primaire", label: "5Ã¨me Primaire" },
   ],
   cem: [
-    { value: "1ere_cem", label: "1ère CEM" },
-    { value: "2eme_cem", label: "2ème CEM" },
-    { value: "3eme_cem", label: "3ème CEM" },
-    { value: "4eme_cem", label: "4ème CEM" },
+    { value: "1ere_cem", label: "1Ã¨re CEM" },
+    { value: "2eme_cem", label: "2Ã¨me CEM" },
+    { value: "3eme_cem", label: "3Ã¨me CEM" },
+    { value: "4eme_cem", label: "4Ã¨me CEM" },
   ],
   lycee: [
-    { value: "premiere", label: "Première" },
+    { value: "premiere", label: "PremiÃ¨re" },
     { value: "seconde", label: "Seconde" },
     { value: "terminale", label: "Terminale" },
   ],
@@ -141,6 +141,6 @@ export function getSchoolLevelLabel(value: string): string {
 export function getSchoolCategory(value: string): string {
   if (schoolLevels.primaire.some((l) => l.value === value)) return "Primaire";
   if (schoolLevels.cem.some((l) => l.value === value)) return "CEM";
-  if (schoolLevels.lycee.some((l) => l.value === value)) return "Lycée";
+  if (schoolLevels.lycee.some((l) => l.value === value)) return "LycÃ©e";
   return "";
 }

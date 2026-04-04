@@ -1,4 +1,4 @@
-import Header from "@/components/Header";
+﻿import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import SubjectsCarousel from "@/components/SubjectsCarousel";
 import WhyChooseUs from "@/components/WhyChooseUs";

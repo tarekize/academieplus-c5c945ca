@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
@@ -144,7 +144,7 @@ export default function Profile() {
                 className="flex items-center gap-2 text-destructive"
               >
                 <LogOut className="h-4 w-4" />
-                Déconnexion
+                DÃ©connexion
               </Button>
             </div>
           </div>
@@ -166,7 +166,7 @@ export default function Profile() {
             {isStudent && schoolLevel && (
               <span className="inline-flex items-center gap-2">
                 <GraduationCap className="h-4 w-4" />
-                {getSchoolLevelLabel(schoolLevel)} • {getSchoolCategory(schoolLevel)}
+                {getSchoolLevelLabel(schoolLevel)} â€¢ {getSchoolCategory(schoolLevel)}
               </span>
             )}
             {isParent && "Compte Parent"}
@@ -205,12 +205,12 @@ export default function Profile() {
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">Prénom</Label>
+                    <Label htmlFor="firstName">PrÃ©nom</Label>
                     <Input
                       id="firstName"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="Votre prénom"
+                      placeholder="Votre prÃ©nom"
                     />
                   </div>
                   <div className="space-y-2">
@@ -237,14 +237,14 @@ export default function Profile() {
                     className="bg-muted"
                   />
                   <p className="text-sm text-muted-foreground">
-                    L'email ne peut pas être modifié directement
+                    L'email ne peut pas Ãªtre modifiÃ© directement
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="phone" className="flex items-center gap-2">
                     <Phone className="h-4 w-4" />
-                    Téléphone
+                    TÃ©lÃ©phone
                   </Label>
                   <Input
                     id="phone"

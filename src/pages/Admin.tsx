@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAdminUsers, useActivityLogs, AdminUser } from "@/hooks/useAdmin";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -171,7 +171,7 @@ export default function Admin() {
             iconColor="text-primary"
           />
           <StatCard
-            title="Élèves"
+            title="Ã‰lÃ¨ves"
             value={stats.students}
             icon={GraduationCap}
             gradient="from-blue-500/20 to-blue-500/5"
@@ -203,7 +203,7 @@ export default function Admin() {
               </TabsTrigger>
               <TabsTrigger value="pedagos" className="flex items-center gap-2 data-[state=active]:bg-background">
                 <Shield className="h-4 w-4" />
-                Pédagos ({pedagos.length})
+                PÃ©dagos ({pedagos.length})
               </TabsTrigger>
               <TabsTrigger value="parents" className="flex items-center gap-2 data-[state=active]:bg-background">
                 <User className="h-4 w-4" />
@@ -211,11 +211,11 @@ export default function Admin() {
               </TabsTrigger>
               <TabsTrigger value="students" className="flex items-center gap-2 data-[state=active]:bg-background">
                 <GraduationCap className="h-4 w-4" />
-                Élèves ({students.length})
+                Ã‰lÃ¨ves ({students.length})
               </TabsTrigger>
               <TabsTrigger value="logs" className="flex items-center gap-2 data-[state=active]:bg-background">
                 <Activity className="h-4 w-4" />
-                Activité
+                ActivitÃ©
               </TabsTrigger>
             </TabsList>
 
@@ -234,7 +234,7 @@ export default function Admin() {
                         <User className="h-5 w-5 text-green-500" />
                       </div>
                       <div>
-                        <CardTitle className="text-lg">Parents récents</CardTitle>
+                        <CardTitle className="text-lg">Parents rÃ©cents</CardTitle>
                         <CardDescription>Les 5 derniers inscrits</CardDescription>
                       </div>
                     </div>
@@ -264,7 +264,7 @@ export default function Admin() {
                         <GraduationCap className="h-5 w-5 text-blue-500" />
                       </div>
                       <div>
-                        <CardTitle className="text-lg">Élèves récents</CardTitle>
+                        <CardTitle className="text-lg">Ã‰lÃ¨ves rÃ©cents</CardTitle>
                         <CardDescription>Les 5 derniers inscrits</CardDescription>
                       </div>
                     </div>
@@ -278,7 +278,7 @@ export default function Admin() {
                     ))}
                     {students.length === 0 && (
                       <p className="text-center text-muted-foreground py-8">
-                        Aucun élève inscrit
+                        Aucun Ã©lÃ¨ve inscrit
                       </p>
                     )}
                   </div>
@@ -294,8 +294,8 @@ export default function Admin() {
                     <Activity className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg">Activité récente</CardTitle>
-                    <CardDescription>Dernières actions sur la plateforme</CardDescription>
+                    <CardTitle className="text-lg">ActivitÃ© rÃ©cente</CardTitle>
+                    <CardDescription>DerniÃ¨res actions sur la plateforme</CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -306,14 +306,14 @@ export default function Admin() {
                   </div>
                 ) : logs.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">
-                    Aucune activité récente
+                    Aucune activitÃ© rÃ©cente
                   </p>
                 ) : (
                   <div className="divide-y">
                     {logs.slice(0, 5).map((log) => {
                       const userName = log.user
                         ? [log.user.first_name, log.user.last_name].filter(Boolean).join(" ") || log.user.email
-                        : "Système";
+                        : "SystÃ¨me";
                       return (
                         <div
                           key={log.id}
@@ -352,16 +352,16 @@ export default function Admin() {
                       <Shield className="h-5 w-5 text-purple-500" />
                     </div>
                     <div>
-                      <CardTitle>Gestion des Pédagos</CardTitle>
+                      <CardTitle>Gestion des PÃ©dagos</CardTitle>
                       <CardDescription>
-                        {filteredPedagos.length} pédago(s) affiché(s)
+                        {filteredPedagos.length} pÃ©dago(s) affichÃ©(s)
                       </CardDescription>
                     </div>
                   </div>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Rechercher un pédago..."
+                      placeholder="Rechercher un pÃ©dago..."
                       value={searchQueryPedagos}
                       onChange={(e) => setSearchQueryPedagos(e.target.value)}
                       className="pl-9 w-full sm:w-64"
@@ -374,7 +374,7 @@ export default function Admin() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/30">
-                        <TableHead>Pédago</TableHead>
+                        <TableHead>PÃ©dago</TableHead>
                         <TableHead>Statut</TableHead>
                         <TableHead>Inscription</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
@@ -397,7 +397,7 @@ export default function Admin() {
                       {filteredPedagos.length === 0 && (
                         <TableRow>
                           <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                            Aucun pédago trouvé
+                            Aucun pÃ©dago trouvÃ©
                           </TableCell>
                         </TableRow>
                       )}
@@ -420,7 +420,7 @@ export default function Admin() {
                     <div>
                       <CardTitle>Gestion des Parents</CardTitle>
                       <CardDescription>
-                        {filteredParents.length} parent(s) affiché(s)
+                        {filteredParents.length} parent(s) affichÃ©(s)
                       </CardDescription>
                     </div>
                   </div>
@@ -463,7 +463,7 @@ export default function Admin() {
                       {filteredParents.length === 0 && (
                         <TableRow>
                           <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                            Aucun parent trouvé
+                            Aucun parent trouvÃ©
                           </TableCell>
                         </TableRow>
                       )}
@@ -484,16 +484,16 @@ export default function Admin() {
                       <GraduationCap className="h-5 w-5 text-blue-500" />
                     </div>
                     <div>
-                      <CardTitle>Gestion des Élèves</CardTitle>
+                      <CardTitle>Gestion des Ã‰lÃ¨ves</CardTitle>
                       <CardDescription>
-                        {filteredStudents.length} élève(s) affiché(s)
+                        {filteredStudents.length} Ã©lÃ¨ve(s) affichÃ©(s)
                       </CardDescription>
                     </div>
                   </div>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Rechercher un élève..."
+                      placeholder="Rechercher un Ã©lÃ¨ve..."
                       value={searchQueryStudents}
                       onChange={(e) => setSearchQueryStudents(e.target.value)}
                       className="pl-9 w-full sm:w-64"
@@ -506,7 +506,7 @@ export default function Admin() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/30">
-                        <TableHead>Élève</TableHead>
+                        <TableHead>Ã‰lÃ¨ve</TableHead>
                         <TableHead>Niveau</TableHead>
                         <TableHead>Statut</TableHead>
                         <TableHead>Inscription</TableHead>
@@ -531,7 +531,7 @@ export default function Admin() {
                       {filteredStudents.length === 0 && (
                         <TableRow>
                           <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                            Aucun élève trouvé
+                            Aucun Ã©lÃ¨ve trouvÃ©
                           </TableCell>
                         </TableRow>
                       )}
@@ -551,7 +551,7 @@ export default function Admin() {
                     <Activity className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <CardTitle>Historique d'activité</CardTitle>
+                    <CardTitle>Historique d'activitÃ©</CardTitle>
                     <CardDescription>
                       Toutes les actions sur les comptes utilisateurs
                     </CardDescription>
@@ -565,14 +565,14 @@ export default function Admin() {
                   </div>
                 ) : logs.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">
-                    Aucune activité récente
+                    Aucune activitÃ© rÃ©cente
                   </p>
                 ) : (
                   <div className="space-y-3">
                     {logs.map((log) => {
                       const userName = log.user
                         ? [log.user.first_name, log.user.last_name].filter(Boolean).join(" ") || log.user.email
-                        : "Système";
+                        : "SystÃ¨me";
                       return (
                         <div
                           key={log.id}
@@ -616,7 +616,7 @@ export default function Admin() {
             <AlertDialogDescription>
               Voulez-vous vraiment supprimer le compte de{" "}
               <strong>{userToDelete ? getFullName(userToDelete) : ''}</strong> ?
-              Cette action est irréversible.
+              Cette action est irrÃ©versible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -737,7 +737,7 @@ function UserRow({
           {user.school_level ? (
             <Badge variant="outline">{getSchoolLevelLabel(user.school_level)}</Badge>
           ) : (
-            <span className="text-muted-foreground">—</span>
+            <span className="text-muted-foreground">â€”</span>
           )}
         </TableCell>
       )}
@@ -770,7 +770,7 @@ function UserRow({
               {user.is_active ? (
                 <>
                   <UserX className="h-4 w-4 mr-2" />
-                  Désactiver
+                  DÃ©sactiver
                 </>
               ) : (
                 <>

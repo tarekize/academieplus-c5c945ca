@@ -1,4 +1,4 @@
-import { Card } from "./ui/card";
+﻿import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { GraduationCap, Calendar, ShieldCheck } from "lucide-react";
 import teachersTeamImage from "@/assets/teachers-team.jpg";
@@ -53,7 +53,7 @@ const Expertise = () => {
           <div className="order-1 lg:order-2">
             <img 
               src={teachersTeamImage} 
-              alt="Équipe pédagogique professionnelle préparant des cours"
+              alt="Ã‰quipe pÃ©dagogique professionnelle prÃ©parant des cours"
               className="w-full h-auto rounded-lg shadow-elegant"
             />
           </div>

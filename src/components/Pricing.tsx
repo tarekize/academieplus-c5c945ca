@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+﻿import { Check } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Switch } from "./ui/switch";
@@ -28,7 +28,7 @@ const Pricing = () => {
   
   const [isFamily, setIsFamily] = useState(false);
   const [plans, setPlans] = useState<PricingPlan[]>(FALLBACK_PLANS);
-  const [periodLabel, setPeriodLabel] = useState("1 année scolaire");
+  const [periodLabel, setPeriodLabel] = useState("1 annÃ©e scolaire");
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -58,9 +58,9 @@ const Pricing = () => {
   const monthlyPlan = plans.find(p => p.billing_period === 'monthly');
 
   const features = [
-    "Tous les cours de mathématiques de votre niveau",
-    "Exercices et corrigés",
-    "Vidéos explicatives",
+    "Tous les cours de mathÃ©matiques de votre niveau",
+    "Exercices et corrigÃ©s",
+    "VidÃ©os explicatives",
     "Suivi de progression",
     "Support prioritaire",
     "Examens blancs",
