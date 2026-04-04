@@ -536,12 +536,22 @@ const Cours = () => {
         {!activeActivity && viewMode === "grid" && (
           <div className="space-y-4">
             {/* Back to levels button for pedago/admin */}
-            {canManage && (
-              <Button variant="outline" className="gap-2 mb-2" onClick={() => navigate("/liste-cours")}>
-                <ArrowLeft className="h-4 w-4" />
-                Retour aux niveaux
+            <div className="flex gap-2 flex-wrap">
+              {canManage && (
+                <Button variant="outline" className="gap-2" onClick={() => navigate("/liste-cours")}>
+                  <ArrowLeft className="h-4 w-4" />
+                  Retour aux niveaux
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => navigate(`/exams?niveau=${schoolLevel}&subject=${subjectId || "math"}`)}
+              >
+                <FileText className="h-4 w-4" />
+                الاختبارات
               </Button>
-            )}
+            </div>
             {/* Search bar */}
             <div className="bg-card rounded-xl p-6 border">
               <h2 className="text-lg font-semibold mb-1">

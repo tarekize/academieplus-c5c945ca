@@ -99,6 +99,8 @@ const App = () => (
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/faq-admin" element={<FAQAdmin />} />
               <Route path="/content-generation" element={<ContentGeneration />} />
+              <Route path="/exams" element={<ExamTrimesterSelect />} />
+              <Route path="/exams/list" element={<ExamList />} />
               <Route path="/admin" element={
                 <ProtectedRoute requireAdmin>
                   <Admin />
