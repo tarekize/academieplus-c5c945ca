@@ -46,6 +46,8 @@ import LearningAssessment from "./pages/LearningAssessment";
 import BotOnboardingPage from "./pages/BotOnboardingPage";
 import LessonEditor from "./pages/LessonEditor";
 import ContentGeneration from "./pages/ContentGeneration";
+import ExamTrimesterSelect from "./pages/ExamTrimesterSelect";
+import ExamList from "./pages/ExamList";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -97,6 +99,8 @@ const App = () => (
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/faq-admin" element={<FAQAdmin />} />
               <Route path="/content-generation" element={<ContentGeneration />} />
+              <Route path="/exams" element={<ExamTrimesterSelect />} />
+              <Route path="/exams/list" element={<ExamList />} />
               <Route path="/admin" element={
                 <ProtectedRoute requireAdmin>
                   <Admin />

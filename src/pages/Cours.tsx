@@ -9,7 +9,7 @@ import { ChapterMathExercises, DBExercise } from "@/components/course/ChapterMat
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check, Search, BarChart3 } from "lucide-react";
+import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check, Search, BarChart3, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { NotificationBell } from "@/components/course/NotificationBell";
 import ChatBot from "@/components/ChatBot";
@@ -536,12 +536,22 @@ const Cours = () => {
         {!activeActivity && viewMode === "grid" && (
           <div className="space-y-4">
             {/* Back to levels button for pedago/admin */}
-            {canManage && (
-              <Button variant="outline" className="gap-2 mb-2" onClick={() => navigate("/liste-cours")}>
-                <ArrowLeft className="h-4 w-4" />
-                Retour aux niveaux
+            <div className="flex gap-2 flex-wrap">
+              {canManage && (
+                <Button variant="outline" className="gap-2" onClick={() => navigate("/liste-cours")}>
+                  <ArrowLeft className="h-4 w-4" />
+                  Retour aux niveaux
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => navigate(`/exams?niveau=${schoolLevel}&subject=${subjectId || "math"}`)}
+              >
+                <FileText className="h-4 w-4" />
+                الاختبارات
               </Button>
-            )}
+            </div>
             {/* Search bar */}
             <div className="bg-card rounded-xl p-6 border">
               <h2 className="text-lg font-semibold mb-1">
