@@ -376,6 +376,51 @@ export type Database = {
         }
         Relationships: []
       }
+      exams: {
+        Row: {
+          content: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          duration_minutes: number
+          id: string
+          school_level: Database["public"]["Enums"]["school_level"]
+          subject: string
+          title: string
+          title_ar: string | null
+          trimester: number
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          school_level: Database["public"]["Enums"]["school_level"]
+          subject?: string
+          title: string
+          title_ar?: string | null
+          trimester: number
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          school_level?: Database["public"]["Enums"]["school_level"]
+          subject?: string
+          title?: string
+          title_ar?: string | null
+          trimester?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       filieres: {
         Row: {
           code: string
