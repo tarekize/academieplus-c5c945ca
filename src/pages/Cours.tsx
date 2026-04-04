@@ -535,6 +535,13 @@ const Cours = () => {
         {/* Grid view - Chapter selection */}
         {!activeActivity && viewMode === "grid" && (
           <div className="space-y-4">
+            {/* Back to levels button for pedago/admin */}
+            {canManage && (
+              <Button variant="ghost" className="gap-2" onClick={() => navigate("/liste-cours")}>
+                <ArrowLeft className="h-4 w-4" />
+                Retour aux niveaux
+              </Button>
+            )}
             {/* Search bar */}
             <div className="bg-card rounded-xl p-6 border">
               <h2 className="text-lg font-semibold mb-1">
