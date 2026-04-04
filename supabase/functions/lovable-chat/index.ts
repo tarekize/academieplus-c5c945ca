@@ -64,6 +64,215 @@ Si tu veux pointer vers un chapitre sans leçon spécifique, utilise la premièr
 IMPORTANT: Utilise les vrais IDs des chapitres et leçons de la liste ci-dessus. Ne génère JAMAIS de faux IDs.`;
 }
 
+// ============ Provider 1: Google Gemini ============
+async function callGemini(systemPrompt: string, messages: any[]): Promise<Response> {
+  const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
+
+  // Build Gemini contents format
+  const contents: any[] = [];
+  
+  // Add system instruction as first user message context
+  const geminiMessages = messages.map((m: any) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
+
+  const body = {
+    system_instruction: { parts: [{ text: systemPrompt }] },
+    contents: geminiMessages,
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 2048,
+    },
+  };
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
+  
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("Gemini error:", response.status, errText);
+    throw new Error(`Gemini failed: ${response.status}`);
+  }
+
+  // Transform Gemini SSE to OpenAI-compatible SSE format
+  const geminiStream = response.body!;
+  const { readable, writable } = new TransformStream();
+  
+  (async () => {
+    const writer = writable.getWriter();
+    const reader = geminiStream.getReader();
+    const decoder = new TextDecoder();
+    const encoder = new TextEncoder();
+    let buffer = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (!jsonStr || jsonStr === "[DONE]") continue;
+          
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              const openAiChunk = {
+                choices: [{ delta: { content: text }, index: 0 }],
+              };
+              await writer.write(encoder.encode(`data: ${JSON.stringify(openAiChunk)}\n\n`));
+            }
+          } catch { /* skip malformed */ }
+        }
+      }
+      // Process remaining buffer
+      if (buffer.startsWith("data: ")) {
+        const jsonStr = buffer.slice(6).trim();
+        if (jsonStr && jsonStr !== "[DONE]") {
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              const openAiChunk = { choices: [{ delta: { content: text }, index: 0 }] };
+              await writer.write(encoder.encode(`data: ${JSON.stringify(openAiChunk)}\n\n`));
+            }
+          } catch { /* skip */ }
+        }
+      }
+      await writer.write(encoder.encode("data: [DONE]\n\n"));
+    } catch (err) {
+      console.error("Gemini stream transform error:", err);
+    } finally {
+      writer.close();
+    }
+  })();
+
+  return new Response(readable, {
+    headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+  });
+}
+
+// ============ Provider 2: Groq ============
+async function callGroq(systemPrompt: string, messages: any[]): Promise<Response> {
+  const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+  if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY not configured");
+
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${GROQ_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: [{ role: "system", content: systemPrompt }, ...messages],
+      stream: true,
+      temperature: 0.7,
+      max_tokens: 2048,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("Groq error:", response.status, errText);
+    throw new Error(`Groq failed: ${response.status}`);
+  }
+
+  // Groq uses OpenAI-compatible SSE format, pass through directly
+  return new Response(response.body, {
+    headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+  });
+}
+
+// ============ Provider 3: Cloudflare Workers AI ============
+async function callCloudflare(systemPrompt: string, messages: any[]): Promise<Response> {
+  const CF_API_KEY = Deno.env.get("CLOUDFLARE_AI_API_KEY");
+  const CF_ACCOUNT_ID = Deno.env.get("CLOUDFLARE_ACCOUNT_ID");
+  if (!CF_API_KEY) throw new Error("CLOUDFLARE_AI_API_KEY not configured");
+  if (!CF_ACCOUNT_ID) throw new Error("CLOUDFLARE_ACCOUNT_ID not configured");
+
+  const url = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.1-8b-instruct`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${CF_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messages: [{ role: "system", content: systemPrompt }, ...messages],
+      stream: true,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("Cloudflare error:", response.status, errText);
+    throw new Error(`Cloudflare failed: ${response.status}`);
+  }
+
+  // Transform Cloudflare SSE to OpenAI-compatible format
+  const cfStream = response.body!;
+  const { readable, writable } = new TransformStream();
+
+  (async () => {
+    const writer = writable.getWriter();
+    const reader = cfStream.getReader();
+    const decoder = new TextDecoder();
+    const encoder = new TextEncoder();
+    let buffer = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (!jsonStr || jsonStr === "[DONE]") continue;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const text = parsed?.response;
+            if (text) {
+              const openAiChunk = { choices: [{ delta: { content: text }, index: 0 }] };
+              await writer.write(encoder.encode(`data: ${JSON.stringify(openAiChunk)}\n\n`));
+            }
+          } catch { /* skip */ }
+        }
+      }
+      await writer.write(encoder.encode("data: [DONE]\n\n"));
+    } catch (err) {
+      console.error("Cloudflare stream transform error:", err);
+    } finally {
+      writer.close();
+    }
+  })();
+
+  return new Response(readable, {
+    headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+  });
+}
+
+// ============ Main handler with fallback ============
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -71,11 +280,6 @@ serve(async (req) => {
 
   try {
     const { messages, subject, schoolLevel, chapterContext, allChapters } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
 
     const systemPrompt = buildSystemPrompt(
       subject || "mathématiques",
@@ -84,46 +288,35 @@ serve(async (req) => {
       allChapters
     );
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages,
-        ],
-        stream: true,
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded" }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Insufficient credits" }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      return new Response(
-        JSON.stringify({ error: "AI gateway error" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Provider 1: Gemini
+    try {
+      console.log("Trying Gemini...");
+      return await callGemini(systemPrompt, messages);
+    } catch (e) {
+      console.error("Gemini failed, trying Groq...", e);
     }
 
-    return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-    });
+    // Provider 2: Groq
+    try {
+      console.log("Trying Groq...");
+      return await callGroq(systemPrompt, messages);
+    } catch (e) {
+      console.error("Groq failed, trying Cloudflare...", e);
+    }
+
+    // Provider 3: Cloudflare
+    try {
+      console.log("Trying Cloudflare...");
+      return await callCloudflare(systemPrompt, messages);
+    } catch (e) {
+      console.error("Cloudflare also failed:", e);
+    }
+
+    // All providers failed
+    return new Response(
+      JSON.stringify({ error: "Tous les services IA sont actuellement indisponibles. Veuillez réessayer plus tard." }),
+      { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (e) {
     console.error("chat error:", e);
     return new Response(
