@@ -45,7 +45,7 @@ export const BotCompanion = ({
             scale: 1.05,
         },
         celebrating: {
-            emoji: "ðŸ†",
+            emoji: "🏆",
             motion: "bounce",
             scale: 1.2,
         },

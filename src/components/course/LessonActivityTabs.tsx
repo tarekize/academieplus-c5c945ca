@@ -176,7 +176,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       const { data, error } = await progressQuery;
 
       if (error) {
-        console.error("âŒ [LessonActivityTabs] Failed to load chapter unlock state:", error);
+        console.error("❌ [LessonActivityTabs] Failed to load chapter unlock state:", error);
         return;
       }
 
@@ -292,7 +292,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     // Get current user directly (don't rely on state!)
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (!user) {
-      console.error("âŒ [persistUnlock] No authenticated user found!");
+      console.error("❌ [persistUnlock] No authenticated user found!");
       return;
     }
 
@@ -330,14 +330,14 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         ...(correctCount !== undefined && { [countField]: correctCount })
       };
 
-      console.log("ðŸ“ [persistUnlock] Updating existing row...");
+      console.log("📝 [persistUnlock] Updating existing row...");
       const { error: updateError } = await supabase
         .from("student_scores")
         .update({ assessment_data: mergedData as any })
         .eq("id", targetRow.id);
 
       if (updateError) {
-        console.error("âŒ [persistUnlock] Update failed:", updateError.message);
+        console.error("❌ [persistUnlock] Update failed:", updateError.message);
       } else {
         console.log("✅ [persistUnlock] Update success!");
       }
@@ -345,7 +345,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     }
 
     // No existing row found in JS scan, try INSERT
-    console.log("ðŸ“ [persistUnlock] No chapter row found. Attempting INSERT...");
+    console.log("📝 [persistUnlock] No chapter row found. Attempting INSERT...");
 
     // Check if we have other rows that might conflict if index is only (user, chapter)
     // If allRows has length > 0, we have lesson rows. 
@@ -367,7 +367,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       .insert([insertPayload]);
 
     if (insertError) {
-      console.error("âŒ [persistUnlock] INSERT failed:", insertError.message, insertError.code, insertError.details);
+      console.error("❌ [persistUnlock] INSERT failed:", insertError.message, insertError.code, insertError.details);
 
       // If code is 23505 (unique_violation), it means a row DOES exist but our SELECT missed it (RLS?)
       // OR it conflicts with another row (improper index?)
@@ -408,7 +408,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           .eq("id", targetRow.id);
 
         if (updateError) {
-          console.error("âŒ Failed to update completion:", updateError);
+          console.error("❌ Failed to update completion:", updateError);
         } else {
           console.log("✅ Saved completion:", itemId);
         }
@@ -423,7 +423,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       }]);
 
       if (insertError) {
-        console.error("âŒ Failed to save new completion row:", insertError);
+        console.error("❌ Failed to save new completion row:", insertError);
       } else {
         console.log("✅ Created new row for completion:", itemId);
       }
@@ -507,7 +507,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     const { data, error } = await progressQuery;
 
     if (error) {
-      console.error("âŒ [reloadProgressFromDB] Failed to load:", error);
+      console.error("❌ [reloadProgressFromDB] Failed to load:", error);
       return;
     }
 
@@ -587,7 +587,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   }, [persistItemCompletion]);
 
   const handleDiscoverAnswer = useCallback((isCorrect: boolean, type: "exercise" | "quiz", itemId?: string) => {
-    console.log(`ðŸ“ [handleDiscoverAnswer] ${type}: isCorrect=${isCorrect}, id=${itemId}`);
+    console.log(`📝 [handleDiscoverAnswer] ${type}: isCorrect=${isCorrect}, id=${itemId}`);
 
     if (itemId && isCorrect) {
       if (type === "exercise") {
@@ -723,7 +723,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     return (
 
       <div className="mt-6 space-y-4">
-        {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>â† العودة</Button>}
+        {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>← العودة</Button>}
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><BookOpen className="h-5 w-5 text-green-500" /><span>Fiches de révision</span></CardTitle></CardHeader>
           <CardContent><p className="text-muted-foreground text-center py-8" dir="rtl">بطاقات المراجعة الخاصة بالدرس متوفرة في القسم الذكي أعلاه..</p></CardContent>
@@ -738,7 +738,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   return (
     <div className="mt-6 space-y-4">
       <div className="flex items-center gap-3">
-        {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>â† العودة</Button>}
+        {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>← العودة</Button>}
         <div className="flex items-center gap-2">
           <SectionIcon className={cn("h-5 w-5", isQuiz ? "text-primary" : "text-orange-500")} />
           <h2 className="text-lg font-bold" dir="rtl">{isQuiz ? "اسئله متعدده الاختيارات" : "تمارين"}</h2>
@@ -1195,7 +1195,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
         )}
         {result !== null && (
           <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-            {result ? "✅ إجابة صحيحة!" : `âŒ الإجابة الصحيحة: ${exercise.expected_answer}`}
+            {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${exercise.expected_answer}`}
           </div>
         )}
         <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
@@ -1259,7 +1259,7 @@ function ExerciseCard({ exercise, index, readOnly }: { exercise: DBExercise; ind
         )}
         {result !== null && (
           <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-            {result ? "✅ إجابة صحيحة!" : `âŒ الإجابة الصحيحة: ${exercise.expected_answer}`}
+            {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${exercise.expected_answer}`}
           </div>
         )}
         <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>

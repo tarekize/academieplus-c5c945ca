@@ -206,7 +206,7 @@ export default function BotOnboardingPage() {
                                 <div className="space-y-4">
                                     <BotMessage
                                         text={`سؤال ${currentQuestion + 1} من ${questionsArray.length}`}
-                                        emoji="â“"
+                                        emoji="❓"
                                         isTyping={true}
                                     />
                                     <div className="bg-white/50 p-6 rounded-lg border border-purple-200">

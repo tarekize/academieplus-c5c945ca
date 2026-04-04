@@ -57,7 +57,7 @@ export const mathQuizQuestions: QuizQuestion[] = [
     question: "Quelles sont les coordonnées du milieu du segment [AB] avec A(2, 4) et B(6, 8) ?",
     options: ["(4, 6)", "(8, 12)", "(3, 5)", "(2, 2)"],
     correctAnswer: "(4, 6)",
-    explanation: "Le milieu M a pour coordonnées : xₘ = (xâ‚ + x_b)/2 = (2+6)/2 = 4 et yₘ = (yâ‚ + y_b)/2 = (4+8)/2 = 6",
+    explanation: "Le milieu M a pour coordonnées : xₘ = (xₐ + x_b)/2 = (2+6)/2 = 4 et yₘ = (yₐ + y_b)/2 = (4+8)/2 = 6",
     category: "Coordonnées de milieu"
   },
   {
@@ -72,8 +72,8 @@ export const mathQuizQuestions: QuizQuestion[] = [
     id: "q7",
     question: "La fonction carré f(x) = x² est :",
     options: [
-      "Croissante sur â„",
-      "Décroissante sur â„",
+      "Croissante sur ℝ",
+      "Décroissante sur ℝ",
       "Décroissante sur ]-∞; 0] et croissante sur [0; +∞[",
       "Croissante sur ]-∞; 0] et décroissante sur [0; +∞["
     ],
@@ -118,7 +118,7 @@ export const mathExercises: Exercise[] = [
     id: "ex1",
     title: "Résolution d'équation du premier degré",
     category: "Équations",
-    statement: "Résoudre l'équation suivante dans â„ :\n\n**5(x - 2) - 3(2x + 1) = 4x - 17**",
+    statement: "Résoudre l'équation suivante dans ℝ :\n\n**5(x - 2) - 3(2x + 1) = 4x - 17**",
     solution: `**Étape 1 : Développer**
 5(x - 2) - 3(2x + 1) = 4x - 17
 5x - 10 - 6x - 3 = 4x - 17
@@ -192,7 +192,7 @@ Moyenne = Σ(note × effectif) / effectif total
     id: "ex5",
     title: "Étude d'une fonction affine",
     category: "Fonctions",
-    statement: "Soit f la fonction définie sur â„ par f(x) = -2x + 6.\n\n1. Calculer f(0), f(3) et f(-1).\n2. Déterminer l'antécédent de 0 par f.\n3. Dresser le tableau de variations de f.",
+    statement: "Soit f la fonction définie sur ℝ par f(x) = -2x + 6.\n\n1. Calculer f(0), f(3) et f(-1).\n2. Déterminer l'antécédent de 0 par f.\n3. Dresser le tableau de variations de f.",
     solution: `**1. Images**
 - f(0) = -2(0) + 6 = **6**
 - f(3) = -2(3) + 6 = -6 + 6 = **0**
@@ -206,7 +206,7 @@ x = **3**
 
 **3. Tableau de variations**
 f est une fonction affine avec a = -2 < 0
-Donc f est **décroissante** sur â„.
+Donc f est **décroissante** sur ℝ.
 
 | x | -∞ ————————→ +∞ |
 |---|------------------|
@@ -333,8 +333,8 @@ export const programmeSeconde = {
     {
       name: "Nombres et calculs",
       topics: [
-        "Ensembles de nombres (ℕ, ℤ, ℚ, â„)",
-        "Intervalles de â„",
+        "Ensembles de nombres (ℕ, ℤ, ℚ, ℝ)",
+        "Intervalles de ℝ",
         "Calcul littéral (développer, factoriser, réduire)",
         "Équations et inéquations du premier degré"
       ]

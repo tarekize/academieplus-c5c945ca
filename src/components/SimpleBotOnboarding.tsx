@@ -247,7 +247,7 @@ export const SimpleBotOnboarding = ({
                                             text={
                                                 Object.values(questionsList)[currentQuestion].ar
                                             }
-                                            emoji="â“"
+                                            emoji="❓"
                                             isTyping={true}
                                             onComplete={() => setMessageComplete(true)}
                                         />

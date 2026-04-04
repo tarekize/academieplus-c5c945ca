@@ -23,9 +23,9 @@ export const ResultsSummary = ({
   const seconds = duration % 60;
 
   const getGrade = (percentage: number) => {
-    if (percentage >= 90) return { text: "Excellent !", color: "text-green-500", icon: "ðŸ†" };
+    if (percentage >= 90) return { text: "Excellent !", color: "text-green-500", icon: "🏆" };
     if (percentage >= 75) return { text: "Très bien", color: "text-blue-500", icon: "⭐" };
-    if (percentage >= 60) return { text: "Bien", color: "text-yellow-500", icon: "ðŸ‘" };
+    if (percentage >= 60) return { text: "Bien", color: "text-yellow-500", icon: "👍" };
     if (percentage >= 50) return { text: "Passable", color: "text-orange-500", icon: "📚" };
     return { text: "À revoir", color: "text-red-500", icon: "💪" };
   };

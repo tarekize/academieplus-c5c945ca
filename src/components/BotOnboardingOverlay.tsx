@@ -299,7 +299,7 @@ export const BotOnboardingOverlay = ({
                                                 ? Object.values(learningStyleQuestions)[currentQuestion].ar
                                                 : Object.values(learningStyleQuestions)[currentQuestion].fr
                                         }
-                                        emoji="â“"
+                                        emoji="❓"
                                         isTyping={true}
                                         onComplete={() => setMessageComplete(true)}
                                     />

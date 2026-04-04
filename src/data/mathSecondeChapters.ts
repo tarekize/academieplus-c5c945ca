@@ -226,16 +226,16 @@ Car 3,1² = 9,61 < 10 et 3,2² = 10,24 > 10`
       id: "ch1-ex10",
       title: "Union d'intervalles",
       statement: "Écrire sous forme d'intervalle : ]-∞; 3] ∪ [1; +∞[",
-      expectedAnswer: "â„",
-      acceptedAnswers: ["â„", "R", "]-∞; +∞["],
+      expectedAnswer: "ℝ",
+      acceptedAnswers: ["ℝ", "R", "]-∞; +∞["],
       solution: `**Analyse :**
 - ]-∞; 3] contient tous les nombres ≤ 3
 - [1; +∞[ contient tous les nombres ≥ 1
 
 Ces deux intervalles se chevauchent sur [1; 3].
-Leur union couvre tout â„.
+Leur union couvre tout ℝ.
 
-**Résultat :** â„ (ou ]-∞; +∞[)`
+**Résultat :** ℝ (ou ]-∞; +∞[)`
     }
   ]
 };
@@ -533,7 +533,7 @@ const chapter3: ChapterContent = {
     {
       id: "ch3-ex1",
       title: "Équation du premier degré",
-      statement: "Résoudre dans â„ : 5(x - 2) - 3(2x + 1) = 4x - 17",
+      statement: "Résoudre dans ℝ : 5(x - 2) - 3(2x + 1) = 4x - 17",
       expectedAnswer: "x = 4/5",
       acceptedAnswers: ["x = 4/5", "4/5", "0,8", "0.8", "x = 0,8", "x = 0.8"],
       solution: `**Développer :**
@@ -712,15 +712,15 @@ const chapter4: ChapterContent = {
     {
       id: "ch4-q5",
       question: "Le domaine de définition de f(x) = 1/(x-2) est :",
-      options: ["â„", "â„ \\ {2}", "â„⁺", "]2; +∞["],
-      correctAnswer: "â„ \\ {2}",
+      options: ["ℝ", "ℝ \\ {2}", "ℝ⁺", "]2; +∞["],
+      correctAnswer: "ℝ \\ {2}",
       explanation: "On ne peut pas diviser par 0, donc x ≠ 2"
     },
     {
       id: "ch4-q6",
       question: "f(x) = -3x + 7 est une fonction :",
-      options: ["Croissante sur â„", "Décroissante sur â„", "Ni croissante ni décroissante", "Constante"],
-      correctAnswer: "Décroissante sur â„",
+      options: ["Croissante sur ℝ", "Décroissante sur ℝ", "Ni croissante ni décroissante", "Constante"],
+      correctAnswer: "Décroissante sur ℝ",
       explanation: "Le coefficient de x est -3 < 0, donc f est décroissante"
     },
     {
@@ -1092,8 +1092,8 @@ const chapter6: ChapterContent = {
       id: "ch6-q1",
       question: "La fonction carré f(x) = x² est :",
       options: [
-        "Croissante sur â„",
-        "Décroissante sur â„",
+        "Croissante sur ℝ",
+        "Décroissante sur ℝ",
         "Décroissante sur ]-∞; 0] et croissante sur [0; +∞[",
         "Croissante sur ]-∞; 0]"
       ],
@@ -1117,20 +1117,20 @@ const chapter6: ChapterContent = {
     {
       id: "ch6-q4",
       question: "Le domaine de définition de f(x) = 1/x est :",
-      options: ["â„", "â„ \\ {0}", "â„⁺*", "â„⁻*"],
-      correctAnswer: "â„ \\ {0}",
+      options: ["ℝ", "ℝ \\ {0}", "ℝ⁺*", "ℝ⁻*"],
+      correctAnswer: "ℝ \\ {0}",
       explanation: "On ne peut pas diviser par 0"
     },
     {
       id: "ch6-q5",
       question: "La fonction inverse f(x) = 1/x est :",
       options: [
-        "Croissante sur â„*",
-        "Décroissante sur â„*",
-        "Croissante sur â„⁺* et décroissante sur â„⁻*",
-        "Décroissante sur â„⁺* et sur â„⁻*"
+        "Croissante sur ℝ*",
+        "Décroissante sur ℝ*",
+        "Croissante sur ℝ⁺* et décroissante sur ℝ⁻*",
+        "Décroissante sur ℝ⁺* et sur ℝ⁻*"
       ],
-      correctAnswer: "Décroissante sur â„⁺* et sur â„⁻*",
+      correctAnswer: "Décroissante sur ℝ⁺* et sur ℝ⁻*",
       explanation: "La fonction inverse est décroissante sur chaque intervalle où elle est définie"
     },
     {
@@ -1181,7 +1181,7 @@ const chapter6: ChapterContent = {
 
 Comme 25 > 9, **(-5)² = 25** est le plus grand.
 
-(Sur â„⁻, la fonction carré est décroissante : -5 < -3 donc (-5)² > (-3)²)`
+(Sur ℝ⁻, la fonction carré est décroissante : -5 < -3 donc (-5)² > (-3)²)`
     },
     {
       id: "ch6-ex2",

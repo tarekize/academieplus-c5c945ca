@@ -53,7 +53,7 @@ const PolitiqueConfidentialite = () => {
                 
                 <div className="space-y-3">
                   <div className="bg-secondary/20 p-4 rounded-lg">
-                    <h3 className="font-semibold text-foreground mb-2">ðŸ“ Données d'identification</h3>
+                    <h3 className="font-semibold text-foreground mb-2">📝 Données d'identification</h3>
                     <ul className="list-disc list-inside text-muted-foreground space-y-1">
                       <li>Prénom et nom</li>
                       <li>Adresse email</li>
@@ -198,8 +198,8 @@ const PolitiqueConfidentialite = () => {
                   <li><strong>Autorités légales</strong> : uniquement sur réquisition judiciaire</li>
                 </ul>
                 <p className="text-muted-foreground mt-4">
-                  âŒ Nous ne vendons jamais vos données à des tiers.<br />
-                  âŒ Nous ne partageons pas vos données à des fins publicitaires.
+                  ❌ Nous ne vendons jamais vos données à des tiers.<br />
+                  ❌ Nous ne partageons pas vos données à des fins publicitaires.
                 </p>
               </div>
 
@@ -219,14 +219,14 @@ const PolitiqueConfidentialite = () => {
                 
                 <div className="grid gap-4">
                   <div className="bg-secondary/20 p-4 rounded-lg">
-                    <h3 className="font-semibold text-foreground mb-2">ðŸ” Droit d'accès</h3>
+                    <h3 className="font-semibold text-foreground mb-2">🔍 Droit d'accès</h3>
                     <p className="text-muted-foreground">
                       Vous pouvez consulter toutes vos données personnelles à tout moment depuis votre compte.
                     </p>
                   </div>
 
                   <div className="bg-secondary/20 p-4 rounded-lg">
-                    <h3 className="font-semibold text-foreground mb-2">âœ️ Droit de rectification</h3>
+                    <h3 className="font-semibold text-foreground mb-2">✏️ Droit de rectification</h3>
                     <p className="text-muted-foreground">
                       Vous pouvez modifier vos informations personnelles directement dans votre compte.
                     </p>
@@ -290,7 +290,7 @@ const PolitiqueConfidentialite = () => {
                   <li><strong>Cookies de sécurité</strong> : protection contre les attaques</li>
                 </ul>
                 <p className="text-muted-foreground mt-4">
-                  âŒ Nous n'utilisons pas de cookies publicitaires ou de tracking tiers.
+                  ❌ Nous n'utilisons pas de cookies publicitaires ou de tracking tiers.
                 </p>
               </div>
 

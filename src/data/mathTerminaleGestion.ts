@@ -28,7 +28,7 @@ export const mathTerminaleGestionChapters: Chapter[] = [
       { id: "lesson-1-4", title: "Suites monotones", titleAr: "المتتاليات الرتيبة" },
       { id: "lesson-1-5", title: "Suites convergentes", titleAr: "المتتاليات المتقاربة" },
       { id: "lesson-1-6", title: "Suite définie par Un+1 = aUn + b", titleAr: "التعرف على متتالية معرفة بالعلاقة : Un+1= aUn+bو حساب حدودها" },
-      { id: "lesson-1-7", title: "Convergence d'une suite récurrente un+1=f(un)", titleAr: "تقارب متتالية تراجعية 𝐮𝐧+ðŸ=f(un) بالاستعانة بالدالة" },
+      { id: "lesson-1-7", title: "Convergence d'une suite récurrente un+1=f(un)", titleAr: "تقارب متتالية تراجعية 𝐮𝐧+𝟏=f(un) بالاستعانة بالدالة" },
     ],
   },
   {

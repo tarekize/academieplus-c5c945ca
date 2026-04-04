@@ -90,7 +90,7 @@ export const learningStyleQuestions = {
             },
             auditory: {
                 fr: "Des explications détaillées par écrit",
-                ar: "شروحات مفصلة على النص ðŸ“",
+                ar: "شروحات مفصلة على النص 📝",
             },
             kinesthetic: {
                 fr: "Des projets pratiques et des défis",

@@ -248,7 +248,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
                         <Clock className="h-3 w-3" />{formatTime(timeForExercise)}
                       </div>
                     )}
-                    <span className="text-primary">â†</span>
+                    <span className="text-primary">←</span>
                   </div>
                 </button>
               );

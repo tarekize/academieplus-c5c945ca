@@ -355,7 +355,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
 
                     {exerciseResults[idx] !== undefined && (
                       <div className={`p-2 rounded text-sm ${exerciseResults[idx] ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700"}`} dir="rtl">
-                        {exerciseResults[idx] ? "✅ إجابة صحيحة!" : `âŒ الإجابة الصحيحة: ${ex.expected_answer}`}
+                        {exerciseResults[idx] ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${ex.expected_answer}`}
                       </div>
                     )}
 
@@ -431,7 +431,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                         <>
                           <h4 className="font-bold text-primary" dir="rtl">📌 {rev.concept}</h4>
                           <p className="text-sm" dir="rtl">{rev.explanation}</p>
-                          <p className="text-xs text-muted-foreground mt-2" dir="rtl">انقر لرؤية المثال â†</p>
+                          <p className="text-xs text-muted-foreground mt-2" dir="rtl">انقر لرؤية المثال ←</p>
                         </>
                       ) : (
                         <>
@@ -444,7 +444,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                               <p className="text-sm font-mono font-bold" dir="rtl">{rev.key_formula}</p>
                             </div>
                           )}
-                          <p className="text-xs text-muted-foreground mt-2" dir="rtl">â† انقر للعودة</p>
+                          <p className="text-xs text-muted-foreground mt-2" dir="rtl">← انقر للعودة</p>
                         </>
                       )}
                     </CardContent>

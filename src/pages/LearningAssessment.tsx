@@ -68,7 +68,7 @@ const FALLBACK_QUESTIONS: Record<string, Question[]> = {
   ],
   "4eme_cem": [
     { question: "ما هو حل: x² - 5x + 6 = 0؟", options: ["x=1 أو x=6", "x=2 أو x=3", "x=-2 أو x=-3", "x=3 أو x=4"], correct_index: 1, chapter_ref: "المعادلات التربيعية", explanation: "x² - 5x + 6 = (x-2)(x-3) = 0 → x=2 أو x=3" },
-    { question: "ما هو نطاق الدالة f(x) = √x؟", options: ["â„", "[0, +∞[", "]-∞, 0]", "â„*"], correct_index: 1, chapter_ref: "الدوال", explanation: "الجذر التربيعي معرف فقط للأعداد الموجبة أو الصفر" },
+    { question: "ما هو نطاق الدالة f(x) = √x؟", options: ["ℝ", "[0, +∞[", "]-∞, 0]", "ℝ*"], correct_index: 1, chapter_ref: "الدوال", explanation: "الجذر التربيعي معرف فقط للأعداد الموجبة أو الصفر" },
     { question: "ما هو sin(30°)؟", options: ["√3/2", "1/2", "√2/2", "1"], correct_index: 1, chapter_ref: "المثلثات", explanation: "sin(30°) = 1/2" },
     { question: "ما هو متوسط (معدل): 12, 15, 18, 9, 6؟", options: ["10", "12", "14", "15"], correct_index: 1, chapter_ref: "الإحصاء", explanation: "المعدل = (12+15+18+9+6) ÷ 5 = 60 ÷ 5 = 12" },
     { question: "ما هو تمييز (discriminant) معادلة 2x² - 4x + 2 = 0؟", options: ["0", "4", "8", "-4"], correct_index: 0, chapter_ref: "المعادلات التربيعية", explanation: "Δ = b² - 4ac = 16 - 16 = 0" },

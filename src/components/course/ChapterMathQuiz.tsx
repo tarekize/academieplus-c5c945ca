@@ -130,7 +130,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           <div className="text-center">
             <div className="text-5xl font-bold text-primary mb-2">{score}/{questions.length}</div>
             <p className="text-muted-foreground">
-              {percentage >= 80 ? "!عمل ممتاز 🎉" : percentage >= 60 ? "!أحسنت، واصل ðŸ‘" : "!واصل التدريب 💪"}
+              {percentage >= 80 ? "!عمل ممتاز 🎉" : percentage >= 60 ? "!أحسنت، واصل 👍" : "!واصل التدريب 💪"}
             </p>
             <div className="flex items-center justify-center gap-2 mt-3 text-sm text-muted-foreground bg-muted px-4 py-2 rounded-lg inline-flex">
               <Clock className="h-4 w-4" /><span className="font-mono font-medium">{formattedTime}</span>
