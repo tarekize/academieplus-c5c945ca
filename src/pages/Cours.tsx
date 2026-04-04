@@ -537,7 +537,7 @@ const Cours = () => {
           <div className="space-y-4">
             {/* Back to levels button for pedago/admin */}
             {canManage && (
-              <Button variant="ghost" className="gap-2" onClick={() => navigate("/liste-cours")}>
+              <Button variant="outline" className="gap-2 mb-2" onClick={() => navigate("/liste-cours")}>
                 <ArrowLeft className="h-4 w-4" />
                 Retour aux niveaux
               </Button>
