@@ -64,7 +64,7 @@ const PolitiqueConfidentialite = () => {
                   </div>
 
                   <div className="bg-secondary/20 p-4 rounded-lg">
-                    <h3 className="font-semibold text-foreground mb-2">ðŸ“š Données d'utilisation</h3>
+                    <h3 className="font-semibold text-foreground mb-2">📚 Données d'utilisation</h3>
                     <ul className="list-disc list-inside text-muted-foreground space-y-1">
                       <li>Historique de consultation des cours</li>
                       <li>Résultats aux examens et simulations</li>
@@ -74,7 +74,7 @@ const PolitiqueConfidentialite = () => {
                   </div>
 
                   <div className="bg-secondary/20 p-4 rounded-lg">
-                    <h3 className="font-semibold text-foreground mb-2">ðŸ’³ Données de facturation</h3>
+                    <h3 className="font-semibold text-foreground mb-2">💳 Données de facturation</h3>
                     <ul className="list-disc list-inside text-muted-foreground space-y-1">
                       <li>Type et statut d'abonnement</li>
                       <li>Historique des paiements</li>
@@ -84,7 +84,7 @@ const PolitiqueConfidentialite = () => {
                   </div>
 
                   <div className="bg-secondary/20 p-4 rounded-lg">
-                    <h3 className="font-semibold text-foreground mb-2">ðŸ”’ Données techniques</h3>
+                    <h3 className="font-semibold text-foreground mb-2">🔒 Données techniques</h3>
                     <ul className="list-disc list-inside text-muted-foreground space-y-1">
                       <li>Adresse IP</li>
                       <li>Type de navigateur et appareil</li>
@@ -129,7 +129,7 @@ const PolitiqueConfidentialite = () => {
                 <h2 className="text-2xl font-bold text-foreground mb-4">5. Protection des données des mineurs</h2>
                 <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-r-lg">
                   <p className="text-foreground font-medium mb-3">
-                    âš ️ Protection renforcée pour les mineurs (moins de 18 ans)
+                    ⚠️ Protection renforcée pour les mineurs (moins de 18 ans)
                   </p>
                   <ul className="list-disc list-inside text-muted-foreground space-y-2">
                     <li>Les données des mineurs sont traitées avec une protection renforcée</li>
@@ -145,7 +145,7 @@ const PolitiqueConfidentialite = () => {
                 <h2 className="text-2xl font-bold text-foreground mb-4">6. Durée de conservation des données</h2>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <span className="text-2xl">ðŸ‘¤</span>
+                    <span className="text-2xl">👤</span>
                     <div>
                       <p className="font-semibold text-foreground">Comptes actifs</p>
                       <p className="text-muted-foreground">Données conservées tant que le compte est actif</p>
@@ -153,7 +153,7 @@ const PolitiqueConfidentialite = () => {
                   </div>
                   
                   <div className="flex items-start gap-3">
-                    <span className="text-2xl">ðŸ’¤</span>
+                    <span className="text-2xl">💤</span>
                     <div>
                       <p className="font-semibold text-foreground">Comptes inactifs</p>
                       <p className="text-muted-foreground">Suppression automatique après 3 ans d'inactivité (obligation légale)</p>
@@ -161,7 +161,7 @@ const PolitiqueConfidentialite = () => {
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <span className="text-2xl">ðŸ§¾</span>
+                    <span className="text-2xl">🧾</span>
                     <div>
                       <p className="font-semibold text-foreground">Factures</p>
                       <p className="text-muted-foreground">Conservation 10 ans (obligation comptable et fiscale)</p>
@@ -169,7 +169,7 @@ const PolitiqueConfidentialite = () => {
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <span className="text-2xl">ðŸ—‘️</span>
+                    <span className="text-2xl">🗑️</span>
                     <div>
                       <p className="font-semibold text-foreground">Comptes supprimés</p>
                       <p className="text-muted-foreground">Données anonymisées conservées 3 ans maximum, puis suppression définitive</p>
@@ -177,7 +177,7 @@ const PolitiqueConfidentialite = () => {
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <span className="text-2xl">ðŸ“Š</span>
+                    <span className="text-2xl">📊</span>
                     <div>
                       <p className="font-semibold text-foreground">Logs et statistiques</p>
                       <p className="text-muted-foreground">Conservation 1 an maximum</p>
@@ -233,21 +233,21 @@ const PolitiqueConfidentialite = () => {
                   </div>
 
                   <div className="bg-secondary/20 p-4 rounded-lg">
-                    <h3 className="font-semibold text-foreground mb-2">ðŸ—‘️ Droit à l'effacement (droit à l'oubli)</h3>
+                    <h3 className="font-semibold text-foreground mb-2">🗑️ Droit à l'effacement (droit à l'oubli)</h3>
                     <p className="text-muted-foreground">
                       Vous pouvez supprimer votre compte et toutes vos données à tout moment (sauf données soumises à obligation légale de conservation).
                     </p>
                   </div>
 
                   <div className="bg-secondary/20 p-4 rounded-lg">
-                    <h3 className="font-semibold text-foreground mb-2">ðŸ“¥ Droit à la portabilité</h3>
+                    <h3 className="font-semibold text-foreground mb-2">📥 Droit à la portabilité</h3>
                     <p className="text-muted-foreground">
                       Vous pouvez exporter toutes vos données dans un format structuré (JSON, PDF).
                     </p>
                   </div>
 
                   <div className="bg-secondary/20 p-4 rounded-lg">
-                    <h3 className="font-semibold text-foreground mb-2">â›” Droit d'opposition</h3>
+                    <h3 className="font-semibold text-foreground mb-2">⛔ Droit d'opposition</h3>
                     <p className="text-muted-foreground">
                       Vous pouvez vous opposer au traitement de vos données à des fins statistiques ou marketing.
                     </p>
@@ -297,17 +297,17 @@ const PolitiqueConfidentialite = () => {
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-4">12. Sécurité des données</h2>
                 <p className="text-muted-foreground mb-4">
-                  Nous mettons en Å“uvre des mesures de sécurité techniques et organisationnelles pour protéger vos données :
+                  Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données :
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                  <li>âœ… Chiffrement des communications (HTTPS/TLS)</li>
-                  <li>âœ… Chiffrement des mots de passe (bcrypt)</li>
-                  <li>âœ… Authentification multi-facteurs (disponible)</li>
-                  <li>âœ… Hébergement sécurisé certifié (ISO 27001)</li>
-                  <li>âœ… Sauvegardes quotidiennes chiffrées</li>
-                  <li>âœ… Contrôle d'accès strict aux données</li>
-                  <li>âœ… Surveillance et détection des intrusions</li>
-                  <li>âœ… Tests de sécurité réguliers</li>
+                  <li>✅ Chiffrement des communications (HTTPS/TLS)</li>
+                  <li>✅ Chiffrement des mots de passe (bcrypt)</li>
+                  <li>✅ Authentification multi-facteurs (disponible)</li>
+                  <li>✅ Hébergement sécurisé certifié (ISO 27001)</li>
+                  <li>✅ Sauvegardes quotidiennes chiffrées</li>
+                  <li>✅ Contrôle d'accès strict aux données</li>
+                  <li>✅ Surveillance et détection des intrusions</li>
+                  <li>✅ Tests de sécurité réguliers</li>
                 </ul>
               </div>
 
@@ -351,9 +351,9 @@ const PolitiqueConfidentialite = () => {
                 <div className="bg-primary/10 p-6 rounded-lg">
                   <p className="text-foreground font-semibold mb-3">EduSuccess - Service Protection des Données</p>
                   <p className="text-muted-foreground">
-                    ðŸ“§ Email : <a href="mailto:dpo@edusuccess.fr" className="text-primary hover:underline">dpo@edusuccess.fr</a><br />
-                    ðŸ“ž Téléphone : 01 23 45 67 89<br />
-                    ðŸ“® Courrier : 123 Avenue des Champs-Élysées, 75008 Paris, France
+                    📧 Email : <a href="mailto:dpo@edusuccess.fr" className="text-primary hover:underline">dpo@edusuccess.fr</a><br />
+                    📞 Téléphone : 01 23 45 67 89<br />
+                    📮 Courrier : 123 Avenue des Champs-Élysées, 75008 Paris, France
                   </p>
                 </div>
               </div>
@@ -372,7 +372,7 @@ const PolitiqueConfidentialite = () => {
                     to="/mentions-legales" 
                     className="text-sm text-primary hover:underline"
                   >
-                    Voir les Mentions Légales â†’
+                    Voir les Mentions Légales →
                   </Link>
                 </div>
               </div>

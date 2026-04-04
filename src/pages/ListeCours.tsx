@@ -305,7 +305,7 @@ const ListeCours = () => {
                 Contenu Pédagogique par Niveau
               </h1>
               <p className="text-xl text-muted-foreground mb-8">
-                Sélectionnez un niveau pour voir les cours disponibles ðŸ“š
+                Sélectionnez un niveau pour voir les cours disponibles 📚
               </p>
 
               {/* Search Bar */}
@@ -444,7 +444,7 @@ const ListeCours = () => {
                 {levelName} - Choisir une filière
               </h1>
               <p className="text-xl text-muted-foreground mb-8">
-                Sélectionnez une filière pour voir les cours disponibles ðŸ“š
+                Sélectionnez une filière pour voir les cours disponibles 📚
               </p>
             </div>
 
@@ -560,7 +560,7 @@ const ListeCours = () => {
               Matières de {profile?.school_level ? getSchoolLevelName(profile.school_level) : "ta classe"}
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
-              Découvre tous les cours de ta classe et prépare-toi à réussir ! ðŸš€
+              Découvre tous les cours de ta classe et prépare-toi à réussir ! 🚀
             </p>
 
             {/* Search Bar */}

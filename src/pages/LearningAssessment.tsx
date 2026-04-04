@@ -34,44 +34,44 @@ interface Report {
 
 type Phase = "loading" | "intro" | "quiz" | "evaluating" | "result";
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 // Questions de secours par niveau (utilisées si l'Edge Function est indisponible)
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 const FALLBACK_QUESTIONS: Record<string, Question[]> = {
   "5eme_primaire": [
-    { question: "ÙƒÙ… ÙŠساÙˆÙŠ 45 + 38ØŸ", options: ["81", "83", "79", "85"], correct_index: 1, chapter_ref: "اÙ„جÙ…ع", explanation: "45 + 38 = 83" },
-    { question: "ÙƒÙ… ÙŠساÙˆÙŠ 7 Ã— 8ØŸ", options: ["54", "56", "64", "48"], correct_index: 1, chapter_ref: "اÙ„ضرب", explanation: "7 Ã— 8 = 56" },
-    { question: "Ù…ا Ù‡Ùˆ Ù†اتج 72 ÷ 9ØŸ", options: ["6", "7", "8", "9"], correct_index: 2, chapter_ref: "اÙ„Ù‚سÙ…ة", explanation: "72 ÷ 9 = 8" },
-    { question: "Ù…ا Ù‡Ùˆ Ù…حÙŠط Ù…ربع طÙˆÙ„ ضÙ„عÙ‡ 6 سÙ…ØŸ", options: ["12 سÙ…", "18 سÙ…", "24 سÙ…", "36 سÙ…"], correct_index: 2, chapter_ref: "اÙ„Ù‡Ù†دسة", explanation: "Ù…حÙŠط اÙ„Ù…ربع = 4 Ã— اÙ„ضÙ„ع = 4 Ã— 6 = 24 سÙ…" },
-    { question: "ÙƒÙ… ÙŠساÙˆÙŠ 1/2 + 1/4ØŸ", options: ["2/6", "3/4", "1/3", "2/4"], correct_index: 1, chapter_ref: "اÙ„ÙƒسÙˆر", explanation: "1/2 + 1/4 = 2/4 + 1/4 = 3/4" },
+    { question: "كم يساوي 45 + 38؟", options: ["81", "83", "79", "85"], correct_index: 1, chapter_ref: "الجمع", explanation: "45 + 38 = 83" },
+    { question: "كم يساوي 7 × 8؟", options: ["54", "56", "64", "48"], correct_index: 1, chapter_ref: "الضرب", explanation: "7 × 8 = 56" },
+    { question: "ما هو ناتج 72 ÷ 9؟", options: ["6", "7", "8", "9"], correct_index: 2, chapter_ref: "القسمة", explanation: "72 ÷ 9 = 8" },
+    { question: "ما هو محيط مربع طول ضلعه 6 سم؟", options: ["12 سم", "18 سم", "24 سم", "36 سم"], correct_index: 2, chapter_ref: "الهندسة", explanation: "محيط المربع = 4 × الضلع = 4 × 6 = 24 سم" },
+    { question: "كم يساوي 1/2 + 1/4؟", options: ["2/6", "3/4", "1/3", "2/4"], correct_index: 1, chapter_ref: "الكسور", explanation: "1/2 + 1/4 = 2/4 + 1/4 = 3/4" },
   ],
   "1ere_cem": [
-    { question: "Ù…ا Ù‡Ùˆ حÙ„ اÙ„Ù…عادÙ„ة: x + 5 = 12ØŸ", options: ["x = 5", "x = 6", "x = 7", "x = 8"], correct_index: 2, chapter_ref: "اÙ„Ù…عادÙ„ات", explanation: "x = 12 - 5 = 7" },
-    { question: "Ù…ا Ù‡Ùˆ Ù†اتج: (-3) Ã— (+4)ØŸ", options: ["+12", "-12", "+7", "-7"], correct_index: 1, chapter_ref: "اÙ„أعداد اÙ„صحÙŠحة", explanation: "(-3) Ã— (+4) = -12 (أعداد بإشارتÙŠÙ† Ù…ختÙ„فتÙŠÙ† تعطÙŠ ساÙ„ب)" },
-    { question: "ÙƒÙ… ÙŠساÙˆÙŠ 2³ØŸ", options: ["6", "8", "9", "16"], correct_index: 1, chapter_ref: "اÙ„أسس", explanation: "2³ = 2 Ã— 2 Ã— 2 = 8" },
-    { question: "Ù…ا Ù‡Ùˆ Ù…ساحة Ù…ستطÙŠÙ„ طÙˆÙ„Ù‡ 8 سÙ… ÙˆعرضÙ‡ 5 سÙ…ØŸ", options: ["26 سÙ…²", "40 سÙ…²", "30 سÙ…²", "13 سÙ…²"], correct_index: 1, chapter_ref: "اÙ„Ù‡Ù†دسة", explanation: "اÙ„Ù…ساحة = اÙ„طÙˆÙ„ Ã— اÙ„عرض = 8 Ã— 5 = 40 سÙ…²" },
-    { question: "Ù…ا Ù‡Ùˆ Ù†اتج: 3/4 + 1/8ØŸ", options: ["4/12", "7/8", "4/8", "1/2"], correct_index: 1, chapter_ref: "اÙ„ÙƒسÙˆر", explanation: "3/4 + 1/8 = 6/8 + 1/8 = 7/8" },
+    { question: "ما هو حل المعادلة: x + 5 = 12؟", options: ["x = 5", "x = 6", "x = 7", "x = 8"], correct_index: 2, chapter_ref: "المعادلات", explanation: "x = 12 - 5 = 7" },
+    { question: "ما هو ناتج: (-3) × (+4)؟", options: ["+12", "-12", "+7", "-7"], correct_index: 1, chapter_ref: "الأعداد الصحيحة", explanation: "(-3) × (+4) = -12 (أعداد بإشارتين مختلفتين تعطي سالب)" },
+    { question: "كم يساوي 2³؟", options: ["6", "8", "9", "16"], correct_index: 1, chapter_ref: "الأسس", explanation: "2³ = 2 × 2 × 2 = 8" },
+    { question: "ما هو مساحة مستطيل طوله 8 سم وعرضه 5 سم؟", options: ["26 سم²", "40 سم²", "30 سم²", "13 سم²"], correct_index: 1, chapter_ref: "الهندسة", explanation: "المساحة = الطول × العرض = 8 × 5 = 40 سم²" },
+    { question: "ما هو ناتج: 3/4 + 1/8؟", options: ["4/12", "7/8", "4/8", "1/2"], correct_index: 1, chapter_ref: "الكسور", explanation: "3/4 + 1/8 = 6/8 + 1/8 = 7/8" },
   ],
   "2eme_cem": [
-    { question: "Ù…ا Ù‡Ùˆ حÙ„: 2x - 3 = 7ØŸ", options: ["x = 2", "x = 4", "x = 5", "x = 6"], correct_index: 2, chapter_ref: "اÙ„Ù…عادÙ„ات", explanation: "2x = 10 â†’ x = 5" },
-    { question: "Ù…ا Ù‡Ùˆ Ù†اتج: (x + 2)(x - 2)ØŸ", options: ["x² - 4", "x² + 4", "x² - 2x + 4", "2x"], correct_index: 0, chapter_ref: "اÙ„تحÙ„ÙŠÙ„", explanation: "(a+b)(a-b) = a² - b² â†’ (x+2)(x-2) = x² - 4" },
-    { question: "فÙŠ Ù…ثÙ„ث Ù‚ائÙ… اÙ„زاÙˆÙŠةØŒ اÙ„ضÙ„عاÙ† اÙ„Ù‚ائÙ…اÙ† 3 Ùˆ4ØŒ Ù…ا Ù‡Ùˆ اÙ„ÙˆترØŸ", options: ["5", "6", "7", "âˆš7"], correct_index: 0, chapter_ref: "Ù†ظرÙŠة فÙŠثاغÙˆرس", explanation: "اÙ„Ùˆتر² = 9 + 16 = 25 â†’ اÙ„Ùˆتر = 5" },
-    { question: "Ù…ا Ù‡Ùˆ ÙˆسÙŠط Ù…جÙ…Ùˆعة: 3, 7, 2, 9, 5ØŸ", options: ["5", "7", "4", "3"], correct_index: 0, chapter_ref: "اÙ„إحصاء", explanation: "Ù†رتبÙ‡ا: 2,3,5,7,9 â†’ اÙ„ÙˆسÙŠط = 5" },
-    { question: "Ù…ا Ù‡Ùˆ حجÙ… Ù…تÙˆازÙŠ Ù…ستطÙŠÙ„ات أبعادÙ‡ 3Ã—4Ã—5ØŸ", options: ["47 سÙ…³", "60 سÙ…³", "24 سÙ…³", "36 سÙ…³"], correct_index: 1, chapter_ref: "اÙ„Ù…جسÙ…ات", explanation: "اÙ„حجÙ… = اÙ„طÙˆÙ„ Ã— اÙ„عرض Ã— اÙ„ارتفاع = 3 Ã— 4 Ã— 5 = 60 سÙ…³" },
+    { question: "ما هو حل: 2x - 3 = 7؟", options: ["x = 2", "x = 4", "x = 5", "x = 6"], correct_index: 2, chapter_ref: "المعادلات", explanation: "2x = 10 → x = 5" },
+    { question: "ما هو ناتج: (x + 2)(x - 2)؟", options: ["x² - 4", "x² + 4", "x² - 2x + 4", "2x"], correct_index: 0, chapter_ref: "التحليل", explanation: "(a+b)(a-b) = a² - b² → (x+2)(x-2) = x² - 4" },
+    { question: "في مثلث قائم الزاوية، الضلعان القائمان 3 و4، ما هو الوتر؟", options: ["5", "6", "7", "√7"], correct_index: 0, chapter_ref: "نظرية فيثاغورس", explanation: "الوتر² = 9 + 16 = 25 → الوتر = 5" },
+    { question: "ما هو وسيط مجموعة: 3, 7, 2, 9, 5؟", options: ["5", "7", "4", "3"], correct_index: 0, chapter_ref: "الإحصاء", explanation: "نرتبها: 2,3,5,7,9 → الوسيط = 5" },
+    { question: "ما هو حجم متوازي مستطيلات أبعاده 3×4×5؟", options: ["47 سم³", "60 سم³", "24 سم³", "36 سم³"], correct_index: 1, chapter_ref: "المجسمات", explanation: "الحجم = الطول × العرض × الارتفاع = 3 × 4 × 5 = 60 سم³" },
   ],
   "3eme_cem": [
-    { question: "Ù…ا Ù‡Ùˆ Ù†اتج: (2x + 3)²ØŸ", options: ["4x² + 9", "4x² + 12x + 9", "4x² + 6x + 9", "2x² + 12x + 9"], correct_index: 1, chapter_ref: "اÙ„Ù‡ÙˆÙŠات اÙ„رÙŠاضÙŠة", explanation: "(a+b)² = a² + 2ab + b² â†’ (2x+3)² = 4x² + 12x + 9" },
-    { question: "Ù…ا Ù‡Ùˆ cos(0°)ØŸ", options: ["0", "1", "-1", "1/2"], correct_index: 1, chapter_ref: "اÙ„Ù…ثÙ„ثات", explanation: "cos(0°) = 1" },
-    { question: "Ù…ا Ù‡Ùˆ حÙ„ اÙ„Ù†ظاÙ…: x+y=5 Ùˆ x-y=1ØŸ", options: ["x=2, y=3", "x=3, y=2", "x=4, y=1", "x=1, y=4"], correct_index: 1, chapter_ref: "Ù…Ù†ظÙˆÙ…ة اÙ„Ù…عادÙ„ات", explanation: "باÙ„جÙ…ع: 2x=6 â†’ x=3, y=2" },
-    { question: "Ù…ا Ù‡ÙŠ اÙ„Ù…شتÙ‚ة (اÙ„فرÙ‚) Ù„Ù€ f(x) = 3x²ØŸ", options: ["3x", "6x", "6x²", "3x³"], correct_index: 1, chapter_ref: "اÙ„Ù…شتÙ‚ات (Ù…Ù‚دÙ…ة)", explanation: "f'(x) = 2 Ã— 3x = 6x" },
-    { question: "Ù…ا Ù‡Ùˆ اÙ„Ù…ÙŠÙ„ (Ù…عاÙ…Ù„ اÙ„اتجاÙ‡) Ù„Ù„Ù…ستÙ‚ÙŠÙ… y = 2x + 5ØŸ", options: ["5", "2", "7", "-2"], correct_index: 1, chapter_ref: "اÙ„Ù…عادÙ„ة اÙ„Ù…ستÙ‚ÙŠÙ…ÙŠة", explanation: "y = mx + b â†’ اÙ„Ù…ÙŠÙ„ m = 2" },
+    { question: "ما هو ناتج: (2x + 3)²؟", options: ["4x² + 9", "4x² + 12x + 9", "4x² + 6x + 9", "2x² + 12x + 9"], correct_index: 1, chapter_ref: "الهويات الرياضية", explanation: "(a+b)² = a² + 2ab + b² → (2x+3)² = 4x² + 12x + 9" },
+    { question: "ما هو cos(0°)؟", options: ["0", "1", "-1", "1/2"], correct_index: 1, chapter_ref: "المثلثات", explanation: "cos(0°) = 1" },
+    { question: "ما هو حل النظام: x+y=5 و x-y=1؟", options: ["x=2, y=3", "x=3, y=2", "x=4, y=1", "x=1, y=4"], correct_index: 1, chapter_ref: "منظومة المعادلات", explanation: "بالجمع: 2x=6 → x=3, y=2" },
+    { question: "ما هي المشتقة (الفرق) لـ f(x) = 3x²؟", options: ["3x", "6x", "6x²", "3x³"], correct_index: 1, chapter_ref: "المشتقات (مقدمة)", explanation: "f'(x) = 2 × 3x = 6x" },
+    { question: "ما هو الميل (معامل الاتجاه) للمستقيم y = 2x + 5؟", options: ["5", "2", "7", "-2"], correct_index: 1, chapter_ref: "المعادلة المستقيمية", explanation: "y = mx + b → الميل m = 2" },
   ],
   "4eme_cem": [
-    { question: "Ù…ا Ù‡Ùˆ حÙ„: x² - 5x + 6 = 0ØŸ", options: ["x=1 أÙˆ x=6", "x=2 أÙˆ x=3", "x=-2 أÙˆ x=-3", "x=3 أÙˆ x=4"], correct_index: 1, chapter_ref: "اÙ„Ù…عادÙ„ات اÙ„تربÙŠعÙŠة", explanation: "x² - 5x + 6 = (x-2)(x-3) = 0 â†’ x=2 أÙˆ x=3" },
-    { question: "Ù…ا Ù‡Ùˆ Ù†طاÙ‚ اÙ„داÙ„ة f(x) = âˆšxØŸ", options: ["â„", "[0, +âˆž[", "]-âˆž, 0]", "â„*"], correct_index: 1, chapter_ref: "اÙ„دÙˆاÙ„", explanation: "اÙ„جذر اÙ„تربÙŠعÙŠ Ù…عرف فÙ‚ط Ù„Ù„أعداد اÙ„Ù…Ùˆجبة أÙˆ اÙ„صفر" },
-    { question: "Ù…ا Ù‡Ùˆ sin(30°)ØŸ", options: ["âˆš3/2", "1/2", "âˆš2/2", "1"], correct_index: 1, chapter_ref: "اÙ„Ù…ثÙ„ثات", explanation: "sin(30°) = 1/2" },
-    { question: "Ù…ا Ù‡Ùˆ Ù…تÙˆسط (Ù…عدÙ„): 12, 15, 18, 9, 6ØŸ", options: ["10", "12", "14", "15"], correct_index: 1, chapter_ref: "اÙ„إحصاء", explanation: "اÙ„Ù…عدÙ„ = (12+15+18+9+6) ÷ 5 = 60 ÷ 5 = 12" },
-    { question: "Ù…ا Ù‡Ùˆ تÙ…ÙŠÙŠز (discriminant) Ù…عادÙ„ة 2x² - 4x + 2 = 0ØŸ", options: ["0", "4", "8", "-4"], correct_index: 0, chapter_ref: "اÙ„Ù…عادÙ„ات اÙ„تربÙŠعÙŠة", explanation: "Î” = b² - 4ac = 16 - 16 = 0" },
+    { question: "ما هو حل: x² - 5x + 6 = 0؟", options: ["x=1 أو x=6", "x=2 أو x=3", "x=-2 أو x=-3", "x=3 أو x=4"], correct_index: 1, chapter_ref: "المعادلات التربيعية", explanation: "x² - 5x + 6 = (x-2)(x-3) = 0 → x=2 أو x=3" },
+    { question: "ما هو نطاق الدالة f(x) = √x؟", options: ["â„", "[0, +∞[", "]-∞, 0]", "â„*"], correct_index: 1, chapter_ref: "الدوال", explanation: "الجذر التربيعي معرف فقط للأعداد الموجبة أو الصفر" },
+    { question: "ما هو sin(30°)؟", options: ["√3/2", "1/2", "√2/2", "1"], correct_index: 1, chapter_ref: "المثلثات", explanation: "sin(30°) = 1/2" },
+    { question: "ما هو متوسط (معدل): 12, 15, 18, 9, 6؟", options: ["10", "12", "14", "15"], correct_index: 1, chapter_ref: "الإحصاء", explanation: "المعدل = (12+15+18+9+6) ÷ 5 = 60 ÷ 5 = 12" },
+    { question: "ما هو تمييز (discriminant) معادلة 2x² - 4x + 2 = 0؟", options: ["0", "4", "8", "-4"], correct_index: 0, chapter_ref: "المعادلات التربيعية", explanation: "Δ = b² - 4ac = 16 - 16 = 0" },
   ],
 };
 
@@ -87,36 +87,36 @@ const getFallbackQuestions = (schoolLevel: string): Question[] => {
 const getLocalEvaluation = (correctCount: number, total: number): Report => {
   const pct = Math.round((correctCount / total) * 100);
   if (pct >= 80) return {
-    level_label: "Ù…ستÙˆÙ‰ Ù…Ù…تاز",
-    summary: "أداؤÙƒ رائع! أÙ†ت تÙ…تÙ„Ùƒ Ù‚اعدة Ù…تÙŠÙ†ة ÙˆجاÙ‡ز تÙ…اÙ…اÙ‹ Ù„Ù‡ذا اÙ„Ù…ستÙˆÙ‰.",
-    strengths: ["إتÙ‚اÙ† اÙ„Ù…فاÙ‡ÙŠÙ… اÙ„أساسÙŠة", "دÙ‚ة فÙŠ اÙ„حÙ„"],
-    improvements: ["Ù…ÙˆاصÙ„ة اÙ„تحدÙŠ بتمارين أÙƒثر تعÙ‚ÙŠداÙ‹"],
-    advice: "أÙ†ت فÙŠ اÙ„Ù…سار اÙ„صحÙŠح! ÙˆاصÙ„ Ù‡ذا اÙ„تÙ…ÙŠز Ùˆجرب اÙ„Ù…سائÙ„ اÙ„Ù…تÙ‚دÙ…ة."
+    level_label: "مستوى ممتاز",
+    summary: "أداؤك رائع! أنت تمتلك قاعدة متينة وجاهز تماماً لهذا المستوى.",
+    strengths: ["إتقان المفاهيم الأساسية", "دقة في الحل"],
+    improvements: ["مواصلة التحدي بتمارين أكثر تعقيداً"],
+    advice: "أنت في المسار الصحيح! واصل هذا التميز وجرب المسائل المتقدمة."
   };
   if (pct >= 60) return {
-    level_label: "Ù…ستÙˆÙ‰ جÙŠد",
-    summary: "أداؤÙƒ جÙŠد! Ù„دÙŠÙƒ فÙ‡Ù… جÙŠد Ù„أغÙ„ب اÙ„Ù…فاÙ‡ÙŠÙ…ØŒ Ù…ع بعض اÙ„Ù†Ù‚اط اÙ„تÙŠ تحتاج Ù…راجعة.",
-    strengths: ["فÙ‡Ù… جÙŠد Ù„Ù„Ù…فاÙ‡ÙŠÙ… اÙ„أساسÙŠة"],
-    improvements: ["Ù…راجعة بعض اÙ„فصÙˆÙ„", "تطبÙŠÙ‚ أÙƒثر عÙ„Ù‰ اÙ„تمارين"],
-    advice: "Ù…ع اÙ„Ù‚Ù„ÙŠÙ„ Ù…Ù† اÙ„Ù…راجعة ستصÙ„ Ù„Ù„تÙ…ÙŠز! رÙƒز عÙ„Ù‰ Ù†Ù‚اط ضعفÙƒ."
+    level_label: "مستوى جيد",
+    summary: "أداؤك جيد! لديك فهم جيد لأغلب المفاهيم، مع بعض النقاط التي تحتاج مراجعة.",
+    strengths: ["فهم جيد للمفاهيم الأساسية"],
+    improvements: ["مراجعة بعض الفصول", "تطبيق أكثر على التمارين"],
+    advice: "مع القليل من المراجعة ستصل للتميز! ركز على نقاط ضعفك."
   };
   if (pct >= 40) return {
-    level_label: "Ù…ستÙˆÙ‰ Ù…تÙˆسط",
-    summary: "Ù„دÙŠÙƒ Ù‚اعدة Ù„ÙƒÙ† Ù‡Ù†اÙƒ ثغرات تحتاج Ù…عاÙ„جة. تدرج فÙŠ اÙ„تعÙ„Ù… سÙŠساعدÙƒ ÙƒثÙŠراÙ‹.",
-    strengths: ["اÙ„استعداد Ù„Ù„تعÙ„Ù…"],
-    improvements: ["Ù…راجعة اÙ„Ù…فاÙ‡ÙŠÙ… اÙ„أساسÙŠة", "تخصÙŠص ÙˆÙ‚ت أÙƒثر Ù„Ù„دراسة"],
-    advice: "Ù„ا تÙŠأس! ÙƒÙ„ شÙŠء ÙŠُفÙ‡Ù… باÙ„تÙƒرار ÙˆاÙ„Ù…Ù…ارسة. اÙ„Ù…Ù†صة ستساعدÙƒ خطÙˆة بخطÙˆة."
+    level_label: "مستوى متوسط",
+    summary: "لديك قاعدة لكن هناك ثغرات تحتاج معالجة. تدرج في التعلم سيساعدك كثيراً.",
+    strengths: ["الاستعداد للتعلم"],
+    improvements: ["مراجعة المفاهيم الأساسية", "تخصيص وقت أكثر للدراسة"],
+    advice: "لا تيأس! كل شيء يُفهم بالتكرار والممارسة. المنصة ستساعدك خطوة بخطوة."
   };
   return {
-    level_label: "ÙŠحتاج تعزÙŠز",
-    summary: "Ù„ا تÙ‚Ù„Ù‚! اÙ„بداÙŠة دائÙ…اÙ‹ صعبة. اÙ„Ù…Ù†صة ستساعدÙƒ عÙ„Ù‰ بÙ†اء Ù‚اعدة Ù‚ÙˆÙŠة.",
-    strengths: ["إÙ‚باÙ„ عÙ„Ù‰ اÙ„تعÙ„Ù… ÙˆاÙ„Ù…حاÙˆÙ„ة"],
-    improvements: ["اÙ„بدء Ù…Ù† اÙ„أساسÙŠات", "اÙ„Ù…Ù…ارسة اÙ„ÙŠÙˆÙ…ÙŠة اÙ„Ù…Ù†تظÙ…ة"],
-    advice: "ÙƒÙ„ خبÙŠر ÙƒاÙ† Ù…بتدئاÙ‹! ابدأ بالدروس اÙ„أساسÙŠة ÙˆاستخدÙ… اÙ„Ù…ساعد اÙ„ذÙƒÙŠ."
+    level_label: "يحتاج تعزيز",
+    summary: "لا تقلق! البداية دائماً صعبة. المنصة ستساعدك على بناء قاعدة قوية.",
+    strengths: ["إقبال على التعلم والمحاولة"],
+    improvements: ["البدء من الأساسيات", "الممارسة اليومية المنتظمة"],
+    advice: "كل خبير كان مبتدئاً! ابدأ بالدروس الأساسية واستخدم المساعد الذكي."
   };
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 
 const LearningAssessment = () => {
   const navigate = useNavigate();
@@ -213,7 +213,7 @@ const LearningAssessment = () => {
         testGeneratedRef.current = true;
         generateTest(profileData.school_level);
       } else {
-        // Niveau inconnu â†’ utiliser les questions générales
+        // Niveau inconnu → utiliser les questions générales
         testGeneratedRef.current = true;
         generateTest("3eme_cem");
       }
@@ -244,7 +244,7 @@ const LearningAssessment = () => {
 
     } catch (err: any) {
       console.warn("Edge Function indisponible, utilisation des questions locales:", err?.message);
-      // âœ… Utiliser les questions de secours au lieu de rediriger
+      // ✅ Utiliser les questions de secours au lieu de rediriger
       const fallback = getFallbackQuestions(schoolLevel);
       setQuestions(fallback);
       setPhase("intro");
@@ -311,7 +311,7 @@ const LearningAssessment = () => {
 
     } catch (err: any) {
       console.warn("Évaluation IA indisponible, utilisation de l'évaluation locale:", err?.message);
-      // âœ… Évaluation locale de secours
+      // ✅ Évaluation locale de secours
       const correctCount = answers.filter(a => a.correct).length;
       const total = answers.length;
       setReport(getLocalEvaluation(correctCount, total));
@@ -427,7 +427,7 @@ const LearningAssessment = () => {
             {phase === "loading" && (
               <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-6 py-20">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <p className="text-muted-foreground">جارÙŠ تحضÙŠر اختبار اÙ„تÙ‚ÙŠÙŠÙ…...</p>
+                <p className="text-muted-foreground">جاري تحضير اختبار التقييم...</p>
               </motion.div>
             )}
 
@@ -439,23 +439,23 @@ const LearningAssessment = () => {
                     <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                       <Target className="h-10 w-10 text-primary" />
                     </div>
-                    <h1 className="text-2xl font-bold">اختبار تحدÙŠد اÙ„Ù…ستÙˆÙ‰</h1>
+                    <h1 className="text-2xl font-bold">اختبار تحديد المستوى</h1>
                     <p className="text-muted-foreground leading-relaxed">
-                      سÙŠتÙ… طرح {questions.length} أسئÙ„ة Ù„تÙ‚ÙŠÙŠÙ… Ù…ستÙˆاÙƒ اÙ„حاÙ„ÙŠ فÙŠ اÙ„رÙŠاضÙŠات.
-                      أجب بصدÙ‚ Ù„Ù„حصÙˆÙ„ عÙ„Ù‰ تÙ‚ÙŠÙŠÙ… دÙ‚ÙŠÙ‚.
+                      سيتم طرح {questions.length} أسئلة لتقييم مستواك الحالي في الرياضيات.
+                      أجب بصدق للحصول على تقييم دقيق.
                     </p>
                     <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <Brain className="h-4 w-4" />
-                        <span>{questions.length} أسئÙ„ة</span>
+                        <span>{questions.length} أسئلة</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Sparkles className="h-4 w-4" />
-                        <span>تÙ‚ÙŠÙŠÙ… ذÙƒÙŠ</span>
+                        <span>تقييم ذكي</span>
                       </div>
                     </div>
                     <Button size="lg" onClick={() => setPhase("quiz")} className="gap-2">
-                      ابدأ اÙ„اختبار
+                      ابدأ الاختبار
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   </CardContent>
@@ -469,7 +469,7 @@ const LearningAssessment = () => {
                 <Card>
                   <CardContent className="p-6 space-y-6">
                     <div className="text-sm text-muted-foreground">
-                      اÙ„فصÙ„: {questions[currentIndex].chapter_ref}
+                      الفصل: {questions[currentIndex].chapter_ref}
                     </div>
                     <h2 className="text-lg font-semibold leading-relaxed">
                       {questions[currentIndex].question}
@@ -509,18 +509,18 @@ const LearningAssessment = () => {
 
                     {showExplanation && questions[currentIndex].explanation && (
                       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-lg bg-muted/50 border">
-                        <p className="text-sm font-medium mb-1">اÙ„شرح:</p>
+                        <p className="text-sm font-medium mb-1">الشرح:</p>
                         <p className="text-sm text-muted-foreground">{questions[currentIndex].explanation}</p>
                       </motion.div>
                     )}
 
                     {!showExplanation ? (
                       <Button onClick={handleAnswer} disabled={selectedAnswer === null} className="w-full">
-                        تأÙƒÙŠد اÙ„إجابة
+                        تأكيد الإجابة
                       </Button>
                     ) : (
                       <Button onClick={handleNext} className="w-full gap-2">
-                        {currentIndex < questions.length - 1 ? "اÙ„سؤاÙ„ اÙ„تاÙ„ÙŠ" : "عرض اÙ„Ù†تائج"}
+                        {currentIndex < questions.length - 1 ? "السؤال التالي" : "عرض النتائج"}
                         <ArrowRight className="h-4 w-4" />
                       </Button>
                     )}
@@ -533,7 +533,7 @@ const LearningAssessment = () => {
             {phase === "evaluating" && (
               <motion.div key="eval" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-6 py-20">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <p className="text-muted-foreground">جارÙŠ تحÙ„ÙŠÙ„ اÙ„Ù†تائج...</p>
+                <p className="text-muted-foreground">جاري تحليل النتائج...</p>
               </motion.div>
             )}
 
@@ -545,7 +545,7 @@ const LearningAssessment = () => {
                     <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                       <Trophy className="h-10 w-10 text-primary" />
                     </div>
-                    <h1 className="text-2xl font-bold">Ù†تائج اÙ„تÙ‚ÙŠÙŠÙ…</h1>
+                    <h1 className="text-2xl font-bold">نتائج التقييم</h1>
                     <div className="text-4xl font-bold text-primary">
                       {score.score}/{score.total}
                     </div>
@@ -562,7 +562,7 @@ const LearningAssessment = () => {
                     <CardContent className="p-6 space-y-6">
                       <div className="flex items-center gap-2 text-primary">
                         <Sparkles className="h-5 w-5" />
-                        <h2 className="font-semibold">تÙ‚رÙŠر اÙ„تÙ‚ÙŠÙŠÙ…</h2>
+                        <h2 className="font-semibold">تقرير التقييم</h2>
                       </div>
                       <p className="text-muted-foreground leading-relaxed">{report.summary}</p>
 
@@ -570,12 +570,12 @@ const LearningAssessment = () => {
                         <div>
                           <h3 className="font-semibold text-green-600 flex items-center gap-2 mb-2">
                             <CheckCircle className="h-4 w-4" />
-                            Ù†Ù‚اط اÙ„Ù‚Ùˆة
+                            نقاط القوة
                           </h3>
                           <ul className="space-y-1">
                             {report.strengths.map((s, i) => (
                               <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                                <span className="text-green-500 mt-1">â€¢</span>{s}
+                                <span className="text-green-500 mt-1">•</span>{s}
                               </li>
                             ))}
                           </ul>
@@ -586,12 +586,12 @@ const LearningAssessment = () => {
                         <div>
                           <h3 className="font-semibold text-amber-600 flex items-center gap-2 mb-2">
                             <TrendingUp className="h-4 w-4" />
-                            Ù†Ù‚اط اÙ„تحسÙŠÙ†
+                            نقاط التحسين
                           </h3>
                           <ul className="space-y-1">
                             {report.improvements.map((s, i) => (
                               <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                                <span className="text-amber-500 mt-1">â€¢</span>{s}
+                                <span className="text-amber-500 mt-1">•</span>{s}
                               </li>
                             ))}
                           </ul>
@@ -600,7 +600,7 @@ const LearningAssessment = () => {
 
                       {report.advice && (
                         <div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
-                          <p className="text-sm font-medium text-primary mb-1">ðŸ’¡ Ù†صÙŠحة شخصÙŠة</p>
+                          <p className="text-sm font-medium text-primary mb-1">💡 نصيحة شخصية</p>
                           <p className="text-sm text-muted-foreground">{report.advice}</p>
                         </div>
                       )}
@@ -609,7 +609,7 @@ const LearningAssessment = () => {
                 )}
 
                 <Button size="lg" onClick={saveAndContinue} className="w-full gap-2">
-                  Ù…تابعة إÙ„Ù‰ الدروس
+                  متابعة إلى الدروس
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </motion.div>

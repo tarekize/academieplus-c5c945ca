@@ -114,7 +114,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
                     i18n.language === "fr" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  ðŸ‡«ðŸ‡· FR
+                  🇫🇷 FR
                 </button>
                 <button
                   onClick={() => changeLanguage("ar")}
@@ -122,7 +122,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
                     i18n.language === "ar" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  ðŸ‡©ðŸ‡¿ AR
+                  🇩🇿 AR
                 </button>
               </div>
             </div>
@@ -150,7 +150,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
               href={`tel:${t("header.phone").replace(/\s/g, "")}`}
               className="block text-center text-lg text-foreground font-semibold hover:text-primary py-2"
             >
-              ðŸ“ž {t("header.phone")}
+              📞 {t("header.phone")}
             </a>
 
             {session ? (
@@ -181,7 +181,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
                   i18n.language === "fr" ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground"
                 }`}
               >
-                ðŸ‡«ðŸ‡· Français
+                🇫🇷 Français
               </button>
               <button
                 onClick={() => changeLanguage("ar")}
@@ -189,7 +189,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
                   i18n.language === "ar" ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground"
                 }`}
               >
-                ðŸ‡©ðŸ‡¿ اÙ„عربÙŠة
+                🇩🇿 العربية
               </button>
             </div>
           </div>

@@ -119,7 +119,7 @@ export function LinkedChildrenSection() {
               <div className="space-y-4 mt-4">
                 {error && (
                   <div className="p-3 rounded-md bg-destructive/10 border border-destructive/30 text-destructive text-sm font-medium">
-                    âš ️ {error}
+                    ⚠️ {error}
                   </div>
                 )}
                 <div className="space-y-2">

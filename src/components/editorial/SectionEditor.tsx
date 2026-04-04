@@ -150,14 +150,14 @@ export function SectionEditor({
                 size="sm"
                 onClick={() => setShowFormulaModal(true)}
               >
-                <Plus className="h-4 w-4 mr-2" />âˆ‘ Formule LaTeX
+                <Plus className="h-4 w-4 mr-2" />∑ Formule LaTeX
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowImageModal(true)}
               >
-                <Plus className="h-4 w-4 mr-2" />ðŸ“· Image
+                <Plus className="h-4 w-4 mr-2" />📷 Image
               </Button>
             </div>
 

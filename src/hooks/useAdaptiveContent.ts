@@ -173,10 +173,10 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
         });
       }
 
-      toast({ title: "âœ… تÙ… إÙ†شاء اÙ„Ù…حتÙˆÙ‰", description: "تÙ… إÙ†شاء اÙ„Ù…حتÙˆÙ‰ بÙ†جاح حسب Ù…ستÙˆاÙƒ" });
+      toast({ title: "✅ تم إنشاء المحتوى", description: "تم إنشاء المحتوى بنجاح حسب مستواك" });
     } catch (err: any) {
       console.error("Generate error:", err);
-      toast({ title: "خطأ", description: err.message || "فشÙ„ فÙŠ إÙ†شاء اÙ„Ù…حتÙˆÙ‰", variant: "destructive" });
+      toast({ title: "خطأ", description: err.message || "فشل في إنشاء المحتوى", variant: "destructive" });
     } finally {
       setLoading(prev => ({ ...prev, [contentType]: false }));
     }
@@ -257,13 +257,13 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       await supabase.from("student_scores").insert(scoreRow);
     }
 
-    // Every 5 session answers â†’ auto-refresh with smart notification
+    // Every 5 session answers → auto-refresh with smart notification
     if (newSessionTotal > 0 && newSessionTotal % 5 === 0) {
       const sessionAccuracy = Math.round((newSessionCorrect / newSessionTotal) * 100);
       
       if (sessionAccuracy < 50) {
         // Failure notification
-        const msg = `Ù„دÙŠÙƒ ثغرات فÙŠ Ù‡ذا اÙ„درس (${newSessionCorrect}/${newSessionTotal}). اÙ†Ù‚ر عÙ„Ù‰ "Ù…راجعة" Ù„Ù…راجعة اÙ„بطاÙ‚ات ثÙ… "تجدÙŠد" Ù„تمارين Ù…ÙƒÙŠÙ‘فة.`;
+        const msg = `لديك ثغرات في هذا الدرس (${newSessionCorrect}/${newSessionTotal}). انقر على "مراجعة" لمراجعة البطاقات ثم "تجديد" لتمارين مكيّفة.`;
         setLevelUpMessage(msg);
 
         await supabase.from("student_notifications").insert({
@@ -271,14 +271,14 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           lesson_id: lessonId,
           chapter_id: chapterId,
           notification_type: "performance_drop",
-          title: "ðŸ“‰ اÙ†خفاض فÙŠ اÙ„أداء",
+          title: "📉 انخفاض في الأداء",
           message: msg,
-          diagnostic: `Ù†سبة اÙ„إجابات اÙ„صحÙŠحة: ${sessionAccuracy}% (${newSessionCorrect}/${newSessionTotal})`,
-          advice: "Ù„Ù‚د أعدÙ†ا إÙ†شاء تمارين Ùˆاسئله متعدده الاختيارات Ù…ÙƒÙŠفة Ù…ع Ù…ستÙˆاÙƒ اÙ„حاÙ„ÙŠ Ù„Ù…ساعدتÙƒ عÙ„Ù‰ اÙ„تحسÙ†.",
+          diagnostic: `نسبة الإجابات الصحيحة: ${sessionAccuracy}% (${newSessionCorrect}/${newSessionTotal})`,
+          advice: "لقد أعدنا إنشاء تمارين واسئله متعدده الاختيارات مكيفة مع مستواك الحالي لمساعدتك على التحسن.",
         });
       } else if (sessionAccuracy >= 80) {
         // Success notification
-        const msg = `تÙ‡اÙ†ÙŠÙ†ا! أÙ†ت تتÙ‚Ù† Ù‡ذا اÙ„Ù…ستÙˆÙ‰ (${newSessionCorrect}/${newSessionTotal}). اÙ†Ù‚ر عÙ„Ù‰ "تجدÙŠد" Ù„Ù„اÙ†تÙ‚اÙ„ إÙ„Ù‰ تحدÙŠات أصعب!`;
+        const msg = `تهانينا! أنت تتقن هذا المستوى (${newSessionCorrect}/${newSessionTotal}). انقر على "تجديد" للانتقال إلى تحديات أصعب!`;
         setLevelUpMessage(msg);
 
         await supabase.from("student_notifications").insert({
@@ -286,18 +286,18 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           lesson_id: lessonId,
           chapter_id: chapterId,
           notification_type: "level_up",
-          title: "ðŸŽ‰ Ù…ستÙˆÙ‰ Ù…Ù…تاز!",
+          title: "🎉 مستوى ممتاز!",
           message: msg,
-          diagnostic: `Ù†سبة اÙ„إجابات اÙ„صحÙŠحة: ${sessionAccuracy}%`,
-          advice: "تÙ… رفع Ù…ستÙˆÙ‰ اÙ„صعÙˆبة. استÙ…ر فÙŠ اÙ„تÙ‚دÙ…!",
+          diagnostic: `نسبة الإجابات الصحيحة: ${sessionAccuracy}%`,
+          advice: "تم رفع مستوى الصعوبة. استمر في التقدم!",
         });
       } else {
-        const msg = `تÙ… تحÙ„ÙŠÙ„ أدائÙƒ (${newSessionCorrect}/${newSessionTotal}). ÙŠتÙ… تحدÙŠث اÙ„Ù…حتÙˆÙ‰ حسب Ù…ستÙˆاÙƒ اÙ„جدÙŠد.`;
+        const msg = `تم تحليل أدائك (${newSessionCorrect}/${newSessionTotal}). يتم تحديث المحتوى حسب مستواك الجديد.`;
         setLevelUpMessage(msg);
       }
 
       // Auto-regenerate content for the active type
-      toast({ title: "ðŸ”„ تحدÙŠث اÙ„Ù…ستÙˆÙ‰", description: "جارÙŠ إعادة إÙ†شاء اÙ„Ù…حتÙˆÙ‰ حسب Ù…ستÙˆاÙƒ اÙ„جدÙŠد..." });
+      toast({ title: "🔄 تحديث المستوى", description: "جاري إعادة إنشاء المحتوى حسب مستواك الجديد..." });
       
       // Reset session counters for next batch
       setSessionCorrect(0);

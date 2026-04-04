@@ -593,7 +593,7 @@ const MesInformations = () => {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>ÃŠtes-vous absolument sûr ?</AlertDialogTitle>
+                      <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
                       <AlertDialogDescription>
                         Cette action est irréversible. Cela supprimera définitivement votre compte et toutes vos
                         données associées.

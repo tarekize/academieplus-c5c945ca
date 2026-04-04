@@ -220,7 +220,7 @@ const Factures = () => {
         <div class="info-box left">
           <div class="info-label">Facturé à</div>
           <div class="info-name">${userName}</div>
-          <div class="info-email">${profile?.email || "â€”"}</div>
+          <div class="info-email">${profile?.email || "—"}</div>
         </div>
         <div class="info-box right">
           <div class="info-label">Détails de facturation</div>
@@ -355,7 +355,7 @@ const Factures = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Dernier paiement</p>
                     <p className="text-xl font-bold">
-                      {payments.length > 0 ? formatDate(payments[0].payment_date) : "â€”"}
+                      {payments.length > 0 ? formatDate(payments[0].payment_date) : "—"}
                     </p>
                   </div>
                 </div>

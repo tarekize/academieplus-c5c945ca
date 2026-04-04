@@ -115,7 +115,7 @@ export function LessonEditorActivities({
               </div>
               <div>
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white" dir="rtl">تمارين (Exercices)</h3>
-                <p className="text-sm font-medium text-muted-foreground mt-1" dir="rtl">{exercises.length} تمارين Ù…تاحة</p>
+                <p className="text-sm font-medium text-muted-foreground mt-1" dir="rtl">{exercises.length} تمارين متاحة</p>
               </div>
             </CardContent>
           </Card>
@@ -130,7 +130,7 @@ export function LessonEditorActivities({
               </div>
               <div>
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white" dir="rtl">اسئله متعدده الاختيارات (Quizzes)</h3>
-                <p className="text-sm font-medium text-muted-foreground mt-1" dir="rtl">{quizzes.length} أسئلة Ù…تاحة</p>
+                <p className="text-sm font-medium text-muted-foreground mt-1" dir="rtl">{quizzes.length} أسئلة متاحة</p>
               </div>
             </CardContent>
           </Card>
@@ -150,7 +150,7 @@ export function LessonEditorActivities({
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={() => handleTabChange(null)} className="h-9 px-4 gap-2 hover:bg-primary hover:text-primary-foreground transition-colors group">
             <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-            <span dir="rtl" className="font-medium">اÙ„عÙˆدة إÙ„Ù‰ Ù…حتÙˆÙ‰ اÙ„درس</span>
+            <span dir="rtl" className="font-medium">العودة إلى محتوى الدرس</span>
           </Button>
           <div className="mr-4">
             <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
@@ -223,7 +223,7 @@ export function LessonEditorActivities({
                     لا توجد {isExercises ? "تمارين" : "اسئله متعدده الاختيارات"} في هذا المستوى
                   </h4>
                   <p className="text-sm text-muted-foreground max-w-md mt-2" dir="rtl">
-                    ابدأ فÙŠ إثراء Ù‡ذا اÙ„درس عÙ† طرÙŠÙ‚ إضافة {isExercises ? "أÙˆÙ„ تÙ…رÙŠÙ† Ù„Ùƒ" : "أÙˆÙ„ سؤاÙ„ Ù„Ùƒ"}. سÙŠساعد ذÙ„Ùƒ اÙ„طÙ„اب عÙ„Ù‰ {level.labelAr}.
+                    ابدأ في إثراء هذا الدرس عن طريق إضافة {isExercises ? "أول تمرين لك" : "أول سؤال لك"}. سيساعد ذلك الطلاب على {level.labelAr}.
                   </p>
                 </div>
               ) : (

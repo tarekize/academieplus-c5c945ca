@@ -225,7 +225,7 @@ const Auth = () => {
         }
       }
 
-      // âœ… AFFICHER L'OVERLAY IMMÉDIATEMENT - SANS ATTENDRE LE SERVEUR
+      // ✅ AFFICHER L'OVERLAY IMMÉDIATEMENT - SANS ATTENDRE LE SERVEUR
       setIsRegistering(true);
 
       // Envoyer l'inscription en arrière-plan
@@ -388,7 +388,7 @@ const Auth = () => {
   // Ne pas masquer l'interface si on est sur /learning-assessment, /complete-profile, ou pendant l'inscription
   const isOnboardingOrAssessment = ["/learning-assessment", "/complete-profile"].some((path) => window.location.pathname.startsWith(path));
 
-  // âš ️ IMPORTANT: Ne PAS retourner null pendant l'inscription (isRegistering)
+  // ⚠️ IMPORTANT: Ne PAS retourner null pendant l'inscription (isRegistering)
   // car la session Supabase est créée AVANT la navigation vers /learning-assessment
   // ce qui causait une page blanche entre les deux
   if (session && !isOnboardingOrAssessment && !isRegistering) {
@@ -440,7 +440,7 @@ const Auth = () => {
                     Entrez l'adresse e-mail avec laquelle vous vous êtes inscrit. Nous allons vous envoyer un e-mail avec votre nom d'utilisateur et un lien pour réinitialiser votre mot de passe.
                   </p>
                   <p className="text-sm font-medium text-warning mt-2">
-                    âš ️ Ce lien expirera dans 1 heure.
+                    ⚠️ Ce lien expirera dans 1 heure.
                   </p>
                 </div>
 

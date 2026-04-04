@@ -20,27 +20,27 @@ export const BotCompanion = ({
         { emoji: string; motion: string; scale: number }
     > = {
         welcome: {
-            emoji: "ðŸ‘‹",
+            emoji: "👋",
             motion: "wave",
             scale: 1,
         },
         excited: {
-            emoji: "ðŸŽ‰",
+            emoji: "🎉",
             motion: "bounce",
             scale: 1.1,
         },
         thinking: {
-            emoji: "ðŸ¤”",
+            emoji: "🤔",
             motion: "pulse",
             scale: 1,
         },
         happy: {
-            emoji: "ðŸ˜Š",
+            emoji: "😊",
             motion: "bounce",
             scale: 1,
         },
         encouraging: {
-            emoji: "ðŸ’ª",
+            emoji: "💪",
             motion: "pulse",
             scale: 1.05,
         },

@@ -62,11 +62,11 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
 
     const handleLessonClick = async (lesson: any) => {
         if (canManage) {
-            // Pédagogue â†’ navigate to lesson editor
+            // Pédagogue → navigate to lesson editor
             navigate(`/lecon/${lesson.id}`);
             return;
         }
-        // Élève â†’ show content inline
+        // Élève → show content inline
         setSelectedLesson(lesson);
         setLessonView("course");
         setActiveActivity(null);
@@ -319,7 +319,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         </div>
                         <div>
                             <h3 className="font-semibold" dir="rtl">اسئله متعدده الاختيارات</h3>
-                            <p className="text-sm text-muted-foreground" dir="rtl">{dbQuizzes.length} أسئÙ„ة</p>
+                            <p className="text-sm text-muted-foreground" dir="rtl">{dbQuizzes.length} أسئلة</p>
                         </div>
                     </CardContent>
                 </Card>

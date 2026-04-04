@@ -197,7 +197,7 @@ export const MathExercises = ({ onClose }: MathExercisesProps) => {
                     <span className="text-sm text-muted-foreground">{ex.category}</span>
                   </div>
                 </div>
-                <span className="text-primary">â†’</span>
+                <span className="text-primary">→</span>
               </button>
             );
           })}

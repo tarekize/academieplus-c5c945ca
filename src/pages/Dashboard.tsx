@@ -192,7 +192,7 @@ const Dashboard = () => {
           {!isStudent && (
             <>
               <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2">Bonjour {fullName} ðŸ‘‹</h1>
+                <h1 className="text-3xl font-bold mb-2">Bonjour {fullName} 👋</h1>
                 <p className="text-muted-foreground">
                   {isAdmin ? "Bienvenue sur votre espace d'administration" : "Bienvenue sur votre tableau de bord"}
                 </p>

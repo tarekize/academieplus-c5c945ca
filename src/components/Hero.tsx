@@ -60,7 +60,7 @@ const Hero = () => {
             transition={{ duration: 1, delay: 0.8 }}
             className="flex items-center gap-2 text-primary-foreground/80 mt-6"
           >
-            <span className="text-xl">ðŸ‡©ðŸ‡¿</span>
+            <span className="text-xl">🇩🇿</span>
             <span className="text-sm">{t("hero.programs")}</span>
           </motion.div>
         </div>

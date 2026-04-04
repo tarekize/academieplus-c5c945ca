@@ -52,7 +52,7 @@ export const AdaptiveLesson = ({
     videos,
     learningStyle,
 }: AdaptiveLessonProps) => {
-    // Visuel â†’ affiche vidéos par défaut ; Textuel â†’ affiche texte par défaut
+    // Visuel → affiche vidéos par défaut ; Textuel → affiche texte par défaut
     const [showVideos, setShowVideos] = useState(learningStyle === "visual");
 
     const mainVideo = videos.find((v) => v.type === "main");

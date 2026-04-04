@@ -31,10 +31,10 @@ const chapter1: ChapterContent = {
   quizzes: [
     {
       id: "ch1-q1",
-      question: "Parmi les nombres suivants, lequel appartient à â„š mais pas à â„¤ ?",
-      options: ["âˆš2", "3/4", "-5", "Ï€"],
+      question: "Parmi les nombres suivants, lequel appartient à ℚ mais pas à ℤ ?",
+      options: ["√2", "3/4", "-5", "π"],
       correctAnswer: "3/4",
-      explanation: "3/4 est un rationnel (quotient de deux entiers). âˆš2 et Ï€ sont irrationnels, -5 est un entier."
+      explanation: "3/4 est un rationnel (quotient de deux entiers). √2 et π sont irrationnels, -5 est un entier."
     },
     {
       id: "ch1-q2",
@@ -48,28 +48,28 @@ const chapter1: ChapterContent = {
       question: "Quel est le résultat de (-3)² ?",
       options: ["-9", "9", "-6", "6"],
       correctAnswer: "9",
-      explanation: "(-3)² = (-3) Ã— (-3) = 9. Le carré d'un nombre négatif est positif."
+      explanation: "(-3)² = (-3) × (-3) = 9. Le carré d'un nombre négatif est positif."
     },
     {
       id: "ch1-q4",
       question: "L'intervalle [2; 5[ contient :",
       options: ["2 et 5", "2 mais pas 5", "5 mais pas 2", "ni 2 ni 5"],
       correctAnswer: "2 mais pas 5",
-      explanation: "Le crochet [ inclut la borne, le crochet [ exclut la borne. Donc 2 âˆˆ [2; 5[ mais 5 âˆ‰ [2; 5["
+      explanation: "Le crochet [ inclut la borne, le crochet [ exclut la borne. Donc 2 ∈ [2; 5[ mais 5 ∉ [2; 5["
     },
     {
       id: "ch1-q5",
-      question: "âˆš49 + âˆš16 = ?",
-      options: ["âˆš65", "11", "13", "65"],
+      question: "√49 + √16 = ?",
+      options: ["√65", "11", "13", "65"],
       correctAnswer: "11",
-      explanation: "âˆš49 = 7 et âˆš16 = 4, donc âˆš49 + âˆš16 = 7 + 4 = 11"
+      explanation: "√49 = 7 et √16 = 4, donc √49 + √16 = 7 + 4 = 11"
     },
     {
       id: "ch1-q6",
       question: "Quel nombre n'est PAS un nombre rationnel ?",
-      options: ["0,333...", "1/7", "âˆš9", "âˆš5"],
-      correctAnswer: "âˆš5",
-      explanation: "âˆš5 est irrationnel. 0,333... = 1/3, âˆš9 = 3, et 1/7 sont tous rationnels."
+      options: ["0,333...", "1/7", "√9", "√5"],
+      correctAnswer: "√5",
+      explanation: "√5 est irrationnel. 0,333... = 1/3, √9 = 3, et 1/7 sont tous rationnels."
     },
     {
       id: "ch1-q7",
@@ -80,24 +80,24 @@ const chapter1: ChapterContent = {
     },
     {
       id: "ch1-q8",
-      question: "L'intersection de â„• et â„¤⁻ (entiers négatifs) est :",
-      options: ["âˆ…", "{0}", "â„•", "â„¤"],
+      question: "L'intersection de ℕ et ℤ⁻ (entiers négatifs) est :",
+      options: ["∅", "{0}", "ℕ", "ℤ"],
       correctAnswer: "{0}",
-      explanation: "Le seul entier qui est à la fois dans â„• et négatif ou nul est 0."
+      explanation: "Le seul entier qui est à la fois dans ℕ et négatif ou nul est 0."
     },
     {
       id: "ch1-q9",
       question: "Écrire 0,00045 en notation scientifique :",
-      options: ["4,5 Ã— 10⁻⁴", "45 Ã— 10⁻⁵", "4,5 Ã— 10⁻³", "0,45 Ã— 10⁻³"],
-      correctAnswer: "4,5 Ã— 10⁻⁴",
-      explanation: "0,00045 = 4,5 Ã— 10⁻⁴ (on décale la virgule de 4 positions vers la droite)"
+      options: ["4,5 × 10⁻⁴", "45 × 10⁻⁵", "4,5 × 10⁻³", "0,45 × 10⁻³"],
+      correctAnswer: "4,5 × 10⁻⁴",
+      explanation: "0,00045 = 4,5 × 10⁻⁴ (on décale la virgule de 4 positions vers la droite)"
     },
     {
       id: "ch1-q10",
       question: "Quel est le PGCD de 36 et 48 ?",
       options: ["6", "12", "4", "24"],
       correctAnswer: "12",
-      explanation: "36 = 12 Ã— 3 et 48 = 12 Ã— 4. Le PGCD est 12."
+      explanation: "36 = 12 × 3 et 48 = 12 × 4. Le PGCD est 12."
     }
   ],
   exercises: [
@@ -108,9 +108,9 @@ const chapter1: ChapterContent = {
       expectedAnswer: "2/3",
       acceptedAnswers: ["2/3", "2 / 3"],
       solution: `**Étape 1 : Trouver le PGCD de 84 et 126**
-- 84 = 2² Ã— 3 Ã— 7
-- 126 = 2 Ã— 3² Ã— 7
-- PGCD(84, 126) = 2 Ã— 3 Ã— 7 = 42
+- 84 = 2² × 3 × 7
+- 126 = 2 × 3² × 7
+- PGCD(84, 126) = 2 × 3 × 7 = 42
 
 **Étape 2 : Simplifier**
 84/126 = (84 ÷ 42)/(126 ÷ 42) = **2/3**`
@@ -134,66 +134,66 @@ const chapter1: ChapterContent = {
     {
       id: "ch1-ex3",
       title: "Calcul avec puissances",
-      statement: "Calculer (-2)³ Ã— 5². Donner le résultat numérique.",
+      statement: "Calculer (-2)³ × 5². Donner le résultat numérique.",
       expectedAnswer: "-200",
       acceptedAnswers: ["-200"],
       solution: `**Étape 1 : Calculer chaque puissance**
-- (-2)³ = (-2) Ã— (-2) Ã— (-2) = -8
+- (-2)³ = (-2) × (-2) × (-2) = -8
 - 5² = 25
 
 **Étape 2 : Multiplier**
-(-8) Ã— 25 = **-200**`
+(-8) × 25 = **-200**`
     },
     {
       id: "ch1-ex4",
       title: "Racine carrée",
-      statement: "Simplifier âˆš72. Donner le résultat sous la forme aâˆšb où b est le plus petit possible.",
-      expectedAnswer: "6âˆš2",
-      acceptedAnswers: ["6âˆš2", "6*âˆš2", "6 âˆš2"],
+      statement: "Simplifier √72. Donner le résultat sous la forme a√b où b est le plus petit possible.",
+      expectedAnswer: "6√2",
+      acceptedAnswers: ["6√2", "6*√2", "6 √2"],
       solution: `**Étape 1 : Décomposer 72**
-72 = 36 Ã— 2 = 6² Ã— 2
+72 = 36 × 2 = 6² × 2
 
 **Étape 2 : Appliquer les propriétés**
-âˆš72 = âˆš(36 Ã— 2) = âˆš36 Ã— âˆš2 = **6âˆš2**`
+√72 = √(36 × 2) = √36 × √2 = **6√2**`
     },
     {
       id: "ch1-ex5",
       title: "Notation scientifique",
-      statement: "Écrire 0,000327 en notation scientifique. Format : a Ã— 10^n",
-      expectedAnswer: "3,27 Ã— 10^-4",
-      acceptedAnswers: ["3,27 Ã— 10^-4", "3.27 Ã— 10^-4", "3,27Ã—10^-4", "3.27Ã—10^-4", "3,27 Ã— 10⁻⁴"],
+      statement: "Écrire 0,000327 en notation scientifique. Format : a × 10^n",
+      expectedAnswer: "3,27 × 10^-4",
+      acceptedAnswers: ["3,27 × 10^-4", "3.27 × 10^-4", "3,27×10^-4", "3.27×10^-4", "3,27 × 10⁻⁴"],
       solution: `**Méthode :**
 On déplace la virgule vers la droite jusqu'à avoir un nombre entre 1 et 10.
 
-0,000327 â†’ 3,27 (4 déplacements vers la droite)
+0,000327 → 3,27 (4 déplacements vers la droite)
 
-**Résultat :** 3,27 Ã— 10⁻⁴`
+**Résultat :** 3,27 × 10⁻⁴`
     },
     {
       id: "ch1-ex6",
       title: "Intervalles",
-      statement: "Écrire l'ensemble des solutions de -2 â‰¤ x < 5 sous forme d'intervalle.",
+      statement: "Écrire l'ensemble des solutions de -2 ≤ x < 5 sous forme d'intervalle.",
       expectedAnswer: "[-2; 5[",
       acceptedAnswers: ["[-2; 5[", "[-2;5[", "[-2, 5[", "[-2,5["],
       solution: `**Règle :**
-- â‰¤ signifie que la borne est incluse â†’ crochet fermant [
-- < signifie que la borne est exclue â†’ crochet ouvrant [
+- ≤ signifie que la borne est incluse → crochet fermant [
+- < signifie que la borne est exclue → crochet ouvrant [
 
 **Résultat :** [-2; 5[`
     },
     {
       id: "ch1-ex7",
       title: "Calcul avec racines",
-      statement: "Calculer âˆš50 + âˆš18 - âˆš8. Donner le résultat sous la forme aâˆš2.",
-      expectedAnswer: "6âˆš2",
-      acceptedAnswers: ["6âˆš2", "6*âˆš2", "6 âˆš2"],
+      statement: "Calculer √50 + √18 - √8. Donner le résultat sous la forme a√2.",
+      expectedAnswer: "6√2",
+      acceptedAnswers: ["6√2", "6*√2", "6 √2"],
       solution: `**Étape 1 : Simplifier chaque racine**
-- âˆš50 = âˆš(25Ã—2) = 5âˆš2
-- âˆš18 = âˆš(9Ã—2) = 3âˆš2
-- âˆš8 = âˆš(4Ã—2) = 2âˆš2
+- √50 = √(25×2) = 5√2
+- √18 = √(9×2) = 3√2
+- √8 = √(4×2) = 2√2
 
 **Étape 2 : Calculer**
-5âˆš2 + 3âˆš2 - 2âˆš2 = (5 + 3 - 2)âˆš2 = **6âˆš2**`
+5√2 + 3√2 - 2√2 = (5 + 3 - 2)√2 = **6√2**`
     },
     {
       id: "ch1-ex8",
@@ -204,38 +204,38 @@ On déplace la virgule vers la droite jusqu'à avoir un nombre entre 1 et 10.
       solution: `**Règle :** Diviser par une fraction = multiplier par son inverse
 
 **Calcul :**
-(3/4) ÷ (9/8) = (3/4) Ã— (8/9)
-= (3 Ã— 8) / (4 Ã— 9)
+(3/4) ÷ (9/8) = (3/4) × (8/9)
+= (3 × 8) / (4 × 9)
 = 24/36 = **2/3**`
     },
     {
       id: "ch1-ex9",
       title: "Encadrement",
-      statement: "Sachant que âˆš10 â‰ˆ 3,162, donner un encadrement d'ordre 1 (1 décimale) de âˆš10.",
-      expectedAnswer: "3,1 < âˆš10 < 3,2",
-      acceptedAnswers: ["3,1 < âˆš10 < 3,2", "3.1 < âˆš10 < 3.2", "[3,1 ; 3,2]"],
+      statement: "Sachant que √10 ≈ 3,162, donner un encadrement d'ordre 1 (1 décimale) de √10.",
+      expectedAnswer: "3,1 < √10 < 3,2",
+      acceptedAnswers: ["3,1 < √10 < 3,2", "3.1 < √10 < 3.2", "[3,1 ; 3,2]"],
       solution: `**Méthode :**
-âˆš10 â‰ˆ 3,162
+√10 ≈ 3,162
 
 On encadre par les valeurs à une décimale :
-**3,1 < âˆš10 < 3,2**
+**3,1 < √10 < 3,2**
 
 Car 3,1² = 9,61 < 10 et 3,2² = 10,24 > 10`
     },
     {
       id: "ch1-ex10",
       title: "Union d'intervalles",
-      statement: "Écrire sous forme d'intervalle : ]-âˆž; 3] âˆª [1; +âˆž[",
+      statement: "Écrire sous forme d'intervalle : ]-∞; 3] ∪ [1; +∞[",
       expectedAnswer: "â„",
-      acceptedAnswers: ["â„", "R", "]-âˆž; +âˆž["],
+      acceptedAnswers: ["â„", "R", "]-∞; +∞["],
       solution: `**Analyse :**
-- ]-âˆž; 3] contient tous les nombres â‰¤ 3
-- [1; +âˆž[ contient tous les nombres â‰¥ 1
+- ]-∞; 3] contient tous les nombres ≤ 3
+- [1; +∞[ contient tous les nombres ≥ 1
 
 Ces deux intervalles se chevauchent sur [1; 3].
 Leur union couvre tout â„.
 
-**Résultat :** â„ (ou ]-âˆž; +âˆž[)`
+**Résultat :** â„ (ou ]-∞; +∞[)`
     }
   ]
 };
@@ -325,7 +325,7 @@ const chapter2: ChapterContent = {
       acceptedAnswers: ["6x² + 11x - 10", "6x²+11x-10"],
       solution: `**Application de la double distributivité :**
 (3x - 2)(2x + 5)
-= 3x Ã— 2x + 3x Ã— 5 + (-2) Ã— 2x + (-2) Ã— 5
+= 3x × 2x + 3x × 5 + (-2) × 2x + (-2) × 5
 = 6x² + 15x - 4x - 10
 = **6x² + 11x - 10**`
     },
@@ -388,7 +388,7 @@ x² - 10x + 25
 
 - Premier terme : x²
 - Dernier terme : 25 = 5²
-- Terme du milieu : -10x = -2 Ã— x Ã— 5 âœ“
+- Terme du milieu : -10x = -2 × x × 5 ✓
 
 C'est (a - b)² avec a = x, b = 5
 **Résultat :** (x - 5)²`
@@ -433,8 +433,8 @@ C'est (a - b)² avec a = x, b = 5
 (2x - 6)(x + 4) = 0
 
 Un produit est nul si l'un des facteurs est nul :
-- 2x - 6 = 0 âŸ¹ x = 3
-- x + 4 = 0 âŸ¹ x = -4
+- 2x - 6 = 0 ⟹ x = 3
+- x + 4 = 0 ⟹ x = -4
 
 La plus petite valeur est **x = -4**`
     },
@@ -447,7 +447,7 @@ La plus petite valeur est **x = -4**`
       solution: `**Utiliser a² - b² = (a - b)(a + b)**
 
 101² - 99² = (101 - 99)(101 + 99)
-= 2 Ã— 200
+= 2 × 200
 = **400**`
     }
   ]
@@ -463,28 +463,28 @@ const chapter3: ChapterContent = {
       question: "Résoudre : 3x - 7 = 2x + 5",
       options: ["x = 12", "x = -2", "x = 2", "x = -12"],
       correctAnswer: "x = 12",
-      explanation: "3x - 2x = 5 + 7 âŸ¹ x = 12"
+      explanation: "3x - 2x = 5 + 7 ⟹ x = 12"
     },
     {
       id: "ch3-q2",
-      question: "L'ensemble solution de 2x - 4 â‰¥ 0 est :",
-      options: ["]-âˆž; 2]", "[2; +âˆž[", "]-âˆž; 2[", "]2; +âˆž["],
-      correctAnswer: "[2; +âˆž[",
-      explanation: "2x â‰¥ 4 âŸ¹ x â‰¥ 2, donc S = [2; +âˆž["
+      question: "L'ensemble solution de 2x - 4 ≥ 0 est :",
+      options: ["]-∞; 2]", "[2; +∞[", "]-∞; 2[", "]2; +∞["],
+      correctAnswer: "[2; +∞[",
+      explanation: "2x ≥ 4 ⟹ x ≥ 2, donc S = [2; +∞["
     },
     {
       id: "ch3-q3",
       question: "Résoudre : 5(x - 2) = 3x + 4",
       options: ["x = 7", "x = 3", "x = -7", "x = 14"],
       correctAnswer: "x = 7",
-      explanation: "5x - 10 = 3x + 4 âŸ¹ 2x = 14 âŸ¹ x = 7"
+      explanation: "5x - 10 = 3x + 4 ⟹ 2x = 14 ⟹ x = 7"
     },
     {
       id: "ch3-q4",
       question: "L'équation 2x + 3 = 2x + 5 a pour solution :",
       options: ["x = 1", "x = 0", "Aucune solution", "Tous les réels"],
       correctAnswer: "Aucune solution",
-      explanation: "2x - 2x = 5 - 3 âŸ¹ 0 = 2, ce qui est impossible. Aucune solution."
+      explanation: "2x - 2x = 5 - 3 ⟹ 0 = 2, ce qui est impossible. Aucune solution."
     },
     {
       id: "ch3-q5",
@@ -505,14 +505,14 @@ const chapter3: ChapterContent = {
       question: "Résoudre : x/2 - 1 = x/3 + 2",
       options: ["x = 18", "x = 6", "x = -18", "x = 3"],
       correctAnswer: "x = 18",
-      explanation: "x/2 - x/3 = 3 âŸ¹ x/6 = 3 âŸ¹ x = 18"
+      explanation: "x/2 - x/3 = 3 ⟹ x/6 = 3 ⟹ x = 18"
     },
     {
       id: "ch3-q8",
-      question: "L'ensemble solution de 4 - 2x â‰¤ 10 est :",
-      options: ["x â‰¥ -3", "x â‰¤ -3", "x â‰¥ 3", "x â‰¤ 3"],
-      correctAnswer: "x â‰¥ -3",
-      explanation: "-2x â‰¤ 6 âŸ¹ x â‰¥ -3 (on divise par -2, on change le sens)"
+      question: "L'ensemble solution de 4 - 2x ≤ 10 est :",
+      options: ["x ≥ -3", "x ≤ -3", "x ≥ 3", "x ≤ 3"],
+      correctAnswer: "x ≥ -3",
+      explanation: "-2x ≤ 6 ⟹ x ≥ -3 (on divise par -2, on change le sens)"
     },
     {
       id: "ch3-q9",
@@ -556,7 +556,7 @@ const chapter3: ChapterContent = {
 16 > 2x
 8 > x
 
-**S = ]-âˆž; 8[**`
+**S = ]-∞; 8[**`
     },
     {
       id: "ch3-ex3",
@@ -565,8 +565,8 @@ const chapter3: ChapterContent = {
       expectedAnswer: "3 ; -3",
       acceptedAnswers: ["3 ; -3", "3;-3", "-3 ; 3", "-3;3", "x = 3 ou x = -3"],
       solution: `**Produit nul :**
-2x - 6 = 0 âŸ¹ x = 3
-3x + 9 = 0 âŸ¹ x = -3
+2x - 6 = 0 ⟹ x = 3
+3x + 9 = 0 ⟹ x = -3
 
 **S = {-3 ; 3}**`
     },
@@ -582,19 +582,19 @@ const chapter3: ChapterContent = {
 **x = 36**
 
 Vérification : 36/4 + 2 = 9 + 2 = 11
-36/6 + 5 = 6 + 5 = 11 âœ“`
+36/6 + 5 = 6 + 5 = 11 ✓`
     },
     {
       id: "ch3-ex5",
       title: "Inéquation avec coefficient négatif",
-      statement: "Résoudre : -4x + 8 â‰¤ 20. Donner la borne de l'intervalle sous forme d'entier.",
+      statement: "Résoudre : -4x + 8 ≤ 20. Donner la borne de l'intervalle sous forme d'entier.",
       expectedAnswer: "-3",
-      acceptedAnswers: ["-3", "x â‰¥ -3"],
-      solution: `-4x + 8 â‰¤ 20
--4x â‰¤ 12
-x â‰¥ -3 (division par -4, changement de sens)
+      acceptedAnswers: ["-3", "x ≥ -3"],
+      solution: `-4x + 8 ≤ 20
+-4x ≤ 12
+x ≥ -3 (division par -4, changement de sens)
 
-**S = [-3; +âˆž[**`
+**S = [-3; +∞[**`
     },
     {
       id: "ch3-ex6",
@@ -610,20 +610,20 @@ Périmètre = 2(L + 3L) = 8L
 L = 54/8 = **6,75 cm**
 
 Vérification : Longueur = 20,25 cm
-P = 2(6,75 + 20,25) = 2 Ã— 27 = 54 âœ“`
+P = 2(6,75 + 20,25) = 2 × 27 = 54 ✓`
     },
     {
       id: "ch3-ex7",
       title: "Double inéquation",
-      statement: "Résoudre : -3 < 2x + 1 â‰¤ 7. Donner l'intervalle solution.",
+      statement: "Résoudre : -3 < 2x + 1 ≤ 7. Donner l'intervalle solution.",
       expectedAnswer: "]-2; 3]",
       acceptedAnswers: ["]-2; 3]", "]-2;3]", "(-2; 3]"],
       solution: `**Soustraire 1 :**
--3 - 1 < 2x â‰¤ 7 - 1
--4 < 2x â‰¤ 6
+-3 - 1 < 2x ≤ 7 - 1
+-4 < 2x ≤ 6
 
 **Diviser par 2 :**
--2 < x â‰¤ 3
+-2 < x ≤ 3
 
 **S = ]-2; 3]**`
     },
@@ -636,8 +636,8 @@ P = 2(6,75 + 20,25) = 2 Ã— 27 = 54 âœ“`
       solution: `|2x - 4| = 6 signifie :
 2x - 4 = 6 ou 2x - 4 = -6
 
-**Cas 1 :** 2x = 10 âŸ¹ x = 5
-**Cas 2 :** 2x = -2 âŸ¹ x = -1
+**Cas 1 :** 2x = 10 ⟹ x = 5
+**Cas 2 :** 2x = -2 ⟹ x = -1
 
 Somme : 5 + (-1) = **4**`
     },
@@ -662,11 +662,11 @@ M = **16 ans**`
       statement: "Trouver les entiers x tels que 2x - 1 > 5 ET 3x < 21",
       expectedAnswer: "4, 5, 6",
       acceptedAnswers: ["4, 5, 6", "4;5;6", "{4, 5, 6}", "4 5 6"],
-      solution: `**Condition 1 :** 2x - 1 > 5 âŸ¹ 2x > 6 âŸ¹ x > 3
-**Condition 2 :** 3x < 21 âŸ¹ x < 7
+      solution: `**Condition 1 :** 2x - 1 > 5 ⟹ 2x > 6 ⟹ x > 3
+**Condition 2 :** 3x < 21 ⟹ x < 7
 
 Intersection : 3 < x < 7
-Entiers : **x âˆˆ {4, 5, 6}**`
+Entiers : **x ∈ {4, 5, 6}**`
     }
   ]
 };
@@ -681,7 +681,7 @@ const chapter4: ChapterContent = {
       question: "Soit f(x) = 2x - 5. Quelle est l'image de 3 par f ?",
       options: ["1", "-1", "6", "11"],
       correctAnswer: "1",
-      explanation: "f(3) = 2Ã—3 - 5 = 6 - 5 = 1"
+      explanation: "f(3) = 2×3 - 5 = 6 - 5 = 1"
     },
     {
       id: "ch4-q2",
@@ -695,7 +695,7 @@ const chapter4: ChapterContent = {
       question: "Soit f(x) = x² - 4. Les antécédents de 0 sont :",
       options: ["0", "2", "-2", "2 et -2"],
       correctAnswer: "2 et -2",
-      explanation: "f(x) = 0 âŸ¹ x² = 4 âŸ¹ x = 2 ou x = -2"
+      explanation: "f(x) = 0 ⟹ x² = 4 ⟹ x = 2 ou x = -2"
     },
     {
       id: "ch4-q4",
@@ -712,9 +712,9 @@ const chapter4: ChapterContent = {
     {
       id: "ch4-q5",
       question: "Le domaine de définition de f(x) = 1/(x-2) est :",
-      options: ["â„", "â„ \\ {2}", "â„⁺", "]2; +âˆž["],
+      options: ["â„", "â„ \\ {2}", "â„⁺", "]2; +∞["],
       correctAnswer: "â„ \\ {2}",
-      explanation: "On ne peut pas diviser par 0, donc x â‰  2"
+      explanation: "On ne peut pas diviser par 0, donc x ≠ 2"
     },
     {
       id: "ch4-q6",
@@ -728,7 +728,7 @@ const chapter4: ChapterContent = {
       question: "L'extremum de f(x) = x² est :",
       options: ["Un maximum en 0", "Un minimum en 0", "Un maximum en 1", "Il n'y en a pas"],
       correctAnswer: "Un minimum en 0",
-      explanation: "x² â‰¥ 0 pour tout x, avec égalité en x = 0"
+      explanation: "x² ≥ 0 pour tout x, avec égalité en x = 0"
     },
     {
       id: "ch4-q8",
@@ -737,7 +737,7 @@ const chapter4: ChapterContent = {
         "Trouver l'abscisse du point d'ordonnée 2",
         "Trouver l'ordonnée du point d'abscisse 2",
         "Trouver 2 sur l'axe des x",
-        "Calculer 2 Ã— f"
+        "Calculer 2 × f"
       ],
       correctAnswer: "Trouver l'ordonnée du point d'abscisse 2",
       explanation: "f(2) est l'ordonnée du point de la courbe d'abscisse 2"
@@ -764,8 +764,8 @@ const chapter4: ChapterContent = {
       statement: "Soit f(x) = 3x² - 2x + 1. Calculer f(-2).",
       expectedAnswer: "17",
       acceptedAnswers: ["17", "f(-2) = 17"],
-      solution: `f(-2) = 3Ã—(-2)² - 2Ã—(-2) + 1
-= 3Ã—4 + 4 + 1
+      solution: `f(-2) = 3×(-2)² - 2×(-2) + 1
+= 3×4 + 4 + 1
 = 12 + 4 + 1
 = **17**`
     },
@@ -780,7 +780,7 @@ const chapter4: ChapterContent = {
 4x = 20
 **x = 5**
 
-Vérification : f(5) = 4Ã—5 - 7 = 13 âœ“`
+Vérification : f(5) = 4×5 - 7 = 13 ✓`
     },
     {
       id: "ch4-ex3",
@@ -788,23 +788,23 @@ Vérification : f(5) = 4Ã—5 - 7 = 13 âœ“`
       statement: "Soit f(x) = x² - 3x. Calculer f(0) + f(1) + f(2).",
       expectedAnswer: "-4",
       acceptedAnswers: ["-4"],
-      solution: `f(0) = 0² - 3Ã—0 = 0
-f(1) = 1² - 3Ã—1 = -2
-f(2) = 2² - 3Ã—2 = 4 - 6 = -2
+      solution: `f(0) = 0² - 3×0 = 0
+f(1) = 1² - 3×1 = -2
+f(2) = 2² - 3×2 = 4 - 6 = -2
 
 f(0) + f(1) + f(2) = 0 + (-2) + (-2) = **-4**`
     },
     {
       id: "ch4-ex4",
       title: "Domaine de définition",
-      statement: "Soit f(x) = âˆš(x - 3). Pour quelle valeur minimale de x la fonction est-elle définie ?",
+      statement: "Soit f(x) = √(x - 3). Pour quelle valeur minimale de x la fonction est-elle définie ?",
       expectedAnswer: "3",
-      acceptedAnswers: ["3", "x = 3", "x â‰¥ 3"],
-      solution: `Pour que âˆš(x - 3) existe, il faut :
-x - 3 â‰¥ 0
-x â‰¥ 3
+      acceptedAnswers: ["3", "x = 3", "x ≥ 3"],
+      solution: `Pour que √(x - 3) existe, il faut :
+x - 3 ≥ 0
+x ≥ 3
 
-Le domaine de définition est [3; +âˆž[
+Le domaine de définition est [3; +∞[
 La valeur minimale est **x = 3**`
     },
     {
@@ -839,13 +839,13 @@ soit **x = 2**`
       title: "Sens de variation",
       statement: "Soit f(x) = 5 - 2x. Sur quel intervalle f est-elle positive ? Donner la borne.",
       expectedAnswer: "2,5",
-      acceptedAnswers: ["2,5", "2.5", "5/2", "x â‰¤ 2,5"],
-      solution: `f(x) â‰¥ 0
-5 - 2x â‰¥ 0
-5 â‰¥ 2x
-x â‰¤ 2,5
+      acceptedAnswers: ["2,5", "2.5", "5/2", "x ≤ 2,5"],
+      solution: `f(x) ≥ 0
+5 - 2x ≥ 0
+5 ≥ 2x
+x ≤ 2,5
 
-f est positive sur ]-âˆž; **2,5**]`
+f est positive sur ]-∞; **2,5**]`
     },
     {
       id: "ch4-ex8",
@@ -875,10 +875,10 @@ f(3) = f(2) + 3 = 8 + 3 = **11**`
       title: "Problème contextualisé",
       statement: "Le prix d'un trajet en taxi est P(x) = 2.5x + 4 où x est la distance en km. Quel est le prix pour 12 km ?",
       expectedAnswer: "34",
-      acceptedAnswers: ["34", "34â‚¬", "34 â‚¬", "34 euros"],
-      solution: `P(12) = 2.5 Ã— 12 + 4
+      acceptedAnswers: ["34", "34€", "34 €", "34 euros"],
+      solution: `P(12) = 2.5 × 12 + 4
 = 30 + 4
-= **34 â‚¬**`
+= **34 €**`
     }
   ]
 };
@@ -921,28 +921,28 @@ const chapter5: ChapterContent = {
       question: "Deux droites parallèles ont :",
       options: ["La même ordonnée à l'origine", "Le même coefficient directeur", "La même équation", "Aucun point commun toujours"],
       correctAnswer: "Le même coefficient directeur",
-      explanation: "Parallèles âŸº mêmes coefficients directeurs (mais ordonnées à l'origine différentes)"
+      explanation: "Parallèles ⟺ mêmes coefficients directeurs (mais ordonnées à l'origine différentes)"
     },
     {
       id: "ch5-q6",
       question: "f(x) = 5 est une fonction :",
       options: ["Affine non linéaire", "Linéaire", "Constante", "Quadratique"],
       correctAnswer: "Constante",
-      explanation: "f(x) = 5 = 0Ã—x + 5, c'est une fonction constante (cas particulier d'affine)"
+      explanation: "f(x) = 5 = 0×x + 5, c'est une fonction constante (cas particulier d'affine)"
     },
     {
       id: "ch5-q7",
       question: "La droite y = 2x - 1 coupe l'axe des x en :",
       options: ["x = -1", "x = 1/2", "x = 2", "x = 1"],
       correctAnswer: "x = 1/2",
-      explanation: "2x - 1 = 0 âŸ¹ x = 1/2"
+      explanation: "2x - 1 = 0 ⟹ x = 1/2"
     },
     {
       id: "ch5-q8",
       question: "Si f(x) = 3x + b et f(2) = 11, alors b = :",
       options: ["5", "6", "8", "3"],
       correctAnswer: "5",
-      explanation: "f(2) = 6 + b = 11 âŸ¹ b = 5"
+      explanation: "f(2) = 6 + b = 11 ⟹ b = 5"
     },
     {
       id: "ch5-q9",
@@ -956,7 +956,7 @@ const chapter5: ChapterContent = {
       question: "Une fonction linéaire passe toujours par :",
       options: ["(0; 1)", "(1; 0)", "(0; 0)", "(1; 1)"],
       correctAnswer: "(0; 0)",
-      explanation: "f(x) = ax âŸ¹ f(0) = 0, donc passe par l'origine"
+      explanation: "f(x) = ax ⟹ f(0) = 0, donc passe par l'origine"
     }
   ],
   exercises: [
@@ -971,7 +971,7 @@ a + b = 5
 3a + b = 11
 
 **Soustraction :**
-2a = 6 âŸ¹ **a = 3**
+2a = 6 ⟹ **a = 3**
 b = 5 - 3 = 2
 
 f(x) = 3x + 2`
@@ -994,7 +994,7 @@ f(x) = 3x + 2`
       expectedAnswer: "1",
       acceptedAnswers: ["1", "b = 1"],
       solution: `y = 2x + b
-Le point (3; 7) vérifie : 7 = 2Ã—3 + b
+Le point (3; 7) vérifie : 7 = 2×3 + b
 7 = 6 + b
 **b = 1**
 
@@ -1033,17 +1033,17 @@ Donc **a = 3** pour que D2 soit parallèle à D1.`
 3x = 6
 **x = 2**
 
-y = 2Ã—2 + 1 = 5
+y = 2×2 + 1 = 5
 Point : (2; 5)`
     },
     {
       id: "ch5-ex7",
       title: "Fonction affine - Applications",
-      statement: "Un plombier facture 30â‚¬ de déplacement plus 40â‚¬/heure. Quel est le coût pour 3h de travail ?",
+      statement: "Un plombier facture 30€ de déplacement plus 40€/heure. Quel est le coût pour 3h de travail ?",
       expectedAnswer: "150",
-      acceptedAnswers: ["150", "150â‚¬", "150 â‚¬"],
+      acceptedAnswers: ["150", "150€", "150 €"],
       solution: `Coût = f(t) = 40t + 30
-f(3) = 40Ã—3 + 30 = 120 + 30 = **150â‚¬**`
+f(3) = 40×3 + 30 = 120 + 30 = **150€**`
     },
     {
       id: "ch5-ex8",
@@ -1065,7 +1065,7 @@ f(3) = 40Ã—3 + 30 = 120 + 30 = **150â‚¬**`
 3x > 6
 x > 2
 
-La fonction est positive sur ]**2**; +âˆž[`
+La fonction est positive sur ]**2**; +∞[`
     },
     {
       id: "ch5-ex10",
@@ -1094,10 +1094,10 @@ const chapter6: ChapterContent = {
       options: [
         "Croissante sur â„",
         "Décroissante sur â„",
-        "Décroissante sur ]-âˆž; 0] et croissante sur [0; +âˆž[",
-        "Croissante sur ]-âˆž; 0]"
+        "Décroissante sur ]-∞; 0] et croissante sur [0; +∞[",
+        "Croissante sur ]-∞; 0]"
       ],
-      correctAnswer: "Décroissante sur ]-âˆž; 0] et croissante sur [0; +âˆž[",
+      correctAnswer: "Décroissante sur ]-∞; 0] et croissante sur [0; +∞[",
       explanation: "La fonction carré admet un minimum en 0"
     },
     {
@@ -1112,7 +1112,7 @@ const chapter6: ChapterContent = {
       question: "Si x < y < 0, alors :",
       options: ["x² < y²", "x² > y²", "x² = y²", "On ne peut pas comparer"],
       correctAnswer: "x² > y²",
-      explanation: "Sur ]-âˆž; 0], la fonction carré est décroissante, donc l'ordre est inversé"
+      explanation: "Sur ]-∞; 0], la fonction carré est décroissante, donc l'ordre est inversé"
     },
     {
       id: "ch6-q4",
@@ -1152,14 +1152,14 @@ const chapter6: ChapterContent = {
       question: "Résoudre x² = 16 :",
       options: ["x = 4", "x = -4", "x = 4 ou x = -4", "x = 8"],
       correctAnswer: "x = 4 ou x = -4",
-      explanation: "x² = 16 âŸº x = 4 ou x = -4"
+      explanation: "x² = 16 ⟺ x = 4 ou x = -4"
     },
     {
       id: "ch6-q9",
       question: "Laquelle de ces égalités est vraie ?",
-      options: ["(-3)² = -9", "âˆš9 = ±3", "(-5)² = 25", "3² = 6"],
+      options: ["(-3)² = -9", "√9 = ±3", "(-5)² = 25", "3² = 6"],
       correctAnswer: "(-5)² = 25",
-      explanation: "(-5)² = (-5) Ã— (-5) = 25"
+      explanation: "(-5)² = (-5) × (-5) = 25"
     },
     {
       id: "ch6-q10",
@@ -1285,7 +1285,7 @@ x = 2/4 = **1/2**`
       expectedAnswer: "1,5",
       acceptedAnswers: ["1,5", "1.5", "3/2"],
       solution: `t = k/v
-À 60 km/h : 2 = k/60 âŸ¹ k = 120
+À 60 km/h : 2 = k/60 ⟹ k = 120
 
 À 80 km/h : t = 120/80 = **1,5 h**`
     }
@@ -1321,14 +1321,14 @@ const chapter7: ChapterContent = {
       question: "La norme du vecteur u(3, 4) est :",
       options: ["7", "5", "12", "25"],
       correctAnswer: "5",
-      explanation: "||u|| = âˆš(3² + 4²) = âˆš(9 + 16) = âˆš25 = 5"
+      explanation: "||u|| = √(3² + 4²) = √(9 + 16) = √25 = 5"
     },
     {
       id: "ch7-q4",
       question: "Si u(2, 3) et v(4, 6), alors :",
       options: ["u = v", "u = 2v", "v = 2u", "u et v ne sont pas colinéaires"],
       correctAnswer: "v = 2u",
-      explanation: "v = (4, 6) = 2Ã—(2, 3) = 2u"
+      explanation: "v = (4, 6) = 2×(2, 3) = 2u"
     },
     {
       id: "ch7-q5",
@@ -1356,7 +1356,7 @@ const chapter7: ChapterContent = {
       question: "Le vecteur -3u avec u(2, -1) vaut :",
       options: ["(-6, 3)", "(-6, -3)", "(6, -3)", "(-5, 2)"],
       correctAnswer: "(-6, 3)",
-      explanation: "-3u = -3Ã—(2, -1) = (-6, 3)"
+      explanation: "-3u = -3×(2, -1) = (-6, 3)"
     },
     {
       id: "ch7-q9",
@@ -1368,14 +1368,14 @@ const chapter7: ChapterContent = {
         "Ils ont même direction mais sens opposé"
       ],
       correctAnswer: "L'un est multiple de l'autre",
-      explanation: "u et v colinéaires âŸº âˆƒk : v = ku (ou u = 0 ou v = 0)"
+      explanation: "u et v colinéaires ⟺ ∃k : v = ku (ou u = 0 ou v = 0)"
     },
     {
       id: "ch7-q10",
       question: "Si u(a, b) et v(c, d) sont colinéaires, alors :",
-      options: ["a + d = b + c", "ad = bc", "ac = bd", "ad - bc â‰  0"],
+      options: ["a + d = b + c", "ad = bc", "ac = bd", "ad - bc ≠ 0"],
       correctAnswer: "ad = bc",
-      explanation: "Colinéarité : ad - bc = 0 âŸº ad = bc"
+      explanation: "Colinéarité : ad - bc = 0 ⟺ ad = bc"
     }
   ],
   exercises: [
@@ -1395,9 +1395,9 @@ const chapter7: ChapterContent = {
       statement: "Calculer la norme du vecteur u(5, -12).",
       expectedAnswer: "13",
       acceptedAnswers: ["13"],
-      solution: `||u|| = âˆš(5² + (-12)²)
-= âˆš(25 + 144)
-= âˆš169
+      solution: `||u|| = √(5² + (-12)²)
+= √(25 + 144)
+= √169
 = **13**`
     },
     {
@@ -1437,10 +1437,10 @@ const chapter7: ChapterContent = {
       expectedAnswer: "oui",
       acceptedAnswers: ["oui", "Oui", "OUI"],
       solution: `Test de colinéarité : ad - bc = 0 ?
-6 Ã— 6 - (-9) Ã— (-4) = 36 - 36 = 0
+6 × 6 - (-9) × (-4) = 36 - 36 = 0
 
 **Oui**, les vecteurs sont colinéaires.
-(On vérifie : v = -2/3 Ã— u)`
+(On vérifie : v = -2/3 × u)`
     },
     {
       id: "ch7-ex7",
@@ -1543,10 +1543,10 @@ const chapter8: ChapterContent = {
     },
     {
       id: "ch8-q8",
-      question: "On tire une carte d'un jeu de 52 cartes. P(cÅ“ur) = :",
+      question: "On tire une carte d'un jeu de 52 cartes. P(cœur) = :",
       options: ["1/52", "1/13", "1/4", "13/52"],
       correctAnswer: "1/4",
-      explanation: "13 cÅ“urs sur 52 cartes : 13/52 = 1/4"
+      explanation: "13 cœurs sur 52 cartes : 13/52 = 1/4"
     },
     {
       id: "ch8-q9",
@@ -1563,9 +1563,9 @@ const chapter8: ChapterContent = {
     {
       id: "ch8-q10",
       question: "Si deux événements A et B sont incompatibles, alors :",
-      options: ["P(A âˆª B) = P(A) + P(B)", "P(A âˆ© B) = P(A) Ã— P(B)", "P(A) = P(B)", "P(A âˆª B) = 0"],
-      correctAnswer: "P(A âˆª B) = P(A) + P(B)",
-      explanation: "Événements incompatibles : P(A âˆ© B) = 0, donc P(A âˆª B) = P(A) + P(B)"
+      options: ["P(A ∪ B) = P(A) + P(B)", "P(A ∩ B) = P(A) × P(B)", "P(A) = P(B)", "P(A ∪ B) = 0"],
+      correctAnswer: "P(A ∪ B) = P(A) + P(B)",
+      explanation: "Événements incompatibles : P(A ∩ B) = 0, donc P(A ∪ B) = P(A) + P(B)"
     }
   ],
   exercises: [
@@ -1577,7 +1577,7 @@ const chapter8: ChapterContent = {
       acceptedAnswers: ["12,29", "12.29", "86/7", "12,3"],
       solution: `Moyenne = (12+14+8+16+10+15+11)/7
 = 86/7
-â‰ˆ **12,29**`
+≈ **12,29**`
     },
     {
       id: "ch8-ex2",
@@ -1627,14 +1627,14 @@ P(rouge) = 5/10 = **1/2**`
     {
       id: "ch8-ex7",
       title: "Événements incompatibles",
-      statement: "On lance un dé. A : 'obtenir un nombre pair'. B : 'obtenir 1 ou 3'. Calculer P(A âˆª B).",
+      statement: "On lance un dé. A : 'obtenir un nombre pair'. B : 'obtenir 1 ou 3'. Calculer P(A ∪ B).",
       expectedAnswer: "5/6",
       acceptedAnswers: ["5/6", "0,833"],
-      solution: `A = {2, 4, 6} â†’ P(A) = 3/6 = 1/2
-B = {1, 3} â†’ P(B) = 2/6 = 1/3
+      solution: `A = {2, 4, 6} → P(A) = 3/6 = 1/2
+B = {1, 3} → P(B) = 2/6 = 1/3
 A et B sont incompatibles (pas d'élément commun)
 
-P(A âˆª B) = P(A) + P(B) = 1/2 + 1/3 = 3/6 + 2/6 = **5/6**`
+P(A ∪ B) = P(A) + P(B) = 1/2 + 1/3 = 3/6 + 2/6 = **5/6**`
     },
     {
       id: "ch8-ex8",
@@ -1642,10 +1642,10 @@ P(A âˆª B) = P(A) + P(B) = 1/2 + 1/3 = 3/6 + 2/6 = **5/6**`
       statement: "Un élève a 12 de moyenne (coef 3), 15 en maths (coef 4) et 10 en sport (coef 2). Sa moyenne générale ?",
       expectedAnswer: "12,89",
       acceptedAnswers: ["12,89", "12.89", "116/9", "12,9"],
-      solution: `Moyenne = (12Ã—3 + 15Ã—4 + 10Ã—2) / (3+4+2)
+      solution: `Moyenne = (12×3 + 15×4 + 10×2) / (3+4+2)
 = (36 + 60 + 20) / 9
 = 116/9
-â‰ˆ **12,89**`
+≈ **12,89**`
     },
     {
       id: "ch8-ex9",

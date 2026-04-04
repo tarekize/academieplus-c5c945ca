@@ -324,7 +324,7 @@ export default function LessonEditor() {
                   {/* Indicateur de modifications non publiées */}
                   {isDirty && (
                     <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md text-sm text-yellow-800 dark:text-yellow-200">
-                      âš ️ Vous avez des modifications non publiées. Les autres utilisateurs ne verront ces changements qu'après avoir cliqué sur "Envoyer les modifications".
+                      ⚠️ Vous avez des modifications non publiées. Les autres utilisateurs ne verront ces changements qu'après avoir cliqué sur "Envoyer les modifications".
                     </div>
                   )}
                 </>

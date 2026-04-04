@@ -249,7 +249,7 @@ const Abonnements = () => {
                     <div>
                       <h3 className="font-semibold text-lg">Mes Codes d'Activation</h3>
                       <p className="text-sm text-muted-foreground">
-                        {codes.length} code{codes.length > 1 ? "s" : ""} â€¢ {codes.filter(c => c.status === "free").length} disponible{codes.filter(c => c.status === "free").length > 1 ? "s" : ""}
+                        {codes.length} code{codes.length > 1 ? "s" : ""} • {codes.filter(c => c.status === "free").length} disponible{codes.filter(c => c.status === "free").length > 1 ? "s" : ""}
                       </p>
                     </div>
                   </div>
@@ -298,7 +298,7 @@ const Abonnements = () => {
                                   {subStatuses[code.id]?.is_paused ? "En pause" : "Actif"}
                                 </Badge>
                               ) : (
-                                <span className="text-muted-foreground">â€”</span>
+                                <span className="text-muted-foreground">—</span>
                               )}
                             </TableCell>
                             <TableCell className="text-muted-foreground">

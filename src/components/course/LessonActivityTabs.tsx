@@ -118,10 +118,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   // Load userId FIRST (critical for saving)
   useEffect(() => {
     const loadUser = async () => {
-      console.log("ðŸ‘¤ [LessonActivityTabs] Loading current user...");
+      console.log("👤 [LessonActivityTabs] Loading current user...");
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        console.log("âœ… [LessonActivityTabs] User ID loaded:", user.id);
+        console.log("✅ [LessonActivityTabs] User ID loaded:", user.id);
         setUserId(user.id);
 
         // Check subscription status
@@ -142,11 +142,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
           if (remaining > 0) {
             setHasActiveSubscription(true);
-            console.log("âœ… [LessonActivityTabs] Active subscription found");
+            console.log("✅ [LessonActivityTabs] Active subscription found");
           }
         }
       } else {
-        console.warn("âš ️ [LessonActivityTabs] No authenticated user found!");
+        console.warn("⚠️ [LessonActivityTabs] No authenticated user found!");
       }
       setIsLoadingUser(false);
     };
@@ -157,11 +157,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   useEffect(() => {
     const loadProgress = async () => {
       if (!userId) {
-        console.warn("âš ️ [loadProgress] userId not available yet, skipping load");
+        console.warn("⚠️ [loadProgress] userId not available yet, skipping load");
         return;
       }
 
-      console.log("ðŸ”„ [LessonActivityTabs] Loading progress for chapter:", chapterId, "with userId:", userId);
+      console.log("🔄 [LessonActivityTabs] Loading progress for chapter:", chapterId, "with userId:", userId);
 
       let progressQuery = supabase
         .from("student_scores")
@@ -181,10 +181,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       }
 
       const rows = data || [];
-      console.log("ðŸ“Š [LessonActivityTabs] Loaded", rows.length, "progress rows for chapter", chapterId);
+      console.log("📊 [LessonActivityTabs] Loaded", rows.length, "progress rows for chapter", chapterId);
 
       if (rows.length > 0) {
-        console.log("ðŸ“‹ [LessonActivityTabs] Progress data:", JSON.stringify(rows, null, 2));
+        console.log("📋 [LessonActivityTabs] Progress data:", JSON.stringify(rows, null, 2));
       }
 
       const hasExercisesUnlocked = rows.some((row) => {
@@ -227,38 +227,38 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
       setCompletedExerciseIds(uniqueEx);
       setCompletedQuizIds(uniqueQz);
-      console.log("âœ… [LessonActivityTabs] Loaded completed items:", uniqueEx.length, "exercises,", uniqueQz.length, "quizzes");
+      console.log("✅ [LessonActivityTabs] Loaded completed items:", uniqueEx.length, "exercises,", uniqueQz.length, "quizzes");
 
       if (hasExercisesUnlocked) {
-        console.log("ðŸ”“ [LessonActivityTabs] Setting exercises unlocked: true");
+        console.log("🔓 [LessonActivityTabs] Setting exercises unlocked: true");
         setPersistedUnlockEx(true);
         // If unlocked, show at least the required correct count
         if (exercisesCorrectCount < REQUIRED_CORRECT) {
           setDiscoverCorrectEx(REQUIRED_CORRECT);
-          console.log("ðŸ“Š [LessonActivityTabs] Set exercises correct to", REQUIRED_CORRECT);
+          console.log("📊 [LessonActivityTabs] Set exercises correct to", REQUIRED_CORRECT);
         } else {
           setDiscoverCorrectEx(exercisesCorrectCount);
-          console.log("ðŸ“Š [LessonActivityTabs] Set exercises correct to", exercisesCorrectCount);
+          console.log("📊 [LessonActivityTabs] Set exercises correct to", exercisesCorrectCount);
         }
       } else if (exercisesCorrectCount > 0) {
         setDiscoverCorrectEx(exercisesCorrectCount);
-        console.log("ðŸ“Š [LessonActivityTabs] Set exercises correct to", exercisesCorrectCount);
+        console.log("📊 [LessonActivityTabs] Set exercises correct to", exercisesCorrectCount);
       }
 
       if (hasQuizzesUnlocked) {
-        console.log("ðŸ”“ [LessonActivityTabs] Setting quizzes unlocked: true");
+        console.log("🔓 [LessonActivityTabs] Setting quizzes unlocked: true");
         setPersistedUnlockQz(true);
         // If unlocked, show at least the required correct count
         if (quizzesCorrectCount < REQUIRED_CORRECT) {
           setDiscoverCorrectQz(REQUIRED_CORRECT);
-          console.log("ðŸ“Š [LessonActivityTabs] Set quizzes correct to", REQUIRED_CORRECT);
+          console.log("📊 [LessonActivityTabs] Set quizzes correct to", REQUIRED_CORRECT);
         } else {
           setDiscoverCorrectQz(quizzesCorrectCount);
-          console.log("ðŸ“Š [LessonActivityTabs] Set quizzes correct to", quizzesCorrectCount);
+          console.log("📊 [LessonActivityTabs] Set quizzes correct to", quizzesCorrectCount);
         }
       } else if (quizzesCorrectCount > 0) {
         setDiscoverCorrectQz(quizzesCorrectCount);
-        console.log("ðŸ“Š [LessonActivityTabs] Set quizzes correct to", quizzesCorrectCount);
+        console.log("📊 [LessonActivityTabs] Set quizzes correct to", quizzesCorrectCount);
       }
 
       // Initialize subsets filtering out completed items
@@ -287,7 +287,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
   // Save unlock to DB
   const persistUnlock = useCallback(async (type: "exercises" | "quizzes", correctCount?: number) => {
-    console.log(`ðŸ“¤ [persistUnlock] Starting to save ${type} unlock, count:`, correctCount);
+    console.log(`📤 [persistUnlock] Starting to save ${type} unlock, count:`, correctCount);
 
     // Get current user directly (don't rely on state!)
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -298,7 +298,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
 
     const currentUserId = user.id;
-    console.log(`ðŸ“¤ [persistUnlock] User ID: ${currentUserId}, Chapter ID: ${chapterId}, Type: ${type}, Count: ${correctCount}`);
+    console.log(`📤 [persistUnlock] User ID: ${currentUserId}, Chapter ID: ${chapterId}, Type: ${type}, Count: ${correctCount}`);
 
     const field = type === "exercises" ? "exercises_unlocked" : "quizzes_unlocked";
     const countField = type === "exercises" ? "exercises_correct_count" : "quizzes_correct_count";
@@ -311,9 +311,9 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       .eq("chapter_id", chapterId);
 
     if (scanError) {
-      console.warn("âš ️  [persistUnlock] Scan error:", scanError.message);
+      console.warn("⚠️  [persistUnlock] Scan error:", scanError.message);
     } else {
-      console.log(`ðŸ“‹ [persistUnlock] Found ${allRows?.length ?? 0} total rows for chapter (including lessons)`);
+      console.log(`📋 [persistUnlock] Found ${allRows?.length ?? 0} total rows for chapter (including lessons)`);
     }
 
     // Find the row scoped to the current lesson when available.
@@ -321,7 +321,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     const targetRow = allRows?.find(r => lessonId ? r.lesson_id === lessonId : r.lesson_id === null);
 
     if (targetRow) {
-      console.log("âœ… [persistUnlock] Found existing chapter row via JS filter. ID:", targetRow.id);
+      console.log("✅ [persistUnlock] Found existing chapter row via JS filter. ID:", targetRow.id);
 
       const existingData = (targetRow.assessment_data || {}) as Record<string, unknown>;
       const mergedData = {
@@ -339,7 +339,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       if (updateError) {
         console.error("âŒ [persistUnlock] Update failed:", updateError.message);
       } else {
-        console.log("âœ… [persistUnlock] Update success!");
+        console.log("✅ [persistUnlock] Update success!");
       }
       return;
     }
@@ -372,10 +372,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       // If code is 23505 (unique_violation), it means a row DOES exist but our SELECT missed it (RLS?)
       // OR it conflicts with another row (improper index?)
       if (insertError.code === '23505') {
-        console.error("ðŸ’€ [persistUnlock] Critical: Row exists (duplicate key) but was not found in SELECT. This is likely an RLS visibility issue or Index scope issue.");
+        console.error("💀 [persistUnlock] Critical: Row exists (duplicate key) but was not found in SELECT. This is likely an RLS visibility issue or Index scope issue.");
       }
     } else {
-      console.log("âœ… [persistUnlock] Successfully inserted new row");
+      console.log("✅ [persistUnlock] Successfully inserted new row");
     }
 
   }, [chapterId, lessonId]);
@@ -410,7 +410,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         if (updateError) {
           console.error("âŒ Failed to update completion:", updateError);
         } else {
-          console.log("âœ… Saved completion:", itemId);
+          console.log("✅ Saved completion:", itemId);
         }
       }
     } else {
@@ -425,7 +425,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       if (insertError) {
         console.error("âŒ Failed to save new completion row:", insertError);
       } else {
-        console.log("âœ… Created new row for completion:", itemId);
+        console.log("✅ Created new row for completion:", itemId);
       }
     }
   }, [chapterId, lessonId]);
@@ -486,11 +486,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
   // Reload progress from DB (called when user switches sections to ensure fresh data)
   const reloadProgressFromDB = useCallback(async () => {
-    console.log("ðŸ”„ [reloadProgressFromDB] Forcing reload of persisted unlock state");
+    console.log("🔄 [reloadProgressFromDB] Forcing reload of persisted unlock state");
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      console.warn("âš ️ [reloadProgressFromDB] No user found");
+      console.warn("⚠️ [reloadProgressFromDB] No user found");
       return;
     }
 
@@ -512,7 +512,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     }
 
     const rows = data || [];
-    console.log("âœ… [reloadProgressFromDB] Refresh: Loaded", rows.length, "rows");
+    console.log("✅ [reloadProgressFromDB] Refresh: Loaded", rows.length, "rows");
 
     const hasExercisesUnlocked = rows.some((row) => {
       const ad = (row.assessment_data || {}) as Record<string, unknown>;
@@ -535,7 +535,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     }, 0);
 
     if (hasExercisesUnlocked) {
-      console.log("ðŸ”“ [reloadProgressFromDB] exercises_unlocked: true");
+      console.log("🔓 [reloadProgressFromDB] exercises_unlocked: true");
       setPersistedUnlockEx(true);
       if (exercisesCorrectCount < REQUIRED_CORRECT) {
         setDiscoverCorrectEx(REQUIRED_CORRECT);
@@ -544,7 +544,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       }
     }
     if (hasQuizzesUnlocked) {
-      console.log("ðŸ”“ [reloadProgressFromDB] quizzes_unlocked: true");
+      console.log("🔓 [reloadProgressFromDB] quizzes_unlocked: true");
       setPersistedUnlockQz(true);
       if (quizzesCorrectCount < REQUIRED_CORRECT) {
         setDiscoverCorrectQz(REQUIRED_CORRECT);
@@ -555,13 +555,13 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   }, [chapterId, lessonId]);
 
   const handleSectionChange = (section: ActivitySection) => {
-    console.log("ðŸ–±️ [handleSectionChange] Changed to section:", section);
+    console.log("🖱️ [handleSectionChange] Changed to section:", section);
     setActiveSection(section);
     setActiveStep("decouvrir");
 
     // Reload progress from DB whenever user changes section
     if (section !== null) {
-      console.log("ðŸ“¥ [handleSectionChange] Reloading progress from DB...");
+      console.log("📥 [handleSectionChange] Reloading progress from DB...");
       reloadProgressFromDB();
     }
 
@@ -610,10 +610,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       if (isCorrect) {
         setDiscoverCorrectEx(prev => {
           const next = prev + 1;
-          console.log(`âœ… [handleDiscoverAnswer] exercises: ${prev} â†’ ${next} correct (need ${REQUIRED_CORRECT})`);
+          console.log(`✅ [handleDiscoverAnswer] exercises: ${prev} → ${next} correct (need ${REQUIRED_CORRECT})`);
 
           if (next >= REQUIRED_CORRECT && !persistedUnlockEx) {
-            console.log("ðŸŽ‰ [handleDiscoverAnswer] exercises: UNLOCKING!");
+            console.log("🎉 [handleDiscoverAnswer] exercises: UNLOCKING!");
             // This is a NEW unlock -> Show animation
             setShowUnlockMessage(true);
             setTimeout(() => {
@@ -631,10 +631,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       if (isCorrect) {
         setDiscoverCorrectQz(prev => {
           const next = prev + 1;
-          console.log(`âœ… [handleDiscoverAnswer] quizzes: ${prev} â†’ ${next} correct (need ${REQUIRED_CORRECT})`);
+          console.log(`✅ [handleDiscoverAnswer] quizzes: ${prev} → ${next} correct (need ${REQUIRED_CORRECT})`);
 
           if (next >= REQUIRED_CORRECT && !persistedUnlockQz) {
-            console.log("ðŸŽ‰ [handleDiscoverAnswer] quizzes: UNLOCKING!");
+            console.log("🎉 [handleDiscoverAnswer] quizzes: UNLOCKING!");
             // This is a NEW unlock -> Show animation
             setShowUnlockMessage(true);
             setTimeout(() => {
@@ -723,7 +723,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     return (
 
       <div className="mt-6 space-y-4">
-        {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>â† اÙ„عÙˆدة</Button>}
+        {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>â† العودة</Button>}
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><BookOpen className="h-5 w-5 text-green-500" /><span>Fiches de révision</span></CardTitle></CardHeader>
           <CardContent><p className="text-muted-foreground text-center py-8" dir="rtl">بطاقات المراجعة الخاصة بالدرس متوفرة في القسم الذكي أعلاه..</p></CardContent>
@@ -738,7 +738,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   return (
     <div className="mt-6 space-y-4">
       <div className="flex items-center gap-3">
-        {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>â† اÙ„عÙˆدة</Button>}
+        {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>â† العودة</Button>}
         <div className="flex items-center gap-2">
           <SectionIcon className={cn("h-5 w-5", isQuiz ? "text-primary" : "text-orange-500")} />
           <h2 className="text-lg font-bold" dir="rtl">{isQuiz ? "اسئله متعدده الاختيارات" : "تمارين"}</h2>
@@ -750,7 +750,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         <Card className="border-blue-500/20 bg-blue-500/5 transition-all duration-500">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium" dir="rtl">تÙ‚دÙ…Ùƒ فÙŠ Ù…رحÙ„ة "اكتشف"</span>
+              <span className="text-sm font-medium" dir="rtl">تقدمك في مرحلة "اكتشف"</span>
               <Badge variant={isUnlocked ? "default" : "secondary"} className={isUnlocked ? "bg-green-500" : ""}>
                 {currentCorrect} / {REQUIRED_CORRECT} إجابات صحيحة
               </Badge>
@@ -759,15 +759,15 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             {showUnlockMessage && (
               <p className="text-xs text-green-600 mt-2 flex items-center gap-1 animate-in fade-in slide-in-from-top-1" dir="rtl">
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                تÙ… فتح اÙ„Ù…راحÙ„ اÙ„تاÙ„ÙŠة! ÙŠÙ…ÙƒÙ†Ùƒ اÙ„آÙ† اÙ„اÙ†تÙ‚اÙ„ إÙ„Ù‰ "افهم" Ùˆ "تعمّق"
+                تم فتح المراحل التالية! يمكنك الآن الانتقال إلى "افهم" و "تعمّق"
               </p>
             )}
             {failedDiscover && (
               <div className="mt-2 flex items-center justify-between">
-                <p className="text-xs text-red-500" dir="rtl">Ù„Ù… تحقق {REQUIRED_CORRECT} إجابات صحيحة. حاÙˆÙ„ Ù…رة أخرÙ‰!</p>
+                <p className="text-xs text-red-500" dir="rtl">لم تحقق {REQUIRED_CORRECT} إجابات صحيحة. حاول مرة أخرى!</p>
                 <Button size="sm" variant="outline" onClick={handleReloadDiscover} className="gap-1">
                   <RefreshCw className="h-3.5 w-3.5" />
-                  إعادة اÙ„Ù…حاÙˆÙ„ة
+                  إعادة المحاولة
                 </Button>
               </div>
             )}
@@ -879,7 +879,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     dir="rtl"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    <span>{showCorrectOnly ? "اÙ„عÙˆدة Ù„Ù„تمارين" : "إجابات صحيحة"}</span>
+                    <span>{showCorrectOnly ? "العودة للتمارين" : "إجابات صحيحة"}</span>
                   </Button>
                 )}
 
@@ -889,7 +889,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     variant="outline"
                     onClick={(e) => { e.stopPropagation(); handleReloadContent(); }}
                     className="gap-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-950/30 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105"
-                    title="تحÙ…ÙŠÙ„ أسئلة جدÙŠدة"
+                    title="تحميل أسئلة جديدة"
                     dir="rtl"
                   >
                     <Dices className="h-3.5 w-3.5" />
@@ -914,13 +914,13 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     dbQuizzes.filter(q => completedQuizIds.includes(q.id)).map((q, idx) => (
                       <CompletedQuizCard key={`completed-qz-${q.id}`} question={q} index={idx} />
                     ))
-                  ) : <EmptyState text="Ù„ا تÙˆجد إجابات صحيحة بعد" />
+                  ) : <EmptyState text="لا توجد إجابات صحيحة بعد" />
                 ) : (
                   completedExerciseIds.length > 0 ? (
                     dbExercises.filter(e => completedExerciseIds.includes(e.id)).map((ex, idx) => (
                       <TrackedExerciseCard key={`completed-ex-${ex.id}`} exercise={ex} index={idx} readOnly={true} onAnswer={() => { }} />
                     ))
-                  ) : <EmptyState text="Ù„ا تÙˆجد تمارين صحÙŠحة بعد" />
+                  ) : <EmptyState text="لا توجد تمارين صحيحة بعد" />
                 )}
               </div>
             ) : (
@@ -940,7 +940,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                       <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx} readOnly={readOnly} onAnswer={(c) => handleDiscoverAnswer(c, "exercise", ex.id)} />
                     ))}
                   </div>
-                ) : <EmptyState text={completedExerciseIds.length > 0 ? "أÙƒÙ…Ù„ت جÙ…ÙŠع اÙ„تمارين اÙ„Ù…تاحة!" : "Ù„ا تÙˆجد تمارين تÙ…Ù‡ÙŠدÙŠة بعد"} />
+                ) : <EmptyState text={completedExerciseIds.length > 0 ? "أكملت جميع التمارين المتاحة!" : "لا توجد تمارين تمهيدية بعد"} />
               )
             )}
           </CardContent>
@@ -969,7 +969,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     dir="rtl"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    <span>{showCorrectOnly ? "اÙ„عÙˆدة Ù„Ù„تمارين" : "إجابات صحيحة"}</span>
+                    <span>{showCorrectOnly ? "العودة للتمارين" : "إجابات صحيحة"}</span>
                   </Button>
                 )}
 
@@ -979,7 +979,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     variant="outline"
                     onClick={(e) => { e.stopPropagation(); handleReloadContent(); }}
                     className="gap-2 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100 dark:bg-yellow-950/30 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-900/40 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105"
-                    title="تحÙ…ÙŠÙ„ أسئلة جدÙŠدة"
+                    title="تحميل أسئلة جديدة"
                     dir="rtl"
                   >
                     <Dices className="h-3.5 w-3.5" />
@@ -1003,13 +1003,13 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     dbQuizzes.filter(q => completedQuizIds.includes(q.id)).map((q, idx) => (
                       <CompletedQuizCard key={`completed-qz-und-${q.id}`} question={q} index={idx} />
                     ))
-                  ) : <EmptyState text="Ù„ا تÙˆجد إجابات صحيحة بعد" />
+                  ) : <EmptyState text="لا توجد إجابات صحيحة بعد" />
                 ) : (
                   completedExerciseIds.length > 0 ? (
                     dbExercises.filter(e => completedExerciseIds.includes(e.id)).map((ex, idx) => (
                       <TrackedExerciseCard key={`completed-ex-und-${ex.id}`} exercise={ex} index={idx} readOnly={true} onAnswer={() => { }} />
                     ))
-                  ) : <EmptyState text="Ù„ا تÙˆجد تمارين صحÙŠحة بعد" />
+                  ) : <EmptyState text="لا توجد تمارين صحيحة بعد" />
                 )}
               </div>
             ) : (
@@ -1040,7 +1040,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                       />
                     ))}
                   </div>
-                ) : <EmptyState text={completedExerciseIds.length > 0 ? "أÙƒÙ…Ù„ت جÙ…ÙŠع اÙ„تمارين اÙ„Ù…تاحة!" : "Ù„ا تÙˆجد تمارين تطبÙŠÙ‚ÙŠة بعد"} />
+                ) : <EmptyState text={completedExerciseIds.length > 0 ? "أكملت جميع التمارين المتاحة!" : "لا توجد تمارين تطبيقية بعد"} />
               )
             )}
           </CardContent>
@@ -1080,13 +1080,13 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           <Card className="border-destructive/20 bg-destructive/5">
             <CardContent className="p-8 text-center space-y-3">
               <Lock className="h-12 w-12 text-muted-foreground mx-auto" />
-              <h3 className="font-bold text-lg" dir="rtl">Ù‡ذÙ‡ اÙ„Ù…رحÙ„ة Ù…Ù‚فÙ„ة</h3>
+              <h3 className="font-bold text-lg" dir="rtl">هذه المرحلة مقفلة</h3>
               <p className="text-sm text-muted-foreground max-w-sm mx-auto" dir="rtl">
-                ÙŠجب عÙ„ÙŠÙƒ اÙ„إجابة عÙ„Ù‰ {REQUIRED_CORRECT} أسئلة صحÙŠحة عÙ„Ù‰ اÙ„أÙ‚Ù„ فÙŠ Ù…رحÙ„ة "اكتشف" Ù„فتح Ù‡ذÙ‡ اÙ„Ù…رحÙ„ة.
+                يجب عليك الإجابة على {REQUIRED_CORRECT} أسئلة صحيحة على الأقل في مرحلة "اكتشف" لفتح هذه المرحلة.
               </p>
               <Button variant="outline" onClick={() => setActiveStep("decouvrir")} className="gap-2">
                 <Eye className="h-4 w-4" />
-                اÙ„عÙˆدة إÙ„Ù‰ "اكتشف"
+                العودة إلى "اكتشف"
               </Button>
             </CardContent>
           </Card>
@@ -1101,7 +1101,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 const DifficultyIndicator = ({ level }: { level?: number }) => {
   if (!level) return null;
   return (
-    <div className="flex gap-0.5 items-center mr-2 bg-yellow-50/50 px-1.5 py-0.5 rounded-full border border-yellow-100/50" title={`اÙ„صعÙˆبة: ${level}/5`}>
+    <div className="flex gap-0.5 items-center mr-2 bg-yellow-50/50 px-1.5 py-0.5 rounded-full border border-yellow-100/50" title={`الصعوبة: ${level}/5`}>
       {Array.from({ length: 5 }).map((_, i) => (
         <Pencil
           key={i}
@@ -1126,7 +1126,7 @@ function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; inde
           </p>
         </div>
         <div className="order-1 sm:order-2 shrink-0 flex flex-row sm:flex-col items-center gap-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-4 py-2 rounded-lg border border-green-200 dark:border-green-800 shadow-sm w-full sm:w-auto justify-between sm:justify-center">
-          <span className="text-xs font-semibold uppercase text-green-600/70 dark:text-green-400/70">اÙ„إجابة</span>
+          <span className="text-xs font-semibold uppercase text-green-600/70 dark:text-green-400/70">الإجابة</span>
           <span className="font-bold text-lg" dir="rtl">{question.correct_answer}</span>
         </div>
       </CardContent>
@@ -1160,7 +1160,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
           ))}
         </div>
         {answered && question.explanation && (
-          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">اÙ„شرح: </span>{question.explanation}</div>
+          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">الشرح: </span>{question.explanation}</div>
         )}
       </CardContent>
     </Card>
@@ -1195,11 +1195,11 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
         )}
         {result !== null && (
           <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-            {result ? "âœ… إجابة صحÙŠحة!" : `âŒ اÙ„إجابة اÙ„صحÙŠحة: ${exercise.expected_answer}`}
+            {result ? "✅ إجابة صحيحة!" : `âŒ الإجابة الصحيحة: ${exercise.expected_answer}`}
           </div>
         )}
-        <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء اÙ„حÙ„" : "عرض الحل"}</Button>
-        {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">اÙ„حÙ„: </span>{exercise.solution}</div>}
+        <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
+        {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{exercise.solution}</div>}
       </CardContent>
     </Card>
   );
@@ -1225,7 +1225,7 @@ function QuizQuestionCard({ question, index, readOnly }: { question: DBQuizQuest
           ))}
         </div>
         {answered && question.explanation && (
-          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">اÙ„شرح: </span>{question.explanation}</div>
+          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">الشرح: </span>{question.explanation}</div>
         )}
       </CardContent>
     </Card>
@@ -1259,11 +1259,11 @@ function ExerciseCard({ exercise, index, readOnly }: { exercise: DBExercise; ind
         )}
         {result !== null && (
           <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-            {result ? "âœ… إجابة صحÙŠحة!" : `âŒ اÙ„إجابة اÙ„صحÙŠحة: ${exercise.expected_answer}`}
+            {result ? "✅ إجابة صحيحة!" : `âŒ الإجابة الصحيحة: ${exercise.expected_answer}`}
           </div>
         )}
-        <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء اÙ„حÙ„" : "عرض الحل"}</Button>
-        {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">اÙ„حÙ„: </span>{exercise.solution}</div>}
+        <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
+        {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{exercise.solution}</div>}
       </CardContent>
     </Card>
   );

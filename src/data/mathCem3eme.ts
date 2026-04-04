@@ -18,86 +18,86 @@ export const mathCem3emeChapters: Chapter[] = [
     {
         id: "ch1-activites-numeriques-3eme",
         title: "Activités numériques",
-        titleAr: "أÙ†شطة عددÙŠة",
+        titleAr: "أنشطة عددية",
         lessons: [
             {
                 id: "ch1-l1-nombres-relatifs",
                 title: "Les nombres relatifs",
-                titleAr: "اÙ„أعداد اÙ„Ù†سبÙŠة"
+                titleAr: "الأعداد النسبية"
             },
             {
                 id: "ch1-l2-operations-fractions-rationnels",
                 title: "Opérations sur les fractions et les nombres rationnels",
-                titleAr: "اÙ„عÙ…Ù„ÙŠات عÙ„Ù‰ اÙ„ÙƒسÙˆر ÙˆاÙ„أعداد اÙ„Ù†اطÙ‚ة"
+                titleAr: "العمليات على الكسور والأعداد الناطقة"
             },
             {
                 id: "ch1-l3-puissances-relatifs",
                 title: "Puissances à exposants relatifs entiers",
-                titleAr: "اÙ„Ù‚ÙˆÙ‰ ذات أسس Ù†سبÙŠة صحÙŠحة"
+                titleAr: "القوى ذات أسس نسبية صحيحة"
             },
             {
                 id: "ch1-l4-calcul-litteral-3eme",
                 title: "Calcul littéral",
-                titleAr: "اÙ„حساب اÙ„حرفÙŠ"
+                titleAr: "الحساب الحرفي"
             },
             {
                 id: "ch1-l5-egalites-inegalites-equations",
                 title: "Égalités - Inégalités - Équations",
-                titleAr: "اÙ„Ù…ساÙˆÙŠات - اÙ„Ù…تباÙŠÙ†ات - اÙ„Ù…عادÙ„ات"
+                titleAr: "المساويات - المتباينات - المعادلات"
             }
         ]
     },
     {
         id: "ch2-fonctions-organisation-donnees-3eme",
         title: "Fonctions et organisation des données",
-        titleAr: "اÙ„دÙˆاÙ„ ÙˆتÙ†ظÙŠÙ… اÙ„Ù…عطÙŠات",
+        titleAr: "الدوال وتنظيم المعطيات",
         lessons: [
             {
                 id: "ch2-l1-proportionnalite",
                 title: "Proportionnalité",
-                titleAr: "اÙ„تÙ†اسبÙŠة"
+                titleAr: "التناسبية"
             },
             {
                 id: "ch2-l2-organisation-donnees",
                 title: "Organisation des données",
-                titleAr: "تÙ†ظÙŠÙ… Ù…عطÙŠات"
+                titleAr: "تنظيم معطيات"
             }
         ]
     },
     {
         id: "ch3-activites-geometriques-3eme",
         title: "Activités géométriques",
-        titleAr: "أÙ†شطة Ù‡Ù†دسÙŠة",
+        titleAr: "أنشطة هندسية",
         lessons: [
             {
                 id: "ch3-l1-demonstration-mathematiques",
                 title: "Démonstration en mathématiques",
-                titleAr: "اÙ„برÙ‡اÙ† فÙŠ اÙ„رÙŠاضÙŠات"
+                titleAr: "البرهان في الرياضيات"
             },
             {
                 id: "ch3-l2-trigonometrie",
                 title: "Trigonométrie",
-                titleAr: "اÙ„Ù…ثÙ„ثات"
+                titleAr: "المثلثات"
             },
             {
                 id: "ch3-l3-triangle-rectangle-cercle",
                 title: "Triangle rectangle et cercle",
-                titleAr: "اÙ„Ù…ثÙ„ث اÙ„Ù‚ائÙ… Ùˆ اÙ„دائرة"
+                titleAr: "المثلث القائم و الدائرة"
             },
             {
                 id: "ch3-l4-pythagore-cosecante",
                 title: "Théorème de Pythagore, cosécante d'un angle",
-                titleAr: "خاصÙŠة فÙŠتاغÙˆرسØŒ جÙŠب تÙ…اÙ… زاÙˆÙŠة"
+                titleAr: "خاصية فيتاغورس، جيب تمام زاوية"
             },
             {
                 id: "ch3-l5-homotheti",
                 title: "Homothéties",
-                titleAr: "اÙ„اÙ†سحاب"
+                titleAr: "الانسحاب"
             },
             {
                 id: "ch3-l6-pyramide-cone-revolution",
                 title: "Pyramide et cône de révolution",
-                titleAr: "اÙ„Ù‡رÙ… Ùˆ Ù…خرÙˆط اÙ„دÙˆراÙ†"
+                titleAr: "الهرم و مخروط الدوران"
             }
         ]
     }
@@ -105,7 +105,7 @@ export const mathCem3emeChapters: Chapter[] = [
 
 export const getCem3emeCourseInfo = () => ({
     title: "Mathématiques - 3ème CEM",
-    titleAr: "اÙ„رÙŠاضÙŠات - اÙ„سÙ†ة اÙ„ثاÙ„ثة إعدادÙŠ",
+    titleAr: "الرياضيات - السنة الثالثة إعدادي",
     description: "Programme de mathématiques pour la 3ème année du Collège d'Enseignement Moyen",
-    descriptionAr: "برÙ†اÙ…ج اÙ„رÙŠاضÙŠات Ù„Ù„سÙ†ة اÙ„ثاÙ„ثة إعدادÙŠ"
+    descriptionAr: "برنامج الرياضيات للسنة الثالثة إعدادي"
 });

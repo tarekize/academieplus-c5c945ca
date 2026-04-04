@@ -25,7 +25,7 @@ const MentionsLegales = () => {
                 <p className="text-muted-foreground">
                   Le site EduSuccess est édité par :<br />
                   <strong>EduSuccess SAS</strong><br />
-                  Capital social : 50 000 â‚¬<br />
+                  Capital social : 50 000 €<br />
                   RCS Paris : 123 456 789<br />
                   Siège social : 123 Avenue des Champs-Élysées, 75008 Paris, France<br />
                   Téléphone : 01 23 45 67 89<br />

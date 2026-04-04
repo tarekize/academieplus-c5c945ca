@@ -131,7 +131,7 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block">Titre (Arabe)</label>
-            <Input value={titleAr} onChange={(e) => setTitleAr(e.target.value)} placeholder="اÙ„عÙ†ÙˆاÙ† باÙ„عربÙŠة" dir="rtl" />
+            <Input value={titleAr} onChange={(e) => setTitleAr(e.target.value)} placeholder="العنوان بالعربية" dir="rtl" />
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block">Description</label>
@@ -279,7 +279,7 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block">Titre (Arabe)</label>
-            <Input value={titleAr} onChange={(e) => setTitleAr(e.target.value)} placeholder="اÙ„عÙ†ÙˆاÙ† باÙ„عربÙŠة" dir="rtl" />
+            <Input value={titleAr} onChange={(e) => setTitleAr(e.target.value)} placeholder="العنوان بالعربية" dir="rtl" />
           </div>
         </div>
         <DialogFooter>

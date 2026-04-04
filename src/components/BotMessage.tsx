@@ -12,7 +12,7 @@ interface BotMessageProps {
 export const BotMessage = ({
     text,
     isTyping = true,
-    emoji = "ðŸ§ ",
+    emoji = "🧠",
     delay = 0,
     onComplete,
 }: BotMessageProps) => {

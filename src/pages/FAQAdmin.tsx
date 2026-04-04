@@ -97,7 +97,7 @@ const FAQAdmin = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm("ÃŠtes-vous sûr de vouloir supprimer cette question ?")) return;
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cette question ?")) return;
     setItems(prev => prev.filter(item => item.id !== id));
     toast({
       title: "Succès",
@@ -225,7 +225,7 @@ const FAQAdmin = () => {
                       <div className="flex-1">
                         <CardTitle className="text-lg">{item.question}</CardTitle>
                         <CardDescription>
-                          {item.category} â€¢ Ordre: {item.order_index} â€¢ {item.is_active ? "Active" : "Inactive"}
+                          {item.category} • Ordre: {item.order_index} • {item.is_active ? "Active" : "Inactive"}
                         </CardDescription>
                       </div>
                       <div className="flex gap-2">

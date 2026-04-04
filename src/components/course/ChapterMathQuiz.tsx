@@ -123,14 +123,14 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
             <Trophy className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">!اÙ†تÙ‡Ù‰ اÙ„اختبار</CardTitle>
+          <CardTitle className="text-2xl">!انتهى الاختبار</CardTitle>
           <p className="text-sm text-muted-foreground mt-1">{chapterTitle}</p>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="text-center">
             <div className="text-5xl font-bold text-primary mb-2">{score}/{questions.length}</div>
             <p className="text-muted-foreground">
-              {percentage >= 80 ? "!عÙ…Ù„ Ù…Ù…تاز ðŸŽ‰" : percentage >= 60 ? "!أحسÙ†تØŒ ÙˆاصÙ„ ðŸ‘" : "!ÙˆاصÙ„ اÙ„تدرÙŠب ðŸ’ª"}
+              {percentage >= 80 ? "!عمل ممتاز 🎉" : percentage >= 60 ? "!أحسنت، واصل ðŸ‘" : "!واصل التدريب 💪"}
             </p>
             <div className="flex items-center justify-center gap-2 mt-3 text-sm text-muted-foreground bg-muted px-4 py-2 rounded-lg inline-flex">
               <Clock className="h-4 w-4" /><span className="font-mono font-medium">{formattedTime}</span>
@@ -147,7 +147,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           </div>
           <div className="flex gap-3">
             <Button variant="outline" onClick={handleRestart} className="flex-1"><RotateCcw className="h-4 w-4 mr-2" />إعادة</Button>
-            <Button onClick={onClose} className="flex-1"><BookOpen className="h-4 w-4 mr-2" />اÙ„عÙˆدة Ù„Ù„درس</Button>
+            <Button onClick={onClose} className="flex-1"><BookOpen className="h-4 w-4 mr-2" />العودة للدرس</Button>
           </div>
         </CardContent>
       </Card>
@@ -157,13 +157,13 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
   if (!currentQuestion) {
     return (
       <Card className="max-w-2xl mx-auto p-8 text-center" dir="rtl">
-        <p>Ù„ا تÙˆجد أسئÙ„ة Ù…تاحة Ù„Ù‡ذا اÙ„فصÙ„.</p>
+        <p>لا توجد أسئلة متاحة لهذا الفصل.</p>
         {canManage && onRefresh && (
           <div className="mt-4 flex justify-center gap-2">
             <QuizFormDialog chapterId={chapterId} onSaved={onRefresh} />
           </div>
         )}
-        <Button onClick={onClose} className="mt-4">اÙ„عÙˆدة Ù„Ù„درس</Button>
+        <Button onClick={onClose} className="mt-4">العودة للدرس</Button>
       </Card>
     );
   }
@@ -176,13 +176,13 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
             <div className="flex items-center gap-2 text-lg font-semibold bg-muted px-3 py-1.5 rounded-lg">
               <Clock className="h-5 w-5 text-primary" />
               <span className="font-mono">{formattedTime}</span>
-              {isPaused && <span className="text-xs text-muted-foreground">(إÙŠÙ‚اف)</span>}
+              {isPaused && <span className="text-xs text-muted-foreground">(إيقاف)</span>}
             </div>
             <Button variant="ghost" size="sm" onClick={isPaused ? resume : pause} className="gap-1">
-              {isPaused ? <><Play className="h-4 w-4" />استئÙ†اف</> : <><Pause className="h-4 w-4" />إÙŠÙ‚اف</>}
+              {isPaused ? <><Play className="h-4 w-4" />استئناف</> : <><Pause className="h-4 w-4" />إيقاف</>}
             </Button>
           </div>
-          <div className="text-sm text-muted-foreground">سؤاÙ„ {currentIndex + 1} / {questions.length}</div>
+          <div className="text-sm text-muted-foreground">سؤال {currentIndex + 1} / {questions.length}</div>
         </div>
         <Progress value={progress} className="h-2 mt-2" />
       </div>
@@ -231,22 +231,22 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
 
           {hasAnswered && (
             <div className={cn("p-4 rounded-lg", isCorrect ? "bg-green-500/10" : "bg-amber-500/10")} dir="rtl">
-              <p className="font-medium mb-1">{isCorrect ? "âœ“ إجابة صحÙŠحة!" : "âœ— إجابة خاطئة"}</p>
+              <p className="font-medium mb-1">{isCorrect ? "✓ إجابة صحيحة!" : "✗ إجابة خاطئة"}</p>
               {explanation && <p className="text-sm text-muted-foreground">{explanation}</p>}
-              {!isCorrect && correctAnswer && <p className="text-sm mt-2 font-medium">اÙ„إجابة اÙ„صحÙŠحة: {correctAnswer}</p>}
+              {!isCorrect && correctAnswer && <p className="text-sm mt-2 font-medium">الإجابة الصحيحة: {correctAnswer}</p>}
             </div>
           )}
 
           <div className="flex gap-3">
-            <Button variant="outline" onClick={onClose} className="flex-1">خرÙˆج</Button>
+            <Button variant="outline" onClick={onClose} className="flex-1">خروج</Button>
             {!hasAnswered ? (
               <Button onClick={handleSubmit} disabled={!selectedAnswer || isSubmitting} className="flex-1">
                 {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                تأÙƒÙŠد
+                تأكيد
               </Button>
             ) : (
               <Button onClick={handleNext} className="flex-1">
-                {currentIndex < questions.length - 1 ? <>اÙ„تاÙ„ÙŠ <ArrowRight className="h-4 w-4 ml-2" /></> : "عرض اÙ„Ù†تائج"}
+                {currentIndex < questions.length - 1 ? <>التالي <ArrowRight className="h-4 w-4 ml-2" /></> : "عرض النتائج"}
               </Button>
             )}
           </div>
