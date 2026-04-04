@@ -46,6 +46,8 @@ import LearningAssessment from "./pages/LearningAssessment";
 import BotOnboardingPage from "./pages/BotOnboardingPage";
 import LessonEditor from "./pages/LessonEditor";
 import ContentGeneration from "./pages/ContentGeneration";
+import ExamTrimesterSelect from "./pages/ExamTrimesterSelect";
+import ExamList from "./pages/ExamList";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
