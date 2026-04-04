@@ -9,7 +9,7 @@ import { ChapterMathExercises, DBExercise } from "@/components/course/ChapterMat
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check, Search, BarChart3 } from "lucide-react";
+import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check, Search, BarChart3, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { NotificationBell } from "@/components/course/NotificationBell";
 import ChatBot from "@/components/ChatBot";
