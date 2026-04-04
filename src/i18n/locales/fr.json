@@ -9,7 +9,7 @@
   },
   "hero": {
     "badge": "Soutien scolaire en mathématiques Via l'IA (Intelligence Artificielle)",
-    "title": "Maîtrisez les mathématiques, de la 5ème année Ã  la terminale.",
+    "title": "Maîtrisez les mathématiques, de la 5ème année à la terminale.",
     "cta": "Découvrir les cours",
     "programs": "Bientôt, toutes les autres matières seront disponibles."
   },
@@ -18,7 +18,7 @@
     "subtitle": "Une approche unique qui transforme les difficultés en réussites",
     "personalizedSupport": {
       "title": "Suivi personnalisé",
-      "description": "Grâce Ã  un tableau de bord détaillé, les élèves et les parents peuvent suivre l'évolution des apprentissages, accéder Ã  des outils d'aide aux devoirs et bénéficier d'un suivi pédagogique personnalisé."
+      "description": "Grâce à un tableau de bord détaillé, les élèves et les parents peuvent suivre l'évolution des apprentissages, accéder à des outils d'aide aux devoirs et bénéficier d'un suivi pédagogique personnalisé."
     },
     "aiPedagogy": {
       "title": "L'intelligence artificielle au cÅ“ur de la pédagogie",
@@ -49,7 +49,7 @@
   },
   "results": {
     "title": "Des résultats qui parlent",
-    "subtitle": "La preuve de notre efficacité Ã  travers les chiffres",
+    "subtitle": "La preuve de notre efficacité à travers les chiffres",
     "successRate": {
       "value": "98%",
       "label": "Taux de réussite aux examens",
@@ -76,7 +76,7 @@
     },
     "flexibility": {
       "title": "Flexibilité totale",
-      "description": "Cours en présentiel ou en ligne, horaires adaptés : nous nous ajustons Ã  votre emploi du temps pour un accompagnement optimal."
+      "description": "Cours en présentiel ou en ligne, horaires adaptés : nous nous ajustons à votre emploi du temps pour un accompagnement optimal."
     }
   },
   "excellence": {
@@ -100,16 +100,16 @@
   },
   "pricing": {
     "title": "Choisissez la formule qui vous convient",
-    "subtitle": "Choisissez la formule qui correspond le mieux Ã  vos besoins et Ã  votre budget",
+    "subtitle": "Choisissez la formule qui correspond le mieux à vos besoins et à votre budget",
     "switchOneChild": "1 Enfant",
-    "switchFamily": "Famille (2 Ã  3 enfants)",
+    "switchFamily": "Famille (2 à 3 enfants)",
     "discovery": {
       "name": "Formule découverte",
       "price": "Gratuit",
       "period": "",
       "description": "",
       "features": {
-        "subjects": "Accès Ã  3 matières",
+        "subjects": "Accès à 3 matières",
         "exercises": "100+ exercices interactifs",
         "tracking": "Suivi de progression",
         "support": "Support par email"
@@ -123,7 +123,7 @@
       "immediatePayment": "Paiement immédiat de",
       "paymentPeriod": "pour une période de 10 mois allant jusqu'au 31 juillet",
       "features": {
-        "allSubjects": "Accès Ã  toutes les matières",
+        "allSubjects": "Accès à toutes les matières",
         "exercises": "500+ exercices interactifs",
         "videos": "Vidéos de cours",
         "tracking": "Suivi personnalisé",
@@ -154,11 +154,11 @@
     "questions": {
       "howItWorks": {
         "question": "Comment fonctionne la plateforme de cours en ligne ?",
-        "answer": "Notre plateforme vous donne accès 24h/24 et 7j/7 Ã  des cours vidéo de qualité, des exercices interactifs avec correction automatique, et un suivi personnalisé de votre progression. Vous pouvez apprendre Ã  votre rythme depuis n'importe quel appareil."
+        "answer": "Notre plateforme vous donne accès 24h/24 et 7j/7 à des cours vidéo de qualité, des exercices interactifs avec correction automatique, et un suivi personnalisé de votre progression. Vous pouvez apprendre à votre rythme depuis n'importe quel appareil."
       },
       "subjects": {
         "question": "Quelles matières sont disponibles ?",
-        "answer": "Actuellement, nous nous concentrons exclusivement sur les mathématiques pour tous les niveaux, de la 5ème année Ã  la terminale. Nous prévoyons d'ajouter d'autres matières Ã  l'avenir."
+        "answer": "Actuellement, nous nous concentrons exclusivement sur les mathématiques pour tous les niveaux, de la 5ème année à la terminale. Nous prévoyons d'ajouter d'autres matières à l'avenir."
       },
       "freeTrial": {
         "question": "Puis-je essayer gratuitement avant de m'abonner ?",
@@ -170,23 +170,23 @@
       },
       "support": {
         "question": "Y a-t-il un support en cas de questions ?",
-        "answer": "Absolument ! Notre équipe pédagogique est disponible par email et chat pour répondre Ã  toutes vos questions. Les abonnés Premium et Intensif bénéficient également d'un support prioritaire et de sessions de tutorat en direct."
+        "answer": "Absolument ! Notre équipe pédagogique est disponible par email et chat pour répondre à toutes vos questions. Les abonnés Premium et Intensif bénéficient également d'un support prioritaire et de sessions de tutorat en direct."
       },
       "algerian": {
         "question": "Les cours sont-ils conformes au programme algérien ?",
         "answer": "Oui, tous nos contenus sont créés en stricte conformité avec les programmes officiels du ministère de l'Éducation nationale algérien. Nos cours sont élaborés par des enseignants certifiés et expérimentés."
       },
       "changePlan": {
-        "question": "Puis-je changer de formule Ã  tout moment ?",
-        "answer": "Oui, vous pouvez passer Ã  une formule supérieure ou inférieure Ã  tout moment. Le changement prendra effet immédiatement et sera pris en compte sur votre prochaine facturation."
+        "question": "Puis-je changer de formule à tout moment ?",
+        "answer": "Oui, vous pouvez passer à une formule supérieure ou inférieure à tout moment. Le changement prendra effet immédiatement et sera pris en compte sur votre prochaine facturation."
       }
     }
   },
   "cta": {
-    "title": "Prêt Ã  commencer ton parcours vers la réussite ?",
+    "title": "Prêt à commencer ton parcours vers la réussite ?",
     "subtitle": "Rejoins des milliers d'élèves qui progressent chaque jour avec nos cours en ligne",
     "button": "Commencer l'essai gratuit",
-    "noCommitment": "Sans engagement â€¢ 7 jours gratuits â€¢ Annulation Ã  tout moment"
+    "noCommitment": "Sans engagement â€¢ 7 jours gratuits â€¢ Annulation à tout moment"
   },
   "footer": {
     "description": "La plateforme de cours en ligne qui accompagne les élèves algériens vers la réussite scolaire.",

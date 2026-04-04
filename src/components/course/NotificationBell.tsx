@@ -32,17 +32,17 @@ export function NotificationBell({ userId }: NotificationBellProps) {
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
         <div className="flex items-center justify-between p-3 border-b">
-          <h3 className="font-semibold text-sm">Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª</h3>
+          <h3 className="font-semibold text-sm">اÙ„إشعارات</h3>
           {unreadCount > 0 && (
             <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs">
-              ØªØ­Ø¯ÙŠØ¯ Ø§Ù„ÙƒÙ„ ÙƒÙ…Ù‚Ø±ÙˆØ¡
+              تحدÙŠد اÙ„ÙƒÙ„ ÙƒÙ…Ù‚رÙˆء
             </Button>
           )}
         </div>
         <ScrollArea className="max-h-80">
           {notifications.length === 0 ? (
             <div className="p-6 text-center text-sm text-muted-foreground" dir="rtl">
-              Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¥Ø´Ø¹Ø§Ø±Ø§Øª
+              Ù„ا تÙˆجد إشعارات
             </div>
           ) : (
             notifications.map((n) => (

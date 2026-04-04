@@ -76,7 +76,7 @@ export const MathQuiz = ({ onClose }: MathQuizProps) => {
             <p className="text-muted-foreground">
               {percentage >= 80 ? "Excellent travail ! ðŸŽ‰" : 
                percentage >= 60 ? "Bien joué ! Continue comme ça ðŸ‘" : 
-               "Continue Ã  t'entraîner ! ðŸ’ª"}
+               "Continue à t'entraîner ! ðŸ’ª"}
             </p>
           </div>
 

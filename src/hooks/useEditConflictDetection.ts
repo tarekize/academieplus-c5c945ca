@@ -48,7 +48,7 @@ export const useEditConflictDetection = (courseId: number, currentUserId: string
       .on('presence', { event: 'join' }, ({ newPresences }) => {
         newPresences.forEach((presence: any) => {
           if (presence.user_id !== currentUserId) {
-            toast.info(`${presence.user_name} a commencé Ã  modifier ce cours`);
+            toast.info(`${presence.user_name} a commencé à modifier ce cours`);
           }
         });
       })

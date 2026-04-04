@@ -560,7 +560,7 @@ const ListeCours = () => {
               Matières de {profile?.school_level ? getSchoolLevelName(profile.school_level) : "ta classe"}
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
-              Découvre tous les cours de ta classe et prépare-toi Ã  réussir ! ðŸš€
+              Découvre tous les cours de ta classe et prépare-toi à réussir ! ðŸš€
             </p>
 
             {/* Search Bar */}

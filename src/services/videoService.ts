@@ -91,7 +91,7 @@ export const videoService = {
     },
 
     /**
-     * Ajoute ou met Ã  jour les vidéos pour une leçon
+     * Ajoute ou met à jour les vidéos pour une leçon
      */
     async upsertVideoMapping(
         lessonTitle: string,

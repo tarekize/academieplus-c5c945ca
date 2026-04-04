@@ -112,14 +112,14 @@ export function LinkedChildrenSection() {
               <DialogHeader>
                 <DialogTitle>Ajouter un lien de parenté</DialogTitle>
                 <DialogDescription>
-                  Liez le compte de votre enfant Ã  votre profil parent en utilisant son code de liaison
+                  Liez le compte de votre enfant à votre profil parent en utilisant son code de liaison
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 mt-4">
                 {error && (
                   <div className="p-3 rounded-md bg-destructive/10 border border-destructive/30 text-destructive text-sm font-medium">
-                    âš ï¸ {error}
+                    âš ️ {error}
                   </div>
                 )}
                 <div className="space-y-2">
@@ -132,7 +132,7 @@ export function LinkedChildrenSection() {
                     className={error ? "border-destructive" : ""}
                   />
                   <p className="text-sm text-muted-foreground">
-                    Demandez Ã  votre enfant de générer un code depuis son profil
+                    Demandez à votre enfant de générer un code depuis son profil
                   </p>
                 </div>
                 <Button

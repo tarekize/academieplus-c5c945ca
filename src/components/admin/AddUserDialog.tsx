@@ -111,7 +111,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
     } catch (error: any) {
       console.error("Error creating user:", error);
       if (error.message?.includes("already registered")) {
-        toast.error("Un compte existe déjÃ  avec cet email.");
+        toast.error("Un compte existe déjà avec cet email.");
       } else {
         toast.error(error.message || "Erreur lors de la création de l'utilisateur.");
       }

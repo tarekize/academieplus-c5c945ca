@@ -226,13 +226,13 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
 
         <Separator orientation="vertical" className="h-6 mx-1" />
 
-        <ToolBtn active={editor.isActive({ textAlign: 'left' })} onClick={() => editor.chain().focus().setTextAlign('left').run()} title="Aligner Ã  gauche">
+        <ToolBtn active={editor.isActive({ textAlign: 'left' })} onClick={() => editor.chain().focus().setTextAlign('left').run()} title="Aligner à gauche">
           <AlignLeft className="h-4 w-4" />
         </ToolBtn>
         <ToolBtn active={editor.isActive({ textAlign: 'center' })} onClick={() => editor.chain().focus().setTextAlign('center').run()} title="Centrer">
           <AlignCenter className="h-4 w-4" />
         </ToolBtn>
-        <ToolBtn active={editor.isActive({ textAlign: 'right' })} onClick={() => editor.chain().focus().setTextAlign('right').run()} title="Aligner Ã  droite">
+        <ToolBtn active={editor.isActive({ textAlign: 'right' })} onClick={() => editor.chain().focus().setTextAlign('right').run()} title="Aligner à droite">
           <AlignRight className="h-4 w-4" />
         </ToolBtn>
         <ToolBtn active={editor.isActive({ textAlign: 'justify' })} onClick={() => editor.chain().focus().setTextAlign('justify').run()} title="Justifier">
@@ -241,7 +241,7 @@ export default function LessonRichEditor({ content, onChange, editable = true }:
 
         <Separator orientation="vertical" className="h-6 mx-1" />
 
-        <ToolBtn active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Liste Ã  puces">
+        <ToolBtn active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Liste à puces">
           <List className="h-4 w-4" />
         </ToolBtn>
         <ToolBtn active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Liste numérotée">

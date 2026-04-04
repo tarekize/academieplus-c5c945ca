@@ -138,7 +138,7 @@ export default function GestionEquipe() {
       await loadTeam();
     } catch (error) {
       console.error('Error updating role:', error);
-      toast.error("Erreur lors de la mise Ã  jour du rôle");
+      toast.error("Erreur lors de la mise à jour du rôle");
     }
   };
 

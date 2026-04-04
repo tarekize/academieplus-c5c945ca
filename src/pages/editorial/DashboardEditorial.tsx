@@ -24,7 +24,7 @@ export default function DashboardEditorial() {
         <div>
           <Button variant="ghost" onClick={() => navigate('/')} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour Ã  l'accueil
+            Retour à l'accueil
           </Button>
           <h1 className="text-3xl font-bold">Tableau de bord éditorial</h1>
           <p className="text-muted-foreground mt-1">

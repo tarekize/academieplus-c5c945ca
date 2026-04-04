@@ -150,7 +150,7 @@ export const SimpleBotOnboarding = ({
                                                     onClick={handleContinue}
                                                     className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all"
                                                 >
-                                                    ØªØ§Ø¨Ø¹ â†’
+                                                    تابع â†’
                                                 </motion.button>
                                             )}
                                         </motion.div>
@@ -181,7 +181,7 @@ export const SimpleBotOnboarding = ({
                                                     onClick={handleContinue}
                                                     className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all"
                                                 >
-                                                    ÙÙ‡Ù…Øª âœ“
+                                                    فÙ‡Ù…ت âœ“
                                                 </motion.button>
                                                 <motion.button
                                                     initial={{ opacity: 0, y: 10 }}
@@ -189,7 +189,7 @@ export const SimpleBotOnboarding = ({
                                                     onClick={handleReadMore}
                                                     className="flex-1 px-6 py-3 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary/10 transition-all"
                                                 >
-                                                    Ø´Ø±Ø­ Ø£ÙƒØ«Ø±
+                                                    شرح أÙƒثر
                                                 </motion.button>
                                             </motion.div>
                                         )}
@@ -283,7 +283,7 @@ export const SimpleBotOnboarding = ({
                                                     disabled={!selectedAnswer}
                                                     className="w-full"
                                                 >
-                                                    Ø§Ù„ØªØ§Ù„ÙŠ â†’
+                                                    اÙ„تاÙ„ÙŠ â†’
                                                 </Button>
                                             </motion.div>
                                         )}
@@ -316,7 +316,7 @@ export const SimpleBotOnboarding = ({
                                         size="lg"
                                         className="w-full"
                                     >
-                                        Ø§Ø¨Ø¯Ø£ Ø§Ù„Ø¢Ù† âœ“
+                                        ابدأ اÙ„آÙ† âœ“
                                     </Button>
                                 </div>
                             )}

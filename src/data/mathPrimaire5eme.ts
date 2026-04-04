@@ -18,368 +18,368 @@ export const mathPrimaire5emeChapters: Chapter[] = [
     {
         id: "ch1-wadaiya-intilakiya-1",
         title: "Situation de départ 1",
-        titleAr: "Ø§Ù„ÙˆØ¶Ø¹ÙŠØ© Ø§Ù„Ø§Ù†Ø·Ù„Ø§Ù‚ÙŠØ© 1",
+        titleAr: "اÙ„ÙˆضعÙŠة اÙ„اÙ†طÙ„اÙ‚ÙŠة 1",
         lessons: [
             {
                 id: "ch1-l1-aadad-ila-999999-1",
-                title: "Les nombres jusqu'Ã  999 999 '1' (écriture, lecture et décomposition des nombres jusqu'Ã  999 999)",
-                titleAr: "Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø¥Ù„Ù‰ 999999 '1'(ÙƒØªØ§Ø¨Ø© ÙˆÙ‚Ø±Ø§Ø¡Ø© ÙˆØªÙÙƒÙŠÙƒ Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø¥Ù„Ù‰999999 )"
+                title: "Les nombres jusqu'à 999 999 '1' (écriture, lecture et décomposition des nombres jusqu'à 999 999)",
+                titleAr: "اÙ„أعداد إÙ„Ù‰ 999999 '1'(Ùƒتابة ÙˆÙ‚راءة ÙˆتفÙƒÙŠÙƒ اÙ„أعداد إÙ„Ù‰999999 )"
             },
             {
                 id: "ch1-l2-taalim-ala-marsoufa",
                 title: "Enseignement sur quadrillage et utilisation de patron",
-                titleAr: "Ø§Ù„ØªØ¹Ù„ÙŠÙ… Ø¹Ù„Ù‰ Ù…Ø±ØµÙˆÙØ© ÙˆØ§Ø³ØªØ¹Ù…Ø§Ù„ ØªØµÙ…ÙŠÙ…"
+                titleAr: "اÙ„تعÙ„ÙŠÙ… عÙ„Ù‰ Ù…رصÙˆفة ÙˆاستعÙ…اÙ„ تصÙ…ÙŠÙ…"
             },
             {
                 id: "ch1-l3-jam-aadad-tabiiya",
                 title: "Addition de nombres naturels",
-                titleAr: "Ø¬Ù…Ø¹ Ø£Ø¹Ø¯Ø§Ø¯ Ø·Ø¨ÙŠØ¹ÙŠØ©"
+                titleAr: "جÙ…ع أعداد طبÙŠعÙŠة"
             },
             {
                 id: "ch1-l4-aadad-ila-999999-2",
-                title: "Les nombres jusqu'Ã  999 999 '2' (comparaison, classement et dénombrement jusqu'Ã  999 999)",
-                titleAr: "Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø¥Ù„Ù‰ 999 999 '2'(Ù…Ù‚Ø§Ø±Ù†Ø© ÙˆØªØ±ØªÙŠØ¨ ÙˆØ­ØµØ± Ø§Ù„Ø£Ø¹Ù…Ø§Ø¯ Ø¥Ù„Ù‰999999)"
+                title: "Les nombres jusqu'à 999 999 '2' (comparaison, classement et dénombrement jusqu'à 999 999)",
+                titleAr: "اÙ„أعداد إÙ„Ù‰ 999 999 '2'(Ù…Ù‚ارÙ†ة ÙˆترتÙŠب Ùˆحصر اÙ„أعÙ…اد إÙ„Ù‰999999)"
             },
             {
                 id: "ch1-l5-tarh-aadad-tabiiya",
                 title: "Soustraction de nombres naturels",
-                titleAr: "Ø¶Ø±Ø­ Ø£Ø¹Ø¯Ø§Ø¯ Ø·Ø¨ÙŠØ¹ÙŠØ©"
+                titleAr: "ضرح أعداد طبÙŠعÙŠة"
             },
             {
                 id: "ch1-l6-tanzim-maaloumat",
                 title: "Organisation d'informations dans un tableau",
-                titleAr: "ØªÙ†Ø¸ÙŠÙ… Ù…Ø¹Ù„ÙˆÙ…Ø§Øª ÙÙŠ Ø¬Ø¯ÙˆÙ„"
+                titleAr: "تÙ†ظÙŠÙ… Ù…عÙ„ÙˆÙ…ات فÙŠ جدÙˆÙ„"
             },
             {
                 id: "ch1-l7-wadaiyat-jamiat-wa-tarhia",
                 title: "Situations additives et soustractives",
-                titleAr: "ÙˆØ¶Ø¹ÙŠØ§Øª Ø¬Ù…Ø¹ÙŠØ© ÙˆØ·Ø±Ø­ÙŠØ©"
+                titleAr: "ÙˆضعÙŠات جÙ…عÙŠة ÙˆطرحÙŠة"
             },
             {
                 id: "ch1-l8-istiqamiya-wa-toul",
                 title: "Droite et longueur d'un segment",
-                titleAr: "Ø§Ù„Ø§Ø³ØªÙ‚Ø§Ù…ÙŠØ©ØŒ ÙˆØ·ÙˆÙ„ Ù‚Ø·Ø¹Ø© Ù…Ø³ØªÙ‚ÙŠÙ…"
+                titleAr: "اÙ„استÙ‚اÙ…ÙŠةØŒ ÙˆطÙˆÙ„ Ù‚طعة Ù…ستÙ‚ÙŠÙ…"
             },
             {
                 id: "ch1-l9-alaqat-hisabiya",
                 title: "Relations arithmétiques entre nombres naturels",
-                titleAr: "Ø¹Ù„Ø§Ù‚Ø§Øª Ø­Ø³Ø§Ø¨ÙŠØ© Ø¨ÙŠÙ† Ø£Ø¹Ø¯Ø§Ø¯ Ø·Ø¨ÙŠØ¹ÙŠØ©"
+                titleAr: "عÙ„اÙ‚ات حسابÙŠة بÙŠÙ† أعداد طبÙŠعÙŠة"
             },
             {
                 id: "ch1-l10-atwal",
                 title: "Les longueurs",
-                titleAr: "Ø§Ù„Ø£Ø·ÙˆØ§Ù„"
+                titleAr: "اÙ„أطÙˆاÙ„"
             },
             {
                 id: "ch1-l11-darb-fi-adad-birakamayn",
-                title: "Multiplication par un nombre Ã  deux chiffres",
-                titleAr: "Ø§Ù„Ø¶Ø±Ø¨ ÙÙŠ Ø¹Ø¯Ø¯ Ø¨Ø±Ù‚Ù…ÙŠÙ†"
+                title: "Multiplication par un nombre à deux chiffres",
+                titleAr: "اÙ„ضرب فÙŠ عدد برÙ‚Ù…ÙŠÙ†"
             },
             {
                 id: "ch1-l12-darb-fi-adad-bithalatha",
-                title: "Multiplication par un nombre Ã  trois chiffres",
-                titleAr: "Ø§Ù„Ø¶Ø±Ø¨ ÙÙŠ Ø¹Ø¯Ø¯ Ø¨Ø«Ù„Ø§Ø«Ø© Ø£Ø±Ù‚Ø§Ù…"
+                title: "Multiplication par un nombre à trois chiffres",
+                titleAr: "اÙ„ضرب فÙŠ عدد بثÙ„اثة أرÙ‚اÙ…"
             },
             {
                 id: "ch1-l13-tanzim-wa-istighlal",
                 title: "Organisation d'informations et leur exploitation",
-                titleAr: "ØªÙ†Ø¸ÙŠÙ… Ù…Ø¹Ù„ÙˆÙ…Ø§Øª ÙˆØ§Ø³ØªØºÙ„Ø§Ù„Ù‡Ø§"
+                titleAr: "تÙ†ظÙŠÙ… Ù…عÙ„ÙˆÙ…ات ÙˆاستغÙ„اÙ„Ù‡ا"
             },
             {
                 id: "ch1-l14-mustaqimat-mutawazi",
                 title: "Droites parallèles et droites perpendiculaires",
-                titleAr: "Ù…Ø³ØªÙ‚ÙŠÙ…Ø§Øª Ù…ØªÙˆØ§Ø²ÙŠØ© ÙˆÙ…Ø³ØªÙ‚ÙŠÙ…Ø§Øª Ù…ØªØ¹Ø§Ù…Ø¯Ø©"
+                titleAr: "Ù…ستÙ‚ÙŠÙ…ات Ù…تÙˆازÙŠة ÙˆÙ…ستÙ‚ÙŠÙ…ات Ù…تعاÙ…دة"
             },
             {
                 id: "ch1-l15-aadad-ila-999999999-1",
-                title: "Les nombres jusqu'Ã  999 999 999 '1' (lecture, écriture et décomposition des nombres jusqu'Ã  999 999 999)",
-                titleAr: "Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø¥Ù„Ù‰ 999 999 999 '1'(Ù‚Ø±Ø§Ø¡Ø© ÙˆÙƒØªØ§Ø¨Ø© ÙˆØªÙÙƒÙŠÙƒ Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø¥Ù„Ù‰ 999 999 999)"
+                title: "Les nombres jusqu'à 999 999 999 '1' (lecture, écriture et décomposition des nombres jusqu'à 999 999 999)",
+                titleAr: "اÙ„أعداد إÙ„Ù‰ 999 999 999 '1'(Ù‚راءة ÙˆÙƒتابة ÙˆتفÙƒÙŠÙƒ اÙ„أعداد إÙ„Ù‰ 999 999 999)"
             },
             {
                 id: "ch1-l16-aadad-ila-999999999-2",
-                title: "Les nombres jusqu'Ã  999 999 999 '2' (comparaison, classement et dénombrement des nombres jusqu'Ã  999 999 999)",
-                titleAr: "Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø¥Ù„Ù‰ 999 999 999 '2'(Ù…Ù‚Ø§Ø±Ù†Ø© ÙˆØªØ±ØªÙŠØ¨ ÙˆØ­ØµØ± Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø¥Ù„Ù‰ 999 999 999)"
+                title: "Les nombres jusqu'à 999 999 999 '2' (comparaison, classement et dénombrement des nombres jusqu'à 999 999 999)",
+                titleAr: "اÙ„أعداد إÙ„Ù‰ 999 999 999 '2'(Ù…Ù‚ارÙ†ة ÙˆترتÙŠب Ùˆحصر اÙ„أعداد إÙ„Ù‰ 999 999 999)"
             },
             {
                 id: "ch1-l17-alhasiba",
                 title: "La calculatrice (découverte des touches mémoire et leur contrôle)",
-                titleAr: "Ø§Ù„Ø­Ø§Ø³Ø¨Ø© (Ø§ÙƒØªØ´Ø§Ù Ø§Ù„Ù…Ø³Ø§Øª Ø§Ù„Ø°Ø§ÙƒØ±Ø© ÙˆØ§Ù„ØªØ­ÙƒÙ… ÙÙŠÙ‡Ø§ )"
+                titleAr: "اÙ„حاسبة (اÙƒتشاف اÙ„Ù…سات اÙ„ذاÙƒرة ÙˆاÙ„تحÙƒÙ… فÙŠÙ‡ا )"
             },
             {
                 id: "ch1-l18-ad-kamiyat-kabira",
                 title: "Dénombrement de grandes quantités",
-                titleAr: "Ø¹Ø¯ ÙƒÙ…ÙŠØ§Øª ÙƒØ¨ÙŠØ±Ø©"
+                titleAr: "عد ÙƒÙ…ÙŠات ÙƒبÙŠرة"
             },
             {
                 id: "ch1-l19-manhajiya-hall-mushkilat",
                 title: "Méthodologie de résolution de problèmes",
-                titleAr: "Ù…Ù†Ù‡Ø¬ÙŠØ© Ø­Ù„ Ù…Ø´ÙƒÙ„Ø§Øª"
+                titleAr: "Ù…Ù†Ù‡جÙŠة حÙ„ Ù…شÙƒÙ„ات"
             }
         ]
     },
     {
         id: "ch2-wadaiya-intilakiya-2",
         title: "Situation de départ 2",
-        titleAr: "Ø§Ù„ÙˆØ¶Ø¹ÙŠØ© Ø§Ù„Ø§Ù†Ø·Ù„Ø§Ù‚ÙŠØ© 2",
+        titleAr: "اÙ„ÙˆضعÙŠة اÙ„اÙ†طÙ„اÙ‚ÙŠة 2",
         lessons: [
             {
                 id: "ch2-l1-muqarana-wa-tartib-zawaya",
                 title: "Comparaison et classement d'angles",
-                titleAr: "Ù…Ù‚Ø§Ø±Ù†Ø© ÙˆØªØ±ØªÙŠØ¨ Ø²ÙˆØ§ÙŠØ§"
+                titleAr: "Ù…Ù‚ارÙ†ة ÙˆترتÙŠب زÙˆاÙŠا"
             },
             {
                 id: "ch2-l2-istiimal-tasmim",
                 title: "Utilisation d'un patron ou d'une carte",
-                titleAr: "Ø§Ø³ØªØ¹Ù…Ø§Ù„ ØªØµÙ…ÙŠÙ… Ø£Ùˆ Ø®Ø±ÙŠØ·Ø©"
+                titleAr: "استعÙ…اÙ„ تصÙ…ÙŠÙ… أÙˆ خرÙŠطة"
             },
             {
                 id: "ch2-l3-qima-raqm",
                 title: "Valeur du chiffre selon sa position dans l'écriture d'un nombre naturel",
-                titleAr: "Ù‚ÙÙŠÙ…ÙŽØ©Ù Ø§Ù„Ø±ÙŽÙ‘Ù‚Ù… Ø­ÙŽØ³Ù’Ø¨ÙŽ Ù…ÙŽÙ†Ù’Ø²ÙÙ„ÙŽØªÙÙ‡Ù ÙÙŠ ÙƒÙØªÙŽØ§Ø¨ÙŽØ©Ù Ø¹Ø¯Ø¯Ù Ø·ÙŽØ¨ÙŠØ¹ÙŠÙÙ‘"
+                titleAr: "Ù‚ِÙŠÙ…ÙŽةُ اÙ„رÙŽÙ‘Ù‚Ù… حÙŽسÙ’بÙŽ Ù…ÙŽÙ†Ù’زِÙ„ÙŽتِÙ‡ِ فÙŠ ÙƒِتÙŽابÙŽةِ عددٍ طÙŽبÙŠعÙŠٍÙ‘"
             },
             {
                 id: "ch2-l4-alkusur",
                 title: "Les fractions",
-                titleAr: "Ø§Ù„ÙƒØ³ÙˆØ±"
+                titleAr: "اÙ„ÙƒسÙˆر"
             },
             {
                 id: "ch2-l5-alkusur-alashira",
                 title: "Les fractions décimales et les nombres décimaux",
-                titleAr: "Ø§Ù„ÙƒØ³ÙˆØ± Ø§Ù„Ø¹Ø´Ø±ÙŠØ© ÙˆØ§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø¹Ø´Ø±ÙŠØ©"
+                titleAr: "اÙ„ÙƒسÙˆر اÙ„عشرÙŠة ÙˆاÙ„أعداد اÙ„عشرÙŠة"
             },
             {
                 id: "ch2-l6-tanasubiya-1",
                 title: "Proportionnalité 1 (classification d'une situation en utilisant le critère de proportionnalité)",
-                titleAr: "Ø§Ù„ØªÙ†Ø§Ø³Ø¨ÙŠØ©1 (ØªØµÙ†ÙŠÙ ÙˆØ¶Ø¹ÙŠØ© Ø¨Ø§Ø³ØªØ¹Ù…Ø§Ù„ Ù…Ø¹ÙŠØ§Ø± Ø§Ù„ØªÙ†Ø§Ø³Ø¨ÙŠØ©)"
+                titleAr: "اÙ„تÙ†اسبÙŠة1 (تصÙ†ÙŠف ÙˆضعÙŠة باستعÙ…اÙ„ Ù…عÙŠار اÙ„تÙ†اسبÙŠة)"
             },
             {
                 id: "ch2-l7-muhit-muraba-wa-mustatil",
                 title: "Périmètre du carré et du rectangle",
-                titleAr: "Ù…Ø­ÙŠØ· Ø§Ù„Ù…Ø±Ø¨Ø¹ ÙˆØ§Ù„Ù…Ø³ØªØ·ÙŠÙ„"
+                titleAr: "Ù…حÙŠط اÙ„Ù…ربع ÙˆاÙ„Ù…ستطÙŠÙ„"
             },
             {
                 id: "ch2-l8-alqisma",
                 title: "La division",
-                titleAr: "Ø§Ù„Ù‚Ø³Ù…Ø©"
+                titleAr: "اÙ„Ù‚سÙ…ة"
             },
             {
                 id: "ch2-l9-tanazir-1",
                 title: "Symétrie 1 (vérifier qu'une figure a un axe de symétrie ou plus en utilisant différentes techniques)",
-                titleAr: "Ø§Ù„ØªÙ†Ø§Ø¸Ø±1 (Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø£Ù†Ù‘ Ù„Ø´ÙƒÙ„ Ù…Ø§ Ù…Ø­ÙˆØ± ØªÙ†Ø§Ø¸Ø± Ø£Ùˆ Ø£ÙƒØ«Ø± Ø¨Ø§Ø³ØªØ¹Ù…Ø§Ù„ ØªÙ‚Ù†ÙŠØ§Øª Ù…Ø®ØªÙ„ÙØ©.)"
+                titleAr: "اÙ„تÙ†اظر1 (اÙ„تحÙ‚Ù‚ Ù…Ù† أÙ†Ù‘ Ù„شÙƒÙ„ Ù…ا Ù…حÙˆر تÙ†اظر أÙˆ أÙƒثر باستعÙ…اÙ„ تÙ‚Ù†ÙŠات Ù…ختÙ„فة.)"
             },
             {
                 id: "ch2-l10-tanasubiya-2",
                 title: "Proportionnalité 2 (résoudre des situations de proportionnalité en utilisant les propriétés de linéarité et le coefficient de proportionnalité)",
-                titleAr: "Ø§Ù„ØªÙ†Ø§Ø³Ø¨ÙŠØ©2 (Ø­Ù„ ÙˆØ¶Ø¹ÙŠØ§Øª ØªÙ†Ø§Ø³Ø¨ÙŠØ© Ø¨Ø§Ø³ØªØ¹Ù…Ø§Ù„ Ø®ÙˆØ§Øµ Ø§Ù„Ø®Ø·ÙŠØ© ÙˆÙ…Ø¹Ø§Ù…Ù„ Ø§Ù„ØªÙ†Ø§Ø³Ø¨ÙŠØ©.)"
+                titleAr: "اÙ„تÙ†اسبÙŠة2 (حÙ„ ÙˆضعÙŠات تÙ†اسبÙŠة باستعÙ…اÙ„ خÙˆاص اÙ„خطÙŠة ÙˆÙ…عاÙ…Ù„ اÙ„تÙ†اسبÙŠة.)"
             },
             {
                 id: "ch2-l11-jam-wa-tarh-1",
                 title: "Addition et soustraction de nombres naturels et décimaux (1)",
-                titleAr: "Ø­Ù…Ø¹ ÙˆØ·Ø±Ø­ Ø£Ø¹Ø¯Ø§Ø¯ Ø·Ø¨ÙŠØ¹ÙŠØ© ÙˆØ¹Ø´Ø±ÙŠØ© (1)"
+                titleAr: "حÙ…ع Ùˆطرح أعداد طبÙŠعÙŠة ÙˆعشرÙŠة (1)"
             },
             {
                 id: "ch2-l12-wadaiyat-jamiat-wa-darbiya",
                 title: "Situations additives ou multiplicatives",
-                titleAr: "ÙˆØ¶Ø¹ÙŠØ§Øª Ø¬Ù…Ø¹ÙŠØ© Ø£Ùˆ Ø¶Ø±Ø¨ÙŠØ©"
+                titleAr: "ÙˆضعÙŠات جÙ…عÙŠة أÙˆ ضربÙŠة"
             },
             {
                 id: "ch2-l13-tanazir-2",
-                title: "Symétrie 2 (tracer l'image d'une figure par rapport Ã  une droite donnée sur papier quadrillé)",
-                titleAr: "Ø§Ù„ØªÙ†Ø§Ø¸Ø±2 (Ø±Ø³Ù… Ù†Ø¸ÙŠØ± Ø´ÙƒÙ„ Ø¨Ø§Ù„Ù†Ø³Ø¨Ø© Ø¥Ù„Ù‰ Ù…Ø³ØªÙ‚ÙŠÙ… Ù…Ø¹Ø·Ù‰ Ø¹Ù„Ù‰ ÙˆØ±Ù‚Ø© Ù…Ø±ØµÙˆÙØ©.)"
+                title: "Symétrie 2 (tracer l'image d'une figure par rapport à une droite donnée sur papier quadrillé)",
+                titleAr: "اÙ„تÙ†اظر2 (رسÙ… Ù†ظÙŠر شÙƒÙ„ باÙ„Ù†سبة إÙ„Ù‰ Ù…ستÙ‚ÙŠÙ… Ù…عطÙ‰ عÙ„Ù‰ ÙˆرÙ‚ة Ù…رصÙˆفة.)"
             },
             {
                 id: "ch2-l14-alhasiba",
                 title: "La calculatrice",
-                titleAr: "Ø§Ù„Ø­Ø§Ø³Ø¨Ø©"
+                titleAr: "اÙ„حاسبة"
             },
             {
                 id: "ch2-l15-alashkal-alhandasiya",
                 title: "Les figures géométriques familières",
-                titleAr: "Ø§Ù„Ø£Ø´ÙƒØ§Ù„ Ø§Ù„Ù‡Ù†Ø¯Ø³ÙŠØ© Ø§Ù„Ù…Ø£Ù„ÙˆÙØ©"
+                titleAr: "اÙ„أشÙƒاÙ„ اÙ„Ù‡Ù†دسÙŠة اÙ„Ù…أÙ„Ùˆفة"
             },
             {
                 id: "ch2-l16-manhajiya-hall-mushkilat",
                 title: "Méthodologie de résolution de problèmes",
-                titleAr: "Ù…Ù†Ù‡Ø¬ÙŠØ© Ø­Ù„Ù‘ Ù…Ø´ÙƒÙ„Ø§Øª"
+                titleAr: "Ù…Ù†Ù‡جÙŠة حÙ„Ù‘ Ù…شÙƒÙ„ات"
             }
         ]
     },
     {
         id: "ch3-wadaiya-intilakiya-3",
         title: "Situation de départ 3",
-        titleAr: "Ø§Ù„ÙˆØ¶Ø¹ÙŠØ© Ø§Ù„Ø§Ù†Ø·Ù„Ø§Ù‚ÙŠØ© 3",
+        titleAr: "اÙ„ÙˆضعÙŠة اÙ„اÙ†طÙ„اÙ‚ÙŠة 3",
         lessons: [
             {
                 id: "ch3-l1-aadad-ashira-wa-mustaqim",
                 title: "Les nombres décimaux et la droite graduée",
-                titleAr: "Ø§Ù„Ø§Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø¹Ø´Ø±ÙŠØ© ÙˆØ§Ù„Ù…Ø³ØªÙ‚ÙŠÙ… Ø§Ù„Ù…Ø¯Ø±Ø¬"
+                titleAr: "اÙ„اعداد اÙ„عشرÙŠة ÙˆاÙ„Ù…ستÙ‚ÙŠÙ… اÙ„Ù…درج"
             },
             {
                 id: "ch3-l2-muqarana-wa-tartib-ashira",
                 title: "Comparaison et classement de nombres décimaux",
-                titleAr: "Ù…Ù‚Ø§Ø±Ù†Ø© ÙˆØªØ±ØªÙŠØ¨ Ø£Ø¹Ø¯Ø§Ø¯ Ø¹Ø´Ø±ÙŠØ©"
+                titleAr: "Ù…Ù‚ارÙ†ة ÙˆترتÙŠب أعداد عشرÙŠة"
             },
             {
                 id: "ch3-l3-darb-fi-100-10-1000",
                 title: "Multiplication par (ou division par) 100, 10, 1000",
-                titleAr: "Ø§Ù„Ø¶Ø±Ø¨ ÙÙŠ (Ø£Ùˆ Ø§Ù„Ù‚Ø³Ù…Ø© Ø¹Ù„Ù‰) 100.10ØŒ 1000"
+                titleAr: "اÙ„ضرب فÙŠ (أÙˆ اÙ„Ù‚سÙ…ة عÙ„Ù‰) 100.10ØŒ 1000"
             },
             {
                 id: "ch3-l4-tanasubiya-3",
                 title: "Proportionnalité (3)",
-                titleAr: "Ø§Ù„ØªÙ†Ø§Ø³Ø¨ÙŠØ© (3)"
+                titleAr: "اÙ„تÙ†اسبÙŠة (3)"
             },
             {
                 id: "ch3-l5-darb-adad-ashiri",
                 title: "Multiplication d'un nombre décimal par un nombre naturel",
-                titleAr: "Ø¶Ø±Ø¨ Ø¹Ø¯Ø¯ Ø¹Ø´Ø±ÙŠ ÙÙŠ Ø¹Ø¯Ø¯ Ø·Ø¨ÙŠØ¹ÙŠ"
+                titleAr: "ضرب عدد عشرÙŠ فÙŠ عدد طبÙŠعÙŠ"
             },
             {
                 id: "ch3-l6-tafkik-adad-ashiri-1",
                 title: "Décomposition d'un nombre décimal (1)",
-                titleAr: "Ù†ÙÙƒÙŠÙƒ Ø¹Ø¯Ø¯ Ø¹Ø´Ø±ÙŠ (1)"
+                titleAr: "Ù†فÙƒÙŠÙƒ عدد عشرÙŠ (1)"
             },
             {
                 id: "ch3-l7-almuthallathat-alkhassa",
                 title: "Les triangles particuliers",
-                titleAr: "Ø§Ù„Ù…Ø«Ù„Ø«Ø§Øª Ø§Ù„Ø®Ø§ØµØ©"
+                titleAr: "اÙ„Ù…ثÙ„ثات اÙ„خاصة"
             },
             {
                 id: "ch3-l8-qiyas-masahat",
                 title: "Mesure de surfaces",
-                titleAr: "Ù‚ÙŠØ§Ø³ Ù…Ø³Ø§Ø­Ø§Øª"
+                titleAr: "Ù‚ÙŠاس Ù…ساحات"
             },
             {
                 id: "ch3-l9-masaha-muraba-wa-mustatil",
                 title: "Aire du carré et du rectangle",
-                titleAr: "Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ù…Ø±Ø¨Ø¹ ÙˆØ§Ù„Ù…Ø³ØªØ·ÙŠÙ„"
+                titleAr: "Ù…ساحة اÙ„Ù…ربع ÙˆاÙ„Ù…ستطÙŠÙ„"
             },
             {
                 id: "ch3-l10-alaqat-hisabiya-ashira",
                 title: "Relations arithmétiques entre nombres décimaux",
-                titleAr: "Ø¹Ù„Ø§Ù‚Ø§Øª Ø­Ø³Ø§Ø¨ÙŠØ© Ø¨ÙŠÙ† Ø£Ø¹Ø¯Ø§Ø¯ Ø¹Ø´Ø±ÙŠØ©"
+                titleAr: "عÙ„اÙ‚ات حسابÙŠة بÙŠÙ† أعداد عشرÙŠة"
             },
             {
                 id: "ch3-l11-alnisba-almiawiya",
                 title: "Le pourcentage",
-                titleAr: "Ø§Ù„Ù†Ø³Ø¨Ø© Ø§Ù„Ù…Ø¦ÙˆÙŠØ©"
+                titleAr: "اÙ„Ù†سبة اÙ„Ù…ئÙˆÙŠة"
             },
             {
                 id: "ch3-l12-alrubaiyat-alkhassa",
                 title: "Les quadrilatères particuliers",
-                titleAr: "Ø§Ù„Ø±Ø¨Ø§Ø¹ÙŠØ§Øª Ø§Ù„Ø®Ø§ØµØ©"
+                titleAr: "اÙ„رباعÙŠات اÙ„خاصة"
             },
             {
                 id: "ch3-l13-alqisma-3",
                 title: "La division (3)",
-                titleAr: "Ø§Ù„Ù‚Ø³Ù…Ø© (3)"
+                titleAr: "اÙ„Ù‚سÙ…ة (3)"
             },
             {
                 id: "ch3-l14-qiyas-kutl",
                 title: "Mesure de masses",
-                titleAr: "Ù‚ÙŠØ§Ø³ ÙƒØªÙ„"
+                titleAr: "Ù‚ÙŠاس ÙƒتÙ„"
             },
             {
                 id: "ch3-l15-tamthilat-bayaniya",
                 title: "Représentations graphiques et diagrammes",
-                titleAr: "ØªÙ…Ø«ÙŠÙ„Ø§Øª Ø¨ÙŠØ§Ù†ÙŠØ© ÙˆÙ…Ø®Ø·Ø·Ø§Øª"
+                titleAr: "تÙ…ثÙŠÙ„ات بÙŠاÙ†ÙŠة ÙˆÙ…خططات"
             },
             {
                 id: "ch3-l16-aldaira",
                 title: "Le cercle",
-                titleAr: "Ø§Ù„Ø¯Ø§Ø¦Ø±Ø©"
+                titleAr: "اÙ„دائرة"
             },
             {
                 id: "ch3-l17-alqisma-altamma",
                 title: "La division exacte",
-                titleAr: "Ø§Ù„Ù‚Ø³Ù…Ø© Ø§Ù„ØªØ§Ù…Ø©"
+                titleAr: "اÙ„Ù‚سÙ…ة اÙ„تاÙ…ة"
             },
             {
                 id: "ch3-l18-aadad-ashira-wa-qiyas",
                 title: "Les nombres décimaux et la mesure de grandeurs",
-                titleAr: "Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø¹Ø´Ø±ÙŠØ© ÙˆÙ‚ÙŠØ§Ø³ Ù…Ù‚Ø§Ø¯ÙŠØ±"
+                titleAr: "اÙ„أعداد اÙ„عشرÙŠة ÙˆÙ‚ÙŠاس Ù…Ù‚ادÙŠر"
             },
             {
                 id: "ch3-l19-manhajiya-hall-mushkilat",
                 title: "Méthodologie de résolution de problèmes",
-                titleAr: "Ù…Ù†Ù‡Ø¬ÙŠØ© Ø­Ù„ Ù…Ø´ÙƒÙ„Ø§Øª"
+                titleAr: "Ù…Ù†Ù‡جÙŠة حÙ„ Ù…شÙƒÙ„ات"
             }
         ]
     },
     {
         id: "ch4-wadaiya-intilakiya-4",
         title: "Situation de départ 4",
-        titleAr: "Ø§Ù„ÙˆØ¶Ø¹ÙŠØ© Ø§Ù„Ø§Ù†Ø·Ù„Ø§Ù‚ÙŠØ© 4",
+        titleAr: "اÙ„ÙˆضعÙŠة اÙ„اÙ†طÙ„اÙ‚ÙŠة 4",
         lessons: [
             {
                 id: "ch4-l1-almajassamat",
                 title: "Les solides",
-                titleAr: "Ø§Ù„Ù…Ø¬Ø³Ù…Ø§Øª"
+                titleAr: "اÙ„Ù…جسÙ…ات"
             },
             {
                 id: "ch4-l2-wadaiyat-qisma",
                 title: "Situations de division",
-                titleAr: "ÙˆØ¶Ø¹ÙŠØ§Øª Ù‚Ø³Ù…Ø©"
+                titleAr: "ÙˆضعÙŠات Ù‚سÙ…ة"
             },
             {
                 id: "ch4-l3-naql-shakl",
                 title: "Translation d'une figure ou son achèvement",
-                titleAr: "Ù†Ù‚Ù„ Ø´ÙƒÙ„ Ø£Ùˆ Ø¥ØªÙ…Ø§Ù…Ù‡"
+                titleAr: "Ù†Ù‚Ù„ شÙƒÙ„ أÙˆ إتÙ…اÙ…Ù‡"
             },
             {
                 id: "ch4-l4-insha-ashkal-handasiya",
                 title: "Construction de figures géométriques",
-                titleAr: "Ø¥Ù†Ø´Ø§Ø¡ Ø£Ø´ÙƒØ§Ù„ Ù‡Ù†Ø¯Ø³ÙŠØ©"
+                titleAr: "إÙ†شاء أشÙƒاÙ„ Ù‡Ù†دسÙŠة"
             },
             {
                 id: "ch4-l5-alkusur-wa-aadad-ashira",
                 title: "Les fractions et les nombres décimaux",
-                titleAr: "Ø§Ù„ÙƒØ³ÙˆØ± ÙˆØ§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø¹Ø´Ø±ÙŠØ©"
+                titleAr: "اÙ„ÙƒسÙˆر ÙˆاÙ„أعداد اÙ„عشرÙŠة"
             },
             {
                 id: "ch4-l6-wadaiyat-darb-wa-qisma",
                 title: "Situations de multiplication ou division",
-                titleAr: "ÙˆØ¶Ø¹ÙŠØ§Øª Ø¶Ø±Ø¨ Ø£Ùˆ Ù‚Ø³Ù…Ø©"
+                titleAr: "ÙˆضعÙŠات ضرب أÙˆ Ù‚سÙ…ة"
             },
             {
                 id: "ch4-l7-qiyas-mudud",
                 title: "Mesure de durées",
-                titleAr: "Ù‚ÙŠØ§Ø³ Ù…Ø¯Ø¯"
+                titleAr: "Ù‚ÙŠاس Ù…دد"
             },
             {
                 id: "ch4-l8-tafkik-adad-ashiri",
                 title: "Décomposition d'un nombre décimal",
-                titleAr: "ØªÙÙƒÙŠÙƒ Ø¹Ø¯Ø¯ Ø¹Ø´Ø±ÙŠ"
+                titleAr: "تفÙƒÙŠÙƒ عدد عشرÙŠ"
             },
             {
                 id: "ch4-l9-almqiyas",
                 title: "L'échelle",
-                titleAr: "Ø§Ù„Ù…Ù‚ÙŠØ§Ø³"
+                titleAr: "اÙ„Ù…Ù‚ÙŠاس"
             },
             {
                 id: "ch4-l10-qiyas-saiat",
                 title: "Mesure de capacités",
-                titleAr: "Ù‚ÙŠØ§Ø³ Ø³Ø¹Ø§Øª"
+                titleAr: "Ù‚ÙŠاس سعات"
             },
             {
                 id: "ch4-l11-wadaiyat-hisabiya",
                 title: "Situations arithmétiques",
-                titleAr: "ÙˆØ¶Ø¹ÙŠØ§Øª Ø­Ø³Ø§Ø¨ÙŠØ©"
+                titleAr: "ÙˆضعÙŠات حسابÙŠة"
             },
             {
                 id: "ch4-l12-alsurua-almutawassita",
                 title: "La vitesse moyenne",
-                titleAr: "Ø§Ù„Ø³Ø±Ø¹Ø© Ø§Ù„Ù…ØªÙˆØ³Ø·Ø©"
+                titleAr: "اÙ„سرعة اÙ„Ù…تÙˆسطة"
             },
             {
                 id: "ch4-l13-qima-raqm-ashiri",
                 title: "Valeur du chiffre selon sa position dans l'écriture d'un nombre décimal",
-                titleAr: "Ù‚ÙÙŠÙ…ÙŽØ©Ù Ø§Ù„Ø±ÙŽÙ‘Ù‚Ù… Ø­ÙŽØ³Ù’Ø¨ÙŽ Ù…ÙŽÙ†Ù’Ø²ÙÙ„ÙŽØªÙÙ‡ ÙÙŠ ÙƒÙØªÙŽØ§Ø¨ÙŽØ© Ø¹Ø¯Ø¯Ù Ø¹Ø´Ø±ÙŠ"
+                titleAr: "Ù‚ِÙŠÙ…ÙŽةُ اÙ„رÙŽÙ‘Ù‚Ù… حÙŽسÙ’بÙŽ Ù…ÙŽÙ†Ù’زِÙ„ÙŽتِÙ‡ فÙŠ ÙƒِتÙŽابÙŽة عددٍ عشرÙŠ"
             },
             {
                 id: "ch4-l14-manhajiya-hall-mushkilat",
                 title: "Méthodologie de résolution de problèmes",
-                titleAr: "Ù…Ù†Ù‡Ø¬ÙŠØ© Ø­Ù„Ù‘ Ù…Ø´ÙƒÙ„Ø§Øª"
+                titleAr: "Ù…Ù†Ù‡جÙŠة حÙ„Ù‘ Ù…شÙƒÙ„ات"
             }
         ]
     }
@@ -387,7 +387,7 @@ export const mathPrimaire5emeChapters: Chapter[] = [
 
 export const getPrimaire5emeCourseInfo = () => ({
     title: "Mathématiques - 5ème Primaire",
-    titleAr: "Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª - Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø®Ø§Ù…Ø³Ø© Ø§Ø¨ØªØ¯Ø§Ø¦ÙŠ",
+    titleAr: "اÙ„رÙŠاضÙŠات - اÙ„سÙ†ة اÙ„خاÙ…سة ابتدائÙŠ",
     description: "Programme de mathématiques pour la 5ème année du primaire",
-    descriptionAr: "Ø¨Ø±Ù†Ø§Ù…Ø¬ Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª Ù„Ù„Ø³Ù†Ø© Ø§Ù„Ø®Ø§Ù…Ø³Ø© Ø§Ø¨ØªØ¯Ø§Ø¦ÙŠ"
+    descriptionAr: "برÙ†اÙ…ج اÙ„رÙŠاضÙŠات Ù„Ù„سÙ†ة اÙ„خاÙ…سة ابتدائÙŠ"
 });

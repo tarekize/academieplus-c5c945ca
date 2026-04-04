@@ -96,11 +96,11 @@ export function useProfile() {
       });
 
       setProfile((prev) => (prev ? { ...prev, ...updates, updated_at: new Date().toISOString() } : null));
-      toast.success("Profil mis Ã  jour avec succès");
+      toast.success("Profil mis à jour avec succès");
       return true;
     } catch (error: any) {
       console.error("Error updating profile:", error);
-      toast.error("Erreur lors de la mise Ã  jour du profil");
+      toast.error("Erreur lors de la mise à jour du profil");
       return false;
     } finally {
       setSaving(false);

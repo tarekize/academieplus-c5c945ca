@@ -91,7 +91,7 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
             ) : (
                 <p className={cn("text-xs text-muted-foreground italic leading-relaxed", dir === "rtl" ? "text-right" : "text-left")}>
                     {dir === "rtl"
-                        ? "Ø³ÙŠØ¸Ù‡Ø± ÙÙ‡Ø±Ø³ الدروس Ù‡Ù†Ø§ ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹ Ø¹Ù†Ø¯ Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø¹Ù†Ø§ÙˆÙŠÙ† Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ© Ù„Ù„Ù…Ø­ØªÙˆÙ‰."
+                        ? "سÙŠظÙ‡ر فÙ‡رس الدروس Ù‡Ù†ا تÙ„Ù‚ائÙŠاÙ‹ عÙ†د إضافة اÙ„عÙ†اÙˆÙŠÙ† اÙ„رئÙŠسÙŠة Ù„Ù„Ù…حتÙˆÙ‰."
                         : "Le plan du cours s'affichera ici automatiquement après l'ajout de titres."}
                 </p>
             )}

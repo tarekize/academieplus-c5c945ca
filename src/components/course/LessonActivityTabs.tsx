@@ -146,7 +146,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           }
         }
       } else {
-        console.warn("âš ï¸ [LessonActivityTabs] No authenticated user found!");
+        console.warn("âš ️ [LessonActivityTabs] No authenticated user found!");
       }
       setIsLoadingUser(false);
     };
@@ -157,7 +157,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   useEffect(() => {
     const loadProgress = async () => {
       if (!userId) {
-        console.warn("âš ï¸ [loadProgress] userId not available yet, skipping load");
+        console.warn("âš ️ [loadProgress] userId not available yet, skipping load");
         return;
       }
 
@@ -311,7 +311,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       .eq("chapter_id", chapterId);
 
     if (scanError) {
-      console.warn("âš ï¸  [persistUnlock] Scan error:", scanError.message);
+      console.warn("âš ️  [persistUnlock] Scan error:", scanError.message);
     } else {
       console.log(`ðŸ“‹ [persistUnlock] Found ${allRows?.length ?? 0} total rows for chapter (including lessons)`);
     }
@@ -490,7 +490,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      console.warn("âš ï¸ [reloadProgressFromDB] No user found");
+      console.warn("âš ️ [reloadProgressFromDB] No user found");
       return;
     }
 
@@ -555,7 +555,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   }, [chapterId, lessonId]);
 
   const handleSectionChange = (section: ActivitySection) => {
-    console.log("ðŸ–±ï¸ [handleSectionChange] Changed to section:", section);
+    console.log("ðŸ–±️ [handleSectionChange] Changed to section:", section);
     setActiveSection(section);
     setActiveStep("decouvrir");
 
@@ -723,7 +723,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     return (
 
       <div className="mt-6 space-y-4">
-        {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>â† Ø§Ù„Ø¹ÙˆØ¯Ø©</Button>}
+        {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>â† اÙ„عÙˆدة</Button>}
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><BookOpen className="h-5 w-5 text-green-500" /><span>Fiches de révision</span></CardTitle></CardHeader>
           <CardContent><p className="text-muted-foreground text-center py-8" dir="rtl">بطاقات المراجعة الخاصة بالدرس متوفرة في القسم الذكي أعلاه..</p></CardContent>
@@ -738,7 +738,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   return (
     <div className="mt-6 space-y-4">
       <div className="flex items-center gap-3">
-        {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>â† Ø§Ù„Ø¹ÙˆØ¯Ø©</Button>}
+        {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>â† اÙ„عÙˆدة</Button>}
         <div className="flex items-center gap-2">
           <SectionIcon className={cn("h-5 w-5", isQuiz ? "text-primary" : "text-orange-500")} />
           <h2 className="text-lg font-bold" dir="rtl">{isQuiz ? "اسئله متعدده الاختيارات" : "تمارين"}</h2>
@@ -750,7 +750,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         <Card className="border-blue-500/20 bg-blue-500/5 transition-all duration-500">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium" dir="rtl">ØªÙ‚Ø¯Ù…Ùƒ ÙÙŠ Ù…Ø±Ø­Ù„Ø© "اكتشف"</span>
+              <span className="text-sm font-medium" dir="rtl">تÙ‚دÙ…Ùƒ فÙŠ Ù…رحÙ„ة "اكتشف"</span>
               <Badge variant={isUnlocked ? "default" : "secondary"} className={isUnlocked ? "bg-green-500" : ""}>
                 {currentCorrect} / {REQUIRED_CORRECT} إجابات صحيحة
               </Badge>
@@ -759,15 +759,15 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             {showUnlockMessage && (
               <p className="text-xs text-green-600 mt-2 flex items-center gap-1 animate-in fade-in slide-in-from-top-1" dir="rtl">
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                ØªÙ… ÙØªØ­ Ø§Ù„Ù…Ø±Ø§Ø­Ù„ Ø§Ù„ØªØ§Ù„ÙŠØ©! ÙŠÙ…ÙƒÙ†Ùƒ Ø§Ù„Ø¢Ù† Ø§Ù„Ø§Ù†ØªÙ‚Ø§Ù„ Ø¥Ù„Ù‰ "افهم" Ùˆ "تعمّق"
+                تÙ… فتح اÙ„Ù…راحÙ„ اÙ„تاÙ„ÙŠة! ÙŠÙ…ÙƒÙ†Ùƒ اÙ„آÙ† اÙ„اÙ†تÙ‚اÙ„ إÙ„Ù‰ "افهم" Ùˆ "تعمّق"
               </p>
             )}
             {failedDiscover && (
               <div className="mt-2 flex items-center justify-between">
-                <p className="text-xs text-red-500" dir="rtl">Ù„Ù… تحقق {REQUIRED_CORRECT} إجابات صحيحة. Ø­Ø§ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰!</p>
+                <p className="text-xs text-red-500" dir="rtl">Ù„Ù… تحقق {REQUIRED_CORRECT} إجابات صحيحة. حاÙˆÙ„ Ù…رة أخرÙ‰!</p>
                 <Button size="sm" variant="outline" onClick={handleReloadDiscover} className="gap-1">
                   <RefreshCw className="h-3.5 w-3.5" />
-                  Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø©
+                  إعادة اÙ„Ù…حاÙˆÙ„ة
                 </Button>
               </div>
             )}
@@ -796,7 +796,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 if (!isLocked) setActiveStep(step.id);
               }}
               disabled={isLocked}
-              title={isLocked ? (step.id === "approfondir" && isUnlocked && !hasActiveSubscription ? "Abonnement requis pour accéder Ã  cette section" : "Terminez la phase précédente pour débloquer") : ""}
+              title={isLocked ? (step.id === "approfondir" && isUnlocked && !hasActiveSubscription ? "Abonnement requis pour accéder à cette section" : "Terminez la phase précédente pour débloquer") : ""}
               className={cn(
                 "relative flex items-center justify-between sm:justify-start gap-4 px-4 py-3 sm:py-2.5 rounded-lg transition-all duration-300 w-full group",
                 isActive
@@ -879,7 +879,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     dir="rtl"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    <span>{showCorrectOnly ? "Ø§Ù„Ø¹ÙˆØ¯Ø© Ù„Ù„تمارين" : "إجابات صحيحة"}</span>
+                    <span>{showCorrectOnly ? "اÙ„عÙˆدة Ù„Ù„تمارين" : "إجابات صحيحة"}</span>
                   </Button>
                 )}
 
@@ -889,7 +889,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     variant="outline"
                     onClick={(e) => { e.stopPropagation(); handleReloadContent(); }}
                     className="gap-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-950/30 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105"
-                    title="ØªØ­Ù…ÙŠÙ„ أسئلة Ø¬Ø¯ÙŠØ¯Ø©"
+                    title="تحÙ…ÙŠÙ„ أسئلة جدÙŠدة"
                     dir="rtl"
                   >
                     <Dices className="h-3.5 w-3.5" />
@@ -914,13 +914,13 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     dbQuizzes.filter(q => completedQuizIds.includes(q.id)).map((q, idx) => (
                       <CompletedQuizCard key={`completed-qz-${q.id}`} question={q} index={idx} />
                     ))
-                  ) : <EmptyState text="Ù„Ø§ ØªÙˆØ¬Ø¯ إجابات صحيحة Ø¨Ø¹Ø¯" />
+                  ) : <EmptyState text="Ù„ا تÙˆجد إجابات صحيحة بعد" />
                 ) : (
                   completedExerciseIds.length > 0 ? (
                     dbExercises.filter(e => completedExerciseIds.includes(e.id)).map((ex, idx) => (
                       <TrackedExerciseCard key={`completed-ex-${ex.id}`} exercise={ex} index={idx} readOnly={true} onAnswer={() => { }} />
                     ))
-                  ) : <EmptyState text="Ù„Ø§ ØªÙˆØ¬Ø¯ تمارين ØµØ­ÙŠØ­Ø© Ø¨Ø¹Ø¯" />
+                  ) : <EmptyState text="Ù„ا تÙˆجد تمارين صحÙŠحة بعد" />
                 )}
               </div>
             ) : (
@@ -940,7 +940,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                       <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx} readOnly={readOnly} onAnswer={(c) => handleDiscoverAnswer(c, "exercise", ex.id)} />
                     ))}
                   </div>
-                ) : <EmptyState text={completedExerciseIds.length > 0 ? "Ø£ÙƒÙ…Ù„Øª Ø¬Ù…ÙŠØ¹ Ø§Ù„تمارين Ø§Ù„Ù…ØªØ§Ø­Ø©!" : "Ù„Ø§ ØªÙˆØ¬Ø¯ تمارين ØªÙ…Ù‡ÙŠØ¯ÙŠØ© Ø¨Ø¹Ø¯"} />
+                ) : <EmptyState text={completedExerciseIds.length > 0 ? "أÙƒÙ…Ù„ت جÙ…ÙŠع اÙ„تمارين اÙ„Ù…تاحة!" : "Ù„ا تÙˆجد تمارين تÙ…Ù‡ÙŠدÙŠة بعد"} />
               )
             )}
           </CardContent>
@@ -969,7 +969,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     dir="rtl"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    <span>{showCorrectOnly ? "Ø§Ù„Ø¹ÙˆØ¯Ø© Ù„Ù„تمارين" : "إجابات صحيحة"}</span>
+                    <span>{showCorrectOnly ? "اÙ„عÙˆدة Ù„Ù„تمارين" : "إجابات صحيحة"}</span>
                   </Button>
                 )}
 
@@ -979,7 +979,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     variant="outline"
                     onClick={(e) => { e.stopPropagation(); handleReloadContent(); }}
                     className="gap-2 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100 dark:bg-yellow-950/30 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-900/40 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105"
-                    title="ØªØ­Ù…ÙŠÙ„ أسئلة Ø¬Ø¯ÙŠØ¯Ø©"
+                    title="تحÙ…ÙŠÙ„ أسئلة جدÙŠدة"
                     dir="rtl"
                   >
                     <Dices className="h-3.5 w-3.5" />
@@ -1003,13 +1003,13 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     dbQuizzes.filter(q => completedQuizIds.includes(q.id)).map((q, idx) => (
                       <CompletedQuizCard key={`completed-qz-und-${q.id}`} question={q} index={idx} />
                     ))
-                  ) : <EmptyState text="Ù„Ø§ ØªÙˆØ¬Ø¯ إجابات صحيحة Ø¨Ø¹Ø¯" />
+                  ) : <EmptyState text="Ù„ا تÙˆجد إجابات صحيحة بعد" />
                 ) : (
                   completedExerciseIds.length > 0 ? (
                     dbExercises.filter(e => completedExerciseIds.includes(e.id)).map((ex, idx) => (
                       <TrackedExerciseCard key={`completed-ex-und-${ex.id}`} exercise={ex} index={idx} readOnly={true} onAnswer={() => { }} />
                     ))
-                  ) : <EmptyState text="Ù„Ø§ ØªÙˆØ¬Ø¯ تمارين ØµØ­ÙŠØ­Ø© Ø¨Ø¹Ø¯" />
+                  ) : <EmptyState text="Ù„ا تÙˆجد تمارين صحÙŠحة بعد" />
                 )}
               </div>
             ) : (
@@ -1040,7 +1040,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                       />
                     ))}
                   </div>
-                ) : <EmptyState text={completedExerciseIds.length > 0 ? "Ø£ÙƒÙ…Ù„Øª Ø¬Ù…ÙŠØ¹ Ø§Ù„تمارين Ø§Ù„Ù…ØªØ§Ø­Ø©!" : "Ù„Ø§ ØªÙˆØ¬Ø¯ تمارين ØªØ·Ø¨ÙŠÙ‚ÙŠØ© Ø¨Ø¹Ø¯"} />
+                ) : <EmptyState text={completedExerciseIds.length > 0 ? "أÙƒÙ…Ù„ت جÙ…ÙŠع اÙ„تمارين اÙ„Ù…تاحة!" : "Ù„ا تÙˆجد تمارين تطبÙŠÙ‚ÙŠة بعد"} />
               )
             )}
           </CardContent>
@@ -1080,13 +1080,13 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           <Card className="border-destructive/20 bg-destructive/5">
             <CardContent className="p-8 text-center space-y-3">
               <Lock className="h-12 w-12 text-muted-foreground mx-auto" />
-              <h3 className="font-bold text-lg" dir="rtl">Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø±Ø­Ù„Ø© Ù…Ù‚ÙÙ„Ø©</h3>
+              <h3 className="font-bold text-lg" dir="rtl">Ù‡ذÙ‡ اÙ„Ù…رحÙ„ة Ù…Ù‚فÙ„ة</h3>
               <p className="text-sm text-muted-foreground max-w-sm mx-auto" dir="rtl">
-                ÙŠØ¬Ø¨ Ø¹Ù„ÙŠÙƒ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø¹Ù„Ù‰ {REQUIRED_CORRECT} أسئلة ØµØ­ÙŠØ­Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„ ÙÙŠ Ù…Ø±Ø­Ù„Ø© "اكتشف" Ù„ÙØªØ­ Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø±Ø­Ù„Ø©.
+                ÙŠجب عÙ„ÙŠÙƒ اÙ„إجابة عÙ„Ù‰ {REQUIRED_CORRECT} أسئلة صحÙŠحة عÙ„Ù‰ اÙ„أÙ‚Ù„ فÙŠ Ù…رحÙ„ة "اكتشف" Ù„فتح Ù‡ذÙ‡ اÙ„Ù…رحÙ„ة.
               </p>
               <Button variant="outline" onClick={() => setActiveStep("decouvrir")} className="gap-2">
                 <Eye className="h-4 w-4" />
-                Ø§Ù„Ø¹ÙˆØ¯Ø© Ø¥Ù„Ù‰ "اكتشف"
+                اÙ„عÙˆدة إÙ„Ù‰ "اكتشف"
               </Button>
             </CardContent>
           </Card>
@@ -1101,7 +1101,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 const DifficultyIndicator = ({ level }: { level?: number }) => {
   if (!level) return null;
   return (
-    <div className="flex gap-0.5 items-center mr-2 bg-yellow-50/50 px-1.5 py-0.5 rounded-full border border-yellow-100/50" title={`Ø§Ù„ØµØ¹ÙˆØ¨Ø©: ${level}/5`}>
+    <div className="flex gap-0.5 items-center mr-2 bg-yellow-50/50 px-1.5 py-0.5 rounded-full border border-yellow-100/50" title={`اÙ„صعÙˆبة: ${level}/5`}>
       {Array.from({ length: 5 }).map((_, i) => (
         <Pencil
           key={i}
@@ -1126,7 +1126,7 @@ function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; inde
           </p>
         </div>
         <div className="order-1 sm:order-2 shrink-0 flex flex-row sm:flex-col items-center gap-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-4 py-2 rounded-lg border border-green-200 dark:border-green-800 shadow-sm w-full sm:w-auto justify-between sm:justify-center">
-          <span className="text-xs font-semibold uppercase text-green-600/70 dark:text-green-400/70">Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©</span>
+          <span className="text-xs font-semibold uppercase text-green-600/70 dark:text-green-400/70">اÙ„إجابة</span>
           <span className="font-bold text-lg" dir="rtl">{question.correct_answer}</span>
         </div>
       </CardContent>
@@ -1160,7 +1160,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
           ))}
         </div>
         {answered && question.explanation && (
-          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">Ø§Ù„Ø´Ø±Ø­: </span>{question.explanation}</div>
+          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">اÙ„شرح: </span>{question.explanation}</div>
         )}
       </CardContent>
     </Card>
@@ -1195,11 +1195,11 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
         )}
         {result !== null && (
           <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-            {result ? "âœ… Ø¥Ø¬Ø§Ø¨Ø© ØµØ­ÙŠØ­Ø©!" : `âŒ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø§Ù„ØµØ­ÙŠØ­Ø©: ${exercise.expected_answer}`}
+            {result ? "âœ… إجابة صحÙŠحة!" : `âŒ اÙ„إجابة اÙ„صحÙŠحة: ${exercise.expected_answer}`}
           </div>
         )}
-        <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "Ø¥Ø®ÙØ§Ø¡ Ø§Ù„Ø­Ù„" : "عرض الحل"}</Button>
-        {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">Ø§Ù„Ø­Ù„: </span>{exercise.solution}</div>}
+        <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء اÙ„حÙ„" : "عرض الحل"}</Button>
+        {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">اÙ„حÙ„: </span>{exercise.solution}</div>}
       </CardContent>
     </Card>
   );
@@ -1225,7 +1225,7 @@ function QuizQuestionCard({ question, index, readOnly }: { question: DBQuizQuest
           ))}
         </div>
         {answered && question.explanation && (
-          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">Ø§Ù„Ø´Ø±Ø­: </span>{question.explanation}</div>
+          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">اÙ„شرح: </span>{question.explanation}</div>
         )}
       </CardContent>
     </Card>
@@ -1259,11 +1259,11 @@ function ExerciseCard({ exercise, index, readOnly }: { exercise: DBExercise; ind
         )}
         {result !== null && (
           <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-            {result ? "âœ… Ø¥Ø¬Ø§Ø¨Ø© ØµØ­ÙŠØ­Ø©!" : `âŒ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø§Ù„ØµØ­ÙŠØ­Ø©: ${exercise.expected_answer}`}
+            {result ? "âœ… إجابة صحÙŠحة!" : `âŒ اÙ„إجابة اÙ„صحÙŠحة: ${exercise.expected_answer}`}
           </div>
         )}
-        <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "Ø¥Ø®ÙØ§Ø¡ Ø§Ù„Ø­Ù„" : "عرض الحل"}</Button>
-        {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">Ø§Ù„Ø­Ù„: </span>{exercise.solution}</div>}
+        <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء اÙ„حÙ„" : "عرض الحل"}</Button>
+        {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">اÙ„حÙ„: </span>{exercise.solution}</div>}
       </CardContent>
     </Card>
   );

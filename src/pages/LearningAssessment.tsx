@@ -39,39 +39,39 @@ type Phase = "loading" | "intro" | "quiz" | "evaluating" | "result";
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const FALLBACK_QUESTIONS: Record<string, Question[]> = {
   "5eme_primaire": [
-    { question: "ÙƒÙ… ÙŠØ³Ø§ÙˆÙŠ 45 + 38ØŸ", options: ["81", "83", "79", "85"], correct_index: 1, chapter_ref: "Ø§Ù„Ø¬Ù…Ø¹", explanation: "45 + 38 = 83" },
-    { question: "ÙƒÙ… ÙŠØ³Ø§ÙˆÙŠ 7 Ã— 8ØŸ", options: ["54", "56", "64", "48"], correct_index: 1, chapter_ref: "Ø§Ù„Ø¶Ø±Ø¨", explanation: "7 Ã— 8 = 56" },
-    { question: "Ù…Ø§ Ù‡Ùˆ Ù†Ø§ØªØ¬ 72 Ã· 9ØŸ", options: ["6", "7", "8", "9"], correct_index: 2, chapter_ref: "Ø§Ù„Ù‚Ø³Ù…Ø©", explanation: "72 Ã· 9 = 8" },
-    { question: "Ù…Ø§ Ù‡Ùˆ Ù…Ø­ÙŠØ· Ù…Ø±Ø¨Ø¹ Ø·ÙˆÙ„ Ø¶Ù„Ø¹Ù‡ 6 Ø³Ù…ØŸ", options: ["12 Ø³Ù…", "18 Ø³Ù…", "24 Ø³Ù…", "36 Ø³Ù…"], correct_index: 2, chapter_ref: "Ø§Ù„Ù‡Ù†Ø¯Ø³Ø©", explanation: "Ù…Ø­ÙŠØ· Ø§Ù„Ù…Ø±Ø¨Ø¹ = 4 Ã— Ø§Ù„Ø¶Ù„Ø¹ = 4 Ã— 6 = 24 Ø³Ù…" },
-    { question: "ÙƒÙ… ÙŠØ³Ø§ÙˆÙŠ 1/2 + 1/4ØŸ", options: ["2/6", "3/4", "1/3", "2/4"], correct_index: 1, chapter_ref: "Ø§Ù„ÙƒØ³ÙˆØ±", explanation: "1/2 + 1/4 = 2/4 + 1/4 = 3/4" },
+    { question: "ÙƒÙ… ÙŠساÙˆÙŠ 45 + 38ØŸ", options: ["81", "83", "79", "85"], correct_index: 1, chapter_ref: "اÙ„جÙ…ع", explanation: "45 + 38 = 83" },
+    { question: "ÙƒÙ… ÙŠساÙˆÙŠ 7 Ã— 8ØŸ", options: ["54", "56", "64", "48"], correct_index: 1, chapter_ref: "اÙ„ضرب", explanation: "7 Ã— 8 = 56" },
+    { question: "Ù…ا Ù‡Ùˆ Ù†اتج 72 ÷ 9ØŸ", options: ["6", "7", "8", "9"], correct_index: 2, chapter_ref: "اÙ„Ù‚سÙ…ة", explanation: "72 ÷ 9 = 8" },
+    { question: "Ù…ا Ù‡Ùˆ Ù…حÙŠط Ù…ربع طÙˆÙ„ ضÙ„عÙ‡ 6 سÙ…ØŸ", options: ["12 سÙ…", "18 سÙ…", "24 سÙ…", "36 سÙ…"], correct_index: 2, chapter_ref: "اÙ„Ù‡Ù†دسة", explanation: "Ù…حÙŠط اÙ„Ù…ربع = 4 Ã— اÙ„ضÙ„ع = 4 Ã— 6 = 24 سÙ…" },
+    { question: "ÙƒÙ… ÙŠساÙˆÙŠ 1/2 + 1/4ØŸ", options: ["2/6", "3/4", "1/3", "2/4"], correct_index: 1, chapter_ref: "اÙ„ÙƒسÙˆر", explanation: "1/2 + 1/4 = 2/4 + 1/4 = 3/4" },
   ],
   "1ere_cem": [
-    { question: "Ù…Ø§ Ù‡Ùˆ Ø­Ù„ Ø§Ù„Ù…Ø¹Ø§Ø¯Ù„Ø©: x + 5 = 12ØŸ", options: ["x = 5", "x = 6", "x = 7", "x = 8"], correct_index: 2, chapter_ref: "Ø§Ù„Ù…Ø¹Ø§Ø¯Ù„Ø§Øª", explanation: "x = 12 - 5 = 7" },
-    { question: "Ù…Ø§ Ù‡Ùˆ Ù†Ø§ØªØ¬: (-3) Ã— (+4)ØŸ", options: ["+12", "-12", "+7", "-7"], correct_index: 1, chapter_ref: "Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„ØµØ­ÙŠØ­Ø©", explanation: "(-3) Ã— (+4) = -12 (Ø£Ø¹Ø¯Ø§Ø¯ Ø¨Ø¥Ø´Ø§Ø±ØªÙŠÙ† Ù…Ø®ØªÙ„ÙØªÙŠÙ† ØªØ¹Ø·ÙŠ Ø³Ø§Ù„Ø¨)" },
-    { question: "ÙƒÙ… ÙŠØ³Ø§ÙˆÙŠ 2Â³ØŸ", options: ["6", "8", "9", "16"], correct_index: 1, chapter_ref: "Ø§Ù„Ø£Ø³Ø³", explanation: "2Â³ = 2 Ã— 2 Ã— 2 = 8" },
-    { question: "Ù…Ø§ Ù‡Ùˆ Ù…Ø³Ø§Ø­Ø© Ù…Ø³ØªØ·ÙŠÙ„ Ø·ÙˆÙ„Ù‡ 8 Ø³Ù… ÙˆØ¹Ø±Ø¶Ù‡ 5 Ø³Ù…ØŸ", options: ["26 Ø³Ù…Â²", "40 Ø³Ù…Â²", "30 Ø³Ù…Â²", "13 Ø³Ù…Â²"], correct_index: 1, chapter_ref: "Ø§Ù„Ù‡Ù†Ø¯Ø³Ø©", explanation: "Ø§Ù„Ù…Ø³Ø§Ø­Ø© = Ø§Ù„Ø·ÙˆÙ„ Ã— Ø§Ù„Ø¹Ø±Ø¶ = 8 Ã— 5 = 40 Ø³Ù…Â²" },
-    { question: "Ù…Ø§ Ù‡Ùˆ Ù†Ø§ØªØ¬: 3/4 + 1/8ØŸ", options: ["4/12", "7/8", "4/8", "1/2"], correct_index: 1, chapter_ref: "Ø§Ù„ÙƒØ³ÙˆØ±", explanation: "3/4 + 1/8 = 6/8 + 1/8 = 7/8" },
+    { question: "Ù…ا Ù‡Ùˆ حÙ„ اÙ„Ù…عادÙ„ة: x + 5 = 12ØŸ", options: ["x = 5", "x = 6", "x = 7", "x = 8"], correct_index: 2, chapter_ref: "اÙ„Ù…عادÙ„ات", explanation: "x = 12 - 5 = 7" },
+    { question: "Ù…ا Ù‡Ùˆ Ù†اتج: (-3) Ã— (+4)ØŸ", options: ["+12", "-12", "+7", "-7"], correct_index: 1, chapter_ref: "اÙ„أعداد اÙ„صحÙŠحة", explanation: "(-3) Ã— (+4) = -12 (أعداد بإشارتÙŠÙ† Ù…ختÙ„فتÙŠÙ† تعطÙŠ ساÙ„ب)" },
+    { question: "ÙƒÙ… ÙŠساÙˆÙŠ 2³ØŸ", options: ["6", "8", "9", "16"], correct_index: 1, chapter_ref: "اÙ„أسس", explanation: "2³ = 2 Ã— 2 Ã— 2 = 8" },
+    { question: "Ù…ا Ù‡Ùˆ Ù…ساحة Ù…ستطÙŠÙ„ طÙˆÙ„Ù‡ 8 سÙ… ÙˆعرضÙ‡ 5 سÙ…ØŸ", options: ["26 سÙ…²", "40 سÙ…²", "30 سÙ…²", "13 سÙ…²"], correct_index: 1, chapter_ref: "اÙ„Ù‡Ù†دسة", explanation: "اÙ„Ù…ساحة = اÙ„طÙˆÙ„ Ã— اÙ„عرض = 8 Ã— 5 = 40 سÙ…²" },
+    { question: "Ù…ا Ù‡Ùˆ Ù†اتج: 3/4 + 1/8ØŸ", options: ["4/12", "7/8", "4/8", "1/2"], correct_index: 1, chapter_ref: "اÙ„ÙƒسÙˆر", explanation: "3/4 + 1/8 = 6/8 + 1/8 = 7/8" },
   ],
   "2eme_cem": [
-    { question: "Ù…Ø§ Ù‡Ùˆ Ø­Ù„: 2x - 3 = 7ØŸ", options: ["x = 2", "x = 4", "x = 5", "x = 6"], correct_index: 2, chapter_ref: "Ø§Ù„Ù…Ø¹Ø§Ø¯Ù„Ø§Øª", explanation: "2x = 10 â†’ x = 5" },
-    { question: "Ù…Ø§ Ù‡Ùˆ Ù†Ø§ØªØ¬: (x + 2)(x - 2)ØŸ", options: ["xÂ² - 4", "xÂ² + 4", "xÂ² - 2x + 4", "2x"], correct_index: 0, chapter_ref: "Ø§Ù„ØªØ­Ù„ÙŠÙ„", explanation: "(a+b)(a-b) = aÂ² - bÂ² â†’ (x+2)(x-2) = xÂ² - 4" },
-    { question: "ÙÙŠ Ù…Ø«Ù„Ø« Ù‚Ø§Ø¦Ù… Ø§Ù„Ø²Ø§ÙˆÙŠØ©ØŒ Ø§Ù„Ø¶Ù„Ø¹Ø§Ù† Ø§Ù„Ù‚Ø§Ø¦Ù…Ø§Ù† 3 Ùˆ4ØŒ Ù…Ø§ Ù‡Ùˆ Ø§Ù„ÙˆØªØ±ØŸ", options: ["5", "6", "7", "âˆš7"], correct_index: 0, chapter_ref: "Ù†Ø¸Ø±ÙŠØ© ÙÙŠØ«Ø§ØºÙˆØ±Ø³", explanation: "Ø§Ù„ÙˆØªØ±Â² = 9 + 16 = 25 â†’ Ø§Ù„ÙˆØªØ± = 5" },
-    { question: "Ù…Ø§ Ù‡Ùˆ ÙˆØ³ÙŠØ· Ù…Ø¬Ù…ÙˆØ¹Ø©: 3, 7, 2, 9, 5ØŸ", options: ["5", "7", "4", "3"], correct_index: 0, chapter_ref: "Ø§Ù„Ø¥Ø­ØµØ§Ø¡", explanation: "Ù†Ø±ØªØ¨Ù‡Ø§: 2,3,5,7,9 â†’ Ø§Ù„ÙˆØ³ÙŠØ· = 5" },
-    { question: "Ù…Ø§ Ù‡Ùˆ Ø­Ø¬Ù… Ù…ØªÙˆØ§Ø²ÙŠ Ù…Ø³ØªØ·ÙŠÙ„Ø§Øª Ø£Ø¨Ø¹Ø§Ø¯Ù‡ 3Ã—4Ã—5ØŸ", options: ["47 Ø³Ù…Â³", "60 Ø³Ù…Â³", "24 Ø³Ù…Â³", "36 Ø³Ù…Â³"], correct_index: 1, chapter_ref: "Ø§Ù„Ù…Ø¬Ø³Ù…Ø§Øª", explanation: "Ø§Ù„Ø­Ø¬Ù… = Ø§Ù„Ø·ÙˆÙ„ Ã— Ø§Ù„Ø¹Ø±Ø¶ Ã— Ø§Ù„Ø§Ø±ØªÙØ§Ø¹ = 3 Ã— 4 Ã— 5 = 60 Ø³Ù…Â³" },
+    { question: "Ù…ا Ù‡Ùˆ حÙ„: 2x - 3 = 7ØŸ", options: ["x = 2", "x = 4", "x = 5", "x = 6"], correct_index: 2, chapter_ref: "اÙ„Ù…عادÙ„ات", explanation: "2x = 10 â†’ x = 5" },
+    { question: "Ù…ا Ù‡Ùˆ Ù†اتج: (x + 2)(x - 2)ØŸ", options: ["x² - 4", "x² + 4", "x² - 2x + 4", "2x"], correct_index: 0, chapter_ref: "اÙ„تحÙ„ÙŠÙ„", explanation: "(a+b)(a-b) = a² - b² â†’ (x+2)(x-2) = x² - 4" },
+    { question: "فÙŠ Ù…ثÙ„ث Ù‚ائÙ… اÙ„زاÙˆÙŠةØŒ اÙ„ضÙ„عاÙ† اÙ„Ù‚ائÙ…اÙ† 3 Ùˆ4ØŒ Ù…ا Ù‡Ùˆ اÙ„ÙˆترØŸ", options: ["5", "6", "7", "âˆš7"], correct_index: 0, chapter_ref: "Ù†ظرÙŠة فÙŠثاغÙˆرس", explanation: "اÙ„Ùˆتر² = 9 + 16 = 25 â†’ اÙ„Ùˆتر = 5" },
+    { question: "Ù…ا Ù‡Ùˆ ÙˆسÙŠط Ù…جÙ…Ùˆعة: 3, 7, 2, 9, 5ØŸ", options: ["5", "7", "4", "3"], correct_index: 0, chapter_ref: "اÙ„إحصاء", explanation: "Ù†رتبÙ‡ا: 2,3,5,7,9 â†’ اÙ„ÙˆسÙŠط = 5" },
+    { question: "Ù…ا Ù‡Ùˆ حجÙ… Ù…تÙˆازÙŠ Ù…ستطÙŠÙ„ات أبعادÙ‡ 3Ã—4Ã—5ØŸ", options: ["47 سÙ…³", "60 سÙ…³", "24 سÙ…³", "36 سÙ…³"], correct_index: 1, chapter_ref: "اÙ„Ù…جسÙ…ات", explanation: "اÙ„حجÙ… = اÙ„طÙˆÙ„ Ã— اÙ„عرض Ã— اÙ„ارتفاع = 3 Ã— 4 Ã— 5 = 60 سÙ…³" },
   ],
   "3eme_cem": [
-    { question: "Ù…Ø§ Ù‡Ùˆ Ù†Ø§ØªØ¬: (2x + 3)Â²ØŸ", options: ["4xÂ² + 9", "4xÂ² + 12x + 9", "4xÂ² + 6x + 9", "2xÂ² + 12x + 9"], correct_index: 1, chapter_ref: "Ø§Ù„Ù‡ÙˆÙŠØ§Øª Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ©", explanation: "(a+b)Â² = aÂ² + 2ab + bÂ² â†’ (2x+3)Â² = 4xÂ² + 12x + 9" },
-    { question: "Ù…Ø§ Ù‡Ùˆ cos(0°)ØŸ", options: ["0", "1", "-1", "1/2"], correct_index: 1, chapter_ref: "Ø§Ù„Ù…Ø«Ù„Ø«Ø§Øª", explanation: "cos(0°) = 1" },
-    { question: "Ù…Ø§ Ù‡Ùˆ Ø­Ù„ Ø§Ù„Ù†Ø¸Ø§Ù…: x+y=5 Ùˆ x-y=1ØŸ", options: ["x=2, y=3", "x=3, y=2", "x=4, y=1", "x=1, y=4"], correct_index: 1, chapter_ref: "Ù…Ù†Ø¸ÙˆÙ…Ø© Ø§Ù„Ù…Ø¹Ø§Ø¯Ù„Ø§Øª", explanation: "Ø¨Ø§Ù„Ø¬Ù…Ø¹: 2x=6 â†’ x=3, y=2" },
-    { question: "Ù…Ø§ Ù‡ÙŠ Ø§Ù„Ù…Ø´ØªÙ‚Ø© (Ø§Ù„ÙØ±Ù‚) Ù„Ù€ f(x) = 3xÂ²ØŸ", options: ["3x", "6x", "6xÂ²", "3xÂ³"], correct_index: 1, chapter_ref: "Ø§Ù„Ù…Ø´ØªÙ‚Ø§Øª (Ù…Ù‚Ø¯Ù…Ø©)", explanation: "f'(x) = 2 Ã— 3x = 6x" },
-    { question: "Ù…Ø§ Ù‡Ùˆ Ø§Ù„Ù…ÙŠÙ„ (Ù…Ø¹Ø§Ù…Ù„ Ø§Ù„Ø§ØªØ¬Ø§Ù‡) Ù„Ù„Ù…Ø³ØªÙ‚ÙŠÙ… y = 2x + 5ØŸ", options: ["5", "2", "7", "-2"], correct_index: 1, chapter_ref: "Ø§Ù„Ù…Ø¹Ø§Ø¯Ù„Ø© Ø§Ù„Ù…Ø³ØªÙ‚ÙŠÙ…ÙŠØ©", explanation: "y = mx + b â†’ Ø§Ù„Ù…ÙŠÙ„ m = 2" },
+    { question: "Ù…ا Ù‡Ùˆ Ù†اتج: (2x + 3)²ØŸ", options: ["4x² + 9", "4x² + 12x + 9", "4x² + 6x + 9", "2x² + 12x + 9"], correct_index: 1, chapter_ref: "اÙ„Ù‡ÙˆÙŠات اÙ„رÙŠاضÙŠة", explanation: "(a+b)² = a² + 2ab + b² â†’ (2x+3)² = 4x² + 12x + 9" },
+    { question: "Ù…ا Ù‡Ùˆ cos(0°)ØŸ", options: ["0", "1", "-1", "1/2"], correct_index: 1, chapter_ref: "اÙ„Ù…ثÙ„ثات", explanation: "cos(0°) = 1" },
+    { question: "Ù…ا Ù‡Ùˆ حÙ„ اÙ„Ù†ظاÙ…: x+y=5 Ùˆ x-y=1ØŸ", options: ["x=2, y=3", "x=3, y=2", "x=4, y=1", "x=1, y=4"], correct_index: 1, chapter_ref: "Ù…Ù†ظÙˆÙ…ة اÙ„Ù…عادÙ„ات", explanation: "باÙ„جÙ…ع: 2x=6 â†’ x=3, y=2" },
+    { question: "Ù…ا Ù‡ÙŠ اÙ„Ù…شتÙ‚ة (اÙ„فرÙ‚) Ù„Ù€ f(x) = 3x²ØŸ", options: ["3x", "6x", "6x²", "3x³"], correct_index: 1, chapter_ref: "اÙ„Ù…شتÙ‚ات (Ù…Ù‚دÙ…ة)", explanation: "f'(x) = 2 Ã— 3x = 6x" },
+    { question: "Ù…ا Ù‡Ùˆ اÙ„Ù…ÙŠÙ„ (Ù…عاÙ…Ù„ اÙ„اتجاÙ‡) Ù„Ù„Ù…ستÙ‚ÙŠÙ… y = 2x + 5ØŸ", options: ["5", "2", "7", "-2"], correct_index: 1, chapter_ref: "اÙ„Ù…عادÙ„ة اÙ„Ù…ستÙ‚ÙŠÙ…ÙŠة", explanation: "y = mx + b â†’ اÙ„Ù…ÙŠÙ„ m = 2" },
   ],
   "4eme_cem": [
-    { question: "Ù…Ø§ Ù‡Ùˆ Ø­Ù„: xÂ² - 5x + 6 = 0ØŸ", options: ["x=1 Ø£Ùˆ x=6", "x=2 Ø£Ùˆ x=3", "x=-2 Ø£Ùˆ x=-3", "x=3 Ø£Ùˆ x=4"], correct_index: 1, chapter_ref: "Ø§Ù„Ù…Ø¹Ø§Ø¯Ù„Ø§Øª Ø§Ù„ØªØ±Ø¨ÙŠØ¹ÙŠØ©", explanation: "xÂ² - 5x + 6 = (x-2)(x-3) = 0 â†’ x=2 Ø£Ùˆ x=3" },
-    { question: "Ù…Ø§ Ù‡Ùˆ Ù†Ø·Ø§Ù‚ Ø§Ù„Ø¯Ø§Ù„Ø© f(x) = âˆšxØŸ", options: ["â„", "[0, +âˆž[", "]-âˆž, 0]", "â„*"], correct_index: 1, chapter_ref: "Ø§Ù„Ø¯ÙˆØ§Ù„", explanation: "Ø§Ù„Ø¬Ø°Ø± Ø§Ù„ØªØ±Ø¨ÙŠØ¹ÙŠ Ù…Ø¹Ø±Ù ÙÙ‚Ø· Ù„Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ù…ÙˆØ¬Ø¨Ø© Ø£Ùˆ Ø§Ù„ØµÙØ±" },
-    { question: "Ù…Ø§ Ù‡Ùˆ sin(30°)ØŸ", options: ["âˆš3/2", "1/2", "âˆš2/2", "1"], correct_index: 1, chapter_ref: "Ø§Ù„Ù…Ø«Ù„Ø«Ø§Øª", explanation: "sin(30°) = 1/2" },
-    { question: "Ù…Ø§ Ù‡Ùˆ Ù…ØªÙˆØ³Ø· (Ù…Ø¹Ø¯Ù„): 12, 15, 18, 9, 6ØŸ", options: ["10", "12", "14", "15"], correct_index: 1, chapter_ref: "Ø§Ù„Ø¥Ø­ØµØ§Ø¡", explanation: "Ø§Ù„Ù…Ø¹Ø¯Ù„ = (12+15+18+9+6) Ã· 5 = 60 Ã· 5 = 12" },
-    { question: "Ù…Ø§ Ù‡Ùˆ ØªÙ…ÙŠÙŠØ² (discriminant) Ù…Ø¹Ø§Ø¯Ù„Ø© 2xÂ² - 4x + 2 = 0ØŸ", options: ["0", "4", "8", "-4"], correct_index: 0, chapter_ref: "Ø§Ù„Ù…Ø¹Ø§Ø¯Ù„Ø§Øª Ø§Ù„ØªØ±Ø¨ÙŠØ¹ÙŠØ©", explanation: "Î” = bÂ² - 4ac = 16 - 16 = 0" },
+    { question: "Ù…ا Ù‡Ùˆ حÙ„: x² - 5x + 6 = 0ØŸ", options: ["x=1 أÙˆ x=6", "x=2 أÙˆ x=3", "x=-2 أÙˆ x=-3", "x=3 أÙˆ x=4"], correct_index: 1, chapter_ref: "اÙ„Ù…عادÙ„ات اÙ„تربÙŠعÙŠة", explanation: "x² - 5x + 6 = (x-2)(x-3) = 0 â†’ x=2 أÙˆ x=3" },
+    { question: "Ù…ا Ù‡Ùˆ Ù†طاÙ‚ اÙ„داÙ„ة f(x) = âˆšxØŸ", options: ["â„", "[0, +âˆž[", "]-âˆž, 0]", "â„*"], correct_index: 1, chapter_ref: "اÙ„دÙˆاÙ„", explanation: "اÙ„جذر اÙ„تربÙŠعÙŠ Ù…عرف فÙ‚ط Ù„Ù„أعداد اÙ„Ù…Ùˆجبة أÙˆ اÙ„صفر" },
+    { question: "Ù…ا Ù‡Ùˆ sin(30°)ØŸ", options: ["âˆš3/2", "1/2", "âˆš2/2", "1"], correct_index: 1, chapter_ref: "اÙ„Ù…ثÙ„ثات", explanation: "sin(30°) = 1/2" },
+    { question: "Ù…ا Ù‡Ùˆ Ù…تÙˆسط (Ù…عدÙ„): 12, 15, 18, 9, 6ØŸ", options: ["10", "12", "14", "15"], correct_index: 1, chapter_ref: "اÙ„إحصاء", explanation: "اÙ„Ù…عدÙ„ = (12+15+18+9+6) ÷ 5 = 60 ÷ 5 = 12" },
+    { question: "Ù…ا Ù‡Ùˆ تÙ…ÙŠÙŠز (discriminant) Ù…عادÙ„ة 2x² - 4x + 2 = 0ØŸ", options: ["0", "4", "8", "-4"], correct_index: 0, chapter_ref: "اÙ„Ù…عادÙ„ات اÙ„تربÙŠعÙŠة", explanation: "Î” = b² - 4ac = 16 - 16 = 0" },
   ],
 };
 
@@ -87,32 +87,32 @@ const getFallbackQuestions = (schoolLevel: string): Question[] => {
 const getLocalEvaluation = (correctCount: number, total: number): Report => {
   const pct = Math.round((correctCount / total) * 100);
   if (pct >= 80) return {
-    level_label: "Ù…Ø³ØªÙˆÙ‰ Ù…Ù…ØªØ§Ø²",
-    summary: "Ø£Ø¯Ø§Ø¤Ùƒ Ø±Ø§Ø¦Ø¹! Ø£Ù†Øª ØªÙ…ØªÙ„Ùƒ Ù‚Ø§Ø¹Ø¯Ø© Ù…ØªÙŠÙ†Ø© ÙˆØ¬Ø§Ù‡Ø² ØªÙ…Ø§Ù…Ø§Ù‹ Ù„Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³ØªÙˆÙ‰.",
-    strengths: ["Ø¥ØªÙ‚Ø§Ù† Ø§Ù„Ù…ÙØ§Ù‡ÙŠÙ… Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ©", "Ø¯Ù‚Ø© ÙÙŠ Ø§Ù„Ø­Ù„"],
-    improvements: ["Ù…ÙˆØ§ØµÙ„Ø© Ø§Ù„ØªØ­Ø¯ÙŠ Ø¨تمارين Ø£ÙƒØ«Ø± ØªØ¹Ù‚ÙŠØ¯Ø§Ù‹"],
-    advice: "Ø£Ù†Øª ÙÙŠ Ø§Ù„Ù…Ø³Ø§Ø± Ø§Ù„ØµØ­ÙŠØ­! ÙˆØ§ØµÙ„ Ù‡Ø°Ø§ Ø§Ù„ØªÙ…ÙŠØ² ÙˆØ¬Ø±Ø¨ Ø§Ù„Ù…Ø³Ø§Ø¦Ù„ Ø§Ù„Ù…ØªÙ‚Ø¯Ù…Ø©."
+    level_label: "Ù…ستÙˆÙ‰ Ù…Ù…تاز",
+    summary: "أداؤÙƒ رائع! أÙ†ت تÙ…تÙ„Ùƒ Ù‚اعدة Ù…تÙŠÙ†ة ÙˆجاÙ‡ز تÙ…اÙ…اÙ‹ Ù„Ù‡ذا اÙ„Ù…ستÙˆÙ‰.",
+    strengths: ["إتÙ‚اÙ† اÙ„Ù…فاÙ‡ÙŠÙ… اÙ„أساسÙŠة", "دÙ‚ة فÙŠ اÙ„حÙ„"],
+    improvements: ["Ù…ÙˆاصÙ„ة اÙ„تحدÙŠ بتمارين أÙƒثر تعÙ‚ÙŠداÙ‹"],
+    advice: "أÙ†ت فÙŠ اÙ„Ù…سار اÙ„صحÙŠح! ÙˆاصÙ„ Ù‡ذا اÙ„تÙ…ÙŠز Ùˆجرب اÙ„Ù…سائÙ„ اÙ„Ù…تÙ‚دÙ…ة."
   };
   if (pct >= 60) return {
-    level_label: "Ù…Ø³ØªÙˆÙ‰ Ø¬ÙŠØ¯",
-    summary: "Ø£Ø¯Ø§Ø¤Ùƒ Ø¬ÙŠØ¯! Ù„Ø¯ÙŠÙƒ ÙÙ‡Ù… Ø¬ÙŠØ¯ Ù„Ø£ØºÙ„Ø¨ Ø§Ù„Ù…ÙØ§Ù‡ÙŠÙ…ØŒ Ù…Ø¹ Ø¨Ø¹Ø¶ Ø§Ù„Ù†Ù‚Ø§Ø· Ø§Ù„ØªÙŠ ØªØ­ØªØ§Ø¬ Ù…Ø±Ø§Ø¬Ø¹Ø©.",
-    strengths: ["ÙÙ‡Ù… Ø¬ÙŠØ¯ Ù„Ù„Ù…ÙØ§Ù‡ÙŠÙ… Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ©"],
-    improvements: ["Ù…Ø±Ø§Ø¬Ø¹Ø© Ø¨Ø¹Ø¶ Ø§Ù„ÙØµÙˆÙ„", "ØªØ·Ø¨ÙŠÙ‚ Ø£ÙƒØ«Ø± Ø¹Ù„Ù‰ Ø§Ù„تمارين"],
-    advice: "Ù…Ø¹ Ø§Ù„Ù‚Ù„ÙŠÙ„ Ù…Ù† Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø³ØªØµÙ„ Ù„Ù„ØªÙ…ÙŠØ²! Ø±ÙƒØ² Ø¹Ù„Ù‰ Ù†Ù‚Ø§Ø· Ø¶Ø¹ÙÙƒ."
+    level_label: "Ù…ستÙˆÙ‰ جÙŠد",
+    summary: "أداؤÙƒ جÙŠد! Ù„دÙŠÙƒ فÙ‡Ù… جÙŠد Ù„أغÙ„ب اÙ„Ù…فاÙ‡ÙŠÙ…ØŒ Ù…ع بعض اÙ„Ù†Ù‚اط اÙ„تÙŠ تحتاج Ù…راجعة.",
+    strengths: ["فÙ‡Ù… جÙŠد Ù„Ù„Ù…فاÙ‡ÙŠÙ… اÙ„أساسÙŠة"],
+    improvements: ["Ù…راجعة بعض اÙ„فصÙˆÙ„", "تطبÙŠÙ‚ أÙƒثر عÙ„Ù‰ اÙ„تمارين"],
+    advice: "Ù…ع اÙ„Ù‚Ù„ÙŠÙ„ Ù…Ù† اÙ„Ù…راجعة ستصÙ„ Ù„Ù„تÙ…ÙŠز! رÙƒز عÙ„Ù‰ Ù†Ù‚اط ضعفÙƒ."
   };
   if (pct >= 40) return {
-    level_label: "Ù…Ø³ØªÙˆÙ‰ Ù…ØªÙˆØ³Ø·",
-    summary: "Ù„Ø¯ÙŠÙƒ Ù‚Ø§Ø¹Ø¯Ø© Ù„ÙƒÙ† Ù‡Ù†Ø§Ùƒ Ø«ØºØ±Ø§Øª ØªØ­ØªØ§Ø¬ Ù…Ø¹Ø§Ù„Ø¬Ø©. ØªØ¯Ø±Ø¬ ÙÙŠ Ø§Ù„ØªØ¹Ù„Ù… Ø³ÙŠØ³Ø§Ø¹Ø¯Ùƒ ÙƒØ«ÙŠØ±Ø§Ù‹.",
-    strengths: ["Ø§Ù„Ø§Ø³ØªØ¹Ø¯Ø§Ø¯ Ù„Ù„ØªØ¹Ù„Ù…"],
-    improvements: ["Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ù…ÙØ§Ù‡ÙŠÙ… Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ©", "ØªØ®ØµÙŠØµ ÙˆÙ‚Øª Ø£ÙƒØ«Ø± Ù„Ù„Ø¯Ø±Ø§Ø³Ø©"],
-    advice: "Ù„Ø§ ØªÙŠØ£Ø³! ÙƒÙ„ Ø´ÙŠØ¡ ÙŠÙÙÙ‡Ù… Ø¨Ø§Ù„ØªÙƒØ±Ø§Ø± ÙˆØ§Ù„Ù…Ù…Ø§Ø±Ø³Ø©. Ø§Ù„Ù…Ù†ØµØ© Ø³ØªØ³Ø§Ø¹Ø¯Ùƒ Ø®Ø·ÙˆØ© Ø¨Ø®Ø·ÙˆØ©."
+    level_label: "Ù…ستÙˆÙ‰ Ù…تÙˆسط",
+    summary: "Ù„دÙŠÙƒ Ù‚اعدة Ù„ÙƒÙ† Ù‡Ù†اÙƒ ثغرات تحتاج Ù…عاÙ„جة. تدرج فÙŠ اÙ„تعÙ„Ù… سÙŠساعدÙƒ ÙƒثÙŠراÙ‹.",
+    strengths: ["اÙ„استعداد Ù„Ù„تعÙ„Ù…"],
+    improvements: ["Ù…راجعة اÙ„Ù…فاÙ‡ÙŠÙ… اÙ„أساسÙŠة", "تخصÙŠص ÙˆÙ‚ت أÙƒثر Ù„Ù„دراسة"],
+    advice: "Ù„ا تÙŠأس! ÙƒÙ„ شÙŠء ÙŠُفÙ‡Ù… باÙ„تÙƒرار ÙˆاÙ„Ù…Ù…ارسة. اÙ„Ù…Ù†صة ستساعدÙƒ خطÙˆة بخطÙˆة."
   };
   return {
-    level_label: "ÙŠØ­ØªØ§Ø¬ ØªØ¹Ø²ÙŠØ²",
-    summary: "Ù„Ø§ ØªÙ‚Ù„Ù‚! Ø§Ù„Ø¨Ø¯Ø§ÙŠØ© Ø¯Ø§Ø¦Ù…Ø§Ù‹ ØµØ¹Ø¨Ø©. Ø§Ù„Ù…Ù†ØµØ© Ø³ØªØ³Ø§Ø¹Ø¯Ùƒ Ø¹Ù„Ù‰ Ø¨Ù†Ø§Ø¡ Ù‚Ø§Ø¹Ø¯Ø© Ù‚ÙˆÙŠØ©.",
-    strengths: ["Ø¥Ù‚Ø¨Ø§Ù„ Ø¹Ù„Ù‰ Ø§Ù„ØªØ¹Ù„Ù… ÙˆØ§Ù„Ù…Ø­Ø§ÙˆÙ„Ø©"],
-    improvements: ["Ø§Ù„Ø¨Ø¯Ø¡ Ù…Ù† Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ§Øª", "Ø§Ù„Ù…Ù…Ø§Ø±Ø³Ø© Ø§Ù„ÙŠÙˆÙ…ÙŠØ© Ø§Ù„Ù…Ù†ØªØ¸Ù…Ø©"],
-    advice: "ÙƒÙ„ Ø®Ø¨ÙŠØ± ÙƒØ§Ù† Ù…Ø¨ØªØ¯Ø¦Ø§Ù‹! Ø§Ø¨Ø¯Ø£ Ø¨الدروس Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ© ÙˆØ§Ø³ØªØ®Ø¯Ù… Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯ Ø§Ù„Ø°ÙƒÙŠ."
+    level_label: "ÙŠحتاج تعزÙŠز",
+    summary: "Ù„ا تÙ‚Ù„Ù‚! اÙ„بداÙŠة دائÙ…اÙ‹ صعبة. اÙ„Ù…Ù†صة ستساعدÙƒ عÙ„Ù‰ بÙ†اء Ù‚اعدة Ù‚ÙˆÙŠة.",
+    strengths: ["إÙ‚باÙ„ عÙ„Ù‰ اÙ„تعÙ„Ù… ÙˆاÙ„Ù…حاÙˆÙ„ة"],
+    improvements: ["اÙ„بدء Ù…Ù† اÙ„أساسÙŠات", "اÙ„Ù…Ù…ارسة اÙ„ÙŠÙˆÙ…ÙŠة اÙ„Ù…Ù†تظÙ…ة"],
+    advice: "ÙƒÙ„ خبÙŠر ÙƒاÙ† Ù…بتدئاÙ‹! ابدأ بالدروس اÙ„أساسÙŠة ÙˆاستخدÙ… اÙ„Ù…ساعد اÙ„ذÙƒÙŠ."
   };
 };
 
@@ -427,7 +427,7 @@ const LearningAssessment = () => {
             {phase === "loading" && (
               <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-6 py-20">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <p className="text-muted-foreground">Ø¬Ø§Ø±ÙŠ ØªØ­Ø¶ÙŠØ± Ø§Ø®ØªØ¨Ø§Ø± Ø§Ù„ØªÙ‚ÙŠÙŠÙ…...</p>
+                <p className="text-muted-foreground">جارÙŠ تحضÙŠر اختبار اÙ„تÙ‚ÙŠÙŠÙ…...</p>
               </motion.div>
             )}
 
@@ -439,23 +439,23 @@ const LearningAssessment = () => {
                     <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                       <Target className="h-10 w-10 text-primary" />
                     </div>
-                    <h1 className="text-2xl font-bold">Ø§Ø®ØªØ¨Ø§Ø± ØªØ­Ø¯ÙŠØ¯ Ø§Ù„Ù…Ø³ØªÙˆÙ‰</h1>
+                    <h1 className="text-2xl font-bold">اختبار تحدÙŠد اÙ„Ù…ستÙˆÙ‰</h1>
                     <p className="text-muted-foreground leading-relaxed">
-                      Ø³ÙŠØªÙ… Ø·Ø±Ø­ {questions.length} Ø£Ø³Ø¦Ù„Ø© Ù„ØªÙ‚ÙŠÙŠÙ… Ù…Ø³ØªÙˆØ§Ùƒ Ø§Ù„Ø­Ø§Ù„ÙŠ ÙÙŠ Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª.
-                      Ø£Ø¬Ø¨ Ø¨ØµØ¯Ù‚ Ù„Ù„Ø­ØµÙˆÙ„ Ø¹Ù„Ù‰ ØªÙ‚ÙŠÙŠÙ… Ø¯Ù‚ÙŠÙ‚.
+                      سÙŠتÙ… طرح {questions.length} أسئÙ„ة Ù„تÙ‚ÙŠÙŠÙ… Ù…ستÙˆاÙƒ اÙ„حاÙ„ÙŠ فÙŠ اÙ„رÙŠاضÙŠات.
+                      أجب بصدÙ‚ Ù„Ù„حصÙˆÙ„ عÙ„Ù‰ تÙ‚ÙŠÙŠÙ… دÙ‚ÙŠÙ‚.
                     </p>
                     <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <Brain className="h-4 w-4" />
-                        <span>{questions.length} Ø£Ø³Ø¦Ù„Ø©</span>
+                        <span>{questions.length} أسئÙ„ة</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Sparkles className="h-4 w-4" />
-                        <span>ØªÙ‚ÙŠÙŠÙ… Ø°ÙƒÙŠ</span>
+                        <span>تÙ‚ÙŠÙŠÙ… ذÙƒÙŠ</span>
                       </div>
                     </div>
                     <Button size="lg" onClick={() => setPhase("quiz")} className="gap-2">
-                      Ø§Ø¨Ø¯Ø£ Ø§Ù„Ø§Ø®ØªØ¨Ø§Ø±
+                      ابدأ اÙ„اختبار
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   </CardContent>
@@ -469,7 +469,7 @@ const LearningAssessment = () => {
                 <Card>
                   <CardContent className="p-6 space-y-6">
                     <div className="text-sm text-muted-foreground">
-                      Ø§Ù„ÙØµÙ„: {questions[currentIndex].chapter_ref}
+                      اÙ„فصÙ„: {questions[currentIndex].chapter_ref}
                     </div>
                     <h2 className="text-lg font-semibold leading-relaxed">
                       {questions[currentIndex].question}
@@ -509,18 +509,18 @@ const LearningAssessment = () => {
 
                     {showExplanation && questions[currentIndex].explanation && (
                       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-lg bg-muted/50 border">
-                        <p className="text-sm font-medium mb-1">Ø§Ù„Ø´Ø±Ø­:</p>
+                        <p className="text-sm font-medium mb-1">اÙ„شرح:</p>
                         <p className="text-sm text-muted-foreground">{questions[currentIndex].explanation}</p>
                       </motion.div>
                     )}
 
                     {!showExplanation ? (
                       <Button onClick={handleAnswer} disabled={selectedAnswer === null} className="w-full">
-                        ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©
+                        تأÙƒÙŠد اÙ„إجابة
                       </Button>
                     ) : (
                       <Button onClick={handleNext} className="w-full gap-2">
-                        {currentIndex < questions.length - 1 ? "Ø§Ù„Ø³Ø¤Ø§Ù„ Ø§Ù„ØªØ§Ù„ÙŠ" : "Ø¹Ø±Ø¶ Ø§Ù„Ù†ØªØ§Ø¦Ø¬"}
+                        {currentIndex < questions.length - 1 ? "اÙ„سؤاÙ„ اÙ„تاÙ„ÙŠ" : "عرض اÙ„Ù†تائج"}
                         <ArrowRight className="h-4 w-4" />
                       </Button>
                     )}
@@ -533,7 +533,7 @@ const LearningAssessment = () => {
             {phase === "evaluating" && (
               <motion.div key="eval" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-6 py-20">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <p className="text-muted-foreground">Ø¬Ø§Ø±ÙŠ ØªØ­Ù„ÙŠÙ„ Ø§Ù„Ù†ØªØ§Ø¦Ø¬...</p>
+                <p className="text-muted-foreground">جارÙŠ تحÙ„ÙŠÙ„ اÙ„Ù†تائج...</p>
               </motion.div>
             )}
 
@@ -545,7 +545,7 @@ const LearningAssessment = () => {
                     <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                       <Trophy className="h-10 w-10 text-primary" />
                     </div>
-                    <h1 className="text-2xl font-bold">Ù†ØªØ§Ø¦Ø¬ Ø§Ù„ØªÙ‚ÙŠÙŠÙ…</h1>
+                    <h1 className="text-2xl font-bold">Ù†تائج اÙ„تÙ‚ÙŠÙŠÙ…</h1>
                     <div className="text-4xl font-bold text-primary">
                       {score.score}/{score.total}
                     </div>
@@ -562,7 +562,7 @@ const LearningAssessment = () => {
                     <CardContent className="p-6 space-y-6">
                       <div className="flex items-center gap-2 text-primary">
                         <Sparkles className="h-5 w-5" />
-                        <h2 className="font-semibold">ØªÙ‚Ø±ÙŠØ± Ø§Ù„ØªÙ‚ÙŠÙŠÙ…</h2>
+                        <h2 className="font-semibold">تÙ‚رÙŠر اÙ„تÙ‚ÙŠÙŠÙ…</h2>
                       </div>
                       <p className="text-muted-foreground leading-relaxed">{report.summary}</p>
 
@@ -570,7 +570,7 @@ const LearningAssessment = () => {
                         <div>
                           <h3 className="font-semibold text-green-600 flex items-center gap-2 mb-2">
                             <CheckCircle className="h-4 w-4" />
-                            Ù†Ù‚Ø§Ø· Ø§Ù„Ù‚ÙˆØ©
+                            Ù†Ù‚اط اÙ„Ù‚Ùˆة
                           </h3>
                           <ul className="space-y-1">
                             {report.strengths.map((s, i) => (
@@ -586,7 +586,7 @@ const LearningAssessment = () => {
                         <div>
                           <h3 className="font-semibold text-amber-600 flex items-center gap-2 mb-2">
                             <TrendingUp className="h-4 w-4" />
-                            Ù†Ù‚Ø§Ø· Ø§Ù„ØªØ­Ø³ÙŠÙ†
+                            Ù†Ù‚اط اÙ„تحسÙŠÙ†
                           </h3>
                           <ul className="space-y-1">
                             {report.improvements.map((s, i) => (
@@ -600,7 +600,7 @@ const LearningAssessment = () => {
 
                       {report.advice && (
                         <div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
-                          <p className="text-sm font-medium text-primary mb-1">ðŸ’¡ Ù†ØµÙŠØ­Ø© Ø´Ø®ØµÙŠØ©</p>
+                          <p className="text-sm font-medium text-primary mb-1">ðŸ’¡ Ù†صÙŠحة شخصÙŠة</p>
                           <p className="text-sm text-muted-foreground">{report.advice}</p>
                         </div>
                       )}
@@ -609,7 +609,7 @@ const LearningAssessment = () => {
                 )}
 
                 <Button size="lg" onClick={saveAndContinue} className="w-full gap-2">
-                  Ù…ØªØ§Ø¨Ø¹Ø© Ø¥Ù„Ù‰ الدروس
+                  Ù…تابعة إÙ„Ù‰ الدروس
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </motion.div>

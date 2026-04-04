@@ -62,7 +62,7 @@ const MentionsLegales = () => {
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-4">5. Protection des données personnelles</h2>
                 <p className="text-muted-foreground">
-                  Conformément Ã  la loi « Informatique et Libertés » du 6 janvier 1978 modifiée et au Règlement Général sur la Protection des Données (RGPD), 
+                  Conformément à la loi « Informatique et Libertés » du 6 janvier 1978 modifiée et au Règlement Général sur la Protection des Données (RGPD), 
                   vous disposez d'un droit d'accès, de rectification et de suppression des données vous concernant.
                 </p>
                 <p className="text-muted-foreground mt-2">
@@ -72,7 +72,7 @@ const MentionsLegales = () => {
                   </a>.
                 </p>
                 <p className="text-muted-foreground mt-2">
-                  Pour exercer vos droits, vous pouvez nous contacter Ã  l'adresse : <a href="mailto:contact@edusuccess.fr" className="text-primary hover:underline">contact@edusuccess.fr</a>
+                  Pour exercer vos droits, vous pouvez nous contacter à l'adresse : <a href="mailto:contact@edusuccess.fr" className="text-primary hover:underline">contact@edusuccess.fr</a>
                 </p>
               </div>
 
@@ -103,7 +103,7 @@ const MentionsLegales = () => {
 
               <div className="mt-12 pt-8 border-t">
                 <p className="text-sm text-muted-foreground">
-                  Dernière mise Ã  jour : Janvier 2025
+                  Dernière mise à jour : Janvier 2025
                 </p>
               </div>
             </div>

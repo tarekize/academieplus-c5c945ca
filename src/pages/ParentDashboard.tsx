@@ -233,7 +233,7 @@ const ParentDashboard = () => {
       }
 
       if (anyCode.status === "used") {
-        sonnerToast.error("Ce code a déjÃ  été activé");
+        sonnerToast.error("Ce code a déjà été activé");
         setActivating(false);
         return;
       }
@@ -456,7 +456,7 @@ const ParentDashboard = () => {
                   <div className="space-y-4 mt-4">
                     {createError && (
                       <div className="p-3 rounded-md bg-destructive/10 border border-destructive/30 text-destructive text-sm font-medium">
-                        âš ï¸ {createError}
+                        âš ️ {createError}
                       </div>
                     )}
                     <div className="grid grid-cols-2 gap-3">
@@ -523,7 +523,7 @@ const ParentDashboard = () => {
                     <div className="space-y-2">
                       <Label>Code de liaison</Label>
                       <Input placeholder="ABC123" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={8} />
-                      <p className="text-sm text-muted-foreground">Demandez Ã  votre enfant de générer un code depuis son profil</p>
+                      <p className="text-sm text-muted-foreground">Demandez à votre enfant de générer un code depuis son profil</p>
                     </div>
                     <Button onClick={handleAddByCode} disabled={submitting} className="w-full">
                       {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Hash className="h-4 w-4 mr-2" />}

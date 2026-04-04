@@ -22,7 +22,7 @@ export interface Exercise {
 export const mathQuizQuestions: QuizQuestion[] = [
   {
     id: "q1",
-    question: "Parmi les nombres suivants, lequel appartient Ã  l'ensemble â„š (rationnels) mais pas Ã  â„¤ (entiers) ?",
+    question: "Parmi les nombres suivants, lequel appartient à l'ensemble â„š (rationnels) mais pas à â„¤ (entiers) ?",
     options: ["âˆš2", "3/4", "-5", "Ï€"],
     correctAnswer: "3/4",
     explanation: "3/4 est un rationnel car c'est le quotient de deux entiers. âˆš2 et Ï€ sont irrationnels, -5 est un entier.",
@@ -33,15 +33,15 @@ export const mathQuizQuestions: QuizQuestion[] = [
     question: "Simplifier la fraction : 48/72",
     options: ["4/6", "2/3", "8/12", "16/24"],
     correctAnswer: "2/3",
-    explanation: "PGCD(48, 72) = 24. Donc 48/72 = (48Ã·24)/(72Ã·24) = 2/3",
+    explanation: "PGCD(48, 72) = 24. Donc 48/72 = (48÷24)/(72÷24) = 2/3",
     category: "Calcul de fractions"
   },
   {
     id: "q3",
     question: "Développer et réduire : (2x + 3)(x - 1)",
-    options: ["2xÂ² + x - 3", "2xÂ² - x - 3", "2xÂ² + 5x - 3", "2xÂ² - 5x + 3"],
-    correctAnswer: "2xÂ² + x - 3",
-    explanation: "(2x + 3)(x - 1) = 2x·x + 2x·(-1) + 3·x + 3·(-1) = 2xÂ² - 2x + 3x - 3 = 2xÂ² + x - 3",
+    options: ["2x² + x - 3", "2x² - x - 3", "2x² + 5x - 3", "2x² - 5x + 3"],
+    correctAnswer: "2x² + x - 3",
+    explanation: "(2x + 3)(x - 1) = 2x·x + 2x·(-1) + 3·x + 3·(-1) = 2x² - 2x + 3x - 3 = 2x² + x - 3",
     category: "Développement/réduction"
   },
   {
@@ -70,7 +70,7 @@ export const mathQuizQuestions: QuizQuestion[] = [
   },
   {
     id: "q7",
-    question: "La fonction carré f(x) = xÂ² est :",
+    question: "La fonction carré f(x) = x² est :",
     options: [
       "Croissante sur â„",
       "Décroissante sur â„",
@@ -141,14 +141,14 @@ x = -4 / -5 = **4/5** ou **0.8**
     statement: "Dans un triangle ABC rectangle en A, on donne AB = 6 cm et AC = 8 cm.\n\n1. Calculer BC.\n2. Calculer l'aire du triangle ABC.",
     solution: `**1. Calcul de BC (hypoténuse)**
 D'après le théorème de Pythagore :
-BCÂ² = ABÂ² + ACÂ²
-BCÂ² = 6Â² + 8Â² = 36 + 64 = 100
+BC² = AB² + AC²
+BC² = 6² + 8² = 36 + 64 = 100
 BC = âˆš100 = **10 cm**
 
 **2. Aire du triangle rectangle**
 L'aire d'un triangle rectangle est :
 A = (base Ã— hauteur) / 2
-A = (AB Ã— AC) / 2 = (6 Ã— 8) / 2 = **24 cmÂ²**`
+A = (AB Ã— AC) / 2 = (6 Ã— 8) / 2 = **24 cm²**`
   },
   {
     id: "ex3",
@@ -171,9 +171,9 @@ MN = (4 Ã— 7.5) / 10 = **3 cm**`
     id: "ex4",
     title: "Calcul de fréquences cumulées",
     category: "Statistiques",
-    statement: "Dans une classe de 25 élèves, on a relevé les notes obtenues Ã  un contrôle :\n\n| Note | 8 | 10 | 12 | 14 | 16 |\n|------|---|----|----|----|----|----|\n| Effectif | 3 | 5 | 8 | 6 | 3 |\n\nCalculer :\n1. La moyenne de la série.\n2. Les fréquences et fréquences cumulées croissantes.",
+    statement: "Dans une classe de 25 élèves, on a relevé les notes obtenues à un contrôle :\n\n| Note | 8 | 10 | 12 | 14 | 16 |\n|------|---|----|----|----|----|----|\n| Effectif | 3 | 5 | 8 | 6 | 3 |\n\nCalculer :\n1. La moyenne de la série.\n2. Les fréquences et fréquences cumulées croissantes.",
     solution: `**1. Calcul de la moyenne**
-Moyenne = Î£(note Ã— effectif) / effectif total
+Moyenne = Σ(note Ã— effectif) / effectif total
 = (8Ã—3 + 10Ã—5 + 12Ã—8 + 14Ã—6 + 16Ã—3) / 25
 = (24 + 50 + 96 + 84 + 48) / 25
 = 302 / 25 = **12.08**
@@ -243,7 +243,7 @@ L'algorithme s'arrête car n = 1 (condition de sortie de la boucle).`
 AB = (x_B - x_A ; y_B - y_A) = (4 - 1 ; 6 - 2) = **(3 ; 4)**
 
 **2. Norme de AB**
-||AB|| = âˆš(3Â² + 4Â²) = âˆš(9 + 16) = âˆš25 = **5**
+||AB|| = âˆš(3² + 4²) = âˆš(9 + 16) = âˆš25 = **5**
 
 **3. Coordonnées de D**
 ABCD parallélogramme âŸ¹ AB = DC
@@ -279,7 +279,7 @@ P(R âˆª B) = P(R) + P(B) (événements incompatibles)
     id: "ex9",
     title: "Étude de la fonction carré",
     category: "Fonctions de référence",
-    statement: "Soit f(x) = xÂ².\n\n1. Compléter le tableau de valeurs pour x âˆˆ {-3, -2, -1, 0, 1, 2, 3}.\n2. Résoudre graphiquement f(x) = 4.\n3. Résoudre algébriquement f(x) = 9.",
+    statement: "Soit f(x) = x².\n\n1. Compléter le tableau de valeurs pour x âˆˆ {-3, -2, -1, 0, 1, 2, 3}.\n2. Résoudre graphiquement f(x) = 4.\n3. Résoudre algébriquement f(x) = 9.",
     solution: `**1. Tableau de valeurs**
 
 | x | -3 | -2 | -1 | 0 | 1 | 2 | 3 |
@@ -287,12 +287,12 @@ P(R âˆª B) = P(R) + P(B) (événements incompatibles)
 | f(x) | 9 | 4 | 1 | 0 | 1 | 4 | 9 |
 
 **2. Résolution graphique de f(x) = 4**
-On cherche les abscisses des points d'intersection de la parabole y = xÂ² et de la droite horizontale y = 4.
+On cherche les abscisses des points d'intersection de la parabole y = x² et de la droite horizontale y = 4.
 D'après le tableau : **x = -2 ou x = 2**
 
 **3. Résolution algébrique de f(x) = 9**
-xÂ² = 9
-xÂ² - 9 = 0
+x² = 9
+x² - 9 = 0
 (x - 3)(x + 3) = 0
 x = 3 ou x = -3
 
@@ -302,18 +302,18 @@ x = 3 ou x = -3
     id: "ex10",
     title: "Trigonométrie - Cercle trigonométrique",
     category: "Trigonométrie",
-    statement: "En utilisant le cercle trigonométrique :\n\n1. Donner les valeurs exactes de cos(Ï€/3) et sin(Ï€/3).\n2. Calculer cosÂ²(Ï€/3) + sinÂ²(Ï€/3).\n3. Résoudre l'équation cos(x) = 1/2 pour x âˆˆ [0 ; 2Ï€].",
+    statement: "En utilisant le cercle trigonométrique :\n\n1. Donner les valeurs exactes de cos(Ï€/3) et sin(Ï€/3).\n2. Calculer cos²(Ï€/3) + sin²(Ï€/3).\n3. Résoudre l'équation cos(x) = 1/2 pour x âˆˆ [0 ; 2Ï€].",
     solution: `**1. Valeurs remarquables**
 Pour Ï€/3 (60°) :
 - **cos(Ï€/3) = 1/2**
 - **sin(Ï€/3) = âˆš3/2**
 
 **2. Relation fondamentale**
-cosÂ²(Ï€/3) + sinÂ²(Ï€/3) = (1/2)Â² + (âˆš3/2)Â²
+cos²(Ï€/3) + sin²(Ï€/3) = (1/2)² + (âˆš3/2)²
 = 1/4 + 3/4
 = **1**
 
-(On retrouve la relation fondamentale cosÂ²x + sinÂ²x = 1)
+(On retrouve la relation fondamentale cos²x + sin²x = 1)
 
 **3. Résolution de cos(x) = 1/2 sur [0 ; 2Ï€]**
 cos(x) = 1/2 = cos(Ï€/3)

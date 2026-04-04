@@ -189,7 +189,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
                   i18n.language === "ar" ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground"
                 }`}
               >
-                ðŸ‡©ðŸ‡¿ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©
+                ðŸ‡©ðŸ‡¿ اÙ„عربÙŠة
               </button>
             </div>
           </div>

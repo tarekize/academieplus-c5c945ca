@@ -173,10 +173,10 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
         });
       }
 
-      toast({ title: "âœ… ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ù…Ø­ØªÙˆÙ‰", description: "ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ù…Ø­ØªÙˆÙ‰ Ø¨Ù†Ø¬Ø§Ø­ Ø­Ø³Ø¨ Ù…Ø³ØªÙˆØ§Ùƒ" });
+      toast({ title: "âœ… تÙ… إÙ†شاء اÙ„Ù…حتÙˆÙ‰", description: "تÙ… إÙ†شاء اÙ„Ù…حتÙˆÙ‰ بÙ†جاح حسب Ù…ستÙˆاÙƒ" });
     } catch (err: any) {
       console.error("Generate error:", err);
-      toast({ title: "Ø®Ø·Ø£", description: err.message || "ÙØ´Ù„ ÙÙŠ Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ù…Ø­ØªÙˆÙ‰", variant: "destructive" });
+      toast({ title: "خطأ", description: err.message || "فشÙ„ فÙŠ إÙ†شاء اÙ„Ù…حتÙˆÙ‰", variant: "destructive" });
     } finally {
       setLoading(prev => ({ ...prev, [contentType]: false }));
     }
@@ -263,7 +263,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       
       if (sessionAccuracy < 50) {
         // Failure notification
-        const msg = `Ù„Ø¯ÙŠÙƒ Ø«ØºØ±Ø§Øª ÙÙŠ Ù‡Ø°Ø§ Ø§Ù„Ø¯Ø±Ø³ (${newSessionCorrect}/${newSessionTotal}). Ø§Ù†Ù‚Ø± Ø¹Ù„Ù‰ "Ù…Ø±Ø§Ø¬Ø¹Ø©" Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª Ø«Ù… "ØªØ¬Ø¯ÙŠØ¯" Ù„تمارين Ù…ÙƒÙŠÙ‘ÙØ©.`;
+        const msg = `Ù„دÙŠÙƒ ثغرات فÙŠ Ù‡ذا اÙ„درس (${newSessionCorrect}/${newSessionTotal}). اÙ†Ù‚ر عÙ„Ù‰ "Ù…راجعة" Ù„Ù…راجعة اÙ„بطاÙ‚ات ثÙ… "تجدÙŠد" Ù„تمارين Ù…ÙƒÙŠÙ‘فة.`;
         setLevelUpMessage(msg);
 
         await supabase.from("student_notifications").insert({
@@ -271,14 +271,14 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           lesson_id: lessonId,
           chapter_id: chapterId,
           notification_type: "performance_drop",
-          title: "ðŸ“‰ Ø§Ù†Ø®ÙØ§Ø¶ ÙÙŠ Ø§Ù„Ø£Ø¯Ø§Ø¡",
+          title: "ðŸ“‰ اÙ†خفاض فÙŠ اÙ„أداء",
           message: msg,
-          diagnostic: `Ù†Ø³Ø¨Ø© Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª Ø§Ù„ØµØ­ÙŠØ­Ø©: ${sessionAccuracy}% (${newSessionCorrect}/${newSessionTotal})`,
-          advice: "Ù„Ù‚Ø¯ Ø£Ø¹Ø¯Ù†Ø§ Ø¥Ù†Ø´Ø§Ø¡ تمارين Ùˆاسئله متعدده الاختيارات Ù…ÙƒÙŠÙØ© Ù…Ø¹ Ù…Ø³ØªÙˆØ§Ùƒ Ø§Ù„Ø­Ø§Ù„ÙŠ Ù„Ù…Ø³Ø§Ø¹Ø¯ØªÙƒ Ø¹Ù„Ù‰ Ø§Ù„ØªØ­Ø³Ù†.",
+          diagnostic: `Ù†سبة اÙ„إجابات اÙ„صحÙŠحة: ${sessionAccuracy}% (${newSessionCorrect}/${newSessionTotal})`,
+          advice: "Ù„Ù‚د أعدÙ†ا إÙ†شاء تمارين Ùˆاسئله متعدده الاختيارات Ù…ÙƒÙŠفة Ù…ع Ù…ستÙˆاÙƒ اÙ„حاÙ„ÙŠ Ù„Ù…ساعدتÙƒ عÙ„Ù‰ اÙ„تحسÙ†.",
         });
       } else if (sessionAccuracy >= 80) {
         // Success notification
-        const msg = `ØªÙ‡Ø§Ù†ÙŠÙ†Ø§! Ø£Ù†Øª ØªØªÙ‚Ù† Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³ØªÙˆÙ‰ (${newSessionCorrect}/${newSessionTotal}). Ø§Ù†Ù‚Ø± Ø¹Ù„Ù‰ "ØªØ¬Ø¯ÙŠØ¯" Ù„Ù„Ø§Ù†ØªÙ‚Ø§Ù„ Ø¥Ù„Ù‰ ØªØ­Ø¯ÙŠØ§Øª Ø£ØµØ¹Ø¨!`;
+        const msg = `تÙ‡اÙ†ÙŠÙ†ا! أÙ†ت تتÙ‚Ù† Ù‡ذا اÙ„Ù…ستÙˆÙ‰ (${newSessionCorrect}/${newSessionTotal}). اÙ†Ù‚ر عÙ„Ù‰ "تجدÙŠد" Ù„Ù„اÙ†تÙ‚اÙ„ إÙ„Ù‰ تحدÙŠات أصعب!`;
         setLevelUpMessage(msg);
 
         await supabase.from("student_notifications").insert({
@@ -286,18 +286,18 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           lesson_id: lessonId,
           chapter_id: chapterId,
           notification_type: "level_up",
-          title: "ðŸŽ‰ Ù…Ø³ØªÙˆÙ‰ Ù…Ù…ØªØ§Ø²!",
+          title: "ðŸŽ‰ Ù…ستÙˆÙ‰ Ù…Ù…تاز!",
           message: msg,
-          diagnostic: `Ù†Ø³Ø¨Ø© Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª Ø§Ù„ØµØ­ÙŠØ­Ø©: ${sessionAccuracy}%`,
-          advice: "ØªÙ… Ø±ÙØ¹ Ù…Ø³ØªÙˆÙ‰ Ø§Ù„ØµØ¹ÙˆØ¨Ø©. Ø§Ø³ØªÙ…Ø± ÙÙŠ Ø§Ù„ØªÙ‚Ø¯Ù…!",
+          diagnostic: `Ù†سبة اÙ„إجابات اÙ„صحÙŠحة: ${sessionAccuracy}%`,
+          advice: "تÙ… رفع Ù…ستÙˆÙ‰ اÙ„صعÙˆبة. استÙ…ر فÙŠ اÙ„تÙ‚دÙ…!",
         });
       } else {
-        const msg = `ØªÙ… ØªØ­Ù„ÙŠÙ„ Ø£Ø¯Ø§Ø¦Ùƒ (${newSessionCorrect}/${newSessionTotal}). ÙŠØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ø­ØªÙˆÙ‰ Ø­Ø³Ø¨ Ù…Ø³ØªÙˆØ§Ùƒ Ø§Ù„Ø¬Ø¯ÙŠØ¯.`;
+        const msg = `تÙ… تحÙ„ÙŠÙ„ أدائÙƒ (${newSessionCorrect}/${newSessionTotal}). ÙŠتÙ… تحدÙŠث اÙ„Ù…حتÙˆÙ‰ حسب Ù…ستÙˆاÙƒ اÙ„جدÙŠد.`;
         setLevelUpMessage(msg);
       }
 
       // Auto-regenerate content for the active type
-      toast({ title: "ðŸ”„ ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ø³ØªÙˆÙ‰", description: "Ø¬Ø§Ø±ÙŠ Ø¥Ø¹Ø§Ø¯Ø© Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ù…Ø­ØªÙˆÙ‰ Ø­Ø³Ø¨ Ù…Ø³ØªÙˆØ§Ùƒ Ø§Ù„Ø¬Ø¯ÙŠØ¯..." });
+      toast({ title: "ðŸ”„ تحدÙŠث اÙ„Ù…ستÙˆÙ‰", description: "جارÙŠ إعادة إÙ†شاء اÙ„Ù…حتÙˆÙ‰ حسب Ù…ستÙˆاÙƒ اÙ„جدÙŠد..." });
       
       // Reset session counters for next batch
       setSessionCorrect(0);

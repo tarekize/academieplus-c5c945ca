@@ -128,7 +128,7 @@ export default function BotOnboardingPage() {
                                             onClick={handleContinue}
                                             className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all"
                                         >
-                                            ÙÙ‡Ù…Øª âœ“
+                                            فÙ‡Ù…ت âœ“
                                         </motion.button>
                                     )}
                                 </div>
@@ -158,7 +158,7 @@ export default function BotOnboardingPage() {
                                                 onClick={handleContinue}
                                                 className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all"
                                             >
-                                                ÙÙ‡Ù…Øª âœ“
+                                                فÙ‡Ù…ت âœ“
                                             </motion.button>
                                             <motion.button
                                                 initial={{ opacity: 0, y: 10 }}
@@ -166,7 +166,7 @@ export default function BotOnboardingPage() {
                                                 onClick={handleReadMore}
                                                 className="flex-1 px-6 py-3 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary/10 transition-all"
                                             >
-                                                Ø´Ø±Ø­ Ø£ÙƒØ«Ø±
+                                                شرح أÙƒثر
                                             </motion.button>
                                         </motion.div>
                                     )}
@@ -205,7 +205,7 @@ export default function BotOnboardingPage() {
                                 <FlyingBot expression="thinking" size="md" isFlying={false} />
                                 <div className="space-y-4">
                                     <BotMessage
-                                        text={`Ø³Ø¤Ø§Ù„ ${currentQuestion + 1} Ù…Ù† ${questionsArray.length}`}
+                                        text={`سؤاÙ„ ${currentQuestion + 1} Ù…Ù† ${questionsArray.length}`}
                                         emoji="â“"
                                         isTyping={true}
                                     />
@@ -233,7 +233,7 @@ export default function BotOnboardingPage() {
                                 <FlyingBot expression="celebrating" size="md" isFlying={false} />
                                 <div className="space-y-4">
                                     <BotMessage
-                                        text={`Ù…Ø¨Ø±ÙˆÙƒ! Ø£Ø³Ù„ÙˆØ¨Ùƒ Ø§Ù„ØªØ¹Ù„ÙŠÙ…ÙŠ Ù‡Ùˆ: ${learningStyle}`}
+                                        text={`Ù…برÙˆÙƒ! أسÙ„ÙˆبÙƒ اÙ„تعÙ„ÙŠÙ…ÙŠ Ù‡Ùˆ: ${learningStyle}`}
                                         emoji="ðŸŽ‰"
                                         isTyping={true}
                                         onComplete={() => setMessageComplete(true)}
@@ -245,7 +245,7 @@ export default function BotOnboardingPage() {
                                             onClick={handleFinish}
                                             className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all"
                                         >
-                                            Ø§Ø¨Ø¯Ø£ Ø§Ù„Ø¢Ù†! ðŸš€
+                                            ابدأ اÙ„آÙ†! ðŸš€
                                         </motion.button>
                                     )}
                                 </div>

@@ -18,91 +18,91 @@ export const mathCem1ereChapters: Chapter[] = [
     {
         id: "ch1-activites-numeriques",
         title: "Activités numériques",
-        titleAr: "Ø£Ù†Ø´Ø·Ø© Ø¹Ø¯Ø¯ÙŠØ©",
+        titleAr: "أÙ†شطة عددÙŠة",
         lessons: [
             {
                 id: "ch1-l1-nombres-naturels-decimaux",
                 title: "Les nombres naturels et les nombres décimaux",
-                titleAr: "Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø·Ø¨ÙŠØ¹ÙŠØ© ÙˆØ§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø¹Ø´Ø±ÙŠØ©"
+                titleAr: "اÙ„أعداد اÙ„طبÙŠعÙŠة ÙˆاÙ„أعداد اÙ„عشرÙŠة"
             },
             {
                 id: "ch1-l2-calcul-addition-soustraction",
                 title: "Calcul sur les nombres naturels et décimaux: addition et soustraction",
-                titleAr: "Ø§Ù„Ø­Ø³Ø§Ø¨ Ø¹Ù„Ù‰ Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø·Ø¨ÙŠØ¹ÙŠØ© ÙˆØ§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø¹Ø´Ø±ÙŠØ©: Ø§Ù„Ø¬Ù…Ø¹ ÙˆØ§Ù„Ø·Ø±Ø­"
+                titleAr: "اÙ„حساب عÙ„Ù‰ اÙ„أعداد اÙ„طبÙŠعÙŠة ÙˆاÙ„أعداد اÙ„عشرÙŠة: اÙ„جÙ…ع ÙˆاÙ„طرح"
             },
             {
                 id: "ch1-l3-calcul-multiplication-division",
                 title: "Calcul sur les nombres naturels et décimaux: multiplication et division",
-                titleAr: "Ø§Ù„Ø­Ø³Ø§Ø¨ Ø¹Ù„Ù‰ Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø·Ø¨ÙŠØ¹ÙŠØ© ÙˆØ§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø¹Ø´Ø±ÙŠØ©: Ø§Ù„Ø¶Ø±Ø¨ ÙˆØ§Ù„Ù‚Ø³Ù…Ø©"
+                titleAr: "اÙ„حساب عÙ„Ù‰ اÙ„أعداد اÙ„طبÙŠعÙŠة ÙˆاÙ„أعداد اÙ„عشرÙŠة: اÙ„ضرب ÙˆاÙ„Ù‚سÙ…ة"
             },
             {
                 id: "ch1-l4-ecritures-fractionnaires",
                 title: "Les écritures fractionnaires",
-                titleAr: "Ø§Ù„ÙƒØªØ§Ø¨Ø§Øª Ø§Ù„ÙƒØ³Ø±ÙŠØ©"
+                titleAr: "اÙ„Ùƒتابات اÙ„ÙƒسرÙŠة"
             },
             {
                 id: "ch1-l5-nombres-relatifs",
                 title: "Les nombres relatifs",
-                titleAr: "Ø§Ù„Ø£Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ù†Ø³Ø¨ÙŠØ©"
+                titleAr: "اÙ„أعداد اÙ„Ù†سبÙŠة"
             },
             {
                 id: "ch1-l6-calcul-litteral",
                 title: "Le calcul littéral",
-                titleAr: "Ø§Ù„Ø­Ø³Ø§Ø¨ Ø§Ù„Ø­Ø±ÙÙŠ"
+                titleAr: "اÙ„حساب اÙ„حرفÙŠ"
             }
         ]
     },
     {
         id: "ch2-fonctions-organisation-donnees",
         title: "Fonctions et organisation des données",
-        titleAr: "Ø§Ù„Ø¯ÙˆØ§Ù„ ÙˆØªÙ†Ø¸ÙŠÙ… Ø§Ù„Ù…Ø¹Ø·ÙŠØ§Øª",
+        titleAr: "اÙ„دÙˆاÙ„ ÙˆتÙ†ظÙŠÙ… اÙ„Ù…عطÙŠات",
         lessons: [
             {
                 id: "ch2-l1-proportionalite",
                 title: "La proportionnalité",
-                titleAr: "Ø§Ù„ØªÙ†Ø§Ø³Ø¨ÙŠØ©"
+                titleAr: "اÙ„تÙ†اسبÙŠة"
             },
             {
                 id: "ch2-l2-organisation-donnees",
                 title: "Organisation des données",
-                titleAr: "ØªÙ†Ø¸ÙŠÙ… Ù…Ø¹Ø·ÙŠØ§Øª"
+                titleAr: "تÙ†ظÙŠÙ… Ù…عطÙŠات"
             }
         ]
     },
     {
         id: "ch3-activites-geometriques",
         title: "Activités géométriques",
-        titleAr: "Ø£Ù†Ø´Ø·Ø© Ù‡Ù†Ø¯Ø³ÙŠØ©",
+        titleAr: "أÙ†شطة Ù‡Ù†دسÙŠة",
         lessons: [
             {
                 id: "ch3-l1-parallele-perpendiculaire",
                 title: "Le parallèle et le perpendiculaire",
-                titleAr: "Ø§Ù„ØªÙˆØ§Ø²ÙŠ ÙˆØ§Ù„ØªØ¹Ø§Ù…Ø¯"
+                titleAr: "اÙ„تÙˆازÙŠ ÙˆاÙ„تعاÙ…د"
             },
             {
                 id: "ch3-l2-formes-plani",
                 title: "Les formes plani",
-                titleAr: "Ø§Ù„Ø£Ø´ÙƒØ§Ù„ Ø§Ù„Ù…Ø³ØªÙˆÙŠØ©"
+                titleAr: "اÙ„أشÙƒاÙ„ اÙ„Ù…ستÙˆÙŠة"
             },
             {
                 id: "ch3-l3-surfaces-plani-longueurs-perimetres-aires",
                 title: "Les surfaces plani: longueurs, périmètres, aires",
-                titleAr: "Ø§Ù„Ø³Ø·ÙˆØ­ Ø§Ù„Ù…Ø³ØªÙˆÙŠØ©: Ø§Ù„Ø£Ø·ÙˆØ§Ù„ØŒ Ø§Ù„Ù…Ø­ÙŠØ·Ø§ØªØŒ Ø§Ù„Ù…Ø³Ø§Ø­Ø§Øª."
+                titleAr: "اÙ„سطÙˆح اÙ„Ù…ستÙˆÙŠة: اÙ„أطÙˆاÙ„ØŒ اÙ„Ù…حÙŠطاتØŒ اÙ„Ù…ساحات."
             },
             {
                 id: "ch3-l4-angles",
                 title: "Les angles",
-                titleAr: "Ø§Ù„Ø²ÙˆØ§ÙŠØ§"
+                titleAr: "اÙ„زÙˆاÙŠا"
             },
             {
                 id: "ch3-l5-symetrie-axiale",
                 title: "La symétrie axiale",
-                titleAr: "Ø§Ù„ØªÙ†Ø§Ø¸Ø± Ø§Ù„Ù…Ø­ÙˆØ±ÙŠ"
+                titleAr: "اÙ„تÙ†اظر اÙ„Ù…حÙˆرÙŠ"
             },
             {
                 id: "ch3-l6-parallelepipedes-rectangles-cubes",
                 title: "Les parallélépipèdes rectangles et les cubes",
-                titleAr: "Ù…ØªÙˆØ§Ø²ÙŠ Ø§Ù„Ù…Ø³ØªØ·ÙŠÙ„Ø§Øª ÙˆØ§Ù„Ù…ÙƒØ¹Ù‘Ø¨"
+                titleAr: "Ù…تÙˆازÙŠ اÙ„Ù…ستطÙŠÙ„ات ÙˆاÙ„Ù…ÙƒعÙ‘ب"
             }
         ]
     }
@@ -110,7 +110,7 @@ export const mathCem1ereChapters: Chapter[] = [
 
 export const getCem1ereCourseInfo = () => ({
     title: "Mathématiques - 1ère CEM",
-    titleAr: "Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª - Ø§Ù„Ø³Ù†Ø© Ø§Ù„Ø£ÙˆÙ„Ù‰ Ø¥Ø¹Ø¯Ø§Ø¯ÙŠ",
+    titleAr: "اÙ„رÙŠاضÙŠات - اÙ„سÙ†ة اÙ„أÙˆÙ„Ù‰ إعدادÙŠ",
     description: "Programme de mathématiques pour la 1ère année du Collège d'Enseignement Moyen",
-    descriptionAr: "Ø¨Ø±Ù†Ø§Ù…Ø¬ Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§Øª Ù„Ù„Ø³Ù†Ø© Ø§Ù„Ø£ÙˆÙ„Ù‰ Ø¥Ø¹Ø¯Ø§Ø¯ÙŠ"
+    descriptionAr: "برÙ†اÙ…ج اÙ„رÙŠاضÙŠات Ù„Ù„سÙ†ة اÙ„أÙˆÙ„Ù‰ إعدادÙŠ"
 });

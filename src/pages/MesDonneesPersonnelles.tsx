@@ -180,7 +180,7 @@ const MesDonneesPersonnelles = () => {
                   Exporter mes données
                 </CardTitle>
                 <CardDescription>
-                  Téléchargez toutes vos données au format JSON (droit Ã  la portabilité)
+                  Téléchargez toutes vos données au format JSON (droit à la portabilité)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -229,7 +229,7 @@ const MesDonneesPersonnelles = () => {
                   Historique d'accès
                 </CardTitle>
                 <CardDescription>
-                  Derniers accès Ã  vos données personnelles
+                  Derniers accès à vos données personnelles
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -251,7 +251,7 @@ const MesDonneesPersonnelles = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-destructive/10 p-4 rounded-lg space-y-2 text-sm">
-                <p className="font-medium">âš ï¸ Avant de supprimer votre compte :</p>
+                <p className="font-medium">âš ️ Avant de supprimer votre compte :</p>
                 <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                   <li>Toutes vos données personnelles seront supprimées</li>
                   <li>Vos abonnements seront annulés</li>
@@ -272,7 +272,7 @@ const MesDonneesPersonnelles = () => {
                     <AlertDialogTitle>ÃŠtes-vous absolument sûr ?</AlertDialogTitle>
                     <AlertDialogDescription>
                       Cette action planifiera la suppression de votre compte dans 30 jours.
-                      Vous recevrez un email de confirmation et pourrez annuler Ã  tout moment pendant cette période.
+                      Vous recevrez un email de confirmation et pourrez annuler à tout moment pendant cette période.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

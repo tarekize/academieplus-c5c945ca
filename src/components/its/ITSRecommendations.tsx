@@ -291,19 +291,19 @@ export default function ITSRecommendations() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-foreground">ØªÙ‚Ø±ÙŠØ± Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ</h3>
+              <h3 className="font-semibold text-foreground">تÙ‚رÙŠر اÙ„ذÙƒاء اÙ„اصطÙ†اعÙŠ</h3>
             </div>
             <div className="flex items-center gap-1.5 text-xs font-mono bg-muted px-2 py-1 rounded-full">
               <Clock className="h-3 w-3 text-muted-foreground" />
-              <span className="text-muted-foreground">{reportCountdown} Ø«</span>
+              <span className="text-muted-foreground">{reportCountdown} ث</span>
             </div>
           </div>
 
           <div className="flex items-center gap-3 rounded-lg p-3 border bg-primary/10 border-primary/20">
             <Target className="h-5 w-5 flex-shrink-0 text-primary" />
             <div>
-              <p className="font-medium text-primary text-sm">Ù…Ø³ØªÙˆØ§Ùƒ: {report.level_label}</p>
-              <p className="text-xs text-muted-foreground">Ø§Ù„Ù†ØªÙŠØ¬Ø©: {score.score}/{score.total}</p>
+              <p className="font-medium text-primary text-sm">Ù…ستÙˆاÙƒ: {report.level_label}</p>
+              <p className="text-xs text-muted-foreground">اÙ„Ù†تÙŠجة: {score.score}/{score.total}</p>
             </div>
           </div>
 
@@ -319,11 +319,11 @@ export default function ITSRecommendations() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <RefreshCw className="h-5 w-5 text-amber-600" />
-              <h3 className="font-semibold text-foreground">Ù†ØµÙŠØ­Ø© Ø¬Ø¯ÙŠØ¯Ø© - ØªØ­Ø¯ÙŠØ« ÙƒÙ„ 10 Ø£ÙŠØ§Ù…</h3>
+              <h3 className="font-semibold text-foreground">Ù†صÙŠحة جدÙŠدة - تحدÙŠث ÙƒÙ„ 10 أÙŠاÙ…</h3>
             </div>
             <div className="flex items-center gap-1.5 text-xs font-mono bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-full">
               <Clock className="h-3 w-3 text-amber-600" />
-              <span className="text-amber-700 dark:text-amber-400">{adviceCountdown} Ø«</span>
+              <span className="text-amber-700 dark:text-amber-400">{adviceCountdown} ث</span>
             </div>
           </div>
 
@@ -331,7 +331,7 @@ export default function ITSRecommendations() {
 
           <div className="mt-3 flex items-center gap-2 p-2.5 rounded-lg bg-primary/5 border border-primary/10">
             <Bell className="h-4 w-4 text-primary flex-shrink-0" />
-            <p className="text-xs text-primary">تمارين Ù…ÙØ¹Ø¯Ù‘Ø© Ù„Ù…Ø³ØªÙˆØ§Ùƒ Ù…ØªÙˆÙØ±Ø© ÙÙŠ Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª</p>
+            <p className="text-xs text-primary">تمارين Ù…ُعدÙ‘ة Ù„Ù…ستÙˆاÙƒ Ù…تÙˆفرة فÙŠ اÙ„إشعارات</p>
           </div>
         </Card>
       )}

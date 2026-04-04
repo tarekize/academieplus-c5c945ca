@@ -139,7 +139,7 @@ export default function AdminAbonnements() {
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Succès", description: "Prix mis Ã  jour avec succès" });
+      toast({ title: "Succès", description: "Prix mis à jour avec succès" });
       fetchConfigs();
     }
     setSaving(false);
@@ -153,7 +153,7 @@ export default function AdminAbonnements() {
         .update({ label: periodForm.label, start_date: periodForm.start_date, end_date: periodForm.end_date, updated_at: new Date().toISOString() })
         .eq("id", editingPeriod.id);
       if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" });
-      else toast({ title: "Succès", description: "Période mise Ã  jour" });
+      else toast({ title: "Succès", description: "Période mise à jour" });
     } else {
       const { error } = await supabase
         .from("subscription_periods")
@@ -376,7 +376,7 @@ export default function AdminAbonnements() {
                         <TableRow key={p.id}>
                           <TableCell className="font-medium">{p.user_name}</TableCell>
                           <TableCell className="text-muted-foreground">{p.user_email}</TableCell>
-                          <TableCell>{format(new Date(p.payment_date), "dd MMM yyyy Ã  HH:mm", { locale: fr })}</TableCell>
+                          <TableCell>{format(new Date(p.payment_date), "dd MMM yyyy à HH:mm", { locale: fr })}</TableCell>
                           <TableCell>
                             <Badge variant={p.plan_type === "annual" ? "default" : "secondary"}>
                               {p.plan_label}
@@ -435,7 +435,7 @@ export default function AdminAbonnements() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setPeriodDialog(false)}>Annuler</Button>
             <Button onClick={handleSavePeriod} disabled={saving || !periodForm.label || !periodForm.start_date || !periodForm.end_date}>
-              <Save className="h-4 w-4 mr-2" /> {editingPeriod ? "Mettre Ã  jour" : "Créer"}
+              <Save className="h-4 w-4 mr-2" /> {editingPeriod ? "Mettre à jour" : "Créer"}
             </Button>
           </DialogFooter>
         </DialogContent>

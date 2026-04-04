@@ -162,7 +162,7 @@ const Parrainage = () => {
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink onClick={() => navigate("/account")} className="cursor-pointer">
-                Retour Ã  mon compte
+                Retour à mon compte
               </BreadcrumbLink>
             </BreadcrumbItem>
           </BreadcrumbList>

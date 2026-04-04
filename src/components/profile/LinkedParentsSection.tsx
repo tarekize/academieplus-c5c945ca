@@ -77,7 +77,7 @@ export function LinkedParentsSection() {
               Demandes en attente
             </CardTitle>
             <CardDescription>
-              Des parents souhaitent se lier Ã  votre compte
+              Des parents souhaitent se lier à votre compte
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -118,7 +118,7 @@ export function LinkedParentsSection() {
                 <DialogHeader>
                   <DialogTitle>Code de liaison</DialogTitle>
                   <DialogDescription>
-                    Partagez ce code avec votre parent pour qu'il puisse se lier Ã  votre compte
+                    Partagez ce code avec votre parent pour qu'il puisse se lier à votre compte
                   </DialogDescription>
                 </DialogHeader>
 
@@ -142,7 +142,7 @@ export function LinkedParentsSection() {
                         </Button>
                       </div>
                       <p className="text-sm text-center text-muted-foreground">
-                        Ce code est unique Ã  votre compte
+                        Ce code est unique à votre compte
                       </p>
                     </>
                   ) : (

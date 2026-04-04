@@ -8,7 +8,7 @@ export function formatDate(date: string | Date): string {
 
 export function formatDateTime(date: string | Date): string {
   const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  return format(dateObj, 'dd/MM/yyyy Ã  HH:mm', { locale: fr });
+  return format(dateObj, 'dd/MM/yyyy à HH:mm', { locale: fr });
 }
 
 export function formatRelativeTime(date: string | Date): string {

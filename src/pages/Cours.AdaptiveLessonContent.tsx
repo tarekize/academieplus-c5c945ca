@@ -319,7 +319,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         </div>
                         <div>
                             <h3 className="font-semibold" dir="rtl">اسئله متعدده الاختيارات</h3>
-                            <p className="text-sm text-muted-foreground" dir="rtl">{dbQuizzes.length} Ø£Ø³Ø¦Ù„Ø©</p>
+                            <p className="text-sm text-muted-foreground" dir="rtl">{dbQuizzes.length} أسئÙ„ة</p>
                         </div>
                     </CardContent>
                 </Card>

@@ -216,7 +216,7 @@ const Paiement = () => {
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
               <h1 className="text-2xl font-bold text-foreground mb-2">Paiement réussi !</h1>
               <p className="text-muted-foreground mb-6">
-                Voici {generatedCodes.length > 1 ? "vos codes" : "votre code"} d'activation Ã  transmettre Ã  {generatedCodes.length > 1 ? "vos enfants" : "votre enfant"} :
+                Voici {generatedCodes.length > 1 ? "vos codes" : "votre code"} d'activation à transmettre à {generatedCodes.length > 1 ? "vos enfants" : "votre enfant"} :
               </p>
 
               <div className="space-y-3 mb-6">
@@ -231,7 +231,7 @@ const Paiement = () => {
               </div>
 
               <p className="text-sm text-muted-foreground mb-6">
-                Vous pouvez retrouver vos codes Ã  tout moment dans la section "Mes Codes" de la page Abonnements.
+                Vous pouvez retrouver vos codes à tout moment dans la section "Mes Codes" de la page Abonnements.
               </p>
 
               <div className="flex gap-3">
@@ -410,7 +410,7 @@ const Paiement = () => {
                   {paymentInfo.isFamily && (
                     <div>
                       <h4 className="font-bold text-foreground mb-1">Formule :</h4>
-                      <p className="text-sm text-muted-foreground">Famille (jusqu'Ã  3 enfants)</p>
+                      <p className="text-sm text-muted-foreground">Famille (jusqu'à 3 enfants)</p>
                     </div>
                   )}
                 </div>

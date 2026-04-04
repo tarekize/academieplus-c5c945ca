@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           const currentPath = window.location.pathname;
 
-          // Si pas de rôle et qu'on n'est pas déjÃ  sur la page de complétion ou d'évaluation
+          // Si pas de rôle et qu'on n'est pas déjà sur la page de complétion ou d'évaluation
           if (!roleData?.role && !currentPath.includes('/complete-profile') && !currentPath.includes('/auth') && !currentPath.includes('/learning-assessment')) {
             window.location.href = '/complete-profile';
             return;

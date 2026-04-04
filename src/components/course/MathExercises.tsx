@@ -33,7 +33,7 @@ export const MathExercises = ({ onClose }: MathExercisesProps) => {
           <div className="flex items-center justify-between">
             <Button variant="ghost" size="sm" onClick={() => setCurrentExercise(null)}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour Ã  la liste
+              Retour à la liste
             </Button>
             <span className="text-sm px-2 py-1 rounded-full bg-primary/10 text-primary">
               {exercise.category}

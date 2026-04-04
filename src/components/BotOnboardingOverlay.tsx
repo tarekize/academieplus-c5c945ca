@@ -183,7 +183,7 @@ export const BotOnboardingOverlay = ({
                                                     size="lg"
                                                     className="w-full"
                                                 >
-                                                    {isArabic ? "ØªØ§Ø¨Ø¹" : "Continuer"}
+                                                    {isArabic ? "تابع" : "Continuer"}
                                                 </Button>
                                             </motion.div>
                                         )}
@@ -217,14 +217,14 @@ export const BotOnboardingOverlay = ({
                                                 onClick={handlePhaseTransition}
                                                 className="flex-1"
                                             >
-                                                {isArabic ? "ÙÙ‡Ù…Øª" : "J'ai compris"}
+                                                {isArabic ? "فÙ‡Ù…ت" : "J'ai compris"}
                                             </Button>
                                             <Button
                                                 onClick={handleReadMore}
                                                 variant="outline"
                                                 className="flex-1"
                                             >
-                                                {isArabic ? "Ø´Ø±Ø­ Ø£ÙƒØ«Ø±" : "Plus de détails"}
+                                                {isArabic ? "شرح أÙƒثر" : "Plus de détails"}
                                             </Button>
                                         </motion.div>
                                     )}
@@ -341,7 +341,7 @@ export const BotOnboardingOverlay = ({
                                                 disabled={!selectedAnswer}
                                                 className="w-full"
                                             >
-                                                {isArabic ? "Ø§Ù„ØªØ§Ù„ÙŠ" : "Suivant"}
+                                                {isArabic ? "اÙ„تاÙ„ÙŠ" : "Suivant"}
                                             </Button>
                                         </motion.div>
                                     )}
@@ -379,7 +379,7 @@ export const BotOnboardingOverlay = ({
                                         size="lg"
                                         className="w-full"
                                     >
-                                        {isArabic ? "Ø§Ø¨Ø¯Ø£ Ø§Ù„Ø¢Ù†" : "Commencer maintenant"}
+                                        {isArabic ? "ابدأ اÙ„آÙ†" : "Commencer maintenant"}
                                     </Button>
                                 </div>
                             </div>

@@ -39,7 +39,7 @@ export const ExportPDFButton = ({ chapterTitle, content }: ExportPDFButtonProps)
       `);
       printWindow.document.close();
 
-      toast.success("PDF prêt Ã  l'impression !");
+      toast.success("PDF prêt à l'impression !");
     } catch (error) {
       console.error('Error exporting PDF:', error);
       toast.error("Erreur lors de l'export PDF");

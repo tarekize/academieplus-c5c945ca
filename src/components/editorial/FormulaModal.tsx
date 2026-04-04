@@ -110,14 +110,14 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
     { label: "âˆ«", latex: "\\int" },
     { label: "âˆ‘", latex: "\\sum" },
     { label: "âˆž", latex: "\\infty" },
-    { label: "Î±", latex: "\\alpha" },
-    { label: "Î²", latex: "\\beta" },
+    { label: "α", latex: "\\alpha" },
+    { label: "β", latex: "\\beta" },
     { label: "â‰¤", latex: "\\leq" },
     { label: "â‰¥", latex: "\\geq" },
     { label: "â‰ ", latex: "\\neq" },
     { label: "Ã—", latex: "\\times" },
-    { label: "Ã·", latex: "\\div" },
-    { label: "Â±", latex: "\\pm" },
+    { label: "÷", latex: "\\div" },
+    { label: "±", latex: "\\pm" },
   ];
 
   return (

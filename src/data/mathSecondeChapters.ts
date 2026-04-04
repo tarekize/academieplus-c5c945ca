@@ -31,7 +31,7 @@ const chapter1: ChapterContent = {
   quizzes: [
     {
       id: "ch1-q1",
-      question: "Parmi les nombres suivants, lequel appartient Ã  â„š mais pas Ã  â„¤ ?",
+      question: "Parmi les nombres suivants, lequel appartient à â„š mais pas à â„¤ ?",
       options: ["âˆš2", "3/4", "-5", "Ï€"],
       correctAnswer: "3/4",
       explanation: "3/4 est un rationnel (quotient de deux entiers). âˆš2 et Ï€ sont irrationnels, -5 est un entier."
@@ -45,10 +45,10 @@ const chapter1: ChapterContent = {
     },
     {
       id: "ch1-q3",
-      question: "Quel est le résultat de (-3)Â² ?",
+      question: "Quel est le résultat de (-3)² ?",
       options: ["-9", "9", "-6", "6"],
       correctAnswer: "9",
-      explanation: "(-3)Â² = (-3) Ã— (-3) = 9. Le carré d'un nombre négatif est positif."
+      explanation: "(-3)² = (-3) Ã— (-3) = 9. Le carré d'un nombre négatif est positif."
     },
     {
       id: "ch1-q4",
@@ -80,17 +80,17 @@ const chapter1: ChapterContent = {
     },
     {
       id: "ch1-q8",
-      question: "L'intersection de â„• et â„¤â» (entiers négatifs) est :",
+      question: "L'intersection de â„• et â„¤⁻ (entiers négatifs) est :",
       options: ["âˆ…", "{0}", "â„•", "â„¤"],
       correctAnswer: "{0}",
-      explanation: "Le seul entier qui est Ã  la fois dans â„• et négatif ou nul est 0."
+      explanation: "Le seul entier qui est à la fois dans â„• et négatif ou nul est 0."
     },
     {
       id: "ch1-q9",
       question: "Écrire 0,00045 en notation scientifique :",
-      options: ["4,5 Ã— 10â»â´", "45 Ã— 10â»âµ", "4,5 Ã— 10â»Â³", "0,45 Ã— 10â»Â³"],
-      correctAnswer: "4,5 Ã— 10â»â´",
-      explanation: "0,00045 = 4,5 Ã— 10â»â´ (on décale la virgule de 4 positions vers la droite)"
+      options: ["4,5 Ã— 10⁻⁴", "45 Ã— 10⁻⁵", "4,5 Ã— 10⁻³", "0,45 Ã— 10⁻³"],
+      correctAnswer: "4,5 Ã— 10⁻⁴",
+      explanation: "0,00045 = 4,5 Ã— 10⁻⁴ (on décale la virgule de 4 positions vers la droite)"
     },
     {
       id: "ch1-q10",
@@ -108,12 +108,12 @@ const chapter1: ChapterContent = {
       expectedAnswer: "2/3",
       acceptedAnswers: ["2/3", "2 / 3"],
       solution: `**Étape 1 : Trouver le PGCD de 84 et 126**
-- 84 = 2Â² Ã— 3 Ã— 7
-- 126 = 2 Ã— 3Â² Ã— 7
+- 84 = 2² Ã— 3 Ã— 7
+- 126 = 2 Ã— 3² Ã— 7
 - PGCD(84, 126) = 2 Ã— 3 Ã— 7 = 42
 
 **Étape 2 : Simplifier**
-84/126 = (84 Ã· 42)/(126 Ã· 42) = **2/3**`
+84/126 = (84 ÷ 42)/(126 ÷ 42) = **2/3**`
     },
     {
       id: "ch1-ex2",
@@ -134,12 +134,12 @@ const chapter1: ChapterContent = {
     {
       id: "ch1-ex3",
       title: "Calcul avec puissances",
-      statement: "Calculer (-2)Â³ Ã— 5Â². Donner le résultat numérique.",
+      statement: "Calculer (-2)³ Ã— 5². Donner le résultat numérique.",
       expectedAnswer: "-200",
       acceptedAnswers: ["-200"],
       solution: `**Étape 1 : Calculer chaque puissance**
-- (-2)Â³ = (-2) Ã— (-2) Ã— (-2) = -8
-- 5Â² = 25
+- (-2)³ = (-2) Ã— (-2) Ã— (-2) = -8
+- 5² = 25
 
 **Étape 2 : Multiplier**
 (-8) Ã— 25 = **-200**`
@@ -151,7 +151,7 @@ const chapter1: ChapterContent = {
       expectedAnswer: "6âˆš2",
       acceptedAnswers: ["6âˆš2", "6*âˆš2", "6 âˆš2"],
       solution: `**Étape 1 : Décomposer 72**
-72 = 36 Ã— 2 = 6Â² Ã— 2
+72 = 36 Ã— 2 = 6² Ã— 2
 
 **Étape 2 : Appliquer les propriétés**
 âˆš72 = âˆš(36 Ã— 2) = âˆš36 Ã— âˆš2 = **6âˆš2**`
@@ -161,13 +161,13 @@ const chapter1: ChapterContent = {
       title: "Notation scientifique",
       statement: "Écrire 0,000327 en notation scientifique. Format : a Ã— 10^n",
       expectedAnswer: "3,27 Ã— 10^-4",
-      acceptedAnswers: ["3,27 Ã— 10^-4", "3.27 Ã— 10^-4", "3,27Ã—10^-4", "3.27Ã—10^-4", "3,27 Ã— 10â»â´"],
+      acceptedAnswers: ["3,27 Ã— 10^-4", "3.27 Ã— 10^-4", "3,27Ã—10^-4", "3.27Ã—10^-4", "3,27 Ã— 10⁻⁴"],
       solution: `**Méthode :**
-On déplace la virgule vers la droite jusqu'Ã  avoir un nombre entre 1 et 10.
+On déplace la virgule vers la droite jusqu'à avoir un nombre entre 1 et 10.
 
 0,000327 â†’ 3,27 (4 déplacements vers la droite)
 
-**Résultat :** 3,27 Ã— 10â»â´`
+**Résultat :** 3,27 Ã— 10⁻⁴`
     },
     {
       id: "ch1-ex6",
@@ -198,13 +198,13 @@ On déplace la virgule vers la droite jusqu'Ã  avoir un nombre entre 1 et 10.
     {
       id: "ch1-ex8",
       title: "Fractions composées",
-      statement: "Calculer (3/4) Ã· (9/8). Donner le résultat sous forme de fraction irréductible.",
+      statement: "Calculer (3/4) ÷ (9/8). Donner le résultat sous forme de fraction irréductible.",
       expectedAnswer: "2/3",
       acceptedAnswers: ["2/3", "2 / 3"],
       solution: `**Règle :** Diviser par une fraction = multiplier par son inverse
 
 **Calcul :**
-(3/4) Ã· (9/8) = (3/4) Ã— (8/9)
+(3/4) ÷ (9/8) = (3/4) Ã— (8/9)
 = (3 Ã— 8) / (4 Ã— 9)
 = 24/36 = **2/3**`
     },
@@ -217,10 +217,10 @@ On déplace la virgule vers la droite jusqu'Ã  avoir un nombre entre 1 et 10.
       solution: `**Méthode :**
 âˆš10 â‰ˆ 3,162
 
-On encadre par les valeurs Ã  une décimale :
+On encadre par les valeurs à une décimale :
 **3,1 < âˆš10 < 3,2**
 
-Car 3,1Â² = 9,61 < 10 et 3,2Â² = 10,24 > 10`
+Car 3,1² = 9,61 < 10 et 3,2² = 10,24 > 10`
     },
     {
       id: "ch1-ex10",
@@ -248,72 +248,72 @@ const chapter2: ChapterContent = {
     {
       id: "ch2-q1",
       question: "Développer (2x + 3)(x - 1) :",
-      options: ["2xÂ² + x - 3", "2xÂ² - x - 3", "2xÂ² + 5x - 3", "2xÂ² - 5x + 3"],
-      correctAnswer: "2xÂ² + x - 3",
-      explanation: "(2x + 3)(x - 1) = 2xÂ² - 2x + 3x - 3 = 2xÂ² + x - 3"
+      options: ["2x² + x - 3", "2x² - x - 3", "2x² + 5x - 3", "2x² - 5x + 3"],
+      correctAnswer: "2x² + x - 3",
+      explanation: "(2x + 3)(x - 1) = 2x² - 2x + 3x - 3 = 2x² + x - 3"
     },
     {
       id: "ch2-q2",
-      question: "Factoriser xÂ² - 9 :",
-      options: ["(x - 3)Â²", "(x + 3)Â²", "(x - 3)(x + 3)", "(x - 9)(x + 1)"],
+      question: "Factoriser x² - 9 :",
+      options: ["(x - 3)²", "(x + 3)²", "(x - 3)(x + 3)", "(x - 9)(x + 1)"],
       correctAnswer: "(x - 3)(x + 3)",
-      explanation: "C'est une différence de carrés : aÂ² - bÂ² = (a-b)(a+b), donc xÂ² - 9 = (x-3)(x+3)"
+      explanation: "C'est une différence de carrés : a² - b² = (a-b)(a+b), donc x² - 9 = (x-3)(x+3)"
     },
     {
       id: "ch2-q3",
-      question: "Développer (x + 4)Â² :",
-      options: ["xÂ² + 16", "xÂ² + 4x + 16", "xÂ² + 8x + 16", "xÂ² + 8x + 8"],
-      correctAnswer: "xÂ² + 8x + 16",
-      explanation: "(a + b)Â² = aÂ² + 2ab + bÂ², donc (x + 4)Â² = xÂ² + 8x + 16"
+      question: "Développer (x + 4)² :",
+      options: ["x² + 16", "x² + 4x + 16", "x² + 8x + 16", "x² + 8x + 8"],
+      correctAnswer: "x² + 8x + 16",
+      explanation: "(a + b)² = a² + 2ab + b², donc (x + 4)² = x² + 8x + 16"
     },
     {
       id: "ch2-q4",
-      question: "Réduire : 3xÂ² + 2x - xÂ² + 5x - 7",
-      options: ["2xÂ² + 7x - 7", "4xÂ² + 7x - 7", "2xÂ² + 3x - 7", "3xÂ² + 7x - 7"],
-      correctAnswer: "2xÂ² + 7x - 7",
-      explanation: "3xÂ² - xÂ² = 2xÂ² et 2x + 5x = 7x, donc 2xÂ² + 7x - 7"
+      question: "Réduire : 3x² + 2x - x² + 5x - 7",
+      options: ["2x² + 7x - 7", "4x² + 7x - 7", "2x² + 3x - 7", "3x² + 7x - 7"],
+      correctAnswer: "2x² + 7x - 7",
+      explanation: "3x² - x² = 2x² et 2x + 5x = 7x, donc 2x² + 7x - 7"
     },
     {
       id: "ch2-q5",
-      question: "Factoriser 6xÂ² + 9x :",
-      options: ["3x(2x + 3)", "6x(x + 3)", "3(2xÂ² + 3x)", "9x(x + 1)"],
+      question: "Factoriser 6x² + 9x :",
+      options: ["3x(2x + 3)", "6x(x + 3)", "3(2x² + 3x)", "9x(x + 1)"],
       correctAnswer: "3x(2x + 3)",
-      explanation: "Le facteur commun est 3x : 6xÂ² + 9x = 3x(2x + 3)"
+      explanation: "Le facteur commun est 3x : 6x² + 9x = 3x(2x + 3)"
     },
     {
       id: "ch2-q6",
-      question: "Développer (3x - 2)Â² :",
-      options: ["9xÂ² - 4", "9xÂ² - 6x + 4", "9xÂ² - 12x + 4", "9xÂ² + 12x + 4"],
-      correctAnswer: "9xÂ² - 12x + 4",
-      explanation: "(a - b)Â² = aÂ² - 2ab + bÂ², donc (3x - 2)Â² = 9xÂ² - 12x + 4"
+      question: "Développer (3x - 2)² :",
+      options: ["9x² - 4", "9x² - 6x + 4", "9x² - 12x + 4", "9x² + 12x + 4"],
+      correctAnswer: "9x² - 12x + 4",
+      explanation: "(a - b)² = a² - 2ab + b², donc (3x - 2)² = 9x² - 12x + 4"
     },
     {
       id: "ch2-q7",
-      question: "Simplifier (x + 2)(x - 2) - xÂ² :",
+      question: "Simplifier (x + 2)(x - 2) - x² :",
       options: ["-4", "4", "0", "-2x"],
       correctAnswer: "-4",
-      explanation: "(x + 2)(x - 2) = xÂ² - 4, donc xÂ² - 4 - xÂ² = -4"
+      explanation: "(x + 2)(x - 2) = x² - 4, donc x² - 4 - x² = -4"
     },
     {
       id: "ch2-q8",
-      question: "Factoriser xÂ² + 6x + 9 :",
-      options: ["(x + 3)Â²", "(x - 3)Â²", "(x + 9)(x + 1)", "(x + 6)(x + 3)"],
-      correctAnswer: "(x + 3)Â²",
-      explanation: "C'est un carré parfait : xÂ² + 6x + 9 = (x + 3)Â²"
+      question: "Factoriser x² + 6x + 9 :",
+      options: ["(x + 3)²", "(x - 3)²", "(x + 9)(x + 1)", "(x + 6)(x + 3)"],
+      correctAnswer: "(x + 3)²",
+      explanation: "C'est un carré parfait : x² + 6x + 9 = (x + 3)²"
     },
     {
       id: "ch2-q9",
       question: "Développer 2(x - 3)(x + 1) :",
-      options: ["2xÂ² - 4x - 6", "2xÂ² - 2x - 6", "2xÂ² + 4x - 6", "2xÂ² - 6x - 6"],
-      correctAnswer: "2xÂ² - 4x - 6",
-      explanation: "(x - 3)(x + 1) = xÂ² - 2x - 3, puis 2(xÂ² - 2x - 3) = 2xÂ² - 4x - 6"
+      options: ["2x² - 4x - 6", "2x² - 2x - 6", "2x² + 4x - 6", "2x² - 6x - 6"],
+      correctAnswer: "2x² - 4x - 6",
+      explanation: "(x - 3)(x + 1) = x² - 2x - 3, puis 2(x² - 2x - 3) = 2x² - 4x - 6"
     },
     {
       id: "ch2-q10",
-      question: "Factoriser 25xÂ² - 1 :",
-      options: ["(5x - 1)Â²", "(25x - 1)(x + 1)", "(5x - 1)(5x + 1)", "(5x + 1)Â²"],
+      question: "Factoriser 25x² - 1 :",
+      options: ["(5x - 1)²", "(25x - 1)(x + 1)", "(5x - 1)(5x + 1)", "(5x + 1)²"],
       correctAnswer: "(5x - 1)(5x + 1)",
-      explanation: "C'est aÂ² - bÂ² avec a = 5x et b = 1 : (5x - 1)(5x + 1)"
+      explanation: "C'est a² - b² avec a = 5x et b = 1 : (5x - 1)(5x + 1)"
     }
   ],
   exercises: [
@@ -321,106 +321,106 @@ const chapter2: ChapterContent = {
       id: "ch2-ex1",
       title: "Développement double distributivité",
       statement: "Développer et réduire : (3x - 2)(2x + 5)",
-      expectedAnswer: "6xÂ² + 11x - 10",
-      acceptedAnswers: ["6xÂ² + 11x - 10", "6xÂ²+11x-10"],
+      expectedAnswer: "6x² + 11x - 10",
+      acceptedAnswers: ["6x² + 11x - 10", "6x²+11x-10"],
       solution: `**Application de la double distributivité :**
 (3x - 2)(2x + 5)
 = 3x Ã— 2x + 3x Ã— 5 + (-2) Ã— 2x + (-2) Ã— 5
-= 6xÂ² + 15x - 4x - 10
-= **6xÂ² + 11x - 10**`
+= 6x² + 15x - 4x - 10
+= **6x² + 11x - 10**`
     },
     {
       id: "ch2-ex2",
-      title: "Identité remarquable (a + b)Â²",
-      statement: "Développer : (2x + 7)Â²",
-      expectedAnswer: "4xÂ² + 28x + 49",
-      acceptedAnswers: ["4xÂ² + 28x + 49", "4xÂ²+28x+49"],
-      solution: `**Formule :** (a + b)Â² = aÂ² + 2ab + bÂ²
+      title: "Identité remarquable (a + b)²",
+      statement: "Développer : (2x + 7)²",
+      expectedAnswer: "4x² + 28x + 49",
+      acceptedAnswers: ["4x² + 28x + 49", "4x²+28x+49"],
+      solution: `**Formule :** (a + b)² = a² + 2ab + b²
 
 Avec a = 2x et b = 7 :
-(2x + 7)Â² = (2x)Â² + 2(2x)(7) + 7Â²
-= 4xÂ² + 28x + 49`
+(2x + 7)² = (2x)² + 2(2x)(7) + 7²
+= 4x² + 28x + 49`
     },
     {
       id: "ch2-ex3",
-      title: "Identité remarquable (a - b)Â²",
-      statement: "Développer : (5x - 3)Â²",
-      expectedAnswer: "25xÂ² - 30x + 9",
-      acceptedAnswers: ["25xÂ² - 30x + 9", "25xÂ²-30x+9"],
-      solution: `**Formule :** (a - b)Â² = aÂ² - 2ab + bÂ²
+      title: "Identité remarquable (a - b)²",
+      statement: "Développer : (5x - 3)²",
+      expectedAnswer: "25x² - 30x + 9",
+      acceptedAnswers: ["25x² - 30x + 9", "25x²-30x+9"],
+      solution: `**Formule :** (a - b)² = a² - 2ab + b²
 
 Avec a = 5x et b = 3 :
-(5x - 3)Â² = 25xÂ² - 30x + 9`
+(5x - 3)² = 25x² - 30x + 9`
     },
     {
       id: "ch2-ex4",
       title: "Factorisation par facteur commun",
-      statement: "Factoriser : 12xÂ³ - 8xÂ² + 4x",
-      expectedAnswer: "4x(3xÂ² - 2x + 1)",
-      acceptedAnswers: ["4x(3xÂ² - 2x + 1)", "4x(3xÂ²-2x+1)"],
+      statement: "Factoriser : 12x³ - 8x² + 4x",
+      expectedAnswer: "4x(3x² - 2x + 1)",
+      acceptedAnswers: ["4x(3x² - 2x + 1)", "4x(3x²-2x+1)"],
       solution: `**Étape 1 :** Identifier le facteur commun
 - 12, 8, 4 ont pour PGCD : 4
-- xÂ³, xÂ², x ont pour facteur commun : x
+- x³, x², x ont pour facteur commun : x
 - Facteur commun : 4x
 
 **Étape 2 :** Factoriser
-12xÂ³ - 8xÂ² + 4x = 4x(3xÂ² - 2x + 1)`
+12x³ - 8x² + 4x = 4x(3x² - 2x + 1)`
     },
     {
       id: "ch2-ex5",
       title: "Différence de carrés",
-      statement: "Factoriser : 16xÂ² - 81",
+      statement: "Factoriser : 16x² - 81",
       expectedAnswer: "(4x - 9)(4x + 9)",
       acceptedAnswers: ["(4x - 9)(4x + 9)", "(4x+9)(4x-9)", "(4x - 9)(4x + 9)"],
-      solution: `**Formule :** aÂ² - bÂ² = (a - b)(a + b)
+      solution: `**Formule :** a² - b² = (a - b)(a + b)
 
-16xÂ² - 81 = (4x)Â² - 9Â²
+16x² - 81 = (4x)² - 9²
 = (4x - 9)(4x + 9)`
     },
     {
       id: "ch2-ex6",
-      title: "Carré parfait Ã  factoriser",
-      statement: "Factoriser : xÂ² - 10x + 25",
-      expectedAnswer: "(x - 5)Â²",
-      acceptedAnswers: ["(x - 5)Â²", "(x-5)Â²", "(x - 5)^2"],
+      title: "Carré parfait à factoriser",
+      statement: "Factoriser : x² - 10x + 25",
+      expectedAnswer: "(x - 5)²",
+      acceptedAnswers: ["(x - 5)²", "(x-5)²", "(x - 5)^2"],
       solution: `**Vérification du carré parfait :**
-xÂ² - 10x + 25
+x² - 10x + 25
 
-- Premier terme : xÂ²
-- Dernier terme : 25 = 5Â²
+- Premier terme : x²
+- Dernier terme : 25 = 5²
 - Terme du milieu : -10x = -2 Ã— x Ã— 5 âœ“
 
-C'est (a - b)Â² avec a = x, b = 5
-**Résultat :** (x - 5)Â²`
+C'est (a - b)² avec a = x, b = 5
+**Résultat :** (x - 5)²`
     },
     {
       id: "ch2-ex7",
       title: "Expression complexe",
-      statement: "Développer et réduire : (x + 3)Â² - (x - 2)Â²",
+      statement: "Développer et réduire : (x + 3)² - (x - 2)²",
       expectedAnswer: "10x + 5",
       acceptedAnswers: ["10x + 5", "10x+5", "5(2x + 1)"],
       solution: `**Méthode 1 : Développer chaque carré**
-(x + 3)Â² = xÂ² + 6x + 9
-(x - 2)Â² = xÂ² - 4x + 4
+(x + 3)² = x² + 6x + 9
+(x - 2)² = x² - 4x + 4
 
-(x + 3)Â² - (x - 2)Â² = xÂ² + 6x + 9 - xÂ² + 4x - 4
+(x + 3)² - (x - 2)² = x² + 6x + 9 - x² + 4x - 4
 = 10x + 5
 
-**Méthode 2 : Utiliser aÂ² - bÂ² = (a-b)(a+b)**
+**Méthode 2 : Utiliser a² - b² = (a-b)(a+b)**
 = [(x+3) - (x-2)][(x+3) + (x-2)]
 = (5)(2x + 1) = 10x + 5`
     },
     {
       id: "ch2-ex8",
       title: "Factorisation guidée",
-      statement: "Factoriser : (x + 1)Â² - 4",
+      statement: "Factoriser : (x + 1)² - 4",
       expectedAnswer: "(x - 1)(x + 3)",
       acceptedAnswers: ["(x - 1)(x + 3)", "(x+3)(x-1)", "(x - 1)(x + 3)"],
-      solution: `**Reconnaître aÂ² - bÂ² avec :**
+      solution: `**Reconnaître a² - b² avec :**
 - a = (x + 1)
-- b = 2 (car 4 = 2Â²)
+- b = 2 (car 4 = 2²)
 
-(x + 1)Â² - 4 = [(x + 1) - 2][(x + 1) + 2]
+(x + 1)² - 4 = [(x + 1) - 2][(x + 1) + 2]
 = (x - 1)(x + 3)`
     },
     {
@@ -441,12 +441,12 @@ La plus petite valeur est **x = -4**`
     {
       id: "ch2-ex10",
       title: "Calcul numérique astucieux",
-      statement: "Calculer 101Â² - 99Â² sans poser d'opération. (Utiliser une identité remarquable)",
+      statement: "Calculer 101² - 99² sans poser d'opération. (Utiliser une identité remarquable)",
       expectedAnswer: "400",
       acceptedAnswers: ["400"],
-      solution: `**Utiliser aÂ² - bÂ² = (a - b)(a + b)**
+      solution: `**Utiliser a² - b² = (a - b)(a + b)**
 
-101Â² - 99Â² = (101 - 99)(101 + 99)
+101² - 99² = (101 - 99)(101 + 99)
 = 2 Ã— 200
 = **400**`
     }
@@ -692,16 +692,16 @@ const chapter4: ChapterContent = {
     },
     {
       id: "ch4-q3",
-      question: "Soit f(x) = xÂ² - 4. Les antécédents de 0 sont :",
+      question: "Soit f(x) = x² - 4. Les antécédents de 0 sont :",
       options: ["0", "2", "-2", "2 et -2"],
       correctAnswer: "2 et -2",
-      explanation: "f(x) = 0 âŸ¹ xÂ² = 4 âŸ¹ x = 2 ou x = -2"
+      explanation: "f(x) = 0 âŸ¹ x² = 4 âŸ¹ x = 2 ou x = -2"
     },
     {
       id: "ch4-q4",
       question: "Une fonction est croissante sur un intervalle si :",
       options: [
-        "Sa courbe monte de gauche Ã  droite",
+        "Sa courbe monte de gauche à droite",
         "f(a) < f(b) pour tout a < b de l'intervalle",
         "f(a) > f(b) pour tout a < b de l'intervalle",
         "Les réponses 1 et 2"
@@ -712,7 +712,7 @@ const chapter4: ChapterContent = {
     {
       id: "ch4-q5",
       question: "Le domaine de définition de f(x) = 1/(x-2) est :",
-      options: ["â„", "â„ \\ {2}", "â„âº", "]2; +âˆž["],
+      options: ["â„", "â„ \\ {2}", "â„⁺", "]2; +âˆž["],
       correctAnswer: "â„ \\ {2}",
       explanation: "On ne peut pas diviser par 0, donc x â‰  2"
     },
@@ -725,10 +725,10 @@ const chapter4: ChapterContent = {
     },
     {
       id: "ch4-q7",
-      question: "L'extremum de f(x) = xÂ² est :",
+      question: "L'extremum de f(x) = x² est :",
       options: ["Un maximum en 0", "Un minimum en 0", "Un maximum en 1", "Il n'y en a pas"],
       correctAnswer: "Un minimum en 0",
-      explanation: "xÂ² â‰¥ 0 pour tout x, avec égalité en x = 0"
+      explanation: "x² â‰¥ 0 pour tout x, avec égalité en x = 0"
     },
     {
       id: "ch4-q8",
@@ -747,7 +747,7 @@ const chapter4: ChapterContent = {
       question: "Soit f définie sur [0; 5]. L'image de [0; 5] par f peut être :",
       options: ["[2; 10]", "Un seul nombre", "Un ensemble vide", "Les réponses 1 et 2"],
       correctAnswer: "Les réponses 1 et 2",
-      explanation: "L'image peut être un intervalle ou même réduite Ã  un point (fonction constante)"
+      explanation: "L'image peut être un intervalle ou même réduite à un point (fonction constante)"
     },
     {
       id: "ch4-q10",
@@ -761,10 +761,10 @@ const chapter4: ChapterContent = {
     {
       id: "ch4-ex1",
       title: "Calcul d'images",
-      statement: "Soit f(x) = 3xÂ² - 2x + 1. Calculer f(-2).",
+      statement: "Soit f(x) = 3x² - 2x + 1. Calculer f(-2).",
       expectedAnswer: "17",
       acceptedAnswers: ["17", "f(-2) = 17"],
-      solution: `f(-2) = 3Ã—(-2)Â² - 2Ã—(-2) + 1
+      solution: `f(-2) = 3Ã—(-2)² - 2Ã—(-2) + 1
 = 3Ã—4 + 4 + 1
 = 12 + 4 + 1
 = **17**`
@@ -785,12 +785,12 @@ Vérification : f(5) = 4Ã—5 - 7 = 13 âœ“`
     {
       id: "ch4-ex3",
       title: "Tableau de valeurs",
-      statement: "Soit f(x) = xÂ² - 3x. Calculer f(0) + f(1) + f(2).",
+      statement: "Soit f(x) = x² - 3x. Calculer f(0) + f(1) + f(2).",
       expectedAnswer: "-4",
       acceptedAnswers: ["-4"],
-      solution: `f(0) = 0Â² - 3Ã—0 = 0
-f(1) = 1Â² - 3Ã—1 = -2
-f(2) = 2Â² - 3Ã—2 = 4 - 6 = -2
+      solution: `f(0) = 0² - 3Ã—0 = 0
+f(1) = 1² - 3Ã—1 = -2
+f(2) = 2² - 3Ã—2 = 4 - 6 = -2
 
 f(0) + f(1) + f(2) = 0 + (-2) + (-2) = **-4**`
     },
@@ -810,11 +810,11 @@ La valeur minimale est **x = 3**`
     {
       id: "ch4-ex5",
       title: "Parité d'une fonction",
-      statement: "Soit f(x) = xÂ³ + x. Calculer f(-2) + f(2).",
+      statement: "Soit f(x) = x³ + x. Calculer f(-2) + f(2).",
       expectedAnswer: "0",
       acceptedAnswers: ["0"],
-      solution: `f(2) = 2Â³ + 2 = 8 + 2 = 10
-f(-2) = (-2)Â³ + (-2) = -8 - 2 = -10
+      solution: `f(2) = 2³ + 2 = 8 + 2 = 10
+f(-2) = (-2)³ + (-2) = -8 - 2 = -10
 
 f(-2) + f(2) = -10 + 10 = **0**
 
@@ -823,15 +823,15 @@ f(-2) + f(2) = -10 + 10 = **0**
     {
       id: "ch4-ex6",
       title: "Extremum",
-      statement: "Soit f(x) = -xÂ² + 4x - 3. Pour quelle valeur de x f atteint-elle son maximum ?",
+      statement: "Soit f(x) = -x² + 4x - 3. Pour quelle valeur de x f atteint-elle son maximum ?",
       expectedAnswer: "2",
       acceptedAnswers: ["2", "x = 2"],
-      solution: `f(x) = -xÂ² + 4x - 3 = -(xÂ² - 4x) - 3
-= -(xÂ² - 4x + 4 - 4) - 3
-= -(x - 2)Â² + 4 - 3
-= -(x - 2)Â² + 1
+      solution: `f(x) = -x² + 4x - 3 = -(x² - 4x) - 3
+= -(x² - 4x + 4 - 4) - 3
+= -(x - 2)² + 4 - 3
+= -(x - 2)² + 1
 
-Le maximum est atteint quand (x - 2)Â² = 0
+Le maximum est atteint quand (x - 2)² = 0
 soit **x = 2**`
     },
     {
@@ -850,12 +850,12 @@ f est positive sur ]-âˆž; **2,5**]`
     {
       id: "ch4-ex8",
       title: "Résolution graphique",
-      statement: "Soit f(x) = xÂ² - 4. Combien la courbe de f a-t-elle de points d'intersection avec l'axe des abscisses ?",
+      statement: "Soit f(x) = x² - 4. Combien la courbe de f a-t-elle de points d'intersection avec l'axe des abscisses ?",
       expectedAnswer: "2",
       acceptedAnswers: ["2", "deux"],
       solution: `Points d'intersection avec l'axe des x : f(x) = 0
-xÂ² - 4 = 0
-xÂ² = 4
+x² - 4 = 0
+x² = 4
 x = 2 ou x = -2
 
 Il y a **2** points d'intersection : (-2; 0) et (2; 0)`
@@ -911,17 +911,17 @@ const chapter5: ChapterContent = {
     },
     {
       id: "ch5-q4",
-      question: "L'ordonnée Ã  l'origine de y = -3x + 5 est :",
+      question: "L'ordonnée à l'origine de y = -3x + 5 est :",
       options: ["-3", "5", "2", "-5"],
       correctAnswer: "5",
-      explanation: "L'ordonnée Ã  l'origine est b dans y = ax + b"
+      explanation: "L'ordonnée à l'origine est b dans y = ax + b"
     },
     {
       id: "ch5-q5",
       question: "Deux droites parallèles ont :",
-      options: ["La même ordonnée Ã  l'origine", "Le même coefficient directeur", "La même équation", "Aucun point commun toujours"],
+      options: ["La même ordonnée à l'origine", "Le même coefficient directeur", "La même équation", "Aucun point commun toujours"],
       correctAnswer: "Le même coefficient directeur",
-      explanation: "Parallèles âŸº mêmes coefficients directeurs (mais ordonnées Ã  l'origine différentes)"
+      explanation: "Parallèles âŸº mêmes coefficients directeurs (mais ordonnées à l'origine différentes)"
     },
     {
       id: "ch5-q6",
@@ -1016,12 +1016,12 @@ Point d'intersection : (2; 0)`
     {
       id: "ch5-ex5",
       title: "Parallélisme",
-      statement: "La droite D1 : y = 3x - 2 est parallèle Ã  D2 : y = ax + 5. Quelle est la valeur de a ?",
+      statement: "La droite D1 : y = 3x - 2 est parallèle à D2 : y = ax + 5. Quelle est la valeur de a ?",
       expectedAnswer: "3",
       acceptedAnswers: ["3", "a = 3"],
       solution: `Deux droites sont parallèles si elles ont le même coefficient directeur.
 D1 a pour coefficient 3.
-Donc **a = 3** pour que D2 soit parallèle Ã  D1.`
+Donc **a = 3** pour que D2 soit parallèle à D1.`
     },
     {
       id: "ch5-ex6",
@@ -1070,7 +1070,7 @@ La fonction est positive sur ]**2**; +âˆž[`
     {
       id: "ch5-ex10",
       title: "Modélisation",
-      statement: "La température baisse de 2°C par heure. À 14h il fait 20°C. Quelle température Ã  17h ?",
+      statement: "La température baisse de 2°C par heure. À 14h il fait 20°C. Quelle température à 17h ?",
       expectedAnswer: "14",
       acceptedAnswers: ["14", "14°C", "14 °C"],
       solution: `T(t) = -2t + b où t = nombre d'heures après 14h
@@ -1090,7 +1090,7 @@ const chapter6: ChapterContent = {
   quizzes: [
     {
       id: "ch6-q1",
-      question: "La fonction carré f(x) = xÂ² est :",
+      question: "La fonction carré f(x) = x² est :",
       options: [
         "Croissante sur â„",
         "Décroissante sur â„",
@@ -1102,7 +1102,7 @@ const chapter6: ChapterContent = {
     },
     {
       id: "ch6-q2",
-      question: "La courbe de f(x) = xÂ² est :",
+      question: "La courbe de f(x) = x² est :",
       options: ["Une droite", "Une parabole", "Une hyperbole", "Un cercle"],
       correctAnswer: "Une parabole",
       explanation: "La fonction carré a pour représentation graphique une parabole"
@@ -1110,14 +1110,14 @@ const chapter6: ChapterContent = {
     {
       id: "ch6-q3",
       question: "Si x < y < 0, alors :",
-      options: ["xÂ² < yÂ²", "xÂ² > yÂ²", "xÂ² = yÂ²", "On ne peut pas comparer"],
-      correctAnswer: "xÂ² > yÂ²",
+      options: ["x² < y²", "x² > y²", "x² = y²", "On ne peut pas comparer"],
+      correctAnswer: "x² > y²",
       explanation: "Sur ]-âˆž; 0], la fonction carré est décroissante, donc l'ordre est inversé"
     },
     {
       id: "ch6-q4",
       question: "Le domaine de définition de f(x) = 1/x est :",
-      options: ["â„", "â„ \\ {0}", "â„âº*", "â„â»*"],
+      options: ["â„", "â„ \\ {0}", "â„⁺*", "â„⁻*"],
       correctAnswer: "â„ \\ {0}",
       explanation: "On ne peut pas diviser par 0"
     },
@@ -1127,16 +1127,16 @@ const chapter6: ChapterContent = {
       options: [
         "Croissante sur â„*",
         "Décroissante sur â„*",
-        "Croissante sur â„âº* et décroissante sur â„â»*",
-        "Décroissante sur â„âº* et sur â„â»*"
+        "Croissante sur â„⁺* et décroissante sur â„⁻*",
+        "Décroissante sur â„⁺* et sur â„⁻*"
       ],
-      correctAnswer: "Décroissante sur â„âº* et sur â„â»*",
+      correctAnswer: "Décroissante sur â„⁺* et sur â„⁻*",
       explanation: "La fonction inverse est décroissante sur chaque intervalle où elle est définie"
     },
     {
       id: "ch6-q6",
       question: "Comparer 1/3 et 1/5 :",
-      options: ["1/3 < 1/5", "1/3 > 1/5", "1/3 = 1/5", "Impossible Ã  comparer"],
+      options: ["1/3 < 1/5", "1/3 > 1/5", "1/3 = 1/5", "Impossible à comparer"],
       correctAnswer: "1/3 > 1/5",
       explanation: "Pour x > 0, si a < b alors 1/a > 1/b. Ici 3 < 5 donc 1/3 > 1/5"
     },
@@ -1149,47 +1149,47 @@ const chapter6: ChapterContent = {
     },
     {
       id: "ch6-q8",
-      question: "Résoudre xÂ² = 16 :",
+      question: "Résoudre x² = 16 :",
       options: ["x = 4", "x = -4", "x = 4 ou x = -4", "x = 8"],
       correctAnswer: "x = 4 ou x = -4",
-      explanation: "xÂ² = 16 âŸº x = 4 ou x = -4"
+      explanation: "x² = 16 âŸº x = 4 ou x = -4"
     },
     {
       id: "ch6-q9",
       question: "Laquelle de ces égalités est vraie ?",
-      options: ["(-3)Â² = -9", "âˆš9 = Â±3", "(-5)Â² = 25", "3Â² = 6"],
-      correctAnswer: "(-5)Â² = 25",
-      explanation: "(-5)Â² = (-5) Ã— (-5) = 25"
+      options: ["(-3)² = -9", "âˆš9 = ±3", "(-5)² = 25", "3² = 6"],
+      correctAnswer: "(-5)² = 25",
+      explanation: "(-5)² = (-5) Ã— (-5) = 25"
     },
     {
       id: "ch6-q10",
-      question: "La fonction f(x) = 1/x est symétrique par rapport Ã  :",
+      question: "La fonction f(x) = 1/x est symétrique par rapport à :",
       options: ["L'axe des x", "L'axe des y", "L'origine", "Aucune symétrie"],
       correctAnswer: "L'origine",
-      explanation: "f(-x) = -f(x), donc f est impaire : symétrie par rapport Ã  l'origine"
+      explanation: "f(-x) = -f(x), donc f est impaire : symétrie par rapport à l'origine"
     }
   ],
   exercises: [
     {
       id: "ch6-ex1",
       title: "Comparaison avec la fonction carré",
-      statement: "Comparer (-3)Â² et (-5)Â². Quel est le plus grand ?",
+      statement: "Comparer (-3)² et (-5)². Quel est le plus grand ?",
       expectedAnswer: "25",
-      acceptedAnswers: ["25", "(-5)Â²", "-5"],
-      solution: `(-3)Â² = 9
-(-5)Â² = 25
+      acceptedAnswers: ["25", "(-5)²", "-5"],
+      solution: `(-3)² = 9
+(-5)² = 25
 
-Comme 25 > 9, **(-5)Â² = 25** est le plus grand.
+Comme 25 > 9, **(-5)² = 25** est le plus grand.
 
-(Sur â„â», la fonction carré est décroissante : -5 < -3 donc (-5)Â² > (-3)Â²)`
+(Sur â„⁻, la fonction carré est décroissante : -5 < -3 donc (-5)² > (-3)²)`
     },
     {
       id: "ch6-ex2",
       title: "Résolution d'équation avec carré",
-      statement: "Résoudre xÂ² = 49. Donner la somme des solutions.",
+      statement: "Résoudre x² = 49. Donner la somme des solutions.",
       expectedAnswer: "0",
       acceptedAnswers: ["0"],
-      solution: `xÂ² = 49
+      solution: `x² = 49
 x = 7 ou x = -7
 
 Somme des solutions : 7 + (-7) = **0**`
@@ -1197,10 +1197,10 @@ Somme des solutions : 7 + (-7) = **0**`
     {
       id: "ch6-ex3",
       title: "Inéquation avec carré",
-      statement: "Résoudre xÂ² < 9. Donner l'intervalle solution.",
+      statement: "Résoudre x² < 9. Donner l'intervalle solution.",
       expectedAnswer: "]-3; 3[",
       acceptedAnswers: ["]-3; 3[", "]-3;3[", "(-3; 3)"],
-      solution: `xÂ² < 9
+      solution: `x² < 9
 |x| < 3
 -3 < x < 3
 
@@ -1209,7 +1209,7 @@ Somme des solutions : 7 + (-7) = **0**`
     {
       id: "ch6-ex4",
       title: "Image d'un intervalle",
-      statement: "Déterminer l'image de l'intervalle [-3; 2] par f(x) = xÂ². Donner le maximum.",
+      statement: "Déterminer l'image de l'intervalle [-3; 2] par f(x) = x². Donner le maximum.",
       expectedAnswer: "9",
       acceptedAnswers: ["9", "[0; 9]"],
       solution: `Sur [-3; 2] :
@@ -1258,13 +1258,13 @@ x = 1/3
     {
       id: "ch6-ex8",
       title: "Tableau de variations",
-      statement: "La fonction f(x) = xÂ² - 4 atteint son minimum pour quelle valeur de x ?",
+      statement: "La fonction f(x) = x² - 4 atteint son minimum pour quelle valeur de x ?",
       expectedAnswer: "0",
       acceptedAnswers: ["0", "x = 0"],
-      solution: `f(x) = xÂ² - 4
+      solution: `f(x) = x² - 4
 
-Le minimum de xÂ² est atteint en x = 0.
-Donc le minimum de xÂ² - 4 est aussi en **x = 0**.
+Le minimum de x² est atteint en x = 0.
+Donc le minimum de x² - 4 est aussi en **x = 0**.
 
 Valeur minimale : f(0) = -4`
     },
@@ -1281,7 +1281,7 @@ x = 2/4 = **1/2**`
     {
       id: "ch6-ex10",
       title: "Problème contextualisé",
-      statement: "La durée d'un trajet est proportionnelle Ã  1/v où v est la vitesse. Si Ã  60 km/h le trajet dure 2h, combien dure-t-il Ã  80 km/h ? (en heures, format décimal)",
+      statement: "La durée d'un trajet est proportionnelle à 1/v où v est la vitesse. Si à 60 km/h le trajet dure 2h, combien dure-t-il à 80 km/h ? (en heures, format décimal)",
       expectedAnswer: "1,5",
       acceptedAnswers: ["1,5", "1.5", "3/2"],
       solution: `t = k/v
@@ -1321,7 +1321,7 @@ const chapter7: ChapterContent = {
       question: "La norme du vecteur u(3, 4) est :",
       options: ["7", "5", "12", "25"],
       correctAnswer: "5",
-      explanation: "||u|| = âˆš(3Â² + 4Â²) = âˆš(9 + 16) = âˆš25 = 5"
+      explanation: "||u|| = âˆš(3² + 4²) = âˆš(9 + 16) = âˆš25 = 5"
     },
     {
       id: "ch7-q4",
@@ -1395,7 +1395,7 @@ const chapter7: ChapterContent = {
       statement: "Calculer la norme du vecteur u(5, -12).",
       expectedAnswer: "13",
       acceptedAnswers: ["13"],
-      solution: `||u|| = âˆš(5Â² + (-12)Â²)
+      solution: `||u|| = âˆš(5² + (-12)²)
 = âˆš(25 + 144)
 = âˆš169
 = **13**`
@@ -1516,7 +1516,7 @@ const chapter8: ChapterContent = {
     {
       id: "ch8-q4",
       question: "La probabilité d'un événement impossible est :",
-      options: ["0", "1", "-1", "Impossible Ã  calculer"],
+      options: ["0", "1", "-1", "Impossible à calculer"],
       correctAnswer: "0",
       explanation: "Un événement impossible a une probabilité nulle"
     },
@@ -1552,12 +1552,12 @@ const chapter8: ChapterContent = {
       id: "ch8-q9",
       question: "Le premier quartile Q1 est la valeur telle que :",
       options: [
-        "25% des données sont inférieures Ã  Q1",
-        "50% des données sont inférieures Ã  Q1",
-        "75% des données sont inférieures Ã  Q1",
-        "Q1 est toujours égal Ã  la médiane"
+        "25% des données sont inférieures à Q1",
+        "50% des données sont inférieures à Q1",
+        "75% des données sont inférieures à Q1",
+        "Q1 est toujours égal à la médiane"
       ],
-      correctAnswer: "25% des données sont inférieures Ã  Q1",
+      correctAnswer: "25% des données sont inférieures à Q1",
       explanation: "Q1 sépare les 25% inférieurs des 75% supérieurs"
     },
     {
@@ -1617,7 +1617,7 @@ P(rouge) = 5/10 = **1/2**`
     {
       id: "ch8-ex6",
       title: "Probabilité de l'événement contraire",
-      statement: "La probabilité de gagner Ã  un jeu est 0,15. Quelle est la probabilité de perdre ?",
+      statement: "La probabilité de gagner à un jeu est 0,15. Quelle est la probabilité de perdre ?",
       expectedAnswer: "0,85",
       acceptedAnswers: ["0,85", "0.85", "85%", "17/20"],
       solution: `P(perdre) = 1 - P(gagner)
