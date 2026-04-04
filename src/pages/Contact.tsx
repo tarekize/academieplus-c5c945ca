@@ -45,7 +45,7 @@ const Contact = () => {
               Contactez-nous
             </h1>
             <p className="text-xl text-white/90 max-w-2xl mx-auto">
-              Une question ? Besoin d'informations ? Notre équipe est Ã  votre écoute
+              Une question ? Besoin d'informations ? Notre équipe est à votre écoute
             </p>
           </div>
         </section>

@@ -22,10 +22,10 @@ export interface Exercise {
 export const mathQuizQuestions: QuizQuestion[] = [
   {
     id: "q1",
-    question: "Parmi les nombres suivants, lequel appartient Ã  l'ensemble â„š (rationnels) mais pas Ã  â„¤ (entiers) ?",
-    options: ["âˆš2", "3/4", "-5", "Ï€"],
+    question: "Parmi les nombres suivants, lequel appartient à l'ensemble ℚ (rationnels) mais pas à ℤ (entiers) ?",
+    options: ["√2", "3/4", "-5", "π"],
     correctAnswer: "3/4",
-    explanation: "3/4 est un rationnel car c'est le quotient de deux entiers. âˆš2 et Ï€ sont irrationnels, -5 est un entier.",
+    explanation: "3/4 est un rationnel car c'est le quotient de deux entiers. √2 et π sont irrationnels, -5 est un entier.",
     category: "Ensembles de nombres"
   },
   {
@@ -33,15 +33,15 @@ export const mathQuizQuestions: QuizQuestion[] = [
     question: "Simplifier la fraction : 48/72",
     options: ["4/6", "2/3", "8/12", "16/24"],
     correctAnswer: "2/3",
-    explanation: "PGCD(48, 72) = 24. Donc 48/72 = (48Ã·24)/(72Ã·24) = 2/3",
+    explanation: "PGCD(48, 72) = 24. Donc 48/72 = (48÷24)/(72÷24) = 2/3",
     category: "Calcul de fractions"
   },
   {
     id: "q3",
     question: "Développer et réduire : (2x + 3)(x - 1)",
-    options: ["2xÂ² + x - 3", "2xÂ² - x - 3", "2xÂ² + 5x - 3", "2xÂ² - 5x + 3"],
-    correctAnswer: "2xÂ² + x - 3",
-    explanation: "(2x + 3)(x - 1) = 2x·x + 2x·(-1) + 3·x + 3·(-1) = 2xÂ² - 2x + 3x - 3 = 2xÂ² + x - 3",
+    options: ["2x² + x - 3", "2x² - x - 3", "2x² + 5x - 3", "2x² - 5x + 3"],
+    correctAnswer: "2x² + x - 3",
+    explanation: "(2x + 3)(x - 1) = 2x·x + 2x·(-1) + 3·x + 3·(-1) = 2x² - 2x + 3x - 3 = 2x² + x - 3",
     category: "Développement/réduction"
   },
   {
@@ -49,7 +49,7 @@ export const mathQuizQuestions: QuizQuestion[] = [
     question: "Soit f(x) = 2x - 5. Quelle est l'image de 3 par f ?",
     options: ["1", "-1", "6", "11"],
     correctAnswer: "1",
-    explanation: "f(3) = 2Ã—3 - 5 = 6 - 5 = 1. L'image de 3 par f est 1.",
+    explanation: "f(3) = 2×3 - 5 = 6 - 5 = 1. L'image de 3 par f est 1.",
     category: "Images et antécédents"
   },
   {
@@ -57,7 +57,7 @@ export const mathQuizQuestions: QuizQuestion[] = [
     question: "Quelles sont les coordonnées du milieu du segment [AB] avec A(2, 4) et B(6, 8) ?",
     options: ["(4, 6)", "(8, 12)", "(3, 5)", "(2, 2)"],
     correctAnswer: "(4, 6)",
-    explanation: "Le milieu M a pour coordonnées : xâ‚˜ = (xâ‚ + x_b)/2 = (2+6)/2 = 4 et yâ‚˜ = (yâ‚ + y_b)/2 = (4+8)/2 = 6",
+    explanation: "Le milieu M a pour coordonnées : xₘ = (xₐ + x_b)/2 = (2+6)/2 = 4 et yₘ = (yₐ + y_b)/2 = (4+8)/2 = 6",
     category: "Coordonnées de milieu"
   },
   {
@@ -65,19 +65,19 @@ export const mathQuizQuestions: QuizQuestion[] = [
     question: "Résoudre l'équation : 3x - 7 = 2x + 5",
     options: ["x = 12", "x = -2", "x = 2", "x = -12"],
     correctAnswer: "x = 12",
-    explanation: "3x - 7 = 2x + 5 âŸ¹ 3x - 2x = 5 + 7 âŸ¹ x = 12",
+    explanation: "3x - 7 = 2x + 5 ⟹ 3x - 2x = 5 + 7 ⟹ x = 12",
     category: "Équations du premier degré"
   },
   {
     id: "q7",
-    question: "La fonction carré f(x) = xÂ² est :",
+    question: "La fonction carré f(x) = x² est :",
     options: [
-      "Croissante sur â„",
-      "Décroissante sur â„",
-      "Décroissante sur ]-âˆž; 0] et croissante sur [0; +âˆž[",
-      "Croissante sur ]-âˆž; 0] et décroissante sur [0; +âˆž["
+      "Croissante sur ℝ",
+      "Décroissante sur ℝ",
+      "Décroissante sur ]-∞; 0] et croissante sur [0; +∞[",
+      "Croissante sur ]-∞; 0] et décroissante sur [0; +∞["
     ],
-    correctAnswer: "Décroissante sur ]-âˆž; 0] et croissante sur [0; +âˆž[",
+    correctAnswer: "Décroissante sur ]-∞; 0] et croissante sur [0; +∞[",
     explanation: "La fonction carré admet un minimum en x = 0. Elle décroît avant et croît après.",
     category: "Fonctions"
   },
@@ -104,10 +104,10 @@ export const mathQuizQuestions: QuizQuestion[] = [
   },
   {
     id: "q10",
-    question: "Quel est l'intervalle solution de l'inéquation 2x - 4 â‰¥ 0 ?",
-    options: ["]-âˆž; 2]", "[2; +âˆž[", "]-âˆž; 2[", "]2; +âˆž["],
-    correctAnswer: "[2; +âˆž[",
-    explanation: "2x - 4 â‰¥ 0 âŸ¹ 2x â‰¥ 4 âŸ¹ x â‰¥ 2. L'ensemble solution est [2; +âˆž[",
+    question: "Quel est l'intervalle solution de l'inéquation 2x - 4 ≥ 0 ?",
+    options: ["]-∞; 2]", "[2; +∞[", "]-∞; 2[", "]2; +∞["],
+    correctAnswer: "[2; +∞[",
+    explanation: "2x - 4 ≥ 0 ⟹ 2x ≥ 4 ⟹ x ≥ 2. L'ensemble solution est [2; +∞[",
     category: "Inéquations"
   }
 ];
@@ -118,7 +118,7 @@ export const mathExercises: Exercise[] = [
     id: "ex1",
     title: "Résolution d'équation du premier degré",
     category: "Équations",
-    statement: "Résoudre l'équation suivante dans â„ :\n\n**5(x - 2) - 3(2x + 1) = 4x - 17**",
+    statement: "Résoudre l'équation suivante dans ℝ :\n\n**5(x - 2) - 3(2x + 1) = 4x - 17**",
     solution: `**Étape 1 : Développer**
 5(x - 2) - 3(2x + 1) = 4x - 17
 5x - 10 - 6x - 3 = 4x - 17
@@ -131,8 +131,8 @@ export const mathExercises: Exercise[] = [
 -5x = -4
 x = -4 / -5 = **4/5** ou **0.8**
 
-**Vérification :** 5(0.8 - 2) - 3(2Ã—0.8 + 1) = 5(-1.2) - 3(2.6) = -6 - 7.8 = -13.8
-4Ã—0.8 - 17 = 3.2 - 17 = -13.8 âœ“`
+**Vérification :** 5(0.8 - 2) - 3(2×0.8 + 1) = 5(-1.2) - 3(2.6) = -6 - 7.8 = -13.8
+4×0.8 - 17 = 3.2 - 17 = -13.8 ✓`
   },
   {
     id: "ex2",
@@ -141,14 +141,14 @@ x = -4 / -5 = **4/5** ou **0.8**
     statement: "Dans un triangle ABC rectangle en A, on donne AB = 6 cm et AC = 8 cm.\n\n1. Calculer BC.\n2. Calculer l'aire du triangle ABC.",
     solution: `**1. Calcul de BC (hypoténuse)**
 D'après le théorème de Pythagore :
-BCÂ² = ABÂ² + ACÂ²
-BCÂ² = 6Â² + 8Â² = 36 + 64 = 100
-BC = âˆš100 = **10 cm**
+BC² = AB² + AC²
+BC² = 6² + 8² = 36 + 64 = 100
+BC = √100 = **10 cm**
 
 **2. Aire du triangle rectangle**
 L'aire d'un triangle rectangle est :
-A = (base Ã— hauteur) / 2
-A = (AB Ã— AC) / 2 = (6 Ã— 8) / 2 = **24 cmÂ²**`
+A = (base × hauteur) / 2
+A = (AB × AC) / 2 = (6 × 8) / 2 = **24 cm²**`
   },
   {
     id: "ex3",
@@ -159,22 +159,22 @@ A = (AB Ã— AC) / 2 = (6 Ã— 8) / 2 = **24 cmÂ²**`
 D'après le théorème de Thalès :
 AM/AB = AN/AC
 4/10 = 3/AC
-AC = (3 Ã— 10) / 4 = **7.5 cm**
+AC = (3 × 10) / 4 = **7.5 cm**
 
 **2. Calcul de MN**
 D'après le théorème de Thalès :
 AM/AB = MN/BC
 4/10 = MN/7.5
-MN = (4 Ã— 7.5) / 10 = **3 cm**`
+MN = (4 × 7.5) / 10 = **3 cm**`
   },
   {
     id: "ex4",
     title: "Calcul de fréquences cumulées",
     category: "Statistiques",
-    statement: "Dans une classe de 25 élèves, on a relevé les notes obtenues Ã  un contrôle :\n\n| Note | 8 | 10 | 12 | 14 | 16 |\n|------|---|----|----|----|----|----|\n| Effectif | 3 | 5 | 8 | 6 | 3 |\n\nCalculer :\n1. La moyenne de la série.\n2. Les fréquences et fréquences cumulées croissantes.",
+    statement: "Dans une classe de 25 élèves, on a relevé les notes obtenues à un contrôle :\n\n| Note | 8 | 10 | 12 | 14 | 16 |\n|------|---|----|----|----|----|----|\n| Effectif | 3 | 5 | 8 | 6 | 3 |\n\nCalculer :\n1. La moyenne de la série.\n2. Les fréquences et fréquences cumulées croissantes.",
     solution: `**1. Calcul de la moyenne**
-Moyenne = Î£(note Ã— effectif) / effectif total
-= (8Ã—3 + 10Ã—5 + 12Ã—8 + 14Ã—6 + 16Ã—3) / 25
+Moyenne = Σ(note × effectif) / effectif total
+= (8×3 + 10×5 + 12×8 + 14×6 + 16×3) / 25
 = (24 + 50 + 96 + 84 + 48) / 25
 = 302 / 25 = **12.08**
 
@@ -192,7 +192,7 @@ Moyenne = Î£(note Ã— effectif) / effectif total
     id: "ex5",
     title: "Étude d'une fonction affine",
     category: "Fonctions",
-    statement: "Soit f la fonction définie sur â„ par f(x) = -2x + 6.\n\n1. Calculer f(0), f(3) et f(-1).\n2. Déterminer l'antécédent de 0 par f.\n3. Dresser le tableau de variations de f.",
+    statement: "Soit f la fonction définie sur ℝ par f(x) = -2x + 6.\n\n1. Calculer f(0), f(3) et f(-1).\n2. Déterminer l'antécédent de 0 par f.\n3. Dresser le tableau de variations de f.",
     solution: `**1. Images**
 - f(0) = -2(0) + 6 = **6**
 - f(3) = -2(3) + 6 = -6 + 6 = **0**
@@ -206,11 +206,11 @@ x = **3**
 
 **3. Tableau de variations**
 f est une fonction affine avec a = -2 < 0
-Donc f est **décroissante** sur â„.
+Donc f est **décroissante** sur ℝ.
 
-| x | -âˆž â€”â€”â€”â€”â€”â€”â€”â€”â†’ +âˆž |
+| x | -∞ ————————→ +∞ |
 |---|------------------|
-| f(x) | +âˆž â†˜ -âˆž |`
+| f(x) | +∞ ↘ -∞ |`
   },
   {
     id: "ex6",
@@ -222,9 +222,9 @@ Donc f est **décroissante** sur â„.
 | Étape | n | n pair ? | Calcul | Nouveau n |
 |-------|---|----------|--------|-----------|
 | 1 | 6 | Oui | 6 // 2 | 3 |
-| 2 | 3 | Non | 3Ã—3 + 1 | 10 |
+| 2 | 3 | Non | 3×3 + 1 | 10 |
 | 3 | 10 | Oui | 10 // 2 | 5 |
-| 4 | 5 | Non | 3Ã—5 + 1 | 16 |
+| 4 | 5 | Non | 3×5 + 1 | 16 |
 | 5 | 16 | Oui | 16 // 2 | 8 |
 | 6 | 8 | Oui | 8 // 2 | 4 |
 | 7 | 4 | Oui | 4 // 2 | 2 |
@@ -243,16 +243,16 @@ L'algorithme s'arrête car n = 1 (condition de sortie de la boucle).`
 AB = (x_B - x_A ; y_B - y_A) = (4 - 1 ; 6 - 2) = **(3 ; 4)**
 
 **2. Norme de AB**
-||AB|| = âˆš(3Â² + 4Â²) = âˆš(9 + 16) = âˆš25 = **5**
+||AB|| = √(3² + 4²) = √(9 + 16) = √25 = **5**
 
 **3. Coordonnées de D**
-ABCD parallélogramme âŸ¹ AB = DC
+ABCD parallélogramme ⟹ AB = DC
 Donc D est tel que : C + AB = D (non !)
-En fait : AB = DC âŸ¹ D + DC = C âŸ¹ D = C - AB... Non.
+En fait : AB = DC ⟹ D + DC = C ⟹ D = C - AB... Non.
 Reprenons : DC = AB
-âŸ¹ (x_C - x_D ; y_C - y_D) = (3 ; 4)
-âŸ¹ x_C - x_D = 3 âŸ¹ x_D = -2 - 3 = -5
-âŸ¹ y_C - y_D = 4 âŸ¹ y_D = 5 - 4 = 1
+⟹ (x_C - x_D ; y_C - y_D) = (3 ; 4)
+⟹ x_C - x_D = 3 ⟹ x_D = -2 - 3 = -5
+⟹ y_C - y_D = 4 ⟹ y_D = 5 - 4 = 1
 
 **D(-5 ; 1)**`
   },
@@ -272,14 +272,14 @@ P(non verte) = 1 - P(verte) = 1 - 2/9 = **7/9**
 Ou directement : P(non verte) = (4 + 3) / 9 = 7/9
 
 **3. P(Rouge ou Bleue)**
-P(R âˆª B) = P(R) + P(B) (événements incompatibles)
+P(R ∪ B) = P(R) + P(B) (événements incompatibles)
 = 4/9 + 3/9 = **7/9**`
   },
   {
     id: "ex9",
     title: "Étude de la fonction carré",
     category: "Fonctions de référence",
-    statement: "Soit f(x) = xÂ².\n\n1. Compléter le tableau de valeurs pour x âˆˆ {-3, -2, -1, 0, 1, 2, 3}.\n2. Résoudre graphiquement f(x) = 4.\n3. Résoudre algébriquement f(x) = 9.",
+    statement: "Soit f(x) = x².\n\n1. Compléter le tableau de valeurs pour x ∈ {-3, -2, -1, 0, 1, 2, 3}.\n2. Résoudre graphiquement f(x) = 4.\n3. Résoudre algébriquement f(x) = 9.",
     solution: `**1. Tableau de valeurs**
 
 | x | -3 | -2 | -1 | 0 | 1 | 2 | 3 |
@@ -287,12 +287,12 @@ P(R âˆª B) = P(R) + P(B) (événements incompatibles)
 | f(x) | 9 | 4 | 1 | 0 | 1 | 4 | 9 |
 
 **2. Résolution graphique de f(x) = 4**
-On cherche les abscisses des points d'intersection de la parabole y = xÂ² et de la droite horizontale y = 4.
+On cherche les abscisses des points d'intersection de la parabole y = x² et de la droite horizontale y = 4.
 D'après le tableau : **x = -2 ou x = 2**
 
 **3. Résolution algébrique de f(x) = 9**
-xÂ² = 9
-xÂ² - 9 = 0
+x² = 9
+x² - 9 = 0
 (x - 3)(x + 3) = 0
 x = 3 ou x = -3
 
@@ -302,27 +302,27 @@ x = 3 ou x = -3
     id: "ex10",
     title: "Trigonométrie - Cercle trigonométrique",
     category: "Trigonométrie",
-    statement: "En utilisant le cercle trigonométrique :\n\n1. Donner les valeurs exactes de cos(Ï€/3) et sin(Ï€/3).\n2. Calculer cosÂ²(Ï€/3) + sinÂ²(Ï€/3).\n3. Résoudre l'équation cos(x) = 1/2 pour x âˆˆ [0 ; 2Ï€].",
+    statement: "En utilisant le cercle trigonométrique :\n\n1. Donner les valeurs exactes de cos(π/3) et sin(π/3).\n2. Calculer cos²(π/3) + sin²(π/3).\n3. Résoudre l'équation cos(x) = 1/2 pour x ∈ [0 ; 2π].",
     solution: `**1. Valeurs remarquables**
-Pour Ï€/3 (60°) :
-- **cos(Ï€/3) = 1/2**
-- **sin(Ï€/3) = âˆš3/2**
+Pour π/3 (60°) :
+- **cos(π/3) = 1/2**
+- **sin(π/3) = √3/2**
 
 **2. Relation fondamentale**
-cosÂ²(Ï€/3) + sinÂ²(Ï€/3) = (1/2)Â² + (âˆš3/2)Â²
+cos²(π/3) + sin²(π/3) = (1/2)² + (√3/2)²
 = 1/4 + 3/4
 = **1**
 
-(On retrouve la relation fondamentale cosÂ²x + sinÂ²x = 1)
+(On retrouve la relation fondamentale cos²x + sin²x = 1)
 
-**3. Résolution de cos(x) = 1/2 sur [0 ; 2Ï€]**
-cos(x) = 1/2 = cos(Ï€/3)
+**3. Résolution de cos(x) = 1/2 sur [0 ; 2π]**
+cos(x) = 1/2 = cos(π/3)
 
 Les solutions sont :
-- x = Ï€/3 (premier quadrant)
-- x = 2Ï€ - Ï€/3 = 5Ï€/3 (quatrième quadrant)
+- x = π/3 (premier quadrant)
+- x = 2π - π/3 = 5π/3 (quatrième quadrant)
 
-**S = {Ï€/3 ; 5Ï€/3}**`
+**S = {π/3 ; 5π/3}**`
   }
 ];
 
@@ -333,8 +333,8 @@ export const programmeSeconde = {
     {
       name: "Nombres et calculs",
       topics: [
-        "Ensembles de nombres (â„•, â„¤, â„š, â„)",
-        "Intervalles de â„",
+        "Ensembles de nombres (ℕ, ℤ, ℚ, ℝ)",
+        "Intervalles de ℝ",
         "Calcul littéral (développer, factoriser, réduire)",
         "Équations et inéquations du premier degré"
       ]

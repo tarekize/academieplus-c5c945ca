@@ -20,11 +20,11 @@ export const FlyingBot = ({
     };
 
     const expressions: Record<string, string> = {
-        welcome: "ðŸ‘‹",
-        thinking: "ðŸ¤”",
-        happy: "ðŸ˜Š",
-        encouraging: "ðŸ’ª",
-        celebrating: "ðŸŽ‰",
+        welcome: "👋",
+        thinking: "🤔",
+        happy: "😊",
+        encouraging: "💪",
+        celebrating: "🎉",
     };
 
     const flyingVariants: Variants = {

@@ -138,7 +138,7 @@ export default function GestionEquipe() {
       await loadTeam();
     } catch (error) {
       console.error('Error updating role:', error);
-      toast.error("Erreur lors de la mise Ã  jour du rôle");
+      toast.error("Erreur lors de la mise à jour du rôle");
     }
   };
 
@@ -289,7 +289,7 @@ export default function GestionEquipe() {
                               className="h-6 w-6 p-0"
                               onClick={() => updateRole(member.id, role, 'remove')}
                             >
-                              Ã—
+                              ×
                             </Button>
                           </div>
                         ))
@@ -352,7 +352,7 @@ export default function GestionEquipe() {
             <AlertDialogHeader>
               <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
               <AlertDialogDescription>
-                ÃŠtes-vous sûr de vouloir supprimer {selectedMember ? getFullName(selectedMember) : ''} ?
+                Êtes-vous sûr de vouloir supprimer {selectedMember ? getFullName(selectedMember) : ''} ?
                 Cette action est irréversible.
               </AlertDialogDescription>
             </AlertDialogHeader>

@@ -116,10 +116,10 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <Button variant="ghost" size="sm" onClick={() => setCurrentExercise(null)}>
-              <ArrowLeft className="h-4 w-4 mr-2" />Ø§Ù„Ø¹ÙˆØ¯Ø© Ù„Ù„Ù‚Ø§Ø¦Ù…Ø©
+              <ArrowLeft className="h-4 w-4 mr-2" />العودة للقائمة
             </Button>
             <span className="text-sm px-2 py-1 rounded-full bg-primary/10 text-primary">
-              ØªÙ…Ø±ÙŠÙ† {currentExercise + 1}/{exercises.length}
+              تمرين {currentExercise + 1}/{exercises.length}
             </span>
           </div>
           <CardTitle className="text-xl mt-4 flex items-center justify-between">
@@ -146,7 +146,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="p-4 bg-muted/50 rounded-lg" dir="rtl">
-            <h4 className="font-semibold mb-3 flex items-center gap-2"><BookOpen className="h-4 w-4" />Ø§Ù„ØªÙ…Ø±ÙŠÙ†</h4>
+            <h4 className="font-semibold mb-3 flex items-center gap-2"><BookOpen className="h-4 w-4" />التمرين</h4>
             <div className="prose prose-sm dark:prose-invert max-w-none">
               <ReactMarkdown>{exercise.statement}</ReactMarkdown>
             </div>
@@ -154,7 +154,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
 
           <div className="space-y-4" dir="rtl">
             <div className="flex gap-3">
-              <Input placeholder="Ø£Ø¯Ø®Ù„ Ø¥Ø¬Ø§Ø¨ØªÙƒ..." value={userAnswers[exercise.id] || ""}
+              <Input placeholder="أدخل إجابتك..." value={userAnswers[exercise.id] || ""}
                 onChange={(e) => setUserAnswers(prev => ({ ...prev, [exercise.id]: e.target.value }))}
                 disabled={submitted || isSubmitting}
                 className={cn("flex-1", submitted && correct && "border-green-500 bg-green-500/10", submitted && !correct && "border-red-500 bg-red-500/10")}
@@ -162,35 +162,35 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
               />
               <Button onClick={() => handleSubmit(exercise)} disabled={submitted || isSubmitting || !userAnswers[exercise.id]?.trim()} className="gap-2">
                 {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                ØªØ£ÙƒÙŠØ¯
+                تأكيد
               </Button>
             </div>
 
             {submitted && (
               <div className={cn("p-4 rounded-lg flex items-center gap-3", correct ? "bg-green-500/10 border border-green-500/30" : "bg-red-500/10 border border-red-500/30")}>
                 {correct ? (
-                  <><CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" /><div><p className="font-medium text-green-700 dark:text-green-300">Ø¥Ø¬Ø§Ø¨Ø© ØµØ­ÙŠØ­Ø©! ðŸŽ‰</p>{expectedAnswer && <p className="text-sm text-muted-foreground">Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø§Ù„Ù…ØªÙˆÙ‚Ø¹Ø©: {expectedAnswer}</p>}</div></>
+                  <><CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" /><div><p className="font-medium text-green-700 dark:text-green-300">إجابة صحيحة! 🎉</p>{expectedAnswer && <p className="text-sm text-muted-foreground">الإجابة المتوقعة: {expectedAnswer}</p>}</div></>
                 ) : (
-                  <><XCircle className="h-5 w-5 text-red-500 shrink-0" /><div><p className="font-medium text-red-700 dark:text-red-300">Ø¥Ø¬Ø§Ø¨Ø© Ø®Ø§Ø·Ø¦Ø©</p><p className="text-sm text-muted-foreground">Ø¥Ø¬Ø§Ø¨ØªÙƒ: {userAnswers[exercise.id]}{expectedAnswer && ` â€” Ø§Ù„Ù…ØªÙˆÙ‚Ø¹Ø©: ${expectedAnswer}`}</p></div></>
+                  <><XCircle className="h-5 w-5 text-red-500 shrink-0" /><div><p className="font-medium text-red-700 dark:text-red-300">إجابة خاطئة</p><p className="text-sm text-muted-foreground">إجابتك: {userAnswers[exercise.id]}{expectedAnswer && ` — المتوقعة: ${expectedAnswer}`}</p></div></>
                 )}
               </div>
             )}
           </div>
 
           <Button variant="outline" onClick={() => toggleCorrection(exercise.id)} disabled={!submitted} className={cn("w-full gap-2", !submitted && "opacity-50")}>
-            <Eye className="h-4 w-4" />{correctionVisible ? "Ø¥Ø®ÙØ§Ø¡ Ø§Ù„Ø­Ù„" : "Ø¹Ø±Ø¶ Ø§Ù„Ø­Ù„"}
+            <Eye className="h-4 w-4" />{correctionVisible ? "إخفاء الحل" : "عرض الحل"}
           </Button>
 
           {correctionVisible && solution && (
             <div className="p-4 bg-muted/30 rounded-lg border" dir="rtl">
-              <h4 className="font-semibold mb-3 flex items-center gap-2 text-primary"><CheckCircle2 className="h-4 w-4" />Ø§Ù„Ø­Ù„ Ø§Ù„Ù…ÙØµÙ„</h4>
+              <h4 className="font-semibold mb-3 flex items-center gap-2 text-primary"><CheckCircle2 className="h-4 w-4" />الحل المفصل</h4>
               <div className="prose prose-sm dark:prose-invert max-w-none"><ReactMarkdown>{solution}</ReactMarkdown></div>
             </div>
           )}
 
           <div className="flex gap-3">
-            {currentExercise > 0 && <Button variant="outline" onClick={() => setCurrentExercise(currentExercise - 1)} className="flex-1">Ø§Ù„ØªÙ…Ø±ÙŠÙ† Ø§Ù„Ø³Ø§Ø¨Ù‚</Button>}
-            {currentExercise < exercises.length - 1 && <Button onClick={() => setCurrentExercise(currentExercise + 1)} className="flex-1">Ø§Ù„ØªÙ…Ø±ÙŠÙ† Ø§Ù„ØªØ§Ù„ÙŠ</Button>}
+            {currentExercise > 0 && <Button variant="outline" onClick={() => setCurrentExercise(currentExercise - 1)} className="flex-1">التمرين السابق</Button>}
+            {currentExercise < exercises.length - 1 && <Button onClick={() => setCurrentExercise(currentExercise + 1)} className="flex-1">التمرين التالي</Button>}
           </div>
         </CardContent>
       </Card>
@@ -211,14 +211,14 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
           </CardTitle>
           <div className="flex gap-2">
             {canManage && onRefresh && <ExerciseFormDialog chapterId={chapterId} onSaved={onRefresh} />}
-            <Button variant="outline" onClick={onClose}>Ø§Ù„Ø¹ÙˆØ¯Ø© Ù„Ù„Ø¯Ø±Ø³</Button>
+            <Button variant="outline" onClick={onClose}>العودة للدرس</Button>
           </div>
         </div>
-        <p className="text-muted-foreground mt-2" dir="rtl">{chapterTitle} â€” {completedCount}/{exercises.length} Ù†Ø§Ø¬Ø­</p>
+        <p className="text-muted-foreground mt-2" dir="rtl">{chapterTitle} — {completedCount}/{exercises.length} ناجح</p>
       </CardHeader>
       <CardContent>
         {exercises.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8" dir="rtl">Ù„Ø§ ØªÙˆØ¬Ø¯ تمارين Ù…ØªØ§Ø­Ø© Ù„Ù‡Ø°Ø§ Ø§Ù„ÙØµÙ„.</p>
+          <p className="text-center text-muted-foreground py-8" dir="rtl">لا توجد تمارين متاحة لهذا الفصل.</p>
         ) : (
           <div className="grid gap-3">
             {exercises.map((ex, index) => {
@@ -248,7 +248,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
                         <Clock className="h-3 w-3" />{formatTime(timeForExercise)}
                       </div>
                     )}
-                    <span className="text-primary">â†</span>
+                    <span className="text-primary">←</span>
                   </div>
                 </button>
               );

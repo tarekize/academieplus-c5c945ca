@@ -233,7 +233,7 @@ const ParentDashboard = () => {
       }
 
       if (anyCode.status === "used") {
-        sonnerToast.error("Ce code a déjÃ  été activé");
+        sonnerToast.error("Ce code a déjà été activé");
         setActivating(false);
         return;
       }
@@ -439,7 +439,7 @@ const ParentDashboard = () => {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Bonjour {fullName} ðŸ‘‹</h1>
+              <h1 className="text-3xl font-bold mb-2">Bonjour {fullName} 👋</h1>
               <p className="text-muted-foreground">Suivez la progression de vos enfants</p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -456,7 +456,7 @@ const ParentDashboard = () => {
                   <div className="space-y-4 mt-4">
                     {createError && (
                       <div className="p-3 rounded-md bg-destructive/10 border border-destructive/30 text-destructive text-sm font-medium">
-                        âš ï¸ {createError}
+                        ⚠️ {createError}
                       </div>
                     )}
                     <div className="grid grid-cols-2 gap-3">
@@ -523,7 +523,7 @@ const ParentDashboard = () => {
                     <div className="space-y-2">
                       <Label>Code de liaison</Label>
                       <Input placeholder="ABC123" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={8} />
-                      <p className="text-sm text-muted-foreground">Demandez Ã  votre enfant de générer un code depuis son profil</p>
+                      <p className="text-sm text-muted-foreground">Demandez à votre enfant de générer un code depuis son profil</p>
                     </div>
                     <Button onClick={handleAddByCode} disabled={submitting} className="w-full">
                       {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Hash className="h-4 w-4 mr-2" />}
@@ -603,11 +603,11 @@ const ParentDashboard = () => {
                               <span className="font-medium">{childName}</span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-muted-foreground">{link.child?.email ?? "â€”"}</TableCell>
+                          <TableCell className="text-muted-foreground">{link.child?.email ?? "—"}</TableCell>
                           <TableCell>
                             {link.child?.school_level ? (
                               <Badge variant="outline">{getSchoolLevelLabel(link.child.school_level)}</Badge>
-                            ) : <span className="text-muted-foreground">â€”</span>}
+                            ) : <span className="text-muted-foreground">—</span>}
                           </TableCell>
                           <TableCell>
                             <Badge variant={link.status === "active" ? "default" : "secondary"}>

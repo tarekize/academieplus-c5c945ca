@@ -139,7 +139,7 @@ export const SimpleBotOnboarding = ({
                                         >
                                             <BotMessage
                                                 text={botOnboardingMessages.welcome.ar}
-                                                emoji="ðŸ‘‹"
+                                                emoji="👋"
                                                 isTyping={true}
                                                 onComplete={() => setMessageComplete(true)}
                                             />
@@ -150,7 +150,7 @@ export const SimpleBotOnboarding = ({
                                                     onClick={handleContinue}
                                                     className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all"
                                                 >
-                                                    ØªØ§Ø¨Ø¹ â†’
+                                                    تابع →
                                                 </motion.button>
                                             )}
                                         </motion.div>
@@ -165,7 +165,7 @@ export const SimpleBotOnboarding = ({
                                     <div className="space-y-4">
                                         <BotMessage
                                             text={botOnboardingMessages.explanation.ar}
-                                            emoji="ðŸ’­"
+                                            emoji="💭"
                                             isTyping={true}
                                             onComplete={() => setMessageComplete(true)}
                                         />
@@ -181,7 +181,7 @@ export const SimpleBotOnboarding = ({
                                                     onClick={handleContinue}
                                                     className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all"
                                                 >
-                                                    ÙÙ‡Ù…Øª âœ“
+                                                    فهمت ✓
                                                 </motion.button>
                                                 <motion.button
                                                     initial={{ opacity: 0, y: 10 }}
@@ -189,7 +189,7 @@ export const SimpleBotOnboarding = ({
                                                     onClick={handleReadMore}
                                                     className="flex-1 px-6 py-3 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary/10 transition-all"
                                                 >
-                                                    Ø´Ø±Ø­ Ø£ÙƒØ«Ø±
+                                                    شرح أكثر
                                                 </motion.button>
                                             </motion.div>
                                         )}
@@ -204,7 +204,7 @@ export const SimpleBotOnboarding = ({
                                     <div className="space-y-4">
                                         <BotMessage
                                             text={botOnboardingMessages.reassurance.ar}
-                                            emoji="ðŸ’ª"
+                                            emoji="💪"
                                             isTyping={true}
                                             delay={0}
                                             onComplete={() => setMessageComplete(true)}
@@ -217,7 +217,7 @@ export const SimpleBotOnboarding = ({
                                             >
                                                 <BotMessage
                                                     text={botOnboardingMessages.readyQuestion.ar}
-                                                    emoji="ðŸš€"
+                                                    emoji="🚀"
                                                     isTyping={true}
                                                     delay={0}
                                                 />
@@ -247,7 +247,7 @@ export const SimpleBotOnboarding = ({
                                             text={
                                                 Object.values(questionsList)[currentQuestion].ar
                                             }
-                                            emoji="â“"
+                                            emoji="❓"
                                             isTyping={true}
                                             onComplete={() => setMessageComplete(true)}
                                         />
@@ -283,7 +283,7 @@ export const SimpleBotOnboarding = ({
                                                     disabled={!selectedAnswer}
                                                     className="w-full"
                                                 >
-                                                    Ø§Ù„ØªØ§Ù„ÙŠ â†’
+                                                    التالي →
                                                 </Button>
                                             </motion.div>
                                         )}
@@ -316,7 +316,7 @@ export const SimpleBotOnboarding = ({
                                         size="lg"
                                         className="w-full"
                                     >
-                                        Ø§Ø¨Ø¯Ø£ Ø§Ù„Ø¢Ù† âœ“
+                                        ابدأ الآن ✓
                                     </Button>
                                 </div>
                             )}

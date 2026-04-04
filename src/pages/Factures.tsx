@@ -218,9 +218,9 @@ const Factures = () => {
       </div>
       <div class="info-grid">
         <div class="info-box left">
-          <div class="info-label">Facturé Ã </div>
+          <div class="info-label">Facturé à</div>
           <div class="info-name">${userName}</div>
-          <div class="info-email">${profile?.email || "â€”"}</div>
+          <div class="info-email">${profile?.email || "—"}</div>
         </div>
         <div class="info-box right">
           <div class="info-label">Détails de facturation</div>
@@ -237,7 +237,7 @@ const Factures = () => {
           <div class="total-final"><span>TOTAL TTC</span><span>${formatCurrency(payment.amount)}</span></div>
         </div>
       </div>
-      <div class="thanks"><h3>Merci pour votre confiance !</h3><p>Pour toute question, contactez-nous Ã  support@academieplus.dz</p></div>
+      <div class="thanks"><h3>Merci pour votre confiance !</h3><p>Pour toute question, contactez-nous à support@academieplus.dz</p></div>
       <div class="footer"><p>AcadémiePlus - Votre partenaire éducatif de confiance</p><p>www.academieplus.dz | contact@academieplus.dz</p></div>
       <script>window.onload=function(){window.print()}<\/script>
     </body></html>`);
@@ -355,7 +355,7 @@ const Factures = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Dernier paiement</p>
                     <p className="text-xl font-bold">
-                      {payments.length > 0 ? formatDate(payments[0].payment_date) : "â€”"}
+                      {payments.length > 0 ? formatDate(payments[0].payment_date) : "—"}
                     </p>
                   </div>
                 </div>

@@ -77,7 +77,7 @@ export function ChangePasswordButton() {
 
   const verifyMfaAndUpdate = async () => {
     if (!factorId || mfaCode.length !== 6) {
-      toast.error("Veuillez entrer le code Ã  6 chiffres.");
+      toast.error("Veuillez entrer le code à 6 chiffres.");
       return;
     }
 
@@ -292,7 +292,7 @@ export function ChangePasswordButton() {
                 </InputOTPGroup>
               </InputOTP>
               <p className="text-sm text-muted-foreground text-center">
-                Ouvrez votre application d'authentification et entrez le code Ã  6 chiffres.
+                Ouvrez votre application d'authentification et entrez le code à 6 chiffres.
               </p>
             </div>
             <DialogFooter>

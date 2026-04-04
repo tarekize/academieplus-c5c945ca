@@ -192,7 +192,7 @@ const Dashboard = () => {
           {!isStudent && (
             <>
               <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2">Bonjour {fullName} ðŸ‘‹</h1>
+                <h1 className="text-3xl font-bold mb-2">Bonjour {fullName} 👋</h1>
                 <p className="text-muted-foreground">
                   {isAdmin ? "Bienvenue sur votre espace d'administration" : "Bienvenue sur votre tableau de bord"}
                 </p>
@@ -236,7 +236,7 @@ const Dashboard = () => {
                     <CardTitle className="flex items-center gap-2"><GraduationCap className="h-5 w-5" />{isAdmin ? "Voir les Cours" : "Mes Cours"}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground">{isAdmin ? "Consultez les cours par niveau" : "Accédez Ã  vos cours et leçons"}</p>
+                    <p className="text-muted-foreground">{isAdmin ? "Consultez les cours par niveau" : "Accédez à vos cours et leçons"}</p>
                   </CardContent>
                 </Card>
               </div>

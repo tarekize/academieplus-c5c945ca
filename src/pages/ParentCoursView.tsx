@@ -147,7 +147,7 @@ const ParentCoursView = () => {
               <span className="text-xl font-bold">AcadémiePlus</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Cours de {childName} â€” {schoolLevel}
+              Cours de {childName} — {schoolLevel}
             </p>
           </div>
         </div>

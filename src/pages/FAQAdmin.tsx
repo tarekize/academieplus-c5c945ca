@@ -23,7 +23,7 @@ const defaultFAQItems: FAQItem[] = [
   {
     id: "1",
     question: "Comment fonctionne l'abonnement ?",
-    answer: "L'abonnement vous donne accès Ã  tous les cours et exercices de la plateforme.",
+    answer: "L'abonnement vous donne accès à tous les cours et exercices de la plateforme.",
     category: "paiement",
     order_index: 1,
     is_active: true,
@@ -61,7 +61,7 @@ const FAQAdmin = () => {
       ));
       toast({
         title: "Succès",
-        description: "Question FAQ mise Ã  jour",
+        description: "Question FAQ mise à jour",
       });
     } else {
       const newItem: FAQItem = {
@@ -97,7 +97,7 @@ const FAQAdmin = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm("ÃŠtes-vous sûr de vouloir supprimer cette question ?")) return;
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cette question ?")) return;
     setItems(prev => prev.filter(item => item.id !== id));
     toast({
       title: "Succès",
@@ -184,7 +184,7 @@ const FAQAdmin = () => {
             <div className="flex gap-2">
               <Button type="submit">
                 <Plus className="mr-2 h-4 w-4" />
-                {editingId ? "Mettre Ã  jour" : "Ajouter"}
+                {editingId ? "Mettre à jour" : "Ajouter"}
               </Button>
               {editingId && (
                 <Button
@@ -225,7 +225,7 @@ const FAQAdmin = () => {
                       <div className="flex-1">
                         <CardTitle className="text-lg">{item.question}</CardTitle>
                         <CardDescription>
-                          {item.category} â€¢ Ordre: {item.order_index} â€¢ {item.is_active ? "Active" : "Inactive"}
+                          {item.category} • Ordre: {item.order_index} • {item.is_active ? "Active" : "Inactive"}
                         </CardDescription>
                       </div>
                       <div className="flex gap-2">

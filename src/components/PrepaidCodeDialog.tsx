@@ -110,11 +110,11 @@ export const PrepaidCodeDialog = ({ open, onOpenChange }: PrepaidCodeDialogProps
         </div>
 
         <div className="bg-muted/50 rounded-lg p-4 text-sm">
-          <p className="font-medium mb-2">ðŸ’¡ Informations importantes :</p>
+          <p className="font-medium mb-2">💡 Informations importantes :</p>
           <ul className="space-y-1 text-muted-foreground text-xs">
-            <li>â€¢ Le code ne peut être utilisé qu'une seule fois</li>
-            <li>â€¢ Votre compte sera activé automatiquement</li>
-            <li>â€¢ Votre abonnement démarrera immédiatement</li>
+            <li>• Le code ne peut être utilisé qu'une seule fois</li>
+            <li>• Votre compte sera activé automatiquement</li>
+            <li>• Votre abonnement démarrera immédiatement</li>
           </ul>
         </div>
       </DialogContent>

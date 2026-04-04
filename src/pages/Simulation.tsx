@@ -209,7 +209,7 @@ const Simulation = () => {
           <Button
             variant="ghost"
             onClick={() => {
-              if (confirm("ÃŠtes-vous sûr de vouloir quitter l'examen ?")) {
+              if (confirm("Êtes-vous sûr de vouloir quitter l'examen ?")) {
                 navigate("/liste-cours");
               }
             }}

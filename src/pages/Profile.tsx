@@ -166,7 +166,7 @@ export default function Profile() {
             {isStudent && schoolLevel && (
               <span className="inline-flex items-center gap-2">
                 <GraduationCap className="h-4 w-4" />
-                {getSchoolLevelLabel(schoolLevel)} â€¢ {getSchoolCategory(schoolLevel)}
+                {getSchoolLevelLabel(schoolLevel)} • {getSchoolCategory(schoolLevel)}
               </span>
             )}
             {isParent && "Compte Parent"}

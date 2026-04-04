@@ -149,7 +149,7 @@ const Auth = () => {
           .limit(1)
           .maybeSingle();
 
-        // Si élève, vérifier s'il a déjÃ  un style d'apprentissage
+        // Si élève, vérifier s'il a déjà un style d'apprentissage
         if (roleData?.role === 'student') {
           const hasAssessment = await hasCompletedPlacementAssessment(session.user.id);
           if (!hasAssessment) {
@@ -225,7 +225,7 @@ const Auth = () => {
         }
       }
 
-      // âœ… AFFICHER L'OVERLAY IMMÉDIATEMENT - SANS ATTENDRE LE SERVEUR
+      // ✅ AFFICHER L'OVERLAY IMMÉDIATEMENT - SANS ATTENDRE LE SERVEUR
       setIsRegistering(true);
 
       // Envoyer l'inscription en arrière-plan
@@ -249,7 +249,7 @@ const Auth = () => {
         } else if (error.message.includes("Invalid login credentials")) {
           toast.error("Email ou mot de passe incorrect.");
         } else if (error.message.includes("User already registered")) {
-          toast.error("Un compte existe déjÃ  avec cet email.");
+          toast.error("Un compte existe déjà avec cet email.");
         } else {
           toast.error(error.message || "Une erreur s'est produite.");
         }
@@ -339,7 +339,7 @@ const Auth = () => {
       } else if (error.message.includes("Invalid login credentials")) {
         toast.error("Email ou mot de passe incorrect.");
       } else if (error.message.includes("User already registered")) {
-        toast.error("Un compte existe déjÃ  avec cet email.");
+        toast.error("Un compte existe déjà avec cet email.");
       } else {
         toast.error(error.message || "Une erreur s'est produite.");
       }
@@ -388,7 +388,7 @@ const Auth = () => {
   // Ne pas masquer l'interface si on est sur /learning-assessment, /complete-profile, ou pendant l'inscription
   const isOnboardingOrAssessment = ["/learning-assessment", "/complete-profile"].some((path) => window.location.pathname.startsWith(path));
 
-  // âš ï¸ IMPORTANT: Ne PAS retourner null pendant l'inscription (isRegistering)
+  // ⚠️ IMPORTANT: Ne PAS retourner null pendant l'inscription (isRegistering)
   // car la session Supabase est créée AVANT la navigation vers /learning-assessment
   // ce qui causait une page blanche entre les deux
   if (session && !isOnboardingOrAssessment && !isRegistering) {
@@ -440,7 +440,7 @@ const Auth = () => {
                     Entrez l'adresse e-mail avec laquelle vous vous êtes inscrit. Nous allons vous envoyer un e-mail avec votre nom d'utilisateur et un lien pour réinitialiser votre mot de passe.
                   </p>
                   <p className="text-sm font-medium text-warning mt-2">
-                    âš ï¸ Ce lien expirera dans 1 heure.
+                    ⚠️ Ce lien expirera dans 1 heure.
                   </p>
                 </div>
 
@@ -454,7 +454,7 @@ const Auth = () => {
                   className="w-full"
                   onClick={() => setShowForgotPassword(false)}
                 >
-                  Retour Ã  la connexion
+                  Retour à la connexion
                 </Button>
               </form>
             ) : (
@@ -846,7 +846,7 @@ const Auth = () => {
                             htmlFor="consentParental"
                             className="text-sm text-foreground cursor-pointer leading-relaxed"
                           >
-                            <span className="text-red-500">*</span> Je certifie que mes parents/tuteurs légaux consentent Ã  mon inscription et au traitement de mes données personnelles (requis pour les mineurs de moins de 15 ans)
+                            <span className="text-red-500">*</span> Je certifie que mes parents/tuteurs légaux consentent à mon inscription et au traitement de mes données personnelles (requis pour les mineurs de moins de 15 ans)
                           </label>
                         </div>
                       )}
@@ -980,7 +980,7 @@ const Auth = () => {
                     onClick={() => setIsLogin(!isLogin)}
                     className="text-sm text-foreground"
                   >
-                    {isLogin ? "Pas encore de compte ? " : "DéjÃ  un compte ? "}
+                    {isLogin ? "Pas encore de compte ? " : "Déjà un compte ? "}
                     <span className="text-primary hover:underline font-medium">
                       {isLogin ? "Inscris-toi" : "Connecte-toi"}
                     </span>

@@ -737,7 +737,7 @@ function UserRow({
           {user.school_level ? (
             <Badge variant="outline">{getSchoolLevelLabel(user.school_level)}</Badge>
           ) : (
-            <span className="text-muted-foreground">â€”</span>
+            <span className="text-muted-foreground">—</span>
           )}
         </TableCell>
       )}

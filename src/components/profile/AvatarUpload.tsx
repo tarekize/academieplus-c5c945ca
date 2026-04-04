@@ -24,7 +24,7 @@ export function AvatarUpload({ url, onUpload, onDelete }: AvatarUploadProps) {
       setUploading(true);
 
       if (!event.target.files || event.target.files.length === 0) {
-        throw new Error("Vous devez sélectionner une image Ã  télécharger.");
+        throw new Error("Vous devez sélectionner une image à télécharger.");
       }
 
       const file = event.target.files[0];
@@ -70,7 +70,7 @@ export function AvatarUpload({ url, onUpload, onDelete }: AvatarUploadProps) {
       onUpload(publicUrl);
       toast({
         title: "Succès",
-        description: "Votre photo de profil a été mise Ã  jour.",
+        description: "Votre photo de profil a été mise à jour.",
       });
     } catch (error: any) {
       console.error("Avatar upload error:", error);

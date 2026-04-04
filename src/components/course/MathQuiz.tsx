@@ -74,9 +74,9 @@ export const MathQuiz = ({ onClose }: MathQuizProps) => {
           <div className="text-center">
             <div className="text-5xl font-bold text-primary mb-2">{score}/{mathQuizQuestions.length}</div>
             <p className="text-muted-foreground">
-              {percentage >= 80 ? "Excellent travail ! ðŸŽ‰" : 
-               percentage >= 60 ? "Bien joué ! Continue comme ça ðŸ‘" : 
-               "Continue Ã  t'entraîner ! ðŸ’ª"}
+              {percentage >= 80 ? "Excellent travail ! 🎉" : 
+               percentage >= 60 ? "Bien joué ! Continue comme ça 👍" : 
+               "Continue à t'entraîner ! 💪"}
             </p>
           </div>
 
@@ -173,7 +173,7 @@ export const MathQuiz = ({ onClose }: MathQuizProps) => {
             isCorrect ? "bg-green-500/10" : "bg-amber-500/10"
           )}>
             <p className="font-medium mb-1">
-              {isCorrect ? "âœ“ Bonne réponse !" : "âœ— Réponse incorrecte"}
+              {isCorrect ? "✓ Bonne réponse !" : "✗ Réponse incorrecte"}
             </p>
             <p className="text-sm text-muted-foreground">{currentQuestion.explanation}</p>
             {!isCorrect && (

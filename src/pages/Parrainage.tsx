@@ -162,7 +162,7 @@ const Parrainage = () => {
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink onClick={() => navigate("/account")} className="cursor-pointer">
-                Retour Ã  mon compte
+                Retour à mon compte
               </BreadcrumbLink>
             </BreadcrumbItem>
           </BreadcrumbList>
@@ -190,7 +190,7 @@ const Parrainage = () => {
               <Wallet className="h-8 w-8 text-green-600" />
               <h3 className="text-sm font-semibold">Crédit</h3>
             </div>
-            <p className="text-3xl font-bold text-green-600">0 â‚¬</p>
+            <p className="text-3xl font-bold text-green-600">0 €</p>
             <p className="text-sm text-muted-foreground">Solde disponible</p>
           </Card>
 
@@ -232,10 +232,10 @@ const Parrainage = () => {
           <div className="mt-6 p-4 bg-primary/5 border-l-4 border-primary rounded">
             <h3 className="font-semibold mb-2">Comment ça marche ?</h3>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>â€¢ <strong>5% de crédit</strong> par filleul basé sur son abonnement</li>
-              <li>â€¢ <strong>Maximum 10 filleuls</strong> par parrain</li>
-              <li>â€¢ Crédits <strong>sans limite de durée</strong></li>
-              <li>â€¢ Utilisable comme <strong>moyen de paiement</strong> sur vos abonnements</li>
+              <li>• <strong>5% de crédit</strong> par filleul basé sur son abonnement</li>
+              <li>• <strong>Maximum 10 filleuls</strong> par parrain</li>
+              <li>• Crédits <strong>sans limite de durée</strong></li>
+              <li>• Utilisable comme <strong>moyen de paiement</strong> sur vos abonnements</li>
             </ul>
           </div>
         </Card>

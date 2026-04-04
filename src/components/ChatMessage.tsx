@@ -156,7 +156,7 @@ export const ChatMessage = ({ role, content, isStreaming, onNavigate }: ChatMess
                   className="flex items-center flex-wrap gap-1 mt-3 p-3 bg-primary/5 rounded-xl border border-primary/20 text-sm"
                   dir="auto"
                 >
-                  <span className="text-muted-foreground font-medium">ðŸ“š</span>
+                  <span className="text-muted-foreground font-medium">📚</span>
                   <ChevronRight className="w-3 h-3 text-muted-foreground flex-shrink-0" />
                   <button
                     onClick={() => handleChapterClick(bc)}

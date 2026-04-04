@@ -96,7 +96,7 @@ const Revision = () => {
     setReviewed(prev => new Set([...prev, currentIndex]));
     if (known) {
       toast({
-        title: "Bien joué ! âœ“",
+        title: "Bien joué ! ✓",
         description: "Cette carte est marquée comme connue.",
       });
     }
@@ -239,7 +239,7 @@ const Revision = () => {
 
           {reviewed.size === cards.length && (
             <Card className="p-6 text-center border-2 border-green-500/50 bg-green-500/5">
-              <h3 className="text-2xl font-bold mb-2">Bravo ! ðŸŽ‰</h3>
+              <h3 className="text-2xl font-bold mb-2">Bravo ! 🎉</h3>
               <p className="text-muted-foreground mb-4">
                 Vous avez révisé toutes les cartes !
               </p>

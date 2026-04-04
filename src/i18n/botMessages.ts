@@ -1,44 +1,44 @@
 // Bot Onboarding Messages in French and Arabic
 export const botOnboardingMessages = {
     welcome: {
-        fr: "Salut ! Moi c'est EduBot. Avant de commencer tes leçons, j'aimerais savoir comment ton cerveau préfère apprendre ! ðŸ§ ",
-        ar: "Ø£Ù‡Ù„Ø§Ù‹ Ø¨Ùƒ ÙŠØ§ Ø¨Ø·Ù„! Ø£Ù†Ø§ Ø±ÙÙŠÙ‚ÙƒØŒ ÙˆØ³Ø£Ø±Ø§ÙÙ‚Ùƒ ÙÙŠ Ø±Ø­Ù„ØªÙƒ Ø§Ù„ØªØ¹Ù„ÙŠÙ…ÙŠØ©. ðŸš€",
+        fr: "Salut ! Moi c'est EduBot. Avant de commencer tes leçons, j'aimerais savoir comment ton cerveau préfère apprendre ! 🧠",
+        ar: "أهلاً بك يا بطل! أنا رفيقك، وسأرافقك في رحلتك التعليمية. 🚀",
     },
     explanation: {
         fr: "On va faire un petit jeu de quelques questions. Il n'y a pas de mauvaises réponses ! C'est juste pour découvrir comment tu apprends le mieux.",
-        ar: "Ø³ÙˆÙ Ù†Ù‚ÙˆÙ… Ø¨Ø¹Ù…Ù„ Ù„Ø¹Ø¨Ø© ØµØºÙŠØ±Ø© Ù…Ù† Ø§Ù„Ø£Ø³Ø¦Ù„Ø©. Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¥Ø¬Ø§Ø¨Ø§Øª Ø®Ø§Ø·Ø¦Ø©! ÙÙ‚Ø· Ù„Ù…Ø¹Ø±ÙØ© Ù…Ø§ Ø¥Ø°Ø§ ÙƒÙ†Øª Ù…ØªØ¹Ù„Ù…Ø§Ù‹ Ø¨ØµØ±ÙŠØ§Ù‹ Ø£Ù… Ø³Ù…Ø¹ÙŠØ§Ù‹ Ø£Ù… Ø­Ø±ÙƒÙŠØ§Ù‹.",
+        ar: "سوف نقوم بعمل لعبة صغيرة من الأسئلة. لا توجد إجابات خاطئة! فقط لمعرفة ما إذا كنت متعلماً بصرياً أم سمعياً أم حركياً.",
     },
     explanationDetail: {
-        fr: "En d'autres termes, tu vas découvrir ton super-pouvoir d'apprentissage et je vais personnaliser tes cours en fonction ! ðŸ’ª",
-        ar: "Ø¨Ù…Ø¹Ù†Ù‰ Ø¢Ø®Ø±ØŒ Ø³ØªÙƒØªØ´Ù Ù‚ÙˆØªÙƒ Ø§Ù„Ø®Ø§Ø±Ù‚Ø© ÙÙŠ Ø§Ù„ØªØ¹Ù„Ù… ÙˆØ³Ø£Ù‚ÙˆÙ… Ø¨ØªØ®ØµÙŠØµ Ø¯Ø±ÙˆØ³Ùƒ ÙˆÙÙ‚Ø§Ù‹ Ù„Ø°Ù„Ùƒ! ðŸ’ª",
+        fr: "En d'autres termes, tu vas découvrir ton super-pouvoir d'apprentissage et je vais personnaliser tes cours en fonction ! 💪",
+        ar: "بمعنى آخر، ستكتشف قوتك الخارقة في التعلم وسأقوم بتخصيص دروسك وفقاً لذلك! 💪",
     },
     reassurance: {
-        fr: "Ne t'inquiète pas, ce n'est pas un test scolaire ! Juste un petit défi pour découvrir ton style d'apprentissage unique. ðŸ’ª",
-        ar: "Ù„Ø§ ØªÙ‚Ù„Ù‚ØŒ Ù‡Ø°Ø§ Ù„ÙŠØ³ Ø§Ø®ØªØ¨Ø§Ø±Ø§Ù‹ Ù…Ø¯Ø±Ø³ÙŠØ§Ù‹! Ù‡Ùˆ Ù…Ø¬Ø±Ø¯ ØªØ­Ø¯Ù Ø¨Ø³ÙŠØ· Ù„Ù†ÙƒØªØ´Ù Ø£Ø³Ù„ÙˆØ¨Ùƒ Ø§Ù„Ø®Ø§Øµ.",
+        fr: "Ne t'inquiète pas, ce n'est pas un test scolaire ! Juste un petit défi pour découvrir ton style d'apprentissage unique. 💪",
+        ar: "لا تقلق، هذا ليس اختباراً مدرسياً! هو مجرد تحدٍ بسيط لنكتشف أسلوبك الخاص.",
     },
     readyQuestion: {
-        fr: "Tu es prêt Ã  découvrir ton super-pouvoir d'apprentissage ?",
-        ar: "Ù‡Ù„ Ø£Ù†Øª Ù…Ø³ØªØ¹Ø¯ Ù„Ø§ÙƒØªØ´Ø§Ù Ù‚ÙˆØªÙƒ Ø§Ù„Ø®Ø§Ø±Ù‚Ø© ÙÙŠ Ø§Ù„ØªØ¹Ù„Ù…ØŸ",
+        fr: "Tu es prêt à découvrir ton super-pouvoir d'apprentissage ?",
+        ar: "هل أنت مستعد لاكتشاف قوتك الخارقة في التعلم؟",
     },
     buttonStart: {
-        fr: "C'est parti ! ðŸš€",
-        ar: "ÙŠÙ„Ø§ Ø¨Ù†Ø§! ðŸš€",
+        fr: "C'est parti ! 🚀",
+        ar: "يلا بنا! 🚀",
     },
     buttonExplainMore: {
         fr: "Explique-moi encore un peu",
-        ar: "Ø´Ø±Ø­ Ø£ÙƒØ«Ø± Ù‚Ù„ÙŠÙ„Ø§Ù‹",
+        ar: "شرح أكثر قليلاً",
     },
     explainMoreTitle: {
-        fr: "Bien sûr! Laisse-moi t'expliquer en détail ðŸ“š",
-        ar: "Ø¨Ø§Ù„ØªØ£ÙƒÙŠØ¯! Ø¯Ø¹Ù†ÙŠ Ø£Ø´Ø±Ø­ Ù„Ùƒ Ø¨Ø§Ù„ØªÙØµÙŠÙ„ ðŸ“š",
+        fr: "Bien sûr! Laisse-moi t'expliquer en détail 📚",
+        ar: "بالتأكيد! دعني أشرح لك بالتفصيل 📚",
     },
     testExplanation: {
-        fr: "Le test t'aide Ã  comprendre ton style d'apprentissage unique et me permet de personnaliser tout pour toi! âœ¨",
-        ar: "Ø§Ù„Ø§Ø®ØªØ¨Ø§Ø± ÙŠØ³Ø§Ø¹Ø¯Ùƒ Ø¹Ù„Ù‰ ÙÙ‡Ù… Ø£Ø³Ù„ÙˆØ¨Ùƒ Ø§Ù„ÙØ±ÙŠØ¯ ÙÙŠ Ø§Ù„ØªØ¹Ù„Ù… ÙˆÙŠØ³Ù…Ø­ Ù„ÙŠ Ø¨ØªØ®ØµÙŠØµ ÙƒÙ„ Ø´ÙŠØ¡ Ù…Ù† Ø£Ø¬Ù„Ùƒ! âœ¨",
+        fr: "Le test t'aide à comprendre ton style d'apprentissage unique et me permet de personnaliser tout pour toi! ✨",
+        ar: "الاختبار يساعدك على فهم أسلوبك الفريد في التعلم ويسمح لي بتخصيص كل شيء من أجلك! ✨",
     },
     buttonContinue: {
-        fr: "Compris, allons-y! ðŸš€",
-        ar: "ÙÙ‡Ù…ØªØŒ ÙŠÙ„Ø§ Ø¨Ù†Ø§! ðŸš€",
+        fr: "Compris, allons-y! 🚀",
+        ar: "فهمت، يلا بنا! 🚀",
     },
 };
 
@@ -46,55 +46,55 @@ export const botOnboardingMessages = {
 export const learningStyleQuestions = {
     question1: {
         fr: "Comment préfères-tu apprendre un nouveau concept en maths ?",
-        ar: "ÙƒÙŠÙ ØªÙØ¶Ù„ ØªØ¹Ù„Ù… Ù…ÙÙ‡ÙˆÙ… Ø¬Ø¯ÙŠØ¯ ÙÙŠ Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ§ØªØŸ",
+        ar: "كيف تفضل تعلم مفهوم جديد في الرياضيات؟",
         options: {
             visual: {
                 fr: "Regarder une vidéo explicative",
-                ar: "Ù…Ø´Ø§Ù‡Ø¯Ø© ÙÙŠØ¯ÙŠÙˆ Ø´Ø§Ø±Ø­ ðŸ“º",
+                ar: "مشاهدة فيديو شارح 📺",
             },
             auditory: {
                 fr: "Lire le cours écrit",
-                ar: "Ø³Ù…Ø§Ø¹ Ø´Ø±Ø­ ØµÙˆØªÙŠ ðŸŽ§",
+                ar: "سماع شرح صوتي 🎧",
             },
             kinesthetic: {
                 fr: "Faire des exercices directement",
-                ar: "Ù…Ù…Ø§Ø±Ø³Ø© Ø§Ù„تمارين Ù…Ø¨Ø§Ø´Ø±Ø© ðŸ› ï¸",
+                ar: "ممارسة التمارين مباشرة 🛠️",
             },
         },
     },
     question2: {
         fr: "Quand tu ne comprends pas un exercice, tu préfères :",
-        ar: "Ø¹Ù†Ø¯Ù…Ø§ Ù„Ø§ ØªÙÙ‡Ù… ØªÙ…Ø±ÙŠÙ†Ø§Ù‹ØŒ ØªÙØ¶Ù„:",
+        ar: "عندما لا تفهم تمريناً، تفضل:",
         options: {
             visual: {
                 fr: "Voir un schéma ou un dessin",
-                ar: "Ø±Ø¤ÙŠØ© Ø±Ø³Ù… ØªØ®Ø·ÙŠØ·ÙŠ Ø£Ùˆ ØµÙˆØ±Ø© ðŸ“Š",
+                ar: "رؤية رسم تخطيطي أو صورة 📊",
             },
             auditory: {
                 fr: "Relire la règle ou la formule",
-                ar: "Ù‚Ø±Ø§Ø¡Ø© Ø§Ù„Ù‚Ø§Ø¹Ø¯Ø© Ø£Ùˆ Ø§Ù„ØµÙŠØºØ© ðŸ“–",
+                ar: "قراءة القاعدة أو الصيغة 📖",
             },
             kinesthetic: {
                 fr: "Essayer avec d'autres nombres",
-                ar: "Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø¹ Ø£Ø±Ù‚Ø§Ù… Ø£Ø®Ø±Ù‰ ðŸ”¢",
+                ar: "محاولة مع أرقام أخرى 🔢",
             },
         },
     },
     question3: {
         fr: "Quel type de ressource t'aide le plus ?",
-        ar: "Ù…Ø§ Ù†ÙˆØ¹ Ø§Ù„Ù…ÙˆØ±Ø¯ Ø§Ù„Ø°ÙŠ ÙŠØ³Ø§Ø¹Ø¯Ùƒ Ø£ÙƒØ«Ø±ØŸ",
+        ar: "ما نوع المورد الذي يساعدك أكثر؟",
         options: {
             visual: {
                 fr: "Des infographies colorées et des diagrammes",
-                ar: "Ø±Ø³ÙˆÙ…Ø§Øª Ø¨ÙŠØ§Ù†ÙŠØ© Ù…Ù„ÙˆÙ†Ø© ÙˆÙ…ÙŠØ²Ø§Ù†ÙŠØ§Øª ðŸŽ¨",
+                ar: "رسومات بيانية ملونة وميزانيات 🎨",
             },
             auditory: {
                 fr: "Des explications détaillées par écrit",
-                ar: "Ø´Ø±ÙˆØ­Ø§Øª Ù…ÙØµÙ„Ø© Ø¹Ù„Ù‰ Ø§Ù„Ù†Øµ ðŸ“",
+                ar: "شروحات مفصلة على النص 📝",
             },
             kinesthetic: {
                 fr: "Des projets pratiques et des défis",
-                ar: "Ù…Ø´Ø§Ø±ÙŠØ¹ Ø¹Ù…Ù„ÙŠØ© ÙˆØªØ­Ø¯ÙŠØ§Øª ðŸ’ª",
+                ar: "مشاريع عملية وتحديات 💪",
             },
         },
     },
@@ -104,38 +104,38 @@ export const learningStyleQuestions = {
 export const learningStyleResults = {
     visual: {
         fr: {
-            title: "Apprenant Visuel ðŸ‘€",
+            title: "Apprenant Visuel 👀",
             description:
                 "Tu apprends mieux avec des images, vidéos et schémas. Tes cours incluront beaucoup de visuels et de graphiques !",
         },
         ar: {
-            title: "Ù…ØªØ¹Ù„Ù… Ø¨ØµØ±ÙŠ ðŸ‘€",
+            title: "متعلم بصري 👀",
             description:
-                "Ø£Ù†Øª ØªØªØ¹Ù„Ù… Ø¨Ø´ÙƒÙ„ Ø£ÙØ¶Ù„ Ù…Ù† Ø®Ù„Ø§Ù„ Ø§Ù„ØµÙˆØ± ÙˆØ§Ù„ÙÙŠØ¯ÙŠÙˆÙ‡Ø§Øª ÙˆØ§Ù„Ø±Ø³ÙˆÙ… Ø§Ù„ØªØ®Ø·ÙŠØ·ÙŠØ©. Ø³ØªØ´Ù…Ù„ Ø¯Ø±Ø§Ø³ØªÙƒ Ø§Ù„ÙƒØ«ÙŠØ± Ù…Ù† Ø§Ù„Ø¹Ù†Ø§ØµØ± Ø§Ù„Ø¨ØµØ±ÙŠØ©!",
+                "أنت تتعلم بشكل أفضل من خلال الصور والفيديوهات والرسوم التخطيطية. ستشمل دراستك الكثير من العناصر البصرية!",
         },
     },
     auditory: {
         fr: {
-            title: "Apprenant Auditif ðŸŽ§",
+            title: "Apprenant Auditif 🎧",
             description:
                 "Tu apprends mieux en lisant et en écoutant les explications. Tes ressources seront riches en textes détaillés et explications !",
         },
         ar: {
-            title: "Ù…ØªØ¹Ù„Ù… Ø³Ù…Ø¹ÙŠ ðŸŽ§",
+            title: "متعلم سمعي 🎧",
             description:
-                "Ø£Ù†Øª ØªØªØ¹Ù„Ù… Ø¨Ø´ÙƒÙ„ Ø£ÙØ¶Ù„ Ù…Ù† Ø®Ù„Ø§Ù„ Ø§Ù„Ù‚Ø±Ø§Ø¡Ø© ÙˆØ§Ù„Ø§Ø³ØªÙ…Ø§Ø¹ Ù„Ù„Ø´Ø±ÙˆØ­Ø§Øª. Ø³ØªÙƒÙˆÙ† Ù…ÙˆØ§Ø±Ø¯Ùƒ ØºÙ†ÙŠØ© Ø¨Ø§Ù„Ù†ØµÙˆØµ ÙˆØ§Ù„ØªÙØ³ÙŠØ±Ø§Øª Ø§Ù„Ù…ÙˆØ¶Ø­Ø©!",
+                "أنت تتعلم بشكل أفضل من خلال القراءة والاستماع للشروحات. ستكون مواردك غنية بالنصوص والتفسيرات الموضحة!",
         },
     },
     kinesthetic: {
         fr: {
-            title: "Apprenant Pratique ðŸ› ï¸",
+            title: "Apprenant Pratique 🛠️",
             description:
                 "Tu apprends mieux en faisant des exercices et en pratiquant. Tes cours seront remplis de défis et d'activités interactives !",
         },
         ar: {
-            title: "Ù…ØªØ¹Ù„Ù… Ø¹Ù…Ù„ÙŠ ðŸ› ï¸",
+            title: "متعلم عملي 🛠️",
             description:
-                "Ø£Ù†Øª ØªØªØ¹Ù„Ù… Ø¨Ø´ÙƒÙ„ Ø£ÙØ¶Ù„ Ù…Ù† Ø®Ù„Ø§Ù„ Ù…Ù…Ø§Ø±Ø³Ø© Ø§Ù„تمارين ÙˆØ§Ù„Ø£Ù†Ø´Ø·Ø©. Ø³ØªÙƒÙˆÙ† Ø¯Ø±Ø§Ø³ØªÙƒ Ù…Ù„ÙŠØ¦Ø© Ø¨Ø§Ù„ØªØ­Ø¯ÙŠØ§Øª ÙˆØ§Ù„Ø£Ù†Ø´Ø·Ø© Ø§Ù„ØªÙØ§Ø¹Ù„ÙŠØ©!",
+                "أنت تتعلم بشكل أفضل من خلال ممارسة التمارين والأنشطة. ستكون دراستك مليئة بالتحديات والأنشطة التفاعلية!",
         },
     },
 };
@@ -143,32 +143,32 @@ export const learningStyleResults = {
 export const learningStyleDescriptions = {
     visual: {
         fr: {
-            title: "ðŸ‘€ Apprenant Visuel",
+            title: "👀 Apprenant Visuel",
             description: "Tu apprends mieux avec des images, des diagrammes et des vidéos. Tes cours incluront beaucoup de visuels!",
         },
         ar: {
-            title: "ðŸ‘€ Ø§Ù„Ù…ØªØ¹Ù„Ù… Ø§Ù„Ø¨ØµØ±ÙŠ",
-            description: "ÙŠØªØ¹Ù„Ù… Ø¨Ø´ÙƒÙ„ Ø£ÙØ¶Ù„ Ù…Ù† Ø®Ù„Ø§Ù„ Ø§Ù„ØµÙˆØ± ÙˆØ§Ù„Ø±Ø³ÙˆÙ…Ø§Øª ÙˆØ§Ù„ÙÙŠØ¯ÙŠÙˆÙ‡Ø§Øª. Ø³ÙŠØ­ØªÙˆÙŠ Ù…Ù†Ù‡Ø¬Ùƒ Ø¹Ù„Ù‰ Ø§Ù„ÙƒØ«ÙŠØ± Ù…Ù† Ø§Ù„Ø¹Ù†Ø§ØµØ± Ø§Ù„Ø¨ØµØ±ÙŠØ©!",
+            title: "👀 المتعلم البصري",
+            description: "يتعلم بشكل أفضل من خلال الصور والرسومات والفيديوهات. سيحتوي منهجك على الكثير من العناصر البصرية!",
         },
     },
     auditory: {
         fr: {
-            title: "ðŸŽ§ Apprenant Auditif",
+            title: "🎧 Apprenant Auditif",
             description: "Tu apprends mieux en écoutant des explications verbales. Tes cours comprendront des explications audio détaillées!",
         },
         ar: {
-            title: "ðŸŽ§ Ø§Ù„Ù…ØªØ¹Ù„Ù… Ø§Ù„Ø³Ù…Ø¹ÙŠ",
-            description: "ÙŠØªØ¹Ù„Ù… Ø¨Ø´ÙƒÙ„ Ø£ÙØ¶Ù„ Ù…Ù† Ø®Ù„Ø§Ù„ Ø§Ù„Ø§Ø³ØªÙ…Ø§Ø¹ ÙˆØ§Ù„Ø´Ø±Ø­ Ø§Ù„Ù„ÙØ¸ÙŠ. Ø³ØªØªØ¶Ù…Ù† Ø¯Ø±ÙˆØ³Ùƒ Ø§Ù„ÙƒØ«ÙŠØ± Ù…Ù† Ø§Ù„ØªÙˆØ¶ÙŠØ­Ø§Øª Ø§Ù„ØµÙˆØªÙŠØ©!",
+            title: "🎧 المتعلم السمعي",
+            description: "يتعلم بشكل أفضل من خلال الاستماع والشرح اللفظي. ستتضمن دروسك الكثير من التوضيحات الصوتية!",
         },
     },
     kinesthetic: {
         fr: {
-            title: "ðŸ› ï¸ Apprenant Kinesthésique",
+            title: "🛠️ Apprenant Kinesthésique",
             description: "Tu apprends mieux en pratiquant et en faisant des exercices. Tes cours mettront l'accent sur la pratique!",
         },
         ar: {
-            title: "ðŸ› ï¸ Ø§Ù„Ù…ØªØ¹Ù„Ù… Ø§Ù„Ø­Ø±ÙƒÙŠ",
-            description: "ÙŠØªØ¹Ù„Ù… Ø¨Ø´ÙƒÙ„ Ø£ÙØ¶Ù„ Ù…Ù† Ø®Ù„Ø§Ù„ Ø§Ù„Ù…Ù…Ø§Ø±Ø³Ø© ÙˆØ§Ù„تمارين Ø§Ù„Ø¹Ù…Ù„ÙŠØ©. Ø³ØªØ±ÙƒØ² Ø¯Ø±ÙˆØ³Ùƒ Ø¹Ù„Ù‰ Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ Ø§Ù„Ø¹Ù…Ù„ÙŠ!",
+            title: "🛠️ المتعلم الحركي",
+            description: "يتعلم بشكل أفضل من خلال الممارسة والتمارين العملية. ستركز دروسك على التطبيق العملي!",
         },
     },
 };

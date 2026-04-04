@@ -106,18 +106,18 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
   };
 
   const commonSymbols = [
-    { label: "âˆš", latex: "\\sqrt{}" },
-    { label: "âˆ«", latex: "\\int" },
-    { label: "âˆ‘", latex: "\\sum" },
-    { label: "âˆž", latex: "\\infty" },
-    { label: "Î±", latex: "\\alpha" },
-    { label: "Î²", latex: "\\beta" },
-    { label: "â‰¤", latex: "\\leq" },
-    { label: "â‰¥", latex: "\\geq" },
-    { label: "â‰ ", latex: "\\neq" },
-    { label: "Ã—", latex: "\\times" },
-    { label: "Ã·", latex: "\\div" },
-    { label: "Â±", latex: "\\pm" },
+    { label: "√", latex: "\\sqrt{}" },
+    { label: "∫", latex: "\\int" },
+    { label: "∑", latex: "\\sum" },
+    { label: "∞", latex: "\\infty" },
+    { label: "α", latex: "\\alpha" },
+    { label: "β", latex: "\\beta" },
+    { label: "≤", latex: "\\leq" },
+    { label: "≥", latex: "\\geq" },
+    { label: "≠", latex: "\\neq" },
+    { label: "×", latex: "\\times" },
+    { label: "÷", latex: "\\div" },
+    { label: "±", latex: "\\pm" },
   ];
 
   return (

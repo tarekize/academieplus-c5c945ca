@@ -200,11 +200,11 @@ const MesInformations = () => {
         });
 
         if (emailError) {
-          throw new Error(emailError.message || "Erreur lors de la mise Ã  jour de l'email");
+          throw new Error(emailError.message || "Erreur lors de la mise à jour de l'email");
         }
 
         toast({
-          title: "Email mis Ã  jour",
+          title: "Email mis à jour",
           description: "Votre email a été modifié avec succès. Vous pouvez maintenant vous connecter avec votre nouvelle adresse.",
         });
       }
@@ -593,7 +593,7 @@ const MesInformations = () => {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>ÃŠtes-vous absolument sûr ?</AlertDialogTitle>
+                      <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
                       <AlertDialogDescription>
                         Cette action est irréversible. Cela supprimera définitivement votre compte et toutes vos
                         données associées.
@@ -609,7 +609,7 @@ const MesInformations = () => {
                 </AlertDialog>
 
                 <Button onClick={handleUpdate} disabled={updating}>
-                  {updating ? "Mise Ã  jour..." : "Mettre Ã  jour"}
+                  {updating ? "Mise à jour..." : "Mettre à jour"}
                 </Button>
               </div>
             </CardContent>

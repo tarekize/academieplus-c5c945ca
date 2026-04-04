@@ -125,7 +125,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
       setUploadedFiles((prev) => [...prev, { name: file.name, base64, type: file.type }]);
       toast({
         title: "Fichier ajouté",
-        description: `${file.name} est prêt Ã  être envoyé`,
+        description: `${file.name} est prêt à être envoyé`,
       });
     };
     reader.onerror = () => {
@@ -622,7 +622,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                       onClick={() => setVoiceLang(voiceLang === 'fr-FR' ? 'ar-SA' : 'fr-FR')}
                       disabled={isLoading || isRecording}
                       className="w-10 h-10 rounded-xl text-slate-500 hover:text-[#0A2551] hover:bg-slate-200/50 text-xs font-bold font-mono tracking-tight"
-                      title={voiceLang === 'fr-FR' ? 'Français' : 'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©'}
+                      title={voiceLang === 'fr-FR' ? 'Français' : 'العربية'}
                     >
                       {voiceLang === 'fr-FR' ? 'FR' : 'AR'}
                     </Button>

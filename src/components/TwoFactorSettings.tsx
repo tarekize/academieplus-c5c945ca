@@ -157,7 +157,7 @@ export const TwoFactorSettings = () => {
           Double Authentification (2FA)
         </CardTitle>
         <CardDescription>
-          Renforcez la sécurité de votre compte avec une authentification Ã  deux facteurs
+          Renforcez la sécurité de votre compte avec une authentification à deux facteurs
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -174,7 +174,7 @@ export const TwoFactorSettings = () => {
               </p>
               <p className="text-sm text-muted-foreground">
                 {hasMfaEnabled 
-                  ? "Votre compte est protégé par une authentification Ã  deux facteurs" 
+                  ? "Votre compte est protégé par une authentification à deux facteurs" 
                   : "Activez la 2FA pour renforcer la sécurité de votre compte"}
               </p>
             </div>
@@ -217,7 +217,7 @@ export const TwoFactorSettings = () => {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Désactiver la 2FA ?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Cette action désactivera l'authentification Ã  deux facteurs pour votre compte.
+                            Cette action désactivera l'authentification à deux facteurs pour votre compte.
                             Votre compte sera moins sécurisé.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
@@ -297,7 +297,7 @@ export const TwoFactorSettings = () => {
                   className="text-center text-2xl tracking-widest"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Entrez le code Ã  6 chiffres affiché dans votre application
+                  Entrez le code à 6 chiffres affiché dans votre application
                 </p>
               </div>
             </div>
