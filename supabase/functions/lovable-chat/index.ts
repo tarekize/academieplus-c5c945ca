@@ -6,11 +6,17 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function truncateText(text: string, maxChars: number): string {
+  if (text.length <= maxChars) return text;
+  return text.slice(0, maxChars) + "\n... (contenu tronqué)";
+}
+
 function buildSystemPrompt(
   subject: string,
   schoolLevel: string | null,
   chapterContext: { title: string; lessonsContent: string } | null,
-  allChapters: { id: string; title: string; lessons: { id: string; title: string }[] }[] | null
+  allChapters: { id: string; title: string; lessons: { id: string; title: string }[] }[] | null,
+  maxPromptSize = 6000
 ): string {
   const chaptersListStr = allChapters && allChapters.length > 0
     ? allChapters.map((ch) => {
@@ -19,8 +25,12 @@ function buildSystemPrompt(
       }).join("\n")
     : "Aucun chapitre disponible.";
 
+  const lessonsContent = chapterContext?.lessonsContent
+    ? truncateText(chapterContext.lessonsContent, maxPromptSize)
+    : "";
+
   const currentChapterInfo = chapterContext
-    ? `\n\n## Chapitre actuel de l'élève\nL'élève se trouve actuellement dans le chapitre: "${chapterContext.title}"\nContenu des leçons de ce chapitre:\n${chapterContext.lessonsContent}`
+    ? `\n\n## Chapitre actuel de l'élève\nL'élève se trouve actuellement dans le chapitre: "${chapterContext.title}"\nContenu des leçons de ce chapitre:\n${lessonsContent}`
     : "";
 
   return `Tu es un professeur de ${subject} expert et bienveillant sur la plateforme éducative AcadémiePlus.
@@ -87,7 +97,7 @@ async function callGemini(systemPrompt: string, messages: any[]): Promise<Respon
     },
   };
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
   
   const response = await fetch(url, {
     method: "POST",
