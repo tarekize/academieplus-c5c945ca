@@ -3,21 +3,21 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { ArrowLeft, Plus, Pencil, Trash2, Play } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Play, Clock, FileText, BookOpen, AlertCircle, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Exam {
   id: string;
@@ -43,8 +43,8 @@ const ExamList = () => {
   const [editExam, setEditExam] = useState<Exam | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [viewExam, setViewExam] = useState<Exam | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
-  // Form state
   const [formTitle, setFormTitle] = useState("");
   const [formTitleAr, setFormTitleAr] = useState("");
   const [formDescription, setFormDescription] = useState("");
@@ -57,6 +57,14 @@ const ExamList = () => {
     3: "اختبارات الفصل الثالث",
   };
 
+  const trimesterColors: Record<number, { gradient: string; bg: string; badge: string }> = {
+    1: { gradient: "from-blue-500 to-cyan-400", bg: "bg-blue-500/10", badge: "bg-blue-500/15 text-blue-600" },
+    2: { gradient: "from-violet-500 to-purple-400", bg: "bg-violet-500/10", badge: "bg-violet-500/15 text-violet-600" },
+    3: { gradient: "from-amber-500 to-orange-400", bg: "bg-amber-500/10", badge: "bg-amber-500/15 text-amber-600" },
+  };
+
+  const colors = trimesterColors[trimester] || trimesterColors[1];
+
   const fetchExams = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -67,9 +75,7 @@ const ExamList = () => {
       .eq("subject", subject)
       .order("created_at", { ascending: false });
 
-    if (!error && data) {
-      setExams(data as any[]);
-    }
+    if (!error && data) setExams(data as any[]);
     setLoading(false);
   };
 
@@ -133,19 +139,14 @@ const ExamList = () => {
     };
 
     if (editExam) {
-      const { error } = await supabase
-        .from("exams" as any)
-        .update(payload as any)
-        .eq("id", editExam.id);
+      const { error } = await supabase.from("exams" as any).update(payload as any).eq("id", editExam.id);
       if (error) {
         toast({ title: "Erreur", description: error.message, variant: "destructive" });
         return;
       }
       toast({ title: "تم التعديل بنجاح" });
     } else {
-      const { error } = await supabase
-        .from("exams" as any)
-        .insert(payload as any);
+      const { error } = await supabase.from("exams" as any).insert(payload as any);
       if (error) {
         toast({ title: "Erreur", description: error.message, variant: "destructive" });
         return;
@@ -164,81 +165,184 @@ const ExamList = () => {
       return;
     }
     toast({ title: "تم الحذف بنجاح" });
+    setDeleteConfirm(null);
     fetchExams();
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <Button variant="outline" className="gap-2" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4" />
-            رجوع
-          </Button>
-          <h1 className="text-xl font-bold" dir="rtl">{trimesterLabels[trimester] || "اختبارات"}</h1>
-          {canManage && (
-            <Button className="gap-2" onClick={openCreateForm}>
-              <Plus className="h-4 w-4" />
-              إضافة اختبار
+      {/* Header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 border-b border-border/50">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
+        <div className="container mx-auto px-4 py-6 relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <Button variant="ghost" className="gap-2 hover:bg-primary/10" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-4 w-4" />
+              رجوع
             </Button>
-          )}
-        </div>
+            {canManage && (
+              <Button className="gap-2 shadow-lg shadow-primary/20" onClick={openCreateForm}>
+                <Plus className="h-4 w-4" />
+                إضافة اختبار
+              </Button>
+            )}
+          </div>
 
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-4 flex-row-reverse"
+          >
+            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center shadow-lg`}>
+              <FileText className="h-7 w-7 text-white" />
+            </div>
+            <div className="text-right">
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground" dir="rtl">
+                {trimesterLabels[trimester]}
+              </h1>
+              <div className="flex items-center gap-2 justify-end mt-1">
+                <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium ${colors.badge}`}>
+                  {exams.length} اختبار
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
         {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <div className={`w-12 h-12 rounded-full border-4 border-muted border-t-primary animate-spin`} />
+            <p className="text-muted-foreground text-sm">جار التحميل...</p>
           </div>
         ) : exams.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <p className="text-muted-foreground" dir="rtl">لا توجد اختبارات حالياً</p>
-            </CardContent>
-          </Card>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <Card className="border-dashed border-2">
+              <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                  <BookOpen className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <p className="text-lg font-medium text-muted-foreground" dir="rtl">لا توجد اختبارات حالياً</p>
+                {canManage && (
+                  <Button className="gap-2 mt-2" onClick={openCreateForm}>
+                    <Plus className="h-4 w-4" />
+                    إضافة اختبار جديد
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
         ) : (
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right" dir="rtl">العنوان</TableHead>
-                  <TableHead className="text-right" dir="rtl">المدة (دقيقة)</TableHead>
-                  <TableHead className="text-right" dir="rtl">الإجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {exams.map((exam) => (
-                  <TableRow key={exam.id}>
-                    <TableCell dir="rtl">
-                      <div>
-                        <p className="font-medium">{exam.title_ar || exam.title}</p>
-                        {exam.title_ar && (
-                          <p className="text-sm text-muted-foreground">{exam.title}</p>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell dir="rtl">{exam.duration_minutes}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2 justify-end">
-                        {canManage ? (
-                          <>
-                            <Button size="sm" variant="outline" onClick={() => openEditForm(exam)}>
-                              <Pencil className="h-4 w-4" />
+          <div className="grid gap-4">
+            <AnimatePresence>
+              {exams.map((exam, index) => (
+                <motion.div
+                  key={exam.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: index * 0.06 }}
+                >
+                  <Card className="group hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:border-primary/30 overflow-hidden">
+                    <CardContent className="p-0">
+                      <div className="flex flex-col md:flex-row md:items-center">
+                        {/* Color indicator */}
+                        <div className={`hidden md:block w-1.5 self-stretch bg-gradient-to-b ${colors.gradient}`} />
+
+                        {/* Main content */}
+                        <div className="flex-1 p-5 md:p-6">
+                          <div className="flex items-start justify-between gap-4 flex-row-reverse">
+                            <div className="flex-1 text-right">
+                              <h3 className="text-lg font-bold text-foreground mb-1" dir="rtl">
+                                {exam.title_ar || exam.title}
+                              </h3>
+                              {exam.title_ar && (
+                                <p className="text-sm text-muted-foreground mb-2">{exam.title}</p>
+                              )}
+                              {exam.description && (
+                                <p className="text-sm text-muted-foreground line-clamp-2 mb-3" dir="rtl">
+                                  {exam.description}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-3 justify-end">
+                                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <Clock className="h-3.5 w-3.5" />
+                                  {exam.duration_minutes} دقيقة
+                                </span>
+                                {Array.isArray(exam.content) && (
+                                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    <FileText className="h-3.5 w-3.5" />
+                                    {exam.content.length} سؤال
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 p-4 md:p-6 md:pl-0 border-t md:border-t-0 md:border-r border-border/50">
+                          {canManage ? (
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-1.5 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                                onClick={() => openEditForm(exam)}
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                                تعديل
+                              </Button>
+                              {deleteConfirm === exam.id ? (
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => handleDelete(exam.id)}
+                                  >
+                                    تأكيد
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setDeleteConfirm(null)}
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="gap-1.5 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+                                  onClick={() => setDeleteConfirm(exam.id)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                  حذف
+                                </Button>
+                              )}
+                            </div>
+                          ) : (
+                            <Button
+                              className={`gap-2 bg-gradient-to-r ${colors.gradient} text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-0`}
+                              onClick={() => setViewExam(exam)}
+                            >
+                              <Play className="h-4 w-4" />
+                              اجتياز الاختبار
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDelete(exam.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
-                        ) : (
-                          <Button size="sm" className="gap-2" onClick={() => setViewExam(exam)}>
-                            <Play className="h-4 w-4" />
-                            اجتياز الاختبار
-                          </Button>
-                        )}
+                          )}
+                        </div>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </div>
@@ -247,25 +351,28 @@ const ExamList = () => {
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle dir="rtl">{editExam ? "تعديل الاختبار" : "إضافة اختبار جديد"}</DialogTitle>
+            <DialogTitle dir="rtl" className="text-xl">
+              {editExam ? "تعديل الاختبار" : "إضافة اختبار جديد"}
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
             <div>
               <Label>Titre (FR)</Label>
-              <Input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} />
+              <Input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="Ex: Examen de mathématiques" />
             </div>
             <div>
               <Label dir="rtl">العنوان (عربي)</Label>
-              <Input dir="rtl" value={formTitleAr} onChange={(e) => setFormTitleAr(e.target.value)} />
+              <Input dir="rtl" value={formTitleAr} onChange={(e) => setFormTitleAr(e.target.value)} placeholder="مثال: اختبار الرياضيات" />
             </div>
             <div>
               <Label>Description</Label>
-              <Textarea value={formDescription} onChange={(e) => setFormDescription(e.target.value)} />
+              <Textarea value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Description de l'examen..." />
             </div>
             <div>
               <Label>Contenu (JSON)</Label>
               <Textarea
                 rows={6}
+                className="font-mono text-sm"
                 value={formContent}
                 onChange={(e) => setFormContent(e.target.value)}
                 placeholder='[{"question": "...", "options": ["A","B","C","D"], "answer": "A"}]'
@@ -280,52 +387,76 @@ const ExamList = () => {
             <DialogClose asChild>
               <Button variant="outline">إلغاء</Button>
             </DialogClose>
-            <Button onClick={handleSave}>{editExam ? "حفظ التعديلات" : "إضافة"}</Button>
+            <Button onClick={handleSave} className="gap-2">
+              {editExam ? "حفظ التعديلات" : "إضافة"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* View Exam Dialog (Student) */}
       <Dialog open={!!viewExam} onOpenChange={(open) => !open && setViewExam(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle dir="rtl">{viewExam?.title_ar || viewExam?.title}</DialogTitle>
-          </DialogHeader>
-          {viewExam && (
-            <div className="space-y-4">
-              {viewExam.description && (
-                <p className="text-muted-foreground" dir="rtl">{viewExam.description}</p>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-0">
+          {/* Exam header */}
+          <div className={`p-6 bg-gradient-to-r ${colors.gradient} text-white`}>
+            <h2 className="text-xl font-bold" dir="rtl">{viewExam?.title_ar || viewExam?.title}</h2>
+            {viewExam?.description && (
+              <p className="text-white/80 text-sm mt-1" dir="rtl">{viewExam.description}</p>
+            )}
+            <div className="flex items-center gap-3 mt-3 justify-end">
+              <span className="inline-flex items-center gap-1.5 text-sm text-white/90 bg-white/20 px-3 py-1 rounded-full">
+                <Clock className="h-3.5 w-3.5" />
+                {viewExam?.duration_minutes} دقيقة
+              </span>
+              {viewExam && Array.isArray(viewExam.content) && (
+                <span className="inline-flex items-center gap-1.5 text-sm text-white/90 bg-white/20 px-3 py-1 rounded-full">
+                  <FileText className="h-3.5 w-3.5" />
+                  {viewExam.content.length} سؤال
+                </span>
               )}
-              <p className="text-sm text-muted-foreground" dir="rtl">
-                المدة: {viewExam.duration_minutes} دقيقة
-              </p>
-              <div className="border-t pt-4">
-                {Array.isArray(viewExam.content) ? (
-                  viewExam.content.map((item: any, idx: number) => (
-                    <div key={idx} className="mb-4 p-4 bg-muted/30 rounded-lg">
-                      <p className="font-medium mb-2" dir="rtl">
-                        {idx + 1}. {item.question || item.statement || JSON.stringify(item)}
-                      </p>
-                      {item.options && Array.isArray(item.options) && (
-                        <div className="space-y-1 mr-4" dir="rtl">
-                          {item.options.map((opt: string, oi: number) => (
-                            <p key={oi} className="text-sm">• {opt}</p>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-muted-foreground" dir="rtl">
-                    {typeof viewExam.content === "string" ? viewExam.content : JSON.stringify(viewExam.content)}
-                  </p>
-                )}
-              </div>
             </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setViewExam(null)}>إغلاق</Button>
-          </DialogFooter>
+          </div>
+
+          {/* Questions */}
+          <div className="p-6 space-y-4">
+            {viewExam && Array.isArray(viewExam.content) ? (
+              viewExam.content.map((item: any, idx: number) => (
+                <div key={idx} className="p-4 rounded-xl border border-border/60 bg-card hover:border-primary/20 transition-colors">
+                  <p className="font-semibold mb-3 text-foreground" dir="rtl">
+                    <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br ${colors.gradient} text-white text-sm font-bold ml-2`}>
+                      {idx + 1}
+                    </span>
+                    {item.question || item.statement || JSON.stringify(item)}
+                  </p>
+                  {item.options && Array.isArray(item.options) && (
+                    <div className="space-y-2 mr-9" dir="rtl">
+                      {item.options.map((opt: string, oi: number) => (
+                        <div
+                          key={oi}
+                          className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                        >
+                          <span className="w-6 h-6 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center text-xs font-medium text-muted-foreground">
+                            {String.fromCharCode(1571 + oi)}
+                          </span>
+                          <span className="text-sm">{opt}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : viewExam ? (
+              <p className="text-muted-foreground" dir="rtl">
+                {typeof viewExam.content === "string" ? viewExam.content : JSON.stringify(viewExam.content)}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="p-4 border-t">
+            <Button variant="outline" className="w-full" onClick={() => setViewExam(null)}>
+              إغلاق
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
