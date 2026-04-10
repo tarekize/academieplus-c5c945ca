@@ -9,9 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
-import { Eye, EyeOff, User } from "lucide-react";
+import { Calendar as CalendarIcon, Eye, EyeOff, User } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
-import { format } from "date-fns";
+import { format, parse, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
 import Header from "@/components/Header";
 import iconStudent from "@/assets/icon-student.png";
@@ -42,6 +42,7 @@ const Auth = () => {
   const [ville, setVille] = useState("");
   const [phone, setPhone] = useState("");
   const [ecole, setEcole] = useState("");
+  const [dateOfBirthInput, setDateOfBirthInput] = useState("");
 
   // RGPD Consent states
   const [consentDataProcessing, setConsentDataProcessing] = useState(false);
@@ -190,27 +191,27 @@ const Auth = () => {
 
     // Validation pour l'inscription
     if (!isLogin) {
-      if (!firstName || !lastName || !email || !password || !profileType) {
-        toast.error("Veuillez remplir tous les champs obligatoires.");
+      const missingFields = [];
+      if (!firstName) missingFields.push("Prénom");
+      if (!lastName) missingFields.push("Nom");
+      if (!email) missingFields.push("Email");
+      if (!password) missingFields.push("Mot de passe");
+      if (!profileType) missingFields.push("Type de profil (Élève/Parent)");
+
+      if (profileType === 'enfant') {
+        if (!classLevel) missingFields.push("Classe");
+        const needsFiliere = ["Terminale", "Seconde", "Première"].includes(classLevel);
+        if (needsFiliere && !filiere) {
+          missingFields.push(classLevel === "Première" ? "Tronc commun" : "Filière");
+        }
+      }
+
+      if (missingFields.length > 0) {
+        toast.error(`Veuillez remplir les champs obligatoires suivants : ${missingFields.join(", ")}`);
         return;
       }
 
       const passwordError = validatePassword(password);
-      if (passwordError) {
-        toast.error(passwordError);
-        return;
-      }
-
-      if (profileType === 'enfant' && !classLevel) {
-        toast.error("Veuillez sélectionner votre classe.");
-        return;
-      }
-
-      const needsFiliere = ["Terminale", "Seconde", "Première"].includes(classLevel);
-      if (profileType === 'enfant' && needsFiliere && !filiere) {
-        toast.error("Veuillez sélectionner votre filière.");
-        return;
-      }
 
       if (!consentDataProcessing || !consentTermsPrivacy) {
         toast.error("Vous devez accepter le traitement des données et la politique de confidentialité pour vous inscrire.");
@@ -503,74 +504,110 @@ const Auth = () => {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="text"
-                          placeholder="Prénom"
-                          value={firstName}
-                          onChange={(e) => {
-                            setFirstName(e.target.value);
-                            setTouched(prev => ({ ...prev, firstName: true }));
-                          }}
-                          onBlur={() => setTouched(prev => ({ ...prev, firstName: true }))}
-                          className={cn(
-                            "bg-secondary/20 pl-10",
-                            (submitted || touched.firstName) && !firstName ? "border-red-500 border-2" : "border-border"
-                          )}
-                          required
-                        />
+                      <div className="space-y-2">
+                        <Label className="text-foreground">Prénom <span className="text-red-500">*</span></Label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="text"
+                            placeholder="Prénom"
+                            value={firstName}
+                            onChange={(e) => {
+                              setFirstName(e.target.value);
+                              setTouched(prev => ({ ...prev, firstName: true }));
+                            }}
+                            onBlur={() => setTouched(prev => ({ ...prev, firstName: true }))}
+                            className={cn(
+                              "bg-secondary/20 pl-10",
+                              (submitted || touched.firstName) && !firstName ? "border-red-500 border-2" : "border-border"
+                            )}
+                            required
+                          />
+                        </div>
                       </div>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="text"
-                          placeholder="Nom"
-                          value={lastName}
-                          onChange={(e) => {
-                            setLastName(e.target.value);
-                            setTouched(prev => ({ ...prev, lastName: true }));
-                          }}
-                          onBlur={() => setTouched(prev => ({ ...prev, lastName: true }))}
-                          className={cn(
-                            "bg-secondary/20 pl-10",
-                            (submitted || touched.lastName) && !lastName ? "border-red-500 border-2" : "border-border"
-                          )}
-                          required
-                        />
+                      <div className="space-y-2">
+                        <Label className="text-foreground">Nom <span className="text-red-500">*</span></Label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="text"
+                            placeholder="Nom"
+                            value={lastName}
+                            onChange={(e) => {
+                              setLastName(e.target.value);
+                              setTouched(prev => ({ ...prev, lastName: true }));
+                            }}
+                            onBlur={() => setTouched(prev => ({ ...prev, lastName: true }))}
+                            className={cn(
+                              "bg-secondary/20 pl-10",
+                              (submitted || touched.lastName) && !lastName ? "border-red-500 border-2" : "border-border"
+                            )}
+                            required
+                          />
+                        </div>
                       </div>
                     </div>
 
                     <div className="space-y-2">
                       <Label className="text-foreground">Date de naissance</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal bg-secondary/20",
-                              !dateOfBirth && "text-muted-foreground",
-                              (submitted || touched.dateOfBirth) && !dateOfBirth ? "border-red-500 border-2" : "border-border"
-                            )}
-                          >
-                            {dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy") : "Sélectionnez votre date de naissance"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={dateOfBirth}
-                            onSelect={(date) => {
-                              setDateOfBirth(date);
-                              setTouched(prev => ({ ...prev, dateOfBirth: true }));
-                            }}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date("1900-01-01")
+                      <div className="flex gap-2">
+                        <Input
+                          type="text"
+                          placeholder="JJ/MM/AAAA"
+                          value={dateOfBirthInput}
+                          onChange={(e) => {
+                            let value = e.target.value.replace(/\D/g, "");
+                            if (value.length > 8) value = value.slice(0, 8);
+
+                            let formattedValue = "";
+                            if (value.length > 0) formattedValue += value.slice(0, 2);
+                            if (value.length > 2) formattedValue += "/" + value.slice(2, 4);
+                            if (value.length > 4) formattedValue += "/" + value.slice(4, 8);
+
+                            setDateOfBirthInput(formattedValue);
+
+                            if (formattedValue.length === 10) {
+                              const parsedDate = parse(formattedValue, "dd/MM/yyyy", new Date());
+                              if (isValid(parsedDate)) {
+                                setDateOfBirth(parsedDate);
+                              }
                             }
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
+                          }}
+                          className="bg-secondary/20 border-border"
+                        />
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className={cn(
+                                "aspect-square h-10 w-10 flex-shrink-0 bg-secondary/20",
+                                !dateOfBirth && "text-muted-foreground",
+                                (submitted || touched.dateOfBirth) && !dateOfBirth ? "border-red-500 border-2" : "border-border"
+                              )}
+                            >
+                              <CalendarIcon className="h-4 w-4" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={dateOfBirth}
+                              onSelect={(date) => {
+                                setDateOfBirth(date);
+                                if (date) {
+                                  setDateOfBirthInput(format(date, "dd/MM/yyyy"));
+                                }
+                                setTouched(prev => ({ ...prev, dateOfBirth: true }));
+                              }}
+                              disabled={(date) =>
+                                date > new Date() || date < new Date("1900-01-01")
+                              }
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
                     </div>
 
                     <Input
@@ -581,50 +618,56 @@ const Auth = () => {
                       className="bg-secondary/20 border-border"
                     />
 
-                    <Input
-                      type="email"
-                      placeholder="Adresse e-mail"
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        setTouched(prev => ({ ...prev, email: true }));
-                      }}
-                      onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
-                      className={cn(
-                        "bg-secondary/20",
-                        (submitted || touched.email) && !email ? "border-red-500 border-2" : "border-border"
-                      )}
-                      required
-                    />
-
-                    <div className="relative">
+                    <div className="space-y-2">
+                      <Label className="text-foreground">Adresse e-mail <span className="text-red-500">*</span></Label>
                       <Input
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Mot de passe"
-                        value={password}
+                        type="email"
+                        placeholder="Adresse e-mail"
+                        value={email}
                         onChange={(e) => {
-                          setPassword(e.target.value);
-                          setTouched(prev => ({ ...prev, password: true }));
+                          setEmail(e.target.value);
+                          setTouched(prev => ({ ...prev, email: true }));
                         }}
-                        onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
+                        onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
                         className={cn(
-                          "bg-secondary/20 pr-10",
-                          (submitted || touched.password) && !password ? "border-red-500 border-2" : "border-border"
+                          "bg-secondary/20",
+                          (submitted || touched.email) && !email ? "border-red-500 border-2" : "border-border"
                         )}
                         required
-                        minLength={6}
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-foreground">Qui es-tu ?</Label>
+                      <Label className="text-foreground">Mot de passe <span className="text-red-500">*</span></Label>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Mot de passe"
+                          value={password}
+                          onChange={(e) => {
+                            setPassword(e.target.value);
+                            setTouched(prev => ({ ...prev, password: true }));
+                          }}
+                          onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
+                          className={cn(
+                            "bg-secondary/20 pr-10",
+                            (submitted || touched.password) && !password ? "border-red-500 border-2" : "border-border"
+                          )}
+                          required
+                          minLength={6}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-foreground">Qui es-tu ? <span className="text-red-500">*</span></Label>
                       <RadioGroup
                         value={profileType}
                         onValueChange={(value) => {
@@ -670,7 +713,7 @@ const Auth = () => {
                     {profileType === "enfant" && (
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <Label className="text-foreground">En quelle classe es-tu ?</Label>
+                          <Label className="text-foreground">En quelle classe es-tu ? <span className="text-red-500">*</span></Label>
                           <RadioGroup
                             value={classLevel}
                             onValueChange={(value) => {
@@ -703,10 +746,9 @@ const Auth = () => {
                           </RadioGroup>
                         </div>
 
-                        {/* Filières pour Terminale et Seconde */}
                         {(classLevel === "Terminale" || classLevel === "Seconde") && (
                           <div className="space-y-2">
-                            <Label className="text-foreground">Quelle est ta filière ?</Label>
+                            <Label className="text-foreground">Quelle est ta filière ? <span className="text-red-500">*</span></Label>
                             <RadioGroup
                               value={filiere}
                               onValueChange={(value) => {
@@ -739,10 +781,9 @@ const Auth = () => {
                           </div>
                         )}
 
-                        {/* Filières pour Première (tronc commun) */}
                         {classLevel === "Première" && (
                           <div className="space-y-2">
-                            <Label className="text-foreground">Quel est ton tronc commun ?</Label>
+                            <Label className="text-foreground">Quel est ton tronc commun ? <span className="text-red-500">*</span></Label>
                             <RadioGroup
                               value={filiere}
                               onValueChange={(value) => {
@@ -777,7 +818,7 @@ const Auth = () => {
                       </div>
                     )}
 
-                    {/* Wilaya, Ville, École - toujours affiché */}
+                    {/* Wilaya, Ville, École - conditionnel */}
                     <LocationFields
                       wilaya={wilaya}
                       ville={ville}
@@ -785,6 +826,7 @@ const Auth = () => {
                       onWilayaChange={setWilaya}
                       onVilleChange={setVille}
                       onEcoleChange={setEcole}
+                      hideEcole={profileType === "parent"}
                     />
 
                     {/* RGPD Consents */}

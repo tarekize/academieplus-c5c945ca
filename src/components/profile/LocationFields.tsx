@@ -27,6 +27,7 @@ interface LocationFieldsProps {
   onEcoleChange: (value: string) => void;
   className?: string;
   hideEcole?: boolean;
+  required?: boolean;
 }
 
 const LocationFields = ({
@@ -38,6 +39,7 @@ const LocationFields = ({
   onEcoleChange,
   className = "",
   hideEcole = false,
+  required = true,
 }: LocationFieldsProps) => {
   const wilayas = getWilayaNames();
   const cities = wilaya ? getCitiesByWilaya(wilaya) : [];
@@ -60,7 +62,7 @@ const LocationFields = ({
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="space-y-2">
-        <Label>Wilaya</Label>
+        <Label>Wilaya {required && <span className="text-red-500">*</span>}</Label>
         <Select value={wilaya} onValueChange={(val) => {
           onWilayaChange(val);
           onVilleChange("");
@@ -77,7 +79,7 @@ const LocationFields = ({
       </div>
 
       <div className="space-y-2">
-        <Label>Ville</Label>
+        <Label>Ville {required && <span className="text-red-500">*</span>}</Label>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -140,7 +142,7 @@ const LocationFields = ({
 
       {!hideEcole && (
         <div className="space-y-2">
-          <Label htmlFor="ecole">École / Établissement</Label>
+          <Label htmlFor="ecole">École / Établissement {required && <span className="text-red-500">*</span>}</Label>
           <Input
             id="ecole"
             value={ecole}

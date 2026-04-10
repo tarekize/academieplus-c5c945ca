@@ -22,13 +22,18 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  GraduationCap, LogOut, User as UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen, Key, Check
+  GraduationCap, LogOut, User as UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen, Key, Check, Calendar as CalendarIcon
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { getSchoolLevelLabel, allSchoolLevels } from "@/lib/validation";
 import { ChangePasswordButton } from "@/components/ChangePasswordButton";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
+import { format, parse, isValid } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import LocationFields from "@/components/profile/LocationFields";
 
 interface Profile {
   id: string;
@@ -37,6 +42,9 @@ interface Profile {
   avatar_url: string | null;
   school_level: string | null;
   email: string | null;
+  wilaya?: string | null;
+  ville?: string | null;
+  ecole?: string | null;
 }
 
 interface LinkedChild {
@@ -82,6 +90,11 @@ const ParentDashboard = () => {
   const [newChildLastName, setNewChildLastName] = useState("");
   const [newChildLevel, setNewChildLevel] = useState("");
   const [newChildFiliere, setNewChildFiliere] = useState("");
+  const [newChildBirthDate, setNewChildBirthDate] = useState<Date | undefined>(undefined);
+  const [newChildBirthDateInput, setNewChildBirthDateInput] = useState("");
+  const [newChildWilaya, setNewChildWilaya] = useState("");
+  const [newChildVille, setNewChildVille] = useState("");
+  const [newChildEcole, setNewChildEcole] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
@@ -95,7 +108,7 @@ const ParentDashboard = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, avatar_url, school_level, email")
+        .select("id, first_name, last_name, avatar_url, school_level, email, wilaya, ville, ecole")
         .eq("id", userId)
         .single();
       if (error) throw error;
@@ -307,16 +320,21 @@ const ParentDashboard = () => {
 
   const handleCreateChild = async () => {
     setCreateError(null);
-    if (!newChildEmail || !newChildPassword || !newChildFirstName || !newChildLastName || !newChildLevel) {
-      setCreateError("Tous les champs sont obligatoires");
+    const missingFields = [];
+    if (!newChildFirstName) missingFields.push("Prénom");
+    if (!newChildLastName) missingFields.push("Nom");
+    if (!newChildEmail) missingFields.push("Email");
+    if (!newChildPassword) missingFields.push("Mot de passe");
+    if (!newChildLevel) missingFields.push("Niveau scolaire");
+    if (needsFiliere && !newChildFiliere) missingFields.push(newChildLevel === "premiere" ? "Tronc commun" : "Filière");
+
+    if (missingFields.length > 0) {
+      setCreateError(`Veuillez remplir les champs obligatoires suivants : ${missingFields.join(", ")}`);
       return;
     }
+
     if (newChildPassword.length < 8) {
       setCreateError("Le mot de passe doit contenir au moins 8 caractères");
-      return;
-    }
-    if (needsFiliere && !newChildFiliere) {
-      setCreateError("Veuillez sélectionner une filière");
       return;
     }
 
@@ -330,13 +348,35 @@ const ParentDashboard = () => {
           lastName: newChildLastName,
           schoolLevel: newChildLevel,
           filiere: newChildFiliere || null,
+          dateOfBirth: newChildBirthDate ? format(newChildBirthDate, 'yyyy-MM-dd') : null,
+          wilaya: newChildWilaya || null,
+          ville: newChildVille || null,
+          ecole: newChildEcole || null,
         },
       });
-      if (error) { setCreateError(error.message || "Erreur lors de la création"); return; }
-      if (data?.error) { setCreateError(data.error); return; }
+
+      if (error) {
+        let errorMessage = error.message || "Erreur lors de la création";
+        if (errorMessage.includes("Edge Function returned a non-2xx status code")) {
+          errorMessage = "Cette adresse email est déjà utilisée par un autre compte.";
+        }
+        setCreateError(errorMessage);
+        return;
+      }
+
+      if (data?.error) {
+        let errorMessage = data.error;
+        if (errorMessage.includes("already registered") || errorMessage.includes("already exists")) {
+          errorMessage = "Cette adresse email est déjà utilisée par un autre compte.";
+        }
+        setCreateError(errorMessage);
+        return;
+      }
       sonnerToast.success(data?.message || "Compte élève créé avec succès");
       setNewChildEmail(""); setNewChildPassword(""); setNewChildFirstName("");
       setNewChildLastName(""); setNewChildLevel(""); setNewChildFiliere("");
+      setNewChildBirthDate(undefined); setNewChildBirthDateInput("");
+      setNewChildWilaya(""); setNewChildVille(""); setNewChildEcole("");
       setCreateDialogOpen(false);
       if (user) fetchChildren(user.id);
     } catch (error: any) {
@@ -444,7 +484,15 @@ const ParentDashboard = () => {
             </div>
             <div className="flex flex-wrap gap-3">
               {/* Ajouter un élève - création de compte */}
-              <Dialog open={createDialogOpen} onOpenChange={(open) => { setCreateDialogOpen(open); if (!open) setCreateError(null); }}>
+              <Dialog open={createDialogOpen} onOpenChange={(open) => {
+                setCreateDialogOpen(open);
+                if (!open) setCreateError(null);
+                if (open && profile) {
+                  setNewChildWilaya(profile.wilaya || "");
+                  setNewChildVille(profile.ville || "");
+                  setNewChildEcole(profile.ecole || "");
+                }
+              }}>
                 <DialogTrigger asChild>
                   <Button size="lg" className="gap-2"><Plus className="h-5 w-5" />Ajouter un élève</Button>
                 </DialogTrigger>
@@ -461,24 +509,65 @@ const ParentDashboard = () => {
                     )}
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        <Label>Prénom</Label>
+                        <Label>Prénom <span className="text-red-500">*</span></Label>
                         <Input placeholder="Prénom" value={newChildFirstName} onChange={(e) => setNewChildFirstName(e.target.value)} />
                       </div>
                       <div className="space-y-2">
-                        <Label>Nom</Label>
+                        <Label>Nom <span className="text-red-500">*</span></Label>
                         <Input placeholder="Nom" value={newChildLastName} onChange={(e) => setNewChildLastName(e.target.value)} />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label>Email</Label>
+                      <Label>Email <span className="text-red-500">*</span></Label>
                       <Input type="email" placeholder="email@exemple.com" value={newChildEmail} onChange={(e) => setNewChildEmail(e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Mot de passe</Label>
+                      <Label>Mot de passe <span className="text-red-500">*</span></Label>
                       <Input type="password" placeholder="Min. 8 caractères" value={newChildPassword} onChange={(e) => setNewChildPassword(e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Niveau scolaire</Label>
+                      <Label>Date de naissance</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="text"
+                          placeholder="JJ/MM/AAAA"
+                          value={newChildBirthDateInput}
+                          onChange={(e) => {
+                            let value = e.target.value.replace(/\D/g, "");
+                            if (value.length > 8) value = value.slice(0, 8);
+                            let formattedValue = "";
+                            if (value.length > 0) formattedValue += value.slice(0, 2);
+                            if (value.length > 2) formattedValue += "/" + value.slice(2, 4);
+                            if (value.length > 4) formattedValue += "/" + value.slice(4, 8);
+                            setNewChildBirthDateInput(formattedValue);
+                            if (formattedValue.length === 10) {
+                              const parsedDate = parse(formattedValue, "dd/MM/yyyy", new Date());
+                              if (isValid(parsedDate)) setNewChildBirthDate(parsedDate);
+                            }
+                          }}
+                        />
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="icon" className="flex-shrink-0">
+                              <CalendarIcon className="h-4 w-4" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                              mode="single"
+                              selected={newChildBirthDate}
+                              onSelect={(date) => {
+                                setNewChildBirthDate(date);
+                                if (date) setNewChildBirthDateInput(format(date, "dd/MM/yyyy"));
+                              }}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Niveau scolaire <span className="text-red-500">*</span></Label>
                       <Select value={newChildLevel} onValueChange={(v) => { setNewChildLevel(v); setNewChildFiliere(""); }}>
                         <SelectTrigger><SelectValue placeholder="Sélectionner le niveau" /></SelectTrigger>
                         <SelectContent>
@@ -490,7 +579,7 @@ const ParentDashboard = () => {
                     </div>
                     {needsFiliere && filiereOptions[newChildLevel] && (
                       <div className="space-y-2">
-                        <Label>{newChildLevel === "premiere" ? "Tronc commun" : "Filière"}</Label>
+                        <Label>{newChildLevel === "premiere" ? "Tronc commun" : "Filière"} <span className="text-red-500">*</span></Label>
                         <Select value={newChildFiliere} onValueChange={setNewChildFiliere}>
                           <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
                           <SelectContent>
@@ -501,6 +590,17 @@ const ParentDashboard = () => {
                         </Select>
                       </div>
                     )}
+
+                    <LocationFields
+                      wilaya={newChildWilaya}
+                      ville={newChildVille}
+                      ecole={newChildEcole}
+                      onWilayaChange={setNewChildWilaya}
+                      onVilleChange={setNewChildVille}
+                      onEcoleChange={setNewChildEcole}
+                      required={false}
+                    />
+
                     <Button onClick={handleCreateChild} disabled={creating} className="w-full">
                       {creating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
                       Créer le compte élève

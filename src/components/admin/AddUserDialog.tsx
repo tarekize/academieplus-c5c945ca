@@ -101,7 +101,11 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
       });
 
       if (response.error) {
-        throw new Error(response.error.message || "Erreur lors de la création");
+        let errorMessage = response.error.message || "Erreur lors de la création";
+        if (errorMessage.includes("Edge Function returned a non-2xx status code")) {
+          errorMessage = "Un compte existe déjà avec cet email.";
+        }
+        throw new Error(errorMessage);
       }
 
       toast.success("Utilisateur créé avec succès !");
@@ -110,7 +114,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
       onUserAdded();
     } catch (error: any) {
       console.error("Error creating user:", error);
-      if (error.message?.includes("already registered")) {
+      if (error.message?.includes("already registered") || error.message?.includes("already exists")) {
         toast.error("Un compte existe déjà avec cet email.");
       } else {
         toast.error(error.message || "Erreur lors de la création de l'utilisateur.");

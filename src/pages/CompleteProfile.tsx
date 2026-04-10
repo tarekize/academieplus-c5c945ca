@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, parse, isValid } from "date-fns";
 import Header from "@/components/Header";
 import iconStudent from "@/assets/icon-student.png";
 import iconParent from "@/assets/icon-parent.png";
@@ -30,6 +30,7 @@ const CompleteProfile = () => {
   const [wilaya, setWilaya] = useState("");
   const [ville, setVille] = useState("");
   const [ecole, setEcole] = useState("");
+  const [dateOfBirthInput, setDateOfBirthInput] = useState("");
 
   useEffect(() => {
     const checkSession = async () => {
@@ -175,11 +176,11 @@ const CompleteProfile = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">Prénom</Label>
+                  <Label htmlFor="firstName">Prénom <span className="text-red-500">*</span></Label>
                   <Input id="firstName" placeholder="Prénom" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="bg-secondary/20 border-border" required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Nom</Label>
+                  <Label htmlFor="lastName">Nom <span className="text-red-500">*</span></Label>
                   <Input id="lastName" placeholder="Nom" value={lastName} onChange={(e) => setLastName(e.target.value)} className="bg-secondary/20 border-border" required />
                 </div>
               </div>
@@ -191,22 +192,61 @@ const CompleteProfile = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Date de naissance</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal bg-secondary/20 border-border", !dateOfBirth && "text-muted-foreground")}>
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy") : "Sélectionnez votre date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={dateOfBirth} onSelect={setDateOfBirth} captionLayout="dropdown-buttons" fromYear={1950} toYear={new Date().getFullYear()} initialFocus className="pointer-events-auto" />
-                    </PopoverContent>
-                  </Popover>
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      placeholder="JJ/MM/AAAA"
+                      value={dateOfBirthInput}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/\D/g, "");
+                        if (value.length > 8) value = value.slice(0, 8);
+
+                        let formattedValue = "";
+                        if (value.length > 0) formattedValue += value.slice(0, 2);
+                        if (value.length > 2) formattedValue += "/" + value.slice(2, 4);
+                        if (value.length > 4) formattedValue += "/" + value.slice(4, 8);
+
+                        setDateOfBirthInput(formattedValue);
+
+                        if (formattedValue.length === 10) {
+                          const parsedDate = parse(formattedValue, "dd/MM/yyyy", new Date());
+                          if (isValid(parsedDate)) {
+                            setDateOfBirth(parsedDate);
+                          }
+                        }
+                      }}
+                      className="bg-secondary/20 border-border"
+                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="icon" className={cn("aspect-square h-10 w-10 flex-shrink-0 bg-secondary/20 border-border", !dateOfBirth && "text-muted-foreground")}>
+                          <CalendarIcon className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={dateOfBirth}
+                          onSelect={(date) => {
+                            setDateOfBirth(date);
+                            if (date) {
+                              setDateOfBirthInput(format(date, "dd/MM/yyyy"));
+                            }
+                          }}
+                          captionLayout="dropdown-buttons"
+                          fromYear={1950}
+                          toYear={new Date().getFullYear()}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-foreground">Qui êtes-vous ?</Label>
+                <Label className="text-foreground">Qui êtes-vous ? <span className="text-red-500">*</span></Label>
                 <RadioGroup value={profileType} onValueChange={setProfileType}>
                   <div className="grid grid-cols-2 gap-4">
                     <Label htmlFor="enfant-complete" className={cn(
@@ -232,7 +272,7 @@ const CompleteProfile = () => {
               {profileType === "enfant" && (
                 <>
                   <div className="space-y-2">
-                    <Label className="text-foreground">En quelle classe êtes-vous ?</Label>
+                    <Label className="text-foreground">En quelle classe êtes-vous ? <span className="text-red-500">*</span></Label>
                     <RadioGroup value={classLevel} onValueChange={setClassLevel}>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {schoolLevels.map((level) => (
@@ -269,7 +309,7 @@ const CompleteProfile = () => {
 
                   {(classLevel === "Seconde" || classLevel === "Terminale") && (
                     <div className="space-y-2">
-                      <Label className="text-foreground">Quelle est ta filière ?</Label>
+                      <Label className="text-foreground">Quelle est ta filière ? <span className="text-red-500">*</span></Label>
                       <RadioGroup value={filiere} onValueChange={setFiliere}>
                         <div className="grid grid-cols-2 gap-3">
                           {["Sciences", "Lettres", "Gestion", "Math techniques", "Mathématiques"].map((f) => (
@@ -295,6 +335,7 @@ const CompleteProfile = () => {
                 onWilayaChange={setWilaya}
                 onVilleChange={setVille}
                 onEcoleChange={setEcole}
+                hideEcole={profileType === "parent"}
               />
 
               <Button type="submit" className="w-full" disabled={loading}>
