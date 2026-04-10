@@ -49,8 +49,9 @@ const Account = () => {
   const [isParent, setIsParent] = useState(false);
   const [isStudent, setIsStudent] = useState(false);
 
-  // Subscription state
   const [subscription, setSubscription] = useState<StudentSubscription | null>(null);
+  const [activationCode, setActivationCode] = useState("");
+  const [activatingCode, setActivatingCode] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
