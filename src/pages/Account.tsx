@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { UserCircle, BarChart3, ArrowLeft, GraduationCap, LogOut, User as UserIcon, Key, Pause, Play, Clock, FileText } from "lucide-react";
+import { UserCircle, BarChart3, ArrowLeft, GraduationCap, LogOut, User as UserIcon, Key, Pause, Play, Clock, FileText, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -49,8 +49,9 @@ const Account = () => {
   const [isParent, setIsParent] = useState(false);
   const [isStudent, setIsStudent] = useState(false);
 
-  // Subscription state
   const [subscription, setSubscription] = useState<StudentSubscription | null>(null);
+  const [activationCode, setActivationCode] = useState("");
+  const [activatingCode, setActivatingCode] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -178,6 +179,54 @@ const Account = () => {
       seconde: 'Seconde', premiere: 'Première', terminale: 'Terminale'
     };
     return levels[level] || 'Votre classe';
+  };
+
+  const handleActivateCode = async () => {
+    if (!activationCode.trim() || !user) return;
+    setActivatingCode(true);
+    try {
+      // Find the code
+      const { data: codeData, error: codeError } = await supabase
+        .from("activation_codes")
+        .select("*")
+        .eq("code", activationCode.trim())
+        .eq("status", "free")
+        .maybeSingle();
+
+      if (codeError) throw codeError;
+      if (!codeData) {
+        toast({ title: "Code invalide", description: "Ce code n'existe pas ou a déjà été utilisé.", variant: "destructive" });
+        return;
+      }
+
+      const now = new Date().toISOString();
+      const totalDays = codeData.plan_type === "annual" ? 360 : 30;
+
+      // Mark code as used
+      await supabase
+        .from("activation_codes")
+        .update({ status: "used", used_by: user.id, used_at: now })
+        .eq("id", codeData.id);
+
+      // Create subscription
+      await supabase.from("student_subscriptions").insert({
+        user_id: user.id,
+        plan_type: codeData.plan_type,
+        total_days: totalDays,
+        activation_code_id: codeData.id,
+      });
+
+      // Activate profile
+      await supabase.from("profiles").update({ is_active: true }).eq("id", user.id);
+
+      toast({ title: "Code activé !", description: "Votre abonnement a été activé avec succès." });
+      setActivationCode("");
+      fetchSubscription(user.id);
+    } catch (error: any) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } finally {
+      setActivatingCode(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -405,7 +454,7 @@ const Account = () => {
           </div>
 
           {/* Student: Subscription Section */}
-          {isStudent && subscription && (
+          {isStudent && (
             <Card className="max-w-2xl mx-auto rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
               <div className="bg-gradient-to-r from-primary/10 to-accent/10 px-6 py-4 border-b border-border/30">
                 <div className="flex items-center gap-3">
@@ -417,50 +466,84 @@ const Account = () => {
               </div>
 
               <div className="p-6">
-                <div className="space-y-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">Formule</p>
-                      <p className="font-semibold text-foreground">
-                        {subscription.plan_type === "annual" ? "Scolaire (1 an)" : "Mensuelle"}
+                {subscription ? (
+                  <div className="space-y-5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">Formule</p>
+                        <p className="font-semibold text-foreground">
+                          {subscription.plan_type === "annual" ? "Scolaire (1 an)" : "Mensuelle"}
+                        </p>
+                      </div>
+                      <Badge
+                        variant={subscription.is_paused ? "secondary" : "default"}
+                        className="rounded-full px-4"
+                      >
+                        {subscription.is_paused ? "En pause" : "Actif"}
+                      </Badge>
+                    </div>
+
+                    <div className="bg-accent/30 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Clock className="h-4 w-4 text-primary" />
+                        <span className="font-semibold text-foreground">{remaining} jours restants</span>
+                        <span className="text-sm text-muted-foreground">/ {subscription.total_days}</span>
+                      </div>
+                      <div className="w-full bg-secondary/50 rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-primary to-primary/70 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${Math.min(100, (remaining / subscription.total_days) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {subscription.plan_type === "annual" && remaining > 0 && (
+                      <Button
+                        variant={subscription.is_paused ? "default" : "outline"}
+                        className="w-full rounded-xl h-11"
+                        onClick={subscription.is_paused ? handleResume : handlePause}
+                      >
+                        {subscription.is_paused ? (
+                          <><Play className="h-4 w-4 mr-2" /> Reprendre l'abonnement</>
+                        ) : (
+                          <><Pause className="h-4 w-4 mr-2" /> Mettre en pause</>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="text-center py-2">
+                      <p className="text-muted-foreground text-sm mb-4">
+                        Vous n'avez pas encore d'abonnement actif. Entrez votre code d'activation pour commencer.
                       </p>
                     </div>
-                    <Badge
-                      variant={subscription.is_paused ? "secondary" : "default"}
-                      className="rounded-full px-4"
-                    >
-                      {subscription.is_paused ? "En pause" : "Actif"}
-                    </Badge>
-                  </div>
-
-                  <div className="bg-accent/30 rounded-xl p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Clock className="h-4 w-4 text-primary" />
-                      <span className="font-semibold text-foreground">{remaining} jours restants</span>
-                      <span className="text-sm text-muted-foreground">/ {subscription.total_days}</span>
-                    </div>
-                    <div className="w-full bg-secondary/50 rounded-full h-2">
-                      <div
-                        className="bg-gradient-to-r from-primary to-primary/70 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.min(100, (remaining / subscription.total_days) * 100)}%` }}
+                    <div className="flex gap-3">
+                      <Input
+                        placeholder="XXXX-XXXX-XXXX"
+                        value={activationCode}
+                        onChange={(e) => setActivationCode(e.target.value.toUpperCase())}
+                        className="text-center text-lg font-mono tracking-wider flex-1"
+                        maxLength={14}
+                        disabled={activatingCode}
                       />
+                      <Button
+                        onClick={handleActivateCode}
+                        disabled={activatingCode || !activationCode.trim()}
+                        className="rounded-xl px-6"
+                      >
+                        {activatingCode ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Activer"
+                        )}
+                      </Button>
                     </div>
+                    <p className="text-xs text-muted-foreground text-center">
+                      Format du code : XXXX-XXXX-XXXX
+                    </p>
                   </div>
-
-                  {subscription.plan_type === "annual" && remaining > 0 && (
-                    <Button
-                      variant={subscription.is_paused ? "default" : "outline"}
-                      className="w-full rounded-xl h-11"
-                      onClick={subscription.is_paused ? handleResume : handlePause}
-                    >
-                      {subscription.is_paused ? (
-                        <><Play className="h-4 w-4 mr-2" /> Reprendre l'abonnement</>
-                      ) : (
-                        <><Pause className="h-4 w-4 mr-2" /> Mettre en pause</>
-                      )}
-                    </Button>
-                  )}
-                </div>
+                )}
               </div>
             </Card>
           )}
