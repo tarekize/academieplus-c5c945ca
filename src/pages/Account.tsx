@@ -181,6 +181,54 @@ const Account = () => {
     return levels[level] || 'Votre classe';
   };
 
+  const handleActivateCode = async () => {
+    if (!activationCode.trim() || !user) return;
+    setActivatingCode(true);
+    try {
+      // Find the code
+      const { data: codeData, error: codeError } = await supabase
+        .from("activation_codes")
+        .select("*")
+        .eq("code", activationCode.trim())
+        .eq("status", "free")
+        .maybeSingle();
+
+      if (codeError) throw codeError;
+      if (!codeData) {
+        toast({ title: "Code invalide", description: "Ce code n'existe pas ou a déjà été utilisé.", variant: "destructive" });
+        return;
+      }
+
+      const now = new Date().toISOString();
+      const totalDays = codeData.plan_type === "annual" ? 360 : 30;
+
+      // Mark code as used
+      await supabase
+        .from("activation_codes")
+        .update({ status: "used", used_by: user.id, used_at: now })
+        .eq("id", codeData.id);
+
+      // Create subscription
+      await supabase.from("student_subscriptions").insert({
+        user_id: user.id,
+        plan_type: codeData.plan_type,
+        total_days: totalDays,
+        activation_code_id: codeData.id,
+      });
+
+      // Activate profile
+      await supabase.from("profiles").update({ is_active: true }).eq("id", user.id);
+
+      toast({ title: "Code activé !", description: "Votre abonnement a été activé avec succès." });
+      setActivationCode("");
+      fetchSubscription(user.id);
+    } catch (error: any) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } finally {
+      setActivatingCode(false);
+    }
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast({ title: "Déconnexion", description: "Vous avez été déconnecté avec succès" });
