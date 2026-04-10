@@ -129,7 +129,7 @@ const ParentDashboard = () => {
         .eq("parent_id", userId);
       if (error) throw error;
 
-      let mappedChildren = (data as any[]) || [];
+      let mappedChildren = ((data as any[]) || []).filter((link) => link.child);
       const childIds = mappedChildren.map(c => c.child_id);
 
       if (childIds.length > 0) {
