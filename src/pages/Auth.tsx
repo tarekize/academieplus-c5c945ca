@@ -131,7 +131,7 @@ const Auth = () => {
             } else if (roleData?.role === 'admin') {
               navigate("/dashboard");
             } else {
-              navigate("/liste-cours");
+              navigate("/abonnements");
             }
           }, 0);
         }
@@ -164,7 +164,7 @@ const Auth = () => {
         } else if (roleData?.role === 'admin') {
           navigate("/dashboard");
         } else {
-          navigate("/liste-cours");
+          navigate("/abonnements");
         }
       }
     });
