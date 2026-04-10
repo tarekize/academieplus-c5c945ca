@@ -721,9 +721,19 @@ const ParentDashboard = () => {
                                   variant="outline"
                                   size="sm"
                                   className="text-green-600 hover:text-green-700 border-green-200 bg-green-50 hover:bg-green-100"
-                                  onClick={() => {
-                                    const rem = Math.ceil((link.subscription!.total_days || 0) - (link.subscription!.days_used || 0));
-                                    sonnerToast.success(`Abonnement actif : ${rem} jours restants`);
+                                   onClick={() => {
+                                     const sub = link.subscription!;
+                                     let rem: number;
+                                     if (sub.is_paused) {
+                                       rem = Math.max(0, (sub.total_days || 0) - Number(sub.days_used || 0));
+                                     } else {
+                                       const now = new Date();
+                                       const lastTick = new Date(sub.last_tick_at);
+                                       const elapsedDays = (now.getTime() - lastTick.getTime()) / (1000 * 60 * 60 * 24);
+                                       rem = Math.max(0, (sub.total_days || 0) - Number(sub.days_used || 0) - elapsedDays);
+                                     }
+                                     rem = Math.floor(rem);
+                                     sonnerToast.success(`Abonnement actif : ${rem} jours restants`);
                                   }}
                                 >
                                   <Check className="h-4 w-4 mr-2" />
