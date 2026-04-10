@@ -717,56 +717,62 @@ const ParentDashboard = () => {
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-2">
                               {link.subscription ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-green-600 hover:text-green-700 border-green-200 bg-green-50 hover:bg-green-100"
-                                   onClick={() => {
-                                     const sub = link.subscription!;
-                                     let rem: number;
-                                     if (sub.is_paused) {
-                                       rem = Math.max(0, (sub.total_days || 0) - Number(sub.days_used || 0));
-                                     } else {
-                                       const now = new Date();
-                                       const lastTick = new Date(sub.last_tick_at);
-                                       const elapsedDays = (now.getTime() - lastTick.getTime()) / (1000 * 60 * 60 * 24);
-                                       rem = Math.max(0, (sub.total_days || 0) - Number(sub.days_used || 0) - elapsedDays);
-                                     }
-                                     rem = Math.floor(rem);
-                                     sonnerToast.success(`Abonnement actif : ${rem} jours restants`);
-                                  }}
-                                >
-                                  <Check className="h-4 w-4 mr-2" />
-                                  Actif
-                                </Button>
+                                (() => {
+                                  const sub = link.subscription!;
+                                  let rem: number;
+                                  if (sub.is_paused) {
+                                    rem = Math.max(0, (sub.total_days || 0) - Number(sub.days_used || 0));
+                                  } else {
+                                    const now = new Date();
+                                    const lastTick = new Date(sub.last_tick_at);
+                                    const elapsedDays = (now.getTime() - lastTick.getTime()) / (1000 * 60 * 60 * 24);
+                                    rem = Math.max(0, (sub.total_days || 0) - Number(sub.days_used || 0) - elapsedDays);
+                                  }
+                                  rem = Math.floor(rem);
+
+                                  return (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-emerald-700 hover:text-emerald-800 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
+                                      onClick={() => sonnerToast.success(`Abonnement actif : ${rem} jours restants`)}
+                                      title="Voir les jours restants de l'abonnement"
+                                    >
+                                      <Check className="h-4 w-4 mr-2" />
+                                      {rem} jours restants
+                                    </Button>
+                                  );
+                                })()
                               ) : (
                                 <Button
-                                  variant="outline"
                                   size="sm"
-                                  className="text-primary hover:text-primary border-primary/20 bg-primary/5"
+                                  className="bg-primary text-primary-foreground hover:bg-primary/90"
                                   onClick={() => {
                                     setSelectedChildForActivation(link.child_id);
                                     setActivationCode("");
                                     setActivationDialogOpen(true);
                                   }}
+                                  title="Ajouter un code d'abonnement pour cet enfant"
                                 >
                                   <Key className="h-4 w-4 mr-2" />
-                                  Activer
+                                  Activer l'abonnement
                                 </Button>
                               )}
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setSelectedChild(link)}
+                                title="Voir le tableau de bord et la progression de cet enfant"
                               >
-                                <Eye className="h-4 w-4 mr-2" />Voir
+                                <Eye className="h-4 w-4 mr-2" />Tableau de bord
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => navigate(`/parent-cours/${link.child_id}`)}
+                                title="Consulter les leçons et le contenu de cours"
                               >
-                                <BookOpen className="h-4 w-4 mr-2" />Les cours
+                                <BookOpen className="h-4 w-4 mr-2" />Contenu des cours
                               </Button>
                               <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleRemoveChild(link.id)}>
                                 <Trash2 className="h-4 w-4" />
