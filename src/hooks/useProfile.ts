@@ -173,7 +173,7 @@ export function useLinkedChildren() {
         .eq("parent_id", user.id);
 
       if (error) throw error;
-      setChildren((data as any[]) || []);
+      setChildren((((data as any[]) || []).filter((link) => link.child)));
     } catch (error: any) {
       console.error("Error fetching children:", error);
     } finally {
