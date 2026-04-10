@@ -206,6 +206,20 @@ const Account = () => {
       onClick: () => navigate("/mes-informations"),
     },
     {
+      title: "Les abonnements",
+      description: "Gérer mes abonnements et plans",
+      icon: Key,
+      color: "text-purple-600",
+      onClick: () => navigate("/abonnements"),
+    },
+    {
+      title: "Facturation",
+      description: "Consulter et télécharger mes factures",
+      icon: FileText,
+      color: "text-emerald-600",
+      onClick: () => navigate("/factures"),
+    },
+    {
       title: "Mes statistiques",
       description: "Voir mes statistiques d'apprentissage",
       icon: BarChart3,
