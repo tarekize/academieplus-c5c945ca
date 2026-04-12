@@ -588,17 +588,34 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         setCompletedExerciseIds(prev => {
           if (prev.includes(itemId)) return prev;
           persistItemCompletion("exercises", itemId);
-          return [...prev, itemId];
+          const newCompleted = [...prev, itemId];
+          // Remove from subset and replace
+          setSubsetUnderstandEx(currentSubset => {
+            const filtered = currentSubset.filter(e => e.id !== itemId);
+            const halfEx = Math.ceil(dbExercises.length / 2);
+            const pool = dbExercises.slice(halfEx).filter(e => !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
+            const replacement = pool.sort(() => 0.5 - Math.random()).slice(0, 1);
+            return [...filtered, ...replacement];
+          });
+          return newCompleted;
         });
       } else {
         setCompletedQuizIds(prev => {
           if (prev.includes(itemId)) return prev;
           persistItemCompletion("quizzes", itemId);
-          return [...prev, itemId];
+          const newCompleted = [...prev, itemId];
+          setSubsetUnderstandQz(currentSubset => {
+            const filtered = currentSubset.filter(q => q.id !== itemId);
+            const halfQuiz = Math.ceil(dbQuizzes.length / 2);
+            const pool = dbQuizzes.slice(halfQuiz).filter(q => !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
+            const replacement = pool.sort(() => 0.5 - Math.random()).slice(0, 1);
+            return [...filtered, ...replacement];
+          });
+          return newCompleted;
         });
       }
     }
-  }, [persistItemCompletion]);
+  }, [persistItemCompletion, dbExercises, dbQuizzes]);
 
   const handleDiscoverAnswer = useCallback((isCorrect: boolean, type: "exercise" | "quiz", itemId?: string) => {
     console.log(`📝 [handleDiscoverAnswer] ${type}: isCorrect=${isCorrect}, id=${itemId}`);
