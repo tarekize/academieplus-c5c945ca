@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdaptiveContent } from "@/hooks/useAdaptiveContent";
+import { useActivityTimeTracker } from "@/hooks/useActivityTimeTracker";
 
 export interface DBQuizQuestion {
   id: string;
@@ -99,6 +100,19 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [aiExerciseAnswers, setAiExerciseAnswers] = useState<Record<number, string>>({});
   const [aiExerciseResults, setAiExerciseResults] = useState<Record<number, boolean | null>>({});
   const [aiShowHints, setAiShowHints] = useState<Record<number, boolean>>({});
+
+  // Time tracking: map activeSection to activity type
+  const currentActivityType = activeSection === "exercises" ? "exercise" as const
+    : activeSection === "quiz" ? "quiz" as const
+    : "reading" as const;
+
+  useActivityTimeTracker({
+    userId: userId || propUserId || null,
+    chapterId,
+    lessonId: lessonId || null,
+    activityType: currentActivityType,
+    enabled: !!chapterId,
+  });
 
   // Reset showCorrectOnly on tab change
   useEffect(() => {
