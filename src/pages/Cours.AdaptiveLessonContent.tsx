@@ -148,7 +148,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                                             <button
                                                 type="button"
                                                 className="cursor-pointer hover:text-primary transition-colors"
-                                                onClick={() => { setLessonView("course"); setActiveActivity(null); setActiveSectionLabel(null); setActivityResetKey(k => k + 1); }}
+                                                onClick={() => { setActiveSectionLabel(null); setActivityResetKey(k => k + 1); }}
                                             >
                                                 {selectedLesson.titleAr || selectedLesson.title}
                                             </button>
