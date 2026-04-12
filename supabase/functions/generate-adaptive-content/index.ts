@@ -86,11 +86,14 @@ Format JSON attendu (tableau de 5 objets) :
     "question": "question en arabe liée exclusivement à ${lessonTitle}",
     "options": ["choix A", "choix B", "choix C", "choix D"],
     "correct_answer": "le choix correct (doit être identique à un des options)",
-    "explanation": "explication courte en arabe qui aide l'élève à comprendre son erreur"
+    "explanation": "explication courte en arabe qui aide l'élève à comprendre son erreur",
+    "difficulty": 3
   }
 ]
 
-IMPORTANT: Les questions et réponses doivent être en ARABE. Les formules mathématiques peuvent rester en notation standard. NE GÉNÈRE AUCUNE question en dehors du sujet "${lessonTitle}".`;
+IMPORTANT: 
+- "difficulty" est un entier de 1 à 5 (1=très facile, 2=facile, 3=moyen, 4=difficile, 5=très difficile). Varie la difficulté des 5 questions autour du niveau ${diffScale}/5 de l'élève.
+- Les questions et réponses doivent être en ARABE. Les formules mathématiques peuvent rester en notation standard. NE GÉNÈRE AUCUNE question en dehors du sujet "${lessonTitle}".`;
   } else if (contentType === "exercise") {
     system = `Tu es un professeur de mathématiques algérien expert. Tu génères des exercices adaptés au niveau de l'élève. Réponds UNIQUEMENT avec un tableau JSON valide, sans texte ni markdown autour.`;
     user = `${contextBlock}
@@ -104,11 +107,14 @@ Format JSON attendu (tableau de 5 objets) :
     "statement": "énoncé complet en arabe",
     "expected_answer": "réponse attendue (valeur numérique ou expression courte)",
     "hints": ["indice 1 en arabe", "indice 2 en arabe"],
-    "solution": "solution détaillée étape par étape en arabe"
+    "solution": "solution détaillée étape par étape en arabe",
+    "difficulty": 3
   }
 ]
 
-IMPORTANT: Tout le contenu doit être en ARABE. Les formules mathématiques restent en notation standard. NE GÉNÈRE AUCUN exercice en dehors du sujet "${lessonTitle}".`;
+IMPORTANT: 
+- "difficulty" est un entier de 1 à 5 (1=très facile, 2=facile, 3=moyen, 4=difficile, 5=très difficile). Varie la difficulté des 5 exercices autour du niveau ${diffScale}/5 de l'élève.
+- Tout le contenu doit être en ARABE. Les formules mathématiques restent en notation standard. NE GÉNÈRE AUCUN exercice en dehors du sujet "${lessonTitle}".`;
   } else {
     system = `Tu es un professeur de mathématiques algérien expert. Tu génères des fiches de révision. Réponds UNIQUEMENT avec un tableau JSON valide, sans texte ni markdown autour.`;
     user = `${contextBlock}
