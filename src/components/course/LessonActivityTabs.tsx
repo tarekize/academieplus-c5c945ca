@@ -101,6 +101,19 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [aiExerciseResults, setAiExerciseResults] = useState<Record<number, boolean | null>>({});
   const [aiShowHints, setAiShowHints] = useState<Record<number, boolean>>({});
 
+  // Time tracking: map activeSection to activity type
+  const currentActivityType = activeSection === "exercises" ? "exercise" as const
+    : activeSection === "quiz" ? "quiz" as const
+    : "reading" as const;
+
+  useActivityTimeTracker({
+    userId: userId || propUserId || null,
+    chapterId,
+    lessonId: lessonId || null,
+    activityType: currentActivityType,
+    enabled: !!chapterId,
+  });
+
   // Reset showCorrectOnly on tab change
   useEffect(() => {
     setShowCorrectOnly(false);
