@@ -261,47 +261,31 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     />
                 )}
 
-                {/* Course content OR Activity View */}
-                {lessonView === "course" ? (
-                    <div className="flex flex-col lg:flex-row gap-8 mt-6">
-                        <Card className="flex-1 min-w-0">
-                            <CardContent className="p-6">
-                                <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
-                                {loadingContent ? (
-                                    <div className="flex justify-center py-12">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                                    </div>
-                                ) : lessonContent ? (
-                                    <div
-                                        className="prose prose-sm dark:prose-invert max-w-none"
-                                        dangerouslySetInnerHTML={{ __html: injectHeaderIds(lessonContent) }}
-                                    />
-                                ) : (
-                                    <p className="text-center text-muted-foreground py-12">
-                                        Aucun contenu disponible pour cette leçon.
-                                    </p>
-                                )}
-                            </CardContent>
-                        </Card>
-                        <div className="w-full lg:w-72 shrink-0">
-                            <TableOfContents htmlContent={lessonContent} />
-                        </div>
+                {/* Course content - always show */}
+                <div className="flex flex-col lg:flex-row gap-8 mt-6">
+                    <Card className="flex-1 min-w-0">
+                        <CardContent className="p-6">
+                            <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
+                            {loadingContent ? (
+                                <div className="flex justify-center py-12">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                                </div>
+                            ) : lessonContent ? (
+                                <div
+                                    className="prose prose-sm dark:prose-invert max-w-none"
+                                    dangerouslySetInnerHTML={{ __html: injectHeaderIds(lessonContent) }}
+                                />
+                            ) : (
+                                <p className="text-center text-muted-foreground py-12">
+                                    Aucun contenu disponible pour cette leçon.
+                                </p>
+                            )}
+                        </CardContent>
+                    </Card>
+                    <div className="w-full lg:w-72 shrink-0">
+                        <TableOfContents htmlContent={lessonContent} />
                     </div>
-                ) : (
-                    <div className="mt-6">
-                        {selectedLesson && userId && (
-                            <AdaptiveActivities
-                                lessonId={selectedLesson.id}
-                                chapterId={chapter.id}
-                                userId={userId}
-                                schoolLevel={schoolLevel || ""}
-                                lessonTitle={selectedLesson.titleAr || selectedLesson.title}
-                                chapterTitle={chapter.title}
-                                initialTab={activeActivity as "quiz" | "exercise" | "revision" | null}
-                            />
-                        )}
-                    </div>
-                )}
+                </div>
             </div>
         );
     };
