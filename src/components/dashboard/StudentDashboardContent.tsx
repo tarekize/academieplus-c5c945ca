@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,8 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Clock, Target, TrendingUp, GraduationCap, BookOpen, Brain, FileText,
+  Clock, Target, TrendingUp, TrendingDown, GraduationCap, BookOpen, Brain, FileText,
+  CheckCircle2, XCircle, Zap, RefreshCw, Activity,
 } from "lucide-react";
 
 interface StudentDashboardContentProps {
@@ -29,35 +30,10 @@ interface ChapterStat {
   chapterId: string;
   chapterTitle: string;
   totalTime: number;
-  quizAccuracy: number;
-  exerciseAccuracy: number;
+  accuracy: number;
   level: number;
-}
-
-interface DayEntry {
-  date: string;
-  minutes: number;
-}
-
-const LEVEL_LABELS: Record<string, { label: string; color: string }> = {
-  advanced: { label: "متقدم", color: "bg-primary text-primary-foreground" },
-  intermediate: { label: "متوسط", color: "bg-accent text-accent-foreground" },
-  beginner: { label: "مبتدئ", color: "bg-secondary text-secondary-foreground" },
-  needs_work: { label: "يحتاج عمل", color: "bg-destructive text-destructive-foreground" },
-};
-
-function getLevelBadge(accuracy: number) {
-  if (accuracy >= 80) return LEVEL_LABELS.advanced;
-  if (accuracy >= 60) return LEVEL_LABELS.intermediate;
-  if (accuracy >= 35) return LEVEL_LABELS.beginner;
-  return LEVEL_LABELS.needs_work;
-}
-
-function formatTime(seconds: number) {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}h ${m}min`;
-  return `${m}min`;
+  correctAnswers: number;
+  totalAnswers: number;
 }
 
 const SCHOOL_LEVELS: Record<string, string> = {
@@ -71,324 +47,493 @@ const SCHOOL_LEVELS: Record<string, string> = {
   terminale: "Terminale",
 };
 
+function formatTime(seconds: number) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h > 0) return `${h}س ${m}د`;
+  return `${m}د`;
+}
+
+function getLevelInfo(accuracy: number) {
+  if (accuracy >= 80) return { label: "متقدم", color: "text-emerald-600", bg: "bg-emerald-500/10", border: "border-emerald-500/20", ring: "hsl(152, 60%, 45%)" };
+  if (accuracy >= 60) return { label: "جيد", color: "text-blue-600", bg: "bg-blue-500/10", border: "border-blue-500/20", ring: "hsl(217, 70%, 55%)" };
+  if (accuracy >= 35) return { label: "متوسط", color: "text-amber-600", bg: "bg-amber-500/10", border: "border-amber-500/20", ring: "hsl(38, 80%, 55%)" };
+  return { label: "يحتاج تحسين", color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/20", ring: "hsl(0, 70%, 55%)" };
+}
+
+const REFRESH_INTERVAL = 30000; // 30s auto-refresh
+
 export default function StudentDashboardContent({ userId, profile, hideActions }: StudentDashboardContentProps) {
   const navigate = useNavigate();
   const [chapterStats, setChapterStats] = useState<ChapterStat[]>([]);
-  const [dailyData, setDailyData] = useState<DayEntry[]>([]);
   const [totalTime, setTotalTime] = useState(0);
-  const [avgAccuracy, setAvgAccuracy] = useState(0);
+  const [totalCorrect, setTotalCorrect] = useState(0);
   const [totalAnswers, setTotalAnswers] = useState(0);
   const [avgLevel, setAvgLevel] = useState(0);
+  const [streak, setStreak] = useState(0);
   const [activityBreakdown, setActivityBreakdown] = useState({ reading: 0, quiz: 0, exercise: 0 });
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Utilisateur";
 
-  useEffect(() => { fetchScores(); }, [userId]);
+  const fetchScores = useCallback(async (silent = false) => {
+    if (!silent) setIsRefreshing(true);
+    try {
+      const { data } = await supabase
+        .from("student_scores")
+        .select("*, chapter:chapters(title, title_ar)")
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false });
 
-  const fetchScores = async () => {
-    const { data } = await supabase
-      .from("student_scores")
-      .select("*, chapter:chapters(title, title_ar)")
-      .eq("user_id", userId)
-      .order("updated_at", { ascending: true });
-
-    if (!data || data.length === 0) return;
-
-    const chapterMap = new Map<string, ChapterStat>();
-    let totalReadTime = 0, totalQuizTime = 0, totalExTime = 0;
-
-    data.forEach((s: any) => {
-      const cId = s.chapter_id || "unknown";
-      const existing = chapterMap.get(cId) || {
-        chapterId: cId,
-        chapterTitle: s.chapter?.title_ar || s.chapter?.title || "—",
-        totalTime: 0, quizAccuracy: 0, exerciseAccuracy: 0, level: 0,
-      };
-      existing.totalTime += (s.reading_time_seconds || 0) + (s.quiz_time_seconds || 0) + (s.exercise_time_seconds || 0);
-      existing.quizAccuracy = Number(s.accuracy_rate) || existing.quizAccuracy;
-      existing.exerciseAccuracy = Number(s.accuracy_rate) || existing.exerciseAccuracy;
-      existing.level = s.current_level;
-      chapterMap.set(cId, existing);
-      totalReadTime += s.reading_time_seconds || 0;
-      totalQuizTime += s.quiz_time_seconds || 0;
-      totalExTime += s.exercise_time_seconds || 0;
-    });
-
-    setChapterStats(Array.from(chapterMap.values()));
-    setActivityBreakdown({ reading: totalReadTime, quiz: totalQuizTime, exercise: totalExTime });
-
-    const now = new Date();
-    const dayMap = new Map<string, number>();
-    for (let i = 13; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      dayMap.set(d.toISOString().slice(0, 10), 0);
-    }
-    data.forEach((s: any) => {
-      const day = s.updated_at?.slice(0, 10);
-      if (day && dayMap.has(day)) {
-        dayMap.set(day, (dayMap.get(day) || 0) + (s.reading_time_seconds || 0) + (s.quiz_time_seconds || 0) + (s.exercise_time_seconds || 0));
+      if (!data || data.length === 0) {
+        if (!silent) setIsRefreshing(false);
+        return;
       }
-    });
-    setDailyData(Array.from(dayMap.entries()).map(([date, seconds]) => ({ date, minutes: Math.round(seconds / 60) })));
 
-    const total = totalReadTime + totalQuizTime + totalExTime;
-    setTotalTime(total);
-    const totalAns = data.reduce((s: number, d: any) => s + (d.total_answers || 0), 0);
-    setTotalAnswers(totalAns);
-    const acc = Math.round(data.reduce((s: number, d: any) => s + Number(d.accuracy_rate || 0), 0) / data.length);
-    setAvgAccuracy(acc);
-    const lvl = Math.round(data.reduce((s: number, d: any) => s + (d.current_level || 0), 0) / data.length);
-    setAvgLevel(lvl);
-  };
+      const chapterMap = new Map<string, ChapterStat>();
+      let totalReadTime = 0, totalQuizTime = 0, totalExTime = 0;
+      let sumCorrect = 0, sumTotal = 0, sumLevel = 0, maxStreak = 0;
 
-  // SVG chart helpers
-  const maxMinutes = Math.max(...dailyData.map(d => d.minutes), 1);
-  const chartW = 600;
-  const chartH = 180;
-  const padding = 30;
-  const plotW = chartW - padding * 2;
-  const plotH = chartH - padding * 2;
-  const barWidth = plotW / Math.max(dailyData.length, 1) * 0.6;
-  const barGap = plotW / Math.max(dailyData.length, 1) * 0.4;
+      data.forEach((s: any) => {
+        const cId = s.chapter_id || "unknown";
+        const existing = chapterMap.get(cId) || {
+          chapterId: cId,
+          chapterTitle: s.chapter?.title_ar || s.chapter?.title || "—",
+          totalTime: 0, accuracy: 0, level: 0, correctAnswers: 0, totalAnswers: 0,
+        };
+        existing.totalTime += (s.reading_time_seconds || 0) + (s.quiz_time_seconds || 0) + (s.exercise_time_seconds || 0);
+        existing.accuracy = Number(s.accuracy_rate) || existing.accuracy;
+        existing.level = s.current_level || existing.level;
+        existing.correctAnswers += s.correct_answers || 0;
+        existing.totalAnswers += s.total_answers || 0;
+        chapterMap.set(cId, existing);
+        totalReadTime += s.reading_time_seconds || 0;
+        totalQuizTime += s.quiz_time_seconds || 0;
+        totalExTime += s.exercise_time_seconds || 0;
+        sumCorrect += s.correct_answers || 0;
+        sumTotal += s.total_answers || 0;
+        sumLevel += s.current_level || 0;
+        if ((s.streak || 0) > maxStreak) maxStreak = s.streak;
+      });
+
+      setChapterStats(Array.from(chapterMap.values()));
+      setActivityBreakdown({ reading: totalReadTime, quiz: totalQuizTime, exercise: totalExTime });
+      setTotalTime(totalReadTime + totalQuizTime + totalExTime);
+      setTotalCorrect(sumCorrect);
+      setTotalAnswers(sumTotal);
+      setAvgLevel(data.length > 0 ? Math.round(sumLevel / data.length) : 0);
+      setStreak(maxStreak);
+      setLastUpdated(new Date());
+    } finally {
+      if (!silent) setIsRefreshing(false);
+    }
+  }, [userId]);
+
+  useEffect(() => { fetchScores(); }, [fetchScores]);
+
+  // Auto-refresh
+  useEffect(() => {
+    const interval = setInterval(() => fetchScores(true), REFRESH_INTERVAL);
+    return () => clearInterval(interval);
+  }, [fetchScores]);
+
+  // Realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('student-scores-realtime')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'student_scores',
+        filter: `user_id=eq.${userId}`,
+      }, () => {
+        fetchScores(true);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [userId, fetchScores]);
+
+  const successRate = totalAnswers > 0 ? Math.round((totalCorrect / totalAnswers) * 100) : 0;
+  const errorRate = totalAnswers > 0 ? 100 - successRate : 0;
+  const totalErrors = totalAnswers - totalCorrect;
+  const levelInfo = getLevelInfo(avgLevel);
 
   const totalActivity = activityBreakdown.reading + activityBreakdown.quiz + activityBreakdown.exercise || 1;
   const readPct = Math.round((activityBreakdown.reading / totalActivity) * 100);
   const quizPct = Math.round((activityBreakdown.quiz / totalActivity) * 100);
   const exPct = 100 - readPct - quizPct;
 
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const todayMinutes = dailyData.find(d => d.date === todayStr)?.minutes || 0;
-  const engagementPct = Math.min(100, Math.round((todayMinutes / 60) * 100));
-  const avgPerDay = dailyData.length > 0 ? Math.round(dailyData.reduce((s, d) => s + d.minutes, 0) / dailyData.length) : 0;
-
-  // Level ring SVG
-  const ringRadius = 52;
+  // Level ring
+  const ringRadius = 56;
   const ringCircumference = 2 * Math.PI * ringRadius;
   const ringOffset = ringCircumference - (avgLevel / 100) * ringCircumference;
 
-  const stats = [
-    { icon: Clock, label: "وقت الدراسة", value: formatTime(totalTime), color: "text-primary", bg: "bg-primary/10" },
-    { icon: TrendingUp, label: "متوسط يومي", value: `${avgPerDay} min`, color: "text-accent", bg: "bg-accent/10" },
-    { icon: Target, label: "دقة الإجابات", value: `${avgAccuracy}%`, color: "text-primary", bg: "bg-primary/10" },
-    { icon: GraduationCap, label: "المستوى", value: SCHOOL_LEVELS[profile.school_level || ""] || "—", color: "text-muted-foreground", bg: "bg-muted" },
-  ];
+  // Success ring
+  const sRingRadius = 40;
+  const sRingCircumference = 2 * Math.PI * sRingRadius;
+  const sRingOffset = sRingCircumference - (successRate / 100) * sRingCircumference;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Main Content */}
-      <div className="lg:col-span-2 space-y-6">
-        {/* Welcome + Stats */}
-        <Card className="overflow-hidden">
-          <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-transparent p-6 pb-2">
-            <h2 className="text-2xl font-bold text-foreground">مرحباً {profile.first_name || fullName} 👋</h2>
-            <p className="text-sm text-muted-foreground mt-1">ملخص نشاطك التعليمي</p>
-          </div>
-          <CardContent className="p-6 pt-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {stats.map((s, i) => (
-                <div key={i} className="flex flex-col items-center text-center p-4 rounded-xl bg-card border border-border/50 hover:border-primary/20 transition-colors">
-                  <div className={`p-2.5 rounded-lg ${s.bg} mb-2`}>
-                    <s.icon className={`h-5 w-5 ${s.color}`} />
-                  </div>
-                  <p className="text-lg font-bold text-foreground">{s.value}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
-                </div>
-              ))}
+    <div className="space-y-6" dir="rtl">
+      {/* Header Row */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">مرحباً {profile.first_name || fullName} 👋</h2>
+          <p className="text-sm text-muted-foreground mt-1">لوحة المتابعة الدراسية</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] text-muted-foreground">
+            آخر تحديث: {lastUpdated.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}
+          </span>
+          <Button
+            variant="ghost" size="icon"
+            onClick={() => fetchScores()}
+            disabled={isRefreshing}
+            className="h-8 w-8"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Cards Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Success Rate */}
+        <Card className="border-emerald-500/20 bg-emerald-500/5">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="p-2 rounded-lg bg-emerald-500/10">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              </div>
+              <span className="text-2xl font-bold text-emerald-600">{successRate}%</span>
             </div>
+            <p className="text-xs text-muted-foreground">نسبة النجاح</p>
+            <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
+              <div className="h-full rounded-full bg-emerald-500 transition-all duration-700" style={{ width: `${successRate}%` }} />
+            </div>
+            <p className="text-[10px] text-emerald-600 mt-1">{totalCorrect} إجابة صحيحة</p>
           </CardContent>
         </Card>
 
-        {/* Evolution & Breakdown */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              التطور والتوزيع
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Bar Chart */}
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">الوقت (دقائق) — آخر 14 يوماً</p>
-                <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full h-auto" style={{ maxHeight: 200 }}>
-                  {/* Grid */}
-                  {[0, 0.5, 1].map(f => {
-                    const y = padding + plotH - f * plotH;
-                    return (
-                      <g key={f}>
-                        <line x1={padding} y1={y} x2={padding + plotW} y2={y} stroke="hsl(var(--border))" strokeWidth="0.5" />
-                        <text x={padding - 5} y={y + 3} textAnchor="end" fontSize="9" fill="hsl(var(--muted-foreground))">{Math.round(maxMinutes * f)}</text>
-                      </g>
-                    );
-                  })}
-                  {/* Bars */}
-                  {dailyData.map((d, i) => {
-                    const x = padding + i * (plotW / dailyData.length) + barGap / 2;
-                    const barH = (d.minutes / maxMinutes) * plotH;
-                    const y = padding + plotH - barH;
-                    return (
-                      <g key={i}>
-                        <rect x={x} y={y} width={barWidth} height={barH} rx={3} fill="hsl(var(--primary))" opacity={d.date === todayStr ? 1 : 0.6} />
-                        {i % 2 === 0 && (
-                          <text x={x + barWidth / 2} y={chartH - 4} textAnchor="middle" fontSize="7" fill="hsl(var(--muted-foreground))">
-                            {d.date.slice(8)}
-                          </text>
-                        )}
-                      </g>
-                    );
-                  })}
-                </svg>
+        {/* Error Rate */}
+        <Card className="border-red-500/20 bg-red-500/5">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="p-2 rounded-lg bg-red-500/10">
+                <XCircle className="h-4 w-4 text-red-500" />
               </div>
-
-              {/* Activity + Level Ring */}
-              <div className="space-y-4">
-                <p className="text-xs text-muted-foreground">توزيع النشاط</p>
-                <div className="space-y-3">
-                  {[
-                    { label: "قراءة الدروس", icon: BookOpen, pct: readPct, color: "bg-primary" },
-                    { label: "اسئله متعدده الاختيارات", icon: Brain, pct: quizPct, color: "bg-accent" },
-                    { label: "تمارين", icon: FileText, pct: exPct, color: "bg-muted-foreground/50" },
-                  ].map((item, i) => (
-                    <div key={i}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="flex items-center gap-1.5"><item.icon className="h-3 w-3" /> {item.label}</span>
-                        <span className="text-muted-foreground">{item.pct}%</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-secondary overflow-hidden">
-                        <div className={`h-full rounded-full ${item.color} transition-all`} style={{ width: `${item.pct}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Level Ring */}
-                <div className="flex items-center justify-center pt-2">
-                  <div className="relative">
-                    <svg width="130" height="130" viewBox="0 0 130 130">
-                      <circle cx="65" cy="65" r={ringRadius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="10" />
-                      <circle
-                        cx="65" cy="65" r={ringRadius} fill="none"
-                        stroke="hsl(var(--primary))" strokeWidth="10"
-                        strokeLinecap="round"
-                        strokeDasharray={ringCircumference}
-                        strokeDashoffset={ringOffset}
-                        transform="rotate(-90 65 65)"
-                        className="transition-all duration-700"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-2xl font-bold text-primary">{avgLevel}%</span>
-                      <span className="text-[10px] text-muted-foreground">المستوى العام</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <span className="text-2xl font-bold text-red-500">{errorRate}%</span>
             </div>
+            <p className="text-xs text-muted-foreground">نسبة الخطأ</p>
+            <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
+              <div className="h-full rounded-full bg-red-500 transition-all duration-700" style={{ width: `${errorRate}%` }} />
+            </div>
+            <p className="text-[10px] text-red-500 mt-1">{totalErrors} إجابة خاطئة</p>
           </CardContent>
         </Card>
 
-        {/* Chapter Table */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">تفاصيل حسب الفصل</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {chapterStats.length === 0 ? (
-              <div className="text-center py-12">
-                <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
-                <p className="text-muted-foreground">لا توجد بيانات بعد. ابدأ بدراسة الدروس!</p>
+        {/* Current Level */}
+        <Card className={`${levelInfo.border} ${levelInfo.bg}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className={`p-2 rounded-lg ${levelInfo.bg}`}>
+                <Zap className={`h-4 w-4 ${levelInfo.color}`} />
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-10">#</TableHead>
-                      <TableHead>الفصل</TableHead>
-                      <TableHead>الوقت</TableHead>
-                      <TableHead>اختبار</TableHead>
-                      <TableHead>تمارين</TableHead>
-                      <TableHead>المستوى</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {chapterStats.map((ch, i) => {
-                      const badge = getLevelBadge(ch.level);
-                      return (
-                        <TableRow key={ch.chapterId}>
-                          <TableCell className="font-medium text-muted-foreground">{i + 1}</TableCell>
-                          <TableCell className="font-medium">{ch.chapterTitle}</TableCell>
-                          <TableCell className="text-sm">{formatTime(ch.totalTime)}</TableCell>
-                          <TableCell className="text-sm">{ch.quizAccuracy}%</TableCell>
-                          <TableCell className="text-sm">{ch.exerciseAccuracy}%</TableCell>
-                          <TableCell>
-                            <Badge className={`${badge.color} text-xs`}>{badge.label}</Badge>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+              <span className={`text-2xl font-bold ${levelInfo.color}`}>{avgLevel}%</span>
+            </div>
+            <p className="text-xs text-muted-foreground">المستوى الحالي</p>
+            <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
+              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${avgLevel}%`, backgroundColor: levelInfo.ring }} />
+            </div>
+            <Badge variant="outline" className={`mt-1 text-[10px] ${levelInfo.color} border-current`}>{levelInfo.label}</Badge>
+          </CardContent>
+        </Card>
+
+        {/* Study Time */}
+        <Card className="border-blue-500/20 bg-blue-500/5">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="p-2 rounded-lg bg-blue-500/10">
+                <Clock className="h-4 w-4 text-blue-600" />
+              </div>
+              <span className="text-2xl font-bold text-blue-600">{formatTime(totalTime)}</span>
+            </div>
+            <p className="text-xs text-muted-foreground">وقت الدراسة</p>
+            <div className="flex items-center gap-1 mt-2">
+              <Activity className="h-3 w-3 text-blue-500" />
+              <span className="text-[10px] text-blue-600">{totalAnswers} إجابة إجمالية</span>
+            </div>
+            {streak > 0 && (
+              <div className="flex items-center gap-1 mt-1">
+                <Zap className="h-3 w-3 text-amber-500" />
+                <span className="text-[10px] text-amber-600">سلسلة: {streak}</span>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Sidebar */}
-      <div className="space-y-6">
-        {/* Profile Card */}
-        <Card className="overflow-hidden">
-          <div className="bg-gradient-to-br from-primary/10 to-accent/5 p-6 pb-4 text-center">
-            <Avatar className="h-20 w-20 mx-auto mb-3 ring-4 ring-background shadow-lg">
-              <AvatarImage src={profile.avatar_url || undefined} />
-              <AvatarFallback className="text-xl bg-primary text-primary-foreground">{fullName.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <h3 className="font-semibold text-lg text-foreground">{fullName}</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">{profile.email}</p>
-            <Badge variant="outline" className="mt-2">
-              {SCHOOL_LEVELS[profile.school_level || ""] || profile.school_level || "—"}
-            </Badge>
-          </div>
-          <CardContent className="p-5">
-            <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
-              <span>التفاعل اليومي</span>
-              <span>{todayMinutes} / 60 min</span>
-            </div>
-            <Progress value={engagementPct} className="h-2.5" />
-            <p className="text-[10px] text-muted-foreground mt-1 text-center">الهدف: 1 ساعة يومياً</p>
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
-        {!hideActions && (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Visual Overview: Level Ring + Success/Error Ring */}
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">إجراءات سريعة</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Target className="h-4 w-4 text-primary" />
+                نظرة عامة على الأداء
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <Button className="w-full justify-start gap-2" onClick={() => navigate("/liste-cours")}>
-                <BookOpen className="h-4 w-4" /> فتح دروسي
-              </Button>
-              <Button variant="outline" className="w-full justify-start gap-2" onClick={() => navigate("/liste-cours")}>
-                <Brain className="h-4 w-4" /> إجراء اختبار
-              </Button>
-              <Button variant="secondary" className="w-full justify-start gap-2" onClick={() => navigate("/liste-cours")}>
-                <FileText className="h-4 w-4" /> مراجعة
-              </Button>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Level Ring */}
+                <div className="flex flex-col items-center">
+                  <div className="relative">
+                    <svg width="140" height="140" viewBox="0 0 140 140">
+                      <circle cx="70" cy="70" r={ringRadius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="10" />
+                      <circle
+                        cx="70" cy="70" r={ringRadius} fill="none"
+                        stroke={levelInfo.ring} strokeWidth="10"
+                        strokeLinecap="round"
+                        strokeDasharray={ringCircumference}
+                        strokeDashoffset={ringOffset}
+                        transform="rotate(-90 70 70)"
+                        className="transition-all duration-1000"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className={`text-3xl font-bold ${levelInfo.color}`}>{avgLevel}%</span>
+                      <span className="text-[10px] text-muted-foreground">المستوى العام</span>
+                    </div>
+                  </div>
+                  <Badge className={`mt-3 ${levelInfo.bg} ${levelInfo.color} border-0`}>{levelInfo.label}</Badge>
+                </div>
+
+                {/* Success/Error Breakdown */}
+                <div className="flex flex-col items-center justify-center space-y-4">
+                  <div className="flex items-center gap-6">
+                    {/* Success mini ring */}
+                    <div className="relative">
+                      <svg width="96" height="96" viewBox="0 0 96 96">
+                        <circle cx="48" cy="48" r={sRingRadius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="7" />
+                        <circle
+                          cx="48" cy="48" r={sRingRadius} fill="none"
+                          stroke="hsl(152, 60%, 45%)" strokeWidth="7"
+                          strokeLinecap="round"
+                          strokeDasharray={sRingCircumference}
+                          strokeDashoffset={sRingOffset}
+                          transform="rotate(-90 48 48)"
+                          className="transition-all duration-1000"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-lg font-bold text-emerald-600">{successRate}%</span>
+                        <span className="text-[8px] text-muted-foreground">نجاح</span>
+                      </div>
+                    </div>
+
+                    {/* Error mini ring */}
+                    <div className="relative">
+                      <svg width="96" height="96" viewBox="0 0 96 96">
+                        <circle cx="48" cy="48" r={sRingRadius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="7" />
+                        <circle
+                          cx="48" cy="48" r={sRingRadius} fill="none"
+                          stroke="hsl(0, 70%, 55%)" strokeWidth="7"
+                          strokeLinecap="round"
+                          strokeDasharray={sRingCircumference}
+                          strokeDashoffset={sRingCircumference - (errorRate / 100) * sRingCircumference}
+                          transform="rotate(-90 48 48)"
+                          className="transition-all duration-1000"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-lg font-bold text-red-500">{errorRate}%</span>
+                        <span className="text-[8px] text-muted-foreground">خطأ</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-center space-y-1">
+                    <p className="text-xs text-muted-foreground">{totalCorrect} صحيحة من {totalAnswers} إجابة</p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
-        )}
 
-        {/* Total Answers */}
-        <Card className="bg-primary/5 border-primary/10">
-          <CardContent className="p-6 text-center">
-            <p className="text-4xl font-bold text-primary">{totalAnswers}</p>
-            <p className="text-xs text-muted-foreground mt-1">إجمالي الإجابات</p>
-          </CardContent>
-        </Card>
+          {/* Activity Distribution */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-primary" />
+                توزيع النشاط
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  { label: "قراءة الدروس", icon: BookOpen, pct: readPct, color: "bg-blue-500", textColor: "text-blue-600", time: activityBreakdown.reading },
+                  { label: "اختبارات", icon: Brain, pct: quizPct, color: "bg-violet-500", textColor: "text-violet-600", time: activityBreakdown.quiz },
+                  { label: "تمارين", icon: FileText, pct: exPct, color: "bg-amber-500", textColor: "text-amber-600", time: activityBreakdown.exercise },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    <div className="p-2 rounded-lg bg-muted/50">
+                      <item.icon className={`h-4 w-4 ${item.textColor}`} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-medium">{item.label}</span>
+                        <span className="text-muted-foreground">{item.pct}% — {formatTime(item.time)}</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                        <div className={`h-full rounded-full ${item.color} transition-all duration-700`} style={{ width: `${item.pct}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Chapter Details Table */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <BookOpen className="h-4 w-4 text-primary" />
+                تفاصيل حسب الفصل
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {chapterStats.length === 0 ? (
+                <div className="text-center py-12">
+                  <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
+                  <p className="text-muted-foreground">لا توجد بيانات بعد. ابدأ بدراسة الدروس!</p>
+                  {!hideActions && (
+                    <Button className="mt-4" onClick={() => navigate("/liste-cours")}>
+                      <BookOpen className="h-4 w-4 ml-2" /> ابدأ الآن
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">#</TableHead>
+                        <TableHead className="text-right">الفصل</TableHead>
+                        <TableHead className="text-right">الوقت</TableHead>
+                        <TableHead className="text-right">نسبة النجاح</TableHead>
+                        <TableHead className="text-right">المستوى</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {chapterStats.map((ch, i) => {
+                        const chLevel = getLevelInfo(ch.level);
+                        const chSuccess = ch.totalAnswers > 0 ? Math.round((ch.correctAnswers / ch.totalAnswers) * 100) : 0;
+                        return (
+                          <TableRow key={ch.chapterId}>
+                            <TableCell className="font-medium text-muted-foreground">{i + 1}</TableCell>
+                            <TableCell className="font-medium">{ch.chapterTitle}</TableCell>
+                            <TableCell className="text-sm">{formatTime(ch.totalTime)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <div className="w-16 h-1.5 rounded-full bg-secondary overflow-hidden">
+                                  <div className="h-full rounded-full bg-emerald-500" style={{ width: `${chSuccess}%` }} />
+                                </div>
+                                <span className="text-xs">{chSuccess}%</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className={`${chLevel.color} border-current text-xs`}>{chLevel.label}</Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Profile Card */}
+          <Card className="overflow-hidden">
+            <div className="bg-gradient-to-br from-primary/10 to-accent/5 p-6 pb-4 text-center">
+              <Avatar className="h-20 w-20 mx-auto mb-3 ring-4 ring-background shadow-lg">
+                <AvatarImage src={profile.avatar_url || undefined} />
+                <AvatarFallback className="text-xl bg-primary text-primary-foreground">{fullName.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <h3 className="font-semibold text-lg text-foreground">{fullName}</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">{profile.email}</p>
+              <Badge variant="outline" className="mt-2">
+                {SCHOOL_LEVELS[profile.school_level || ""] || profile.school_level || "—"}
+              </Badge>
+            </div>
+          </Card>
+
+          {/* Summary Stats */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">ملخص الأداء</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between py-2 border-b border-border/50">
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> إجابات صحيحة
+                </span>
+                <span className="text-sm font-bold text-emerald-600">{totalCorrect}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-border/50">
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <XCircle className="h-3.5 w-3.5 text-red-500" /> إجابات خاطئة
+                </span>
+                <span className="text-sm font-bold text-red-500">{totalErrors}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-border/50">
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Target className="h-3.5 w-3.5 text-primary" /> إجمالي الإجابات
+                </span>
+                <span className="text-sm font-bold">{totalAnswers}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-border/50">
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <TrendingUp className="h-3.5 w-3.5 text-emerald-500" /> نسبة النجاح
+                </span>
+                <span className="text-sm font-bold text-emerald-600">{successRate}%</span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <TrendingDown className="h-3.5 w-3.5 text-red-500" /> نسبة الخطأ
+                </span>
+                <span className="text-sm font-bold text-red-500">{errorRate}%</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          {!hideActions && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">إجراءات سريعة</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button className="w-full justify-start gap-2" onClick={() => navigate("/liste-cours")}>
+                  <BookOpen className="h-4 w-4" /> فتح دروسي
+                </Button>
+                <Button variant="outline" className="w-full justify-start gap-2" onClick={() => navigate("/liste-cours")}>
+                  <Brain className="h-4 w-4" /> إجراء اختبار
+                </Button>
+                <Button variant="secondary" className="w-full justify-start gap-2" onClick={() => navigate("/liste-cours")}>
+                  <FileText className="h-4 w-4" /> مراجعة
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );
