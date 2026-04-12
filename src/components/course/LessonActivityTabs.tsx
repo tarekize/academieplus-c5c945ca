@@ -588,17 +588,34 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         setCompletedExerciseIds(prev => {
           if (prev.includes(itemId)) return prev;
           persistItemCompletion("exercises", itemId);
-          return [...prev, itemId];
+          const newCompleted = [...prev, itemId];
+          // Remove from subset and replace
+          setSubsetUnderstandEx(currentSubset => {
+            const filtered = currentSubset.filter(e => e.id !== itemId);
+            const halfEx = Math.ceil(dbExercises.length / 2);
+            const pool = dbExercises.slice(halfEx).filter(e => !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
+            const replacement = pool.sort(() => 0.5 - Math.random()).slice(0, 1);
+            return [...filtered, ...replacement];
+          });
+          return newCompleted;
         });
       } else {
         setCompletedQuizIds(prev => {
           if (prev.includes(itemId)) return prev;
           persistItemCompletion("quizzes", itemId);
-          return [...prev, itemId];
+          const newCompleted = [...prev, itemId];
+          setSubsetUnderstandQz(currentSubset => {
+            const filtered = currentSubset.filter(q => q.id !== itemId);
+            const halfQuiz = Math.ceil(dbQuizzes.length / 2);
+            const pool = dbQuizzes.slice(halfQuiz).filter(q => !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
+            const replacement = pool.sort(() => 0.5 - Math.random()).slice(0, 1);
+            return [...filtered, ...replacement];
+          });
+          return newCompleted;
         });
       }
     }
-  }, [persistItemCompletion]);
+  }, [persistItemCompletion, dbExercises, dbQuizzes]);
 
   const handleDiscoverAnswer = useCallback((isCorrect: boolean, type: "exercise" | "quiz", itemId?: string) => {
     console.log(`📝 [handleDiscoverAnswer] ${type}: isCorrect=${isCorrect}, id=${itemId}`);
@@ -608,13 +625,30 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         setCompletedExerciseIds(prev => {
           if (prev.includes(itemId)) return prev;
           persistItemCompletion("exercises", itemId);
-          return [...prev, itemId];
+          const newCompleted = [...prev, itemId];
+          // Remove from subset and replace with new item from pool
+          setSubsetDiscoverEx(currentSubset => {
+            const filtered = currentSubset.filter(e => e.id !== itemId);
+            const halfEx = Math.ceil(dbExercises.length / 2);
+            const pool = dbExercises.slice(0, halfEx).filter(e => !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
+            const replacement = pool.sort(() => 0.5 - Math.random()).slice(0, 1);
+            return [...filtered, ...replacement];
+          });
+          return newCompleted;
         });
       } else {
         setCompletedQuizIds(prev => {
           if (prev.includes(itemId)) return prev;
           persistItemCompletion("quizzes", itemId);
-          return [...prev, itemId];
+          const newCompleted = [...prev, itemId];
+          setSubsetDiscoverQz(currentSubset => {
+            const filtered = currentSubset.filter(q => q.id !== itemId);
+            const halfQuiz = Math.ceil(dbQuizzes.length / 2);
+            const pool = dbQuizzes.slice(0, halfQuiz).filter(q => !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
+            const replacement = pool.sort(() => 0.5 - Math.random()).slice(0, 1);
+            return [...filtered, ...replacement];
+          });
+          return newCompleted;
         });
       }
     }
@@ -628,7 +662,6 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
           if (next >= REQUIRED_CORRECT && !persistedUnlockEx) {
             console.log("🎉 [handleDiscoverAnswer] exercises: UNLOCKING!");
-            // This is a NEW unlock -> Show animation
             setShowUnlockMessage(true);
             setTimeout(() => {
               setShowUnlockMessage(false);
@@ -649,7 +682,6 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
           if (next >= REQUIRED_CORRECT && !persistedUnlockQz) {
             console.log("🎉 [handleDiscoverAnswer] quizzes: UNLOCKING!");
-            // This is a NEW unlock -> Show animation
             setShowUnlockMessage(true);
             setTimeout(() => {
               setShowUnlockMessage(false);
@@ -662,7 +694,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         });
       }
     }
-  }, [persistUnlock, persistedUnlockEx, persistedUnlockQz]);
+  }, [persistUnlock, persistedUnlockEx, persistedUnlockQz, persistItemCompletion, dbExercises, dbQuizzes]);
 
   const handleReloadDiscover = () => {
     if (activeSection === "exercises") {
