@@ -2,10 +2,12 @@ import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Brain, PenTool, BookOpen, Sparkles, Eye, Lightbulb, Rocket, ChevronRight, Lock, CheckCircle2, RefreshCw, Pencil, Dices } from "lucide-react";
+import { Brain, PenTool, BookOpen, Sparkles, Eye, Lightbulb, Rocket, ChevronRight, Lock, CheckCircle2, RefreshCw, Pencil, Dices, XCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
+import { useAdaptiveContent } from "@/hooks/useAdaptiveContent";
 
 export interface DBQuizQuestion {
   id: string;
@@ -35,10 +37,12 @@ interface LessonActivityTabsProps {
   chapterTitle: string;
   lessonId?: string;
   lessonTitle: string;
-  onGenerateAI: (type: "quiz" | "exercise") => void;
+  onGenerateAI?: (type: "quiz" | "exercise") => void;
   onSectionChange?: (section: string | null) => void;
   hiddenBackButton?: boolean;
   readOnly?: boolean;
+  userId?: string;
+  schoolLevel?: string;
 }
 
 type ActivitySection = "exercises" | "quiz" | "revision" | null;
@@ -52,7 +56,7 @@ const stepConfig: { id: StepLevel; label: string; labelAr: string; icon: typeof 
   { id: "approfondir", label: "Approfondir", labelAr: "تعمّق", icon: Rocket, color: "text-purple-500" },
 ];
 
-export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonId, lessonTitle, onGenerateAI, onSectionChange, hiddenBackButton, readOnly }: LessonActivityTabsProps) {
+export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonId, lessonTitle, onGenerateAI, onSectionChange, hiddenBackButton, readOnly, userId: propUserId, schoolLevel }: LessonActivityTabsProps) {
   const [activeSection, setActiveSection] = useState<ActivitySection>(null);
   const [activeStep, setActiveStep] = useState<StepLevel>("decouvrir");
 
@@ -85,6 +89,16 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   // State for notification and reload button
   const [showUnlockMessage, setShowUnlockMessage] = useState(false);
   const [showReloadBtn, setShowReloadBtn] = useState(false);
+
+  // AI adaptive content for "approfondir" step
+  const adaptiveContent = useAdaptiveContent(
+    lessonId || "", chapterId, propUserId || userId || "", schoolLevel || "", lessonTitle, chapterTitle
+  );
+  const [aiQuizAnswers, setAiQuizAnswers] = useState<Record<number, string>>({});
+  const [aiQuizResults, setAiQuizResults] = useState<Record<number, boolean>>({});
+  const [aiExerciseAnswers, setAiExerciseAnswers] = useState<Record<number, string>>({});
+  const [aiExerciseResults, setAiExerciseResults] = useState<Record<number, boolean | null>>({});
+  const [aiShowHints, setAiShowHints] = useState<Record<number, boolean>>({});
 
   // Reset showCorrectOnly on tab change
   useEffect(() => {
@@ -1055,22 +1069,132 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 <Rocket className="h-5 w-5" />
                 <span dir="rtl">{isQuiz ? "اسئله متعدده الاختيارات ذكية" : "تمارين ذكية"} - إنشاء بالذكاء الاصطناعي</span>
               </div>
+              {((isQuiz && adaptiveContent.quizzes.length > 0) || (!isQuiz && adaptiveContent.exercises.length > 0)) && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    if (isQuiz) { setAiQuizAnswers({}); setAiQuizResults({}); }
+                    else { setAiExerciseAnswers({}); setAiExerciseResults({}); }
+                    adaptiveContent.resetSessionCounters();
+                    adaptiveContent.generateContent(isQuiz ? "quiz" : "exercise");
+                  }}
+                  disabled={isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise}
+                >
+                  <RefreshCw className={cn("h-4 w-4 mr-2", (isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise) && "animate-spin")} />
+                  تجديد
+                </Button>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8">
-              <div className="bg-purple-50 dark:bg-purple-900/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+            {(isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise) ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-32 w-full rounded-lg" />
+                ))}
               </div>
-              <h3 className="text-lg font-bold mb-2">Générer avec l'IA</h3>
-              <p className="text-muted-foreground mb-6 max-w-sm mx-auto" dir="rtl">
-                {isQuiz ? "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء اسئله متعدده الاختيارات متقدمة تناسب مستواك" : "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء تمارين متقدمة تناسب مستواك"}
-              </p>
-              <Button size="lg" onClick={() => onGenerateAI(isQuiz ? "quiz" : "exercise")} className="bg-purple-600 hover:bg-purple-700 text-white font-bold gap-2 transition-all hover:scale-105 shadow-md shadow-purple-500/20">
-                <Sparkles className="h-4 w-4 text-yellow-300" />
-                Générer avec l'IA
-              </Button>
-            </div>
+            ) : (isQuiz ? adaptiveContent.quizzes.length : adaptiveContent.exercises.length) === 0 ? (
+              <div className="text-center py-8">
+                <div className="bg-purple-50 dark:bg-purple-900/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                </div>
+                <h3 className="text-lg font-bold mb-2">Générer avec l'IA</h3>
+                <p className="text-muted-foreground mb-6 max-w-sm mx-auto" dir="rtl">
+                  {isQuiz ? "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء اسئله متعدده الاختيارات متقدمة تناسب مستواك" : "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء تمارين متقدمة تناسب مستواك"}
+                </p>
+                <Button
+                  size="lg"
+                  onClick={() => adaptiveContent.generateContent(isQuiz ? "quiz" : "exercise")}
+                  disabled={isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise}
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-bold gap-2 transition-all hover:scale-105 shadow-md shadow-purple-500/20"
+                >
+                  <Sparkles className="h-4 w-4 text-yellow-300" />
+                  {(isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise) ? "جاري الإنشاء..." : "Générer avec l'IA"}
+                </Button>
+              </div>
+            ) : isQuiz ? (
+              <div className="space-y-3">
+                {adaptiveContent.quizzes.map((q, idx) => (
+                  <Card key={idx} className={cn("transition-all", aiQuizResults[idx] === true && "border-green-500/50 bg-green-500/5", aiQuizResults[idx] === false && "border-red-500/50 bg-red-500/5")}>
+                    <CardContent className="p-4">
+                      <p className="font-medium mb-3" dir="rtl">{idx + 1}. {q.question}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {q.options.map((opt, oIdx) => (
+                          <Button
+                            key={oIdx}
+                            variant={aiQuizAnswers[idx] === opt ? (aiQuizResults[idx] ? "default" : "destructive") : "outline"}
+                            className={cn("justify-start text-right", opt === q.correct_answer && aiQuizResults[idx] !== undefined && "border-green-500 bg-green-500/10")}
+                            onClick={() => {
+                              if (aiQuizResults[idx] !== undefined) return;
+                              setAiQuizAnswers(prev => ({ ...prev, [idx]: opt }));
+                              const isCorrect = opt === q.correct_answer;
+                              setAiQuizResults(prev => ({ ...prev, [idx]: isCorrect }));
+                              adaptiveContent.recordAnswer(isCorrect, 0, "quiz");
+                            }}
+                            disabled={aiQuizResults[idx] !== undefined}
+                            dir="rtl"
+                          >
+                            {aiQuizResults[idx] !== undefined && opt === q.correct_answer && <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />}
+                            {aiQuizResults[idx] === false && aiQuizAnswers[idx] === opt && <XCircle className="h-4 w-4 mr-2" />}
+                            {opt}
+                          </Button>
+                        ))}
+                      </div>
+                      {aiQuizResults[idx] !== undefined && q.explanation && (
+                        <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl">
+                          <span className="font-medium">الشرح: </span>{q.explanation}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {adaptiveContent.exercises.map((ex, idx) => (
+                  <Card key={idx}>
+                    <CardContent className="p-4 space-y-3">
+                      <h4 className="font-semibold" dir="rtl">{idx + 1}. {ex.title}</h4>
+                      <p className="text-sm" dir="rtl">{ex.statement}</p>
+                      {ex.hints && ex.hints.length > 0 && (
+                        <Button variant="ghost" size="sm" onClick={() => setAiShowHints(prev => ({ ...prev, [idx]: !prev[idx] }))} className="text-yellow-600">
+                          <Lightbulb className="h-4 w-4 mr-1" />
+                          {aiShowHints[idx] ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                          تلميحات
+                        </Button>
+                      )}
+                      {aiShowHints[idx] && ex.hints?.map((hint, hIdx) => (
+                        <p key={hIdx} className="text-xs text-muted-foreground bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {hint}</p>
+                      ))}
+                      {aiExerciseResults[idx] === undefined && (
+                        <div className="flex gap-2" dir="rtl">
+                          <input className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background" placeholder="أدخل إجابتك..." value={aiExerciseAnswers[idx] || ""} onChange={(e) => setAiExerciseAnswers(prev => ({ ...prev, [idx]: e.target.value }))} dir="rtl" />
+                          <Button size="sm" onClick={() => {
+                            const userAnswer = aiExerciseAnswers[idx]?.trim();
+                            if (!userAnswer) return;
+                            const isCorrect = userAnswer === ex.expected_answer;
+                            setAiExerciseResults(prev => ({ ...prev, [idx]: isCorrect }));
+                            adaptiveContent.recordAnswer(isCorrect, 0, "exercise");
+                          }}>تحقق</Button>
+                        </div>
+                      )}
+                      {aiExerciseResults[idx] !== undefined && (
+                        <div className={cn("p-2 rounded text-sm", aiExerciseResults[idx] ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
+                          {aiExerciseResults[idx] ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${ex.expected_answer}`}
+                        </div>
+                      )}
+                      {ex.solution && (
+                        <details className="text-sm">
+                          <summary className="cursor-pointer text-muted-foreground hover:text-foreground">عرض الحل</summary>
+                          <div className="p-3 bg-muted/50 rounded-lg mt-2" dir="rtl">{ex.solution}</div>
+                        </details>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

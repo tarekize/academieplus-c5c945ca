@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { TableOfContents } from "@/components/course/TableOfContents";
 import { injectHeaderIds } from "@/lib/toc-utils";
-import { AdaptiveActivities } from "@/components/course/AdaptiveActivities";
 import { LessonActivityTabs } from "@/components/course/LessonActivityTabs";
 import {
     Breadcrumb,
@@ -26,8 +25,6 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const [loadingContent, setLoadingContent] = useState(false);
     const readingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const readingStartRef = useRef<number>(0);
-    const [lessonView, setLessonView] = useState<"course" | "activity">("course");
-    const [activeActivity, setActiveActivity] = useState<string | null>(null);
     const [activeSectionLabel, setActiveSectionLabel] = useState<string | null>(null);
     const [activityResetKey, setActivityResetKey] = useState(0);
 
@@ -35,8 +32,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     useEffect(() => {
         setSelectedLesson(null);
         setLessonContent("");
-        setLessonView("course");
-        setActiveActivity(null);
+        setActiveSectionLabel(null);
     }, [chapter.id]);
 
     useEffect(() => {
@@ -68,8 +64,6 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         }
         // Élève → show content inline
         setSelectedLesson(lesson);
-        setLessonView("course");
-        setActiveActivity(null);
         setActiveSectionLabel(null);
 
         const cachedContent = lesson.content || "";
@@ -99,8 +93,6 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const handleBackToList = () => {
         setSelectedLesson(null);
         setLessonContent("");
-        setLessonView("course");
-        setActiveActivity(null);
         setActiveSectionLabel(null);
         setActivityResetKey(k => k + 1);
         onBackToLessons?.();
@@ -156,7 +148,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                                             <button
                                                 type="button"
                                                 className="cursor-pointer hover:text-primary transition-colors"
-                                                onClick={() => { setLessonView("course"); setActiveActivity(null); setActiveSectionLabel(null); setActivityResetKey(k => k + 1); }}
+                                                onClick={() => { setActiveSectionLabel(null); setActivityResetKey(k => k + 1); }}
                                             >
                                                 {selectedLesson.titleAr || selectedLesson.title}
                                             </button>
@@ -244,10 +236,8 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         lessonId={selectedLesson.id}
                         lessonTitle={selectedLesson.titleAr || selectedLesson.title}
                         readOnly={readOnly}
-                        onGenerateAI={(type) => {
-                            setActiveActivity(type);
-                            setLessonView("activity");
-                        }}
+                        userId={userId}
+                        schoolLevel={schoolLevel}
                         onSectionChange={(section) => {
                             const sectionLabels: Record<string, string> = {
                                 exercises: "تمارين",
@@ -255,11 +245,8 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                                 revision: "Révision",
                             };
                             if (section !== null) {
-                                setLessonView("activity");
                                 setActiveSectionLabel(sectionLabels[section] || section);
                             } else {
-                                setLessonView("course");
-                                setActiveActivity(null);
                                 setActiveSectionLabel(null);
                             }
                         }}
@@ -267,47 +254,31 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     />
                 )}
 
-                {/* Course content OR Activity View */}
-                {lessonView === "course" ? (
-                    <div className="flex flex-col lg:flex-row gap-8 mt-6">
-                        <Card className="flex-1 min-w-0">
-                            <CardContent className="p-6">
-                                <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
-                                {loadingContent ? (
-                                    <div className="flex justify-center py-12">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                                    </div>
-                                ) : lessonContent ? (
-                                    <div
-                                        className="prose prose-sm dark:prose-invert max-w-none"
-                                        dangerouslySetInnerHTML={{ __html: injectHeaderIds(lessonContent) }}
-                                    />
-                                ) : (
-                                    <p className="text-center text-muted-foreground py-12">
-                                        Aucun contenu disponible pour cette leçon.
-                                    </p>
-                                )}
-                            </CardContent>
-                        </Card>
-                        <div className="w-full lg:w-72 shrink-0">
-                            <TableOfContents htmlContent={lessonContent} />
-                        </div>
+                {/* Course content - always show */}
+                <div className="flex flex-col lg:flex-row gap-8 mt-6">
+                    <Card className="flex-1 min-w-0">
+                        <CardContent className="p-6">
+                            <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
+                            {loadingContent ? (
+                                <div className="flex justify-center py-12">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                                </div>
+                            ) : lessonContent ? (
+                                <div
+                                    className="prose prose-sm dark:prose-invert max-w-none"
+                                    dangerouslySetInnerHTML={{ __html: injectHeaderIds(lessonContent) }}
+                                />
+                            ) : (
+                                <p className="text-center text-muted-foreground py-12">
+                                    Aucun contenu disponible pour cette leçon.
+                                </p>
+                            )}
+                        </CardContent>
+                    </Card>
+                    <div className="w-full lg:w-72 shrink-0">
+                        <TableOfContents htmlContent={lessonContent} />
                     </div>
-                ) : (
-                    <div className="mt-6">
-                        {selectedLesson && userId && (
-                            <AdaptiveActivities
-                                lessonId={selectedLesson.id}
-                                chapterId={chapter.id}
-                                userId={userId}
-                                schoolLevel={schoolLevel || ""}
-                                lessonTitle={selectedLesson.titleAr || selectedLesson.title}
-                                chapterTitle={chapter.title}
-                                initialTab={activeActivity as "quiz" | "exercise" | "revision" | null}
-                            />
-                        )}
-                    </div>
-                )}
+                </div>
             </div>
         );
     };
