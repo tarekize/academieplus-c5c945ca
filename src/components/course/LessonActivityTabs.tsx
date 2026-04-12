@@ -964,7 +964,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 ) : (
                   completedExerciseIds.length > 0 ? (
                     dbExercises.filter(e => completedExerciseIds.includes(e.id)).map((ex, idx) => (
-                      <TrackedExerciseCard key={`completed-ex-${ex.id}`} exercise={ex} index={idx} readOnly={true} onAnswer={() => { }} />
+                      <CompletedExerciseCard key={`completed-ex-${ex.id}`} exercise={ex} index={idx} />
                     ))
                   ) : <EmptyState text="لا توجد تمارين صحيحة بعد" />
                 )}
@@ -1053,7 +1053,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 ) : (
                   completedExerciseIds.length > 0 ? (
                     dbExercises.filter(e => completedExerciseIds.includes(e.id)).map((ex, idx) => (
-                      <TrackedExerciseCard key={`completed-ex-und-${ex.id}`} exercise={ex} index={idx} readOnly={true} onAnswer={() => { }} />
+                      <CompletedExerciseCard key={`completed-ex-und-${ex.id}`} exercise={ex} index={idx} />
                     ))
                   ) : <EmptyState text="لا توجد تمارين صحيحة بعد" />
                 )}
