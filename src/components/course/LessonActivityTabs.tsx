@@ -90,6 +90,16 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [showUnlockMessage, setShowUnlockMessage] = useState(false);
   const [showReloadBtn, setShowReloadBtn] = useState(false);
 
+  // AI adaptive content for "approfondir" step
+  const adaptiveContent = useAdaptiveContent(
+    lessonId || "", chapterId, propUserId || userId || "", schoolLevel || "", lessonTitle, chapterTitle
+  );
+  const [aiQuizAnswers, setAiQuizAnswers] = useState<Record<number, string>>({});
+  const [aiQuizResults, setAiQuizResults] = useState<Record<number, boolean>>({});
+  const [aiExerciseAnswers, setAiExerciseAnswers] = useState<Record<number, string>>({});
+  const [aiExerciseResults, setAiExerciseResults] = useState<Record<number, boolean | null>>({});
+  const [aiShowHints, setAiShowHints] = useState<Record<number, boolean>>({});
+
   // Reset showCorrectOnly on tab change
   useEffect(() => {
     setShowCorrectOnly(false);
