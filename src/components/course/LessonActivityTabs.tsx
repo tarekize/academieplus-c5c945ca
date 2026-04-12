@@ -1287,6 +1287,26 @@ const DifficultyIndicator = ({ level }: { level?: number }) => {
 
 function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; index: number }) {
   const [showAnswer, setShowAnswer] = useState(false);
+  const [correctAnswer, setCorrectAnswer] = useState<string | null>(question.correct_answer || null);
+  const [explanation, setExplanation] = useState<string | null>(question.explanation || null);
+  const [loading, setLoading] = useState(false);
+
+  const handleToggle = async () => {
+    if (!showAnswer && !correctAnswer) {
+      setLoading(true);
+      try {
+        const { data } = await supabase.rpc('check_quiz_answer', { _quiz_id: question.id, _user_answer: '__fetch__' });
+        const res = data as { correct_answer?: string; explanation?: string } | null;
+        if (res) {
+          setCorrectAnswer(res.correct_answer || null);
+          setExplanation(res.explanation || null);
+        }
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    }
+    setShowAnswer(!showAnswer);
+  };
+
   return (
     <Card className="border-green-500/50 bg-green-500/5 transition-all hover:bg-green-500/10">
       <CardContent className="p-4 space-y-2">
@@ -1301,13 +1321,13 @@ function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; inde
           <CheckCircle2 className="h-4 w-4 text-green-500" />
           <span className="text-sm text-green-600 font-medium">إجابة صحيحة</span>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => setShowAnswer(!showAnswer)}>
-          {showAnswer ? "إخفاء الحل" : "عرض الحل"}
+        <Button variant="ghost" size="sm" onClick={handleToggle} disabled={loading}>
+          {loading ? "جاري التحميل..." : showAnswer ? "إخفاء الحل" : "عرض الحل"}
         </Button>
         {showAnswer && (
           <div className="p-3 bg-muted/50 rounded-lg text-sm space-y-2" dir="rtl">
-            <div><span className="font-medium">الإجابة الصحيحة: </span>{question.correct_answer}</div>
-            {question.explanation && <div><span className="font-medium">الشرح: </span>{question.explanation}</div>}
+            <div><span className="font-medium">الإجابة الصحيحة: </span>{correctAnswer || "—"}</div>
+            {explanation && <div><span className="font-medium">الشرح: </span>{explanation}</div>}
           </div>
         )}
       </CardContent>
@@ -1317,6 +1337,26 @@ function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; inde
 
 function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; index: number }) {
   const [showSolution, setShowSolution] = useState(false);
+  const [expectedAnswer, setExpectedAnswer] = useState<string | null>(exercise.expected_answer || null);
+  const [solution, setSolution] = useState<string | null>(exercise.solution || null);
+  const [loading, setLoading] = useState(false);
+
+  const handleToggle = async () => {
+    if (!showSolution && !expectedAnswer) {
+      setLoading(true);
+      try {
+        const { data } = await supabase.rpc('check_exercise_answer', { _exercise_id: exercise.id, _user_answer: '__fetch__' });
+        const res = data as { expected_answer?: string; solution?: string } | null;
+        if (res) {
+          setExpectedAnswer(res.expected_answer || null);
+          setSolution(res.solution || null);
+        }
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    }
+    setShowSolution(!showSolution);
+  };
+
   return (
     <Card className="border-green-500/50 bg-green-500/5 transition-all hover:bg-green-500/10">
       <CardContent className="p-4 space-y-2">
@@ -1329,13 +1369,13 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
           <CheckCircle2 className="h-4 w-4 text-green-500" />
           <span className="text-sm text-green-600 font-medium">إجابة صحيحة</span>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => setShowSolution(!showSolution)}>
-          {showSolution ? "إخفاء الحل" : "عرض الحل"}
+        <Button variant="ghost" size="sm" onClick={handleToggle} disabled={loading}>
+          {loading ? "جاري التحميل..." : showSolution ? "إخفاء الحل" : "عرض الحل"}
         </Button>
         {showSolution && (
           <div className="p-3 bg-muted/50 rounded-lg text-sm space-y-2" dir="rtl">
-            <div><span className="font-medium">الإجابة: </span>{exercise.expected_answer}</div>
-            {exercise.solution && <div><span className="font-medium">الحل: </span>{exercise.solution}</div>}
+            <div><span className="font-medium">الإجابة: </span>{expectedAnswer || "—"}</div>
+            {solution && <div><span className="font-medium">الحل: </span>{solution}</div>}
           </div>
         )}
       </CardContent>
