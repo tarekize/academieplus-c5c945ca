@@ -1418,8 +1418,33 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
 
 function QuizQuestionCard({ question, index, readOnly }: { question: DBQuizQuestion; index: number; readOnly?: boolean }) {
   const [selected, setSelected] = useState<string | null>(null);
-  const isCorrect = selected === question.correct_answer;
-  const answered = selected !== null;
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
+  const [explanation, setExplanation] = useState<string>("");
+  const [answered, setAnswered] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSelect = async (opt: string) => {
+    if (readOnly || answered || submitting) return;
+    setSelected(opt);
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.rpc('check_quiz_answer', { _quiz_id: question.id, _user_answer: opt });
+      if (error) throw error;
+      const result = data as { is_correct: boolean; explanation: string; correct_answer: string | null };
+      setIsCorrect(result.is_correct);
+      setCorrectAnswer(result.correct_answer);
+      setExplanation(result.explanation || "");
+      setAnswered(true);
+    } catch {
+      if (question.correct_answer) {
+        setIsCorrect(opt === question.correct_answer);
+        setCorrectAnswer(opt === question.correct_answer ? null : question.correct_answer);
+        setExplanation(question.explanation || "");
+        setAnswered(true);
+      }
+    } finally { setSubmitting(false); }
+  };
 
   return (
     <Card className={cn("transition-all", answered && isCorrect && "border-green-500/50 bg-green-500/5", answered && !isCorrect && "border-red-500/50 bg-red-500/5")}>
@@ -1431,12 +1456,15 @@ function QuizQuestionCard({ question, index, readOnly }: { question: DBQuizQuest
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {question.options.map((opt, oIdx) => (
             <Button key={oIdx} variant={selected === opt ? (isCorrect ? "default" : "destructive") : "outline"}
-              className={cn("justify-start text-right", opt === question.correct_answer && answered && "border-green-500 bg-green-500/10")}
-              onClick={() => !readOnly && !answered && setSelected(opt)} disabled={readOnly || answered} dir="rtl">{opt}</Button>
+              className={cn("justify-start text-right", correctAnswer && opt === correctAnswer && answered && "border-green-500 bg-green-500/10")}
+              onClick={() => handleSelect(opt)} disabled={readOnly || answered || submitting} dir="rtl">{opt}</Button>
           ))}
         </div>
-        {answered && question.explanation && (
-          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">الشرح: </span>{question.explanation}</div>
+        {answered && explanation && (
+          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">الشرح: </span>{explanation}</div>
+        )}
+        {answered && !isCorrect && correctAnswer && (
+          <div className="mt-2 p-2 rounded text-sm bg-green-500/10 text-green-700" dir="rtl">✅ الإجابة الصحيحة: {correctAnswer}</div>
         )}
       </CardContent>
     </Card>
@@ -1447,11 +1475,28 @@ function ExerciseCard({ exercise, index, readOnly }: { exercise: DBExercise; ind
   const [answer, setAnswer] = useState("");
   const [revealed, setRevealed] = useState(false);
   const [result, setResult] = useState<boolean | null>(null);
+  const [expectedAnswer, setExpectedAnswer] = useState<string>("");
+  const [solution, setSolution] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = () => {
-    if (!answer.trim()) return;
-    const isCorrect = answer.trim() === exercise.expected_answer || exercise.accepted_answers.includes(answer.trim());
-    setResult(isCorrect);
+  const handleSubmit = async () => {
+    if (!answer.trim() || submitting) return;
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.rpc('check_exercise_answer', { _exercise_id: exercise.id, _user_answer: answer.trim() });
+      if (error) throw error;
+      const res = data as { is_correct: boolean; expected_answer: string; solution: string };
+      setResult(res.is_correct);
+      setExpectedAnswer(res.expected_answer);
+      setSolution(res.solution);
+    } catch {
+      if (exercise.expected_answer) {
+        const isCorrect = answer.trim() === exercise.expected_answer || (exercise.accepted_answers || []).includes(answer.trim());
+        setResult(isCorrect);
+        setExpectedAnswer(exercise.expected_answer);
+        setSolution(exercise.solution || "");
+      }
+    } finally { setSubmitting(false); }
   };
 
   return (
@@ -1465,16 +1510,20 @@ function ExerciseCard({ exercise, index, readOnly }: { exercise: DBExercise; ind
         {!readOnly && result === null && (
           <div className="flex gap-2" dir="rtl">
             <input className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background" placeholder="أدخل إجابتك..." value={answer} onChange={(e) => setAnswer(e.target.value)} dir="rtl" />
-            <Button size="sm" onClick={handleSubmit}>تحقق</Button>
+            <Button size="sm" onClick={handleSubmit} disabled={submitting}>{submitting ? "..." : "تحقق"}</Button>
           </div>
         )}
         {result !== null && (
           <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-            {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${exercise.expected_answer}`}
+            {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}
           </div>
         )}
-        <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
-        {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{exercise.solution}</div>}
+        {(solution || result !== null) && (
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
+            {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{solution || expectedAnswer}</div>}
+          </>
+        )}
       </CardContent>
     </Card>
   );
