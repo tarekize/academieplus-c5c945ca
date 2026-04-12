@@ -1118,7 +1118,14 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 {adaptiveContent.quizzes.map((q, idx) => (
                   <Card key={idx} className={cn("transition-all", aiQuizResults[idx] === true && "border-green-500/50 bg-green-500/5", aiQuizResults[idx] === false && "border-red-500/50 bg-red-500/5")}>
                     <CardContent className="p-4">
-                      <p className="font-medium mb-3" dir="rtl">{idx + 1}. {q.question}</p>
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="font-medium" dir="rtl">{idx + 1}. {q.question}</p>
+                        <div className="flex items-center gap-0.5 shrink-0 ml-2" title={`مستوى الصعوبة: ${q.difficulty || 3}/5`}>
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Pencil key={i} className={cn("h-3.5 w-3.5", i < (q.difficulty || 3) ? "text-orange-500" : "text-muted-foreground/25")} />
+                          ))}
+                        </div>
+                      </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {q.options.map((opt, oIdx) => (
                           <Button
@@ -1155,7 +1162,14 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 {adaptiveContent.exercises.map((ex, idx) => (
                   <Card key={idx}>
                     <CardContent className="p-4 space-y-3">
-                      <h4 className="font-semibold" dir="rtl">{idx + 1}. {ex.title}</h4>
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-semibold" dir="rtl">{idx + 1}. {ex.title}</h4>
+                        <div className="flex items-center gap-0.5 shrink-0 ml-2" title={`مستوى الصعوبة: ${ex.difficulty || 3}/5`}>
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Pencil key={i} className={cn("h-3.5 w-3.5", i < (ex.difficulty || 3) ? "text-orange-500" : "text-muted-foreground/25")} />
+                          ))}
+                        </div>
+                      </div>
                       <p className="text-sm" dir="rtl">{ex.statement}</p>
                       {ex.hints && ex.hints.length > 0 && (
                         <Button variant="ghost" size="sm" onClick={() => setAiShowHints(prev => ({ ...prev, [idx]: !prev[idx] }))} className="text-yellow-600">
