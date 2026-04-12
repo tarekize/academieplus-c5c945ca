@@ -136,6 +136,8 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           difficulty_level: scoreRef.current.current_level,
           lesson_title: lessonTitle,
           chapter_title: chapterTitle,
+          accuracy_rate: scoreRef.current.accuracy_rate,
+          streak: scoreRef.current.streak,
         },
       });
 
