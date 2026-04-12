@@ -295,7 +295,17 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     </div>
                 ) : (
                     <div className="mt-6">
-                        {/* Activity content handled by LessonActivityTabs stepper */}
+                        {selectedLesson && userId && (
+                            <AdaptiveActivities
+                                lessonId={selectedLesson.id}
+                                chapterId={chapter.id}
+                                userId={userId}
+                                schoolLevel={schoolLevel || ""}
+                                lessonTitle={selectedLesson.titleAr || selectedLesson.title}
+                                chapterTitle={chapter.title}
+                                initialTab={activeActivity as "quiz" | "exercise" | "revision" | null}
+                            />
+                        )}
                     </div>
                 )}
             </div>
