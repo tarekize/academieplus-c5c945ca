@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdaptiveContent } from "@/hooks/useAdaptiveContent";
+import { useActivityTimeTracker } from "@/hooks/useActivityTimeTracker";
 
 export interface DBQuizQuestion {
   id: string;
