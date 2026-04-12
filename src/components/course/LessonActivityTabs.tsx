@@ -1286,19 +1286,58 @@ const DifficultyIndicator = ({ level }: { level?: number }) => {
 };
 
 function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; index: number }) {
+  const [showAnswer, setShowAnswer] = useState(false);
   return (
     <Card className="border-green-500/50 bg-green-500/5 transition-all hover:bg-green-500/10">
-      <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex-1 order-2 sm:order-1 w-full text-right">
-          <p className="font-medium text-lg leading-relaxed" dir="rtl">
+      <CardContent className="p-4 space-y-2">
+        <div className="flex justify-between items-start">
+          <p className="font-medium flex-1 text-right" dir="rtl">
             <span className="font-bold text-muted-foreground ml-2">{index + 1}.</span>
             {question.question}
           </p>
+          <DifficultyIndicator level={question.difficulty} />
         </div>
-        <div className="order-1 sm:order-2 shrink-0 flex flex-row sm:flex-col items-center gap-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-4 py-2 rounded-lg border border-green-200 dark:border-green-800 shadow-sm w-full sm:w-auto justify-between sm:justify-center">
-          <span className="text-xs font-semibold uppercase text-green-600/70 dark:text-green-400/70">الإجابة</span>
-          <span className="font-bold text-lg" dir="rtl">{question.correct_answer}</span>
+        <div className="flex items-center gap-2 justify-end">
+          <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <span className="text-sm text-green-600 font-medium">إجابة صحيحة</span>
         </div>
+        <Button variant="ghost" size="sm" onClick={() => setShowAnswer(!showAnswer)}>
+          {showAnswer ? "إخفاء الحل" : "عرض الحل"}
+        </Button>
+        {showAnswer && (
+          <div className="p-3 bg-muted/50 rounded-lg text-sm space-y-2" dir="rtl">
+            <div><span className="font-medium">الإجابة الصحيحة: </span>{question.correct_answer}</div>
+            {question.explanation && <div><span className="font-medium">الشرح: </span>{question.explanation}</div>}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; index: number }) {
+  const [showSolution, setShowSolution] = useState(false);
+  return (
+    <Card className="border-green-500/50 bg-green-500/5 transition-all hover:bg-green-500/10">
+      <CardContent className="p-4 space-y-2">
+        <div className="flex justify-between items-start">
+          <h4 className="font-semibold flex-1 text-right" dir="rtl">{index + 1}. {exercise.title}</h4>
+          <DifficultyIndicator level={exercise.difficulty} />
+        </div>
+        <p className="text-sm text-right" dir="rtl">{exercise.statement}</p>
+        <div className="flex items-center gap-2 justify-end">
+          <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <span className="text-sm text-green-600 font-medium">إجابة صحيحة</span>
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => setShowSolution(!showSolution)}>
+          {showSolution ? "إخفاء الحل" : "عرض الحل"}
+        </Button>
+        {showSolution && (
+          <div className="p-3 bg-muted/50 rounded-lg text-sm space-y-2" dir="rtl">
+            <div><span className="font-medium">الإجابة: </span>{exercise.expected_answer}</div>
+            {exercise.solution && <div><span className="font-medium">الحل: </span>{exercise.solution}</div>}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
