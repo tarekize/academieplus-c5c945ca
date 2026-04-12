@@ -25,8 +25,6 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const [loadingContent, setLoadingContent] = useState(false);
     const readingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const readingStartRef = useRef<number>(0);
-    const [lessonView, setLessonView] = useState<"course" | "activity">("course");
-    const [activeActivity, setActiveActivity] = useState<string | null>(null);
     const [activeSectionLabel, setActiveSectionLabel] = useState<string | null>(null);
     const [activityResetKey, setActivityResetKey] = useState(0);
 
@@ -34,8 +32,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     useEffect(() => {
         setSelectedLesson(null);
         setLessonContent("");
-        setLessonView("course");
-        setActiveActivity(null);
+        setActiveSectionLabel(null);
     }, [chapter.id]);
 
     useEffect(() => {
@@ -67,8 +64,6 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         }
         // Élève → show content inline
         setSelectedLesson(lesson);
-        setLessonView("course");
-        setActiveActivity(null);
         setActiveSectionLabel(null);
 
         const cachedContent = lesson.content || "";
@@ -98,8 +93,6 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const handleBackToList = () => {
         setSelectedLesson(null);
         setLessonContent("");
-        setLessonView("course");
-        setActiveActivity(null);
         setActiveSectionLabel(null);
         setActivityResetKey(k => k + 1);
         onBackToLessons?.();
