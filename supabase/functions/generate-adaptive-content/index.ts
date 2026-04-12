@@ -16,6 +16,14 @@ const SCHOOL_LEVEL_LABELS: Record<string, string> = {
   "terminale": "3ème année secondaire (BAC)",
 };
 
+function getDifficultyScale(level: number): number {
+  if (level < 20) return 1;
+  if (level < 40) return 2;
+  if (level < 60) return 3;
+  if (level < 80) return 4;
+  return 5;
+}
+
 function getDifficultyLabel(level: number): string {
   if (level < 25) return "débutant (très facile)";
   if (level < 40) return "facile";
@@ -24,17 +32,201 @@ function getDifficultyLabel(level: number): string {
   return "avancé (très difficile)";
 }
 
+function getWeakPointsText(accuracyRate: number, streak: number): string {
+  const points: string[] = [];
+  if (accuracyRate < 40) points.push("compréhension générale faible");
+  else if (accuracyRate < 60) points.push("difficultés sur les exercices de raisonnement");
+  if (streak === 0) points.push("erreurs consécutives récentes");
+  return points.length > 0 ? points.join(", ") : "aucun point faible notable";
+}
+
+function buildPrompt(
+  contentType: string,
+  schoolLevel: string,
+  difficultyLevel: number,
+  lessonTitle: string,
+  chapterTitle: string,
+  accuracyRate: number,
+  streak: number,
+): { system: string; user: string } {
+  const levelLabel = SCHOOL_LEVEL_LABELS[schoolLevel] || schoolLevel;
+  const diffScale = getDifficultyScale(difficultyLevel);
+  const diffLabel = getDifficultyLabel(difficultyLevel);
+  const weakPoints = getWeakPointsText(accuracyRate, streak);
+
+  const contextBlock = `
+CONTEXTE DE LA LEÇON :
+- Chapitre : ${chapterTitle}
+- Leçon actuelle : ${lessonTitle}
+
+PROFIL DE L'ÉLÈVE (KPI) :
+- Niveau scolaire : ${levelLabel}
+- Taux de réussite global : ${Math.round(accuracyRate)}%
+- Niveau de difficulté actuel : ${diffScale}/5 (${diffLabel}, score brut ${difficultyLevel}/100)
+- Série actuelle : ${streak} réponses correctes consécutives
+- Points faibles détectés : ${weakPoints}
+
+DIRECTIVES PÉDAGOGIQUES :
+- Ciblage : Ne pose aucune question sur d'autres leçons, même si elles sont proches. Reste STRICTEMENT dans le cadre de la leçon "${lessonTitle}".
+- Adaptation : Si le taux de réussite est bas (<50%), simplifie les calculs et propose des exercices d'application directe. S'il est élevé (>70%), propose des fonctions plus complexes et du raisonnement avancé.
+- Feedback : Pour chaque quiz, inclus une explication courte qui aide l'élève à comprendre son erreur.`;
+
+  let system: string;
+  let user: string;
+
+  if (contentType === "quiz") {
+    system = `Tu es un professeur de mathématiques algérien expert. Tu génères des QCM (questions à choix multiples) adaptés au niveau de l'élève. Réponds UNIQUEMENT avec un tableau JSON valide, sans texte ni markdown autour.`;
+    user = `${contextBlock}
+
+MISSION : Génère exactement 5 questions QCM exclusivement sur la leçon "${lessonTitle}" du chapitre "${chapterTitle}".
+
+Format JSON attendu (tableau de 5 objets) :
+[
+  {
+    "question": "question en arabe liée exclusivement à ${lessonTitle}",
+    "options": ["choix A", "choix B", "choix C", "choix D"],
+    "correct_answer": "le choix correct (doit être identique à un des options)",
+    "explanation": "explication courte en arabe qui aide l'élève à comprendre son erreur"
+  }
+]
+
+IMPORTANT: Les questions et réponses doivent être en ARABE. Les formules mathématiques peuvent rester en notation standard. NE GÉNÈRE AUCUNE question en dehors du sujet "${lessonTitle}".`;
+  } else if (contentType === "exercise") {
+    system = `Tu es un professeur de mathématiques algérien expert. Tu génères des exercices adaptés au niveau de l'élève. Réponds UNIQUEMENT avec un tableau JSON valide, sans texte ni markdown autour.`;
+    user = `${contextBlock}
+
+MISSION : Génère exactement 5 exercices exclusivement sur la leçon "${lessonTitle}" du chapitre "${chapterTitle}".
+
+Format JSON attendu (tableau de 5 objets) :
+[
+  {
+    "title": "titre court en arabe lié à ${lessonTitle}",
+    "statement": "énoncé complet en arabe",
+    "expected_answer": "réponse attendue (valeur numérique ou expression courte)",
+    "hints": ["indice 1 en arabe", "indice 2 en arabe"],
+    "solution": "solution détaillée étape par étape en arabe"
+  }
+]
+
+IMPORTANT: Tout le contenu doit être en ARABE. Les formules mathématiques restent en notation standard. NE GÉNÈRE AUCUN exercice en dehors du sujet "${lessonTitle}".`;
+  } else {
+    system = `Tu es un professeur de mathématiques algérien expert. Tu génères des fiches de révision. Réponds UNIQUEMENT avec un tableau JSON valide, sans texte ni markdown autour.`;
+    user = `${contextBlock}
+
+MISSION : Génère exactement 5 fiches de révision exclusivement sur la leçon "${lessonTitle}" du chapitre "${chapterTitle}".
+
+Format JSON attendu (tableau de 5 objets) :
+[
+  {
+    "concept": "nom du concept en arabe lié à ${lessonTitle}",
+    "explanation": "explication claire en arabe",
+    "example": "exemple concret en arabe",
+    "key_formula": "formule clé (si applicable)"
+  }
+]
+
+IMPORTANT: Tout le contenu doit être en ARABE sauf les formules mathématiques. NE GÉNÈRE AUCUNE fiche en dehors du sujet "${lessonTitle}".`;
+  }
+
+  return { system, user };
+}
+
+// ============ Provider 1: Google Gemini (non-streaming) ============
+async function callGemini(systemPrompt: string, userPrompt: string): Promise<string> {
+  const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("Gemini error:", response.status, errText);
+    throw new Error(`Gemini failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+}
+
+// ============ Provider 2: Groq (non-streaming) ============
+async function callGroq(systemPrompt: string, userPrompt: string): Promise<string> {
+  const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+  if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY not configured");
+
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${GROQ_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.7,
+      max_tokens: 4096,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("Groq error:", response.status, errText);
+    throw new Error(`Groq failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data?.choices?.[0]?.message?.content || "";
+}
+
+// ============ Provider 3: Cloudflare Workers AI (non-streaming) ============
+async function callCloudflare(systemPrompt: string, userPrompt: string): Promise<string> {
+  const CF_API_KEY = Deno.env.get("CLOUDFLARE_AI_API_KEY");
+  const CF_ACCOUNT_ID = Deno.env.get("CLOUDFLARE_ACCOUNT_ID");
+  if (!CF_API_KEY) throw new Error("CLOUDFLARE_AI_API_KEY not configured");
+  if (!CF_ACCOUNT_ID) throw new Error("CLOUDFLARE_ACCOUNT_ID not configured");
+
+  const url = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.1-8b-instruct`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${CF_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("Cloudflare error:", response.status, errText);
+    throw new Error(`Cloudflare failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data?.result?.response || "";
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
     const body = await req.json();
     const {
       content_type,
@@ -42,6 +234,8 @@ serve(async (req) => {
       difficulty_level,
       lesson_title,
       chapter_title,
+      accuracy_rate,
+      streak,
     } = body;
 
     if (!content_type || !school_level || !lesson_title || !chapter_title) {
@@ -51,118 +245,50 @@ serve(async (req) => {
       });
     }
 
-    const levelLabel = SCHOOL_LEVEL_LABELS[school_level] || school_level;
-    const diffLabel = getDifficultyLabel(difficulty_level || 50);
-    const diffLevel = difficulty_level || 50;
-
-    let systemPrompt: string;
-    let userPrompt: string;
-
-    if (content_type === "quiz") {
-      systemPrompt = `Tu es un professeur de mathématiques algérien expert. Tu génères des QCM (questions à choix multiples) adaptés au niveau de l'élève. Réponds UNIQUEMENT avec un tableau JSON valide, sans texte ni markdown autour.`;
-      userPrompt = `Génère exactement 5 questions QCM de mathématiques pour un élève de ${levelLabel}, chapitre "${chapter_title}", leçon "${lesson_title}".
-
-Niveau de difficulté de l'élève : ${diffLevel}/100 (${diffLabel}).
-
-Adapte la difficulté des questions au niveau de l'élève :
-- Si le niveau est bas (<30), pose des questions simples et directes
-- Si le niveau est moyen (30-60), mélange questions directes et raisonnement
-- Si le niveau est élevé (>60), pose des questions nécessitant du raisonnement avancé
-
-Format JSON attendu (tableau de 5 objets) :
-[
-  {
-    "question": "question en arabe",
-    "options": ["choix A", "choix B", "choix C", "choix D"],
-    "correct_answer": "le choix correct (doit être identique à un des options)",
-    "explanation": "explication en arabe"
-  }
-]
-
-IMPORTANT: Les questions et réponses doivent être en ARABE. Les formules mathématiques peuvent rester en notation standard.`;
-    } else if (content_type === "exercise") {
-      systemPrompt = `Tu es un professeur de mathématiques algérien expert. Tu génères des exercices adaptés au niveau de l'élève. Réponds UNIQUEMENT avec un tableau JSON valide, sans texte ni markdown autour.`;
-      userPrompt = `Génère exactement 5 exercices de mathématiques pour un élève de ${levelLabel}, chapitre "${chapter_title}", leçon "${lesson_title}".
-
-Niveau de difficulté de l'élève : ${diffLevel}/100 (${diffLabel}).
-
-Adapte la difficulté :
-- Niveau bas (<30) : exercices d'application directe du cours
-- Niveau moyen (30-60) : exercices nécessitant 2-3 étapes
-- Niveau élevé (>60) : problèmes complexes avec raisonnement
-
-Format JSON attendu (tableau de 5 objets) :
-[
-  {
-    "title": "titre court en arabe",
-    "statement": "énoncé complet en arabe",
-    "expected_answer": "réponse attendue (valeur numérique ou expression courte)",
-    "hints": ["indice 1 en arabe", "indice 2 en arabe"],
-    "solution": "solution détaillée étape par étape en arabe"
-  }
-]
-
-IMPORTANT: Tout le contenu doit être en ARABE. Les formules mathématiques restent en notation standard.`;
-    } else if (content_type === "revision") {
-      systemPrompt = `Tu es un professeur de mathématiques algérien expert. Tu génères des fiches de révision. Réponds UNIQUEMENT avec un tableau JSON valide, sans texte ni markdown autour.`;
-      userPrompt = `Génère exactement 5 fiches de révision pour un élève de ${levelLabel}, chapitre "${chapter_title}", leçon "${lesson_title}".
-
-Niveau de l'élève : ${diffLevel}/100 (${diffLabel}).
-
-Format JSON attendu (tableau de 5 objets) :
-[
-  {
-    "concept": "nom du concept en arabe",
-    "explanation": "explication claire en arabe",
-    "example": "exemple concret en arabe",
-    "key_formula": "formule clé (si applicable)"
-  }
-]
-
-IMPORTANT: Tout le contenu doit être en ARABE sauf les formules mathématiques.`;
-    } else {
+    if (!["quiz", "exercise", "revision"].includes(content_type)) {
       return new Response(JSON.stringify({ error: "Invalid content_type" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    });
+    const { system, user } = buildPrompt(
+      content_type,
+      school_level,
+      difficulty_level || 50,
+      lesson_title,
+      chapter_title,
+      accuracy_rate ?? 0,
+      streak ?? 0,
+    );
 
-    if (!aiResponse.ok) {
-      const errText = await aiResponse.text();
-      console.error("AI gateway error:", aiResponse.status, errText);
-      
-      if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: "Trop de requêtes. Réessayez dans quelques secondes." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+    let rawContent = "";
+
+    // Provider 1: Gemini
+    try {
+      console.log("Trying Gemini for content generation...");
+      rawContent = await callGemini(system, user);
+    } catch (e) {
+      console.error("Gemini failed, trying Groq...", e);
+      // Provider 2: Groq
+      try {
+        console.log("Trying Groq...");
+        rawContent = await callGroq(system, user);
+      } catch (e2) {
+        console.error("Groq failed, trying Cloudflare...", e2);
+        // Provider 3: Cloudflare
+        try {
+          console.log("Trying Cloudflare...");
+          rawContent = await callCloudflare(system, user);
+        } catch (e3) {
+          console.error("All providers failed:", e3);
+          return new Response(
+            JSON.stringify({ error: "Tous les services IA sont actuellement indisponibles. Veuillez réessayer plus tard." }),
+            { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
       }
-      if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: "Crédits IA épuisés." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      throw new Error(`AI gateway error: ${aiResponse.status}`);
     }
-
-    const aiData = await aiResponse.json();
-    let rawContent = aiData.choices?.[0]?.message?.content || "";
 
     // Strip markdown code fences if present
     rawContent = rawContent.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
@@ -187,10 +313,7 @@ IMPORTANT: Tout le contenu doit être en ARABE sauf les formules mathématiques.
     console.error("generate-adaptive-content error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
