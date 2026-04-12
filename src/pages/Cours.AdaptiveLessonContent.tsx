@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { TableOfContents } from "@/components/course/TableOfContents";
 import { injectHeaderIds } from "@/lib/toc-utils";
-import { AdaptiveActivities } from "@/components/course/AdaptiveActivities";
 import { LessonActivityTabs } from "@/components/course/LessonActivityTabs";
 import {
     Breadcrumb,
@@ -244,10 +243,8 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         lessonId={selectedLesson.id}
                         lessonTitle={selectedLesson.titleAr || selectedLesson.title}
                         readOnly={readOnly}
-                        onGenerateAI={(type) => {
-                            setActiveActivity(type);
-                            setLessonView("activity");
-                        }}
+                        userId={userId}
+                        schoolLevel={schoolLevel}
                         onSectionChange={(section) => {
                             const sectionLabels: Record<string, string> = {
                                 exercises: "تمارين",
@@ -255,11 +252,8 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                                 revision: "Révision",
                             };
                             if (section !== null) {
-                                setLessonView("activity");
                                 setActiveSectionLabel(sectionLabels[section] || section);
                             } else {
-                                setLessonView("course");
-                                setActiveActivity(null);
                                 setActiveSectionLabel(null);
                             }
                         }}
