@@ -1118,11 +1118,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 {adaptiveContent.quizzes.map((q, idx) => (
                   <Card key={idx} className={cn("transition-all", aiQuizResults[idx] === true && "border-green-500/50 bg-green-500/5", aiQuizResults[idx] === false && "border-red-500/50 bg-red-500/5")}>
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <p className="font-medium" dir="rtl">{idx + 1}. {q.question}</p>
-                        <div className="flex items-center gap-0.5 shrink-0 ml-2" title={`مستوى الصعوبة: ${q.difficulty || 3}/5`}>
+                      <div className="flex items-center gap-3 mb-3" dir="rtl">
+                        <p className="font-medium flex-1">{idx + 1}. {q.question}</p>
+                        <div className="flex items-center gap-0.5 shrink-0" title={`مستوى الصعوبة: ${q.difficulty || 3}/5`}>
                           {Array.from({ length: 5 }).map((_, i) => (
-                            <Pencil key={i} className={cn("h-3.5 w-3.5", i < (q.difficulty || 3) ? "text-orange-500" : "text-muted-foreground/25")} />
+                            <Pencil key={i} className={cn("h-4 w-4", i < (q.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />
                           ))}
                         </div>
                       </div>
@@ -1162,11 +1162,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 {adaptiveContent.exercises.map((ex, idx) => (
                   <Card key={idx}>
                     <CardContent className="p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold" dir="rtl">{idx + 1}. {ex.title}</h4>
-                        <div className="flex items-center gap-0.5 shrink-0 ml-2" title={`مستوى الصعوبة: ${ex.difficulty || 3}/5`}>
+                      <div className="flex items-center gap-3" dir="rtl">
+                        <h4 className="font-semibold flex-1">{idx + 1}. {ex.title}</h4>
+                        <div className="flex items-center gap-0.5 shrink-0" title={`مستوى الصعوبة: ${ex.difficulty || 3}/5`}>
                           {Array.from({ length: 5 }).map((_, i) => (
-                            <Pencil key={i} className={cn("h-3.5 w-3.5", i < (ex.difficulty || 3) ? "text-orange-500" : "text-muted-foreground/25")} />
+                            <Pencil key={i} className={cn("h-4 w-4", i < (ex.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />
                           ))}
                         </div>
                       </div>
