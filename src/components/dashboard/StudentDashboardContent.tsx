@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -34,6 +35,29 @@ interface ChapterStat {
   level: number;
   correctAnswers: number;
   totalAnswers: number;
+}
+
+interface LessonProgress {
+  lessonId: string;
+  lessonTitle: string;
+  lessonTitleAr: string | null;
+  status: "never" | "in_progress" | "completed";
+  readingSeconds: number;
+  overallRate: number;
+  exercisesDone: number;
+  exercisesTotal: number;
+  exercisesRate: number;
+  quizzesDone: number;
+  quizzesTotal: number;
+  quizzesRate: number;
+}
+
+interface ChapterLessonProgress {
+  chapterId: string;
+  chapterTitle: string;
+  lessons: LessonProgress[];
+  completedLessons: number;
+  totalLessons: number;
 }
 
 const SCHOOL_LEVELS: Record<string, string> = {
@@ -72,6 +96,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
   const [avgLevel, setAvgLevel] = useState(0);
   const [streak, setStreak] = useState(0);
   const [activityBreakdown, setActivityBreakdown] = useState({ reading: 0, quiz: 0, exercise: 0 });
+  const [chapterLessonProgress, setChapterLessonProgress] = useState<ChapterLessonProgress[]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -95,6 +120,17 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
         : Promise.resolve({ data: [] as any[] });
 
       const [{ data }, { data: levelChapters }] = await Promise.all([scoresPromise, chaptersPromise]);
+
+      const chapterIds = (levelChapters || []).map((ch: any) => ch.id);
+      const lessonsPromise = chapterIds.length > 0
+        ? supabase
+          .from("lessons")
+          .select("id, chapter_id, title, title_ar, order_index")
+          .in("chapter_id", chapterIds)
+          .order("order_index", { ascending: true })
+        : Promise.resolve({ data: [] as any[] });
+
+      const [{ data: lessonsData }] = await Promise.all([lessonsPromise]);
 
       const chapterMap = new Map<string, ChapterStat>();
 
@@ -155,11 +191,153 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
       setTotalAnswers(sumTotal);
       setAvgLevel((data || []).length > 0 ? Math.round(sumLevel / (data || []).length) : 0);
       setStreak(maxStreak);
+
+      // Build lesson progress by chapter (clickable details view)
+      const exerciseCountByLesson = new Map<string, number>();
+      const quizCountByLesson = new Map<string, number>();
+
+      if ((lessonsData || []).length > 0) {
+        const countPromises = (lessonsData || []).map(async (lesson: any) => {
+          const [{ data: lessonExercises }, { data: lessonQuizzes }] = await Promise.all([
+            supabase.rpc("get_student_exercises" as any, {
+              _chapter_id: lesson.chapter_id,
+              _lesson_id: lesson.id,
+            }),
+            supabase.rpc("get_student_quizzes" as any, {
+              _chapter_id: lesson.chapter_id,
+              _lesson_id: lesson.id,
+            }),
+          ]);
+
+          return {
+            lessonId: lesson.id as string,
+            exercisesCount: (lessonExercises || []).length,
+            quizzesCount: (lessonQuizzes || []).length,
+          };
+        });
+
+        const counts = await Promise.all(countPromises);
+        counts.forEach(({ lessonId, exercisesCount, quizzesCount }) => {
+          exerciseCountByLesson.set(lessonId, exercisesCount);
+          quizCountByLesson.set(lessonId, quizzesCount);
+        });
+      }
+
+      const scoreRowsByLesson = new Map<string, any[]>();
+      (data || []).forEach((row: any) => {
+        if (!row.lesson_id) return;
+        const current = scoreRowsByLesson.get(row.lesson_id) || [];
+        current.push(row);
+        scoreRowsByLesson.set(row.lesson_id, current);
+      });
+
+      const chapterProgressMap = new Map<string, ChapterLessonProgress>();
+      (levelChapters || []).forEach((ch: any) => {
+        chapterProgressMap.set(ch.id, {
+          chapterId: ch.id,
+          chapterTitle: ch.title_ar || ch.title || "—",
+          lessons: [],
+          completedLessons: 0,
+          totalLessons: 0,
+        });
+      });
+
+      (lessonsData || []).forEach((lesson: any) => {
+        const rows = scoreRowsByLesson.get(lesson.id) || [];
+
+        let readingSeconds = 0;
+        let correctAnswers = 0;
+        let totalLessonAnswers = 0;
+        const completedExercisesSet = new Set<string>();
+        const completedQuizzesSet = new Set<string>();
+
+        rows.forEach((r: any) => {
+          readingSeconds += r.reading_time_seconds || 0;
+          correctAnswers += r.correct_answers || 0;
+          totalLessonAnswers += r.total_answers || 0;
+
+          const assessmentData = (r.assessment_data || {}) as Record<string, any>;
+          if (Array.isArray(assessmentData.completed_exercises)) {
+            assessmentData.completed_exercises.forEach((item: unknown) => {
+              if (typeof item === "string") {
+                completedExercisesSet.add(item);
+                return;
+              }
+              if (item && typeof item === "object" && "id" in item && typeof (item as any).id === "string") {
+                completedExercisesSet.add((item as any).id);
+              }
+            });
+          }
+          if (Array.isArray(assessmentData.completed_quizzes)) {
+            assessmentData.completed_quizzes.forEach((item: unknown) => {
+              if (typeof item === "string") {
+                completedQuizzesSet.add(item);
+                return;
+              }
+              if (item && typeof item === "object" && "id" in item && typeof (item as any).id === "string") {
+                completedQuizzesSet.add((item as any).id);
+              }
+            });
+          }
+        });
+
+        const exercisesTotal = exerciseCountByLesson.get(lesson.id) || 0;
+        const quizzesTotal = quizCountByLesson.get(lesson.id) || 0;
+        const exercisesDone = Math.min(completedExercisesSet.size, exercisesTotal);
+        const quizzesDone = Math.min(completedQuizzesSet.size, quizzesTotal);
+
+        const exercisesRate = exercisesTotal > 0 ? Math.round((exercisesDone / exercisesTotal) * 100) : 0;
+        const quizzesRate = quizzesTotal > 0 ? Math.round((quizzesDone / quizzesTotal) * 100) : 0;
+        const totalAssessments = exercisesTotal + quizzesTotal;
+        const overallRate = totalAssessments > 0
+          ? Math.round(((exercisesDone + quizzesDone) / totalAssessments) * 100)
+          : 0;
+
+        const hasActivityItems = exercisesTotal + quizzesTotal > 0;
+        const isCompleted = hasActivityItems && exercisesRate === 100 && quizzesRate === 100;
+        const isStarted = readingSeconds > 0 || totalLessonAnswers > 0 || exercisesDone > 0 || quizzesDone > 0;
+
+        const lessonProgress: LessonProgress = {
+          lessonId: lesson.id,
+          lessonTitle: lesson.title,
+          lessonTitleAr: lesson.title_ar,
+          status: isCompleted ? "completed" : isStarted ? "in_progress" : "never",
+          readingSeconds,
+          overallRate,
+          exercisesDone,
+          exercisesTotal,
+          exercisesRate,
+          quizzesDone,
+          quizzesTotal,
+          quizzesRate,
+        };
+
+        const chapterProgress = chapterProgressMap.get(lesson.chapter_id);
+        if (!chapterProgress) return;
+
+        chapterProgress.lessons.push(lessonProgress);
+        chapterProgress.totalLessons += 1;
+        if (lessonProgress.status === "completed") {
+          chapterProgress.completedLessons += 1;
+        }
+      });
+
+      setChapterLessonProgress(Array.from(chapterProgressMap.values()));
       setLastUpdated(new Date());
     } finally {
       if (!silent) setIsRefreshing(false);
     }
   }, [userId, profile.school_level]);
+
+  const getLessonStatusBadge = (status: LessonProgress["status"]) => {
+    if (status === "completed") {
+      return <Badge className="bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">منتهية</Badge>;
+    }
+    if (status === "in_progress") {
+      return <Badge className="bg-amber-500/10 text-amber-700 border border-amber-500/20">قيد التقدم</Badge>;
+    }
+    return <Badge className="bg-muted text-muted-foreground border border-border">غير مبدوءة</Badge>;
+  };
 
   useEffect(() => { fetchScores(); }, [fetchScores]);
 
@@ -461,7 +639,10 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                     <TableBody>
                       {chapterStats.map((ch, i) => {
                         const chLevel = getLevelInfo(ch.level);
-                        const chSuccess = ch.totalAnswers > 0 ? Math.round((ch.correctAnswers / ch.totalAnswers) * 100) : 0;
+                        const chapterLessons = chapterLessonProgress.find((chapter) => chapter.chapterId === ch.chapterId);
+                        const chSuccess = chapterLessons && chapterLessons.totalLessons > 0
+                          ? Math.round((chapterLessons.completedLessons / chapterLessons.totalLessons) * 100)
+                          : 0;
                         return (
                           <TableRow key={ch.chapterId}>
                             <TableCell className="font-medium text-muted-foreground">{i + 1}</TableCell>
@@ -484,6 +665,70 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                     </TableBody>
                   </Table>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Clickable Chapter -> Lesson Progress */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <GraduationCap className="h-4 w-4 text-primary" />
+                تقدم الدروس داخل كل فصل
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {chapterLessonProgress.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">لا توجد دروس متاحة لهذا المستوى بعد.</p>
+              ) : (
+                <Accordion type="single" collapsible className="w-full">
+                  {chapterLessonProgress.map((chapter) => (
+                    <AccordionItem key={chapter.chapterId} value={chapter.chapterId}>
+                      <AccordionTrigger className="hover:no-underline">
+                        <div className="flex items-center justify-between w-full pl-4">
+                          <div className="text-right">
+                            <p className="font-medium">{chapter.chapterTitle}</p>
+                            <p className="text-xs text-muted-foreground">{chapter.completedLessons}/{chapter.totalLessons} دروس منتهية</p>
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {chapter.totalLessons > 0 ? Math.round((chapter.completedLessons / chapter.totalLessons) * 100) : 0}%
+                          </Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        {chapter.lessons.length === 0 ? (
+                          <p className="text-xs text-muted-foreground py-2">لا توجد دروس داخل هذا الفصل.</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {chapter.lessons.map((lesson) => (
+                              <button
+                                key={lesson.lessonId}
+                                type="button"
+                                onClick={() => navigate(`/cours/math?chapitre=${chapter.chapterId}&lecon=${lesson.lessonId}`)}
+                                className="w-full border rounded-lg p-3 hover:bg-accent/30 transition-colors text-right"
+                              >
+                                <div className="flex items-start justify-between gap-3 mb-2">
+                                  <div>
+                                    <p className="font-medium">{lesson.lessonTitleAr || lesson.lessonTitle}</p>
+                                    <p className="text-xs text-muted-foreground">{lesson.lessonTitle}</p>
+                                  </div>
+                                  {getLessonStatusBadge(lesson.status)}
+                                </div>
+
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                  <div className="bg-muted/40 rounded px-2 py-1">القراءة: {formatTime(lesson.readingSeconds)}</div>
+                                  <div className="bg-muted/40 rounded px-2 py-1">تمارين: {lesson.exercisesDone}/{lesson.exercisesTotal} ({lesson.exercisesRate}%)</div>
+                                  <div className="bg-muted/40 rounded px-2 py-1">اختبارات: {lesson.quizzesDone}/{lesson.quizzesTotal} ({lesson.quizzesRate}%)</div>
+                                  <div className="bg-muted/40 rounded px-2 py-1">نجاح عام: {lesson.overallRate}%</div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
               )}
             </CardContent>
           </Card>
