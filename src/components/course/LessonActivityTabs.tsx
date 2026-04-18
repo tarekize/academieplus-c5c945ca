@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Brain, PenTool, BookOpen, Sparkles, Eye, Lightbulb, Rocket, ChevronRight, Lock, CheckCircle2, RefreshCw, Pencil, Dices, XCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
@@ -1460,6 +1461,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
 }
 
 function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise: DBExercise; index: number; readOnly?: boolean; onAnswer: (correct: boolean) => void }) {
+  const [open, setOpen] = useState(false);
   const [answer, setAnswer] = useState("");
   const [revealed, setRevealed] = useState(false);
   const [result, setResult] = useState<boolean | null>(null);
@@ -1500,38 +1502,62 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
   };
 
   return (
-    <Card>
-      <CardContent className="p-4 space-y-3">
-        <div className="flex justify-between items-start">
-          <h4 className="font-semibold flex-1" dir="rtl">{index + 1}. {exercise.title}</h4>
-          <DifficultyIndicator level={exercise.difficulty} />
-        </div>
-        <p className="text-sm" dir="rtl">{exercise.statement}</p>
-        {!readOnly && result === null && (
-          <div className="flex gap-2" dir="rtl">
-            <input className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background" placeholder="أدخل إجابتك..." value={answer} onChange={(e) => setAnswer(e.target.value)} dir="rtl" />
-            <Button size="sm" onClick={handleSubmit} disabled={submitting}>{submitting ? "..." : "تحقق"}</Button>
+    <>
+      <Card className="cursor-pointer hover:border-primary/40 hover:shadow-md transition-all" onClick={() => setOpen(true)}>
+        <CardContent className="p-4">
+          <div className="flex justify-between items-start gap-3">
+            <h4 className="font-semibold flex-1 text-right" dir="rtl">{index + 1}. {exercise.title}</h4>
+            <DifficultyIndicator level={exercise.difficulty} />
           </div>
-        )}
-        {result !== null && (
-          <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-            {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}
+          <p className="text-xs text-muted-foreground mt-2 text-right" dir="rtl">اضغط لفتح التمرين</p>
+        </CardContent>
+      </Card>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-right">{index + 1}. {exercise.title}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <p className="text-sm text-right" dir="rtl">{exercise.statement}</p>
+
+            {!readOnly && result === null && (
+              <div className="flex gap-2" dir="rtl">
+                <input
+                  className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
+                  placeholder="أدخل إجابتك..."
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  dir="rtl"
+                />
+                <Button size="sm" onClick={handleSubmit} disabled={submitting}>{submitting ? "..." : "تحقق"}</Button>
+              </div>
+            )}
+
+            {result !== null && (
+              <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
+                {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}
+              </div>
+            )}
+
+            {(solution || exercise.solution) && (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
+                {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{solution || exercise.solution}</div>}
+              </>
+            )}
+
+            {!solution && !exercise.solution && result !== null && (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
+                {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{expectedAnswer}</div>}
+              </>
+            )}
           </div>
-        )}
-        {(solution || exercise.solution) && (
-          <>
-            <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
-            {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{solution || exercise.solution}</div>}
-          </>
-        )}
-        {!solution && !exercise.solution && result !== null && (
-          <>
-            <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
-            {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{expectedAnswer}</div>}
-          </>
-        )}
-      </CardContent>
-    </Card>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
