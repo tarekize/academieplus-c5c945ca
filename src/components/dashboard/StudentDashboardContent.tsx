@@ -683,42 +683,6 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
             </div>
           </div>
 
-          {/* Activity distribution */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-primary" />
-                توزيع النشاط
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-5">
-                {[
-                  { label: "قراءة الدروس", icon: BookOpen, pct: readPct, color: "bg-blue-500", textColor: "text-blue-600", bgColor: "bg-blue-500/10", time: activityBreakdown.reading },
-                  { label: "اختبارات", icon: Brain, pct: quizPct, color: "bg-violet-500", textColor: "text-violet-600", bgColor: "bg-violet-500/10", time: activityBreakdown.quiz },
-                  { label: "تمارين", icon: FileText, pct: exPct, color: "bg-amber-500", textColor: "text-amber-600", bgColor: "bg-amber-500/10", time: activityBreakdown.exercise },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-4">
-                    <div className={`p-2.5 rounded-xl ${item.bgColor}`}>
-                      <item.icon className={`h-5 w-5 ${item.textColor}`} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-baseline mb-1.5">
-                        <span className="font-medium text-sm">{item.label}</span>
-                        <div className="flex items-baseline gap-2">
-                          <span className={`text-base font-bold ${item.textColor}`}>{item.pct}%</span>
-                          <span className="text-xs text-muted-foreground">{formatTime(item.time)}</span>
-                        </div>
-                      </div>
-                      <div className="h-2.5 rounded-full bg-secondary overflow-hidden">
-                        <div className={`h-full rounded-full ${item.color} transition-all duration-700`} style={{ width: `${item.pct}%` }} />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         {/* CHAPTERS TAB */}
