@@ -10,9 +10,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Clock, Target, TrendingUp, TrendingDown, GraduationCap, BookOpen, Brain, FileText,
-  CheckCircle2, XCircle, Zap, RefreshCw, Activity,
+  CheckCircle2, XCircle, Zap, RefreshCw, Activity, Sparkles, Award, ChevronRight,
 } from "lucide-react";
 
 interface StudentDashboardContentProps {
@@ -385,193 +386,295 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
 
   return (
     <div className="space-y-6" dir="rtl">
-      {/* Header Row */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">مرحباً {profile.first_name || fullName} 👋</h2>
-          <p className="text-sm text-muted-foreground mt-1">لوحة المتابعة الدراسية</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-[10px] text-muted-foreground">
-            آخر تحديث: {lastUpdated.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}
-          </span>
-          <Button
-            variant="ghost" size="icon"
-            onClick={() => fetchScores()}
-            disabled={isRefreshing}
-            className="h-8 w-8"
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </Button>
-        </div>
-      </div>
-
-      {/* KPI Cards Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {/* Success Rate */}
-        <Card className="border-emerald-500/20 bg-emerald-500/5">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="p-2 rounded-lg bg-emerald-500/10">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+      {/* Hero Header */}
+      <Card className="overflow-hidden border-0 shadow-lg">
+        <div className="relative bg-gradient-to-br from-primary via-primary/90 to-accent p-6 md:p-8">
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
+          </div>
+          <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16 ring-4 ring-white/30 shadow-xl">
+                <AvatarImage src={profile.avatar_url || undefined} />
+                <AvatarFallback className="text-xl bg-white text-primary font-bold">
+                  {fullName.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="text-primary-foreground">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  <span className="text-xs opacity-90">مرحباً بعودتك</span>
+                </div>
+                <h2 className="text-xl md:text-2xl font-bold mt-0.5">{fullName}</h2>
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  <Badge className="bg-white/20 text-primary-foreground border-white/30 hover:bg-white/30">
+                    <GraduationCap className="h-3 w-3 ml-1" />
+                    {SCHOOL_LEVELS[profile.school_level || ""] || "—"}
+                  </Badge>
+                  {streak > 0 && (
+                    <Badge className="bg-amber-400/90 text-amber-950 border-0 hover:bg-amber-400">
+                      <Zap className="h-3 w-3 ml-1" />
+                      سلسلة {streak}
+                    </Badge>
+                  )}
+                </div>
               </div>
-              <span className="text-2xl font-bold text-emerald-600">{successRate}%</span>
             </div>
-            <p className="text-xs text-muted-foreground">نسبة النجاح</p>
-            <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
+            <div className="flex items-center gap-2">
+              <div className="text-primary-foreground/90 text-left">
+                <p className="text-[10px] opacity-75">آخر تحديث</p>
+                <p className="text-xs font-medium">
+                  {lastUpdated.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+              <Button
+                variant="secondary" size="icon"
+                onClick={() => fetchScores()}
+                disabled={isRefreshing}
+                className="h-9 w-9 bg-white/20 hover:bg-white/30 text-primary-foreground border-0"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="relative overflow-hidden hover:shadow-md transition-shadow">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+          <CardContent className="p-5 relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2.5 rounded-xl bg-emerald-500/10">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+              </div>
+              <TrendingUp className="h-4 w-4 text-emerald-500/60" />
+            </div>
+            <p className="text-xs text-muted-foreground mb-1">نسبة النجاح</p>
+            <p className="text-3xl font-bold text-emerald-600">{successRate}%</p>
+            <div className="mt-3 h-1.5 rounded-full bg-secondary overflow-hidden">
               <div className="h-full rounded-full bg-emerald-500 transition-all duration-700" style={{ width: `${successRate}%` }} />
             </div>
-            <p className="text-[10px] text-emerald-600 mt-1">{totalCorrect} إجابة صحيحة</p>
+            <p className="text-[10px] text-muted-foreground mt-2">{totalCorrect} إجابة صحيحة</p>
           </CardContent>
         </Card>
 
-        {/* Error Rate */}
-        <Card className="border-red-500/20 bg-red-500/5">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="p-2 rounded-lg bg-red-500/10">
-                <XCircle className="h-4 w-4 text-red-500" />
+        <Card className="relative overflow-hidden hover:shadow-md transition-shadow">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+          <CardContent className="p-5 relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2.5 rounded-xl bg-red-500/10">
+                <XCircle className="h-5 w-5 text-red-500" />
               </div>
-              <span className="text-2xl font-bold text-red-500">{errorRate}%</span>
+              <TrendingDown className="h-4 w-4 text-red-500/60" />
             </div>
-            <p className="text-xs text-muted-foreground">نسبة الخطأ</p>
-            <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
+            <p className="text-xs text-muted-foreground mb-1">نسبة الخطأ</p>
+            <p className="text-3xl font-bold text-red-500">{errorRate}%</p>
+            <div className="mt-3 h-1.5 rounded-full bg-secondary overflow-hidden">
               <div className="h-full rounded-full bg-red-500 transition-all duration-700" style={{ width: `${errorRate}%` }} />
             </div>
-            <p className="text-[10px] text-red-500 mt-1">{totalErrors} إجابة خاطئة</p>
+            <p className="text-[10px] text-muted-foreground mt-2">{totalErrors} إجابة خاطئة</p>
           </CardContent>
         </Card>
 
-        {/* Current Level */}
-        <Card className={`${levelInfo.border} ${levelInfo.bg}`}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className={`p-2 rounded-lg ${levelInfo.bg}`}>
-                <Zap className={`h-4 w-4 ${levelInfo.color}`} />
+        <Card className="relative overflow-hidden hover:shadow-md transition-shadow">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+          <CardContent className="p-5 relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className={`p-2.5 rounded-xl ${levelInfo.bg}`}>
+                <Award className={`h-5 w-5 ${levelInfo.color}`} />
               </div>
-              <span className={`text-2xl font-bold ${levelInfo.color}`}>{avgLevel}%</span>
+              <Zap className={`h-4 w-4 ${levelInfo.color} opacity-60`} />
             </div>
-            <p className="text-xs text-muted-foreground">المستوى الحالي</p>
-            <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
+            <p className="text-xs text-muted-foreground mb-1">المستوى الحالي</p>
+            <p className={`text-3xl font-bold ${levelInfo.color}`}>{avgLevel}%</p>
+            <div className="mt-3 h-1.5 rounded-full bg-secondary overflow-hidden">
               <div className="h-full rounded-full transition-all duration-700" style={{ width: `${avgLevel}%`, backgroundColor: levelInfo.ring }} />
             </div>
-            <Badge variant="outline" className={`mt-1 text-[10px] ${levelInfo.color} border-current`}>{levelInfo.label}</Badge>
+            <Badge variant="outline" className={`mt-2 text-[10px] ${levelInfo.color} border-current py-0`}>{levelInfo.label}</Badge>
           </CardContent>
         </Card>
 
-        {/* Study Time */}
-        <Card className="border-blue-500/20 bg-blue-500/5">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="p-2 rounded-lg bg-blue-500/10">
-                <Clock className="h-4 w-4 text-blue-600" />
+        <Card className="relative overflow-hidden hover:shadow-md transition-shadow">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+          <CardContent className="p-5 relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2.5 rounded-xl bg-blue-500/10">
+                <Clock className="h-5 w-5 text-blue-600" />
               </div>
-              <span className="text-2xl font-bold text-blue-600">{formatTime(totalTime)}</span>
+              <Activity className="h-4 w-4 text-blue-500/60" />
             </div>
-            <p className="text-xs text-muted-foreground">وقت الدراسة</p>
-            <div className="flex items-center gap-1 mt-2">
-              <Activity className="h-3 w-3 text-blue-500" />
-              <span className="text-[10px] text-blue-600">{totalAnswers} إجابة إجمالية</span>
-            </div>
-            {streak > 0 && (
-              <div className="flex items-center gap-1 mt-1">
-                <Zap className="h-3 w-3 text-amber-500" />
-                <span className="text-[10px] text-amber-600">سلسلة: {streak}</span>
-              </div>
-            )}
+            <p className="text-xs text-muted-foreground mb-1">وقت الدراسة</p>
+            <p className="text-3xl font-bold text-blue-600">{formatTime(totalTime)}</p>
+            <p className="text-[10px] text-muted-foreground mt-3">{totalAnswers} إجابة إجمالية</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Visual Overview: Level Ring + Success/Error Ring */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Target className="h-4 w-4 text-primary" />
-                نظرة عامة على الأداء
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Level Ring */}
-                <div className="flex flex-col items-center">
-                  <div className="relative">
-                    <svg width="140" height="140" viewBox="0 0 140 140">
-                      <circle cx="70" cy="70" r={ringRadius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="10" />
-                      <circle
-                        cx="70" cy="70" r={ringRadius} fill="none"
-                        stroke={levelInfo.ring} strokeWidth="10"
-                        strokeLinecap="round"
-                        strokeDasharray={ringCircumference}
-                        strokeDashoffset={ringOffset}
-                        transform="rotate(-90 70 70)"
-                        className="transition-all duration-1000"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className={`text-3xl font-bold ${levelInfo.color}`}>{avgLevel}%</span>
-                      <span className="text-[10px] text-muted-foreground">المستوى العام</span>
-                    </div>
-                  </div>
-                  <Badge className={`mt-3 ${levelInfo.bg} ${levelInfo.color} border-0`}>{levelInfo.label}</Badge>
-                </div>
+      {/* Tabbed detailed sections */}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 h-11">
+          <TabsTrigger value="overview" className="gap-2">
+            <Target className="h-4 w-4" />
+            <span className="hidden sm:inline">نظرة عامة</span>
+          </TabsTrigger>
+          <TabsTrigger value="chapters" className="gap-2">
+            <BookOpen className="h-4 w-4" />
+            <span className="hidden sm:inline">الفصول</span>
+          </TabsTrigger>
+          <TabsTrigger value="lessons" className="gap-2">
+            <GraduationCap className="h-4 w-4" />
+            <span className="hidden sm:inline">الدروس</span>
+          </TabsTrigger>
+        </TabsList>
 
-                {/* Success/Error Breakdown */}
-                <div className="flex flex-col items-center justify-center space-y-4">
-                  <div className="flex items-center gap-6">
-                    {/* Success mini ring */}
+        {/* OVERVIEW TAB */}
+        <TabsContent value="overview" className="mt-6 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Performance rings */}
+            <Card className="lg:col-span-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Target className="h-4 w-4 text-primary" />
+                  أداؤك الإجمالي
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                  <div className="flex flex-col items-center">
                     <div className="relative">
-                      <svg width="96" height="96" viewBox="0 0 96 96">
-                        <circle cx="48" cy="48" r={sRingRadius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="7" />
+                      <svg width="160" height="160" viewBox="0 0 140 140">
+                        <circle cx="70" cy="70" r={ringRadius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="12" />
                         <circle
-                          cx="48" cy="48" r={sRingRadius} fill="none"
-                          stroke="hsl(152, 60%, 45%)" strokeWidth="7"
+                          cx="70" cy="70" r={ringRadius} fill="none"
+                          stroke={levelInfo.ring} strokeWidth="12"
                           strokeLinecap="round"
-                          strokeDasharray={sRingCircumference}
-                          strokeDashoffset={sRingOffset}
-                          transform="rotate(-90 48 48)"
+                          strokeDasharray={ringCircumference}
+                          strokeDashoffset={ringOffset}
+                          transform="rotate(-90 70 70)"
                           className="transition-all duration-1000"
                         />
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-lg font-bold text-emerald-600">{successRate}%</span>
-                        <span className="text-[8px] text-muted-foreground">نجاح</span>
+                        <span className={`text-4xl font-bold ${levelInfo.color}`}>{avgLevel}%</span>
+                        <span className="text-xs text-muted-foreground mt-1">المستوى</span>
                       </div>
                     </div>
-
-                    {/* Error mini ring */}
-                    <div className="relative">
-                      <svg width="96" height="96" viewBox="0 0 96 96">
-                        <circle cx="48" cy="48" r={sRingRadius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="7" />
-                        <circle
-                          cx="48" cy="48" r={sRingRadius} fill="none"
-                          stroke="hsl(0, 70%, 55%)" strokeWidth="7"
-                          strokeLinecap="round"
-                          strokeDasharray={sRingCircumference}
-                          strokeDashoffset={sRingCircumference - (errorRate / 100) * sRingCircumference}
-                          transform="rotate(-90 48 48)"
-                          className="transition-all duration-1000"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-lg font-bold text-red-500">{errorRate}%</span>
-                        <span className="text-[8px] text-muted-foreground">خطأ</span>
-                      </div>
-                    </div>
+                    <Badge className={`mt-4 ${levelInfo.bg} ${levelInfo.color} border-0`}>
+                      <Award className="h-3 w-3 ml-1" />
+                      {levelInfo.label}
+                    </Badge>
                   </div>
 
-                  <div className="text-center space-y-1">
-                    <p className="text-xs text-muted-foreground">{totalCorrect} صحيحة من {totalAnswers} إجابة</p>
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    <div className="flex items-center gap-6">
+                      <div className="relative">
+                        <svg width="110" height="110" viewBox="0 0 96 96">
+                          <circle cx="48" cy="48" r={sRingRadius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
+                          <circle
+                            cx="48" cy="48" r={sRingRadius} fill="none"
+                            stroke="hsl(152, 60%, 45%)" strokeWidth="8"
+                            strokeLinecap="round"
+                            strokeDasharray={sRingCircumference}
+                            strokeDashoffset={sRingOffset}
+                            transform="rotate(-90 48 48)"
+                            className="transition-all duration-1000"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <span className="text-xl font-bold text-emerald-600">{successRate}%</span>
+                          <span className="text-[9px] text-muted-foreground">نجاح</span>
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <svg width="110" height="110" viewBox="0 0 96 96">
+                          <circle cx="48" cy="48" r={sRingRadius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
+                          <circle
+                            cx="48" cy="48" r={sRingRadius} fill="none"
+                            stroke="hsl(0, 70%, 55%)" strokeWidth="8"
+                            strokeLinecap="round"
+                            strokeDasharray={sRingCircumference}
+                            strokeDashoffset={sRingCircumference - (errorRate / 100) * sRingCircumference}
+                            transform="rotate(-90 48 48)"
+                            className="transition-all duration-1000"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <span className="text-xl font-bold text-red-500">{errorRate}%</span>
+                          <span className="text-[9px] text-muted-foreground">خطأ</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center">
+                      <span className="font-bold text-emerald-600">{totalCorrect}</span> صحيحة من{" "}
+                      <span className="font-bold">{totalAnswers}</span> إجابة
+                    </p>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Activity Distribution */}
+            {/* Quick actions sidebar */}
+            <div className="space-y-4">
+              {!hideActions && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      إجراءات سريعة
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <Button className="w-full justify-between gap-2 group" onClick={() => navigate("/liste-cours")}>
+                      <span className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> فتح دروسي</span>
+                      <ChevronRight className="h-4 w-4 group-hover:-translate-x-1 transition-transform rtl:rotate-180" />
+                    </Button>
+                    <Button variant="outline" className="w-full justify-between gap-2 group" onClick={() => navigate("/liste-cours")}>
+                      <span className="flex items-center gap-2"><Brain className="h-4 w-4" /> إجراء اختبار</span>
+                      <ChevronRight className="h-4 w-4 group-hover:-translate-x-1 transition-transform rtl:rotate-180" />
+                    </Button>
+                    <Button variant="secondary" className="w-full justify-between gap-2 group" onClick={() => navigate("/liste-cours")}>
+                      <span className="flex items-center gap-2"><FileText className="h-4 w-4" /> مراجعة</span>
+                      <ChevronRight className="h-4 w-4 group-hover:-translate-x-1 transition-transform rtl:rotate-180" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-primary" />
+                    ملخص سريع
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2.5">
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-emerald-500/5">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> إجابات صحيحة
+                    </span>
+                    <span className="text-sm font-bold text-emerald-600">{totalCorrect}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-red-500/5">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <XCircle className="h-3.5 w-3.5 text-red-500" /> إجابات خاطئة
+                    </span>
+                    <span className="text-sm font-bold text-red-500">{totalErrors}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <Target className="h-3.5 w-3.5 text-primary" /> إجمالي الإجابات
+                    </span>
+                    <span className="text-sm font-bold">{totalAnswers}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Activity distribution */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
@@ -580,22 +683,25 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {[
-                  { label: "قراءة الدروس", icon: BookOpen, pct: readPct, color: "bg-blue-500", textColor: "text-blue-600", time: activityBreakdown.reading },
-                  { label: "اختبارات", icon: Brain, pct: quizPct, color: "bg-violet-500", textColor: "text-violet-600", time: activityBreakdown.quiz },
-                  { label: "تمارين", icon: FileText, pct: exPct, color: "bg-amber-500", textColor: "text-amber-600", time: activityBreakdown.exercise },
+                  { label: "قراءة الدروس", icon: BookOpen, pct: readPct, color: "bg-blue-500", textColor: "text-blue-600", bgColor: "bg-blue-500/10", time: activityBreakdown.reading },
+                  { label: "اختبارات", icon: Brain, pct: quizPct, color: "bg-violet-500", textColor: "text-violet-600", bgColor: "bg-violet-500/10", time: activityBreakdown.quiz },
+                  { label: "تمارين", icon: FileText, pct: exPct, color: "bg-amber-500", textColor: "text-amber-600", bgColor: "bg-amber-500/10", time: activityBreakdown.exercise },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-4">
-                    <div className="p-2 rounded-lg bg-muted/50">
-                      <item.icon className={`h-4 w-4 ${item.textColor}`} />
+                    <div className={`p-2.5 rounded-xl ${item.bgColor}`}>
+                      <item.icon className={`h-5 w-5 ${item.textColor}`} />
                     </div>
                     <div className="flex-1">
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="font-medium">{item.label}</span>
-                        <span className="text-muted-foreground">{item.pct}% — {formatTime(item.time)}</span>
+                      <div className="flex justify-between items-baseline mb-1.5">
+                        <span className="font-medium text-sm">{item.label}</span>
+                        <div className="flex items-baseline gap-2">
+                          <span className={`text-base font-bold ${item.textColor}`}>{item.pct}%</span>
+                          <span className="text-xs text-muted-foreground">{formatTime(item.time)}</span>
+                        </div>
                       </div>
-                      <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                      <div className="h-2.5 rounded-full bg-secondary overflow-hidden">
                         <div className={`h-full rounded-full ${item.color} transition-all duration-700`} style={{ width: `${item.pct}%` }} />
                       </div>
                     </div>
@@ -604,8 +710,10 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Chapter Details Table */}
+        {/* CHAPTERS TAB */}
+        <TabsContent value="chapters" className="mt-6">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
@@ -644,16 +752,16 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                           ? Math.round((chapterLessons.completedLessons / chapterLessons.totalLessons) * 100)
                           : 0;
                         return (
-                          <TableRow key={ch.chapterId}>
+                          <TableRow key={ch.chapterId} className="hover:bg-muted/30 transition-colors">
                             <TableCell className="font-medium text-muted-foreground">{i + 1}</TableCell>
                             <TableCell className="font-medium">{ch.chapterTitle}</TableCell>
-                            <TableCell className="text-sm">{formatTime(ch.totalTime)}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{formatTime(ch.totalTime)}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <div className="w-16 h-1.5 rounded-full bg-secondary overflow-hidden">
-                                  <div className="h-full rounded-full bg-emerald-500" style={{ width: `${chSuccess}%` }} />
+                                <div className="w-20 h-2 rounded-full bg-secondary overflow-hidden">
+                                  <div className="h-full rounded-full bg-emerald-500 transition-all duration-700" style={{ width: `${chSuccess}%` }} />
                                 </div>
-                                <span className="text-xs">{chSuccess}%</span>
+                                <span className="text-xs font-medium">{chSuccess}%</span>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -668,8 +776,10 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
               )}
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Clickable Chapter -> Lesson Progress */}
+        {/* LESSONS TAB */}
+        <TabsContent value="lessons" className="mt-6">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
@@ -679,138 +789,69 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
             </CardHeader>
             <CardContent>
               {chapterLessonProgress.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-6">لا توجد دروس متاحة لهذا المستوى بعد.</p>
+                <div className="text-center py-12">
+                  <GraduationCap className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
+                  <p className="text-sm text-muted-foreground">لا توجد دروس متاحة لهذا المستوى بعد.</p>
+                </div>
               ) : (
                 <Accordion type="single" collapsible className="w-full">
-                  {chapterLessonProgress.map((chapter) => (
-                    <AccordionItem key={chapter.chapterId} value={chapter.chapterId}>
-                      <AccordionTrigger className="hover:no-underline">
-                        <div className="flex items-center justify-between w-full pl-4">
-                          <div className="text-right">
-                            <p className="font-medium">{chapter.chapterTitle}</p>
-                            <p className="text-xs text-muted-foreground">{chapter.completedLessons}/{chapter.totalLessons} دروس منتهية</p>
+                  {chapterLessonProgress.map((chapter) => {
+                    const pct = chapter.totalLessons > 0 ? Math.round((chapter.completedLessons / chapter.totalLessons) * 100) : 0;
+                    return (
+                      <AccordionItem key={chapter.chapterId} value={chapter.chapterId}>
+                        <AccordionTrigger className="hover:no-underline">
+                          <div className="flex items-center justify-between w-full pl-4 gap-3">
+                            <div className="text-right flex-1">
+                              <p className="font-medium">{chapter.chapterTitle}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{chapter.completedLessons}/{chapter.totalLessons} دروس منتهية</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 h-1.5 rounded-full bg-secondary overflow-hidden">
+                                <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                              </div>
+                              <Badge variant="outline" className="text-xs min-w-[3rem] justify-center">{pct}%</Badge>
+                            </div>
                           </div>
-                          <Badge variant="outline" className="text-xs">
-                            {chapter.totalLessons > 0 ? Math.round((chapter.completedLessons / chapter.totalLessons) * 100) : 0}%
-                          </Badge>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        {chapter.lessons.length === 0 ? (
-                          <p className="text-xs text-muted-foreground py-2">لا توجد دروس داخل هذا الفصل.</p>
-                        ) : (
-                          <div className="space-y-2">
-                            {chapter.lessons.map((lesson) => (
-                              <button
-                                key={lesson.lessonId}
-                                type="button"
-                                onClick={() => navigate(`/cours/math?chapitre=${chapter.chapterId}&lecon=${lesson.lessonId}`)}
-                                className="w-full border rounded-lg p-3 hover:bg-accent/30 transition-colors text-right"
-                              >
-                                <div className="flex items-start justify-between gap-3 mb-2">
-                                  <div>
-                                    <p className="font-medium">{lesson.lessonTitleAr || lesson.lessonTitle}</p>
-                                    <p className="text-xs text-muted-foreground">{lesson.lessonTitle}</p>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          {chapter.lessons.length === 0 ? (
+                            <p className="text-xs text-muted-foreground py-2">لا توجد دروس داخل هذا الفصل.</p>
+                          ) : (
+                            <div className="space-y-2">
+                              {chapter.lessons.map((lesson) => (
+                                <button
+                                  key={lesson.lessonId}
+                                  type="button"
+                                  onClick={() => navigate(`/cours/math?chapitre=${chapter.chapterId}&lecon=${lesson.lessonId}`)}
+                                  className="w-full border rounded-lg p-3 hover:bg-accent/30 hover:border-primary/40 transition-all text-right"
+                                >
+                                  <div className="flex items-start justify-between gap-3 mb-2">
+                                    <div>
+                                      <p className="font-medium">{lesson.lessonTitleAr || lesson.lessonTitle}</p>
+                                      <p className="text-xs text-muted-foreground">{lesson.lessonTitle}</p>
+                                    </div>
+                                    {getLessonStatusBadge(lesson.status)}
                                   </div>
-                                  {getLessonStatusBadge(lesson.status)}
-                                </div>
-
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                                  <div className="bg-muted/40 rounded px-2 py-1">القراءة: {formatTime(lesson.readingSeconds)}</div>
-                                  <div className="bg-muted/40 rounded px-2 py-1">تمارين: {lesson.exercisesDone}/{lesson.exercisesTotal} ({lesson.exercisesRate}%)</div>
-                                  <div className="bg-muted/40 rounded px-2 py-1">اختبارات: {lesson.quizzesDone}/{lesson.quizzesTotal} ({lesson.quizzesRate}%)</div>
-                                  <div className="bg-muted/40 rounded px-2 py-1">نجاح عام: {lesson.overallRate}%</div>
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                    <div className="bg-muted/40 rounded px-2 py-1.5">القراءة: {formatTime(lesson.readingSeconds)}</div>
+                                    <div className="bg-muted/40 rounded px-2 py-1.5">تمارين: {lesson.exercisesDone}/{lesson.exercisesTotal} ({lesson.exercisesRate}%)</div>
+                                    <div className="bg-muted/40 rounded px-2 py-1.5">اختبارات: {lesson.quizzesDone}/{lesson.quizzesTotal} ({lesson.quizzesRate}%)</div>
+                                    <div className="bg-muted/40 rounded px-2 py-1.5">نجاح عام: {lesson.overallRate}%</div>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
                 </Accordion>
               )}
             </CardContent>
           </Card>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Profile Card */}
-          <Card className="overflow-hidden">
-            <div className="bg-gradient-to-br from-primary/10 to-accent/5 p-6 pb-4 text-center">
-              <Avatar className="h-20 w-20 mx-auto mb-3 ring-4 ring-background shadow-lg">
-                <AvatarImage src={profile.avatar_url || undefined} />
-                <AvatarFallback className="text-xl bg-primary text-primary-foreground">{fullName.charAt(0).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <h3 className="font-semibold text-lg text-foreground">{fullName}</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">{profile.email}</p>
-              <Badge variant="outline" className="mt-2">
-                {SCHOOL_LEVELS[profile.school_level || ""] || profile.school_level || "—"}
-              </Badge>
-            </div>
-          </Card>
-
-          {/* Summary Stats */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">ملخص الأداء</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between py-2 border-b border-border/50">
-                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> إجابات صحيحة
-                </span>
-                <span className="text-sm font-bold text-emerald-600">{totalCorrect}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/50">
-                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <XCircle className="h-3.5 w-3.5 text-red-500" /> إجابات خاطئة
-                </span>
-                <span className="text-sm font-bold text-red-500">{totalErrors}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/50">
-                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <Target className="h-3.5 w-3.5 text-primary" /> إجمالي الإجابات
-                </span>
-                <span className="text-sm font-bold">{totalAnswers}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/50">
-                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <TrendingUp className="h-3.5 w-3.5 text-emerald-500" /> نسبة النجاح
-                </span>
-                <span className="text-sm font-bold text-emerald-600">{successRate}%</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <TrendingDown className="h-3.5 w-3.5 text-red-500" /> نسبة الخطأ
-                </span>
-                <span className="text-sm font-bold text-red-500">{errorRate}%</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions */}
-          {!hideActions && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">إجراءات سريعة</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button className="w-full justify-start gap-2" onClick={() => navigate("/liste-cours")}>
-                  <BookOpen className="h-4 w-4" /> فتح دروسي
-                </Button>
-                <Button variant="outline" className="w-full justify-start gap-2" onClick={() => navigate("/liste-cours")}>
-                  <Brain className="h-4 w-4" /> إجراء اختبار
-                </Button>
-                <Button variant="secondary" className="w-full justify-start gap-2" onClick={() => navigate("/liste-cours")}>
-                  <FileText className="h-4 w-4" /> مراجعة
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
