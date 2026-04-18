@@ -515,18 +515,27 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
 
       {/* Tabbed detailed sections */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-11">
-          <TabsTrigger value="overview" className="gap-2">
-            <Target className="h-4 w-4" />
-            <span className="hidden sm:inline">نظرة عامة</span>
+        <TabsList className="grid w-full grid-cols-3 h-auto p-1.5 bg-gradient-to-r from-secondary/60 via-secondary to-secondary/60 rounded-2xl shadow-inner gap-1.5">
+          <TabsTrigger
+            value="overview"
+            className="group flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-br data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 data-[state=active]:scale-[1.02] hover:bg-background/60"
+          >
+            <Target className="h-4 w-4 transition-transform group-data-[state=active]:rotate-12" />
+            <span>نظرة عامة</span>
           </TabsTrigger>
-          <TabsTrigger value="chapters" className="gap-2">
-            <BookOpen className="h-4 w-4" />
-            <span className="hidden sm:inline">الفصول</span>
+          <TabsTrigger
+            value="chapters"
+            className="group flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/30 data-[state=active]:scale-[1.02] hover:bg-background/60"
+          >
+            <BookOpen className="h-4 w-4 transition-transform group-data-[state=active]:rotate-12" />
+            <span>الفصول</span>
           </TabsTrigger>
-          <TabsTrigger value="lessons" className="gap-2">
-            <GraduationCap className="h-4 w-4" />
-            <span className="hidden sm:inline">الدروس</span>
+          <TabsTrigger
+            value="lessons"
+            className="group flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-br data-[state=active]:from-violet-500 data-[state=active]:to-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-violet-500/30 data-[state=active]:scale-[1.02] hover:bg-background/60"
+          >
+            <GraduationCap className="h-4 w-4 transition-transform group-data-[state=active]:rotate-12" />
+            <span>الدروس</span>
           </TabsTrigger>
         </TabsList>
 
@@ -714,14 +723,16 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
 
         {/* CHAPTERS TAB */}
         <TabsContent value="chapters" className="mt-6">
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="border-0 shadow-md overflow-hidden">
+            <CardHeader className="pb-4 bg-gradient-to-l from-blue-500/10 via-blue-500/5 to-transparent border-b">
               <CardTitle className="text-base flex items-center gap-2">
-                <BookOpen className="h-4 w-4 text-primary" />
+                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-md shadow-blue-500/30">
+                  <BookOpen className="h-4 w-4 text-white" />
+                </div>
                 تفاصيل حسب الفصل
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 md:p-6">
               {chapterStats.length === 0 ? (
                 <div className="text-center py-12">
                   <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
@@ -733,45 +744,92 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                   )}
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">#</TableHead>
-                        <TableHead className="text-right">الفصل</TableHead>
-                        <TableHead className="text-right">الوقت</TableHead>
-                        <TableHead className="text-right">نسبة النجاح</TableHead>
-                        <TableHead className="text-right">المستوى</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {chapterStats.map((ch, i) => {
-                        const chLevel = getLevelInfo(ch.level);
-                        const chapterLessons = chapterLessonProgress.find((chapter) => chapter.chapterId === ch.chapterId);
-                        const chSuccess = chapterLessons && chapterLessons.totalLessons > 0
-                          ? Math.round((chapterLessons.completedLessons / chapterLessons.totalLessons) * 100)
-                          : 0;
-                        return (
-                          <TableRow key={ch.chapterId} className="hover:bg-muted/30 transition-colors">
-                            <TableCell className="font-medium text-muted-foreground">{i + 1}</TableCell>
-                            <TableCell className="font-medium">{ch.chapterTitle}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">{formatTime(ch.totalTime)}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <div className="w-20 h-2 rounded-full bg-secondary overflow-hidden">
-                                  <div className="h-full rounded-full bg-emerald-500 transition-all duration-700" style={{ width: `${chSuccess}%` }} />
-                                </div>
-                                <span className="text-xs font-medium">{chSuccess}%</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {chapterStats.map((ch, i) => {
+                    const chLevel = getLevelInfo(ch.level);
+                    const chapterLessons = chapterLessonProgress.find((chapter) => chapter.chapterId === ch.chapterId);
+                    const chSuccess = chapterLessons && chapterLessons.totalLessons > 0
+                      ? Math.round((chapterLessons.completedLessons / chapterLessons.totalLessons) * 100)
+                      : 0;
+                    const completionPct = chSuccess;
+                    return (
+                      <div
+                        key={ch.chapterId}
+                        className="group relative overflow-hidden rounded-2xl border bg-card hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                      >
+                        <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: chLevel.ring }} />
+                        <div className="absolute -top-8 -left-8 w-32 h-32 rounded-full opacity-10 blur-2xl" style={{ backgroundColor: chLevel.ring }} />
+
+                        <div className="relative p-4 md:p-5">
+                          <div className="flex items-start justify-between gap-3 mb-4">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center font-bold text-primary text-sm border border-primary/10">
+                                {String(i + 1).padStart(2, '0')}
                               </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className={`${chLevel.color} border-current text-xs`}>{chLevel.label}</Badge>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-sm md:text-base leading-tight truncate">{ch.chapterTitle}</h3>
+                                <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
+                                  <Clock className="h-3 w-3" />
+                                  <span>{formatTime(ch.totalTime)}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <Badge className={`${chLevel.bg} ${chLevel.color} border-0 shrink-0`}>
+                              <Award className="h-3 w-3 ml-1" />
+                              {chLevel.label}
+                            </Badge>
+                          </div>
+
+                          <div className="space-y-2 mb-3">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground flex items-center gap-1">
+                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                                نسبة النجاح
+                              </span>
+                              <span className="font-bold text-emerald-600">{chSuccess}%</span>
+                            </div>
+                            <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-1000"
+                                style={{ width: `${chSuccess}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2 mb-4">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground flex items-center gap-1">
+                                <Target className="h-3 w-3 text-primary" />
+                                التقدم
+                              </span>
+                              <span className="font-bold text-primary">
+                                {chapterLessons?.completedLessons || 0}/{chapterLessons?.totalLessons || 0} درس
+                              </span>
+                            </div>
+                            <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-primary/70 to-primary transition-all duration-1000"
+                                style={{ width: `${completionPct}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 pt-3 border-t border-dashed">
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              <span className="text-muted-foreground">صحيحة:</span>
+                              <span className="font-bold text-emerald-600">{ch.correctAnswers}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                              <span className="text-muted-foreground">المجموع:</span>
+                              <span className="font-bold">{ch.totalAnswers}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
@@ -780,66 +838,131 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
 
         {/* LESSONS TAB */}
         <TabsContent value="lessons" className="mt-6">
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="border-0 shadow-md overflow-hidden">
+            <CardHeader className="pb-4 bg-gradient-to-l from-violet-500/10 via-violet-500/5 to-transparent border-b">
               <CardTitle className="text-base flex items-center gap-2">
-                <GraduationCap className="h-4 w-4 text-primary" />
+                <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 shadow-md shadow-violet-500/30">
+                  <GraduationCap className="h-4 w-4 text-white" />
+                </div>
                 تقدم الدروس داخل كل فصل
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 md:p-6">
               {chapterLessonProgress.length === 0 ? (
                 <div className="text-center py-12">
                   <GraduationCap className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
                   <p className="text-sm text-muted-foreground">لا توجد دروس متاحة لهذا المستوى بعد.</p>
                 </div>
               ) : (
-                <Accordion type="single" collapsible className="w-full">
-                  {chapterLessonProgress.map((chapter) => {
+                <Accordion type="single" collapsible className="w-full space-y-3">
+                  {chapterLessonProgress.map((chapter, idx) => {
                     const pct = chapter.totalLessons > 0 ? Math.round((chapter.completedLessons / chapter.totalLessons) * 100) : 0;
                     return (
-                      <AccordionItem key={chapter.chapterId} value={chapter.chapterId}>
-                        <AccordionTrigger className="hover:no-underline">
-                          <div className="flex items-center justify-between w-full pl-4 gap-3">
-                            <div className="text-right flex-1">
-                              <p className="font-medium">{chapter.chapterTitle}</p>
-                              <p className="text-xs text-muted-foreground mt-0.5">{chapter.completedLessons}/{chapter.totalLessons} دروس منتهية</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-16 h-1.5 rounded-full bg-secondary overflow-hidden">
-                                <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                      <AccordionItem
+                        key={chapter.chapterId}
+                        value={chapter.chapterId}
+                        className="border rounded-2xl overflow-hidden bg-gradient-to-l from-card to-violet-500/[0.03] hover:shadow-md transition-shadow data-[state=open]:shadow-lg data-[state=open]:border-violet-500/30"
+                      >
+                        <AccordionTrigger className="hover:no-underline px-4 py-3.5 [&[data-state=open]>div>svg]:rotate-180">
+                          <div className="flex items-center justify-between w-full gap-3">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center font-bold text-white text-sm shadow-md shadow-violet-500/30">
+                                {String(idx + 1).padStart(2, '0')}
                               </div>
-                              <Badge variant="outline" className="text-xs min-w-[3rem] justify-center">{pct}%</Badge>
+                              <div className="text-right flex-1 min-w-0">
+                                <p className="font-bold text-sm md:text-base truncate">{chapter.chapterTitle}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                                  <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                                  {chapter.completedLessons}/{chapter.totalLessons} دروس منتهية
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <div className="hidden sm:block w-20 h-2 rounded-full bg-secondary overflow-hidden">
+                                <div className="h-full rounded-full bg-gradient-to-r from-violet-400 to-violet-600 transition-all duration-1000" style={{ width: `${pct}%` }} />
+                              </div>
+                              <Badge className="bg-violet-500/10 text-violet-700 border-violet-500/20 min-w-[3rem] justify-center font-bold">
+                                {pct}%
+                              </Badge>
                             </div>
                           </div>
                         </AccordionTrigger>
-                        <AccordionContent>
+                        <AccordionContent className="px-4 pb-4">
                           {chapter.lessons.length === 0 ? (
                             <p className="text-xs text-muted-foreground py-2">لا توجد دروس داخل هذا الفصل.</p>
                           ) : (
-                            <div className="space-y-2">
-                              {chapter.lessons.map((lesson) => (
-                                <button
-                                  key={lesson.lessonId}
-                                  type="button"
-                                  onClick={() => navigate(`/cours/math?chapitre=${chapter.chapterId}&lecon=${lesson.lessonId}`)}
-                                  className="w-full border rounded-lg p-3 hover:bg-accent/30 hover:border-primary/40 transition-all text-right"
-                                >
-                                  <div className="flex items-start justify-between gap-3 mb-2">
-                                    <div>
-                                      <p className="font-medium">{lesson.lessonTitleAr || lesson.lessonTitle}</p>
-                                      <p className="text-xs text-muted-foreground">{lesson.lessonTitle}</p>
+                            <div className="space-y-2.5 pt-2 border-t">
+                              {chapter.lessons.map((lesson, lessonIdx) => {
+                                const statusColor = lesson.status === "completed"
+                                  ? "from-emerald-500 to-emerald-600 shadow-emerald-500/30"
+                                  : lesson.status === "in_progress"
+                                    ? "from-amber-500 to-amber-600 shadow-amber-500/30"
+                                    : "from-muted-foreground/40 to-muted-foreground/60 shadow-muted-foreground/20";
+                                const overallColor = lesson.overallRate >= 80 ? "text-emerald-600" : lesson.overallRate >= 50 ? "text-amber-600" : "text-muted-foreground";
+                                return (
+                                  <button
+                                    key={lesson.lessonId}
+                                    type="button"
+                                    onClick={() => navigate(`/cours/math?chapitre=${chapter.chapterId}&lecon=${lesson.lessonId}`)}
+                                    className="group w-full border rounded-xl p-3.5 hover:bg-accent/30 hover:border-violet-500/40 hover:shadow-md transition-all text-right relative overflow-hidden"
+                                  >
+                                    <div className="flex items-start justify-between gap-3 mb-3">
+                                      <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                                        <div className={`flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br ${statusColor} flex items-center justify-center text-white text-xs font-bold shadow-md`}>
+                                          {lessonIdx + 1}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-semibold text-sm truncate">{lesson.lessonTitleAr || lesson.lessonTitle}</p>
+                                          <p className="text-[11px] text-muted-foreground truncate">{lesson.lessonTitle}</p>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-2 shrink-0">
+                                        {getLessonStatusBadge(lesson.status)}
+                                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:-translate-x-1 transition-all rtl:rotate-180" />
+                                      </div>
                                     </div>
-                                    {getLessonStatusBadge(lesson.status)}
-                                  </div>
-                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                                    <div className="bg-muted/40 rounded px-2 py-1.5">القراءة: {formatTime(lesson.readingSeconds)}</div>
-                                    <div className="bg-muted/40 rounded px-2 py-1.5">تمارين: {lesson.exercisesDone}/{lesson.exercisesTotal} ({lesson.exercisesRate}%)</div>
-                                    <div className="bg-muted/40 rounded px-2 py-1.5">اختبارات: {lesson.quizzesDone}/{lesson.quizzesTotal} ({lesson.quizzesRate}%)</div>
-                                    <div className="bg-muted/40 rounded px-2 py-1.5">نجاح عام: {lesson.overallRate}%</div>
-                                  </div>
-                                </button>
-                              ))}
+
+                                    {/* Overall progress bar */}
+                                    <div className="mb-3">
+                                      <div className="flex items-center justify-between text-[11px] mb-1">
+                                        <span className="text-muted-foreground">التقدم العام</span>
+                                        <span className={`font-bold ${overallColor}`}>{lesson.overallRate}%</span>
+                                      </div>
+                                      <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                                        <div className="h-full rounded-full bg-gradient-to-r from-violet-400 to-violet-600 transition-all duration-700" style={{ width: `${lesson.overallRate}%` }} />
+                                      </div>
+                                    </div>
+
+                                    {/* Stat tiles */}
+                                    <div className="grid grid-cols-3 gap-2">
+                                      <div className="rounded-lg bg-blue-500/5 border border-blue-500/10 p-2">
+                                        <div className="flex items-center gap-1 text-[10px] text-blue-600 font-semibold mb-1">
+                                          <BookOpen className="h-3 w-3" /> القراءة
+                                        </div>
+                                        <p className="text-xs font-bold">{formatTime(lesson.readingSeconds)}</p>
+                                      </div>
+                                      <div className="rounded-lg bg-amber-500/5 border border-amber-500/10 p-2">
+                                        <div className="flex items-center gap-1 text-[10px] text-amber-600 font-semibold mb-1">
+                                          <FileText className="h-3 w-3" /> تمارين
+                                        </div>
+                                        <p className="text-xs font-bold">{lesson.exercisesDone}/{lesson.exercisesTotal}</p>
+                                        <div className="h-1 rounded-full bg-secondary overflow-hidden mt-1">
+                                          <div className="h-full bg-amber-500 transition-all duration-700" style={{ width: `${lesson.exercisesRate}%` }} />
+                                        </div>
+                                      </div>
+                                      <div className="rounded-lg bg-violet-500/5 border border-violet-500/10 p-2">
+                                        <div className="flex items-center gap-1 text-[10px] text-violet-600 font-semibold mb-1">
+                                          <Brain className="h-3 w-3" /> اختبارات
+                                        </div>
+                                        <p className="text-xs font-bold">{lesson.quizzesDone}/{lesson.quizzesTotal}</p>
+                                        <div className="h-1 rounded-full bg-secondary overflow-hidden mt-1">
+                                          <div className="h-full bg-violet-500 transition-all duration-700" style={{ width: `${lesson.quizzesRate}%` }} />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </button>
+                                );
+                              })}
                             </div>
                           )}
                         </AccordionContent>
