@@ -723,14 +723,16 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
 
         {/* CHAPTERS TAB */}
         <TabsContent value="chapters" className="mt-6">
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="border-0 shadow-md overflow-hidden">
+            <CardHeader className="pb-4 bg-gradient-to-l from-blue-500/10 via-blue-500/5 to-transparent border-b">
               <CardTitle className="text-base flex items-center gap-2">
-                <BookOpen className="h-4 w-4 text-primary" />
+                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-md shadow-blue-500/30">
+                  <BookOpen className="h-4 w-4 text-white" />
+                </div>
                 تفاصيل حسب الفصل
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 md:p-6">
               {chapterStats.length === 0 ? (
                 <div className="text-center py-12">
                   <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
@@ -742,45 +744,92 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                   )}
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">#</TableHead>
-                        <TableHead className="text-right">الفصل</TableHead>
-                        <TableHead className="text-right">الوقت</TableHead>
-                        <TableHead className="text-right">نسبة النجاح</TableHead>
-                        <TableHead className="text-right">المستوى</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {chapterStats.map((ch, i) => {
-                        const chLevel = getLevelInfo(ch.level);
-                        const chapterLessons = chapterLessonProgress.find((chapter) => chapter.chapterId === ch.chapterId);
-                        const chSuccess = chapterLessons && chapterLessons.totalLessons > 0
-                          ? Math.round((chapterLessons.completedLessons / chapterLessons.totalLessons) * 100)
-                          : 0;
-                        return (
-                          <TableRow key={ch.chapterId} className="hover:bg-muted/30 transition-colors">
-                            <TableCell className="font-medium text-muted-foreground">{i + 1}</TableCell>
-                            <TableCell className="font-medium">{ch.chapterTitle}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">{formatTime(ch.totalTime)}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <div className="w-20 h-2 rounded-full bg-secondary overflow-hidden">
-                                  <div className="h-full rounded-full bg-emerald-500 transition-all duration-700" style={{ width: `${chSuccess}%` }} />
-                                </div>
-                                <span className="text-xs font-medium">{chSuccess}%</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {chapterStats.map((ch, i) => {
+                    const chLevel = getLevelInfo(ch.level);
+                    const chapterLessons = chapterLessonProgress.find((chapter) => chapter.chapterId === ch.chapterId);
+                    const chSuccess = chapterLessons && chapterLessons.totalLessons > 0
+                      ? Math.round((chapterLessons.completedLessons / chapterLessons.totalLessons) * 100)
+                      : 0;
+                    const completionPct = chSuccess;
+                    return (
+                      <div
+                        key={ch.chapterId}
+                        className="group relative overflow-hidden rounded-2xl border bg-card hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                      >
+                        <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: chLevel.ring }} />
+                        <div className="absolute -top-8 -left-8 w-32 h-32 rounded-full opacity-10 blur-2xl" style={{ backgroundColor: chLevel.ring }} />
+
+                        <div className="relative p-4 md:p-5">
+                          <div className="flex items-start justify-between gap-3 mb-4">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center font-bold text-primary text-sm border border-primary/10">
+                                {String(i + 1).padStart(2, '0')}
                               </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className={`${chLevel.color} border-current text-xs`}>{chLevel.label}</Badge>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-sm md:text-base leading-tight truncate">{ch.chapterTitle}</h3>
+                                <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
+                                  <Clock className="h-3 w-3" />
+                                  <span>{formatTime(ch.totalTime)}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <Badge className={`${chLevel.bg} ${chLevel.color} border-0 shrink-0`}>
+                              <Award className="h-3 w-3 ml-1" />
+                              {chLevel.label}
+                            </Badge>
+                          </div>
+
+                          <div className="space-y-2 mb-3">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground flex items-center gap-1">
+                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                                نسبة النجاح
+                              </span>
+                              <span className="font-bold text-emerald-600">{chSuccess}%</span>
+                            </div>
+                            <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-1000"
+                                style={{ width: `${chSuccess}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2 mb-4">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground flex items-center gap-1">
+                                <Target className="h-3 w-3 text-primary" />
+                                التقدم
+                              </span>
+                              <span className="font-bold text-primary">
+                                {chapterLessons?.completedLessons || 0}/{chapterLessons?.totalLessons || 0} درس
+                              </span>
+                            </div>
+                            <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-primary/70 to-primary transition-all duration-1000"
+                                style={{ width: `${completionPct}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 pt-3 border-t border-dashed">
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              <span className="text-muted-foreground">صحيحة:</span>
+                              <span className="font-bold text-emerald-600">{ch.correctAnswers}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                              <span className="text-muted-foreground">المجموع:</span>
+                              <span className="font-bold">{ch.totalAnswers}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
@@ -789,10 +838,12 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
 
         {/* LESSONS TAB */}
         <TabsContent value="lessons" className="mt-6">
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="border-0 shadow-md overflow-hidden">
+            <CardHeader className="pb-4 bg-gradient-to-l from-violet-500/10 via-violet-500/5 to-transparent border-b">
               <CardTitle className="text-base flex items-center gap-2">
-                <GraduationCap className="h-4 w-4 text-primary" />
+                <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 shadow-md shadow-violet-500/30">
+                  <GraduationCap className="h-4 w-4 text-white" />
+                </div>
                 تقدم الدروس داخل كل فصل
               </CardTitle>
             </CardHeader>
