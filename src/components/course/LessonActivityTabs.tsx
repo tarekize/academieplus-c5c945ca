@@ -104,7 +104,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   // Time tracking: map activeSection to activity type
   const currentActivityType = activeSection === "exercises" ? "exercise" as const
     : activeSection === "quiz" ? "quiz" as const
-    : "reading" as const;
+      : "reading" as const;
 
   useActivityTimeTracker({
     userId: userId || propUserId || null,
@@ -841,13 +841,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           const Icon = step.icon;
           const isActive = activeStep === step.id;
 
-          let isLocked = false;
-          if (step.id === "comprendre") {
-            isLocked = !isUnlocked;
-          } else if (step.id === "approfondir") {
-            // Requires 3 correct answers AND Active Subscription
-            isLocked = !isUnlocked || (!hasActiveSubscription && !readOnly); // Keep readOnly logic if relevant, but here we enforce subscription
-          }
+          const isLocked = false;
 
           return (
             <button
@@ -856,7 +850,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 if (!isLocked) setActiveStep(step.id);
               }}
               disabled={isLocked}
-              title={isLocked ? (step.id === "approfondir" && isUnlocked && !hasActiveSubscription ? "Abonnement requis pour accéder à cette section" : "Terminez la phase précédente pour débloquer") : ""}
+              title=""
               className={cn(
                 "relative flex items-center justify-between sm:justify-start gap-4 px-4 py-3 sm:py-2.5 rounded-lg transition-all duration-300 w-full group",
                 isActive
@@ -1007,7 +1001,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         </Card>
       )}
 
-      {activeStep === "comprendre" && isUnlocked && (
+      {activeStep === "comprendre" && (
         <Card className="border-yellow-500/20">
           <CardHeader className="pb-3">
             <CardTitle className="flex flex-wrap items-center justify-between text-yellow-600 gap-2">
@@ -1107,7 +1101,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         </Card>
       )}
 
-      {activeStep === "approfondir" && isUnlocked && (
+      {activeStep === "approfondir" && (
         <Card className="border-purple-500/20">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-purple-600">

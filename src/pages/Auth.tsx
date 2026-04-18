@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,7 @@ const Auth = () => {
   const [consentTermsPrivacy, setConsentTermsPrivacy] = useState(false);
   const [consentParental, setConsentParental] = useState(false);
   const navigate = useNavigate();
+  const hasNavigated = useRef(false);
 
   const hasCompletedPlacementAssessment = async (userId: string): Promise<boolean> => {
     const { data: scoreRows } = await supabase
@@ -108,6 +109,15 @@ const Auth = () => {
         setSession(session);
 
         if (session) {
+          const returnTo = sessionStorage.getItem('returnTo');
+          if (returnTo === '/abonnements') {
+            if (hasNavigated.current) return;
+            hasNavigated.current = true;
+            sessionStorage.removeItem('returnTo');
+            navigate('/abonnements');
+            return;
+          }
+
           // Check user role to redirect appropriately
           const { data: roleData } = await supabase
             .from('user_roles')
@@ -120,18 +130,30 @@ const Auth = () => {
           if (!roleData?.role || roleData?.role === 'student') {
             const hasAssessment = await hasCompletedPlacementAssessment(session.user.id);
             if (!hasAssessment) {
-              // Ne pas rediriger, laisser l'évaluation s'afficher
+              if (hasNavigated.current) return;
+              hasNavigated.current = true;
+              navigate('/learning-assessment');
               return;
             }
           }
 
           setTimeout(() => {
+            if (hasNavigated.current) return;
+            hasNavigated.current = true;
+
+            const returnTo = sessionStorage.getItem('returnTo');
+            if (returnTo) {
+              sessionStorage.removeItem('returnTo');
+              navigate(returnTo);
+              return;
+            }
+
             if (roleData?.role === 'parent') {
               navigate("/parent-dashboard");
             } else if (roleData?.role === 'admin') {
               navigate("/dashboard");
             } else {
-              navigate("/abonnements");
+              navigate("/cours/math");
             }
           }, 0);
         }
@@ -142,6 +164,15 @@ const Auth = () => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       if (session) {
+        const returnTo = sessionStorage.getItem('returnTo');
+        if (returnTo === '/abonnements') {
+          if (hasNavigated.current) return;
+          hasNavigated.current = true;
+          sessionStorage.removeItem('returnTo');
+          navigate('/abonnements');
+          return;
+        }
+
         // Check user role
         const { data: roleData } = await supabase
           .from('user_roles')
@@ -154,17 +185,22 @@ const Auth = () => {
         if (roleData?.role === 'student') {
           const hasAssessment = await hasCompletedPlacementAssessment(session.user.id);
           if (!hasAssessment) {
-            // Ne pas rediriger, laisser l'évaluation s'afficher
+            if (hasNavigated.current) return;
+            hasNavigated.current = true;
+            navigate('/learning-assessment');
             return;
           }
         }
+
+        if (hasNavigated.current) return;
+        hasNavigated.current = true;
 
         if (roleData?.role === 'parent') {
           navigate("/parent-dashboard");
         } else if (roleData?.role === 'admin') {
           navigate("/dashboard");
         } else {
-          navigate("/abonnements");
+          navigate("/cours/math");
         }
       }
     });
@@ -226,8 +262,8 @@ const Auth = () => {
         }
       }
 
-      // ✅ AFFICHER L'OVERLAY IMMÉDIATEMENT - SANS ATTENDRE LE SERVEUR
-      setIsRegistering(true);
+      // Ne pas avancer dans l'étape visuelle tant que le serveur n'a pas validé l'inscription.
+      setLoading(true);
 
       // Envoyer l'inscription en arrière-plan
       performSignUp(firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth, wilaya, ville, ecole, phone);
@@ -329,9 +365,15 @@ const Auth = () => {
       });
 
       if (error) throw error;
+      setIsRegistering(true);
       setRegistrationEmail(email);
-      // Naviguer vers l'évaluation d'apprentissage APRÈS que le signup soit réussi
-      navigate('/learning-assessment');
+      const returnTo = sessionStorage.getItem('returnTo');
+      // Si l'inscription vient d'un clic Pricing, respecter la redirection demandée.
+      if (returnTo === '/abonnements') {
+        navigate('/abonnements');
+      } else {
+        navigate('/learning-assessment');
+      }
     } catch (error: any) {
       if (error.message.includes("Email not confirmed")) {
         toast.error("Veuillez d'abord confirmer votre email en cliquant sur le lien envoyé dans votre boîte de réception.", {
@@ -339,12 +381,13 @@ const Auth = () => {
         });
       } else if (error.message.includes("Invalid login credentials")) {
         toast.error("Email ou mot de passe incorrect.");
-      } else if (error.message.includes("User already registered")) {
-        toast.error("Un compte existe déjà avec cet email.");
+      } else if (error.message.includes("User already registered") || error.message.includes("already registered")) {
+        toast.error("Cette adresse email existe déjà. Utilisez la connexion ou la réinitialisation du mot de passe.");
       } else {
         toast.error(error.message || "Une erreur s'est produite.");
       }
     } finally {
+      setIsRegistering(false);
       setLoading(false);
     }
   };
@@ -355,7 +398,8 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/liste-cours`,
+          // Always return to /auth so post-login routing can honor returnTo (/abonnements) when needed.
+          redirectTo: `${window.location.origin}/auth`,
         },
       });
 

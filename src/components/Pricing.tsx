@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PricingPlan {
   id: string;
@@ -25,7 +26,8 @@ const FALLBACK_PLANS: PricingPlan[] = [
 const Pricing = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  
+  const { user } = useAuth();
+
   const [isFamily, setIsFamily] = useState(false);
   const [plans, setPlans] = useState<PricingPlan[]>(FALLBACK_PLANS);
   const [periodLabel, setPeriodLabel] = useState("1 année scolaire");
@@ -99,8 +101,8 @@ const Pricing = () => {
 
         {/* Switch pour 1 enfant vs Famille */}
         <div className="flex items-center justify-center gap-4 mb-12">
-          <Label 
-            htmlFor="family-switch" 
+          <Label
+            htmlFor="family-switch"
             className={`text-lg font-semibold cursor-pointer transition-colors ${!isFamily ? 'text-primary' : 'text-muted-foreground'}`}
           >
             {t("pricing.switchOneChild")}
@@ -110,8 +112,8 @@ const Pricing = () => {
             checked={isFamily}
             onCheckedChange={setIsFamily}
           />
-          <Label 
-            htmlFor="family-switch" 
+          <Label
+            htmlFor="family-switch"
             className={`text-lg font-semibold cursor-pointer transition-colors ${isFamily ? 'text-primary' : 'text-muted-foreground'}`}
           >
             {t("pricing.switchFamily")}
@@ -122,16 +124,20 @@ const Pricing = () => {
           {displayPlans.map((plan, index) => (
             <Card
               key={index}
-              className={`p-8 ${
-                plan.highlighted
-                  ? "border-2 border-primary shadow-xl"
-                  : "border border-border"
-              } bg-card relative`}
+              className={`p-8 ${plan.highlighted
+                ? "border-2 border-primary shadow-xl"
+                : "border border-border"
+                } bg-card relative`}
             >
               <Button
                 onClick={() => {
                   if (plan.planData) {
-                    navigate("/paiement", {
+                    sessionStorage.setItem('returnTo', '/abonnements');
+                    if (!user) {
+                      navigate("/auth");
+                      return;
+                    }
+                    navigate("/abonnements", {
                       state: {
                         planId: plan.planData.id,
                         planName: plan.name,
@@ -144,11 +150,10 @@ const Pricing = () => {
                   }
                 }}
                 disabled={!plan.planData}
-                className={`w-full font-bold mb-6 text-lg py-6 ${
-                  plan.highlighted
-                    ? "bg-primary hover:bg-primary/90 text-primary-foreground"
-                    : "bg-secondary text-secondary-foreground border-2 border-border hover:bg-secondary/80"
-                }`}
+                className={`w-full font-bold mb-6 text-lg py-6 ${plan.highlighted
+                  ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                  : "bg-secondary text-secondary-foreground border-2 border-border hover:bg-secondary/80"
+                  }`}
               >
                 Choisir {plan.name}
               </Button>

@@ -101,10 +101,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
           }
 
-          // Rediriger les élèves vers /abonnements après connexion (depuis auth ou page d'accueil)
+          // Rediriger les élèves vers /cours/math après connexion par défaut
           if (roleData?.role === 'student' &&
             (currentPath.includes('/auth') || currentPath === '/')) {
-            window.location.href = '/abonnements';
+            window.location.href = '/cours/math';
             return;
           }
 

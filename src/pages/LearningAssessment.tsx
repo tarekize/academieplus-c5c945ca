@@ -167,7 +167,15 @@ const LearningAssessment = () => {
       if (!session) { navigate("/auth"); return; }
       setUserId(session.user.id);
       const hasAssessment = await hasCompletedPlacementAssessment(session.user.id);
-      if (hasAssessment) navigate("/liste-cours");
+      const returnTo = sessionStorage.getItem('returnTo');
+      if (hasAssessment) {
+        if (returnTo) {
+          sessionStorage.removeItem('returnTo');
+          navigate(returnTo);
+        } else {
+          navigate("/cours/math");
+        }
+      }
     };
     check();
   }, [navigate]);
@@ -362,7 +370,13 @@ const LearningAssessment = () => {
       }
 
       toast.success("Résultats sauvegardés !");
-      navigate("/liste-cours");
+      const returnTo = sessionStorage.getItem('returnTo');
+      if (returnTo) {
+        sessionStorage.removeItem('returnTo');
+        navigate(returnTo);
+      } else {
+        navigate("/cours/math");
+      }
     } catch (e: any) {
       console.error("Primary save to student_scores failed, trying legacy fallback:", e);
 
@@ -398,7 +412,13 @@ const LearningAssessment = () => {
         }
 
         toast.success("Résultats sauvegardés !");
-        navigate("/liste-cours");
+        const returnToFallback = sessionStorage.getItem('returnTo');
+        if (returnToFallback) {
+          sessionStorage.removeItem('returnTo');
+          navigate(returnToFallback);
+        } else {
+          navigate("/cours/math");
+        }
       } catch (legacyError: any) {
         console.error("Legacy save failed:", legacyError);
         toast.error("Erreur lors de la sauvegarde. Veuillez réessayer.");
