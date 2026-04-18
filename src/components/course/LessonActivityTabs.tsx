@@ -459,6 +459,55 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     }
   }, [chapterId, lessonId]);
 
+  const persistAnswerStats = useCallback(async (isCorrect: boolean) => {
+    const localUserId = propUserId || userId;
+    let currentUserId = localUserId;
+
+    if (!currentUserId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      currentUserId = user.id;
+    }
+
+    let query = supabase
+      .from("student_scores")
+      .select("id, correct_answers, total_answers")
+      .eq("user_id", currentUserId)
+      .eq("chapter_id", chapterId);
+
+    query = lessonId ? query.eq("lesson_id", lessonId) : query.is("lesson_id", null);
+    const { data: rows } = await query;
+
+    const row = rows?.[0] as any;
+
+    if (row) {
+      const nextTotal = (row.total_answers || 0) + 1;
+      const nextCorrect = (row.correct_answers || 0) + (isCorrect ? 1 : 0);
+      const nextAccuracy = nextTotal > 0 ? Math.round((nextCorrect / nextTotal) * 100) : 0;
+
+      await supabase
+        .from("student_scores")
+        .update({
+          total_answers: nextTotal,
+          correct_answers: nextCorrect,
+          accuracy_rate: nextAccuracy,
+        } as any)
+        .eq("id", row.id);
+      return;
+    }
+
+    await supabase
+      .from("student_scores")
+      .insert([{
+        user_id: currentUserId,
+        chapter_id: chapterId,
+        lesson_id: lessonId ?? null,
+        total_answers: 1,
+        correct_answers: isCorrect ? 1 : 0,
+        accuracy_rate: isCorrect ? 100 : 0,
+      } as any]);
+  }, [chapterId, lessonId, propUserId, userId]);
+
 
   /* 
    * REMOVED: Redundant useEffects that were causing race conditions with direct calls.
@@ -598,6 +647,8 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   };
 
   const handleUnderstandAnswer = useCallback((isCorrect: boolean, type: "exercise" | "quiz", itemId: string) => {
+    persistAnswerStats(isCorrect);
+
     if (isCorrect) {
       if (type === "exercise") {
         setCompletedExerciseIds(prev => {
@@ -630,10 +681,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         });
       }
     }
-  }, [persistItemCompletion, dbExercises, dbQuizzes]);
+  }, [persistItemCompletion, dbExercises, dbQuizzes, persistAnswerStats]);
 
   const handleDiscoverAnswer = useCallback((isCorrect: boolean, type: "exercise" | "quiz", itemId?: string) => {
     console.log(`📝 [handleDiscoverAnswer] ${type}: isCorrect=${isCorrect}, id=${itemId}`);
+    persistAnswerStats(isCorrect);
 
     if (itemId && isCorrect) {
       if (type === "exercise") {
@@ -709,18 +761,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         });
       }
     }
-  }, [persistUnlock, persistedUnlockEx, persistedUnlockQz, persistItemCompletion, dbExercises, dbQuizzes]);
-
-  const handleReloadDiscover = () => {
-    if (activeSection === "exercises") {
-      setDiscoverCorrectEx(0);
-      setDiscoverTotalEx(0);
-    } else {
-      setDiscoverCorrectQz(0);
-      setDiscoverTotalQz(0);
-    }
-    setResetKey(prev => prev + 1);
-  };
+  }, [persistUnlock, persistedUnlockEx, persistedUnlockQz, persistItemCompletion, dbExercises, dbQuizzes, persistAnswerStats]);
 
   // Render based on Random Subsets (limits to 5)
   const discoverQuizzes = subsetDiscoverQz;
@@ -731,11 +772,6 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const halfExercise = Math.ceil(dbExercises.length / 2);
 
   const visibleSteps = readOnly ? stepConfig.filter(s => s.id !== "approfondir") : stepConfig;
-
-  const discoverItemCount = activeSection === "exercises" ? discoverExercises.length : discoverQuizzes.length;
-  const currentTotal = activeSection === "exercises" ? discoverTotalEx : discoverTotalQz;
-  const allAnswered = currentTotal >= discoverItemCount && discoverItemCount > 0;
-  const failedDiscover = allAnswered && !isUnlocked;
 
   if (activeSection === null) {
     return (
@@ -805,36 +841,6 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           <h2 className="text-lg font-bold" dir="rtl">{isQuiz ? "اسئله متعدده الاختيارات" : "تمارين"}</h2>
         </div>
       </div>
-
-      {/* Progression Bar - Disappears after success and timeout */}
-      {(!isUnlocked || showUnlockMessage) && (
-        <Card className="border-blue-500/20 bg-blue-500/5 transition-all duration-500">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium" dir="rtl">تقدمك في مرحلة "اكتشف"</span>
-              <Badge variant={isUnlocked ? "default" : "secondary"} className={isUnlocked ? "bg-green-500" : ""}>
-                {currentCorrect} / {REQUIRED_CORRECT} إجابات صحيحة
-              </Badge>
-            </div>
-            <Progress value={(currentCorrect / REQUIRED_CORRECT) * 100} className="h-2" />
-            {showUnlockMessage && (
-              <p className="text-xs text-green-600 mt-2 flex items-center gap-1 animate-in fade-in slide-in-from-top-1" dir="rtl">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                تم فتح المراحل التالية! يمكنك الآن الانتقال إلى "افهم" و "تعمّق"
-              </p>
-            )}
-            {failedDiscover && (
-              <div className="mt-2 flex items-center justify-between">
-                <p className="text-xs text-red-500" dir="rtl">لم تحقق {REQUIRED_CORRECT} إجابات صحيحة. حاول مرة أخرى!</p>
-                <Button size="sm" variant="outline" onClick={handleReloadDiscover} className="gap-1">
-                  <RefreshCw className="h-3.5 w-3.5" />
-                  إعادة المحاولة
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       {/* Step Stepper */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-1.5 bg-muted/40 rounded-xl border border-border/40 backdrop-blur-sm">
@@ -1254,23 +1260,6 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         </Card>
       )}
 
-      {
-        (activeStep === "comprendre" || activeStep === "approfondir") && !isUnlocked && (
-          <Card className="border-destructive/20 bg-destructive/5">
-            <CardContent className="p-8 text-center space-y-3">
-              <Lock className="h-12 w-12 text-muted-foreground mx-auto" />
-              <h3 className="font-bold text-lg" dir="rtl">هذه المرحلة مقفلة</h3>
-              <p className="text-sm text-muted-foreground max-w-sm mx-auto" dir="rtl">
-                يجب عليك الإجابة على {REQUIRED_CORRECT} أسئلة صحيحة على الأقل في مرحلة "اكتشف" لفتح هذه المرحلة.
-              </p>
-              <Button variant="outline" onClick={() => setActiveStep("decouvrir")} className="gap-2">
-                <Eye className="h-4 w-4" />
-                العودة إلى "اكتشف"
-              </Button>
-            </CardContent>
-          </Card>
-        )
-      }
     </div >
   );
 }
