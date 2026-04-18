@@ -26,6 +26,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const readingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const readingStartRef = useRef<number>(0);
     const [activeSectionLabel, setActiveSectionLabel] = useState<string | null>(null);
+    const [activeSection, setActiveSection] = useState<"exercises" | "quiz" | "revision" | null>(null);
     const [activityResetKey, setActivityResetKey] = useState(0);
 
     // Reset when chapter changes
@@ -33,6 +34,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         setSelectedLesson(null);
         setLessonContent("");
         setActiveSectionLabel(null);
+        setActiveSection(null);
     }, [chapter.id]);
 
     useEffect(() => {
@@ -65,6 +67,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         // Élève → show content inline
         setSelectedLesson(lesson);
         setActiveSectionLabel(null);
+        setActiveSection(null);
 
         const cachedContent = lesson.content || "";
         setLessonContent(cachedContent);
@@ -94,6 +97,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         setSelectedLesson(null);
         setLessonContent("");
         setActiveSectionLabel(null);
+        setActiveSection(null);
         setActivityResetKey(k => k + 1);
         onBackToLessons?.();
     };
@@ -244,6 +248,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                                 quiz: "اسئله متعدده الاختيارات",
                                 revision: "Révision",
                             };
+                            setActiveSection(section as "exercises" | "quiz" | "revision" | null);
                             if (section !== null) {
                                 setActiveSectionLabel(sectionLabels[section] || section);
                             } else {
@@ -254,31 +259,33 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     />
                 )}
 
-                {/* Course content - always show */}
-                <div className="flex flex-col lg:flex-row gap-8 mt-6">
-                    <Card className="flex-1 min-w-0">
-                        <CardContent className="p-6">
-                            <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
-                            {loadingContent ? (
-                                <div className="flex justify-center py-12">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                                </div>
-                            ) : lessonContent ? (
-                                <div
-                                    className="prose prose-sm dark:prose-invert max-w-none"
-                                    dangerouslySetInnerHTML={{ __html: injectHeaderIds(lessonContent) }}
-                                />
-                            ) : (
-                                <p className="text-center text-muted-foreground py-12">
-                                    Aucun contenu disponible pour cette leçon.
-                                </p>
-                            )}
-                        </CardContent>
-                    </Card>
-                    <div className="w-full lg:w-72 shrink-0">
-                        <TableOfContents htmlContent={lessonContent} />
+                {/* Course content should be hidden when an activity section is open. */}
+                {activeSection === null && (
+                    <div className="flex flex-col lg:flex-row gap-8 mt-6">
+                        <Card className="flex-1 min-w-0">
+                            <CardContent className="p-6">
+                                <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
+                                {loadingContent ? (
+                                    <div className="flex justify-center py-12">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                                    </div>
+                                ) : lessonContent ? (
+                                    <div
+                                        className="prose prose-sm dark:prose-invert max-w-none"
+                                        dangerouslySetInnerHTML={{ __html: injectHeaderIds(lessonContent) }}
+                                    />
+                                ) : (
+                                    <p className="text-center text-muted-foreground py-12">
+                                        Aucun contenu disponible pour cette leçon.
+                                    </p>
+                                )}
+                            </CardContent>
+                        </Card>
+                        <div className="w-full lg:w-72 shrink-0">
+                            <TableOfContents htmlContent={lessonContent} />
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         );
     };

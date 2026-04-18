@@ -974,10 +974,10 @@ const Cours = () => {
           <button
             onClick={() => { setIsChatOpen(!isChatOpen); setIsChatExpanded(false); }}
             className={`fixed bottom-6 z-[60] w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 ${isChatOpen
-                ? isChatExpanded
-                  ? 'right-6 bg-white text-[#0A2551] border border-slate-200 hover:bg-slate-50'
-                  : 'right-6 lg:right-[430px] bg-white text-[#0A2551] border border-slate-200 hover:bg-slate-50'
-                : 'right-6 bg-[#0A2551] text-white hover:bg-[#0A2551]/90'
+              ? isChatExpanded
+                ? 'right-6 bg-white text-[#0A2551] border border-slate-200 hover:bg-slate-50'
+                : 'right-6 lg:right-[430px] bg-white text-[#0A2551] border border-slate-200 hover:bg-slate-50'
+              : 'right-6 bg-[#0A2551] text-white hover:bg-[#0A2551]/90'
               }`}
           >
             {isChatOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
@@ -985,9 +985,8 @@ const Cours = () => {
 
           {/* Chat Panel */}
           {isChatOpen && (
-            <div className={`fixed top-16 lg:top-20 bottom-0 lg:bottom-4 right-0 lg:right-4 z-50 transition-all duration-300 ${
-              isChatExpanded ? 'w-full lg:w-[800px]' : 'w-full lg:w-[400px]'
-            }`}>
+            <div className={`fixed top-16 lg:top-20 bottom-0 lg:bottom-4 right-0 lg:right-4 z-50 transition-all duration-300 ${isChatExpanded ? 'w-full lg:w-[800px]' : 'w-full lg:w-[400px]'
+              }`}>
               <ChatBot
                 messages={chatMessages}
                 setMessages={setChatMessages}
