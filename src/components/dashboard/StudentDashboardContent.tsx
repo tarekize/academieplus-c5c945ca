@@ -10,9 +10,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Clock, Target, TrendingUp, TrendingDown, GraduationCap, BookOpen, Brain, FileText,
-  CheckCircle2, XCircle, Zap, RefreshCw, Activity,
+  CheckCircle2, XCircle, Zap, RefreshCw, Activity, Sparkles, Award, ChevronRight,
 } from "lucide-react";
 
 interface StudentDashboardContentProps {
