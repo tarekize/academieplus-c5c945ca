@@ -80,23 +80,54 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
   const fetchScores = useCallback(async (silent = false) => {
     if (!silent) setIsRefreshing(true);
     try {
-      const { data } = await supabase
+      const scoresPromise = supabase
         .from("student_scores")
         .select("*, chapter:chapters(title, title_ar)")
         .eq("user_id", userId)
         .order("updated_at", { ascending: false });
 
-      if (!data || data.length === 0) {
-        if (!silent) setIsRefreshing(false);
-        return;
-      }
+      const chaptersPromise = profile.school_level
+        ? supabase
+          .from("chapters")
+          .select("id, title, title_ar, order_index")
+          .eq("school_level", profile.school_level as any)
+          .order("order_index", { ascending: true })
+        : Promise.resolve({ data: [] as any[] });
+
+      const [{ data }, { data: levelChapters }] = await Promise.all([scoresPromise, chaptersPromise]);
 
       const chapterMap = new Map<string, ChapterStat>();
+
+      // Initialize with all chapters from student's level so table always shows full list.
+      (levelChapters || []).forEach((ch: any) => {
+        chapterMap.set(ch.id, {
+          chapterId: ch.id,
+          chapterTitle: ch.title_ar || ch.title || "—",
+          totalTime: 0,
+          accuracy: 0,
+          level: 0,
+          correctAnswers: 0,
+          totalAnswers: 0,
+        });
+      });
+
       let totalReadTime = 0, totalQuizTime = 0, totalExTime = 0;
       let sumCorrect = 0, sumTotal = 0, sumLevel = 0, maxStreak = 0;
 
-      data.forEach((s: any) => {
-        const cId = s.chapter_id || "unknown";
+      (data || []).forEach((s: any) => {
+        const cId = s.chapter_id;
+        if (!cId) {
+          // Skip score rows not linked to a chapter in chapter details table.
+          totalReadTime += s.reading_time_seconds || 0;
+          totalQuizTime += s.quiz_time_seconds || 0;
+          totalExTime += s.exercise_time_seconds || 0;
+          sumCorrect += s.correct_answers || 0;
+          sumTotal += s.total_answers || 0;
+          sumLevel += s.current_level || 0;
+          if ((s.streak || 0) > maxStreak) maxStreak = s.streak;
+          return;
+        }
+
         const existing = chapterMap.get(cId) || {
           chapterId: cId,
           chapterTitle: s.chapter?.title_ar || s.chapter?.title || "—",
@@ -122,13 +153,13 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
       setTotalTime(totalReadTime + totalQuizTime + totalExTime);
       setTotalCorrect(sumCorrect);
       setTotalAnswers(sumTotal);
-      setAvgLevel(data.length > 0 ? Math.round(sumLevel / data.length) : 0);
+      setAvgLevel((data || []).length > 0 ? Math.round(sumLevel / (data || []).length) : 0);
       setStreak(maxStreak);
       setLastUpdated(new Date());
     } finally {
       if (!silent) setIsRefreshing(false);
     }
-  }, [userId]);
+  }, [userId, profile.school_level]);
 
   useEffect(() => { fetchScores(); }, [fetchScores]);
 
