@@ -515,18 +515,27 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
 
       {/* Tabbed detailed sections */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-11">
-          <TabsTrigger value="overview" className="gap-2">
-            <Target className="h-4 w-4" />
-            <span className="hidden sm:inline">نظرة عامة</span>
+        <TabsList className="grid w-full grid-cols-3 h-auto p-1.5 bg-gradient-to-r from-secondary/60 via-secondary to-secondary/60 rounded-2xl shadow-inner gap-1.5">
+          <TabsTrigger
+            value="overview"
+            className="group flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-br data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 data-[state=active]:scale-[1.02] hover:bg-background/60"
+          >
+            <Target className="h-4 w-4 transition-transform group-data-[state=active]:rotate-12" />
+            <span>نظرة عامة</span>
           </TabsTrigger>
-          <TabsTrigger value="chapters" className="gap-2">
-            <BookOpen className="h-4 w-4" />
-            <span className="hidden sm:inline">الفصول</span>
+          <TabsTrigger
+            value="chapters"
+            className="group flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/30 data-[state=active]:scale-[1.02] hover:bg-background/60"
+          >
+            <BookOpen className="h-4 w-4 transition-transform group-data-[state=active]:rotate-12" />
+            <span>الفصول</span>
           </TabsTrigger>
-          <TabsTrigger value="lessons" className="gap-2">
-            <GraduationCap className="h-4 w-4" />
-            <span className="hidden sm:inline">الدروس</span>
+          <TabsTrigger
+            value="lessons"
+            className="group flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-br data-[state=active]:from-violet-500 data-[state=active]:to-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-violet-500/30 data-[state=active]:scale-[1.02] hover:bg-background/60"
+          >
+            <GraduationCap className="h-4 w-4 transition-transform group-data-[state=active]:rotate-12" />
+            <span>الدروس</span>
           </TabsTrigger>
         </TabsList>
 
