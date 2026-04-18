@@ -847,59 +847,122 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                 تقدم الدروس داخل كل فصل
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 md:p-6">
               {chapterLessonProgress.length === 0 ? (
                 <div className="text-center py-12">
                   <GraduationCap className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
                   <p className="text-sm text-muted-foreground">لا توجد دروس متاحة لهذا المستوى بعد.</p>
                 </div>
               ) : (
-                <Accordion type="single" collapsible className="w-full">
-                  {chapterLessonProgress.map((chapter) => {
+                <Accordion type="single" collapsible className="w-full space-y-3">
+                  {chapterLessonProgress.map((chapter, idx) => {
                     const pct = chapter.totalLessons > 0 ? Math.round((chapter.completedLessons / chapter.totalLessons) * 100) : 0;
                     return (
-                      <AccordionItem key={chapter.chapterId} value={chapter.chapterId}>
-                        <AccordionTrigger className="hover:no-underline">
-                          <div className="flex items-center justify-between w-full pl-4 gap-3">
-                            <div className="text-right flex-1">
-                              <p className="font-medium">{chapter.chapterTitle}</p>
-                              <p className="text-xs text-muted-foreground mt-0.5">{chapter.completedLessons}/{chapter.totalLessons} دروس منتهية</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-16 h-1.5 rounded-full bg-secondary overflow-hidden">
-                                <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                      <AccordionItem
+                        key={chapter.chapterId}
+                        value={chapter.chapterId}
+                        className="border rounded-2xl overflow-hidden bg-gradient-to-l from-card to-violet-500/[0.03] hover:shadow-md transition-shadow data-[state=open]:shadow-lg data-[state=open]:border-violet-500/30"
+                      >
+                        <AccordionTrigger className="hover:no-underline px-4 py-3.5 [&[data-state=open]>div>svg]:rotate-180">
+                          <div className="flex items-center justify-between w-full gap-3">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center font-bold text-white text-sm shadow-md shadow-violet-500/30">
+                                {String(idx + 1).padStart(2, '0')}
                               </div>
-                              <Badge variant="outline" className="text-xs min-w-[3rem] justify-center">{pct}%</Badge>
+                              <div className="text-right flex-1 min-w-0">
+                                <p className="font-bold text-sm md:text-base truncate">{chapter.chapterTitle}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                                  <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                                  {chapter.completedLessons}/{chapter.totalLessons} دروس منتهية
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <div className="hidden sm:block w-20 h-2 rounded-full bg-secondary overflow-hidden">
+                                <div className="h-full rounded-full bg-gradient-to-r from-violet-400 to-violet-600 transition-all duration-1000" style={{ width: `${pct}%` }} />
+                              </div>
+                              <Badge className="bg-violet-500/10 text-violet-700 border-violet-500/20 min-w-[3rem] justify-center font-bold">
+                                {pct}%
+                              </Badge>
                             </div>
                           </div>
                         </AccordionTrigger>
-                        <AccordionContent>
+                        <AccordionContent className="px-4 pb-4">
                           {chapter.lessons.length === 0 ? (
                             <p className="text-xs text-muted-foreground py-2">لا توجد دروس داخل هذا الفصل.</p>
                           ) : (
-                            <div className="space-y-2">
-                              {chapter.lessons.map((lesson) => (
-                                <button
-                                  key={lesson.lessonId}
-                                  type="button"
-                                  onClick={() => navigate(`/cours/math?chapitre=${chapter.chapterId}&lecon=${lesson.lessonId}`)}
-                                  className="w-full border rounded-lg p-3 hover:bg-accent/30 hover:border-primary/40 transition-all text-right"
-                                >
-                                  <div className="flex items-start justify-between gap-3 mb-2">
-                                    <div>
-                                      <p className="font-medium">{lesson.lessonTitleAr || lesson.lessonTitle}</p>
-                                      <p className="text-xs text-muted-foreground">{lesson.lessonTitle}</p>
+                            <div className="space-y-2.5 pt-2 border-t">
+                              {chapter.lessons.map((lesson, lessonIdx) => {
+                                const statusColor = lesson.status === "completed"
+                                  ? "from-emerald-500 to-emerald-600 shadow-emerald-500/30"
+                                  : lesson.status === "in_progress"
+                                    ? "from-amber-500 to-amber-600 shadow-amber-500/30"
+                                    : "from-muted-foreground/40 to-muted-foreground/60 shadow-muted-foreground/20";
+                                const overallColor = lesson.overallRate >= 80 ? "text-emerald-600" : lesson.overallRate >= 50 ? "text-amber-600" : "text-muted-foreground";
+                                return (
+                                  <button
+                                    key={lesson.lessonId}
+                                    type="button"
+                                    onClick={() => navigate(`/cours/math?chapitre=${chapter.chapterId}&lecon=${lesson.lessonId}`)}
+                                    className="group w-full border rounded-xl p-3.5 hover:bg-accent/30 hover:border-violet-500/40 hover:shadow-md transition-all text-right relative overflow-hidden"
+                                  >
+                                    <div className="flex items-start justify-between gap-3 mb-3">
+                                      <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                                        <div className={`flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br ${statusColor} flex items-center justify-center text-white text-xs font-bold shadow-md`}>
+                                          {lessonIdx + 1}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-semibold text-sm truncate">{lesson.lessonTitleAr || lesson.lessonTitle}</p>
+                                          <p className="text-[11px] text-muted-foreground truncate">{lesson.lessonTitle}</p>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-2 shrink-0">
+                                        {getLessonStatusBadge(lesson.status)}
+                                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:-translate-x-1 transition-all rtl:rotate-180" />
+                                      </div>
                                     </div>
-                                    {getLessonStatusBadge(lesson.status)}
-                                  </div>
-                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                                    <div className="bg-muted/40 rounded px-2 py-1.5">القراءة: {formatTime(lesson.readingSeconds)}</div>
-                                    <div className="bg-muted/40 rounded px-2 py-1.5">تمارين: {lesson.exercisesDone}/{lesson.exercisesTotal} ({lesson.exercisesRate}%)</div>
-                                    <div className="bg-muted/40 rounded px-2 py-1.5">اختبارات: {lesson.quizzesDone}/{lesson.quizzesTotal} ({lesson.quizzesRate}%)</div>
-                                    <div className="bg-muted/40 rounded px-2 py-1.5">نجاح عام: {lesson.overallRate}%</div>
-                                  </div>
-                                </button>
-                              ))}
+
+                                    {/* Overall progress bar */}
+                                    <div className="mb-3">
+                                      <div className="flex items-center justify-between text-[11px] mb-1">
+                                        <span className="text-muted-foreground">التقدم العام</span>
+                                        <span className={`font-bold ${overallColor}`}>{lesson.overallRate}%</span>
+                                      </div>
+                                      <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                                        <div className="h-full rounded-full bg-gradient-to-r from-violet-400 to-violet-600 transition-all duration-700" style={{ width: `${lesson.overallRate}%` }} />
+                                      </div>
+                                    </div>
+
+                                    {/* Stat tiles */}
+                                    <div className="grid grid-cols-3 gap-2">
+                                      <div className="rounded-lg bg-blue-500/5 border border-blue-500/10 p-2">
+                                        <div className="flex items-center gap-1 text-[10px] text-blue-600 font-semibold mb-1">
+                                          <BookOpen className="h-3 w-3" /> القراءة
+                                        </div>
+                                        <p className="text-xs font-bold">{formatTime(lesson.readingSeconds)}</p>
+                                      </div>
+                                      <div className="rounded-lg bg-amber-500/5 border border-amber-500/10 p-2">
+                                        <div className="flex items-center gap-1 text-[10px] text-amber-600 font-semibold mb-1">
+                                          <FileText className="h-3 w-3" /> تمارين
+                                        </div>
+                                        <p className="text-xs font-bold">{lesson.exercisesDone}/{lesson.exercisesTotal}</p>
+                                        <div className="h-1 rounded-full bg-secondary overflow-hidden mt-1">
+                                          <div className="h-full bg-amber-500 transition-all duration-700" style={{ width: `${lesson.exercisesRate}%` }} />
+                                        </div>
+                                      </div>
+                                      <div className="rounded-lg bg-violet-500/5 border border-violet-500/10 p-2">
+                                        <div className="flex items-center gap-1 text-[10px] text-violet-600 font-semibold mb-1">
+                                          <Brain className="h-3 w-3" /> اختبارات
+                                        </div>
+                                        <p className="text-xs font-bold">{lesson.quizzesDone}/{lesson.quizzesTotal}</p>
+                                        <div className="h-1 rounded-full bg-secondary overflow-hidden mt-1">
+                                          <div className="h-full bg-violet-500 transition-all duration-700" style={{ width: `${lesson.quizzesRate}%` }} />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </button>
+                                );
+                              })}
                             </div>
                           )}
                         </AccordionContent>
