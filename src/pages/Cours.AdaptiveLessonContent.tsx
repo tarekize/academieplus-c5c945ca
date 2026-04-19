@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import LessonMarkdown from "@/components/course/LessonMarkdown";
 import { LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -274,10 +275,14 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                                     </div>
                                 ) : lessonContent ? (
+                                  /<\s*(html|body|head|!doctype)/i.test(lessonContent) ? (
                                     <div
-                                        className="prose prose-sm dark:prose-invert max-w-none"
-                                        dangerouslySetInnerHTML={{ __html: injectHeaderIds(lessonContent) }}
+                                      className="prose prose-sm dark:prose-invert max-w-none"
+                                      dangerouslySetInnerHTML={{ __html: injectHeaderIds(lessonContent) }}
                                     />
+                                  ) : (
+                                    <LessonMarkdown content={lessonContent} dir="rtl" />
+                                  )
                                 ) : (
                                     <p className="text-center text-muted-foreground py-12">
                                         Aucun contenu disponible pour cette leçon.
