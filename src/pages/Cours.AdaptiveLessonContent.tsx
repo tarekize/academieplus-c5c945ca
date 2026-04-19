@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import LessonMarkdown from "@/components/course/LessonMarkdown";
+import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import { LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -187,9 +188,9 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
             {chapter.content && (
                 <Card className="border-primary/10">
                     <CardContent className="p-6">
-                        <div
+                        <HtmlWithMath
                             className="prose prose-sm dark:prose-invert max-w-none"
-                            dangerouslySetInnerHTML={{ __html: chapter.content }}
+                            htmlContent={chapter.content}
                         />
                     </CardContent>
                 </Card>
@@ -275,14 +276,14 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                                     </div>
                                 ) : lessonContent ? (
-                                  /<\s*(html|body|head|!doctype)/i.test(lessonContent) ? (
-                                    <div
-                                      className="prose prose-sm dark:prose-invert max-w-none"
-                                      dangerouslySetInnerHTML={{ __html: injectHeaderIds(lessonContent) }}
-                                    />
-                                  ) : (
-                                    <LessonMarkdown content={lessonContent} dir="rtl" />
-                                  )
+                                    /<\s*(html|body|head|!doctype|div|h[1-6]|p|ul|ol|table)/i.test(lessonContent) && !/^\s*#\s/m.test(lessonContent) ? (
+                                        <HtmlWithMath
+                                            className="prose prose-sm dark:prose-invert max-w-none"
+                                            htmlContent={injectHeaderIds(lessonContent)}
+                                        />
+                                    ) : (
+                                        <LessonMarkdown content={lessonContent} dir="rtl" />
+                                    )
                                 ) : (
                                     <p className="text-center text-muted-foreground py-12">
                                         Aucun contenu disponible pour cette leçon.
@@ -302,7 +303,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     // Fallback if no lessons
     const renderNoLesson = () => (
         <div className="prose prose-sm dark:prose-invert max-w-none mb-4">
-            <div dangerouslySetInnerHTML={{ __html: chapter.content || "<p>Contenu non disponible</p>" }} />
+            <HtmlWithMath htmlContent={chapter.content || "<p>Contenu non disponible</p>"} />
         </div>
     );
 

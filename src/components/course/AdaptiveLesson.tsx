@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Play, BookOpen, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Video } from "@/services/videoService";
-import LessonMarkdown from "@/components/course/LessonMarkdown";
+import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 
 type LearningStyle = "visual" | "textual" | "practical";
 
@@ -143,8 +143,8 @@ export const AdaptiveLesson = ({
                             <CardContent className="p-6">
                                 {/<\s*(html|body|head|!doctype|div|h[1-6]|p|ul|ol|table)/i.test(lessonContent) && !/^\s*#\s/m.test(lessonContent) ? (
                                     <div className="prose prose-sm max-w-none">
-                                        <div
-                                            dangerouslySetInnerHTML={{ __html: lessonContent }}
+                                        <HtmlWithMath
+                                            htmlContent={lessonContent}
                                             className="text-base leading-relaxed text-foreground"
                                         />
                                     </div>

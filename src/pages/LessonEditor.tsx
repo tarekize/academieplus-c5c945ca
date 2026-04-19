@@ -22,7 +22,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
+import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 
 export default function LessonEditor() {
   const { lessonId } = useParams<{ lessonId: string }>();
@@ -340,9 +341,9 @@ export default function LessonEditor() {
                     <LessonRichEditor content={content} onChange={setContent} editable />
                   ) : (
                     content ? (
-                      <div
+                      <HtmlWithMath
                         className="prose prose-sm dark:prose-invert max-w-none"
-                        dangerouslySetInnerHTML={{ __html: injectHeaderIds(content) }}
+                        htmlContent={injectHeaderIds(content)}
                       />
                     ) : (
                       <div className="text-center py-12 text-muted-foreground">

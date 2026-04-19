@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Download, BookmarkIcon } from "lucide-react";
 import { DocumentList } from "./DocumentList";
 import { VideoPlayer } from "./VideoPlayer";
+import { HtmlWithMath } from "./HtmlWithMath";
 import { Badge } from "@/components/ui/badge";
 
 interface Material {
@@ -51,7 +52,7 @@ export const CourseContent = ({
     const parser = new DOMParser();
     const doc = parser.parseFromString(content, 'text/html');
     const headings = doc.querySelectorAll('h2, h3');
-    
+
     const parsedSections: Section[] = [];
     headings.forEach((heading, index) => {
       const sectionId = `section-${index}`;
@@ -111,7 +112,7 @@ export const CourseContent = ({
         {/* Content Section - Scrollable */}
         <div className="flex-1 w-full lg:w-auto space-y-6">
           <div className="bg-card rounded-lg p-6 border-2">
-            <div 
+            <HtmlWithMath
               className="prose prose-slate dark:prose-invert max-w-none
                 [&_h2]:flex [&_h2]:items-center [&_h2]:gap-3 [&_h2]:mb-4
                 [&_h2]:text-xl [&_h2]:font-bold
@@ -132,7 +133,7 @@ export const CourseContent = ({
                 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-2
                 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:space-y-2
                 [&_p]:mb-4 [&_p]:leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: processedContent || content }}
+              htmlContent={processedContent || content}
             />
           </div>
         </div>
@@ -153,34 +154,33 @@ export const CourseContent = ({
                   Télécharger en PDF
                 </Button>
               )}
-              
+
               {/* Table of Contents */}
               <div className="bg-card rounded-lg p-4 border-2 max-h-[calc(100vh-8rem)] overflow-y-auto shadow-lg">
-              <h3 className="font-bold text-xl mb-4 flex items-center gap-2">
-                <BookmarkIcon className="h-5 w-5" />
-                Sommaire
-              </h3>
-              <nav className="space-y-3">
-                {sections.map((section) => (
-                  <a
-                    key={section.id}
-                    href={`#${section.id}`}
-                    className={`flex items-start gap-3 text-base font-bold transition-colors hover:text-primary cursor-pointer ${
-                      activeSection === section.id ? 'text-primary font-bold' : 'text-foreground'
-                    }`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      scrollToSection(section.id);
-                    }}
-                  >
-                    <Badge variant="secondary" className="flex-shrink-0 font-bold text-foreground text-base">
-                      {romanNumerals[section.number - 1] || section.number}
-                    </Badge>
-                    <span className="leading-tight">{section.title}</span>
-                  </a>
-                ))}
-              </nav>
-            </div>
+                <h3 className="font-bold text-xl mb-4 flex items-center gap-2">
+                  <BookmarkIcon className="h-5 w-5" />
+                  Sommaire
+                </h3>
+                <nav className="space-y-3">
+                  {sections.map((section) => (
+                    <a
+                      key={section.id}
+                      href={`#${section.id}`}
+                      className={`flex items-start gap-3 text-base font-bold transition-colors hover:text-primary cursor-pointer ${activeSection === section.id ? 'text-primary font-bold' : 'text-foreground'
+                        }`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        scrollToSection(section.id);
+                      }}
+                    >
+                      <Badge variant="secondary" className="flex-shrink-0 font-bold text-foreground text-base">
+                        {romanNumerals[section.number - 1] || section.number}
+                      </Badge>
+                      <span className="leading-tight">{section.title}</span>
+                    </a>
+                  ))}
+                </nav>
+              </div>
             </div>
           </aside>
         )}
