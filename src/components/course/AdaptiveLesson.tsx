@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Play, BookOpen, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Video } from "@/services/videoService";
+import LessonMarkdown from "@/components/course/LessonMarkdown";
 
 type LearningStyle = "visual" | "textual" | "practical";
 
