@@ -21,6 +21,12 @@ interface LessonMarkdownProps {
 function preprocessContent(raw: string): string {
   let s = raw;
 
+  // 0) Rendre remark-math plus permissif en supprimant les espaces
+  // à l'intérieur des bordures des $...$ (ex: "$ +\infty $" -> "$+\infty$")
+  s = s.replace(/\$(\s*)([^$\n]+?)(\s*)\$/g, (match, space1, math, space2) => {
+    return `$${math}$`;
+  });
+
   // 1) S'assurer que $$...$$ display soient sur leur propre ligne
   s = s.replace(/([^\n])\$\$/g, "$1\n$$").replace(/\$\$([^\n])/g, "$$\n$1");
 
@@ -32,6 +38,14 @@ function preprocessContent(raw: string): string {
     // Ne pas casser un $$ display
     if (c === "$") return m;
     return "$ " + c;
+  });
+
+  // HACK: Pour forcer le rendu KaTeX même à l'intérieur des blocs HTML explicites,
+  // qui sont sinon ignorés par remark-math.
+  s = s.replace(/(^|[^\\$])\$([^$\n]+?)\$/g, (match, prefix, mathContent) => {
+    // Si c'est déjà transformé on ignore
+    if (mathContent.includes('class="math')) return match;
+    return `${prefix}<span class="math math-inline">${mathContent}</span>`;
   });
 
   return s;
@@ -56,7 +70,7 @@ const LessonMarkdown: React.FC<LessonMarkdownProps> = ({ content, dir = "rtl" })
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeRaw, rehypeKatex]}
+        rehypePlugins={[rehypeRaw, rehypeKatex]} // rehype-slug retiré car déjà géré dans DOM
       >
         {processed}
       </ReactMarkdown>

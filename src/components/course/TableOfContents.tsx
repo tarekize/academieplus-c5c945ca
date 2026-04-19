@@ -24,21 +24,57 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
             return;
         }
 
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlContent, "text/html");
-        const headings = doc.querySelectorAll("h1, h2, h3");
+        // Delay slightly to allow ReactMarkdown to render the content in the DOM
+        const timer = setTimeout(() => {
+            const container = document.querySelector('.lesson-markdown');
+            if (!container) return;
 
-        const tocItems: TocItem[] = Array.from(headings).map((heading, index) => {
-            const text = heading.textContent || "";
-            const id = heading.id || `toc-${index}-${text.toLowerCase().replace(/[^\w]/g, "-")}`;
-            return {
-                id,
-                text,
-                level: parseInt(heading.tagName.substring(1)),
+            const headings = container.querySelectorAll("h1, h2, h3");
+
+            // Utility to extract text cleanly without duplicating KaTeX elements
+            const extractText = (htmlNode: Element): string => {
+                const clone = htmlNode.cloneNode(true) as Element;
+
+                clone.querySelectorAll('.katex').forEach((el) => {
+                    const annotation = el.querySelector('annotation');
+                    if (annotation) {
+                        let tex = annotation.textContent || "";
+                        // Handle common LaTeX formatting in TOC
+                        tex = tex.replace(/\\d?frac{([^}]+)}{([^}]+)}/g, '$1/$2');
+                        tex = tex.replace(/\\infty/g, '∞');
+                        tex = tex.replace(/\$/g, '');
+                        const textNode = document.createTextNode(` ${tex.trim()} `);
+                        if (el.parentNode) {
+                            el.parentNode.replaceChild(textNode, el);
+                        }
+                    } else {
+                        // Fallback if no annotation
+                        const htmlEl = el.querySelector('.katex-html');
+                        if (htmlEl) htmlEl.remove();
+                    }
+                });
+
+                return (clone.textContent || "").replace(/\s+/g, ' ').trim();
             };
-        });
 
-        setItems(tocItems);
+            const tocItems: TocItem[] = Array.from(headings).map((heading, index) => {
+                const text = extractText(heading) || "";
+                const id = heading.id || `toc-${index}-${Math.random().toString(36).substr(2, 9)}`;
+                // Assign id if it doesn't have one
+                if (!heading.id) {
+                    heading.id = id;
+                }
+                return {
+                    id,
+                    text,
+                    level: parseInt(heading.tagName.substring(1)),
+                };
+            });
+
+            setItems(tocItems);
+        }, 150);
+
+        return () => clearTimeout(timer);
     }, [htmlContent]);
 
     const scrollToHeading = (id: string) => {
