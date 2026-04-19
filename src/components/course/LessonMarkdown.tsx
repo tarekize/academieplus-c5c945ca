@@ -40,13 +40,7 @@ function preprocessContent(raw: string): string {
     return "$ " + c;
   });
 
-  // HACK: Pour forcer le rendu KaTeX même à l'intérieur des blocs HTML explicites,
-  // qui sont sinon ignorés par remark-math.
-  s = s.replace(/(^|[^\\$])\$([^$\n]+?)\$/g, (match, prefix, mathContent) => {
-    // Si c'est déjà transformé on ignore
-    if (mathContent.includes('class="math')) return match;
-    return `${prefix}<span class="math math-inline">${mathContent}</span>`;
-  });
+  // HACK: Retiré car ce hack casse le rendu Markdown et génère des spans invalides en Arabe.
 
   return s;
 }
