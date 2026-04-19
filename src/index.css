@@ -256,3 +256,111 @@ All colors MUST be HSL.
   border-radius: 12px !important;
   box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.3) !important;
 }
+
+/* =========================================================
+   Lesson Markdown + KaTeX (RTL friendly)
+   ---------------------------------------------------------
+   Les formules LaTeX sont toujours rendues en LTR pour
+   éviter l'inversion / le décalage quand le texte qui les
+   entoure est en arabe (RTL).
+   ========================================================= */
+.lesson-markdown {
+  font-family: "Cairo", "Segoe UI", Tahoma, sans-serif;
+  font-size: 1.05rem;
+  line-height: 2;
+  color: hsl(var(--foreground));
+}
+
+.lesson-markdown h1,
+.lesson-markdown h2,
+.lesson-markdown h3,
+.lesson-markdown h4 {
+  color: hsl(var(--primary));
+  font-weight: 800;
+  margin-top: 1.6em;
+  margin-bottom: 0.8em;
+  line-height: 1.4;
+}
+.lesson-markdown h1 { font-size: 1.9rem; border-bottom: 3px solid hsl(var(--primary) / 0.3); padding-bottom: .4em; }
+.lesson-markdown h2 { font-size: 1.5rem; border-right: 4px solid hsl(var(--primary)); padding-right: .6em; }
+.lesson-markdown h3 { font-size: 1.2rem; color: hsl(var(--primary) / 0.85); }
+
+.lesson-markdown p { margin: 0.8em 0; }
+.lesson-markdown ul, .lesson-markdown ol { padding-right: 1.6em; padding-left: 0; }
+.lesson-markdown li { margin: 0.35em 0; }
+
+.lesson-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+.lesson-markdown th, .lesson-markdown td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.6em 0.8em;
+  text-align: center;
+}
+.lesson-markdown th { background: hsl(var(--muted)); font-weight: 700; }
+
+.lesson-markdown blockquote {
+  border-right: 4px solid hsl(var(--primary));
+  border-left: none;
+  background: hsl(var(--muted) / 0.5);
+  padding: 0.8em 1em;
+  margin: 1em 0;
+  border-radius: 0.5rem;
+}
+
+/* Bloc structuré (تعريف / خواص / ملاحظات / مثال / التفسير البياني) */
+.lesson-markdown .lesson-block {
+  border-radius: 0.75rem;
+  padding: 1em 1.2em;
+  margin: 1.2em 0;
+  border-right: 5px solid;
+  background: hsl(var(--card));
+  box-shadow: 0 1px 3px hsl(var(--foreground) / 0.05);
+}
+.lesson-markdown .lesson-block .lesson-block-title {
+  font-weight: 800;
+  font-size: 1.1rem;
+  margin-bottom: 0.5em;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.lesson-markdown .block-definition  { border-color: hsl(217 91% 60%); background: hsl(217 91% 60% / 0.06); }
+.lesson-markdown .block-definition  .lesson-block-title { color: hsl(217 91% 45%); }
+.lesson-markdown .block-property    { border-color: hsl(160 84% 39%); background: hsl(160 84% 39% / 0.06); }
+.lesson-markdown .block-property    .lesson-block-title { color: hsl(160 84% 30%); }
+.lesson-markdown .block-remark      { border-color: hsl(38 92% 50%); background: hsl(38 92% 50% / 0.08); }
+.lesson-markdown .block-remark      .lesson-block-title { color: hsl(38 92% 40%); }
+.lesson-markdown .block-example     { border-color: hsl(280 70% 55%); background: hsl(280 70% 55% / 0.06); }
+.lesson-markdown .block-example     .lesson-block-title { color: hsl(280 70% 45%); }
+.lesson-markdown .block-graphic     { border-color: hsl(340 75% 55%); background: hsl(340 75% 55% / 0.06); }
+.lesson-markdown .block-graphic     .lesson-block-title { color: hsl(340 75% 45%); }
+
+/* --- KaTeX : forcer LTR pour éviter le décalage en RTL --- */
+.lesson-markdown .katex,
+.lesson-markdown .katex-display {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: isolate;
+}
+.lesson-markdown .katex {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 0.15em;
+  font-size: 1.05em;
+}
+.lesson-markdown .katex-display {
+  display: block;
+  margin: 1em auto;
+  text-align: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.4em 0;
+}
+.lesson-markdown .katex-display > .katex {
+  display: inline-block;
+  text-align: center;
+  white-space: nowrap;
+}
