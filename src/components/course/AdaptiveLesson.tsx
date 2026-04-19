@@ -141,12 +141,16 @@ export const AdaptiveLesson = ({
                     >
                         <Card className="shadow-md">
                             <CardContent className="p-6">
-                                <div className="prose prose-sm max-w-none">
-                                    <div
-                                        dangerouslySetInnerHTML={{ __html: lessonContent }}
-                                        className="text-base leading-relaxed text-foreground"
-                                    />
-                                </div>
+                                {/<\s*(html|body|head|!doctype|div|h[1-6]|p|ul|ol|table)/i.test(lessonContent) && !/^\s*#\s/m.test(lessonContent) ? (
+                                    <div className="prose prose-sm max-w-none">
+                                        <div
+                                            dangerouslySetInnerHTML={{ __html: lessonContent }}
+                                            className="text-base leading-relaxed text-foreground"
+                                        />
+                                    </div>
+                                ) : (
+                                    <LessonMarkdown content={lessonContent} dir="rtl" />
+                                )}
                             </CardContent>
                         </Card>
                     </motion.div>
