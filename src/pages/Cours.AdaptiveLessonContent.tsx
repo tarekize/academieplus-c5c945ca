@@ -340,7 +340,6 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
             </div>
         </div>
     );
-    };
 
     const renderActivityCards = () => (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
