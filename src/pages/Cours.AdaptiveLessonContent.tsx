@@ -340,8 +340,51 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
             </div>
         </div>
     );
+    };
 
-function renderNavigation() {
+    const renderActivityCards = () => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onActivitySelect?.("quiz")}>
+                <CardContent className="p-6 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Brain className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold" dir="rtl">اسئله متعدده الاختيارات</h3>
+                        <p className="text-sm text-muted-foreground" dir="rtl">{dbQuizzes.length} أسئلة</p>
+                    </div>
+                </CardContent>
+            </Card>
+            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onActivitySelect?.("exercises")}>
+                <CardContent className="p-6 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center">
+                        <PenTool className="h-6 w-6 text-accent-foreground" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold" dir="rtl">تمارين</h3>
+                        <p className="text-sm text-muted-foreground" dir="rtl">{dbExercises.length} تمارين</p>
+                    </div>
+                </CardContent>
+            </Card>
+            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onActivitySelect?.("revision")}>
+                <CardContent className="p-6 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <BookOpen className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold">Révision</h3>
+                        <p className="text-sm text-muted-foreground">Fiches de révision</p>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+
+    const renderLessonsList = () => null;
+    const renderLessonContent = () => null;
+    const handleLessonClick = (_lesson: any) => {};
+
+    function renderNavigation() {
     const currentLessonIndex = selectedLesson
         ? chapter.lessons?.findIndex((l: any) => l.id === selectedLesson.id) ?? -1
         : -1;
