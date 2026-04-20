@@ -6,6 +6,7 @@ import { Play, BookOpen, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Video } from "@/services/videoService";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
+import LessonMarkdown from "@/components/course/LessonMarkdown";
 
 type LearningStyle = "visual" | "textual" | "practical";
 
