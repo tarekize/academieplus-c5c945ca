@@ -46,26 +46,31 @@ function toSuperscript(value: string): string {
 function latexToSymbols(input: string): string {
     let out = input;
 
+    // Normalize duplicated escapes (e.g. "\\mathcal") to a single backslash.
+    out = out.replace(/\\{2,}/g, "\\");
+
     out = out.replace(/\$/g, "");
-    out = out.replace(/\\mathcal\{([^}]+)\}/g, "$1");
-    out = out.replace(/\\mathbb\{([^}]+)\}/g, "$1");
-    out = out.replace(/\\text\{([^}]+)\}/g, "$1");
+    out = out.replace(/\\+mathcal\s*\{([^}]+)\}/g, "$1");
+    out = out.replace(/\\+mathbb\s*\{([^}]+)\}/g, "$1");
+    out = out.replace(/\\+text\s*\{([^}]+)\}/g, "$1");
 
-    out = out.replace(/\\mapsto/g, "↦");
-    out = out.replace(/\\to/g, "→");
-    out = out.replace(/\\neq/g, "≠");
-    out = out.replace(/\\geq?/g, "≥");
-    out = out.replace(/\\leq?/g, "≤");
-    out = out.replace(/\\infty/g, "∞");
-    out = out.replace(/\\mu/g, "μ");
-    out = out.replace(/\\sigma/g, "σ");
-    out = out.replace(/\\alpha/g, "α");
-    out = out.replace(/\\beta/g, "β");
-    out = out.replace(/\\gamma/g, "γ");
-    out = out.replace(/\\pi/g, "π");
+    out = out.replace(/\\+d?frac\s*\{([^}]+)\}\s*\{([^}]+)\}/g, "$1/$2");
 
-    out = out.replace(/\\sqrt\[([^\]]+)\]\{([^}]+)\}/g, (_m, n, expr) => `${toSuperscript(String(n).trim())}√${String(expr).trim()}`);
-    out = out.replace(/\\sqrt\{([^}]+)\}/g, (_m, expr) => `√${String(expr).trim()}`);
+    out = out.replace(/\\+mapsto/g, "↦");
+    out = out.replace(/\\+to/g, "→");
+    out = out.replace(/\\+neq/g, "≠");
+    out = out.replace(/\\+geq?/g, "≥");
+    out = out.replace(/\\+leq?/g, "≤");
+    out = out.replace(/\\+infty/g, "∞");
+    out = out.replace(/\\+mu/g, "μ");
+    out = out.replace(/\\+sigma/g, "σ");
+    out = out.replace(/\\+alpha/g, "α");
+    out = out.replace(/\\+beta/g, "β");
+    out = out.replace(/\\+gamma/g, "γ");
+    out = out.replace(/\\+pi/g, "π");
+
+    out = out.replace(/\\+sqrt\s*\[([^\]]+)\]\s*\{([^}]+)\}/g, (_m, n, expr) => `${toSuperscript(String(n).trim())}√${String(expr).trim()}`);
+    out = out.replace(/\\+sqrt\s*\{([^}]+)\}/g, (_m, expr) => `√${String(expr).trim()}`);
 
     out = out.replace(/\^\{([^}]+)\}/g, (_m, exp) => toSuperscript(String(exp).trim()));
     out = out.replace(/\^([A-Za-z0-9+\-=()])/g, (_m, exp) => toSuperscript(String(exp)));
