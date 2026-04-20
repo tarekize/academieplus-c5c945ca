@@ -15,6 +15,69 @@ interface TableOfContentsProps {
     dir?: "rtl" | "ltr";
 }
 
+const SUPERSCRIPT_MAP: Record<string, string> = {
+    "0": "⁰",
+    "1": "¹",
+    "2": "²",
+    "3": "³",
+    "4": "⁴",
+    "5": "⁵",
+    "6": "⁶",
+    "7": "⁷",
+    "8": "⁸",
+    "9": "⁹",
+    "+": "⁺",
+    "-": "⁻",
+    "=": "⁼",
+    "(": "⁽",
+    ")": "⁾",
+    "n": "ⁿ",
+    "i": "ⁱ",
+    "/": "⁄"
+};
+
+function toSuperscript(value: string): string {
+    return value
+        .split("")
+        .map((ch) => SUPERSCRIPT_MAP[ch] || ch)
+        .join("");
+}
+
+function latexToSymbols(input: string): string {
+    let out = input;
+
+    out = out.replace(/\$/g, "");
+    out = out.replace(/\\mathcal\{([^}]+)\}/g, "$1");
+    out = out.replace(/\\mathbb\{([^}]+)\}/g, "$1");
+    out = out.replace(/\\text\{([^}]+)\}/g, "$1");
+
+    out = out.replace(/\\mapsto/g, "↦");
+    out = out.replace(/\\to/g, "→");
+    out = out.replace(/\\neq/g, "≠");
+    out = out.replace(/\\geq?/g, "≥");
+    out = out.replace(/\\leq?/g, "≤");
+    out = out.replace(/\\infty/g, "∞");
+    out = out.replace(/\\mu/g, "μ");
+    out = out.replace(/\\sigma/g, "σ");
+    out = out.replace(/\\alpha/g, "α");
+    out = out.replace(/\\beta/g, "β");
+    out = out.replace(/\\gamma/g, "γ");
+    out = out.replace(/\\pi/g, "π");
+
+    out = out.replace(/\\sqrt\[([^\]]+)\]\{([^}]+)\}/g, (_m, n, expr) => `${toSuperscript(String(n).trim())}√${String(expr).trim()}`);
+    out = out.replace(/\\sqrt\{([^}]+)\}/g, (_m, expr) => `√${String(expr).trim()}`);
+
+    out = out.replace(/\^\{([^}]+)\}/g, (_m, exp) => toSuperscript(String(exp).trim()));
+    out = out.replace(/\^([A-Za-z0-9+\-=()])/g, (_m, exp) => toSuperscript(String(exp)));
+
+    out = out.replace(/_\{([^}]+)\}/g, (_m, sub) => `(${String(sub).trim()})`);
+    out = out.replace(/[{}]/g, "");
+    out = out.replace(/\\,/g, " ");
+    out = out.replace(/\\/g, "");
+
+    return out.replace(/\s+/g, " ").trim();
+}
+
 export function TableOfContents({ htmlContent, className, title = "Table des matières", dir = "rtl" }: TableOfContentsProps) {
     const [items, setItems] = useState<TocItem[]>([]);
 
@@ -54,7 +117,7 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
                     }
                 });
 
-                return (clone.textContent || "").replace(/\s+/g, ' ').trim();
+                return latexToSymbols((clone.textContent || "").replace(/\s+/g, " ").trim());
             };
 
             const tocItems: TocItem[] = Array.from(headings).map((heading, index) => {
