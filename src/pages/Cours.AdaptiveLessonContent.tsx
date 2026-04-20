@@ -302,9 +302,8 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     // Fallback if no lessons
     const renderNoLesson = () => (
         <div className="prose prose-sm dark:prose-invert max-w-none mb-4">
-            <div dangerouslySetInnerHTML={{ __html: chapter.content || "<p>Contenu non disponible</p>" }} />
-        </divHtmlWithMath htmlContent = {
-            chapter.content || "<p>Contenu non disponible</p>"Name="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8" >
+            <HtmlWithMath htmlContent={chapter.content || "<p>Contenu non disponible</p>"} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onActivitySelect?.("quiz")}>
                     <CardContent className="p-6 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -338,9 +337,9 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         </div>
                     </CardContent>
                 </Card>
-            </div >
-        );
-}
+            </div>
+        </div>
+    );
 
 function renderNavigation() {
     const currentLessonIndex = selectedLesson
