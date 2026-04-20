@@ -276,11 +276,10 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                                     </div>
                                 ) : lessonContent ? (
-                                    /<\s*(html|body|head|!doctype|div|h[1-6]|p|ul|ol|table)/i.test(lessonContent) && !/^\s*#\s/m.test(lessonContent) ? (
+                                    /<\s*(html|body|head|!doctype)/i.test(lessonContent) ? (
                                         <HtmlWithMath
                                             className="prose prose-sm dark:prose-invert max-w-none"
-                                            htmlContent={injectHeaderIds(lessonContent)}
-                                        />
+                                            htmlContent={injectHeaderIds(lessonContent)} />
                                     ) : (
                                         <LessonMarkdown content={lessonContent} dir="rtl" />
                                     )
@@ -303,13 +302,9 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     // Fallback if no lessons
     const renderNoLesson = () => (
         <div className="prose prose-sm dark:prose-invert max-w-none mb-4">
-            <HtmlWithMath htmlContent={chapter.content || "<p>Contenu non disponible</p>"} />
-        </div>
-    );
-
-    function renderActivityCards() {
-        return (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div dangerouslySetInnerHTML={{ __html: chapter.content || "<p>Contenu non disponible</p>" }} />
+        </divHtmlWithMath htmlContent = {
+            chapter.content || "<p>Contenu non disponible</p>"Name="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8" >
                 <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onActivitySelect?.("quiz")}>
                     <CardContent className="p-6 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -343,106 +338,106 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         </div>
                     </CardContent>
                 </Card>
+            </div >
+        );
+}
+
+function renderNavigation() {
+    const currentLessonIndex = selectedLesson
+        ? chapter.lessons?.findIndex((l: any) => l.id === selectedLesson.id) ?? -1
+        : -1;
+    const isFirstLesson = currentLessonIndex === 0;
+    const isLastLesson = currentLessonIndex === chapter.lessons?.length - 1;
+    const currentChapterIndex = chapters.findIndex((c: any) => c.id === chapter.id);
+
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    // When a lesson is selected - lesson-based navigation
+    if (selectedLesson && chapter.lessons && chapter.lessons.length > 0) {
+        return (
+            <div className="flex justify-between items-center gap-4 mt-8">
+                {/* Previous lesson button - only show if not first lesson */}
+                {!isFirstLesson ? (
+                    <Button
+                        variant="outline"
+                        onClick={() => {
+                            const prevLesson = chapter.lessons[currentLessonIndex - 1];
+                            handleLessonClick(prevLesson);
+                            scrollToTop();
+                        }}
+                    >
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Leçon précédente
+                    </Button>
+                ) : (
+                    <div /> // Spacer for alignment
+                )}
+
+                {/* Next lesson button - only show if not last lesson */}
+                {!isLastLesson ? (
+                    <Button
+                        onClick={() => {
+                            const nextLesson = chapter.lessons[currentLessonIndex + 1];
+                            handleLessonClick(nextLesson);
+                            scrollToTop();
+                        }}
+                    >
+                        Leçon suivante
+                        <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
+                    </Button>
+                ) : currentChapterIndex < chapters.length - 1 ? (
+                    // When on last lesson, show "Chapter next" button
+                    <Button
+                        onClick={() => {
+                            handleChapterChange("next");
+                            scrollToTop();
+                        }}
+                    >
+                        Chapitre suivant
+                        <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
+                    </Button>
+                ) : null}
             </div>
         );
     }
 
-    function renderNavigation() {
-        const currentLessonIndex = selectedLesson
-            ? chapter.lessons?.findIndex((l: any) => l.id === selectedLesson.id) ?? -1
-            : -1;
-        const isFirstLesson = currentLessonIndex === 0;
-        const isLastLesson = currentLessonIndex === chapter.lessons?.length - 1;
-        const currentChapterIndex = chapters.findIndex((c: any) => c.id === chapter.id);
+    // Chapter navigation - when no lesson is selected
+    return (
+        <div className="flex justify-between mt-6">
+            <Button variant="outline" onClick={() => handleChapterChange("prev")} disabled={currentChapterIndex === 0}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Chapitre précédent
+            </Button>
+            <Button onClick={() => handleChapterChange("next")} disabled={currentChapterIndex === chapters.length - 1}>
+                Chapitre suivant
+                <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
+            </Button>
+        </div>
+    );
+}
 
-        const scrollToTop = () => {
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        };
-
-        // When a lesson is selected - lesson-based navigation
-        if (selectedLesson && chapter.lessons && chapter.lessons.length > 0) {
-            return (
-                <div className="flex justify-between items-center gap-4 mt-8">
-                    {/* Previous lesson button - only show if not first lesson */}
-                    {!isFirstLesson ? (
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                const prevLesson = chapter.lessons[currentLessonIndex - 1];
-                                handleLessonClick(prevLesson);
-                                scrollToTop();
-                            }}
-                        >
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Leçon précédente
-                        </Button>
-                    ) : (
-                        <div /> // Spacer for alignment
-                    )}
-
-                    {/* Next lesson button - only show if not last lesson */}
-                    {!isLastLesson ? (
-                        <Button
-                            onClick={() => {
-                                const nextLesson = chapter.lessons[currentLessonIndex + 1];
-                                handleLessonClick(nextLesson);
-                                scrollToTop();
-                            }}
-                        >
-                            Leçon suivante
-                            <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
-                        </Button>
-                    ) : currentChapterIndex < chapters.length - 1 ? (
-                        // When on last lesson, show "Chapter next" button
-                        <Button
-                            onClick={() => {
-                                handleChapterChange("next");
-                                scrollToTop();
-                            }}
-                        >
-                            Chapitre suivant
-                            <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
-                        </Button>
-                    ) : null}
-                </div>
-            );
-        }
-
-        // Chapter navigation - when no lesson is selected
-        return (
-            <div className="flex justify-between mt-6">
-                <Button variant="outline" onClick={() => handleChapterChange("prev")} disabled={currentChapterIndex === 0}>
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Chapitre précédent
-                </Button>
-                <Button onClick={() => handleChapterChange("next")} disabled={currentChapterIndex === chapters.length - 1}>
-                    Chapitre suivant
-                    <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
-                </Button>
-            </div>
-        );
-    }
-
-    // No lessons in chapter
-    if (!chapter.lessons || chapter.lessons.length === 0) {
-        return (
-            <>
-                {showActivityCards && !canManage && renderActivityCards()}
-                {renderNoLesson()}
-                {renderNavigation()}
-            </>
-        );
-    }
-
+// No lessons in chapter
+if (!chapter.lessons || chapter.lessons.length === 0) {
     return (
         <>
-            {!selectedLesson ? (
-                renderLessonsList()
-            ) : (
-                renderLessonContent()
-            )}
+            {showActivityCards && !canManage && renderActivityCards()}
+            {renderNoLesson()}
             {renderNavigation()}
         </>
     );
+}
+
+return (
+    <>
+        {!selectedLesson ? (
+            renderLessonsList()
+        ) : (
+            renderLessonContent()
+        )}
+        {renderNavigation()}
+    </>
+);
 }
 
