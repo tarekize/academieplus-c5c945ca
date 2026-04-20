@@ -380,10 +380,6 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         </div>
     );
 
-    const renderLessonsList = () => null;
-    const renderLessonContent = () => null;
-    const handleLessonClick = (_lesson: any) => {};
-
     function renderNavigation() {
     const currentLessonIndex = selectedLesson
         ? chapter.lessons?.findIndex((l: any) => l.id === selectedLesson.id) ?? -1
