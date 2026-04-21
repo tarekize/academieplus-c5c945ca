@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Brain, PenTool, BookOpen, Sparkles, RefreshCw, CheckCircle2, XCircle, ChevronDown, ChevronUp, Lightbulb, AlertTriangle, Trophy } from "lucide-react";
 import { useAdaptiveContent } from "@/hooks/useAdaptiveContent";
 import { Skeleton } from "@/components/ui/skeleton";
+import { HtmlWithMath } from "./HtmlWithMath";
 
 interface AdaptiveActivitiesProps {
   lessonId: string;
@@ -248,7 +249,10 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
               quizzes.map((q, idx) => (
                 <Card key={idx} className={`${quizResults[idx] === true ? "border-green-500/50 bg-green-500/5" : quizResults[idx] === false ? "border-red-500/50 bg-red-500/5" : ""}`}>
                   <CardContent className="p-4">
-                    <p className="font-medium mb-3" dir="rtl">{idx + 1}. {q.question}</p>
+                    <div className="font-medium mb-3 flex gap-2 items-start" dir="rtl">
+                      <span className="shrink-0">{idx + 1}.</span>
+                      <HtmlWithMath htmlContent={q.question} className="flex-1" />
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {q.options.map((opt, oIdx) => (
                         <Button
@@ -261,13 +265,14 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                         >
                           {quizResults[idx] !== undefined && opt === q.correct_answer && <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />}
                           {quizResults[idx] === false && quizAnswers[idx] === opt && <XCircle className="h-4 w-4 mr-2" />}
-                          {opt}
+                          <HtmlWithMath htmlContent={opt} className="text-right flex-1" />
                         </Button>
                       ))}
                     </div>
                     {quizResults[idx] !== undefined && q.explanation && (
                       <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl">
-                        <span className="font-medium">الشرح: </span>{q.explanation}
+                        <span className="font-medium">الشرح: </span>
+                        <HtmlWithMath htmlContent={q.explanation} className="inline" />
                       </div>
                     )}
                   </CardContent>
