@@ -206,7 +206,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <h3 className="text-lg font-semibold flex items-center" dir="rtl">{currentQuestion.question}{currentQuestion.difficulty && <DifficultyPencils level={currentQuestion.difficulty} />}</h3>
+          <h3 className="text-lg font-semibold flex items-center gap-2" dir="rtl"><HtmlWithMath htmlContent={currentQuestion.question} className="flex-1" />{currentQuestion.difficulty && <DifficultyPencils level={currentQuestion.difficulty} />}</h3>
           <RadioGroup value={selectedAnswer} onValueChange={setSelectedAnswer} disabled={hasAnswered || isSubmitting} className="space-y-3">
             {currentQuestion.options.map((option, index) => {
               const isThisCorrect = hasAnswered && correctAnswer !== null ? option === correctAnswer : hasAnswered && isCorrect && option === selectedAnswer;
