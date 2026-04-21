@@ -142,7 +142,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
             {answers.map((answer, index) => (
               <div key={index} className={cn("p-3 rounded-lg flex items-start gap-3", answer.correct ? "bg-green-500/10" : "bg-red-500/10")}>
                 {answer.correct ? <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 shrink-0" /> : <XCircle className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />}
-                <span className="text-sm" dir="rtl">{answer.question}</span>
+                <HtmlWithMath htmlContent={answer.question} className="text-sm" dir="rtl" />
               </div>
             ))}
           </div>
