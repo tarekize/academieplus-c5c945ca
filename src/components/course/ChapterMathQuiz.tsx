@@ -222,7 +222,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                   !isThisSelected && !isThisCorrect && !isThisWrong && !isThisTheCorrectOne && "border-border hover:bg-accent"
                 )}>
                   <RadioGroupItem value={option} id={`option-${index}`} />
-                  <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer" dir="rtl">{option}</Label>
+                  <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer" dir="rtl"><HtmlWithMath htmlContent={option} /></Label>
                   {(isThisCorrect || isThisTheCorrectOne) && <CheckCircle2 className="h-5 w-5 text-green-500" />}
                   {isThisWrong && <XCircle className="h-5 w-5 text-red-500" />}
                 </div>
@@ -233,8 +233,8 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           {hasAnswered && (
             <div className={cn("p-4 rounded-lg", isCorrect ? "bg-green-500/10" : "bg-amber-500/10")} dir="rtl">
               <p className="font-medium mb-1">{isCorrect ? "✓ إجابة صحيحة!" : "✗ إجابة خاطئة"}</p>
-              {explanation && <p className="text-sm text-muted-foreground">{explanation}</p>}
-              {!isCorrect && correctAnswer && <p className="text-sm mt-2 font-medium">الإجابة الصحيحة: {correctAnswer}</p>}
+              {explanation && <HtmlWithMath htmlContent={explanation} className="text-sm text-muted-foreground" />}
+              {!isCorrect && correctAnswer && <div className="text-sm mt-2 font-medium flex gap-1"><span>الإجابة الصحيحة:</span><HtmlWithMath htmlContent={correctAnswer} /></div>}
             </div>
           )}
 
