@@ -19,6 +19,7 @@ function DifficultyPencils({ level }: { level: number }) {
 }
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { QuizFormDialog, DeleteQuizButton } from "./QuizExerciseCRUD";
+import { HtmlWithMath } from "./HtmlWithMath";
 
 export interface DBQuizQuestion {
   id: string;
