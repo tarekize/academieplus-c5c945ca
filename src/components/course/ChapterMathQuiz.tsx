@@ -19,6 +19,7 @@ function DifficultyPencils({ level }: { level: number }) {
 }
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { QuizFormDialog, DeleteQuizButton } from "./QuizExerciseCRUD";
+import { HtmlWithMath } from "./HtmlWithMath";
 
 export interface DBQuizQuestion {
   id: string;
@@ -141,7 +142,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
             {answers.map((answer, index) => (
               <div key={index} className={cn("p-3 rounded-lg flex items-start gap-3", answer.correct ? "bg-green-500/10" : "bg-red-500/10")}>
                 {answer.correct ? <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 shrink-0" /> : <XCircle className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />}
-                <span className="text-sm" dir="rtl">{answer.question}</span>
+                <HtmlWithMath htmlContent={answer.question} className="text-sm" dir="rtl" />
               </div>
             ))}
           </div>
@@ -205,7 +206,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <h3 className="text-lg font-semibold flex items-center" dir="rtl">{currentQuestion.question}{currentQuestion.difficulty && <DifficultyPencils level={currentQuestion.difficulty} />}</h3>
+          <h3 className="text-lg font-semibold flex items-center gap-2" dir="rtl"><HtmlWithMath htmlContent={currentQuestion.question} className="flex-1" />{currentQuestion.difficulty && <DifficultyPencils level={currentQuestion.difficulty} />}</h3>
           <RadioGroup value={selectedAnswer} onValueChange={setSelectedAnswer} disabled={hasAnswered || isSubmitting} className="space-y-3">
             {currentQuestion.options.map((option, index) => {
               const isThisCorrect = hasAnswered && correctAnswer !== null ? option === correctAnswer : hasAnswered && isCorrect && option === selectedAnswer;
@@ -221,7 +222,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                   !isThisSelected && !isThisCorrect && !isThisWrong && !isThisTheCorrectOne && "border-border hover:bg-accent"
                 )}>
                   <RadioGroupItem value={option} id={`option-${index}`} />
-                  <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer" dir="rtl">{option}</Label>
+                  <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer" dir="rtl"><HtmlWithMath htmlContent={option} /></Label>
                   {(isThisCorrect || isThisTheCorrectOne) && <CheckCircle2 className="h-5 w-5 text-green-500" />}
                   {isThisWrong && <XCircle className="h-5 w-5 text-red-500" />}
                 </div>
@@ -232,8 +233,8 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           {hasAnswered && (
             <div className={cn("p-4 rounded-lg", isCorrect ? "bg-green-500/10" : "bg-amber-500/10")} dir="rtl">
               <p className="font-medium mb-1">{isCorrect ? "✓ إجابة صحيحة!" : "✗ إجابة خاطئة"}</p>
-              {explanation && <p className="text-sm text-muted-foreground">{explanation}</p>}
-              {!isCorrect && correctAnswer && <p className="text-sm mt-2 font-medium">الإجابة الصحيحة: {correctAnswer}</p>}
+              {explanation && <HtmlWithMath htmlContent={explanation} className="text-sm text-muted-foreground" />}
+              {!isCorrect && correctAnswer && <div className="text-sm mt-2 font-medium flex gap-1"><span>الإجابة الصحيحة:</span><HtmlWithMath htmlContent={correctAnswer} /></div>}
             </div>
           )}
 
