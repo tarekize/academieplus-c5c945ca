@@ -1,5 +1,4 @@
 import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
 import { SectionEditor } from './SectionEditor';
 
@@ -20,7 +19,9 @@ export default function SortableSectionEditor({ section, onChange, onDelete }: S
   } = useSortable({ id: section.id });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: transform
+      ? `translate3d(${transform.x}px, ${transform.y}px, 0) scaleX(${transform.scaleX ?? 1}) scaleY(${transform.scaleY ?? 1})`
+      : undefined,
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
