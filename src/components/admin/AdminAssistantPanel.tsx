@@ -50,41 +50,9 @@ export function AdminAssistantPanel({ lessonId, currentContent, onUpdateContent,
 
             // S'assurer que le contenu est envoyé correctement à l'IA même si le backend
             // n'a pas encore été mis à jour avec le mode "editorialMode" en l'injectant dans le prompt
-            const enhancedPrompt = `Voici le contenu ACTUEL de la leçon :
-"""
-${currentContent || "Aucun contenu (leçon vide)"}
-"""
-
-Ma demande en tant qu'éditeur/professeur : 
-${input}
-
-INSTRUCTIONS STRICTES :
-1. Si la demande concerne UNE PARTIE SPÉCIFIQUE (ex: "explique la section Telle", "corrige ce paragraphe") :
-   - Génère UNIQUEMENT le nouveau contenu détaillé/modifié pour cette partie.
-   - Encadre ta proposition exactement dans des balises <update> de la manière suivante pour qu'on puisse remplacer la partie correspondante automatiquement :
-     <update>
-     <original>
-     [colle ici le texte EXACT de la leçon actuelle qui doit être remplacé, MOT POUR MOT, sans modifier l'espacement ni la ponctuation]
-     </original>
-     <new>
-     [ton nouveau texte enrichi/modifié]
-     </new>
-     </update>
-   - LA BALISE <original> EST OBLIGATOIRE et doit correspondre parfaitement au texte existant.
-2. Si la demande concerne TOUTE LA LEÇON (ex: "enrichis tout le cours", "reformule tout") :
-   - Renvoie TOUTE la leçon modifiée, SANS utiliser les balises <update>.
-3. Dans tous les cas, n'utilise JAMAIS de balises HTML (<div class="...">) pour structurer le cours. Utilise UNIQUEMENT la structure Markdown pédagogique avec ses blocs :
-   ::: definition
-   **Titre**
-   Contenu
-   :::
-   (Même chose pour ::: example, ::: remark, ::: theorem, ::: proposition, ::: exercise, ::: solution).
-4. Maintiens les formules LaTeX ($...$ pour inline, $$...$$ pour block).
-5. Ne fais AUCUN texte d'introduction (pas de "Voici la modification", pas de résumé au début ni à la fin). Donne juste le format demandé.`;
-
-            // On remplace le dernier message par le prompt enrichi pour cette requête
+            // Le système prompt côté serveur (editorialMode) gère déjà toutes les règles.
+            // On envoie juste la demande brute de l'utilisateur.
             const apiMessages = [...messages, userMessage].map(m => ({ role: m.role, content: m.content }));
-            apiMessages[apiMessages.length - 1].content = enhancedPrompt;
 
             const payload = {
                 messages: apiMessages,
