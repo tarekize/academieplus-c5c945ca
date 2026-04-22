@@ -143,31 +143,79 @@ export function AdminAssistantPanel({ lessonId, currentContent, onUpdateContent,
     const handleApply = (content: string) => {
         let finalContent = content;
 
-        // Tenter de trouver s'il s'agit d'une mise à jour partielle via <update>
         const match = content.match(/<update>[\s\S]*?<original>([\s\S]*?)<\/original>[\s\S]*?<new>([\s\S]*?)<\/new>[\s\S]*?<\/update>/i);
         if (match) {
             const originalText = match[1].trim();
-            const newText = match[2].trim();
+            let newText = match[2].trim();
 
-            if (!currentContent.includes(originalText)) {
+            const normalize = (s: string) => s.replace(/\s+/g, ' ').trim();
+
+            // 🛡️ Anti-duplication: si <new> recopie le bloc original au début, on le retire
+            if (newText.startsWith(originalText) && newText.length > originalText.length) {
+                newText = newText.slice(originalText.length).trimStart();
+            } else if (normalize(newText).startsWith(normalize(originalText)) && normalize(newText).length > normalize(originalText).length) {
+                const origNorm = normalize(originalText);
+                let acc = '';
+                let cutAt = 0;
+                for (let i = 0; i < newText.length; i++) {
+                    acc += newText[i];
+                    if (normalize(acc).length >= origNorm.length) { cutAt = i + 1; break; }
+                }
+                if (cutAt > 0 && normalize(newText.slice(0, cutAt)) === origNorm) {
+                    newText = newText.slice(cutAt).trimStart();
+                }
+            }
+
+            // Recherche : exact d'abord, sinon tolérante (espaces normalisés)
+            let replaced = false;
+            if (currentContent.includes(originalText)) {
+                finalContent = currentContent.replace(originalText, newText);
+                replaced = true;
+            } else {
+                const origNorm = normalize(originalText);
+                const curNorm = normalize(currentContent);
+                const idx = curNorm.indexOf(origNorm);
+                if (idx !== -1) {
+                    let normPos = 0;
+                    let startReal = -1;
+                    let endReal = -1;
+                    let inSpace = false;
+                    for (let i = 0; i < currentContent.length; i++) {
+                        const ch = currentContent[i];
+                        const isWs = /\s/.test(ch);
+                        if (isWs) {
+                            if (!inSpace) { normPos++; inSpace = true; }
+                        } else {
+                            normPos++;
+                            inSpace = false;
+                        }
+                        if (startReal === -1 && normPos > idx) startReal = i;
+                        if (startReal !== -1 && normPos >= idx + origNorm.length) { endReal = i + 1; break; }
+                    }
+                    if (startReal !== -1 && endReal !== -1) {
+                        finalContent = currentContent.slice(0, startReal) + newText + currentContent.slice(endReal);
+                        replaced = true;
+                    }
+                }
+            }
+
+            if (!replaced) {
                 toast({
                     title: "⚠️ Remplacement automatique échoué",
-                    description: "Le texte d'origine n'a pas été trouvé exactement. Le texte modifié a été copié, vous pouvez l'insérer manuellement.",
+                    description: "Le texte d'origine n'a pas été retrouvé. La nouvelle version a été copiée — collez-la manuellement.",
                     variant: "destructive",
-                    duration: 5000
+                    duration: 6000
                 });
                 navigator.clipboard.writeText(newText);
                 return;
             }
 
-            finalContent = currentContent.replace(originalText, newText);
             toast({
-                title: "✅ Partie pertinente mise à jour",
-                description: "La partie spécifique a été correctement modifiée dans l'éditeur.",
+                title: "✅ Partie mise à jour",
+                description: "Seule la partie ciblée a été modifiée dans l'éditeur.",
                 duration: 4000
             });
         } else {
-            // Remplacement complet, on enlève d'éventuelles balises ```markdown
             const mdMatch = content.match(/```(?:markdown)?\s*\n([\s\S]*?)```/im);
             if (mdMatch && mdMatch[1]) {
                 finalContent = mdMatch[1].trim();
