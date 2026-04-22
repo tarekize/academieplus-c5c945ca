@@ -74,6 +74,37 @@ Si tu veux pointer vers un chapitre sans leçon spécifique, utilise la premièr
 IMPORTANT: Utilise les vrais IDs des chapitres et leçons de la liste ci-dessus. Ne génère JAMAIS de faux IDs.`;
 }
 
+// ============ Provider 0: Lovable AI Gateway ============
+async function callLovableAI(systemPrompt: string, messages: any[]): Promise<Response> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages: [{ role: "system", content: systemPrompt }, ...messages],
+      stream: true,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("Lovable AI error:", response.status, errText);
+    // 402 (no credits) and 429 (rate limit) → fallback to next provider
+    throw new Error(`Lovable AI failed: ${response.status}`);
+  }
+
+  // OpenAI-compatible SSE, pass through directly
+  return new Response(response.body, {
+    headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+  });
+}
+
 // ============ Provider 1: Google Gemini ============
 async function callGemini(systemPrompt: string, messages: any[]): Promise<Response> {
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
@@ -376,6 +407,14 @@ Si le contenu est vide, tu peux créer une leçon compète en fonction de la dem
         chapterContext,
         allChapters
       );
+
+    // Provider 0: Lovable AI (priorité)
+    try {
+      console.log("Trying Lovable AI...");
+      return await callLovableAI(systemPrompt, messages);
+    } catch (e) {
+      console.error("Lovable AI failed, trying Gemini...", e);
+    }
 
     // Provider 1: Gemini
     try {
