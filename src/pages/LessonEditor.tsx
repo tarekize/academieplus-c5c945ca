@@ -11,6 +11,7 @@ import { TableOfContents } from '@/components/course/TableOfContents';
 import { injectHeaderIds } from '@/lib/toc-utils';
 import { LessonEditorActivities } from '@/components/course/LessonEditorActivities';
 import { GenerateQuizExercisesButton } from '@/components/course/QuizExerciseCRUD';
+import { AdminAssistantPanel } from '@/components/admin/AdminAssistantPanel';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from "@/components/ui/button";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
+import LessonMarkdown from "@/components/course/LessonMarkdown";
 
 export default function LessonEditor() {
   const { lessonId } = useParams<{ lessonId: string }>();
@@ -40,6 +42,7 @@ export default function LessonEditor() {
   const [canManage, setCanManage] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [isActivityActive, setActivityActive] = useState(false);
+  const [isAIPanelOpen, setIsAIPanelOpen] = useState(false);
 
   const fetchLesson = useCallback(async () => {
     if (!lessonId) return;
@@ -150,41 +153,8 @@ export default function LessonEditor() {
     }
   };
 
-  const handleGenerateAI = async () => {
-    if (!lessonId) return;
-    setGenerating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-lesson-content', {
-        body: { lesson_id: lessonId }
-      });
-
-      if (error) {
-        console.error("Erreur technique Supabase:", error);
-        throw new Error(`Erreur réseau/auth: ${error.message}`);
-      }
-
-      if (data && data.success === false) {
-        throw new Error(data.error || 'Erreur lors de la génération');
-      }
-
-      // Récupérer le contenu généré
-      const { data: updatedLesson } = await supabase.from('lessons').select('content').eq('id', lessonId).single();
-      if (updatedLesson) {
-        setContent(updatedLesson.content || '');
-        setIsDirty(true);
-      }
-
-      toast({ title: 'Contenu généré (Brouillon)', description: 'Le contenu a été généré. Cliquez sur "Envoyer les modifications" pour publier.' });
-    } catch (err: any) {
-      console.error("Détails de l'erreur:", err);
-      toast({
-        title: 'Erreur',
-        description: err.message || 'Impossible de générer le contenu',
-        variant: 'destructive'
-      });
-    } finally {
-      setGenerating(false);
-    }
+  const handleGenerateAI = () => {
+    setIsAIPanelOpen(true);
   };
 
   const handleDelete = async () => {
@@ -341,10 +311,14 @@ export default function LessonEditor() {
                     <LessonRichEditor content={content} onChange={setContent} editable />
                   ) : (
                     content ? (
-                      <HtmlWithMath
-                        className="prose prose-sm dark:prose-invert max-w-none"
-                        htmlContent={injectHeaderIds(content)}
-                      />
+                      /<\s*(html|body|head|!doctype)/i.test(content) ? (
+                        <HtmlWithMath
+                          className="lesson-markdown prose prose-sm dark:prose-invert max-w-none"
+                          htmlContent={injectHeaderIds(content)}
+                        />
+                      ) : (
+                        <LessonMarkdown content={content} dir="rtl" />
+                      )
                     ) : (
                       <div className="text-center py-12 text-muted-foreground">
                         <p>Aucun contenu pour cette leçon.</p>
@@ -368,6 +342,17 @@ export default function LessonEditor() {
           </div>
         )}
       </div>
+
+      <AdminAssistantPanel
+        lessonId={lesson.id}
+        currentContent={content}
+        onUpdateContent={(newContent) => {
+          setContent(newContent);
+          setIsDirty(true);
+        }}
+        open={isAIPanelOpen}
+        onClose={() => setIsAIPanelOpen(false)}
+      />
     </div>
   );
 }

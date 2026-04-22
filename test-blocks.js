@@ -1,0 +1,1 @@
+const text = \\\::: definition\n**Titre**\nCorps\n:::\\\; console.log(text.replace(/^:::\\s*([a-zA-Z0-9_-]+)(.*)?\\n([\\s\\S]*?)\\n:::/gm, (m, type, raw, content) => \<div class='\'>\\n\\n\\\n\\n</div>\));

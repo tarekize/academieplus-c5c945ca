@@ -20,9 +20,9 @@ function buildSystemPrompt(
 ): string {
   const chaptersListStr = allChapters && allChapters.length > 0
     ? allChapters.map((ch) => {
-        const lessonsStr = ch.lessons.map((l) => `  - Leçon: "${l.title}" (ID: ${l.id})`).join("\n");
-        return `- Chapitre: "${ch.title}" (ID: ${ch.id})\n${lessonsStr}`;
-      }).join("\n")
+      const lessonsStr = ch.lessons.map((l) => `  - Leçon: "${l.title}" (ID: ${l.id})`).join("\n");
+      return `- Chapitre: "${ch.title}" (ID: ${ch.id})\n${lessonsStr}`;
+    }).join("\n")
     : "Aucun chapitre disponible.";
 
   const lessonsContent = chapterContext?.lessonsContent
@@ -81,7 +81,7 @@ async function callGemini(systemPrompt: string, messages: any[]): Promise<Respon
 
   // Build Gemini contents format
   const contents: any[] = [];
-  
+
   // Add system instruction as first user message context
   const geminiMessages = messages.map((m: any) => ({
     role: m.role === "assistant" ? "model" : "user",
@@ -98,7 +98,7 @@ async function callGemini(systemPrompt: string, messages: any[]): Promise<Respon
   };
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
-  
+
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -114,7 +114,7 @@ async function callGemini(systemPrompt: string, messages: any[]): Promise<Respon
   // Transform Gemini SSE to OpenAI-compatible SSE format
   const geminiStream = response.body!;
   const { readable, writable } = new TransformStream();
-  
+
   (async () => {
     const writer = writable.getWriter();
     const reader = geminiStream.getReader();
@@ -127,15 +127,15 @@ async function callGemini(systemPrompt: string, messages: any[]): Promise<Respon
         const { done, value } = await reader.read();
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
-        
+
         const lines = buffer.split("\n");
         buffer = lines.pop() || "";
-        
+
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
           const jsonStr = line.slice(6).trim();
           if (!jsonStr || jsonStr === "[DONE]") continue;
-          
+
           try {
             const parsed = JSON.parse(jsonStr);
             const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -289,14 +289,93 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, subject, schoolLevel, chapterContext, allChapters } = await req.json();
+    const { messages, subject, schoolLevel, chapterContext, allChapters, editorialMode, editorialContext } = await req.json();
 
-    const systemPrompt = buildSystemPrompt(
-      subject || "mathématiques",
-      schoolLevel,
-      chapterContext,
-      allChapters
-    );
+    const systemPrompt = editorialMode
+      ? `Tu es un assistant IA expert en édition de contenus pédagogiques mathématiques.
+CONTEXTE: Tu aides un professeur/administrateur à modifier une leçon mathématique existante.
+
+📋 CONTENU ACTUEL DE LA LEÇON:
+"""
+${editorialContext?.currentContent || "Aucun contenu (leçon vide)"}
+"""
+
+📝 TA MISSION:
+1. L'utilisateur te demande de modifier, enrichir ou améliorer UNE PARTIE de la leçon ou TOUTE la leçon.
+2. Si c'est pour modifier/enrichir UNE PARTIE PRÉCISE:
+   - Ne génère QUE le nouveau contenu pour cette partie.
+   - Encadre OBLIGATOIREMENT ta proposition exacte dans des balises <update> de la manière suivante:
+     <update>
+     <original>
+     [colle ici exactement le texte original, MOT POUR MOT, sans omettre de saut de ligne]
+     </original>
+     <new>
+     [ton nouveau texte enrichi/modifié au format Markdown pur, JAMAIS de balises HTML]
+     </new>
+     </update>
+3. Si c'est pour enrichir ou refaire TOUTE la leçon complète:
+   - Retourne le contenu complet, sans utiliser les balises <update>.
+4. Tu respectes STRICTEMENT la structure pédagogique. N'utilise JAMAIS de code HTML. Utilise uniquement la syntaxe :
+
+**Blocs pédagogiques disponibles:**
+
+::: definition
+**تعريف X.Y — Titre**
+Contenu de la définition
+:::
+
+::: theorem
+**مبرهنة X.Y — Titre**
+Énoncé du théorème
+:::
+
+::: proposition
+**خاصية X.Y — Titre**
+Énoncé de la propriété
+:::
+
+::: remark
+**ملاحظة X.Y**
+Contenu de la remarque
+:::
+
+::: example
+**مثال X.Y**
+Énoncé et développement de l'exemple
+:::
+
+::: exercise
+**تمرين X.Y**
+Énoncé de l'exercice
+:::
+
+::: solution
+**الحل X.Y**
+Solution détaillée
+:::
+
+**Règles strictes:**
+- Les formules mathématiques DOIVENT être en LaTeX: $ pour inline, $$ pour bloc
+- Structure hiérarchique: # (titre), ## (section), ### (sous-section)
+- Respecte la numérotation existante (X.Y)
+- Ne change PAS les parties que l'utilisateur n'a pas demandé de modifier
+- Ajoute de la valeur pédagogique: explications claires, exemples concrets, étapes de résolution
+
+⚙️ FLUX DE TRAVAIL:
+1. Lis ATTENTIVEMENT le contenu actuel.
+2. Comprends ce que l'utilisateur demande à modifier/enrichir.
+3. Si c'est pour une partie spécifique, retourne l'équivalent enrichi encapsulé dans <update><original>...</original><new>...</new></update>.
+   Rappelle-toi : Si tu utilises les balises update, donne seulement la partie concernée, PAS tout le contenu !
+4. Si c'est global, retourne le contenu complet Markdown.
+5. AUCUN texte d'introduction/outro : pas de blabla. Juste ton format de réponse prêt à utiliser.
+
+Si le contenu est vide, tu peux créer une leçon compète en fonction de la demande de l'utilisateur.`
+      : buildSystemPrompt(
+        subject || "mathématiques",
+        schoolLevel,
+        chapterContext,
+        allChapters
+      );
 
     // Provider 1: Gemini
     try {
