@@ -342,12 +342,14 @@ ${editorialContext?.currentContent || "Aucun contenu (leçon vide)"}
    FORMAT OBLIGATOIRE (rien avant, rien après):
 <update>
 <original>
-[copie EXACTE de la portion existante à remplacer]
+[copie EXACTE de la portion existante à remplacer — UNIQUEMENT cette portion, pas plus]
 </original>
 <new>
-[version enrichie/modifiée de cette même portion uniquement]
+[version enrichie de remplacement — c'est ce qui REMPLACERA <original>. Ne recopie PAS le texte de <original> dedans, sinon il sera dupliqué. Écris directement la version finale enrichie.]
 </new>
 </update>
+
+⚠️ RÈGLE CRITIQUE pour <new>: Le contenu de <new> remplace ENTIÈREMENT celui de <original> via une substitution textuelle. Donc <new> doit contenir la version FINALE complète de la portion (titre + contenu enrichi), et NON pas "ancien texte + ajouts". Si <original> contient le titre "📈 التفسير البياني" suivi d'un paragraphe, alors <new> doit contenir ce même titre UNE SEULE FOIS suivi du paragraphe enrichi — jamais le titre deux fois ni le paragraphe original répété.
 
 **Type B — DEMANDE GLOBALE** (l'utilisateur demande sur TOUT le cours sans cibler de partie, ex: "enrichis tout le cours", "reformule toute la leçon", "améliore l'ensemble"):
    ➜ Retourne la leçon COMPLÈTE enrichie en Markdown.
