@@ -50,41 +50,9 @@ export function AdminAssistantPanel({ lessonId, currentContent, onUpdateContent,
 
             // S'assurer que le contenu est envoyé correctement à l'IA même si le backend
             // n'a pas encore été mis à jour avec le mode "editorialMode" en l'injectant dans le prompt
-            const enhancedPrompt = `Voici le contenu ACTUEL de la leçon :
-"""
-${currentContent || "Aucun contenu (leçon vide)"}
-"""
-
-Ma demande en tant qu'éditeur/professeur : 
-${input}
-
-INSTRUCTIONS STRICTES :
-1. Si la demande concerne UNE PARTIE SPÉCIFIQUE (ex: "explique la section Telle", "corrige ce paragraphe") :
-   - Génère UNIQUEMENT le nouveau contenu détaillé/modifié pour cette partie.
-   - Encadre ta proposition exactement dans des balises <update> de la manière suivante pour qu'on puisse remplacer la partie correspondante automatiquement :
-     <update>
-     <original>
-     [colle ici le texte EXACT de la leçon actuelle qui doit être remplacé, MOT POUR MOT, sans modifier l'espacement ni la ponctuation]
-     </original>
-     <new>
-     [ton nouveau texte enrichi/modifié]
-     </new>
-     </update>
-   - LA BALISE <original> EST OBLIGATOIRE et doit correspondre parfaitement au texte existant.
-2. Si la demande concerne TOUTE LA LEÇON (ex: "enrichis tout le cours", "reformule tout") :
-   - Renvoie TOUTE la leçon modifiée, SANS utiliser les balises <update>.
-3. Dans tous les cas, n'utilise JAMAIS de balises HTML (<div class="...">) pour structurer le cours. Utilise UNIQUEMENT la structure Markdown pédagogique avec ses blocs :
-   ::: definition
-   **Titre**
-   Contenu
-   :::
-   (Même chose pour ::: example, ::: remark, ::: theorem, ::: proposition, ::: exercise, ::: solution).
-4. Maintiens les formules LaTeX ($...$ pour inline, $$...$$ pour block).
-5. Ne fais AUCUN texte d'introduction (pas de "Voici la modification", pas de résumé au début ni à la fin). Donne juste le format demandé.`;
-
-            // On remplace le dernier message par le prompt enrichi pour cette requête
+            // Le système prompt côté serveur (editorialMode) gère déjà toutes les règles.
+            // On envoie juste la demande brute de l'utilisateur.
             const apiMessages = [...messages, userMessage].map(m => ({ role: m.role, content: m.content }));
-            apiMessages[apiMessages.length - 1].content = enhancedPrompt;
 
             const payload = {
                 messages: apiMessages,
@@ -261,15 +229,17 @@ INSTRUCTIONS STRICTES :
                                     {msg.role === 'user' ? (
                                         <div className="whitespace-pre-wrap text-sm">{msg.content}</div>
                                     ) : (() => {
-                                        // Extraction du contenu pour l'affichage (ne pas afficher <update>)
-                                        let displayContent = msg.content;
                                         let isPartial = false;
+                                        let originalText = '';
+                                        let newText = '';
+                                        let displayContent = msg.content;
                                         const updateRegex = /<update>[\s\S]*?<original>([\s\S]*?)<\/original>[\s\S]*?<new>([\s\S]*?)<\/new>[\s\S]*?<\/update>/i;
                                         const match = msg.content.match(updateRegex);
 
                                         if (match) {
                                             isPartial = true;
-                                            displayContent = `**Partie modifiée proposée :**\n\n${match[2].trim()}`;
+                                            originalText = match[1].trim();
+                                            newText = match[2].trim();
                                         } else {
                                             const mdMatch = msg.content.match(/```(?:markdown)?\s*\n([\s\S]*?)```/i);
                                             if (mdMatch && mdMatch[1]) {
@@ -278,27 +248,51 @@ INSTRUCTIONS STRICTES :
                                         }
 
                                         return (
-                                            <div className="text-sm overflow-hidden prose prose-sm dark:prose-invert max-w-none">
-                                                <ReactMarkdown
-                                                    remarkPlugins={[remarkMath, remarkGfm]}
-                                                    rehypePlugins={[rehypeKatex]}
-                                                >
-                                                    {displayContent}
-                                                </ReactMarkdown>
-                                                {msg.content && (
+                                            <div className="text-sm overflow-hidden max-w-none">
+                                                {isPartial ? (
+                                                    <div className="space-y-3">
+                                                        <div className="rounded-md border border-destructive/30 bg-destructive/5 p-2">
+                                                            <div className="text-[10px] font-bold uppercase tracking-wide text-destructive/80 mb-1">
+                                                                ➖ Partie actuelle (à remplacer)
+                                                            </div>
+                                                            <div className="prose prose-sm dark:prose-invert max-w-none text-xs opacity-80">
+                                                                <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
+                                                                    {originalText}
+                                                                </ReactMarkdown>
+                                                            </div>
+                                                        </div>
+                                                        <div className="rounded-md border border-primary/40 bg-primary/5 p-2">
+                                                            <div className="text-[10px] font-bold uppercase tracking-wide text-primary mb-1">
+                                                                ➕ Nouvelle version proposée
+                                                            </div>
+                                                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                                <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
+                                                                    {newText}
+                                                                </ReactMarkdown>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                        <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
+                                                            {displayContent}
+                                                        </ReactMarkdown>
+                                                    </div>
+                                                )}
+                                                {msg.content && !isLoading && (
                                                     <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
                                                         <Button
                                                             variant="default"
                                                             size="sm"
-                                                            className="h-8 text-xs flex-1 bg-green-600 hover:bg-green-700"
+                                                            className="h-8 text-xs flex-1"
                                                             onClick={() => handleApply(msg.content)}
                                                         >
-                                                            {isPartial ? "✅ Accepter et appliquer la modification" : "✅ Appliquer toute la nouvelle version"}
+                                                            ✅ {isPartial ? "Accepter cette modification" : "Appliquer toute la version"}
                                                         </Button>
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            className="h-8 text-xs border-red-500/30 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
+                                                            className="h-8 text-xs"
                                                             onClick={() => {
                                                                 toast({
                                                                     title: "Modification refusée",
@@ -306,16 +300,16 @@ INSTRUCTIONS STRICTES :
                                                                 });
                                                             }}
                                                         >
-                                                            Refuser
+                                                            ✖ Refuser
                                                         </Button>
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-8 w-8 text-muted-foreground mr-1"
+                                                            className="h-8 w-8 text-muted-foreground"
                                                             onClick={() => handleCopy(msg.content, idx)}
-                                                            title="Copier le contenu brut de la proposition"
+                                                            title="Copier la proposition brute"
                                                         >
-                                                            {copiedIndex === idx ? <CheckCheck className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                                            {copiedIndex === idx ? <CheckCheck className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                                                         </Button>
                                                     </div>
                                                 )}
