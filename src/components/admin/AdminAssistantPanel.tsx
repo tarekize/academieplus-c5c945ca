@@ -229,15 +229,17 @@ export function AdminAssistantPanel({ lessonId, currentContent, onUpdateContent,
                                     {msg.role === 'user' ? (
                                         <div className="whitespace-pre-wrap text-sm">{msg.content}</div>
                                     ) : (() => {
-                                        // Extraction du contenu pour l'affichage (ne pas afficher <update>)
-                                        let displayContent = msg.content;
                                         let isPartial = false;
+                                        let originalText = '';
+                                        let newText = '';
+                                        let displayContent = msg.content;
                                         const updateRegex = /<update>[\s\S]*?<original>([\s\S]*?)<\/original>[\s\S]*?<new>([\s\S]*?)<\/new>[\s\S]*?<\/update>/i;
                                         const match = msg.content.match(updateRegex);
 
                                         if (match) {
                                             isPartial = true;
-                                            displayContent = `**Partie modifiée proposée :**\n\n${match[2].trim()}`;
+                                            originalText = match[1].trim();
+                                            newText = match[2].trim();
                                         } else {
                                             const mdMatch = msg.content.match(/```(?:markdown)?\s*\n([\s\S]*?)```/i);
                                             if (mdMatch && mdMatch[1]) {
@@ -246,27 +248,51 @@ export function AdminAssistantPanel({ lessonId, currentContent, onUpdateContent,
                                         }
 
                                         return (
-                                            <div className="text-sm overflow-hidden prose prose-sm dark:prose-invert max-w-none">
-                                                <ReactMarkdown
-                                                    remarkPlugins={[remarkMath, remarkGfm]}
-                                                    rehypePlugins={[rehypeKatex]}
-                                                >
-                                                    {displayContent}
-                                                </ReactMarkdown>
-                                                {msg.content && (
+                                            <div className="text-sm overflow-hidden max-w-none">
+                                                {isPartial ? (
+                                                    <div className="space-y-3">
+                                                        <div className="rounded-md border border-destructive/30 bg-destructive/5 p-2">
+                                                            <div className="text-[10px] font-bold uppercase tracking-wide text-destructive/80 mb-1">
+                                                                ➖ Partie actuelle (à remplacer)
+                                                            </div>
+                                                            <div className="prose prose-sm dark:prose-invert max-w-none text-xs opacity-80">
+                                                                <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
+                                                                    {originalText}
+                                                                </ReactMarkdown>
+                                                            </div>
+                                                        </div>
+                                                        <div className="rounded-md border border-primary/40 bg-primary/5 p-2">
+                                                            <div className="text-[10px] font-bold uppercase tracking-wide text-primary mb-1">
+                                                                ➕ Nouvelle version proposée
+                                                            </div>
+                                                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                                <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
+                                                                    {newText}
+                                                                </ReactMarkdown>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                        <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
+                                                            {displayContent}
+                                                        </ReactMarkdown>
+                                                    </div>
+                                                )}
+                                                {msg.content && !isLoading && (
                                                     <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
                                                         <Button
                                                             variant="default"
                                                             size="sm"
-                                                            className="h-8 text-xs flex-1 bg-green-600 hover:bg-green-700"
+                                                            className="h-8 text-xs flex-1"
                                                             onClick={() => handleApply(msg.content)}
                                                         >
-                                                            {isPartial ? "✅ Accepter et appliquer la modification" : "✅ Appliquer toute la nouvelle version"}
+                                                            ✅ {isPartial ? "Accepter cette modification" : "Appliquer toute la version"}
                                                         </Button>
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            className="h-8 text-xs border-red-500/30 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
+                                                            className="h-8 text-xs"
                                                             onClick={() => {
                                                                 toast({
                                                                     title: "Modification refusée",
@@ -274,16 +300,16 @@ export function AdminAssistantPanel({ lessonId, currentContent, onUpdateContent,
                                                                 });
                                                             }}
                                                         >
-                                                            Refuser
+                                                            ✖ Refuser
                                                         </Button>
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-8 w-8 text-muted-foreground mr-1"
+                                                            className="h-8 w-8 text-muted-foreground"
                                                             onClick={() => handleCopy(msg.content, idx)}
-                                                            title="Copier le contenu brut de la proposition"
+                                                            title="Copier la proposition brute"
                                                         >
-                                                            {copiedIndex === idx ? <CheckCheck className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                                            {copiedIndex === idx ? <CheckCheck className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                                                         </Button>
                                                     </div>
                                                 )}
