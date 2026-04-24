@@ -397,23 +397,12 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
   const quizPct = Math.round((activityBreakdown.quiz / totalActivity) * 100);
   const exPct = 100 - readPct - quizPct;
 
-  // Level ring
-  const ringRadius = 56;
-  const ringCircumference = 2 * Math.PI * ringRadius;
-  const ringOffset = ringCircumference - (avgLevel / 100) * ringCircumference;
-
   const chapterRadarData = chapterStats.map((chapter, index) => {
-    const chapterLessons = chapterLessonProgress.find((item) => item.chapterId === chapter.chapterId);
-    const completionRate = chapterLessons && chapterLessons.totalLessons > 0
-      ? Math.round((chapterLessons.completedLessons / chapterLessons.totalLessons) * 100)
-      : 0;
-    const answerRate = chapter.totalAnswers > 0
-      ? Math.round((chapter.correctAnswers / chapter.totalAnswers) * 100)
-      : 0;
+    const currentLevel = Math.max(0, Math.min(100, Math.round(Number(chapter.level) || 0)));
 
     return {
       chapter: chapter.chapterTitle.length > 18 ? `${chapter.chapterTitle.slice(0, 18)}…` : chapter.chapterTitle,
-      score: chapter.totalAnswers > 0 ? answerRate : completionRate,
+      score: currentLevel,
       fullTitle: chapter.chapterTitle,
       order: index + 1,
     };
@@ -586,40 +575,15 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                  <div className="flex flex-col items-center">
-                    <div className="relative">
-                      <svg width="160" height="160" viewBox="0 0 140 140">
-                        <circle cx="70" cy="70" r={ringRadius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="12" />
-                        <circle
-                          cx="70" cy="70" r={ringRadius} fill="none"
-                          stroke={levelInfo.ring} strokeWidth="12"
-                          strokeLinecap="round"
-                          strokeDasharray={ringCircumference}
-                          strokeDashoffset={ringOffset}
-                          transform="rotate(-90 70 70)"
-                          className="transition-all duration-1000"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className={`text-4xl font-bold ${levelInfo.color}`}>{avgLevel}%</span>
-                        <span className="text-xs text-muted-foreground mt-1">المستوى</span>
-                      </div>
-                    </div>
-                    <Badge className={`mt-4 ${levelInfo.bg} ${levelInfo.color} border-0`}>
-                      <Award className="h-3 w-3 ml-1" />
-                      {levelInfo.label}
-                    </Badge>
-                  </div>
-
-                  <div className="min-h-[320px] w-full" dir="ltr">
+                <div className="flex justify-center">
+                  <div className="min-h-[360px] w-full max-w-3xl" dir="ltr">
                     {chapterRadarData.length === 0 ? (
-                      <div className="flex h-[320px] flex-col items-center justify-center text-center text-muted-foreground">
+                      <div className="flex h-[360px] flex-col items-center justify-center text-center text-muted-foreground">
                         <Target className="mb-3 h-10 w-10 opacity-30" />
                         <p className="text-sm">لا توجد فصول لعرضها بعد</p>
                       </div>
                     ) : (
-                      <ResponsiveContainer width="100%" height={320}>
+                      <ResponsiveContainer width="100%" height={360}>
                         <RadarChart data={chapterRadarData} outerRadius="72%">
                           <PolarGrid stroke="hsl(var(--border))" radialLines />
                           <PolarAngleAxis
