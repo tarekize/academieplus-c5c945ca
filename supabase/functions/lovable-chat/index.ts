@@ -353,14 +353,16 @@ ${editorialContext?.currentContent || "Aucun contenu (leçon vide)"}
 
 **Type B — DEMANDE GLOBALE** (l'utilisateur demande sur TOUT le cours sans cibler de partie, ex: "enrichis tout le cours", "reformule toute la leçon", "améliore l'ensemble"):
    ➜ Retourne la leçon COMPLÈTE enrichie en Markdown.
-   ➜ PRÉSERVE INTÉGRALEMENT toutes les sections, définitions, exemples, théorèmes, formules existants — n'en supprime AUCUN.
-   ➜ AJOUTE seulement plus de détails, explications pédagogiques, exemples supplémentaires, étapes intermédiaires.
-   ➜ Garde la même structure hiérarchique (#, ##, ###), la même numérotation (X.Y), la même langue.
-   ➜ N'utilise PAS les balises <update> dans ce cas.
+   ➢ RÈGLE D'OR ABSOLUE : PRÉSERVE INTÉGRALEMENT TOUTES les sections, définitions, exemples, remarques, théorèmes, solutions, paragraphes et formules LaTeX existants. Tu n'as pas le droit de supprimer ou de résumer une seule phrase du contenu actuel.
+   ➢ Tu gardes EXACTEMENT les memes blocs ::: type (ex: ::: definition, ::: example, etc.) presents dans le texte. Ne les supprime PAS et ne les transforme PAS en texte normal.
+   ➢ AJOUTE ta valeur ajoutée pédagogique (explications détaillées, exemples supplémentaires, étapes de calcul, interprétations géométriques) À L'INTÉRIEUR des blocs existants ou sous forme de nouveaux blocs ::: .
+   ➢ Garde la même structure hiérarchique (#, ##, ###), la même numérotation (X.Y), la même langue d'origine.
+   ➢ N'utilise PAS les balises <update> dans ce cas complet.
 
 ⚠️ INTERDICTIONS ABSOLUES:
 - Ne JAMAIS renvoyer toute la leçon si la demande cible une partie précise.
-- Ne JAMAIS supprimer du contenu existant.
+- Ne JAMAIS supprimer ou résumer du contenu existant (formules, paragraphes, exercices, remarques, définitions).
+- Ne JAMAIS supprimer le design.ne.
 - Ne JAMAIS inventer un texte "original" qui n'existe pas littéralement dans la leçon.
 - Ne JAMAIS ajouter d'introduction ("Voici la modification...", "J'ai enrichi...") ni de conclusion.
 4. Tu respectes STRICTEMENT la structure pédagogique. N'utilise JAMAIS de code HTML. Utilise uniquement la syntaxe :
