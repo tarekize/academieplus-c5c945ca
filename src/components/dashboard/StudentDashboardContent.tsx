@@ -121,13 +121,17 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
           .from("chapters")
           .select("id, title, title_ar, order_index, filiere_id, filiere:filieres(code)")
           .eq("school_level", profile.school_level as any)
-          .or(profile.filiere ? `filiere_id.is.null,filiere.code.eq.${profile.filiere}` : "filiere_id.is.null")
           .order("order_index", { ascending: true })
         : Promise.resolve({ data: [] as any[] });
 
       const [{ data }, { data: levelChapters }] = await Promise.all([scoresPromise, chaptersPromise]);
 
-      const uniqueLevelChapters = (levelChapters || []).filter((chapter: any, index: number, chapters: any[]) => {
+      const filteredLevelChapters = (levelChapters || []).filter((chapter: any) => {
+        const filiereCode = Array.isArray(chapter.filiere) ? chapter.filiere[0]?.code : chapter.filiere?.code;
+        return profile.filiere ? !chapter.filiere_id || filiereCode === profile.filiere : !chapter.filiere_id;
+      });
+
+      const uniqueLevelChapters = filteredLevelChapters.filter((chapter: any, index: number, chapters: any[]) => {
         const key = makeUniqueChapterKey(chapter);
         return chapters.findIndex((candidate: any) => makeUniqueChapterKey(candidate) === key) === index;
       });
@@ -147,7 +151,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
       const chapterMap = new Map<string, ChapterStat>();
 
       // Initialize with all chapters from student's level so table always shows full list.
-      (levelChapters || []).forEach((ch: any) => {
+      uniqueLevelChapters.forEach((ch: any) => {
         chapterMap.set(ch.id, {
           chapterId: ch.id,
           chapterTitle: ch.title_ar || ch.title || "—",
@@ -251,7 +255,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
       });
 
       const chapterProgressMap = new Map<string, ChapterLessonProgress>();
-      (levelChapters || []).forEach((ch: any) => {
+      uniqueLevelChapters.forEach((ch: any) => {
         chapterProgressMap.set(ch.id, {
           chapterId: ch.id,
           chapterTitle: ch.title_ar || ch.title || "—",
@@ -346,7 +350,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
     } finally {
       if (!silent) setIsRefreshing(false);
     }
-  }, [userId, profile.school_level]);
+  }, [userId, profile.school_level, profile.filiere]);
 
   const getLessonStatusBadge = (status: LessonProgress["status"]) => {
     if (status === "completed") {
