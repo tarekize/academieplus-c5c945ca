@@ -11,7 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer } from "recharts";
+import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer } from "recharts";
 import {
   Clock, Target, TrendingUp, TrendingDown, GraduationCap, BookOpen, Brain, FileText,
   CheckCircle2, XCircle, Zap, RefreshCw, Activity, Sparkles, Award, ChevronRight,
@@ -397,12 +397,18 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
   const quizPct = Math.round((activityBreakdown.quiz / totalActivity) * 100);
   const exPct = 100 - readPct - quizPct;
 
+  const getChapterCompletionPct = (chapterId: string) => {
+    const chapterLessons = chapterLessonProgress.find((chapter) => chapter.chapterId === chapterId);
+    if (!chapterLessons || chapterLessons.totalLessons === 0) return 0;
+    return Math.round((chapterLessons.completedLessons / chapterLessons.totalLessons) * 100);
+  };
+
   const chapterRadarData = chapterStats.map((chapter, index) => {
-    const currentLevel = Math.max(0, Math.min(100, Math.round(Number(chapter.level) || 0)));
+    const completionPct = getChapterCompletionPct(chapter.chapterId);
 
     return {
       chapter: chapter.chapterTitle.length > 18 ? `${chapter.chapterTitle.slice(0, 18)}…` : chapter.chapterTitle,
-      score: currentLevel,
+      score: completionPct,
       fullTitle: chapter.chapterTitle,
       order: index + 1,
     };
@@ -586,6 +592,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                       <ResponsiveContainer width="100%" height={360}>
                         <RadarChart data={chapterRadarData} outerRadius="72%">
                           <PolarGrid stroke="hsl(var(--border))" radialLines />
+                          <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
                           <PolarAngleAxis
                             dataKey="chapter"
                             tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11, fontWeight: 600 }}
