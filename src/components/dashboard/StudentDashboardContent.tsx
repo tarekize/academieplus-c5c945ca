@@ -123,6 +123,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
       const [{ data }, { data: levelChapters }] = await Promise.all([scoresPromise, chaptersPromise]);
 
       const chapterIds = (levelChapters || []).map((ch: any) => ch.id);
+      const allowedChapterIds = new Set(chapterIds);
       const lessonsPromise = chapterIds.length > 0
         ? supabase
           .from("lessons")
@@ -149,10 +150,16 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
       });
 
       let totalReadTime = 0, totalQuizTime = 0, totalExTime = 0;
-      let sumCorrect = 0, sumTotal = 0, sumLevel = 0, maxStreak = 0;
+      let sumCorrect = 0, sumTotal = 0, sumLevel = 0, maxStreak = 0, processedScoreRows = 0;
 
       (data || []).forEach((s: any) => {
         const cId = s.chapter_id;
+        if (profile.school_level && cId && !allowedChapterIds.has(cId)) {
+          return;
+        }
+
+        processedScoreRows += 1;
+
         if (!cId) {
           // Skip score rows not linked to a chapter in chapter details table.
           totalReadTime += s.reading_time_seconds || 0;
@@ -190,7 +197,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
       setTotalTime(totalReadTime + totalQuizTime + totalExTime);
       setTotalCorrect(sumCorrect);
       setTotalAnswers(sumTotal);
-      setAvgLevel((data || []).length > 0 ? Math.round(sumLevel / (data || []).length) : 0);
+      setAvgLevel(processedScoreRows > 0 ? Math.round(sumLevel / processedScoreRows) : 0);
       setStreak(maxStreak);
 
       // Build lesson progress by chapter (clickable details view)
@@ -227,6 +234,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
       const scoreRowsByLesson = new Map<string, any[]>();
       (data || []).forEach((row: any) => {
         if (!row.lesson_id) return;
+        if (profile.school_level && row.chapter_id && !allowedChapterIds.has(row.chapter_id)) return;
         const current = scoreRowsByLesson.get(row.lesson_id) || [];
         current.push(row);
         scoreRowsByLesson.set(row.lesson_id, current);
