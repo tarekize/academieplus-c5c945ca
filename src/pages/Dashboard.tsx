@@ -21,6 +21,7 @@ interface Profile {
   last_name: string | null;
   avatar_url: string | null;
   school_level: string | null;
+  filiere: string | null;
   email: string | null;
 }
 
@@ -53,7 +54,7 @@ const Dashboard = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, avatar_url, school_level, email')
+        .select('id, first_name, last_name, avatar_url, school_level, filiere, email')
         .eq('id', userId)
         .single();
       if (error) throw error;

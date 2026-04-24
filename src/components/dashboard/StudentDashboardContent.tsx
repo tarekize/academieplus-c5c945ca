@@ -23,6 +23,7 @@ interface StudentDashboardContentProps {
     last_name: string | null;
     avatar_url: string | null;
     school_level: string | null;
+    filiere?: string | null;
     email: string | null;
   };
   hideActions?: boolean;
@@ -88,6 +89,9 @@ function getLevelInfo(accuracy: number) {
 
 const REFRESH_INTERVAL = 30000; // 30s auto-refresh
 
+const makeUniqueChapterKey = (chapter: { title?: string | null; title_ar?: string | null; order_index?: number | null }) =>
+  `${chapter.order_index ?? ""}|${(chapter.title_ar || chapter.title || "").replace(/\s+/g, " ").trim()}`;
+
 export default function StudentDashboardContent({ userId, profile, hideActions }: StudentDashboardContentProps) {
   const navigate = useNavigate();
   const [chapterStats, setChapterStats] = useState<ChapterStat[]>([]);
@@ -115,14 +119,24 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
       const chaptersPromise = profile.school_level
         ? supabase
           .from("chapters")
-          .select("id, title, title_ar, order_index")
+          .select("id, title, title_ar, order_index, filiere_id, filiere:filieres(code)")
           .eq("school_level", profile.school_level as any)
           .order("order_index", { ascending: true })
         : Promise.resolve({ data: [] as any[] });
 
       const [{ data }, { data: levelChapters }] = await Promise.all([scoresPromise, chaptersPromise]);
 
-      const chapterIds = (levelChapters || []).map((ch: any) => ch.id);
+      const filteredLevelChapters = (levelChapters || []).filter((chapter: any) => {
+        const filiereCode = Array.isArray(chapter.filiere) ? chapter.filiere[0]?.code : chapter.filiere?.code;
+        return profile.filiere ? !chapter.filiere_id || filiereCode === profile.filiere : !chapter.filiere_id;
+      });
+
+      const uniqueLevelChapters = filteredLevelChapters.filter((chapter: any, index: number, chapters: any[]) => {
+        const key = makeUniqueChapterKey(chapter);
+        return chapters.findIndex((candidate: any) => makeUniqueChapterKey(candidate) === key) === index;
+      });
+
+      const chapterIds = uniqueLevelChapters.map((ch: any) => ch.id);
       const allowedChapterIds = new Set(chapterIds);
       const lessonsPromise = chapterIds.length > 0
         ? supabase
@@ -137,7 +151,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
       const chapterMap = new Map<string, ChapterStat>();
 
       // Initialize with all chapters from student's level so table always shows full list.
-      (levelChapters || []).forEach((ch: any) => {
+      uniqueLevelChapters.forEach((ch: any) => {
         chapterMap.set(ch.id, {
           chapterId: ch.id,
           chapterTitle: ch.title_ar || ch.title || "—",
@@ -241,7 +255,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
       });
 
       const chapterProgressMap = new Map<string, ChapterLessonProgress>();
-      (levelChapters || []).forEach((ch: any) => {
+      uniqueLevelChapters.forEach((ch: any) => {
         chapterProgressMap.set(ch.id, {
           chapterId: ch.id,
           chapterTitle: ch.title_ar || ch.title || "—",
@@ -336,7 +350,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
     } finally {
       if (!silent) setIsRefreshing(false);
     }
-  }, [userId, profile.school_level]);
+  }, [userId, profile.school_level, profile.filiere]);
 
   const getLessonStatusBadge = (status: LessonProgress["status"]) => {
     if (status === "completed") {
