@@ -23,6 +23,7 @@ interface StudentDashboardContentProps {
     last_name: string | null;
     avatar_url: string | null;
     school_level: string | null;
+    filiere?: string | null;
     email: string | null;
   };
   hideActions?: boolean;
@@ -88,6 +89,9 @@ function getLevelInfo(accuracy: number) {
 
 const REFRESH_INTERVAL = 30000; // 30s auto-refresh
 
+const makeUniqueChapterKey = (chapter: { title?: string | null; title_ar?: string | null; order_index?: number | null }) =>
+  `${chapter.order_index ?? ""}|${(chapter.title_ar || chapter.title || "").replace(/\s+/g, " ").trim()}`;
+
 export default function StudentDashboardContent({ userId, profile, hideActions }: StudentDashboardContentProps) {
   const navigate = useNavigate();
   const [chapterStats, setChapterStats] = useState<ChapterStat[]>([]);
@@ -115,14 +119,20 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
       const chaptersPromise = profile.school_level
         ? supabase
           .from("chapters")
-          .select("id, title, title_ar, order_index")
+          .select("id, title, title_ar, order_index, filiere_id, filiere:filieres(code)")
           .eq("school_level", profile.school_level as any)
+          .or(profile.filiere ? `filiere_id.is.null,filiere.code.eq.${profile.filiere}` : "filiere_id.is.null")
           .order("order_index", { ascending: true })
         : Promise.resolve({ data: [] as any[] });
 
       const [{ data }, { data: levelChapters }] = await Promise.all([scoresPromise, chaptersPromise]);
 
-      const chapterIds = (levelChapters || []).map((ch: any) => ch.id);
+      const uniqueLevelChapters = (levelChapters || []).filter((chapter: any, index: number, chapters: any[]) => {
+        const key = makeUniqueChapterKey(chapter);
+        return chapters.findIndex((candidate: any) => makeUniqueChapterKey(candidate) === key) === index;
+      });
+
+      const chapterIds = uniqueLevelChapters.map((ch: any) => ch.id);
       const allowedChapterIds = new Set(chapterIds);
       const lessonsPromise = chapterIds.length > 0
         ? supabase
