@@ -612,49 +612,32 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                     </Badge>
                   </div>
 
-                  <div className="flex flex-col items-center justify-center gap-4">
-                    <div className="flex items-center gap-6">
-                      <div className="relative">
-                        <svg width="110" height="110" viewBox="0 0 96 96">
-                          <circle cx="48" cy="48" r={sRingRadius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
-                          <circle
-                            cx="48" cy="48" r={sRingRadius} fill="none"
-                            stroke="hsl(152, 60%, 45%)" strokeWidth="8"
-                            strokeLinecap="round"
-                            strokeDasharray={sRingCircumference}
-                            strokeDashoffset={sRingOffset}
-                            transform="rotate(-90 48 48)"
-                            className="transition-all duration-1000"
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <span className="text-xl font-bold text-emerald-600">{successRate}%</span>
-                          <span className="text-[9px] text-muted-foreground">نجاح</span>
-                        </div>
+                  <div className="min-h-[320px] w-full" dir="ltr">
+                    {chapterRadarData.length === 0 ? (
+                      <div className="flex h-[320px] flex-col items-center justify-center text-center text-muted-foreground">
+                        <Target className="mb-3 h-10 w-10 opacity-30" />
+                        <p className="text-sm">لا توجد فصول لعرضها بعد</p>
                       </div>
-                      <div className="relative">
-                        <svg width="110" height="110" viewBox="0 0 96 96">
-                          <circle cx="48" cy="48" r={sRingRadius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
-                          <circle
-                            cx="48" cy="48" r={sRingRadius} fill="none"
-                            stroke="hsl(0, 70%, 55%)" strokeWidth="8"
-                            strokeLinecap="round"
-                            strokeDasharray={sRingCircumference}
-                            strokeDashoffset={sRingCircumference - (errorRate / 100) * sRingCircumference}
-                            transform="rotate(-90 48 48)"
-                            className="transition-all duration-1000"
+                    ) : (
+                      <ResponsiveContainer width="100%" height={320}>
+                        <RadarChart data={chapterRadarData} outerRadius="72%">
+                          <PolarGrid stroke="hsl(var(--border))" radialLines />
+                          <PolarAngleAxis
+                            dataKey="chapter"
+                            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11, fontWeight: 600 }}
                           />
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <span className="text-xl font-bold text-red-500">{errorRate}%</span>
-                          <span className="text-[9px] text-muted-foreground">خطأ</span>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground text-center">
-                      <span className="font-bold text-emerald-600">{totalCorrect}</span> صحيحة من{" "}
-                      <span className="font-bold">{totalAnswers}</span> إجابة
-                    </p>
+                          <Radar
+                            name="التقدم"
+                            dataKey="score"
+                            stroke="hsl(var(--primary))"
+                            fill="hsl(var(--primary))"
+                            fillOpacity={0.22}
+                            strokeWidth={2.5}
+                            dot={{ r: 3, fill: "hsl(var(--background))", stroke: "hsl(var(--primary))", strokeWidth: 2 }}
+                          />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
               </CardContent>
