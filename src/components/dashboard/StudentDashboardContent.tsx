@@ -592,6 +592,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                       <ResponsiveContainer width="100%" height={360}>
                         <RadarChart data={chapterRadarData} outerRadius="72%">
                           <PolarGrid stroke="hsl(var(--border))" radialLines />
+                          <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
                           <PolarAngleAxis
                             dataKey="chapter"
                             tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11, fontWeight: 600 }}
