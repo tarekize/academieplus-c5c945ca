@@ -11,6 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer } from "recharts";
 import {
   Clock, Target, TrendingUp, TrendingDown, GraduationCap, BookOpen, Brain, FileText,
   CheckCircle2, XCircle, Zap, RefreshCw, Activity, Sparkles, Award, ChevronRight,
@@ -401,10 +402,22 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
   const ringCircumference = 2 * Math.PI * ringRadius;
   const ringOffset = ringCircumference - (avgLevel / 100) * ringCircumference;
 
-  // Success ring
-  const sRingRadius = 40;
-  const sRingCircumference = 2 * Math.PI * sRingRadius;
-  const sRingOffset = sRingCircumference - (successRate / 100) * sRingCircumference;
+  const chapterRadarData = chapterStats.map((chapter, index) => {
+    const chapterLessons = chapterLessonProgress.find((item) => item.chapterId === chapter.chapterId);
+    const completionRate = chapterLessons && chapterLessons.totalLessons > 0
+      ? Math.round((chapterLessons.completedLessons / chapterLessons.totalLessons) * 100)
+      : 0;
+    const answerRate = chapter.totalAnswers > 0
+      ? Math.round((chapter.correctAnswers / chapter.totalAnswers) * 100)
+      : 0;
+
+    return {
+      chapter: chapter.chapterTitle.length > 18 ? `${chapter.chapterTitle.slice(0, 18)}…` : chapter.chapterTitle,
+      score: chapter.totalAnswers > 0 ? answerRate : completionRate,
+      fullTitle: chapter.chapterTitle,
+      order: index + 1,
+    };
+  });
 
   return (
     <div className="space-y-6" dir="rtl">
