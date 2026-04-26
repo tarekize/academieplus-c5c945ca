@@ -538,6 +538,12 @@ Si le contenu est vide, tu peux créer une leçon compète en fonction de la dem
         allChapters
       );
 
+    // Version compacte du prompt pour les providers à petit contexte (Groq ~12k TPM, Cloudflare ~8k tokens)
+    // On tronque agressivement le contenu de la leçon embarqué dans le prompt éditorial.
+    const compactSystemPrompt = systemPrompt.length > 6000
+      ? systemPrompt.slice(0, 6000) + "\n\n... (prompt tronqué pour respecter la limite de tokens du provider)"
+      : systemPrompt;
+
     // Provider 0: Lovable AI (priorité)
     try {
       console.log("Trying Lovable AI...");
@@ -546,7 +552,7 @@ Si le contenu est vide, tu peux créer une leçon compète en fonction de la dem
       console.error("Lovable AI failed, trying Gemini...", e);
     }
 
-    // Provider 1: Gemini
+    // Provider 1: Gemini (large context, on garde le prompt complet)
     try {
       console.log("Trying Gemini...");
       return await callGemini(systemPrompt, messages);
@@ -554,23 +560,23 @@ Si le contenu est vide, tu peux créer une leçon compète en fonction de la dem
       console.error("Gemini failed, trying Groq...", e);
     }
 
-    // Provider 2: Groq
+    // Provider 2: Groq (limite 12k TPM → prompt compact)
     try {
       console.log("Trying Groq...");
-      return await callGroq(systemPrompt, messages);
+      return await callGroq(compactSystemPrompt, messages);
     } catch (e) {
       console.error("Groq failed, trying Cloudflare...", e);
     }
 
-    // Provider 3: Cloudflare
+    // Provider 3: Cloudflare (context window 8k → prompt compact)
     try {
       console.log("Trying Cloudflare...");
-      return await callCloudflare(systemPrompt, messages);
+      return await callCloudflare(compactSystemPrompt, messages);
     } catch (e) {
       console.error("Cloudflare failed, trying Gemini secondary key...", e);
     }
 
-    // Provider 4: Gemini secondary key (nouvelle clé fallback)
+    // Provider 4: Gemini secondary key (large context, prompt complet)
     try {
       console.log("Trying Gemini secondary key...");
       return await callGemini2(systemPrompt, messages);
