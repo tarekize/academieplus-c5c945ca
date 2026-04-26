@@ -142,6 +142,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, onUpdateContent,
 
     const handleApply = (content: string) => {
         let finalContent = content;
+        const safeCurrentContent = currentContent || "";
 
         const match = content.match(/<update>[\s\S]*?<original>([\s\S]*?)<\/original>[\s\S]*?<new>([\s\S]*?)<\/new>[\s\S]*?<\/update>/i);
         if (match) {
@@ -155,12 +156,30 @@ export function AdminAssistantPanel({ lessonId, currentContent, onUpdateContent,
                 newText = newText.slice(originalText.length).trimStart();
             } else if (normalize(newText).startsWith(normalize(originalText)) && normalize(newText).length > normalize(originalText).length) {
                 const origNorm = normalize(originalText);
-                let acc = '';
+                let normPos = 0;
                 let cutAt = 0;
+                let inSpace = false;
                 for (let i = 0; i < newText.length; i++) {
-                    acc += newText[i];
-                    if (normalize(acc).length >= origNorm.length) { cutAt = i + 1; break; }
+                    const ch = newText[i];
+                    const isWs = /\s/.test(ch);
+
+                    // On ne compte l'espace que s'il n'est pas au tout début ou s'il fait suite à un non-espace
+                    if (isWs) {
+                        if (!inSpace && normPos > 0) {
+                            normPos++;
+                            inSpace = true;
+                        }
+                    } else {
+                        normPos++;
+                        inSpace = false;
+                    }
+
+                    if (normPos >= origNorm.length) {
+                        cutAt = i + 1;
+                        break;
+                    }
                 }
+
                 if (cutAt > 0 && normalize(newText.slice(0, cutAt)) === origNorm) {
                     newText = newText.slice(cutAt).trimStart();
                 }
@@ -168,32 +187,33 @@ export function AdminAssistantPanel({ lessonId, currentContent, onUpdateContent,
 
             // Recherche : exact d'abord, sinon tolérante (espaces normalisés)
             let replaced = false;
-            if (currentContent.includes(originalText)) {
-                finalContent = currentContent.replace(originalText, newText);
+            if (safeCurrentContent.includes(originalText)) {
+                finalContent = safeCurrentContent.replace(originalText, newText);
                 replaced = true;
             } else {
                 const origNorm = normalize(originalText);
-                const curNorm = normalize(currentContent);
+                const curNorm = normalize(safeCurrentContent);
                 const idx = curNorm.indexOf(origNorm);
+
                 if (idx !== -1) {
                     let normPos = 0;
                     let startReal = -1;
                     let endReal = -1;
                     let inSpace = false;
-                    for (let i = 0; i < currentContent.length; i++) {
-                        const ch = currentContent[i];
+                    for (let i = 0; i < safeCurrentContent.length; i++) {
+                        const ch = safeCurrentContent[i];
                         const isWs = /\s/.test(ch);
                         if (isWs) {
-                            if (!inSpace) { normPos++; inSpace = true; }
+                            if (!inSpace && normPos > 0) { normPos++; inSpace = true; }
                         } else {
                             normPos++;
                             inSpace = false;
                         }
-                        if (startReal === -1 && normPos > idx) startReal = i;
+                        if (startReal === -1 && normPos >= idx) startReal = i;
                         if (startReal !== -1 && normPos >= idx + origNorm.length) { endReal = i + 1; break; }
                     }
                     if (startReal !== -1 && endReal !== -1) {
-                        finalContent = currentContent.slice(0, startReal) + newText + currentContent.slice(endReal);
+                        finalContent = safeCurrentContent.slice(0, startReal) + newText + safeCurrentContent.slice(endReal);
                         replaced = true;
                     }
                 }
@@ -208,6 +228,11 @@ export function AdminAssistantPanel({ lessonId, currentContent, onUpdateContent,
                 });
                 navigator.clipboard.writeText(newText);
                 return;
+            }
+
+            // Pour éviter un état vide ou mal formé qui crashe le composant parent
+            if (!finalContent) {
+                finalContent = newText;
             }
 
             toast({
@@ -306,17 +331,17 @@ export function AdminAssistantPanel({ lessonId, currentContent, onUpdateContent,
                                                             <div className="text-[10px] font-bold uppercase tracking-wide text-destructive/80 mb-1">
                                                                 ➖ Partie actuelle (à remplacer)
                                                             </div>
-                                                            <div className="prose prose-sm dark:prose-invert max-w-none text-xs opacity-80">
+                                                            <div className="prose prose-sm dark:prose-invert max-w-none text-xs opacity-80 text-right" dir="rtl">
                                                                 <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
                                                                     {originalText}
                                                                 </ReactMarkdown>
                                                             </div>
                                                         </div>
                                                         <div className="rounded-md border border-primary/40 bg-primary/5 p-2">
-                                                            <div className="text-[10px] font-bold uppercase tracking-wide text-primary mb-1">
+                                                            <div className="text-[10px] font-bold uppercase tracking-wide text-primary mb-1 text-right">
                                                                 ➕ Nouvelle version proposée
                                                             </div>
-                                                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                            <div className="prose prose-sm dark:prose-invert max-w-none text-right" dir="rtl">
                                                                 <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
                                                                     {newText}
                                                                 </ReactMarkdown>
@@ -324,7 +349,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, onUpdateContent,
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                    <div className="prose prose-sm dark:prose-invert max-w-none text-right" dir="rtl">
                                                         <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
                                                             {displayContent}
                                                         </ReactMarkdown>
