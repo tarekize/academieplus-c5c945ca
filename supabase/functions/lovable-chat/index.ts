@@ -251,10 +251,10 @@ async function callGemini2(systemPrompt: string, messages: any[]): Promise<Respo
   const body = {
     system_instruction: { parts: [{ text: systemPrompt }] },
     contents: geminiMessages,
-    generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+    generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
   };
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY_2}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY_2}`;
 
   const response = await fetch(url, {
     method: "POST",
