@@ -257,9 +257,12 @@ export function AdminAssistantPanel({ lessonId, currentContent, onUpdateContent,
                         </div>
                         <div className="text-center text-muted-foreground mt-8">
                             <Sparkles className="w-12 h-12 mb-4 opacity-20 mx-auto" />
-                            <p className="text-sm font-medium mb-3">Demandez à l'IA de modifier votre leçon</p>
+                            <p className="text-sm font-medium mb-3">Demandez à l'IA de générer ou modifier une leçon</p>
                             <p className="text-xs space-y-2">
-                                <span className="block">Exemples:</span>
+                                <span className="block font-semibold">🆕 Génération complète (cours arabe HTML 8 sections):</span>
+                                <span className="block">• "Génère un cours complet sur النهايات"</span>
+                                <span className="block">• "أنشئ درسا كاملا حول الاشتقاقية"</span>
+                                <span className="block mt-2 font-semibold">✏️ Modifications ciblées:</span>
                                 <span className="block">• "Enrichis la définition 1.1 avec plus d'explications"</span>
                                 <span className="block">• "Ajoute un exemple détaillé après la propriété 2.1"</span>
                                 <span className="block">• "Crée une section de remarques importantes"</span>
