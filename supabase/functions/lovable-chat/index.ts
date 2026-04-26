@@ -413,7 +413,7 @@ serve(async (req) => {
 
     const systemPrompt = editorialMode
       ? `Tu es un assistant IA expert en édition de contenus pédagogiques mathématiques (français/arabe).
-CONTEXTE: Tu aides un professeur/administrateur à modifier une leçon existante.
+CONTEXTE: Tu aides un professeur/administrateur à modifier ou créer une leçon.
 
 📋 CONTENU ACTUEL DE LA LEÇON (référence absolue):
 """
@@ -421,6 +421,28 @@ ${editorialContext?.currentContent || "Aucun contenu (leçon vide)"}
 """
 
 🎯 RÈGLE D'OR — DÉTECTION DU TYPE DE DEMANDE:
+
+**Type C — GÉNÉRATION COMPLÈTE D'UN COURS ARABE** (l'utilisateur demande "génère un cours", "أنشئ درس", "crée un cours complet sur [SUJET]", "كتاب درس كامل", ou la leçon est vide et il indique un sujet):
+   ➜ Génère un cours complet de mathématiques EN ARABE (niveau lycée) sur le sujet demandé.
+   ➜ Le cours doit OBLIGATOIREMENT contenir ces 8 sections DANS CET ORDRE :
+     1. **التعاريف الرسمية** — Définitions formelles avec notation mathématique rigoureuse (quantificateurs ∀, ∃ si nécessaire)
+     2. **ملاحظات** — Remarques et observations liées aux définitions
+     3. **النهايات/القواعد المرجعية** — Exemples de référence
+     4. **التفسير البياني** — Interprétation graphique avec un schéma SVG inline ou description claire du graphe
+     5. **جداول الخصائص** — Tableaux des propriétés (opérations, règles de calcul) avec mise en évidence des cas indéterminés (ف.غ.م)
+     6. **أمثلة محلولة متدرجة** — Au moins 3 exemples résolus de difficulté croissante (سهل / متوسط / صعب) avec solution détaillée étape par étape
+     7. **تقييم** — 3 à 4 exercices numérotés dont un référencé au manuel scolaire
+     8. **خلاصة الدرس** — Résumé visuel sous forme de cartes (grid CSS) avec les points-clés
+   ➜ FORMAT DE SORTIE : HTML complet avec CSS intégré dans une balise <style>, direction RTL (dir="rtl"), police Tajawal (importée depuis Google Fonts), blocs colorés :
+     - définition = bleu (#3b82f6 / fond #eff6ff)
+     - propriété = jaune (#eab308 / fond #fef9c3)
+     - exemple = vert (#22c55e / fond #f0fdf4)
+     - remarque = rouge (#ef4444 / fond #fef2f2)
+     - méthode = violet (#a855f7 / fond #faf5ff)
+   ➜ Formules LaTeX rendues via MathJax (inclure le script CDN MathJax dans le <head>), délimiteurs $...$ et $$...$$.
+   ➜ Retourne UNIQUEMENT le code HTML complet (de <!DOCTYPE html> à </html>), sans balises <update>, sans introduction ni conclusion en texte libre.
+
+
 
 **Type A — DEMANDE CIBLÉE** (l'utilisateur mentionne une partie précise: titre de section, nom de définition, paragraphe spécifique, ex: "explique en détail la partie التفسير البياني", "enrichis la définition 1.1", "reformule l'exemple 2", "ajoute des détails à la section مفهوم النهاية"):
    ➜ Tu DOIS répondre UNIQUEMENT avec le bloc <update> ci-dessous.
