@@ -238,6 +238,95 @@ async function callGroq(systemPrompt: string, messages: any[]): Promise<Response
   });
 }
 
+// ============ Provider 4: Google Gemini (clé secondaire / fallback) ============
+async function callGemini2(systemPrompt: string, messages: any[]): Promise<Response> {
+  const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
+  if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
+
+  const geminiMessages = messages.map((m: any) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
+
+  const body = {
+    system_instruction: { parts: [{ text: systemPrompt }] },
+    contents: geminiMessages,
+    generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+  };
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY_2}`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("Gemini2 error:", response.status, errText);
+    throw new Error(`Gemini2 failed: ${response.status}`);
+  }
+
+  const geminiStream = response.body!;
+  const { readable, writable } = new TransformStream();
+
+  (async () => {
+    const writer = writable.getWriter();
+    const reader = geminiStream.getReader();
+    const decoder = new TextDecoder();
+    const encoder = new TextEncoder();
+    let buffer = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (!jsonStr || jsonStr === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              const openAiChunk = { choices: [{ delta: { content: text }, index: 0 }] };
+              await writer.write(encoder.encode(`data: ${JSON.stringify(openAiChunk)}\n\n`));
+            }
+          } catch { /* skip */ }
+        }
+      }
+      if (buffer.startsWith("data: ")) {
+        const jsonStr = buffer.slice(6).trim();
+        if (jsonStr && jsonStr !== "[DONE]") {
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              const openAiChunk = { choices: [{ delta: { content: text }, index: 0 }] };
+              await writer.write(encoder.encode(`data: ${JSON.stringify(openAiChunk)}\n\n`));
+            }
+          } catch { /* skip */ }
+        }
+      }
+      await writer.write(encoder.encode("data: [DONE]\n\n"));
+    } catch (err) {
+      console.error("Gemini2 stream transform error:", err);
+    } finally {
+      writer.close();
+    }
+  })();
+
+  return new Response(readable, {
+    headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+  });
+}
+
 // ============ Provider 3: Cloudflare Workers AI ============
 async function callCloudflare(systemPrompt: string, messages: any[]): Promise<Response> {
   const CF_API_KEY = Deno.env.get("CLOUDFLARE_AI_API_KEY");
@@ -456,7 +545,15 @@ Si le contenu est vide, tu peux créer une leçon compète en fonction de la dem
       console.log("Trying Cloudflare...");
       return await callCloudflare(systemPrompt, messages);
     } catch (e) {
-      console.error("Cloudflare also failed:", e);
+      console.error("Cloudflare failed, trying Gemini secondary key...", e);
+    }
+
+    // Provider 4: Gemini secondary key (nouvelle clé fallback)
+    try {
+      console.log("Trying Gemini secondary key...");
+      return await callGemini2(systemPrompt, messages);
+    } catch (e) {
+      console.error("Gemini secondary key also failed:", e);
     }
 
     // All providers failed
