@@ -201,7 +201,8 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                 <QuizFormDialog chapterId={chapterId} onSaved={onRefresh} quiz={{
                   id: currentQuestion.id, question: currentQuestion.question,
                   options: currentQuestion.options, correct_answer: currentQuestion.correct_answer || "",
-                  explanation: currentQuestion.explanation,
+                  explanation: currentQuestion.explanation, hint: currentQuestion.hint,
+                  difficulty: currentQuestion.difficulty,
                 }} />
                 <DeleteQuizButton quizId={currentQuestion.id} onDeleted={onRefresh} />
               </div>
