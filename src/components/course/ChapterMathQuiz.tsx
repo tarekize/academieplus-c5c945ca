@@ -29,6 +29,7 @@ export interface DBQuizQuestion {
   correct_answer?: string;
   explanation: string | null;
   difficulty?: number;
+  hint?: string | null;
 }
 
 interface ChapterMathQuizProps {
