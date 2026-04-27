@@ -48,6 +48,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
   const [exerciseSolutions, setExerciseSolutions] = useState<Record<string, string>>({});
   const [exerciseTimes, setExerciseTimes] = useState<Record<string, number>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showHint, setShowHint] = useState<Record<string, boolean>>({});
 
   const exercise = currentExercise !== null ? exercises[currentExercise] : null;
 
