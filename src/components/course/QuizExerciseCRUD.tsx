@@ -184,7 +184,7 @@ interface ExerciseFormProps {
   chapterId: string;
   lessonId?: string;
   onSaved: () => void;
-  exercise?: { id: string; title: string; statement: string; expected_answer?: string; accepted_answers?: string[]; solution?: string; difficulty?: number };
+  exercise?: { id: string; title: string; statement: string; expected_answer?: string; accepted_answers?: string[]; solution?: string; difficulty?: number; hint?: string | null };
 }
 
 export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: ExerciseFormProps) {
@@ -195,6 +195,7 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
   const [expectedAnswer, setExpectedAnswer] = useState(exercise?.expected_answer || "");
   const [acceptedAnswers, setAcceptedAnswers] = useState(exercise?.accepted_answers?.join(", ") || "");
   const [solution, setSolution] = useState(exercise?.solution || "");
+  const [hint, setHint] = useState(exercise?.hint || "");
   const [difficulty, setDifficulty] = useState(exercise?.difficulty || 1);
   const isEdit = !!exercise;
 
