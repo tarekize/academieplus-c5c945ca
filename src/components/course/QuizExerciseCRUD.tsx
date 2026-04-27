@@ -237,6 +237,7 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
         setExpectedAnswer(exercise.expected_answer);
         setAcceptedAnswers(exercise.accepted_answers?.join(", ") || "");
         setSolution(exercise.solution);
+        setHint(exercise.hint || "");
         setDifficulty(exercise.difficulty || 1);
       }
     }}>
