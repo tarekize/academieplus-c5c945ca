@@ -18,6 +18,7 @@ export interface DBExercise {
   accepted_answers?: string[];
   solution?: string;
   difficulty?: number;
+  hint?: string | null;
 }
 
 function DifficultyPencils({ level }: { level: number }) {
