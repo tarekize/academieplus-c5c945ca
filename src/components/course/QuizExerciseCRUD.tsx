@@ -21,7 +21,7 @@ interface QuizFormProps {
   chapterId: string;
   lessonId?: string;
   onSaved: () => void;
-  quiz?: { id: string; question: string; options: string[]; correct_answer: string; explanation: string | null; difficulty?: number };
+  quiz?: { id: string; question: string; options: string[]; correct_answer: string; explanation: string | null; difficulty?: number; hint?: string | null };
 }
 
 export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormProps) {
@@ -31,6 +31,7 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
   const [options, setOptions] = useState<string[]>(quiz?.options || ["", "", "", ""]);
   const [correctAnswer, setCorrectAnswer] = useState(quiz?.correct_answer || "");
   const [explanation, setExplanation] = useState(quiz?.explanation || "");
+  const [hint, setHint] = useState(quiz?.hint || "");
   const [difficulty, setDifficulty] = useState(quiz?.difficulty || 1);
   const isEdit = !!quiz;
 
