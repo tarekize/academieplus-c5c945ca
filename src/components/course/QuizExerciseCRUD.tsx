@@ -84,6 +84,7 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
         setOptions(quiz.options.length >= 4 ? quiz.options : [...quiz.options, ...Array(4 - quiz.options.length).fill("")]);
         setCorrectAnswer(quiz.correct_answer);
         setExplanation(quiz.explanation || "");
+        setHint(quiz.hint || "");
         setDifficulty(quiz.difficulty || 1);
       }
     }}>
