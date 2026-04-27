@@ -154,6 +154,26 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
             </div>
           </div>
 
+          {exercise.hint && (
+            <div dir="rtl" className="space-y-2">
+              <Button type="button" variant="outline" size="sm"
+                onClick={() => setShowHint(prev => ({ ...prev, [exercise.id]: !prev[exercise.id] }))}
+                className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950">
+                <Lightbulb className="h-4 w-4" />{showHint[exercise.id] ? "إخفاء المساعدة" : "مساعدة"}
+              </Button>
+              {showHint[exercise.id] && (
+                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                  <div className="flex items-start gap-2">
+                    <Lightbulb className="h-4 w-4 text-amber-500 mt-1 shrink-0" />
+                    <div className="prose prose-sm dark:prose-invert max-w-none flex-1">
+                      <ReactMarkdown>{exercise.hint}</ReactMarkdown>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="space-y-4" dir="rtl">
             <div className="flex gap-3">
               <Input placeholder="أدخل إجابتك..." value={userAnswers[exercise.id] || ""}
