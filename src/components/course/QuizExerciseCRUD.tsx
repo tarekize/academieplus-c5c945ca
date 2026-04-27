@@ -131,6 +131,10 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
             <label className="text-sm font-medium">الشرح</label>
             <Textarea value={explanation} onChange={(e) => setExplanation(e.target.value)} placeholder="شرح الإجابة..." />
           </div>
+          <div>
+            <label className="text-sm font-medium">💡 مساعدة (Hint) — يظهر للتلميذ عند الطلب</label>
+            <Textarea value={hint} onChange={(e) => setHint(e.target.value)} placeholder="فكرة أو تلميح يساعد التلميذ على الوصول للجواب..." />
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
