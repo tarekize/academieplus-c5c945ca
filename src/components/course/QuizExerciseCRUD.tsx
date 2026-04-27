@@ -48,6 +48,7 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
           options: options.filter(o => o.trim()),
           correct_answer: correctAnswer.trim(),
           explanation: explanation.trim() || null,
+          hint: hint.trim() || null,
           difficulty: difficulty,
         }).eq("id", quiz.id);
         if (error) throw error;
@@ -60,6 +61,7 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
           options: options.filter(o => o.trim()),
           correct_answer: correctAnswer.trim(),
           explanation: explanation.trim() || null,
+          hint: hint.trim() || null,
           difficulty: difficulty,
         });
         if (error) throw error;
