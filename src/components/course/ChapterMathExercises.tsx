@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, BookOpen, CheckCircle2, XCircle, PenTool, Send, Eye, Clock, Loader2, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
+import { HtmlWithMath } from "./HtmlWithMath";
 import { useTimeTracking, formatTime } from "@/hooks/useTimeTracking";
 import { ExerciseFormDialog, DeleteExerciseButton } from "./QuizExerciseCRUD";
 import { supabase } from "@/integrations/supabase/client";
@@ -149,9 +150,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
         <CardContent className="space-y-6">
           <div className="p-4 bg-muted/50 rounded-lg" dir="rtl">
             <h4 className="font-semibold mb-3 flex items-center gap-2"><BookOpen className="h-4 w-4" />التمرين</h4>
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              <ReactMarkdown>{exercise.statement}</ReactMarkdown>
-            </div>
+            <HtmlWithMath htmlContent={exercise.statement} className="text-sm border-t pt-2 block" />
           </div>
 
           {exercise.hint && (
@@ -165,9 +164,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
                 <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
                   <div className="flex items-start gap-2">
                     <Lightbulb className="h-4 w-4 text-amber-500 mt-1 shrink-0" />
-                    <div className="prose prose-sm dark:prose-invert max-w-none flex-1">
-                      <ReactMarkdown>{exercise.hint}</ReactMarkdown>
-                    </div>
+                    <HtmlWithMath htmlContent={exercise.hint} className="text-sm flex-1 max-w-none text-right" />
                   </div>
                 </div>
               )}
@@ -206,7 +203,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
           {correctionVisible && solution && (
             <div className="p-4 bg-muted/30 rounded-lg border" dir="rtl">
               <h4 className="font-semibold mb-3 flex items-center gap-2 text-primary"><CheckCircle2 className="h-4 w-4" />الحل المفصل</h4>
-              <div className="prose prose-sm dark:prose-invert max-w-none"><ReactMarkdown>{solution}</ReactMarkdown></div>
+              <HtmlWithMath htmlContent={solution} className="bg-white dark:bg-black/20 p-3 rounded-md border border-purple-100 dark:border-purple-900/30 text-right prose max-w-none" />
             </div>
           )}
 

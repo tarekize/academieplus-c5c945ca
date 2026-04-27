@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdaptiveContent } from "@/hooks/useAdaptiveContent";
 import { useActivityTimeTracker } from "@/hooks/useActivityTimeTracker";
+import { HtmlWithMath } from "./HtmlWithMath";
 
 export interface DBQuizQuestion {
   id: string;
@@ -1325,7 +1326,7 @@ function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; inde
         {showAnswer && (
           <div className="p-3 bg-muted/50 rounded-lg text-sm space-y-2" dir="rtl">
             <div><span className="font-medium">الإجابة الصحيحة: </span>{correctAnswer || "—"}</div>
-            {explanation && <div><span className="font-medium">الشرح: </span>{explanation}</div>}
+            {explanation && <div className="flex gap-1 align-top"><span className="font-medium shrink-0">الشرح: </span><HtmlWithMath htmlContent={explanation} className="flex-1" /></div>}
           </div>
         )}
       </CardContent>
@@ -1362,7 +1363,7 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
           <h4 className="font-semibold flex-1 text-right" dir="rtl">{index + 1}. {exercise.title}</h4>
           <DifficultyIndicator level={exercise.difficulty} />
         </div>
-        <p className="text-sm text-right" dir="rtl">{exercise.statement}</p>
+        {exercise.statement.includes('<') || exercise.statement.includes('
         <div className="flex items-center gap-2 justify-end">
           <CheckCircle2 className="h-4 w-4 text-green-500" />
           <span className="text-sm text-green-600 font-medium">إجابة صحيحة</span>
@@ -1373,7 +1374,12 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
         {showSolution && (
           <div className="p-3 bg-muted/50 rounded-lg text-sm space-y-2" dir="rtl">
             <div><span className="font-medium">الإجابة: </span>{expectedAnswer || "—"}</div>
-            {solution && <div><span className="font-medium">الحل: </span>{solution}</div>}
+            {solution && (
+                <div className="flex flex-col gap-1 border-t pt-2 mt-2 text-right" dir="rtl">
+                  <span className="font-medium text-purple-700 dark:text-purple-400">الحل المفصل 🎯</span>
+                  <HtmlWithMath htmlContent={solution} className="bg-white dark:bg-black/20 p-3 rounded-md border border-purple-100 dark:border-purple-900/30 text-right" />
+                </div>
+              )}
           </div>
         )}
       </CardContent>
@@ -1428,7 +1434,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
     <Card className={cn("transition-all", answered && isCorrect && "border-green-500/50 bg-green-500/5", answered && !isCorrect && "border-red-500/50 bg-red-500/5")}>
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-3">
-          <p className="font-medium flex-1" dir="rtl">{index + 1}. {question.question}</p>
+          <div className="font-medium flex-1 flex gap-2 items-start" dir="rtl"><span className="shrink-0">{index + 1}.</span><HtmlWithMath htmlContent={question.question} className="flex-1 text-right" /></div>
           <DifficultyIndicator level={question.difficulty} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -1640,7 +1646,511 @@ function ExerciseCard({ exercise, index, readOnly }: { exercise: DBExercise; ind
           <h4 className="font-semibold flex-1" dir="rtl">{index + 1}. {exercise.title}</h4>
           <DifficultyIndicator level={exercise.difficulty} />
         </div>
-        <p className="text-sm" dir="rtl">{exercise.statement}</p>
+        <HtmlWithMath htmlContent={exercise.statement} className="text-sm mt-3 mb-2 block" />
+        {!readOnly && result === null && (
+          <div className="flex gap-2" dir="rtl">
+            <input className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background" placeholder="أدخل إجابتك..." value={answer} onChange={(e) => setAnswer(e.target.value)} dir="rtl" />
+            <Button size="sm" onClick={handleSubmit} disabled={submitting}>{submitting ? "..." : "تحقق"}</Button>
+          </div>
+        )}
+        {result !== null && (
+          <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
+            {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}
+          </div>
+        )}
+        {(solution || result !== null) && (
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
+            {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{solution || expectedAnswer}</div>}
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function EmptyState({ text }: { text: string }) {
+  return <div className="text-center py-8"><p className="text-muted-foreground" dir="rtl">{text}</p></div>;
+}
+) || exercise.statement.includes(' \\') ? (
+            <HtmlWithMath htmlContent={exercise.statement} className="text-sm border-t pt-2" />
+          ) : (
+            <p className="text-sm border-t pt-2 text-right" dir="rtl">{exercise.statement}</p>
+          )}
+          {exercise.hint && (
+            <div dir="rtl" className="mt-2 mb-3">
+              <Button type="button" variant="outline" size="sm" onClick={() => setShowHint(v => !v)} className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950 mb-2">
+                <Lightbulb className="h-4 w-4" />{showHint ? "إخفاء المساعدة" : "مساعدة"}
+              </Button>
+              {showHint && (
+                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                  <div className="flex items-start gap-2">
+                    <Lightbulb className="h-4 w-4 text-amber-500 mt-1 shrink-0" />
+                    <HtmlWithMath htmlContent={exercise.hint} className="text-sm flex-1" />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        <div className="flex items-center gap-2 justify-end">
+          <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <span className="text-sm text-green-600 font-medium">إجابة صحيحة</span>
+        </div>
+        <Button variant="ghost" size="sm" onClick={handleToggle} disabled={loading}>
+          {loading ? "جاري التحميل..." : showSolution ? "إخفاء الحل" : "عرض الحل"}
+        </Button>
+        {showSolution && (
+          <div className="p-3 bg-muted/50 rounded-lg text-sm space-y-2" dir="rtl">
+            <div><span className="font-medium">الإجابة: </span>{expectedAnswer || "—"}</div>
+            {solution && (
+                <div className="flex flex-col gap-1 border-t pt-2 mt-2 text-right" dir="rtl">
+                  <span className="font-medium text-purple-700 dark:text-purple-400">الحل المفصل 🎯</span>
+                  <HtmlWithMath htmlContent={solution} className="bg-white dark:bg-black/20 p-3 rounded-md border border-purple-100 dark:border-purple-900/30 text-right" />
+                </div>
+              )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DBQuizQuestion; index: number; readOnly?: boolean; onAnswer: (correct: boolean) => void }) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
+  const [explanation, setExplanation] = useState<string>("");
+  const [answered, setAnswered] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSelect = async (opt: string) => {
+    if (readOnly || answered || submitting) return;
+    setSelected(opt);
+    setSubmitting(true);
+
+    try {
+      const { data, error } = await supabase.rpc('check_quiz_answer', {
+        _quiz_id: question.id,
+        _user_answer: opt,
+      });
+
+      if (error) throw error;
+
+      const result = data as { is_correct: boolean; explanation: string; correct_answer: string | null };
+      setIsCorrect(result.is_correct);
+      setCorrectAnswer(result.correct_answer);
+      setExplanation(result.explanation || "");
+      setAnswered(true);
+      onAnswer(result.is_correct);
+    } catch (err) {
+      console.error("Error validating quiz:", err);
+      // Fallback to local if correct_answer available (admin/pedago)
+      if (question.correct_answer) {
+        const correct = opt === question.correct_answer;
+        setIsCorrect(correct);
+        setCorrectAnswer(correct ? null : question.correct_answer);
+        setExplanation(question.explanation || "");
+        setAnswered(true);
+        onAnswer(correct);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Card className={cn("transition-all", answered && isCorrect && "border-green-500/50 bg-green-500/5", answered && !isCorrect && "border-red-500/50 bg-red-500/5")}>
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-3">
+          <div className="font-medium flex-1 flex gap-2 items-start" dir="rtl"><span className="shrink-0">{index + 1}.</span><HtmlWithMath htmlContent={question.question} className="flex-1 text-right" /></div>
+          <DifficultyIndicator level={question.difficulty} />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {question.options.map((opt, oIdx) => (
+            <Button key={oIdx} variant={selected === opt ? (isCorrect ? "default" : "destructive") : "outline"}
+              className={cn("justify-start text-right", correctAnswer && opt === correctAnswer && answered && "border-green-500 bg-green-500/10")}
+              onClick={() => handleSelect(opt)} disabled={readOnly || answered || submitting} dir="rtl">{opt}</Button>
+          ))}
+        </div>
+        {answered && explanation && (
+          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">الشرح: </span>{explanation}</div>
+        )}
+        {answered && !isCorrect && correctAnswer && (
+          <div className="mt-2 p-2 rounded text-sm bg-green-500/10 text-green-700" dir="rtl">✅ الإجابة الصحيحة: {correctAnswer}</div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise: DBExercise; index: number; readOnly?: boolean; onAnswer: (correct: boolean) => void }) {
+  const [open, setOpen] = useState(false);
+  const [answer, setAnswer] = useState("");
+  const [revealed, setRevealed] = useState(false);
+  const [result, setResult] = useState<boolean | null>(null);
+  const [expectedAnswer, setExpectedAnswer] = useState<string>("");
+  const [solution, setSolution] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!answer.trim() || submitting) return;
+    setSubmitting(true);
+
+    try {
+      const { data, error } = await supabase.rpc('check_exercise_answer', {
+        _exercise_id: exercise.id,
+        _user_answer: answer.trim(),
+      });
+
+      if (error) throw error;
+
+      const res = data as { is_correct: boolean; expected_answer: string; solution: string };
+      setResult(res.is_correct);
+      setExpectedAnswer(res.expected_answer);
+      setSolution(res.solution);
+      onAnswer(res.is_correct);
+    } catch (err) {
+      console.error("Error validating exercise:", err);
+      // Fallback to local if data available (admin/pedago)
+      if (exercise.expected_answer) {
+        const isCorrect = answer.trim() === exercise.expected_answer || (exercise.accepted_answers || []).includes(answer.trim());
+        setResult(isCorrect);
+        setExpectedAnswer(exercise.expected_answer);
+        setSolution(exercise.solution || "");
+        onAnswer(isCorrect);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <>
+      <Card className="cursor-pointer hover:border-primary/40 hover:shadow-md transition-all" onClick={() => setOpen(true)}>
+        <CardContent className="p-4">
+          <div className="flex justify-between items-start gap-3">
+            <h4 className="font-semibold flex-1 text-right" dir="rtl">{index + 1}. {exercise.title}</h4>
+            <DifficultyIndicator level={exercise.difficulty} />
+          </div>
+          <p className="text-xs text-muted-foreground mt-2 text-right" dir="rtl">اضغط لفتح التمرين</p>
+        </CardContent>
+      </Card>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-right">{index + 1}. {exercise.title}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            {exercise.statement.includes('<') || exercise.statement.includes('
+
+            {!readOnly && result === null && (
+              <div className="flex gap-2" dir="rtl">
+                <input
+                  className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
+                  placeholder="أدخل إجابتك..."
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  dir="rtl"
+                />
+                <Button size="sm" onClick={handleSubmit} disabled={submitting}>{submitting ? "..." : "تحقق"}</Button>
+              </div>
+            )}
+
+            {result !== null && (
+              <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
+                {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}
+              </div>
+            )}
+
+            {(solution || exercise.solution) && (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
+                {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{solution || exercise.solution}</div>}
+              </>
+            )}
+
+            {!solution && !exercise.solution && result !== null && (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
+                {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{expectedAnswer}</div>}
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function QuizQuestionCard({ question, index, readOnly }: { question: DBQuizQuestion; index: number; readOnly?: boolean }) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
+  const [explanation, setExplanation] = useState<string>("");
+  const [answered, setAnswered] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSelect = async (opt: string) => {
+    if (readOnly || answered || submitting) return;
+    setSelected(opt);
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.rpc('check_quiz_answer', { _quiz_id: question.id, _user_answer: opt });
+      if (error) throw error;
+      const result = data as { is_correct: boolean; explanation: string; correct_answer: string | null };
+      setIsCorrect(result.is_correct);
+      setCorrectAnswer(result.correct_answer);
+      setExplanation(result.explanation || "");
+      setAnswered(true);
+    } catch {
+      if (question.correct_answer) {
+        setIsCorrect(opt === question.correct_answer);
+        setCorrectAnswer(opt === question.correct_answer ? null : question.correct_answer);
+        setExplanation(question.explanation || "");
+        setAnswered(true);
+      }
+    } finally { setSubmitting(false); }
+  };
+
+  return (
+    <Card className={cn("transition-all", answered && isCorrect && "border-green-500/50 bg-green-500/5", answered && !isCorrect && "border-red-500/50 bg-red-500/5")}>
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-3">
+          <p className="font-medium flex-1" dir="rtl">{index + 1}. {question.question}</p>
+          <DifficultyIndicator level={question.difficulty} />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {question.options.map((opt, oIdx) => (
+            <Button key={oIdx} variant={selected === opt ? (isCorrect ? "default" : "destructive") : "outline"}
+              className={cn("justify-start text-right", correctAnswer && opt === correctAnswer && answered && "border-green-500 bg-green-500/10")}
+              onClick={() => handleSelect(opt)} disabled={readOnly || answered || submitting} dir="rtl">{opt}</Button>
+          ))}
+        </div>
+        {answered && explanation && (
+          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">الشرح: </span>{explanation}</div>
+        )}
+        {answered && !isCorrect && correctAnswer && (
+          <div className="mt-2 p-2 rounded text-sm bg-green-500/10 text-green-700" dir="rtl">✅ الإجابة الصحيحة: {correctAnswer}</div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ExerciseCard({ exercise, index, readOnly }: { exercise: DBExercise; index: number; readOnly?: boolean }) {
+  const [answer, setAnswer] = useState("");
+  const [revealed, setRevealed] = useState(false);
+  const [result, setResult] = useState<boolean | null>(null);
+  const [expectedAnswer, setExpectedAnswer] = useState<string>("");
+  const [solution, setSolution] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!answer.trim() || submitting) return;
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.rpc('check_exercise_answer', { _exercise_id: exercise.id, _user_answer: answer.trim() });
+      if (error) throw error;
+      const res = data as { is_correct: boolean; expected_answer: string; solution: string };
+      setResult(res.is_correct);
+      setExpectedAnswer(res.expected_answer);
+      setSolution(res.solution);
+    } catch {
+      if (exercise.expected_answer) {
+        const isCorrect = answer.trim() === exercise.expected_answer || (exercise.accepted_answers || []).includes(answer.trim());
+        setResult(isCorrect);
+        setExpectedAnswer(exercise.expected_answer);
+        setSolution(exercise.solution || "");
+      }
+    } finally { setSubmitting(false); }
+  };
+
+  return (
+    <Card>
+      <CardContent className="p-4 space-y-3">
+        <div className="flex justify-between items-start">
+          <h4 className="font-semibold flex-1" dir="rtl">{index + 1}. {exercise.title}</h4>
+          <DifficultyIndicator level={exercise.difficulty} />
+        </div>
+        <HtmlWithMath htmlContent={exercise.statement} className="text-sm mt-3 mb-2 block" />
+        {!readOnly && result === null && (
+          <div className="flex gap-2" dir="rtl">
+            <input className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background" placeholder="أدخل إجابتك..." value={answer} onChange={(e) => setAnswer(e.target.value)} dir="rtl" />
+            <Button size="sm" onClick={handleSubmit} disabled={submitting}>{submitting ? "..." : "تحقق"}</Button>
+          </div>
+        )}
+        {result !== null && (
+          <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
+            {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}
+          </div>
+        )}
+        {(solution || result !== null) && (
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
+            {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{solution || expectedAnswer}</div>}
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function EmptyState({ text }: { text: string }) {
+  return <div className="text-center py-8"><p className="text-muted-foreground" dir="rtl">{text}</p></div>;
+}
+) || exercise.statement.includes(' \\') ? (
+            <HtmlWithMath htmlContent={exercise.statement} className="text-sm border-t pt-2" />
+          ) : (
+            <p className="text-sm border-t pt-2 text-right" dir="rtl">{exercise.statement}</p>
+          )}
+          {exercise.hint && (
+            <div dir="rtl" className="mt-2 mb-3">
+              <Button type="button" variant="outline" size="sm" onClick={() => setShowHint(v => !v)} className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950 mb-2">
+                <Lightbulb className="h-4 w-4" />{showHint ? "إخفاء المساعدة" : "مساعدة"}
+              </Button>
+              {showHint && (
+                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                  <div className="flex items-start gap-2">
+                    <Lightbulb className="h-4 w-4 text-amber-500 mt-1 shrink-0" />
+                    <HtmlWithMath htmlContent={exercise.hint} className="text-sm flex-1" />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+            {!readOnly && result === null && (
+              <div className="flex gap-2" dir="rtl">
+                <input
+                  className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
+                  placeholder="أدخل إجابتك..."
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  dir="rtl"
+                />
+                <Button size="sm" onClick={handleSubmit} disabled={submitting}>{submitting ? "..." : "تحقق"}</Button>
+              </div>
+            )}
+
+            {result !== null && (
+              <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
+                {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}
+              </div>
+            )}
+
+            {(solution || exercise.solution) && (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
+                {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{solution || exercise.solution}</div>}
+              </>
+            )}
+
+            {!solution && !exercise.solution && result !== null && (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
+                {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{expectedAnswer}</div>}
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function QuizQuestionCard({ question, index, readOnly }: { question: DBQuizQuestion; index: number; readOnly?: boolean }) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
+  const [explanation, setExplanation] = useState<string>("");
+  const [answered, setAnswered] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSelect = async (opt: string) => {
+    if (readOnly || answered || submitting) return;
+    setSelected(opt);
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.rpc('check_quiz_answer', { _quiz_id: question.id, _user_answer: opt });
+      if (error) throw error;
+      const result = data as { is_correct: boolean; explanation: string; correct_answer: string | null };
+      setIsCorrect(result.is_correct);
+      setCorrectAnswer(result.correct_answer);
+      setExplanation(result.explanation || "");
+      setAnswered(true);
+    } catch {
+      if (question.correct_answer) {
+        setIsCorrect(opt === question.correct_answer);
+        setCorrectAnswer(opt === question.correct_answer ? null : question.correct_answer);
+        setExplanation(question.explanation || "");
+        setAnswered(true);
+      }
+    } finally { setSubmitting(false); }
+  };
+
+  return (
+    <Card className={cn("transition-all", answered && isCorrect && "border-green-500/50 bg-green-500/5", answered && !isCorrect && "border-red-500/50 bg-red-500/5")}>
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-3">
+          <p className="font-medium flex-1" dir="rtl">{index + 1}. {question.question}</p>
+          <DifficultyIndicator level={question.difficulty} />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {question.options.map((opt, oIdx) => (
+            <Button key={oIdx} variant={selected === opt ? (isCorrect ? "default" : "destructive") : "outline"}
+              className={cn("justify-start text-right", correctAnswer && opt === correctAnswer && answered && "border-green-500 bg-green-500/10")}
+              onClick={() => handleSelect(opt)} disabled={readOnly || answered || submitting} dir="rtl">{opt}</Button>
+          ))}
+        </div>
+        {answered && explanation && (
+          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">الشرح: </span>{explanation}</div>
+        )}
+        {answered && !isCorrect && correctAnswer && (
+          <div className="mt-2 p-2 rounded text-sm bg-green-500/10 text-green-700" dir="rtl">✅ الإجابة الصحيحة: {correctAnswer}</div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ExerciseCard({ exercise, index, readOnly }: { exercise: DBExercise; index: number; readOnly?: boolean }) {
+  const [answer, setAnswer] = useState("");
+  const [revealed, setRevealed] = useState(false);
+  const [result, setResult] = useState<boolean | null>(null);
+  const [expectedAnswer, setExpectedAnswer] = useState<string>("");
+  const [solution, setSolution] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!answer.trim() || submitting) return;
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.rpc('check_exercise_answer', { _exercise_id: exercise.id, _user_answer: answer.trim() });
+      if (error) throw error;
+      const res = data as { is_correct: boolean; expected_answer: string; solution: string };
+      setResult(res.is_correct);
+      setExpectedAnswer(res.expected_answer);
+      setSolution(res.solution);
+    } catch {
+      if (exercise.expected_answer) {
+        const isCorrect = answer.trim() === exercise.expected_answer || (exercise.accepted_answers || []).includes(answer.trim());
+        setResult(isCorrect);
+        setExpectedAnswer(exercise.expected_answer);
+        setSolution(exercise.solution || "");
+      }
+    } finally { setSubmitting(false); }
+  };
+
+  return (
+    <Card>
+      <CardContent className="p-4 space-y-3">
+        <div className="flex justify-between items-start">
+          <h4 className="font-semibold flex-1" dir="rtl">{index + 1}. {exercise.title}</h4>
+          <DifficultyIndicator level={exercise.difficulty} />
+        </div>
+        <HtmlWithMath htmlContent={exercise.statement} className="text-sm mt-3 mb-2 block" />
         {!readOnly && result === null && (
           <div className="flex gap-2" dir="rtl">
             <input className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background" placeholder="أدخل إجابتك..." value={answer} onChange={(e) => setAnswer(e.target.value)} dir="rtl" />
