@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, BookOpen, CheckCircle2, XCircle, PenTool, Send, Eye, Clock, Loader2 } from "lucide-react";
+import { ArrowLeft, BookOpen, CheckCircle2, XCircle, PenTool, Send, Eye, Clock, Loader2, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useTimeTracking, formatTime } from "@/hooks/useTimeTracking";
@@ -18,6 +18,7 @@ export interface DBExercise {
   accepted_answers?: string[];
   solution?: string;
   difficulty?: number;
+  hint?: string | null;
 }
 
 function DifficultyPencils({ level }: { level: number }) {
@@ -47,6 +48,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
   const [exerciseSolutions, setExerciseSolutions] = useState<Record<string, string>>({});
   const [exerciseTimes, setExerciseTimes] = useState<Record<string, number>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showHint, setShowHint] = useState<Record<string, boolean>>({});
 
   const exercise = currentExercise !== null ? exercises[currentExercise] : null;
 
@@ -151,6 +153,26 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
               <ReactMarkdown>{exercise.statement}</ReactMarkdown>
             </div>
           </div>
+
+          {exercise.hint && (
+            <div dir="rtl" className="space-y-2">
+              <Button type="button" variant="outline" size="sm"
+                onClick={() => setShowHint(prev => ({ ...prev, [exercise.id]: !prev[exercise.id] }))}
+                className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950">
+                <Lightbulb className="h-4 w-4" />{showHint[exercise.id] ? "إخفاء المساعدة" : "مساعدة"}
+              </Button>
+              {showHint[exercise.id] && (
+                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                  <div className="flex items-start gap-2">
+                    <Lightbulb className="h-4 w-4 text-amber-500 mt-1 shrink-0" />
+                    <div className="prose prose-sm dark:prose-invert max-w-none flex-1">
+                      <ReactMarkdown>{exercise.hint}</ReactMarkdown>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="space-y-4" dir="rtl">
             <div className="flex gap-3">

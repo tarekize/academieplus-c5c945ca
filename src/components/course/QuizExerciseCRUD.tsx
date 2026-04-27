@@ -21,7 +21,7 @@ interface QuizFormProps {
   chapterId: string;
   lessonId?: string;
   onSaved: () => void;
-  quiz?: { id: string; question: string; options: string[]; correct_answer: string; explanation: string | null; difficulty?: number };
+  quiz?: { id: string; question: string; options: string[]; correct_answer: string; explanation: string | null; difficulty?: number; hint?: string | null };
 }
 
 export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormProps) {
@@ -31,6 +31,7 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
   const [options, setOptions] = useState<string[]>(quiz?.options || ["", "", "", ""]);
   const [correctAnswer, setCorrectAnswer] = useState(quiz?.correct_answer || "");
   const [explanation, setExplanation] = useState(quiz?.explanation || "");
+  const [hint, setHint] = useState(quiz?.hint || "");
   const [difficulty, setDifficulty] = useState(quiz?.difficulty || 1);
   const isEdit = !!quiz;
 
@@ -47,6 +48,7 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
           options: options.filter(o => o.trim()),
           correct_answer: correctAnswer.trim(),
           explanation: explanation.trim() || null,
+          hint: hint.trim() || null,
           difficulty: difficulty,
         }).eq("id", quiz.id);
         if (error) throw error;
@@ -59,6 +61,7 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
           options: options.filter(o => o.trim()),
           correct_answer: correctAnswer.trim(),
           explanation: explanation.trim() || null,
+          hint: hint.trim() || null,
           difficulty: difficulty,
         });
         if (error) throw error;
@@ -81,6 +84,7 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
         setOptions(quiz.options.length >= 4 ? quiz.options : [...quiz.options, ...Array(4 - quiz.options.length).fill("")]);
         setCorrectAnswer(quiz.correct_answer);
         setExplanation(quiz.explanation || "");
+        setHint(quiz.hint || "");
         setDifficulty(quiz.difficulty || 1);
       }
     }}>
@@ -126,6 +130,10 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
           <div>
             <label className="text-sm font-medium">الشرح</label>
             <Textarea value={explanation} onChange={(e) => setExplanation(e.target.value)} placeholder="شرح الإجابة..." />
+          </div>
+          <div>
+            <label className="text-sm font-medium">💡 مساعدة (Hint) — يظهر للتلميذ عند الطلب</label>
+            <Textarea value={hint} onChange={(e) => setHint(e.target.value)} placeholder="فكرة أو تلميح يساعد التلميذ على الوصول للجواب..." />
           </div>
         </div>
         <DialogFooter>
@@ -176,7 +184,7 @@ interface ExerciseFormProps {
   chapterId: string;
   lessonId?: string;
   onSaved: () => void;
-  exercise?: { id: string; title: string; statement: string; expected_answer?: string; accepted_answers?: string[]; solution?: string; difficulty?: number };
+  exercise?: { id: string; title: string; statement: string; expected_answer?: string; accepted_answers?: string[]; solution?: string; difficulty?: number; hint?: string | null };
 }
 
 export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: ExerciseFormProps) {
@@ -187,6 +195,7 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
   const [expectedAnswer, setExpectedAnswer] = useState(exercise?.expected_answer || "");
   const [acceptedAnswers, setAcceptedAnswers] = useState(exercise?.accepted_answers?.join(", ") || "");
   const [solution, setSolution] = useState(exercise?.solution || "");
+  const [hint, setHint] = useState(exercise?.hint || "");
   const [difficulty, setDifficulty] = useState(exercise?.difficulty || 1);
   const isEdit = !!exercise;
 
@@ -203,6 +212,7 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
         expected_answer: expectedAnswer.trim(),
         accepted_answers: acceptedAnswers.split(",").map(s => s.trim()).filter(Boolean),
         solution: solution.trim(),
+        hint: hint.trim() || null,
         difficulty: difficulty,
       };
       if (isEdit) {
@@ -227,6 +237,7 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
         setExpectedAnswer(exercise.expected_answer);
         setAcceptedAnswers(exercise.accepted_answers?.join(", ") || "");
         setSolution(exercise.solution);
+        setHint(exercise.hint || "");
         setDifficulty(exercise.difficulty || 1);
       }
     }}>
@@ -276,6 +287,10 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
           <div>
             <label className="text-sm font-medium">الحل المفصل</label>
             <Textarea value={solution} onChange={(e) => setSolution(e.target.value)} placeholder="خطوات الحل..." className="min-h-[100px]" />
+          </div>
+          <div>
+            <label className="text-sm font-medium">💡 مساعدة (Hint) — يظهر للتلميذ عند الطلب</label>
+            <Textarea value={hint} onChange={(e) => setHint(e.target.value)} placeholder="فكرة أو تلميح يساعد التلميذ على الوصول للجواب..." className="min-h-[60px]" />
           </div>
         </div>
         <DialogFooter>

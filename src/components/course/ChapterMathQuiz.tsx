@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Trophy, BookOpen, Clock, Pause, Play, PenTool, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Trophy, BookOpen, Clock, Pause, Play, PenTool, Loader2, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -29,6 +29,7 @@ export interface DBQuizQuestion {
   correct_answer?: string;
   explanation: string | null;
   difficulty?: number;
+  hint?: string | null;
 }
 
 interface ChapterMathQuizProps {
@@ -51,6 +52,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [answers, setAnswers] = useState<{ question: string; userAnswer: string; correct: boolean }[]>([]);
+  const [showHint, setShowHint] = useState(false);
 
   const quizContentId = useMemo(() => `quiz-${chapterId}`, [chapterId]);
   const { formattedTime, isPaused, pause, resume } = useTimeTracking({
@@ -105,6 +107,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
       setIsCorrect(false);
       setCorrectAnswer(null);
       setExplanation("");
+      setShowHint(false);
     } else {
       setShowResults(true);
     }
@@ -198,7 +201,8 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                 <QuizFormDialog chapterId={chapterId} onSaved={onRefresh} quiz={{
                   id: currentQuestion.id, question: currentQuestion.question,
                   options: currentQuestion.options, correct_answer: currentQuestion.correct_answer || "",
-                  explanation: currentQuestion.explanation,
+                  explanation: currentQuestion.explanation, hint: currentQuestion.hint,
+                  difficulty: currentQuestion.difficulty,
                 }} />
                 <DeleteQuizButton quizId={currentQuestion.id} onDeleted={onRefresh} />
               </div>
@@ -207,6 +211,21 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
         </CardHeader>
         <CardContent className="space-y-6">
           <h3 className="text-lg font-semibold flex items-center gap-2" dir="rtl"><HtmlWithMath htmlContent={currentQuestion.question} className="flex-1" />{currentQuestion.difficulty && <DifficultyPencils level={currentQuestion.difficulty} />}</h3>
+          {currentQuestion.hint && (
+            <div dir="rtl" className="space-y-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setShowHint(v => !v)} className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950">
+                <Lightbulb className="h-4 w-4" />{showHint ? "إخفاء المساعدة" : "مساعدة"}
+              </Button>
+              {showHint && (
+                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                  <div className="flex items-start gap-2">
+                    <Lightbulb className="h-4 w-4 text-amber-500 mt-1 shrink-0" />
+                    <HtmlWithMath htmlContent={currentQuestion.hint} className="text-sm" />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           <RadioGroup value={selectedAnswer} onValueChange={setSelectedAnswer} disabled={hasAnswered || isSubmitting} className="space-y-3">
             {currentQuestion.options.map((option, index) => {
               const isThisCorrect = hasAnswered && correctAnswer !== null ? option === correctAnswer : hasAnswered && isCorrect && option === selectedAnswer;

@@ -154,6 +154,7 @@ export type Database = {
           created_at: string
           difficulty: number
           expected_answer: string
+          hint: string | null
           id: string
           lesson_id: string | null
           order_index: number
@@ -168,6 +169,7 @@ export type Database = {
           created_at?: string
           difficulty?: number
           expected_answer: string
+          hint?: string | null
           id?: string
           lesson_id?: string | null
           order_index?: number
@@ -182,6 +184,7 @@ export type Database = {
           created_at?: string
           difficulty?: number
           expected_answer?: string
+          hint?: string | null
           id?: string
           lesson_id?: string | null
           order_index?: number
@@ -214,6 +217,7 @@ export type Database = {
           created_at: string
           difficulty: number
           explanation: string | null
+          hint: string | null
           id: string
           lesson_id: string | null
           options: Json
@@ -227,6 +231,7 @@ export type Database = {
           created_at?: string
           difficulty?: number
           explanation?: string | null
+          hint?: string | null
           id?: string
           lesson_id?: string | null
           options?: Json
@@ -240,6 +245,7 @@ export type Database = {
           created_at?: string
           difficulty?: number
           explanation?: string | null
+          hint?: string | null
           id?: string
           lesson_id?: string | null
           options?: Json
@@ -979,6 +985,7 @@ export type Database = {
         Returns: {
           chapter_id: string
           difficulty: number
+          hint: string
           id: string
           lesson_id: string
           order_index: number
@@ -991,6 +998,7 @@ export type Database = {
         Returns: {
           chapter_id: string
           difficulty: number
+          hint: string
           id: string
           lesson_id: string
           options: Json
