@@ -52,6 +52,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [answers, setAnswers] = useState<{ question: string; userAnswer: string; correct: boolean }[]>([]);
+  const [showHint, setShowHint] = useState(false);
 
   const quizContentId = useMemo(() => `quiz-${chapterId}`, [chapterId]);
   const { formattedTime, isPaused, pause, resume } = useTimeTracking({
