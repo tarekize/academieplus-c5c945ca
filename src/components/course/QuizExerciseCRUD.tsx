@@ -288,6 +288,10 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
             <label className="text-sm font-medium">الحل المفصل</label>
             <Textarea value={solution} onChange={(e) => setSolution(e.target.value)} placeholder="خطوات الحل..." className="min-h-[100px]" />
           </div>
+          <div>
+            <label className="text-sm font-medium">💡 مساعدة (Hint) — يظهر للتلميذ عند الطلب</label>
+            <Textarea value={hint} onChange={(e) => setHint(e.target.value)} placeholder="فكرة أو تلميح يساعد التلميذ على الوصول للجواب..." className="min-h-[60px]" />
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
