@@ -210,6 +210,21 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
         </CardHeader>
         <CardContent className="space-y-6">
           <h3 className="text-lg font-semibold flex items-center gap-2" dir="rtl"><HtmlWithMath htmlContent={currentQuestion.question} className="flex-1" />{currentQuestion.difficulty && <DifficultyPencils level={currentQuestion.difficulty} />}</h3>
+          {currentQuestion.hint && (
+            <div dir="rtl" className="space-y-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setShowHint(v => !v)} className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950">
+                <Lightbulb className="h-4 w-4" />{showHint ? "إخفاء المساعدة" : "مساعدة"}
+              </Button>
+              {showHint && (
+                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                  <div className="flex items-start gap-2">
+                    <Lightbulb className="h-4 w-4 text-amber-500 mt-1 shrink-0" />
+                    <HtmlWithMath htmlContent={currentQuestion.hint} className="text-sm" />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           <RadioGroup value={selectedAnswer} onValueChange={setSelectedAnswer} disabled={hasAnswered || isSubmitting} className="space-y-3">
             {currentQuestion.options.map((option, index) => {
               const isThisCorrect = hasAnswered && correctAnswer !== null ? option === correctAnswer : hasAnswered && isCorrect && option === selectedAnswer;
