@@ -212,6 +212,7 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
         expected_answer: expectedAnswer.trim(),
         accepted_answers: acceptedAnswers.split(",").map(s => s.trim()).filter(Boolean),
         solution: solution.trim(),
+        hint: hint.trim() || null,
         difficulty: difficulty,
       };
       if (isEdit) {
