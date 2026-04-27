@@ -213,14 +213,23 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           <h3 className="text-lg font-semibold flex items-center gap-2" dir="rtl"><HtmlWithMath htmlContent={currentQuestion.question} className="flex-1" />{currentQuestion.difficulty && <DifficultyPencils level={currentQuestion.difficulty} />}</h3>
           {currentQuestion.hint && (
             <div dir="rtl" className="space-y-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => setShowHint(v => !v)} className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950">
-                <Lightbulb className="h-4 w-4" />{showHint ? "إخفاء المساعدة" : "مساعدة"}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowHint(v => !v)}
+                className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950 font-semibold">
+                <Lightbulb className="h-4 w-4" />
+                {showHint ? "إخفاء المساعدة" : "💡 مساعدة"}
               </Button>
               {showHint && (
-                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
-                  <div className="flex items-start gap-2">
-                    <Lightbulb className="h-4 w-4 text-amber-500 mt-1 shrink-0" />
-                    <HtmlWithMath htmlContent={currentQuestion.hint} className="text-sm" />
+                <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-300 dark:border-amber-700">
+                  <div className="flex items-start gap-3">
+                    <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                    <div className="flex-1 text-sm text-amber-900 dark:text-amber-200">
+                      <p className="font-semibold mb-2">نصيحة مفيدة:</p>
+                      <HtmlWithMath htmlContent={currentQuestion.hint} className="max-w-none text-right leading-relaxed" />
+                    </div>
                   </div>
                 </div>
               )}
@@ -250,10 +259,37 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           </RadioGroup>
 
           {hasAnswered && (
-            <div className={cn("p-4 rounded-lg", isCorrect ? "bg-green-500/10" : "bg-amber-500/10")} dir="rtl">
-              <p className="font-medium mb-1">{isCorrect ? "✓ إجابة صحيحة!" : "✗ إجابة خاطئة"}</p>
-              {explanation && <HtmlWithMath htmlContent={explanation} className="text-sm text-muted-foreground" />}
-              {!isCorrect && correctAnswer && <div className="text-sm mt-2 font-medium flex gap-1"><span>الإجابة الصحيحة:</span><HtmlWithMath htmlContent={correctAnswer} /></div>}
+            <div className={cn(
+              "p-5 rounded-lg border-2 space-y-3",
+              isCorrect ? "bg-green-50 dark:bg-green-950/20 border-green-300 dark:border-green-700" : "bg-amber-50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-700"
+            )} dir="rtl">
+              <div className="flex items-center gap-2 font-semibold">
+                {isCorrect ? (
+                  <>
+                    <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <span className="text-green-900 dark:text-green-200">✓ إجابة صحيحة! ممتاز 🎉</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                    <span className="text-red-900 dark:text-red-200">✗ إجابة خاطئة</span>
+                  </>
+                )}
+              </div>
+
+              {explanation && (
+                <div className="bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700">
+                  <p className="font-semibold text-sm mb-2 text-gray-900 dark:text-gray-100">📖 الشرح:</p>
+                  <HtmlWithMath htmlContent={explanation} className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" />
+                </div>
+              )}
+
+              {!isCorrect && correctAnswer && (
+                <div className="bg-white/50 dark:bg-black/20 p-3 rounded border border-green-200 dark:border-green-700">
+                  <p className="text-sm font-semibold text-green-900 dark:text-green-200 mb-1">✓ الإجابة الصحيحة:</p>
+                  <div className="text-sm text-green-800 dark:text-green-300"><HtmlWithMath htmlContent={correctAnswer} /></div>
+                </div>
+              )}
             </div>
           )}
 

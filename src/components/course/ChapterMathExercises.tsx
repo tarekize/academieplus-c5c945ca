@@ -5,6 +5,10 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, BookOpen, CheckCircle2, XCircle, PenTool, Send, Eye, Clock, Loader2, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import remarkGfm from "remark-gfm";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { useTimeTracking, formatTime } from "@/hooks/useTimeTracking";
 import { ExerciseFormDialog, DeleteExerciseButton } from "./QuizExerciseCRUD";
@@ -155,16 +159,23 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
 
           {exercise.hint && (
             <div dir="rtl" className="space-y-2">
-              <Button type="button" variant="outline" size="sm"
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => setShowHint(prev => ({ ...prev, [exercise.id]: !prev[exercise.id] }))}
-                className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950">
-                <Lightbulb className="h-4 w-4" />{showHint[exercise.id] ? "إخفاء المساعدة" : "مساعدة"}
+                className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950 font-semibold">
+                <Lightbulb className="h-4 w-4" />
+                {showHint[exercise.id] ? "إخفاء المساعدة" : "💡 مساعدة"}
               </Button>
               {showHint[exercise.id] && (
-                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
-                  <div className="flex items-start gap-2">
-                    <Lightbulb className="h-4 w-4 text-amber-500 mt-1 shrink-0" />
-                    <HtmlWithMath htmlContent={exercise.hint} className="text-sm flex-1 max-w-none text-right" />
+                <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-300 dark:border-amber-700">
+                  <div className="flex items-start gap-3">
+                    <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                    <div className="flex-1 text-sm text-amber-900 dark:text-amber-200">
+                      <p className="font-semibold mb-2">نصيحة مفيدة:</p>
+                      <HtmlWithMath htmlContent={exercise.hint} className="max-w-none text-right leading-relaxed" />
+                    </div>
                   </div>
                 </div>
               )}
@@ -196,14 +207,83 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
             )}
           </div>
 
-          <Button variant="outline" onClick={() => toggleCorrection(exercise.id)} disabled={!submitted} className={cn("w-full gap-2", !submitted && "opacity-50")}>
-            <Eye className="h-4 w-4" />{correctionVisible ? "إخفاء الحل" : "عرض الحل"}
+          <Button
+            variant="outline"
+            onClick={() => toggleCorrection(exercise.id)}
+            disabled={!submitted}
+            className={cn("w-full gap-2 font-semibold", !submitted && "opacity-50")}>
+            <Eye className="h-4 w-4" />
+            {correctionVisible ? "إخفاء الحل المفصل" : "📖 عرض الحل المفصل"}
           </Button>
 
           {correctionVisible && solution && (
-            <div className="p-4 bg-muted/30 rounded-lg border" dir="rtl">
-              <h4 className="font-semibold mb-3 flex items-center gap-2 text-primary"><CheckCircle2 className="h-4 w-4" />الحل المفصل</h4>
-              <HtmlWithMath htmlContent={solution} className="bg-white dark:bg-black/20 p-3 rounded-md border border-purple-100 dark:border-purple-900/30 text-right prose max-w-none" />
+            <div className="p-5 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 rounded-lg border-2 border-purple-200 dark:border-purple-700 space-y-4" dir="rtl">
+              <h4 className="font-bold text-lg text-purple-900 dark:text-purple-200 flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                الحل المفصل
+              </h4>
+
+              <div
+                className="solution-content space-y-3 text-right text-sm"
+                style={{
+                  '--color-title': '#7c3aed',
+                  '--color-step': '#6366f1',
+                  '--color-result': '#059669',
+                } as React.CSSProperties}
+              >
+                <style>{`
+                  .solution-content :is(h2, h3) {
+                    font-weight: bold;
+                    color: var(--color-title);
+                    margin-top: 1rem;
+                    margin-bottom: 0.5rem;
+                  }
+                  
+                  .solution-content h2 {
+                    font-size: 1.1rem;
+                    border-bottom: 2px solid var(--color-title);
+                    padding-bottom: 0.5rem;
+                  }
+                  
+                  .solution-content h3 {
+                    font-size: 0.95rem;
+                    padding: 0.5rem;
+                    background: rgba(124, 58, 237, 0.05);
+                    border-right: 4px solid var(--color-step);
+                    border-radius: 4px;
+                  }
+                  
+                  .solution-content p {
+                    line-height: 1.6;
+                    margin: 0.5rem 0;
+                  }
+                  
+                  .solution-content ul, .solution-content ol {
+                    margin: 0.5rem 0;
+                    padding-right: 1.5rem;
+                  }
+                  
+                  .solution-content li {
+                    margin: 0.25rem 0;
+                    line-height: 1.5;
+                  }
+                  
+                  .solution-content code {
+                    background: rgba(99, 102, 241, 0.1);
+                    padding: 0.2rem 0.4rem;
+                    border-radius: 3px;
+                    font-family: 'Monaco', 'Courier New', monospace;
+                  }
+                `}</style>
+
+                <ReactMarkdown
+                  remarkPlugins={[remarkMath, remarkGfm]}
+                  rehypePlugins={[rehypeKatex]}
+                  className="max-w-none prose-sm prose-right dark:prose-invert"
+                >
+                  {solution}
+                </ReactMarkdown>
+              </div>
             </div>
           )}
 

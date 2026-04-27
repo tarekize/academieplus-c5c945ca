@@ -31,6 +31,7 @@ export interface DBExercise {
   accepted_answers: string[];
   solution: string;
   difficulty?: number;
+  hint?: string;
 }
 
 interface LessonActivityTabsProps {
@@ -63,14 +64,12 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [activeSection, setActiveSection] = useState<ActivitySection>(null);
   const [activeStep, setActiveStep] = useState<StepLevel>("decouvrir");
 
-  // Progression tracking for Découvrir (separate for exercises and quizzes)
   const [discoverCorrectEx, setDiscoverCorrectEx] = useState(0);
   const [discoverCorrectQz, setDiscoverCorrectQz] = useState(0);
   const [discoverTotalEx, setDiscoverTotalEx] = useState(0);
   const [discoverTotalQz, setDiscoverTotalQz] = useState(0);
   const [resetKey, setResetKey] = useState(0);
 
-  // Persisted unlock state from DB
   const [persistedUnlockEx, setPersistedUnlockEx] = useState(false);
   const [persistedUnlockQz, setPersistedUnlockQz] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -78,22 +77,18 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
 
-  // Completed items tracking
   const [completedExerciseIds, setCompletedExerciseIds] = useState<string[]>([]);
   const [completedQuizIds, setCompletedQuizIds] = useState<string[]>([]);
   const [showCorrectOnly, setShowCorrectOnly] = useState(false);
 
-  // State for randomized subsets (Limit 5)
   const [subsetDiscoverEx, setSubsetDiscoverEx] = useState<DBExercise[]>([]);
   const [subsetUnderstandEx, setSubsetUnderstandEx] = useState<DBExercise[]>([]);
   const [subsetDiscoverQz, setSubsetDiscoverQz] = useState<DBQuizQuestion[]>([]);
   const [subsetUnderstandQz, setSubsetUnderstandQz] = useState<DBQuizQuestion[]>([]);
 
-  // State for notification and reload button
   const [showUnlockMessage, setShowUnlockMessage] = useState(false);
   const [showReloadBtn, setShowReloadBtn] = useState(false);
 
-  // AI adaptive content for "approfondir" step
   const adaptiveContent = useAdaptiveContent(
     lessonId || "", chapterId, propUserId || userId || "", schoolLevel || "", lessonTitle, chapterTitle
   );
@@ -103,7 +98,6 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [aiExerciseResults, setAiExerciseResults] = useState<Record<number, boolean | null>>({});
   const [aiShowHints, setAiShowHints] = useState<Record<number, boolean>>({});
 
-  // Time tracking: map activeSection to activity type
   const currentActivityType = activeSection === "exercises" ? "exercise" as const
     : activeSection === "quiz" ? "quiz" as const
       : "reading" as const;
@@ -116,14 +110,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     enabled: !!chapterId,
   });
 
-  // Reset showCorrectOnly on tab change
   useEffect(() => {
     setShowCorrectOnly(false);
   }, [activeStep, activeSection]);
 
-  // Initialize random subsets on mount
   useEffect(() => {
-    // Split pools from original source to maintain difficulty tiers
     const halfQuiz = Math.ceil(dbQuizzes.length / 2);
     const originDiscoverQz = dbQuizzes.slice(0, halfQuiz);
     const originUnderstandQz = dbQuizzes.slice(halfQuiz);
@@ -132,10 +123,8 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     const originDiscoverEx = dbExercises.slice(0, halfEx);
     const originUnderstandEx = dbExercises.slice(halfEx);
 
-    // Apply filter
     const poolDiscoverQz = originDiscoverQz.filter(q => !completedQuizIds.includes(q.id));
     const poolUnderstandQz = originUnderstandQz.filter(q => !completedQuizIds.includes(q.id));
-
     const poolDiscoverEx = originDiscoverEx.filter(e => !completedExerciseIds.includes(e.id));
     const poolUnderstandEx = originUnderstandEx.filter(e => !completedExerciseIds.includes(e.id));
 
@@ -143,18 +132,13 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     setSubsetUnderstandQz([...poolUnderstandQz].sort(() => 0.5 - Math.random()).slice(0, 5));
     setSubsetDiscoverEx([...poolDiscoverEx].sort(() => 0.5 - Math.random()).slice(0, 5));
     setSubsetUnderstandEx([...poolUnderstandEx].sort(() => 0.5 - Math.random()).slice(0, 5));
-  }, [dbQuizzes, dbExercises]); // Removed completedExerciseIds and completedQuizIds dependencies to prevent auto-shuffle on answer
+  }, [dbQuizzes, dbExercises]);
 
-  // Load userId FIRST (critical for saving)
   useEffect(() => {
     const loadUser = async () => {
-      console.log("👤 [LessonActivityTabs] Loading current user...");
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        console.log("✅ [LessonActivityTabs] User ID loaded:", user.id);
         setUserId(user.id);
-
-        // Check subscription status
         const { data: sub } = await supabase
           .from("student_subscriptions")
           .select("*")
@@ -163,35 +147,22 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           .maybeSingle();
 
         if (sub) {
-          // Simple calculation based on Account.tsx logic
           const now = new Date();
           const lastTick = new Date(sub.last_tick_at);
           const elapsed = (now.getTime() - lastTick.getTime()) / (1000 * 60 * 60 * 24);
           const totalUsed = (sub.days_used || 0) + elapsed;
           const remaining = (sub.total_days || 0) - totalUsed;
-
-          if (remaining > 0) {
-            setHasActiveSubscription(true);
-            console.log("✅ [LessonActivityTabs] Active subscription found");
-          }
+          if (remaining > 0) setHasActiveSubscription(true);
         }
-      } else {
-        console.warn("⚠️ [LessonActivityTabs] No authenticated user found!");
       }
       setIsLoadingUser(false);
     };
     loadUser();
   }, []);
 
-  // Load persisted unlock state on mount and when userId changes
   useEffect(() => {
     const loadProgress = async () => {
-      if (!userId) {
-        console.warn("⚠️ [loadProgress] userId not available yet, skipping load");
-        return;
-      }
-
-      console.log("🔄 [LessonActivityTabs] Loading progress for chapter:", chapterId, "with userId:", userId);
+      if (!userId) return;
 
       let progressQuery = supabase
         .from("student_scores")
@@ -204,18 +175,9 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         : progressQuery.is("lesson_id", null);
 
       const { data, error } = await progressQuery;
-
-      if (error) {
-        console.error("❌ [LessonActivityTabs] Failed to load chapter unlock state:", error);
-        return;
-      }
+      if (error) return;
 
       const rows = data || [];
-      console.log("📊 [LessonActivityTabs] Loaded", rows.length, "progress rows for chapter", chapterId);
-
-      if (rows.length > 0) {
-        console.log("📋 [LessonActivityTabs] Progress data:", JSON.stringify(rows, null, 2));
-      }
 
       const hasExercisesUnlocked = rows.some((row) => {
         const ad = (row.assessment_data || {}) as Record<string, unknown>;
@@ -227,7 +189,6 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         return Boolean(ad.quizzes_unlocked);
       });
 
-      // Also restore the actual correct answer counts
       const exercisesCorrectCount = rows.reduce((max, row) => {
         const ad = (row.assessment_data || {}) as Record<string, any>;
         return Math.max(max, ad.exercises_correct_count || 0);
@@ -238,151 +199,74 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         return Math.max(max, ad.quizzes_correct_count || 0);
       }, 0);
 
-      // Load completed IDs
       const completedEx: string[] = [];
       const completedQz: string[] = [];
       rows.forEach((row) => {
         const ad = (row.assessment_data || {}) as Record<string, any>;
-        if (Array.isArray(ad.completed_exercises)) {
-          completedEx.push(...ad.completed_exercises);
-        }
-        if (Array.isArray(ad.completed_quizzes)) {
-          completedQz.push(...ad.completed_quizzes);
-        }
+        if (Array.isArray(ad.completed_exercises)) completedEx.push(...ad.completed_exercises);
+        if (Array.isArray(ad.completed_quizzes)) completedQz.push(...ad.completed_quizzes);
       });
 
-      // Deduplicate
       const uniqueEx = Array.from(new Set(completedEx));
       const uniqueQz = Array.from(new Set(completedQz));
 
       setCompletedExerciseIds(uniqueEx);
       setCompletedQuizIds(uniqueQz);
-      console.log("✅ [LessonActivityTabs] Loaded completed items:", uniqueEx.length, "exercises,", uniqueQz.length, "quizzes");
 
       if (hasExercisesUnlocked) {
-        console.log("🔓 [LessonActivityTabs] Setting exercises unlocked: true");
         setPersistedUnlockEx(true);
-        // If unlocked, show at least the required correct count
-        if (exercisesCorrectCount < REQUIRED_CORRECT) {
-          setDiscoverCorrectEx(REQUIRED_CORRECT);
-          console.log("📊 [LessonActivityTabs] Set exercises correct to", REQUIRED_CORRECT);
-        } else {
-          setDiscoverCorrectEx(exercisesCorrectCount);
-          console.log("📊 [LessonActivityTabs] Set exercises correct to", exercisesCorrectCount);
-        }
+        setDiscoverCorrectEx(exercisesCorrectCount < REQUIRED_CORRECT ? REQUIRED_CORRECT : exercisesCorrectCount);
       } else if (exercisesCorrectCount > 0) {
         setDiscoverCorrectEx(exercisesCorrectCount);
-        console.log("📊 [LessonActivityTabs] Set exercises correct to", exercisesCorrectCount);
       }
 
       if (hasQuizzesUnlocked) {
-        console.log("🔓 [LessonActivityTabs] Setting quizzes unlocked: true");
         setPersistedUnlockQz(true);
-        // If unlocked, show at least the required correct count
-        if (quizzesCorrectCount < REQUIRED_CORRECT) {
-          setDiscoverCorrectQz(REQUIRED_CORRECT);
-          console.log("📊 [LessonActivityTabs] Set quizzes correct to", REQUIRED_CORRECT);
-        } else {
-          setDiscoverCorrectQz(quizzesCorrectCount);
-          console.log("📊 [LessonActivityTabs] Set quizzes correct to", quizzesCorrectCount);
-        }
+        setDiscoverCorrectQz(quizzesCorrectCount < REQUIRED_CORRECT ? REQUIRED_CORRECT : quizzesCorrectCount);
       } else if (quizzesCorrectCount > 0) {
         setDiscoverCorrectQz(quizzesCorrectCount);
-        console.log("📊 [LessonActivityTabs] Set quizzes correct to", quizzesCorrectCount);
       }
 
-      // Initialize subsets filtering out completed items
       const halfQuiz = Math.ceil(dbQuizzes.length / 2);
-      const originDiscoverQz = dbQuizzes.slice(0, halfQuiz);
-      const originUnderstandQz = dbQuizzes.slice(halfQuiz);
-
       const halfEx = Math.ceil(dbExercises.length / 2);
-      const originDiscoverEx = dbExercises.slice(0, halfEx);
-      const originUnderstandEx = dbExercises.slice(halfEx);
 
-      const poolDiscoverQz = originDiscoverQz.filter(q => !uniqueQz.includes(q.id));
-      const poolUnderstandQz = originUnderstandQz.filter(q => !uniqueQz.includes(q.id));
-
-      const poolDiscoverEx = originDiscoverEx.filter(e => !uniqueEx.includes(e.id));
-      const poolUnderstandEx = originUnderstandEx.filter(e => !uniqueEx.includes(e.id));
-
-      setSubsetDiscoverQz([...poolDiscoverQz].sort(() => 0.5 - Math.random()).slice(0, 5));
-      setSubsetUnderstandQz([...poolUnderstandQz].sort(() => 0.5 - Math.random()).slice(0, 5));
-      setSubsetDiscoverEx([...poolDiscoverEx].sort(() => 0.5 - Math.random()).slice(0, 5));
-      setSubsetUnderstandEx([...poolUnderstandEx].sort(() => 0.5 - Math.random()).slice(0, 5));
+      setSubsetDiscoverQz([...dbQuizzes.slice(0, halfQuiz).filter(q => !uniqueQz.includes(q.id))].sort(() => 0.5 - Math.random()).slice(0, 5));
+      setSubsetUnderstandQz([...dbQuizzes.slice(halfQuiz).filter(q => !uniqueQz.includes(q.id))].sort(() => 0.5 - Math.random()).slice(0, 5));
+      setSubsetDiscoverEx([...dbExercises.slice(0, halfEx).filter(e => !uniqueEx.includes(e.id))].sort(() => 0.5 - Math.random()).slice(0, 5));
+      setSubsetUnderstandEx([...dbExercises.slice(halfEx).filter(e => !uniqueEx.includes(e.id))].sort(() => 0.5 - Math.random()).slice(0, 5));
     };
 
     loadProgress();
   }, [chapterId, lessonId, triggerReload, userId, dbQuizzes, dbExercises]);
 
-  // Save unlock to DB
   const persistUnlock = useCallback(async (type: "exercises" | "quizzes", correctCount?: number) => {
-    console.log(`📤 [persistUnlock] Starting to save ${type} unlock, count:`, correctCount);
-
-    // Get current user directly (don't rely on state!)
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (!user) {
-      console.error("❌ [persistUnlock] No authenticated user found!");
-      return;
-    }
-
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
     const currentUserId = user.id;
-    console.log(`📤 [persistUnlock] User ID: ${currentUserId}, Chapter ID: ${chapterId}, Type: ${type}, Count: ${correctCount}`);
-
     const field = type === "exercises" ? "exercises_unlocked" : "quizzes_unlocked";
     const countField = type === "exercises" ? "exercises_correct_count" : "quizzes_correct_count";
 
-    // Query ALL rows for this user+chapter to debug what's going on
-    const { data: allRows, error: scanError } = await supabase
+    const { data: allRows } = await supabase
       .from("student_scores")
       .select("id, lesson_id, assessment_data")
       .eq("user_id", currentUserId)
       .eq("chapter_id", chapterId);
 
-    if (scanError) {
-      console.warn("⚠️  [persistUnlock] Scan error:", scanError.message);
-    } else {
-      console.log(`📋 [persistUnlock] Found ${allRows?.length ?? 0} total rows for chapter (including lessons)`);
-    }
-
-    // Find the row scoped to the current lesson when available.
-    // Fallback to chapter aggregate when lessonId is not provided.
     const targetRow = allRows?.find(r => lessonId ? r.lesson_id === lessonId : r.lesson_id === null);
 
     if (targetRow) {
-      console.log("✅ [persistUnlock] Found existing chapter row via JS filter. ID:", targetRow.id);
-
       const existingData = (targetRow.assessment_data || {}) as Record<string, unknown>;
       const mergedData = {
         ...existingData,
         [field]: true,
         ...(correctCount !== undefined && { [countField]: correctCount })
       };
-
-      console.log("📝 [persistUnlock] Updating existing row...");
-      const { error: updateError } = await supabase
-        .from("student_scores")
-        .update({ assessment_data: mergedData as any })
-        .eq("id", targetRow.id);
-
-      if (updateError) {
-        console.error("❌ [persistUnlock] Update failed:", updateError.message);
-      } else {
-        console.log("✅ [persistUnlock] Update success!");
-      }
+      await supabase.from("student_scores").update({ assessment_data: mergedData as any }).eq("id", targetRow.id);
       return;
     }
 
-    // No existing row found in JS scan, try INSERT
-    console.log("📝 [persistUnlock] No chapter row found. Attempting INSERT...");
-
-    // Check if we have other rows that might conflict if index is only (user, chapter)
-    // If allRows has length > 0, we have lesson rows. 
-    // If index is (user, chapter), we can't insert a second row even if lesson_id is null.
-    // But error 23505 implies unique violation.
-
-    const insertPayload = {
+    await supabase.from("student_scores").insert([{
       user_id: currentUserId,
       chapter_id: chapterId,
       lesson_id: lessonId ?? null,
@@ -390,24 +274,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         [field]: true,
         ...(correctCount !== undefined && { [countField]: correctCount })
       } as any,
-    };
-
-    const { error: insertError } = await supabase
-      .from("student_scores")
-      .insert([insertPayload]);
-
-    if (insertError) {
-      console.error("❌ [persistUnlock] INSERT failed:", insertError.message, insertError.code, insertError.details);
-
-      // If code is 23505 (unique_violation), it means a row DOES exist but our SELECT missed it (RLS?)
-      // OR it conflicts with another row (improper index?)
-      if (insertError.code === '23505') {
-        console.error("💀 [persistUnlock] Critical: Row exists (duplicate key) but was not found in SELECT. This is likely an RLS visibility issue or Index scope issue.");
-      }
-    } else {
-      console.log("✅ [persistUnlock] Successfully inserted new row");
-    }
-
+    }]);
   }, [chapterId, lessonId]);
 
   const persistItemCompletion = useCallback(async (type: "exercises" | "quizzes", itemId: string) => {
@@ -417,7 +284,6 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     const currentUserId = user.id;
     const field = type === "exercises" ? "completed_exercises" : "completed_quizzes";
 
-    // Re-fetch current data to avoid overwriting (though optimistic UI update handles display)
     const { data: rows } = await supabase
       .from("student_scores")
       .select("id, lesson_id, assessment_data")
@@ -429,34 +295,18 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     if (targetRow) {
       const existingData = (targetRow.assessment_data || {}) as Record<string, any>;
       const currentList: string[] = Array.isArray(existingData[field]) ? existingData[field] : [];
-
       if (!currentList.includes(itemId)) {
-        const newList = [...currentList, itemId];
-        const { error: updateError } = await supabase
-          .from("student_scores")
-          .update({ assessment_data: { ...existingData, [field]: newList } })
+        await supabase.from("student_scores")
+          .update({ assessment_data: { ...existingData, [field]: [...currentList, itemId] } })
           .eq("id", targetRow.id);
-
-        if (updateError) {
-          console.error("❌ Failed to update completion:", updateError);
-        } else {
-          console.log("✅ Saved completion:", itemId);
-        }
       }
     } else {
-      // Create new row
-      const { error: insertError } = await supabase.from("student_scores").insert([{
+      await supabase.from("student_scores").insert([{
         user_id: currentUserId,
         chapter_id: chapterId,
         lesson_id: lessonId ?? null,
         assessment_data: { [field]: [itemId] } as any
       }]);
-
-      if (insertError) {
-        console.error("❌ Failed to save new completion row:", insertError);
-      } else {
-        console.log("✅ Created new row for completion:", itemId);
-      }
     }
   }, [chapterId, lessonId]);
 
@@ -478,71 +328,43 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
     query = lessonId ? query.eq("lesson_id", lessonId) : query.is("lesson_id", null);
     const { data: rows } = await query;
-
     const row = rows?.[0] as any;
 
     if (row) {
       const nextTotal = (row.total_answers || 0) + 1;
       const nextCorrect = (row.correct_answers || 0) + (isCorrect ? 1 : 0);
       const nextAccuracy = nextTotal > 0 ? Math.round((nextCorrect / nextTotal) * 100) : 0;
-
-      await supabase
-        .from("student_scores")
-        .update({
-          total_answers: nextTotal,
-          correct_answers: nextCorrect,
-          accuracy_rate: nextAccuracy,
-        } as any)
-        .eq("id", row.id);
+      await supabase.from("student_scores").update({ total_answers: nextTotal, correct_answers: nextCorrect, accuracy_rate: nextAccuracy } as any).eq("id", row.id);
       return;
     }
 
-    await supabase
-      .from("student_scores")
-      .insert([{
-        user_id: currentUserId,
-        chapter_id: chapterId,
-        lesson_id: lessonId ?? null,
-        total_answers: 1,
-        correct_answers: isCorrect ? 1 : 0,
-        accuracy_rate: isCorrect ? 100 : 0,
-      } as any]);
+    await supabase.from("student_scores").insert([{
+      user_id: currentUserId,
+      chapter_id: chapterId,
+      lesson_id: lessonId ?? null,
+      total_answers: 1,
+      correct_answers: isCorrect ? 1 : 0,
+      accuracy_rate: isCorrect ? 100 : 0,
+    } as any]);
   }, [chapterId, lessonId, propUserId, userId]);
-
-
-  /* 
-   * REMOVED: Redundant useEffects that were causing race conditions with direct calls.
-   * Persistence is now handled directly in handleDiscoverAnswer
-   */
-  // useEffect(() => { ... }, [persistedUnlockEx]);
-  // useEffect(() => { ... }, [persistedUnlockQz]);
 
   const isUnlockedEx = persistedUnlockEx || discoverCorrectEx >= REQUIRED_CORRECT;
   const isUnlockedQz = persistedUnlockQz || discoverCorrectQz >= REQUIRED_CORRECT;
-
   const isUnlocked = activeSection === "exercises" ? isUnlockedEx : isUnlockedQz;
   const currentCorrect = activeSection === "exercises" ? discoverCorrectEx : discoverCorrectQz;
 
-  // Handle visibility states
   useEffect(() => {
-    // If it is unlocked and we are not currently showing the success animation (message),
-    // then we must show the reload button.
-    // This covers case: persisted from DB -> show button immediately.
-    // This covers case: animation finished -> show button.
     if (isUnlocked && !showUnlockMessage) {
       setShowReloadBtn(true);
     } else if (!isUnlocked) {
-      // If locked, reset everything.
       setShowReloadBtn(false);
       setShowUnlockMessage(false);
     }
   }, [isUnlocked, showUnlockMessage]);
 
-  // Handle Reload Random Subset
   const handleReloadContent = () => {
     if (activeSection === 'exercises') {
       const halfEx = Math.ceil(dbExercises.length / 2);
-
       if (activeStep === 'decouvrir') {
         const pool = dbExercises.slice(0, halfEx).filter(e => !completedExerciseIds.includes(e.id));
         setSubsetDiscoverEx([...pool].sort(() => 0.5 - Math.random()).slice(0, 5));
@@ -552,7 +374,6 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       }
     } else {
       const halfQuiz = Math.ceil(dbQuizzes.length / 2);
-
       if (activeStep === 'decouvrir') {
         const pool = dbQuizzes.slice(0, halfQuiz).filter(q => !completedQuizIds.includes(q.id));
         setSubsetDiscoverQz([...pool].sort(() => 0.5 - Math.random()).slice(0, 5));
@@ -563,15 +384,9 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     }
   };
 
-  // Reload progress from DB (called when user switches sections to ensure fresh data)
   const reloadProgressFromDB = useCallback(async () => {
-    console.log("🔄 [reloadProgressFromDB] Forcing reload of persisted unlock state");
-
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      console.warn("⚠️ [reloadProgressFromDB] No user found");
-      return;
-    }
+    if (!user) return;
 
     let progressQuery = supabase
       .from("student_scores")
@@ -584,66 +399,30 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       : progressQuery.is("lesson_id", null);
 
     const { data, error } = await progressQuery;
-
-    if (error) {
-      console.error("❌ [reloadProgressFromDB] Failed to load:", error);
-      return;
-    }
+    if (error) return;
 
     const rows = data || [];
-    console.log("✅ [reloadProgressFromDB] Refresh: Loaded", rows.length, "rows");
 
-    const hasExercisesUnlocked = rows.some((row) => {
-      const ad = (row.assessment_data || {}) as Record<string, unknown>;
-      return Boolean(ad.exercises_unlocked);
-    });
+    const hasExercisesUnlocked = rows.some((row) => Boolean((row.assessment_data as any)?.exercises_unlocked));
+    const hasQuizzesUnlocked = rows.some((row) => Boolean((row.assessment_data as any)?.quizzes_unlocked));
 
-    const hasQuizzesUnlocked = rows.some((row) => {
-      const ad = (row.assessment_data || {}) as Record<string, unknown>;
-      return Boolean(ad.quizzes_unlocked);
-    });
-
-    const exercisesCorrectCount = rows.reduce((max, row) => {
-      const ad = (row.assessment_data || {}) as Record<string, any>;
-      return Math.max(max, ad.exercises_correct_count || 0);
-    }, 0);
-
-    const quizzesCorrectCount = rows.reduce((max, row) => {
-      const ad = (row.assessment_data || {}) as Record<string, any>;
-      return Math.max(max, ad.quizzes_correct_count || 0);
-    }, 0);
+    const exercisesCorrectCount = rows.reduce((max, row) => Math.max(max, (row.assessment_data as any)?.exercises_correct_count || 0), 0);
+    const quizzesCorrectCount = rows.reduce((max, row) => Math.max(max, (row.assessment_data as any)?.quizzes_correct_count || 0), 0);
 
     if (hasExercisesUnlocked) {
-      console.log("🔓 [reloadProgressFromDB] exercises_unlocked: true");
       setPersistedUnlockEx(true);
-      if (exercisesCorrectCount < REQUIRED_CORRECT) {
-        setDiscoverCorrectEx(REQUIRED_CORRECT);
-      } else {
-        setDiscoverCorrectEx(exercisesCorrectCount);
-      }
+      setDiscoverCorrectEx(exercisesCorrectCount < REQUIRED_CORRECT ? REQUIRED_CORRECT : exercisesCorrectCount);
     }
     if (hasQuizzesUnlocked) {
-      console.log("🔓 [reloadProgressFromDB] quizzes_unlocked: true");
       setPersistedUnlockQz(true);
-      if (quizzesCorrectCount < REQUIRED_CORRECT) {
-        setDiscoverCorrectQz(REQUIRED_CORRECT);
-      } else {
-        setDiscoverCorrectQz(quizzesCorrectCount);
-      }
+      setDiscoverCorrectQz(quizzesCorrectCount < REQUIRED_CORRECT ? REQUIRED_CORRECT : quizzesCorrectCount);
     }
   }, [chapterId, lessonId]);
 
   const handleSectionChange = (section: ActivitySection) => {
-    console.log("🖱️ [handleSectionChange] Changed to section:", section);
     setActiveSection(section);
     setActiveStep("decouvrir");
-
-    // Reload progress from DB whenever user changes section
-    if (section !== null) {
-      console.log("📥 [handleSectionChange] Reloading progress from DB...");
-      reloadProgressFromDB();
-    }
-
+    if (section !== null) reloadProgressFromDB();
     onSectionChange?.(section);
   };
 
@@ -656,13 +435,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           if (prev.includes(itemId)) return prev;
           persistItemCompletion("exercises", itemId);
           const newCompleted = [...prev, itemId];
-          // Remove from subset and replace
           setSubsetUnderstandEx(currentSubset => {
             const filtered = currentSubset.filter(e => e.id !== itemId);
             const halfEx = Math.ceil(dbExercises.length / 2);
             const pool = dbExercises.slice(halfEx).filter(e => !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
-            const replacement = pool.sort(() => 0.5 - Math.random()).slice(0, 1);
-            return [...filtered, ...replacement];
+            return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
           return newCompleted;
         });
@@ -675,8 +452,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             const filtered = currentSubset.filter(q => q.id !== itemId);
             const halfQuiz = Math.ceil(dbQuizzes.length / 2);
             const pool = dbQuizzes.slice(halfQuiz).filter(q => !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
-            const replacement = pool.sort(() => 0.5 - Math.random()).slice(0, 1);
-            return [...filtered, ...replacement];
+            return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
           return newCompleted;
         });
@@ -685,7 +461,6 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   }, [persistItemCompletion, dbExercises, dbQuizzes, persistAnswerStats]);
 
   const handleDiscoverAnswer = useCallback((isCorrect: boolean, type: "exercise" | "quiz", itemId?: string) => {
-    console.log(`📝 [handleDiscoverAnswer] ${type}: isCorrect=${isCorrect}, id=${itemId}`);
     persistAnswerStats(isCorrect);
 
     if (itemId && isCorrect) {
@@ -694,13 +469,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           if (prev.includes(itemId)) return prev;
           persistItemCompletion("exercises", itemId);
           const newCompleted = [...prev, itemId];
-          // Remove from subset and replace with new item from pool
           setSubsetDiscoverEx(currentSubset => {
             const filtered = currentSubset.filter(e => e.id !== itemId);
             const halfEx = Math.ceil(dbExercises.length / 2);
             const pool = dbExercises.slice(0, halfEx).filter(e => !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
-            const replacement = pool.sort(() => 0.5 - Math.random()).slice(0, 1);
-            return [...filtered, ...replacement];
+            return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
           return newCompleted;
         });
@@ -713,8 +486,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             const filtered = currentSubset.filter(q => q.id !== itemId);
             const halfQuiz = Math.ceil(dbQuizzes.length / 2);
             const pool = dbQuizzes.slice(0, halfQuiz).filter(q => !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
-            const replacement = pool.sort(() => 0.5 - Math.random()).slice(0, 1);
-            return [...filtered, ...replacement];
+            return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
           return newCompleted;
         });
@@ -726,15 +498,9 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       if (isCorrect) {
         setDiscoverCorrectEx(prev => {
           const next = prev + 1;
-          console.log(`✅ [handleDiscoverAnswer] exercises: ${prev} → ${next} correct (need ${REQUIRED_CORRECT})`);
-
           if (next >= REQUIRED_CORRECT && !persistedUnlockEx) {
-            console.log("🎉 [handleDiscoverAnswer] exercises: UNLOCKING!");
             setShowUnlockMessage(true);
-            setTimeout(() => {
-              setShowUnlockMessage(false);
-            }, 20000);
-
+            setTimeout(() => setShowUnlockMessage(false), 20000);
             setPersistedUnlockEx(true);
             persistUnlock("exercises", next);
           }
@@ -746,15 +512,9 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       if (isCorrect) {
         setDiscoverCorrectQz(prev => {
           const next = prev + 1;
-          console.log(`✅ [handleDiscoverAnswer] quizzes: ${prev} → ${next} correct (need ${REQUIRED_CORRECT})`);
-
           if (next >= REQUIRED_CORRECT && !persistedUnlockQz) {
-            console.log("🎉 [handleDiscoverAnswer] quizzes: UNLOCKING!");
             setShowUnlockMessage(true);
-            setTimeout(() => {
-              setShowUnlockMessage(false);
-            }, 20000);
-
+            setTimeout(() => setShowUnlockMessage(false), 20000);
             setPersistedUnlockQz(true);
             persistUnlock("quizzes", next);
           }
@@ -764,7 +524,6 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     }
   }, [persistUnlock, persistedUnlockEx, persistedUnlockQz, persistItemCompletion, dbExercises, dbQuizzes, persistAnswerStats]);
 
-  // Render based on Random Subsets (limits to 5)
   const discoverQuizzes = subsetDiscoverQz;
   const understandQuizzes = subsetUnderstandQz;
   const discoverExercises = subsetDiscoverEx;
@@ -819,7 +578,6 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
   if (activeSection === "revision") {
     return (
-
       <div className="mt-6 space-y-4">
         {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>← العودة</Button>}
         <Card>
@@ -848,17 +606,13 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         {visibleSteps.map((step, idx) => {
           const Icon = step.icon;
           const isActive = activeStep === step.id;
-
           const isLocked = false;
 
           return (
             <button
               key={step.id}
-              onClick={() => {
-                if (!isLocked) setActiveStep(step.id);
-              }}
+              onClick={() => { if (!isLocked) setActiveStep(step.id); }}
               disabled={isLocked}
-              title=""
               className={cn(
                 "relative flex items-center justify-between sm:justify-start gap-4 px-4 py-3 sm:py-2.5 rounded-lg transition-all duration-300 w-full group",
                 isActive
@@ -871,53 +625,27 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
               <div className="flex items-center gap-3">
                 <div className={cn(
                   "w-9 h-9 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-sm font-bold transition-colors shadow-sm",
-                  isActive
-                    ? "bg-primary text-primary-foreground shadow-primary/20"
-                    : isLocked
-                      ? "bg-muted text-muted-foreground/70"
+                  isActive ? "bg-primary text-primary-foreground shadow-primary/20"
+                    : isLocked ? "bg-muted text-muted-foreground/70"
                       : "bg-muted text-foreground group-hover:bg-primary/10 group-hover:text-primary"
                 )}>
                   {isLocked ? <Lock className="h-3.5 w-3.5" /> : idx + 1}
                 </div>
-
                 <div className="flex flex-col items-start gap-0.5">
-                  <span className={cn(
-                    "text-sm font-bold leading-none tracking-tight",
-                    isActive ? "text-primary" : "text-foreground/80"
-                  )}>
-                    {step.label}
-                  </span>
-                  <span className={cn(
-                    "text-[10px] font-medium leading-none font-arabic",
-                    isActive ? "text-primary/80" : "text-muted-foreground"
-                  )}>
-                    {step.labelAr}
-                  </span>
+                  <span className={cn("text-sm font-bold leading-none tracking-tight", isActive ? "text-primary" : "text-foreground/80")}>{step.label}</span>
+                  <span className={cn("text-[10px] font-medium leading-none font-arabic", isActive ? "text-primary/80" : "text-muted-foreground")}>{step.labelAr}</span>
                 </div>
               </div>
-
-              {/* Status Indicator */}
-              <div className={cn(
-                "flex items-center justify-center transition-all bg-muted/50 rounded-md p-1.5",
-                isActive && "bg-primary/10",
-                isLocked && "opacity-0"
-              )}>
-                <Icon className={cn(
-                  "w-4 h-4 transition-transform",
-                  isActive ? step.color : "text-muted-foreground grayscale group-hover:grayscale-0"
-                )} />
+              <div className={cn("flex items-center justify-center transition-all bg-muted/50 rounded-md p-1.5", isActive && "bg-primary/10", isLocked && "opacity-0")}>
+                <Icon className={cn("w-4 h-4 transition-transform", isActive ? step.color : "text-muted-foreground grayscale group-hover:grayscale-0")} />
               </div>
-
-              {/* Active Bottom Bar (Mobile) or Side/Glow (Desktop) */}
-              {isActive && (
-                <div className="absolute inset-x-0 -bottom-[1px] h-[3px] bg-primary rounded-full sm:hidden" />
-              )}
+              {isActive && <div className="absolute inset-x-0 -bottom-[1px] h-[3px] bg-primary rounded-full sm:hidden" />}
             </button>
           );
         })}
       </div>
 
-      {/* Step Content */}
+      {/* Découvrir */}
       {activeStep === "decouvrir" && (
         <Card className="border-blue-500/20">
           <CardHeader className="pb-3">
@@ -926,89 +654,64 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 <Eye className="h-5 w-5" />
                 <span dir="rtl">{isQuiz ? "اسئله متعدده الاختيارات تشخيصية" : "تمارين تمهيدية"}</span>
               </div>
-
               <div className="flex-1 flex justify-center gap-2">
-                {/* Show Correct Answers Button */}
                 {(completedExerciseIds.length > 0 || completedQuizIds.length > 0) && (
-                  <Button
-                    size="sm"
-                    variant={showCorrectOnly ? "default" : "outline"}
+                  <Button size="sm" variant={showCorrectOnly ? "default" : "outline"}
                     onClick={(e) => { e.stopPropagation(); setShowCorrectOnly(!showCorrectOnly); }}
-                    className={cn(
-                      "gap-2 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105",
-                      showCorrectOnly ? "bg-green-600 hover:bg-green-700 text-white" : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                    )}
-                    dir="rtl"
-                  >
+                    className={cn("gap-2 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105",
+                      showCorrectOnly ? "bg-green-600 hover:bg-green-700 text-white" : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100")}
+                    dir="rtl">
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     <span>{showCorrectOnly ? "العودة للتمارين" : "إجابات صحيحة"}</span>
                   </Button>
                 )}
-
                 {showReloadBtn && !showCorrectOnly && (
-                  <Button
-                    size="sm"
-                    variant="outline"
+                  <Button size="sm" variant="outline"
                     onClick={(e) => { e.stopPropagation(); handleReloadContent(); }}
                     className="gap-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-950/30 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105"
-                    title="تحميل أسئلة جديدة"
-                    dir="rtl"
-                  >
+                    dir="rtl">
                     <Dices className="h-3.5 w-3.5" />
                     <span>مجموعة جديدة</span>
                   </Button>
                 )}
               </div>
-
-              <Badge variant="secondary" className={!showReloadBtn ? "ml-auto" : ""}>{
-                showCorrectOnly
+              <Badge variant="secondary" className={!showReloadBtn ? "ml-auto" : ""}>
+                {showCorrectOnly
                   ? (isQuiz ? completedQuizIds.length : completedExerciseIds.length)
                   : (isQuiz ? discoverQuizzes.length : discoverExercises.length)
-              } {isQuiz ? "أسئلة" : "تمارين"}</Badge>
+                } {isQuiz ? "أسئلة" : "تمارين"}
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {showCorrectOnly ? (
-              // Render ALL completed items
               <div className="space-y-3 animate-in fade-in zoom-in-50 duration-300">
                 {isQuiz ? (
-                  completedQuizIds.length > 0 ? (
-                    dbQuizzes.filter(q => completedQuizIds.includes(q.id)).map((q, idx) => (
-                      <CompletedQuizCard key={`completed-qz-${q.id}`} question={q} index={idx} />
-                    ))
-                  ) : <EmptyState text="لا توجد إجابات صحيحة بعد" />
+                  completedQuizIds.length > 0
+                    ? dbQuizzes.filter(q => completedQuizIds.includes(q.id)).map((q, idx) => <CompletedQuizCard key={`completed-qz-${q.id}`} question={q} index={idx} />)
+                    : <EmptyState text="لا توجد إجابات صحيحة بعد" />
                 ) : (
-                  completedExerciseIds.length > 0 ? (
-                    dbExercises.filter(e => completedExerciseIds.includes(e.id)).map((ex, idx) => (
-                      <CompletedExerciseCard key={`completed-ex-${ex.id}`} exercise={ex} index={idx} />
-                    ))
-                  ) : <EmptyState text="لا توجد تمارين صحيحة بعد" />
+                  completedExerciseIds.length > 0
+                    ? dbExercises.filter(e => completedExerciseIds.includes(e.id)).map((ex, idx) => <CompletedExerciseCard key={`completed-ex-${ex.id}`} exercise={ex} index={idx} />)
+                    : <EmptyState text="لا توجد تمارين صحيحة بعد" />
                 )}
               </div>
             ) : (
-              // Render Random Subset
               isQuiz ? (
-                discoverQuizzes.length > 0 ? (
-                  <div className="space-y-3" key={resetKey}>
-                    {discoverQuizzes.map((q, idx) => (
-                      <TrackedQuizCard key={`${q.id}-${resetKey}`} question={q} index={idx} readOnly={readOnly} onAnswer={(c) => handleDiscoverAnswer(c, "quiz", q.id)} />
-                    ))}
-                  </div>
-                ) : <EmptyState text={completedQuizIds.length > 0 ? "أكملت جميع اسئله متعدده الاختيارات المتاحة!" : "لا توجد اسئله متعدده الاختيارات تشخيصية بعد"} />
+                discoverQuizzes.length > 0
+                  ? <div className="space-y-3" key={resetKey}>{discoverQuizzes.map((q, idx) => <TrackedQuizCard key={`${q.id}-${resetKey}`} question={q} index={idx} readOnly={readOnly} onAnswer={(c) => handleDiscoverAnswer(c, "quiz", q.id)} />)}</div>
+                  : <EmptyState text={completedQuizIds.length > 0 ? "أكملت جميع اسئله متعدده الاختيارات المتاحة!" : "لا توجد اسئله متعدده الاختيارات تشخيصية بعد"} />
               ) : (
-                discoverExercises.length > 0 ? (
-                  <div className="space-y-3" key={resetKey}>
-                    {discoverExercises.map((ex, idx) => (
-                      <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx} readOnly={readOnly} onAnswer={(c) => handleDiscoverAnswer(c, "exercise", ex.id)} />
-                    ))}
-                  </div>
-                ) : <EmptyState text={completedExerciseIds.length > 0 ? "أكملت جميع التمارين المتاحة!" : "لا توجد تمارين تمهيدية بعد"} />
+                discoverExercises.length > 0
+                  ? <div className="space-y-3" key={resetKey}>{discoverExercises.map((ex, idx) => <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx} readOnly={readOnly} onAnswer={(c) => handleDiscoverAnswer(c, "exercise", ex.id)} />)}</div>
+                  : <EmptyState text={completedExerciseIds.length > 0 ? "أكملت جميع التمارين المتاحة!" : "لا توجد تمارين تمهيدية بعد"} />
               )
             )}
           </CardContent>
         </Card>
       )}
 
+      {/* Comprendre */}
       {activeStep === "comprendre" && (
         <Card className="border-yellow-500/20">
           <CardHeader className="pb-3">
@@ -1017,98 +720,64 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 <Lightbulb className="h-5 w-5" />
                 <span dir="rtl">{isQuiz ? "اسئله متعدده الاختيارات تطبيقية" : "تمارين تطبيقية"}</span>
               </div>
-
               <div className="flex-1 flex justify-center gap-2">
                 {(completedExerciseIds.length > 0 || completedQuizIds.length > 0) && (
-                  <Button
-                    size="sm"
-                    variant={showCorrectOnly ? "default" : "outline"}
+                  <Button size="sm" variant={showCorrectOnly ? "default" : "outline"}
                     onClick={(e) => { e.stopPropagation(); setShowCorrectOnly(!showCorrectOnly); }}
-                    className={cn(
-                      "gap-2 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105",
-                      showCorrectOnly ? "bg-green-600 hover:bg-green-700 text-white" : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                    )}
-                    dir="rtl"
-                  >
+                    className={cn("gap-2 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105",
+                      showCorrectOnly ? "bg-green-600 hover:bg-green-700 text-white" : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100")}
+                    dir="rtl">
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     <span>{showCorrectOnly ? "العودة للتمارين" : "إجابات صحيحة"}</span>
                   </Button>
                 )}
-
                 {!showCorrectOnly && (
-                  <Button
-                    size="sm"
-                    variant="outline"
+                  <Button size="sm" variant="outline"
                     onClick={(e) => { e.stopPropagation(); handleReloadContent(); }}
                     className="gap-2 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100 dark:bg-yellow-950/30 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-900/40 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105"
-                    title="تحميل أسئلة جديدة"
-                    dir="rtl"
-                  >
+                    dir="rtl">
                     <Dices className="h-3.5 w-3.5" />
                     <span>مجموعة جديدة</span>
                   </Button>
                 )}
               </div>
-
-              <Badge variant="secondary" className={!showReloadBtn ? "ml-auto" : ""}>{
-                showCorrectOnly
+              <Badge variant="secondary" className={!showReloadBtn ? "ml-auto" : ""}>
+                {showCorrectOnly
                   ? (isQuiz ? completedQuizIds.length : completedExerciseIds.length)
                   : (isQuiz ? subsetUnderstandQz.length : subsetUnderstandEx.length)
-              } {isQuiz ? "أسئلة" : "تمارين"}</Badge>
+                } {isQuiz ? "أسئلة" : "تمارين"}
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {showCorrectOnly ? (
               <div className="space-y-3 animate-in fade-in zoom-in-50 duration-300">
                 {isQuiz ? (
-                  completedQuizIds.length > 0 ? (
-                    dbQuizzes.filter(q => completedQuizIds.includes(q.id)).map((q, idx) => (
-                      <CompletedQuizCard key={`completed-qz-und-${q.id}`} question={q} index={idx} />
-                    ))
-                  ) : <EmptyState text="لا توجد إجابات صحيحة بعد" />
+                  completedQuizIds.length > 0
+                    ? dbQuizzes.filter(q => completedQuizIds.includes(q.id)).map((q, idx) => <CompletedQuizCard key={`completed-qz-und-${q.id}`} question={q} index={idx} />)
+                    : <EmptyState text="لا توجد إجابات صحيحة بعد" />
                 ) : (
-                  completedExerciseIds.length > 0 ? (
-                    dbExercises.filter(e => completedExerciseIds.includes(e.id)).map((ex, idx) => (
-                      <CompletedExerciseCard key={`completed-ex-und-${ex.id}`} exercise={ex} index={idx} />
-                    ))
-                  ) : <EmptyState text="لا توجد تمارين صحيحة بعد" />
+                  completedExerciseIds.length > 0
+                    ? dbExercises.filter(e => completedExerciseIds.includes(e.id)).map((ex, idx) => <CompletedExerciseCard key={`completed-ex-und-${ex.id}`} exercise={ex} index={idx} />)
+                    : <EmptyState text="لا توجد تمارين صحيحة بعد" />
                 )}
               </div>
             ) : (
               isQuiz ? (
-                subsetUnderstandQz.length > 0 ? (
-                  <div className="space-y-3">
-                    {subsetUnderstandQz.map((q, idx) => (
-                      <TrackedQuizCard
-                        key={`${q.id}-${resetKey}`}
-                        question={q}
-                        index={idx + halfQuiz}
-                        readOnly={readOnly}
-                        onAnswer={(c) => handleUnderstandAnswer(c, "quiz", q.id)}
-                      />
-                    ))}
-                  </div>
-                ) : <EmptyState text={completedQuizIds.length > 0 ? "أكملت جميع اسئله متعدده الاختيارات المتاحة!" : "لا توجد اسئله متعدده الاختيارات تطبيقية بعد"} />
+                subsetUnderstandQz.length > 0
+                  ? <div className="space-y-3">{subsetUnderstandQz.map((q, idx) => <TrackedQuizCard key={`${q.id}-${resetKey}`} question={q} index={idx + halfQuiz} readOnly={readOnly} onAnswer={(c) => handleUnderstandAnswer(c, "quiz", q.id)} />)}</div>
+                  : <EmptyState text={completedQuizIds.length > 0 ? "أكملت جميع اسئله متعدده الاختيارات المتاحة!" : "لا توجد اسئله متعدده الاختيارات تطبيقية بعد"} />
               ) : (
-                subsetUnderstandEx.length > 0 ? (
-                  <div className="space-y-3">
-                    {subsetUnderstandEx.map((ex, idx) => (
-                      <TrackedExerciseCard
-                        key={`${ex.id}-${resetKey}`}
-                        exercise={ex}
-                        index={idx + halfExercise}
-                        readOnly={readOnly}
-                        onAnswer={(c) => handleUnderstandAnswer(c, "exercise", ex.id)}
-                      />
-                    ))}
-                  </div>
-                ) : <EmptyState text={completedExerciseIds.length > 0 ? "أكملت جميع التمارين المتاحة!" : "لا توجد تمارين تطبيقية بعد"} />
+                subsetUnderstandEx.length > 0
+                  ? <div className="space-y-3">{subsetUnderstandEx.map((ex, idx) => <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx + halfExercise} readOnly={readOnly} onAnswer={(c) => handleUnderstandAnswer(c, "exercise", ex.id)} />)}</div>
+                  : <EmptyState text={completedExerciseIds.length > 0 ? "أكملت جميع التمارين المتاحة!" : "لا توجد تمارين تطبيقية بعد"} />
               )
             )}
           </CardContent>
         </Card>
       )}
 
+      {/* Approfondir */}
       {activeStep === "approfondir" && (
         <Card className="border-purple-500/20">
           <CardHeader className="pb-3">
@@ -1118,17 +787,14 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 <span dir="rtl">{isQuiz ? "اسئله متعدده الاختيارات ذكية" : "تمارين ذكية"} - إنشاء بالذكاء الاصطناعي</span>
               </div>
               {((isQuiz && adaptiveContent.quizzes.length > 0) || (!isQuiz && adaptiveContent.exercises.length > 0)) && (
-                <Button
-                  size="sm"
-                  variant="outline"
+                <Button size="sm" variant="outline"
                   onClick={() => {
                     if (isQuiz) { setAiQuizAnswers({}); setAiQuizResults({}); }
                     else { setAiExerciseAnswers({}); setAiExerciseResults({}); }
                     adaptiveContent.resetSessionCounters();
                     adaptiveContent.generateContent(isQuiz ? "quiz" : "exercise");
                   }}
-                  disabled={isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise}
-                >
+                  disabled={isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise}>
                   <RefreshCw className={cn("h-4 w-4 mr-2", (isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise) && "animate-spin")} />
                   تجديد
                 </Button>
@@ -1137,11 +803,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           </CardHeader>
           <CardContent>
             {(isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise) ? (
-              <div className="space-y-3">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-32 w-full rounded-lg" />
-                ))}
-              </div>
+              <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-32 w-full rounded-lg" />)}</div>
             ) : (isQuiz ? adaptiveContent.quizzes.length : adaptiveContent.exercises.length) === 0 ? (
               <div className="text-center py-8">
                 <div className="bg-purple-50 dark:bg-purple-900/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
@@ -1151,12 +813,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 <p className="text-muted-foreground mb-6 max-w-sm mx-auto" dir="rtl">
                   {isQuiz ? "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء اسئله متعدده الاختيارات متقدمة تناسب مستواك" : "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء تمارين متقدمة تناسب مستواك"}
                 </p>
-                <Button
-                  size="lg"
+                <Button size="lg"
                   onClick={() => adaptiveContent.generateContent(isQuiz ? "quiz" : "exercise")}
                   disabled={isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise}
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-bold gap-2 transition-all hover:scale-105 shadow-md shadow-purple-500/20"
-                >
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-bold gap-2 transition-all hover:scale-105 shadow-md shadow-purple-500/20">
                   <Sparkles className="h-4 w-4 text-yellow-300" />
                   {(isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise) ? "جاري الإنشاء..." : "Générer avec l'IA"}
                 </Button>
@@ -1168,16 +828,13 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3 mb-3" dir="rtl">
                         <p className="font-medium flex-1">{idx + 1}. {q.question}</p>
-                        <div className="flex items-center gap-0.5 shrink-0" title={`مستوى الصعوبة: ${q.difficulty || 3}/5`}>
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Pencil key={i} className={cn("h-4 w-4", i < (q.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />
-                          ))}
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          {Array.from({ length: 5 }).map((_, i) => <Pencil key={i} className={cn("h-4 w-4", i < (q.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />)}
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {q.options.map((opt, oIdx) => (
-                          <Button
-                            key={oIdx}
+                          <Button key={oIdx}
                             variant={aiQuizAnswers[idx] === opt ? (aiQuizResults[idx] ? "default" : "destructive") : "outline"}
                             className={cn("justify-start text-right", opt === q.correct_answer && aiQuizResults[idx] !== undefined && "border-green-500 bg-green-500/10")}
                             onClick={() => {
@@ -1188,8 +845,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                               adaptiveContent.recordAnswer(isCorrect, 0, "quiz");
                             }}
                             disabled={aiQuizResults[idx] !== undefined}
-                            dir="rtl"
-                          >
+                            dir="rtl">
                             {aiQuizResults[idx] !== undefined && opt === q.correct_answer && <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />}
                             {aiQuizResults[idx] === false && aiQuizAnswers[idx] === opt && <XCircle className="h-4 w-4 mr-2" />}
                             {opt}
@@ -1212,10 +868,8 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-center gap-3" dir="rtl">
                         <h4 className="font-semibold flex-1">{idx + 1}. {ex.title}</h4>
-                        <div className="flex items-center gap-0.5 shrink-0" title={`مستوى الصعوبة: ${ex.difficulty || 3}/5`}>
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Pencil key={i} className={cn("h-4 w-4", i < (ex.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />
-                          ))}
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          {Array.from({ length: 5 }).map((_, i) => <Pencil key={i} className={cn("h-4 w-4", i < (ex.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />)}
                         </div>
                       </div>
                       <p className="text-sm" dir="rtl">{ex.statement}</p>
@@ -1226,7 +880,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                           تلميحات
                         </Button>
                       )}
-                      {aiShowHints[idx] && ex.hints?.map((hint, hIdx) => (
+                      {aiShowHints[idx] && ex.hints?.map((hint: string, hIdx: number) => (
                         <p key={hIdx} className="text-xs text-muted-foreground bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {hint}</p>
                       ))}
                       {aiExerciseResults[idx] === undefined && (
@@ -1260,8 +914,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           </CardContent>
         </Card>
       )}
-
-    </div >
+    </div>
   );
 }
 
@@ -1272,13 +925,7 @@ const DifficultyIndicator = ({ level }: { level?: number }) => {
   return (
     <div className="flex gap-0.5 items-center mr-2 bg-yellow-50/50 px-1.5 py-0.5 rounded-full border border-yellow-100/50" title={`الصعوبة: ${level}/5`}>
       {Array.from({ length: 5 }).map((_, i) => (
-        <Pencil
-          key={i}
-          className={cn(
-            "w-3 h-3 transition-colors",
-            i < level ? "text-yellow-500 fill-yellow-500" : "text-gray-200"
-          )}
-        />
+        <Pencil key={i} className={cn("w-3 h-3 transition-colors", i < level ? "text-yellow-500 fill-yellow-500" : "text-gray-200")} />
       ))}
     </div>
   );
@@ -1326,7 +973,12 @@ function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; inde
         {showAnswer && (
           <div className="p-3 bg-muted/50 rounded-lg text-sm space-y-2" dir="rtl">
             <div><span className="font-medium">الإجابة الصحيحة: </span>{correctAnswer || "—"}</div>
-            {explanation && <div className="flex gap-1 align-top"><span className="font-medium shrink-0">الشرح: </span><HtmlWithMath htmlContent={explanation} className="flex-1" /></div>}
+            {explanation && (
+              <div className="flex gap-1 align-top">
+                <span className="font-medium shrink-0">الشرح: </span>
+                <HtmlWithMath htmlContent={explanation} className="flex-1" />
+              </div>
+            )}
           </div>
         )}
       </CardContent>
@@ -1363,7 +1015,11 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
           <h4 className="font-semibold flex-1 text-right" dir="rtl">{index + 1}. {exercise.title}</h4>
           <DifficultyIndicator level={exercise.difficulty} />
         </div>
-        {exercise.statement.includes('<') || exercise.statement.includes('
+        {exercise.statement.includes('<') || exercise.statement.includes('\\') ? (
+          <HtmlWithMath htmlContent={exercise.statement} className="text-sm border-t pt-2" />
+        ) : (
+          <p className="text-sm border-t pt-2 text-right" dir="rtl">{exercise.statement}</p>
+        )}
         <div className="flex items-center gap-2 justify-end">
           <CheckCircle2 className="h-4 w-4 text-green-500" />
           <span className="text-sm text-green-600 font-medium">إجابة صحيحة</span>
@@ -1375,11 +1031,11 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
           <div className="p-3 bg-muted/50 rounded-lg text-sm space-y-2" dir="rtl">
             <div><span className="font-medium">الإجابة: </span>{expectedAnswer || "—"}</div>
             {solution && (
-                <div className="flex flex-col gap-1 border-t pt-2 mt-2 text-right" dir="rtl">
-                  <span className="font-medium text-purple-700 dark:text-purple-400">الحل المفصل 🎯</span>
-                  <HtmlWithMath htmlContent={solution} className="bg-white dark:bg-black/20 p-3 rounded-md border border-purple-100 dark:border-purple-900/30 text-right" />
-                </div>
-              )}
+              <div className="flex flex-col gap-1 border-t pt-2 mt-2 text-right" dir="rtl">
+                <span className="font-medium text-purple-700 dark:text-purple-400">الحل المفصل 🎯</span>
+                <HtmlWithMath htmlContent={solution} className="bg-white dark:bg-black/20 p-3 rounded-md border border-purple-100 dark:border-purple-900/30 text-right" />
+              </div>
+            )}
           </div>
         )}
       </CardContent>
@@ -1401,13 +1057,8 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
     setSubmitting(true);
 
     try {
-      const { data, error } = await supabase.rpc('check_quiz_answer', {
-        _quiz_id: question.id,
-        _user_answer: opt,
-      });
-
+      const { data, error } = await supabase.rpc('check_quiz_answer', { _quiz_id: question.id, _user_answer: opt });
       if (error) throw error;
-
       const result = data as { is_correct: boolean; explanation: string; correct_answer: string | null };
       setIsCorrect(result.is_correct);
       setCorrectAnswer(result.correct_answer);
@@ -1416,7 +1067,6 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
       onAnswer(result.is_correct);
     } catch (err) {
       console.error("Error validating quiz:", err);
-      // Fallback to local if correct_answer available (admin/pedago)
       if (question.correct_answer) {
         const correct = opt === question.correct_answer;
         setIsCorrect(correct);
@@ -1434,14 +1084,20 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
     <Card className={cn("transition-all", answered && isCorrect && "border-green-500/50 bg-green-500/5", answered && !isCorrect && "border-red-500/50 bg-red-500/5")}>
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-3">
-          <div className="font-medium flex-1 flex gap-2 items-start" dir="rtl"><span className="shrink-0">{index + 1}.</span><HtmlWithMath htmlContent={question.question} className="flex-1 text-right" /></div>
+          <div className="font-medium flex-1 flex gap-2 items-start" dir="rtl">
+            <span className="shrink-0">{index + 1}.</span>
+            <HtmlWithMath htmlContent={question.question} className="flex-1 text-right" />
+          </div>
           <DifficultyIndicator level={question.difficulty} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {question.options.map((opt, oIdx) => (
-            <Button key={oIdx} variant={selected === opt ? (isCorrect ? "default" : "destructive") : "outline"}
+            <Button key={oIdx}
+              variant={selected === opt ? (isCorrect ? "default" : "destructive") : "outline"}
               className={cn("justify-start text-right", correctAnswer && opt === correctAnswer && answered && "border-green-500 bg-green-500/10")}
-              onClick={() => handleSelect(opt)} disabled={readOnly || answered || submitting} dir="rtl">{opt}</Button>
+              onClick={() => handleSelect(opt)}
+              disabled={readOnly || answered || submitting}
+              dir="rtl">{opt}</Button>
           ))}
         </div>
         {answered && explanation && (
@@ -1469,13 +1125,8 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
     setSubmitting(true);
 
     try {
-      const { data, error } = await supabase.rpc('check_exercise_answer', {
-        _exercise_id: exercise.id,
-        _user_answer: answer.trim(),
-      });
-
+      const { data, error } = await supabase.rpc('check_exercise_answer', { _exercise_id: exercise.id, _user_answer: answer.trim() });
       if (error) throw error;
-
       const res = data as { is_correct: boolean; expected_answer: string; solution: string };
       setResult(res.is_correct);
       setExpectedAnswer(res.expected_answer);
@@ -1483,7 +1134,6 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
       onAnswer(res.is_correct);
     } catch (err) {
       console.error("Error validating exercise:", err);
-      // Fallback to local if data available (admin/pedago)
       if (exercise.expected_answer) {
         const isCorrect = answer.trim() === exercise.expected_answer || (exercise.accepted_answers || []).includes(answer.trim());
         setResult(isCorrect);
@@ -1513,10 +1163,15 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
           <DialogHeader>
             <DialogTitle className="text-right">{index + 1}. {exercise.title}</DialogTitle>
           </DialogHeader>
-
           <div className="space-y-3">
-            <p className="text-sm text-right" dir="rtl">{exercise.statement}</p>
-
+            {exercise.statement.includes('<') || exercise.statement.includes('\\') ? (
+              <HtmlWithMath htmlContent={exercise.statement} className="text-sm border-t pt-2" />
+            ) : (
+              <p className="text-sm border-t pt-2 text-right" dir="rtl">{exercise.statement}</p>
+            )}
+            {exercise.hint && (
+              <HintBlock hint={exercise.hint} />
+            )}
             {!readOnly && result === null && (
               <div className="flex gap-2" dir="rtl">
                 <input
@@ -1529,20 +1184,17 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
                 <Button size="sm" onClick={handleSubmit} disabled={submitting}>{submitting ? "..." : "تحقق"}</Button>
               </div>
             )}
-
             {result !== null && (
               <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
                 {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}
               </div>
             )}
-
             {(solution || exercise.solution) && (
               <>
                 <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
                 {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{solution || exercise.solution}</div>}
               </>
             )}
-
             {!solution && !exercise.solution && result !== null && (
               <>
                 <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
@@ -1556,620 +1208,25 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
   );
 }
 
-function QuizQuestionCard({ question, index, readOnly }: { question: DBQuizQuestion; index: number; readOnly?: boolean }) {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
-  const [explanation, setExplanation] = useState<string>("");
-  const [answered, setAnswered] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSelect = async (opt: string) => {
-    if (readOnly || answered || submitting) return;
-    setSelected(opt);
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase.rpc('check_quiz_answer', { _quiz_id: question.id, _user_answer: opt });
-      if (error) throw error;
-      const result = data as { is_correct: boolean; explanation: string; correct_answer: string | null };
-      setIsCorrect(result.is_correct);
-      setCorrectAnswer(result.correct_answer);
-      setExplanation(result.explanation || "");
-      setAnswered(true);
-    } catch {
-      if (question.correct_answer) {
-        setIsCorrect(opt === question.correct_answer);
-        setCorrectAnswer(opt === question.correct_answer ? null : question.correct_answer);
-        setExplanation(question.explanation || "");
-        setAnswered(true);
-      }
-    } finally { setSubmitting(false); }
-  };
-
+function HintBlock({ hint }: { hint: string }) {
+  const [showHint, setShowHint] = useState(false);
   return (
-    <Card className={cn("transition-all", answered && isCorrect && "border-green-500/50 bg-green-500/5", answered && !isCorrect && "border-red-500/50 bg-red-500/5")}>
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <p className="font-medium flex-1" dir="rtl">{index + 1}. {question.question}</p>
-          <DifficultyIndicator level={question.difficulty} />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {question.options.map((opt, oIdx) => (
-            <Button key={oIdx} variant={selected === opt ? (isCorrect ? "default" : "destructive") : "outline"}
-              className={cn("justify-start text-right", correctAnswer && opt === correctAnswer && answered && "border-green-500 bg-green-500/10")}
-              onClick={() => handleSelect(opt)} disabled={readOnly || answered || submitting} dir="rtl">{opt}</Button>
-          ))}
-        </div>
-        {answered && explanation && (
-          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">الشرح: </span>{explanation}</div>
-        )}
-        {answered && !isCorrect && correctAnswer && (
-          <div className="mt-2 p-2 rounded text-sm bg-green-500/10 text-green-700" dir="rtl">✅ الإجابة الصحيحة: {correctAnswer}</div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function ExerciseCard({ exercise, index, readOnly }: { exercise: DBExercise; index: number; readOnly?: boolean }) {
-  const [answer, setAnswer] = useState("");
-  const [revealed, setRevealed] = useState(false);
-  const [result, setResult] = useState<boolean | null>(null);
-  const [expectedAnswer, setExpectedAnswer] = useState<string>("");
-  const [solution, setSolution] = useState<string>("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = async () => {
-    if (!answer.trim() || submitting) return;
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase.rpc('check_exercise_answer', { _exercise_id: exercise.id, _user_answer: answer.trim() });
-      if (error) throw error;
-      const res = data as { is_correct: boolean; expected_answer: string; solution: string };
-      setResult(res.is_correct);
-      setExpectedAnswer(res.expected_answer);
-      setSolution(res.solution);
-    } catch {
-      if (exercise.expected_answer) {
-        const isCorrect = answer.trim() === exercise.expected_answer || (exercise.accepted_answers || []).includes(answer.trim());
-        setResult(isCorrect);
-        setExpectedAnswer(exercise.expected_answer);
-        setSolution(exercise.solution || "");
-      }
-    } finally { setSubmitting(false); }
-  };
-
-  return (
-    <Card>
-      <CardContent className="p-4 space-y-3">
-        <div className="flex justify-between items-start">
-          <h4 className="font-semibold flex-1" dir="rtl">{index + 1}. {exercise.title}</h4>
-          <DifficultyIndicator level={exercise.difficulty} />
-        </div>
-        <HtmlWithMath htmlContent={exercise.statement} className="text-sm mt-3 mb-2 block" />
-        {!readOnly && result === null && (
-          <div className="flex gap-2" dir="rtl">
-            <input className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background" placeholder="أدخل إجابتك..." value={answer} onChange={(e) => setAnswer(e.target.value)} dir="rtl" />
-            <Button size="sm" onClick={handleSubmit} disabled={submitting}>{submitting ? "..." : "تحقق"}</Button>
+    <div dir="rtl" className="mt-2 mb-3">
+      <Button type="button" variant="outline" size="sm"
+        onClick={() => setShowHint(v => !v)}
+        className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950 mb-2">
+        <Lightbulb className="h-4 w-4" />
+        {showHint ? "إخفاء المساعدة" : "مساعدة"}
+      </Button>
+      {showHint && (
+        <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+          <div className="flex items-start gap-2">
+            <Lightbulb className="h-4 w-4 text-amber-500 mt-1 shrink-0" />
+            <HtmlWithMath htmlContent={hint} className="text-sm flex-1" />
           </div>
-        )}
-        {result !== null && (
-          <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-            {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}
-          </div>
-        )}
-        {(solution || result !== null) && (
-          <>
-            <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
-            {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{solution || expectedAnswer}</div>}
-          </>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function EmptyState({ text }: { text: string }) {
-  return <div className="text-center py-8"><p className="text-muted-foreground" dir="rtl">{text}</p></div>;
-}
-) || exercise.statement.includes(' \\') ? (
-            <HtmlWithMath htmlContent={exercise.statement} className="text-sm border-t pt-2" />
-          ) : (
-            <p className="text-sm border-t pt-2 text-right" dir="rtl">{exercise.statement}</p>
-          )}
-          {exercise.hint && (
-            <div dir="rtl" className="mt-2 mb-3">
-              <Button type="button" variant="outline" size="sm" onClick={() => setShowHint(v => !v)} className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950 mb-2">
-                <Lightbulb className="h-4 w-4" />{showHint ? "إخفاء المساعدة" : "مساعدة"}
-              </Button>
-              {showHint && (
-                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
-                  <div className="flex items-start gap-2">
-                    <Lightbulb className="h-4 w-4 text-amber-500 mt-1 shrink-0" />
-                    <HtmlWithMath htmlContent={exercise.hint} className="text-sm flex-1" />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        <div className="flex items-center gap-2 justify-end">
-          <CheckCircle2 className="h-4 w-4 text-green-500" />
-          <span className="text-sm text-green-600 font-medium">إجابة صحيحة</span>
         </div>
-        <Button variant="ghost" size="sm" onClick={handleToggle} disabled={loading}>
-          {loading ? "جاري التحميل..." : showSolution ? "إخفاء الحل" : "عرض الحل"}
-        </Button>
-        {showSolution && (
-          <div className="p-3 bg-muted/50 rounded-lg text-sm space-y-2" dir="rtl">
-            <div><span className="font-medium">الإجابة: </span>{expectedAnswer || "—"}</div>
-            {solution && (
-                <div className="flex flex-col gap-1 border-t pt-2 mt-2 text-right" dir="rtl">
-                  <span className="font-medium text-purple-700 dark:text-purple-400">الحل المفصل 🎯</span>
-                  <HtmlWithMath htmlContent={solution} className="bg-white dark:bg-black/20 p-3 rounded-md border border-purple-100 dark:border-purple-900/30 text-right" />
-                </div>
-              )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DBQuizQuestion; index: number; readOnly?: boolean; onAnswer: (correct: boolean) => void }) {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
-  const [explanation, setExplanation] = useState<string>("");
-  const [answered, setAnswered] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSelect = async (opt: string) => {
-    if (readOnly || answered || submitting) return;
-    setSelected(opt);
-    setSubmitting(true);
-
-    try {
-      const { data, error } = await supabase.rpc('check_quiz_answer', {
-        _quiz_id: question.id,
-        _user_answer: opt,
-      });
-
-      if (error) throw error;
-
-      const result = data as { is_correct: boolean; explanation: string; correct_answer: string | null };
-      setIsCorrect(result.is_correct);
-      setCorrectAnswer(result.correct_answer);
-      setExplanation(result.explanation || "");
-      setAnswered(true);
-      onAnswer(result.is_correct);
-    } catch (err) {
-      console.error("Error validating quiz:", err);
-      // Fallback to local if correct_answer available (admin/pedago)
-      if (question.correct_answer) {
-        const correct = opt === question.correct_answer;
-        setIsCorrect(correct);
-        setCorrectAnswer(correct ? null : question.correct_answer);
-        setExplanation(question.explanation || "");
-        setAnswered(true);
-        onAnswer(correct);
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <Card className={cn("transition-all", answered && isCorrect && "border-green-500/50 bg-green-500/5", answered && !isCorrect && "border-red-500/50 bg-red-500/5")}>
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <div className="font-medium flex-1 flex gap-2 items-start" dir="rtl"><span className="shrink-0">{index + 1}.</span><HtmlWithMath htmlContent={question.question} className="flex-1 text-right" /></div>
-          <DifficultyIndicator level={question.difficulty} />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {question.options.map((opt, oIdx) => (
-            <Button key={oIdx} variant={selected === opt ? (isCorrect ? "default" : "destructive") : "outline"}
-              className={cn("justify-start text-right", correctAnswer && opt === correctAnswer && answered && "border-green-500 bg-green-500/10")}
-              onClick={() => handleSelect(opt)} disabled={readOnly || answered || submitting} dir="rtl">{opt}</Button>
-          ))}
-        </div>
-        {answered && explanation && (
-          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">الشرح: </span>{explanation}</div>
-        )}
-        {answered && !isCorrect && correctAnswer && (
-          <div className="mt-2 p-2 rounded text-sm bg-green-500/10 text-green-700" dir="rtl">✅ الإجابة الصحيحة: {correctAnswer}</div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise: DBExercise; index: number; readOnly?: boolean; onAnswer: (correct: boolean) => void }) {
-  const [open, setOpen] = useState(false);
-  const [answer, setAnswer] = useState("");
-  const [revealed, setRevealed] = useState(false);
-  const [result, setResult] = useState<boolean | null>(null);
-  const [expectedAnswer, setExpectedAnswer] = useState<string>("");
-  const [solution, setSolution] = useState<string>("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = async () => {
-    if (!answer.trim() || submitting) return;
-    setSubmitting(true);
-
-    try {
-      const { data, error } = await supabase.rpc('check_exercise_answer', {
-        _exercise_id: exercise.id,
-        _user_answer: answer.trim(),
-      });
-
-      if (error) throw error;
-
-      const res = data as { is_correct: boolean; expected_answer: string; solution: string };
-      setResult(res.is_correct);
-      setExpectedAnswer(res.expected_answer);
-      setSolution(res.solution);
-      onAnswer(res.is_correct);
-    } catch (err) {
-      console.error("Error validating exercise:", err);
-      // Fallback to local if data available (admin/pedago)
-      if (exercise.expected_answer) {
-        const isCorrect = answer.trim() === exercise.expected_answer || (exercise.accepted_answers || []).includes(answer.trim());
-        setResult(isCorrect);
-        setExpectedAnswer(exercise.expected_answer);
-        setSolution(exercise.solution || "");
-        onAnswer(isCorrect);
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <>
-      <Card className="cursor-pointer hover:border-primary/40 hover:shadow-md transition-all" onClick={() => setOpen(true)}>
-        <CardContent className="p-4">
-          <div className="flex justify-between items-start gap-3">
-            <h4 className="font-semibold flex-1 text-right" dir="rtl">{index + 1}. {exercise.title}</h4>
-            <DifficultyIndicator level={exercise.difficulty} />
-          </div>
-          <p className="text-xs text-muted-foreground mt-2 text-right" dir="rtl">اضغط لفتح التمرين</p>
-        </CardContent>
-      </Card>
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl" dir="rtl">
-          <DialogHeader>
-            <DialogTitle className="text-right">{index + 1}. {exercise.title}</DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-3">
-            {exercise.statement.includes('<') || exercise.statement.includes('
-
-            {!readOnly && result === null && (
-              <div className="flex gap-2" dir="rtl">
-                <input
-                  className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
-                  placeholder="أدخل إجابتك..."
-                  value={answer}
-                  onChange={(e) => setAnswer(e.target.value)}
-                  dir="rtl"
-                />
-                <Button size="sm" onClick={handleSubmit} disabled={submitting}>{submitting ? "..." : "تحقق"}</Button>
-              </div>
-            )}
-
-            {result !== null && (
-              <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-                {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}
-              </div>
-            )}
-
-            {(solution || exercise.solution) && (
-              <>
-                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
-                {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{solution || exercise.solution}</div>}
-              </>
-            )}
-
-            {!solution && !exercise.solution && result !== null && (
-              <>
-                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
-                {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{expectedAnswer}</div>}
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
-
-function QuizQuestionCard({ question, index, readOnly }: { question: DBQuizQuestion; index: number; readOnly?: boolean }) {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
-  const [explanation, setExplanation] = useState<string>("");
-  const [answered, setAnswered] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSelect = async (opt: string) => {
-    if (readOnly || answered || submitting) return;
-    setSelected(opt);
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase.rpc('check_quiz_answer', { _quiz_id: question.id, _user_answer: opt });
-      if (error) throw error;
-      const result = data as { is_correct: boolean; explanation: string; correct_answer: string | null };
-      setIsCorrect(result.is_correct);
-      setCorrectAnswer(result.correct_answer);
-      setExplanation(result.explanation || "");
-      setAnswered(true);
-    } catch {
-      if (question.correct_answer) {
-        setIsCorrect(opt === question.correct_answer);
-        setCorrectAnswer(opt === question.correct_answer ? null : question.correct_answer);
-        setExplanation(question.explanation || "");
-        setAnswered(true);
-      }
-    } finally { setSubmitting(false); }
-  };
-
-  return (
-    <Card className={cn("transition-all", answered && isCorrect && "border-green-500/50 bg-green-500/5", answered && !isCorrect && "border-red-500/50 bg-red-500/5")}>
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <p className="font-medium flex-1" dir="rtl">{index + 1}. {question.question}</p>
-          <DifficultyIndicator level={question.difficulty} />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {question.options.map((opt, oIdx) => (
-            <Button key={oIdx} variant={selected === opt ? (isCorrect ? "default" : "destructive") : "outline"}
-              className={cn("justify-start text-right", correctAnswer && opt === correctAnswer && answered && "border-green-500 bg-green-500/10")}
-              onClick={() => handleSelect(opt)} disabled={readOnly || answered || submitting} dir="rtl">{opt}</Button>
-          ))}
-        </div>
-        {answered && explanation && (
-          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">الشرح: </span>{explanation}</div>
-        )}
-        {answered && !isCorrect && correctAnswer && (
-          <div className="mt-2 p-2 rounded text-sm bg-green-500/10 text-green-700" dir="rtl">✅ الإجابة الصحيحة: {correctAnswer}</div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function ExerciseCard({ exercise, index, readOnly }: { exercise: DBExercise; index: number; readOnly?: boolean }) {
-  const [answer, setAnswer] = useState("");
-  const [revealed, setRevealed] = useState(false);
-  const [result, setResult] = useState<boolean | null>(null);
-  const [expectedAnswer, setExpectedAnswer] = useState<string>("");
-  const [solution, setSolution] = useState<string>("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = async () => {
-    if (!answer.trim() || submitting) return;
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase.rpc('check_exercise_answer', { _exercise_id: exercise.id, _user_answer: answer.trim() });
-      if (error) throw error;
-      const res = data as { is_correct: boolean; expected_answer: string; solution: string };
-      setResult(res.is_correct);
-      setExpectedAnswer(res.expected_answer);
-      setSolution(res.solution);
-    } catch {
-      if (exercise.expected_answer) {
-        const isCorrect = answer.trim() === exercise.expected_answer || (exercise.accepted_answers || []).includes(answer.trim());
-        setResult(isCorrect);
-        setExpectedAnswer(exercise.expected_answer);
-        setSolution(exercise.solution || "");
-      }
-    } finally { setSubmitting(false); }
-  };
-
-  return (
-    <Card>
-      <CardContent className="p-4 space-y-3">
-        <div className="flex justify-between items-start">
-          <h4 className="font-semibold flex-1" dir="rtl">{index + 1}. {exercise.title}</h4>
-          <DifficultyIndicator level={exercise.difficulty} />
-        </div>
-        <HtmlWithMath htmlContent={exercise.statement} className="text-sm mt-3 mb-2 block" />
-        {!readOnly && result === null && (
-          <div className="flex gap-2" dir="rtl">
-            <input className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background" placeholder="أدخل إجابتك..." value={answer} onChange={(e) => setAnswer(e.target.value)} dir="rtl" />
-            <Button size="sm" onClick={handleSubmit} disabled={submitting}>{submitting ? "..." : "تحقق"}</Button>
-          </div>
-        )}
-        {result !== null && (
-          <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-            {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}
-          </div>
-        )}
-        {(solution || result !== null) && (
-          <>
-            <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
-            {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{solution || expectedAnswer}</div>}
-          </>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function EmptyState({ text }: { text: string }) {
-  return <div className="text-center py-8"><p className="text-muted-foreground" dir="rtl">{text}</p></div>;
-}
-) || exercise.statement.includes(' \\') ? (
-            <HtmlWithMath htmlContent={exercise.statement} className="text-sm border-t pt-2" />
-          ) : (
-            <p className="text-sm border-t pt-2 text-right" dir="rtl">{exercise.statement}</p>
-          )}
-          {exercise.hint && (
-            <div dir="rtl" className="mt-2 mb-3">
-              <Button type="button" variant="outline" size="sm" onClick={() => setShowHint(v => !v)} className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950 mb-2">
-                <Lightbulb className="h-4 w-4" />{showHint ? "إخفاء المساعدة" : "مساعدة"}
-              </Button>
-              {showHint && (
-                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
-                  <div className="flex items-start gap-2">
-                    <Lightbulb className="h-4 w-4 text-amber-500 mt-1 shrink-0" />
-                    <HtmlWithMath htmlContent={exercise.hint} className="text-sm flex-1" />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-            {!readOnly && result === null && (
-              <div className="flex gap-2" dir="rtl">
-                <input
-                  className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
-                  placeholder="أدخل إجابتك..."
-                  value={answer}
-                  onChange={(e) => setAnswer(e.target.value)}
-                  dir="rtl"
-                />
-                <Button size="sm" onClick={handleSubmit} disabled={submitting}>{submitting ? "..." : "تحقق"}</Button>
-              </div>
-            )}
-
-            {result !== null && (
-              <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-                {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}
-              </div>
-            )}
-
-            {(solution || exercise.solution) && (
-              <>
-                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
-                {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{solution || exercise.solution}</div>}
-              </>
-            )}
-
-            {!solution && !exercise.solution && result !== null && (
-              <>
-                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
-                {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{expectedAnswer}</div>}
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
-
-function QuizQuestionCard({ question, index, readOnly }: { question: DBQuizQuestion; index: number; readOnly?: boolean }) {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
-  const [explanation, setExplanation] = useState<string>("");
-  const [answered, setAnswered] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSelect = async (opt: string) => {
-    if (readOnly || answered || submitting) return;
-    setSelected(opt);
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase.rpc('check_quiz_answer', { _quiz_id: question.id, _user_answer: opt });
-      if (error) throw error;
-      const result = data as { is_correct: boolean; explanation: string; correct_answer: string | null };
-      setIsCorrect(result.is_correct);
-      setCorrectAnswer(result.correct_answer);
-      setExplanation(result.explanation || "");
-      setAnswered(true);
-    } catch {
-      if (question.correct_answer) {
-        setIsCorrect(opt === question.correct_answer);
-        setCorrectAnswer(opt === question.correct_answer ? null : question.correct_answer);
-        setExplanation(question.explanation || "");
-        setAnswered(true);
-      }
-    } finally { setSubmitting(false); }
-  };
-
-  return (
-    <Card className={cn("transition-all", answered && isCorrect && "border-green-500/50 bg-green-500/5", answered && !isCorrect && "border-red-500/50 bg-red-500/5")}>
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <p className="font-medium flex-1" dir="rtl">{index + 1}. {question.question}</p>
-          <DifficultyIndicator level={question.difficulty} />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {question.options.map((opt, oIdx) => (
-            <Button key={oIdx} variant={selected === opt ? (isCorrect ? "default" : "destructive") : "outline"}
-              className={cn("justify-start text-right", correctAnswer && opt === correctAnswer && answered && "border-green-500 bg-green-500/10")}
-              onClick={() => handleSelect(opt)} disabled={readOnly || answered || submitting} dir="rtl">{opt}</Button>
-          ))}
-        </div>
-        {answered && explanation && (
-          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">الشرح: </span>{explanation}</div>
-        )}
-        {answered && !isCorrect && correctAnswer && (
-          <div className="mt-2 p-2 rounded text-sm bg-green-500/10 text-green-700" dir="rtl">✅ الإجابة الصحيحة: {correctAnswer}</div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function ExerciseCard({ exercise, index, readOnly }: { exercise: DBExercise; index: number; readOnly?: boolean }) {
-  const [answer, setAnswer] = useState("");
-  const [revealed, setRevealed] = useState(false);
-  const [result, setResult] = useState<boolean | null>(null);
-  const [expectedAnswer, setExpectedAnswer] = useState<string>("");
-  const [solution, setSolution] = useState<string>("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = async () => {
-    if (!answer.trim() || submitting) return;
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase.rpc('check_exercise_answer', { _exercise_id: exercise.id, _user_answer: answer.trim() });
-      if (error) throw error;
-      const res = data as { is_correct: boolean; expected_answer: string; solution: string };
-      setResult(res.is_correct);
-      setExpectedAnswer(res.expected_answer);
-      setSolution(res.solution);
-    } catch {
-      if (exercise.expected_answer) {
-        const isCorrect = answer.trim() === exercise.expected_answer || (exercise.accepted_answers || []).includes(answer.trim());
-        setResult(isCorrect);
-        setExpectedAnswer(exercise.expected_answer);
-        setSolution(exercise.solution || "");
-      }
-    } finally { setSubmitting(false); }
-  };
-
-  return (
-    <Card>
-      <CardContent className="p-4 space-y-3">
-        <div className="flex justify-between items-start">
-          <h4 className="font-semibold flex-1" dir="rtl">{index + 1}. {exercise.title}</h4>
-          <DifficultyIndicator level={exercise.difficulty} />
-        </div>
-        <HtmlWithMath htmlContent={exercise.statement} className="text-sm mt-3 mb-2 block" />
-        {!readOnly && result === null && (
-          <div className="flex gap-2" dir="rtl">
-            <input className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background" placeholder="أدخل إجابتك..." value={answer} onChange={(e) => setAnswer(e.target.value)} dir="rtl" />
-            <Button size="sm" onClick={handleSubmit} disabled={submitting}>{submitting ? "..." : "تحقق"}</Button>
-          </div>
-        )}
-        {result !== null && (
-          <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-            {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}
-          </div>
-        )}
-        {(solution || result !== null) && (
-          <>
-            <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
-            {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{solution || expectedAnswer}</div>}
-          </>
-        )}
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }
 
