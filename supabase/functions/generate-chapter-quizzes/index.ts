@@ -372,11 +372,9 @@ serve(async (req) => {
 
     console.log(`Generating for chapter: ${chapterTitle}, lesson: ${lessonTitle}`);
 
-    // Generate quizzes and exercises
-    const [quizzes, exercises] = await Promise.all([
-      generateQuizzes(chapterTitle, lessonTitle),
-      generateExercises(chapterTitle, lessonTitle),
-    ]);
+    // Generate sequentially to avoid provider rate limits (especially Groq/Gemini) when fallbacks are used
+    const quizzes = await generateQuizzes(chapterTitle, lessonTitle);
+    const exercises = await generateExercises(chapterTitle, lessonTitle);
 
     // Calculate current max order_index for quizzes
     let startQuizOrder = 1;
