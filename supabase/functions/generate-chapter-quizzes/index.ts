@@ -11,6 +11,7 @@ interface GeneratedQuiz {
   options: string[];
   correct_answer: string;
   explanation: string;
+  hint: string;
   difficulty: number;
 }
 
@@ -63,7 +64,7 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<str
     throw new Error("GEMINI_API_KEY not configured");
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
   
   const response = await fetch(url, {
     method: "POST",
@@ -122,7 +123,7 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<st
   const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
   if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY_2}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY_2}`;
   
   const response = await fetch(url, {
     method: "POST",
@@ -174,50 +175,61 @@ async function generateWithAI(
   }
 
   // Provider 3: Gemini (2e clé) - last resort
+  let lastError: any = null;
   try {
     console.log("Trying Gemini (key 2)...");
     return await callGemini2(systemPrompt, userPrompt);
   } catch (e) {
     console.error("Gemini2 failed:", e);
-    throw new Error("جميع خدمات الذكاء الاصطناعي غير متاحة حالياً. يرجى المحاولة لاحقاً.");
+    lastError = e;
   }
+
+  const msg = lastError?.message || "";
+  if (msg.includes("402") || msg.toLowerCase().includes("credit")) {
+    throw new Error("⚠️ رصيد Lovable AI نفد. يرجى إضافة رصيد من إعدادات المساحة (Workspace > Usage) أو الانتظار قليلاً.");
+  }
+  if (msg.includes("429") || msg.toLowerCase().includes("rate")) {
+    throw new Error("⚠️ تم تجاوز الحد المسموح به للطلبات. يرجى الانتظار دقيقة والمحاولة مرة أخرى.");
+  }
+  throw new Error("⚠️ جميع خدمات الذكاء الاصطناعي غير متاحة حالياً. يرجى المحاولة لاحقاً.");
 }
 
 async function generateQuizzes(
   chapterTitle: string,
   lessonTitle: string
 ): Promise<GeneratedQuiz[]> {
-  const systemPrompt = `أنت معلم رياضيات جزائري خبير. توليد أسئلة اختبار ذكية (QCM) باللغة العربية. الرد فقط بجدول JSON صحيح، بدون نص أو markdown حول.`;
+  const systemPrompt = `أنت معلم رياضيات جزائري خبير لشعبة العلوم في الثانوية. مهمتك توليد أسئلة اختبار ذكية (QCM) باللغة العربية مع تلميحات (hints) مفيدة. الرد فقط بمصفوفة JSON صحيحة، بدون أي نص خارج JSON.`;
 
   const userPrompt = `
-توليد 5 أسئلة اختبار متعددة الاختيار حول درس "${lessonTitle}" من فصل "${chapterTitle}".
+ولّد 5 أسئلة اختبار متعددة الاختيار حول درس "${lessonTitle}" من فصل "${chapterTitle}".
 
-صيغة JSON المتوقعة (مصفوفة بـ 5 كائنات):
+صيغة JSON المطلوبة (مصفوفة بـ 5 كائنات بالضبط):
 [
   {
-    "question": "السؤال باللغة العربية",
+    "question": "نص السؤال بالعربية (يمكن استعمال LaTeX داخل $...$ أو $$...$$)",
     "options": ["الخيار أ", "الخيار ب", "الخيار ج", "الخيار د"],
-    "correct_answer": "الخيار الصحيح (يجب أن يكون مطابقاً لأحد الخيارات)",
-    "explanation": "شرح قصير باللغة العربية يساعد الطالب على فهم الخطأ",
+    "correct_answer": "النص الكامل للخيار الصحيح (مطابق تماماً لأحد options)",
+    "explanation": "شرح مفصل للحل الصحيح بالعربية، مع خطوات رياضية واضحة (LaTeX)",
+    "hint": "💡 تلميح ذكي يوجّه الطالب نحو الحل دون كشفه (1-2 جملة بالعربية)",
     "difficulty": 2
   }
 ]
 
-نقاط مهمة:
-- كل "difficulty" هي قيمة من 1 إلى 5 (1=سهل جداً، 5=صعب جداً)
-- جميع الأسئلة والإجابات يجب أن تكون بالعربية
-- الأسئلة يجب أن تكون حصراً حول "${lessonTitle}"
-- متنوع الصعوبة بين الأسئلة الخمسة`;
+شروط مهمة:
+- "difficulty" قيمة من 1 إلى 5
+- جميع النصوص بالعربية فقط
+- استعمل LaTeX للصيغ الرياضية: $\\lim_{x\\to 0}$, $\\frac{a}{b}$, $\\sqrt{x}$ ...
+- "hint" يجب أن يعطي توجيهاً (مثلاً: "فكّر في تحليل البسط كفرق مربعين") وليس الإجابة
+- نوّع الصعوبة بين الأسئلة الـ5
+- ⚠️ الرد JSON فقط، بدون \`\`\`json أو أي نص آخر`;
 
   const rawContent = await generateWithAI(systemPrompt, userPrompt);
   
-  // Clean up markdown code fences if present
   let cleanedContent = rawContent
     .replace(/```json\s*/gi, "")
     .replace(/```\s*/gi, "")
     .trim();
 
-  // Try to extract JSON from text if it's wrapped
   const jsonMatch = cleanedContent.match(/\[\s*\{[\s\S]*\}\s*\]/);
   if (jsonMatch) {
     cleanedContent = jsonMatch[0];
@@ -225,14 +237,12 @@ async function generateQuizzes(
 
   try {
     const quizzes = JSON.parse(cleanedContent) as GeneratedQuiz[];
-    
-    // Validate quizzes have required fields
     return quizzes.filter(q => 
       q.question && q.options && Array.isArray(q.options) && 
       q.correct_answer && q.explanation && typeof q.difficulty === 'number'
     ).slice(0, 5);
   } catch (parseError) {
-    console.error("Failed to parse quizzes JSON:", parseError);
+    console.error("Failed to parse quizzes JSON:", parseError, "Raw:", rawContent.substring(0, 500));
     throw new Error(`Failed to parse generated quizzes: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
   }
 }
@@ -241,40 +251,54 @@ async function generateExercises(
   chapterTitle: string,
   lessonTitle: string
 ): Promise<GeneratedExercise[]> {
-  const systemPrompt = `أنت معلم رياضيات جزائري خبير. توليد تمارين رياضية باللغة العربية. الرد فقط بجدول JSON صحيح، بدون نص أو markdown حول.`;
+  const systemPrompt = `أنت معلم رياضيات جزائري خبير لشعبة العلوم في الثانوية. مهمتك توليد تمارين رياضية باللغة العربية مع حلول مفصلة جداً وتلميحات. الرد فقط بمصفوفة JSON صحيحة، بدون أي نص خارج JSON.`;
 
   const userPrompt = `
-توليد 5 تمارين حول درس "${lessonTitle}" من فصل "${chapterTitle}".
+ولّد 5 تمارين حول درس "${lessonTitle}" من فصل "${chapterTitle}".
 
-صيغة JSON المتوقعة (مصفوفة بـ 5 كائنات):
+صيغة JSON المطلوبة (مصفوفة بـ 5 كائنات بالضبط):
 [
   {
-    "title": "عنوان قصير باللغة العربية",
-    "statement": "نص التمرين الكامل باللغة العربية",
-    "expected_answer": "الإجابة المتوقعة (قيمة عددية أو تعبير قصير)",
-    "hint": "💡 تلميح باللغة العربية",
-    "solution": "الحل المفصل خطوة بخطوة باللغة العربية بصيغة markdown",
+    "title": "عنوان قصير جذاب بالعربية",
+    "statement": "نص التمرين كامل بالعربية مع LaTeX للصيغ ($...$ أو $$...$$)",
+    "expected_answer": "الإجابة النهائية (قيمة أو تعبير قصير)",
+    "hint": "💡 تلميح ذكي يوجّه الطالب نحو الطريقة الصحيحة دون كشف الحل (1-2 جملة)",
+    "solution": "حل مفصل جداً بصيغة Markdown + LaTeX (انظر الصيغة أدناه)",
     "difficulty": 2
   }
 ]
 
-صيغة الحل المتوقعة:
+📐 صيغة الحل المطلوبة (يجب احترامها بدقة - استعمل \\\\n للأسطر الجديدة في JSON):
+
 ## 🎯 الحل المفصل
 
-### 📌 الخطوة 1: وصف الخطوة
-شرح الخطوة الأولى
+### 📌 الخطوة 1: تحليل المعطيات
+شرح واضح للمعطيات والمطلوب.
 
-### 📌 الخطوة 2: وصف الخطوة
-شرح الخطوة الثانية
+### 📌 الخطوة 2: اختيار الطريقة المناسبة
+لماذا هذه الطريقة وكيف نطبقها مع الصيغة الرياضية:
+$$\\\\text{الصيغة} = ...$$
 
-### ✅ النتيجة
-$$\\boxed{النتيجة النهائية}$$
+### 📌 الخطوة 3: الحساب التفصيلي
+كل عملية حسابية مع شرحها:
+$$\\\\lim_{x \\\\to a} f(x) = ...$$
 
-نقاط مهمة:
-- كل "difficulty" هي قيمة من 1 إلى 5 (1=سهل جداً، 5=صعب جداً)
-- جميع النصوص يجب أن تكون بالعربية
-- التمارين يجب أن تكون حصراً حول "${lessonTitle}"
-- متنوع الصعوبة بين التمارين الخمسة`;
+### 📌 الخطوة 4: التحقق
+نتأكد من النتيجة بطريقة بديلة أو منطقياً.
+
+### ✅ النتيجة النهائية
+$$\\\\boxed{\\\\text{النتيجة}}$$
+
+> 💡 **ملاحظة:** نصيحة أو تذكير بقاعدة مفيدة.
+
+⚠️ شروط إلزامية:
+- "difficulty" قيمة من 1 إلى 5
+- جميع النصوص بالعربية
+- استعمل \\\\boxed{} وليس boxed{} (الـ backslash مهم!)
+- LaTeX داخل $$...$$ للصيغ المنفصلة و $...$ للصيغ داخل النص
+- الحل يجب أن يحتوي على 3 خطوات على الأقل + نتيجة في \\\\boxed{}
+- التمارين متنوعة الصعوبة وحصراً حول "${lessonTitle}"
+- ⚠️ الرد JSON فقط، بدون \`\`\`json أو أي نص آخر`;
 
   const rawContent = await generateWithAI(systemPrompt, userPrompt);
   
@@ -398,6 +422,7 @@ serve(async (req) => {
         options: quiz.options,
         correct_answer: quiz.correct_answer,
         explanation: quiz.explanation,
+        hint: quiz.hint || null,
         difficulty: quiz.difficulty || 2,
         order_index: startQuizOrder + index,
       }));

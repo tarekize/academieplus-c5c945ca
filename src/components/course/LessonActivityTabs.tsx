@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdaptiveContent } from "@/hooks/useAdaptiveContent";
 import { useActivityTimeTracker } from "@/hooks/useActivityTimeTracker";
 import { HtmlWithMath } from "./HtmlWithMath";
+import { MarkdownSolution } from "./MarkdownSolution";
 
 export interface DBQuizQuestion {
   id: string;
@@ -1028,14 +1029,9 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
           {loading ? "جاري التحميل..." : showSolution ? "إخفاء الحل" : "عرض الحل"}
         </Button>
         {showSolution && (
-          <div className="p-3 bg-muted/50 rounded-lg text-sm space-y-2" dir="rtl">
-            <div><span className="font-medium">الإجابة: </span>{expectedAnswer || "—"}</div>
-            {solution && (
-              <div className="flex flex-col gap-1 border-t pt-2 mt-2 text-right" dir="rtl">
-                <span className="font-medium text-purple-700 dark:text-purple-400">الحل المفصل 🎯</span>
-                <HtmlWithMath htmlContent={solution} className="bg-white dark:bg-black/20 p-3 rounded-md border border-purple-100 dark:border-purple-900/30 text-right" />
-              </div>
-            )}
+          <div className="space-y-2" dir="rtl">
+            <div className="p-3 bg-muted/50 rounded-lg text-sm"><span className="font-medium">الإجابة: </span>{expectedAnswer || "—"}</div>
+            {solution && <MarkdownSolution content={solution} compact />}
           </div>
         )}
       </CardContent>
@@ -1191,8 +1187,8 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
             )}
             {(solution || exercise.solution) && (
               <>
-                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
-                {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{solution || exercise.solution}</div>}
+                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "📖 عرض الحل المفصل"}</Button>
+                {revealed && <MarkdownSolution content={(solution || exercise.solution) as string} compact />}
               </>
             )}
             {!solution && !exercise.solution && result !== null && (
