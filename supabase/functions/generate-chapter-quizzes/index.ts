@@ -47,6 +47,16 @@ function normalizeText(value: string | null | undefined): string {
   return (value || "").replace(/\\n/g, "\n").trim();
 }
 
+function parseGeneratedArray<T>(content: string): T[] {
+  const cleaned = cleanGeneratedJson(content);
+  try {
+    return JSON.parse(cleaned) as T[];
+  } catch {
+    const withoutLatexBackslashes = cleaned.replace(/\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})/g, "");
+    return JSON.parse(withoutLatexBackslashes) as T[];
+  }
+}
+
 // ============ Provider 0: Lovable AI ============
 async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<string> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
