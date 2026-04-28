@@ -240,15 +240,14 @@ async function generateQuizzes(
 - ⚠️ الرد JSON فقط، بدون \`\`\`json أو أي نص آخر`;
 
   const validateQuizzes = (content: string) => {
-    const parsed = JSON.parse(cleanGeneratedJson(content)) as GeneratedQuiz[];
+    const parsed = parseGeneratedArray<GeneratedQuiz>(content);
     if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Invalid quizzes array");
   };
 
   const rawContent = await generateWithAI(systemPrompt, userPrompt, validateQuizzes);
-  const cleanedContent = cleanGeneratedJson(rawContent);
 
   try {
-    const quizzes = JSON.parse(cleanedContent) as GeneratedQuiz[];
+    const quizzes = parseGeneratedArray<GeneratedQuiz>(rawContent);
     return quizzes.filter(q => 
       q.question && q.options && Array.isArray(q.options) && 
       q.correct_answer && q.explanation && typeof q.difficulty === 'number'
@@ -320,15 +319,14 @@ $$\\\\boxed{\\\\text{النتيجة}}$$
 - ⚠️ الرد JSON فقط، بدون \`\`\`json أو أي نص آخر`;
 
   const validateExercises = (content: string) => {
-    const parsed = JSON.parse(cleanGeneratedJson(content)) as GeneratedExercise[];
+    const parsed = parseGeneratedArray<GeneratedExercise>(content);
     if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Invalid exercises array");
   };
 
   const rawContent = await generateWithAI(systemPrompt, userPrompt, validateExercises);
-  const cleanedContent = cleanGeneratedJson(rawContent);
 
   try {
-    const exercises = JSON.parse(cleanedContent) as GeneratedExercise[];
+    const exercises = parseGeneratedArray<GeneratedExercise>(rawContent);
     
     // Validate exercises have required fields
     return exercises.filter(e => 
