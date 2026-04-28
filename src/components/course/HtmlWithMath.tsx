@@ -16,7 +16,12 @@ function escapeHtml(value: string) {
 }
 
 function preprocessMathContent(raw: string) {
-  const content = raw || "";
+  let content = raw || "";
+
+  // Remove \boxed{...} or actual backspace \x08oxed{...} and keep inner content
+  content = content.replace(/\\boxed\{([^{}]+)\}/g, "$1");
+  content = content.replace(/\x08oxed\{([^{}]+)\}/g, "$1");
+
   const normalized = content
     .replace(/([^\n])\$\$/g, "$1\n$$")
     .replace(/\$\$([^\n])/g, "$$\n$1");

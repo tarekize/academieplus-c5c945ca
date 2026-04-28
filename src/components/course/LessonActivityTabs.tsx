@@ -854,8 +854,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                         ))}
                       </div>
                       {aiQuizResults[idx] !== undefined && q.explanation && (
-                        <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl">
-                          <span className="font-medium">الشرح: </span>{q.explanation}
+                        <div className="mt-4 bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700" dir="rtl">
+                          <p className="font-semibold text-sm mb-2 text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                            <BookOpen className="h-4 w-4" /> الشرح:
+                          </p>
+                          <HtmlWithMath htmlContent={q.explanation} className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" />
                         </div>
                       )}
                     </CardContent>
@@ -972,12 +975,18 @@ function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; inde
           {loading ? "جاري التحميل..." : showAnswer ? "إخفاء الحل" : "عرض الحل"}
         </Button>
         {showAnswer && (
-          <div className="p-3 bg-muted/50 rounded-lg text-sm space-y-2" dir="rtl">
-            <div><span className="font-medium">الإجابة الصحيحة: </span>{correctAnswer || "—"}</div>
+          <div className="mt-4 space-y-3" dir="rtl">
+            <div className="p-3 rounded border border-green-200 dark:border-green-700 text-sm bg-green-500/10 text-green-800 dark:text-green-300 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              <span className="font-medium">الإجابة الصحيحة: </span>
+              {correctAnswer ? <HtmlWithMath htmlContent={correctAnswer} /> : "—"}
+            </div>
             {explanation && (
-              <div className="flex gap-1 align-top">
-                <span className="font-medium shrink-0">الشرح: </span>
-                <HtmlWithMath htmlContent={explanation} className="flex-1" />
+              <div className="bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
+                <p className="font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                  <BookOpen className="h-4 w-4" /> الشرح:
+                </p>
+                <HtmlWithMath htmlContent={explanation} />
               </div>
             )}
           </div>
@@ -1046,6 +1055,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
   const [explanation, setExplanation] = useState<string>("");
   const [answered, setAnswered] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
   const handleSelect = async (opt: string) => {
     if (readOnly || answered || submitting) return;
@@ -1084,8 +1094,35 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
             <span className="shrink-0">{index + 1}.</span>
             <HtmlWithMath htmlContent={question.question} className="flex-1 text-right" />
           </div>
-          <DifficultyIndicator level={question.difficulty} />
+          <div className="flex flex-col items-end gap-2">
+            <DifficultyIndicator level={question.difficulty} />
+            {!answered && question.hint && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowHint(v => !v)}
+                className="gap-2 h-7 text-xs border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950 font-semibold"
+              >
+                <Lightbulb className="h-3 w-3" />
+                {showHint ? "إخفاء المساعدة" : "💡 مساعدة"}
+              </Button>
+            )}
+          </div>
         </div>
+
+        {showHint && !answered && question.hint && (
+          <div className="mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700 text-sm" dir="rtl">
+            <div className="flex items-start gap-2">
+              <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+              <div className="flex-1 text-amber-900 dark:text-amber-200">
+                <span className="font-semibold block mb-1">تلميح:</span>
+                <HtmlWithMath htmlContent={question.hint} className="text-right" />
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {question.options.map((opt, oIdx) => (
             <Button key={oIdx}
@@ -1093,14 +1130,23 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
               className={cn("justify-start text-right", correctAnswer && opt === correctAnswer && answered && "border-green-500 bg-green-500/10")}
               onClick={() => handleSelect(opt)}
               disabled={readOnly || answered || submitting}
-              dir="rtl">{opt}</Button>
+              dir="rtl"><HtmlWithMath htmlContent={opt} /></Button>
           ))}
         </div>
         {answered && explanation && (
-          <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl"><span className="font-medium">الشرح: </span>{explanation}</div>
+          <div className="mt-4 bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700" dir="rtl">
+            <p className="font-semibold text-sm mb-2 text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <BookOpen className="h-4 w-4" /> الشرح:
+            </p>
+            <HtmlWithMath htmlContent={explanation} className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" />
+          </div>
         )}
         {answered && !isCorrect && correctAnswer && (
-          <div className="mt-2 p-2 rounded text-sm bg-green-500/10 text-green-700" dir="rtl">✅ الإجابة الصحيحة: {correctAnswer}</div>
+          <div className="mt-2 p-3 rounded border border-green-200 dark:border-green-700 text-sm bg-green-500/10 text-green-800 dark:text-green-300 flex items-center gap-2" dir="rtl">
+            <CheckCircle2 className="h-4 w-4" />
+            <span className="font-medium">الإجابة الصحيحة:</span>
+            <HtmlWithMath htmlContent={correctAnswer} />
+          </div>
         )}
       </CardContent>
     </Card>
