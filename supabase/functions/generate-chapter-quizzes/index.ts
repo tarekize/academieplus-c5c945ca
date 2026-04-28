@@ -223,17 +223,13 @@ async function generateQuizzes(
 - نوّع الصعوبة بين الأسئلة الـ5
 - ⚠️ الرد JSON فقط، بدون \`\`\`json أو أي نص آخر`;
 
-  const rawContent = await generateWithAI(systemPrompt, userPrompt);
-  
-  let cleanedContent = rawContent
-    .replace(/```json\s*/gi, "")
-    .replace(/```\s*/gi, "")
-    .trim();
+  const validateQuizzes = (content: string) => {
+    const parsed = JSON.parse(cleanGeneratedJson(content)) as GeneratedQuiz[];
+    if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Invalid quizzes array");
+  };
 
-  const jsonMatch = cleanedContent.match(/\[\s*\{[\s\S]*\}\s*\]/);
-  if (jsonMatch) {
-    cleanedContent = jsonMatch[0];
-  }
+  const rawContent = await generateWithAI(systemPrompt, userPrompt, validateQuizzes);
+  const cleanedContent = cleanGeneratedJson(rawContent);
 
   try {
     const quizzes = JSON.parse(cleanedContent) as GeneratedQuiz[];
@@ -242,7 +238,7 @@ async function generateQuizzes(
       q.correct_answer && q.explanation && typeof q.difficulty === 'number'
     ).slice(0, 5);
   } catch (parseError) {
-    console.error("Failed to parse quizzes JSON:", parseError, "Raw:", rawContent.substring(0, 500));
+    console.error("Failed to parse quizzes JSON after all providers:", parseError, "Raw:", rawContent.substring(0, 500));
     throw new Error(`Failed to parse generated quizzes: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
   }
 }
@@ -300,19 +296,13 @@ $$\\\\boxed{\\\\text{النتيجة}}$$
 - التمارين متنوعة الصعوبة وحصراً حول "${lessonTitle}"
 - ⚠️ الرد JSON فقط، بدون \`\`\`json أو أي نص آخر`;
 
-  const rawContent = await generateWithAI(systemPrompt, userPrompt);
-  
-  // Clean up markdown code fences if present
-  let cleanedContent = rawContent
-    .replace(/```json\s*/gi, "")
-    .replace(/```\s*/gi, "")
-    .trim();
+  const validateExercises = (content: string) => {
+    const parsed = JSON.parse(cleanGeneratedJson(content)) as GeneratedExercise[];
+    if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Invalid exercises array");
+  };
 
-  // Try to extract JSON from text if it's wrapped
-  const jsonMatch = cleanedContent.match(/\[\s*\{[\s\S]*\}\s*\]/);
-  if (jsonMatch) {
-    cleanedContent = jsonMatch[0];
-  }
+  const rawContent = await generateWithAI(systemPrompt, userPrompt, validateExercises);
+  const cleanedContent = cleanGeneratedJson(rawContent);
 
   try {
     const exercises = JSON.parse(cleanedContent) as GeneratedExercise[];
@@ -323,7 +313,7 @@ $$\\\\boxed{\\\\text{النتيجة}}$$
       e.hint && e.solution && typeof e.difficulty === 'number'
     ).slice(0, 5);
   } catch (parseError) {
-    console.error("Failed to parse exercises JSON:", parseError);
+    console.error("Failed to parse exercises JSON after all providers:", parseError);
     throw new Error(`Failed to parse generated exercises: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
   }
 }
