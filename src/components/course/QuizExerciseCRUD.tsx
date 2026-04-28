@@ -339,17 +339,44 @@ export function DeleteExerciseButton({ exerciseId, onDeleted }: { exerciseId: st
 // ---- Generate with AI button ----
 export function GenerateQuizExercisesButton({ chapterId, lessonId, onGenerated }: { chapterId: string; lessonId?: string; onGenerated: () => void }) {
   const [loading, setLoading] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [mode, setMode] = useState<"append" | "replace">("append");
 
   const handleGenerate = async () => {
     setLoading(true);
     try {
+      // If mode is replace, delete existing exercises and quizzes first
+      if (mode === "replace") {
+        let deleteQuizzesQuery = supabase.from("chapter_quizzes").delete().eq("chapter_id", chapterId);
+        let deleteExercisesQuery = supabase.from("chapter_exercises").delete().eq("chapter_id", chapterId);
+        
+        if (lessonId) {
+          deleteQuizzesQuery = deleteQuizzesQuery.eq("lesson_id", lessonId);
+          deleteExercisesQuery = deleteExercisesQuery.eq("lesson_id", lessonId);
+        } else {
+          deleteQuizzesQuery = deleteQuizzesQuery.is("lesson_id", null);
+          deleteExercisesQuery = deleteExercisesQuery.is("lesson_id", null);
+        }
+
+        const [delQuizResult, delExerciseResult] = await Promise.all([
+          deleteQuizzesQuery,
+          deleteExercisesQuery,
+        ]);
+
+        if (delQuizResult.error) throw delQuizResult.error;
+        if (delExerciseResult.error) throw delExerciseResult.error;
+
+        toast.success("تم حذف الأسئلة والتمارين السابقة");
+      }
+
       const { data, error } = await supabase.functions.invoke("generate-chapter-quizzes", {
         body: { chapter_id: chapterId, lesson_id: lessonId ?? null },
       });
       if (error) throw error;
       const quizCount = data?.quizzes ?? 0;
       const exerciseCount = data?.exercises ?? 0;
-      toast.success(`تم إنشاء ${quizCount} أسئلة و ${exerciseCount} تمارين`);
+      toast.success(`تم إنشاء ${quizCount} أسئلة و ${exerciseCount} تمارين بنجاح`);
+      setOpenDialog(false);
       onGenerated();
     } catch (err: any) {
       toast.error(err.message || "خطأ في التوليد");
@@ -359,9 +386,71 @@ export function GenerateQuizExercisesButton({ chapterId, lessonId, onGenerated }
   };
 
   return (
-    <Button variant="outline" size="sm" onClick={handleGenerate} disabled={loading} className="gap-1">
-      {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-      توليد بالذكاء الاصطناعي
-    </Button>
+    <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-1">
+          <Sparkles className="h-3 w-3" />
+          توليد بالذكاء الاصطناعي
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle dir="rtl">توليد الأسئلة والتمارين بالذكاء الاصطناعي</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4" dir="rtl">
+          <p className="text-sm text-muted-foreground">
+            اختر كيفية إضافة الأسئلة والتمارين المولدة:
+          </p>
+          <div className="space-y-3">
+            <div
+              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                mode === "append"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+              }`}
+              onClick={() => setMode("append")}
+            >
+              <h3 className="font-medium mb-1">إضافة (إضافة إلى الموجودة)</h3>
+              <p className="text-xs text-muted-foreground">
+                سيتم إضافة الأسئلة والتمارين الجديدة إلى الموجودة
+              </p>
+            </div>
+            <div
+              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                mode === "replace"
+                  ? "border-destructive bg-destructive/5"
+                  : "border-border hover:border-destructive/50"
+              }`}
+              onClick={() => setMode("replace")}
+            >
+              <h3 className="font-medium mb-1 text-destructive">استبدال (حذف القديمة)</h3>
+              <p className="text-xs text-muted-foreground">
+                سيتم حذف الأسئلة والتمارين الموجودة واستبدالها بأخرى جديدة
+              </p>
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpenDialog(false)}>إلغاء</Button>
+          <Button
+            onClick={handleGenerate}
+            disabled={loading}
+            className={mode === "replace" ? "bg-destructive hover:bg-destructive/90" : ""}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                جاري التوليد...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 mr-2" />
+                توليد
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
