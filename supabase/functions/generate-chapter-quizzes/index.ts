@@ -24,6 +24,23 @@ interface GeneratedExercise {
   difficulty: number;
 }
 
+type AIProvider = {
+  name: string;
+  call: (systemPrompt: string, userPrompt: string) => Promise<string>;
+};
+
+function cleanGeneratedJson(rawContent: string): string {
+  let cleanedContent = rawContent
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*/gi, "")
+    .trim();
+
+  const jsonMatch = cleanedContent.match(/\[\s*\{[\s\S]*\}\s*\]/);
+  if (jsonMatch) cleanedContent = jsonMatch[0];
+
+  return cleanedContent;
+}
+
 // ============ Provider 0: Lovable AI ============
 async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<string> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
