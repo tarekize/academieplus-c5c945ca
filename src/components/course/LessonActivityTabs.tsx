@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdaptiveContent } from "@/hooks/useAdaptiveContent";
 import { useActivityTimeTracker } from "@/hooks/useActivityTimeTracker";
 import { HtmlWithMath } from "./HtmlWithMath";
+import { MarkdownSolution } from "./MarkdownSolution";
 
 export interface DBQuizQuestion {
   id: string;
