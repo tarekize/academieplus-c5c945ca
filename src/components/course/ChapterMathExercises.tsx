@@ -13,6 +13,7 @@ import { HtmlWithMath } from "./HtmlWithMath";
 import { useTimeTracking, formatTime } from "@/hooks/useTimeTracking";
 import { ExerciseFormDialog, DeleteExerciseButton } from "./QuizExerciseCRUD";
 import { supabase } from "@/integrations/supabase/client";
+import { MarkdownSolution } from "./MarkdownSolution";
 
 export interface DBExercise {
   id: string;
@@ -217,74 +218,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
           </Button>
 
           {correctionVisible && solution && (
-            <div className="p-5 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 rounded-lg border-2 border-purple-200 dark:border-purple-700 space-y-4" dir="rtl">
-              <h4 className="font-bold text-lg text-purple-900 dark:text-purple-200 flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                الحل المفصل
-              </h4>
-
-              <div
-                className="solution-content space-y-3 text-right text-sm"
-                style={{
-                  '--color-title': '#7c3aed',
-                  '--color-step': '#6366f1',
-                  '--color-result': '#059669',
-                } as React.CSSProperties}
-              >
-                <style>{`
-                  .solution-content :is(h2, h3) {
-                    font-weight: bold;
-                    color: var(--color-title);
-                    margin-top: 1rem;
-                    margin-bottom: 0.5rem;
-                  }
-                  
-                  .solution-content h2 {
-                    font-size: 1.1rem;
-                    border-bottom: 2px solid var(--color-title);
-                    padding-bottom: 0.5rem;
-                  }
-                  
-                  .solution-content h3 {
-                    font-size: 0.95rem;
-                    padding: 0.5rem;
-                    background: rgba(124, 58, 237, 0.05);
-                    border-right: 4px solid var(--color-step);
-                    border-radius: 4px;
-                  }
-                  
-                  .solution-content p {
-                    line-height: 1.6;
-                    margin: 0.5rem 0;
-                  }
-                  
-                  .solution-content ul, .solution-content ol {
-                    margin: 0.5rem 0;
-                    padding-right: 1.5rem;
-                  }
-                  
-                  .solution-content li {
-                    margin: 0.25rem 0;
-                    line-height: 1.5;
-                  }
-                  
-                  .solution-content code {
-                    background: rgba(99, 102, 241, 0.1);
-                    padding: 0.2rem 0.4rem;
-                    border-radius: 3px;
-                    font-family: 'Monaco', 'Courier New', monospace;
-                  }
-                `}</style>
-
-                <ReactMarkdown
-                  remarkPlugins={[remarkMath, remarkGfm]}
-                  rehypePlugins={[rehypeKatex]}
-                  className="max-w-none prose-sm prose-right dark:prose-invert"
-                >
-                  {solution}
-                </ReactMarkdown>
-              </div>
-            </div>
+            <MarkdownSolution content={solution} />
           )}
 
           <div className="flex gap-3">
