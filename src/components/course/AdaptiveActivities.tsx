@@ -7,6 +7,7 @@ import { Brain, PenTool, BookOpen, Sparkles, RefreshCw, CheckCircle2, XCircle, C
 import { useAdaptiveContent } from "@/hooks/useAdaptiveContent";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HtmlWithMath } from "./HtmlWithMath";
+import { MarkdownSolution } from "./MarkdownSolution";
 
 interface AdaptiveActivitiesProps {
   lessonId: string;
@@ -369,12 +370,10 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                       size="sm"
                       onClick={() => setExerciseRevealed(prev => ({ ...prev, [idx]: !prev[idx] }))}
                     >
-                      {exerciseRevealed[idx] ? "إخفاء الحل" : "عرض الحل"}
+                      {exerciseRevealed[idx] ? "إخفاء الحل" : "📖 عرض الحل المفصل"}
                     </Button>
-                    {exerciseRevealed[idx] && (
-                      <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl">
-                        <span className="font-medium">الحل: </span>{ex.solution}
-                      </div>
+                    {exerciseRevealed[idx] && ex.solution && (
+                      <MarkdownSolution content={ex.solution} compact />
                     )}
                   </CardContent>
                 </Card>
