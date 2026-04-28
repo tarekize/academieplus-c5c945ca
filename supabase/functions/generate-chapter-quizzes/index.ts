@@ -422,6 +422,7 @@ serve(async (req) => {
         options: quiz.options,
         correct_answer: quiz.correct_answer,
         explanation: quiz.explanation,
+        hint: quiz.hint || null,
         difficulty: quiz.difficulty || 2,
         order_index: startQuizOrder + index,
       }));
