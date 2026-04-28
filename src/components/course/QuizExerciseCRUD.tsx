@@ -373,6 +373,7 @@ export function GenerateQuizExercisesButton({ chapterId, lessonId, onGenerated }
         body: { chapter_id: chapterId, lesson_id: lessonId ?? null },
       });
       if (error) throw error;
+      if (data?.success === false) throw new Error(data.error || "خطأ في التوليد");
       const quizCount = data?.quizzes ?? 0;
       const exerciseCount = data?.exercises ?? 0;
       toast.success(`تم إنشاء ${quizCount} أسئلة و ${exerciseCount} تمارين بنجاح`);
