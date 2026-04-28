@@ -500,10 +500,11 @@ serve(async (req) => {
       JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
+        fallback: true,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
+        status: 200,
       }
     );
   }
