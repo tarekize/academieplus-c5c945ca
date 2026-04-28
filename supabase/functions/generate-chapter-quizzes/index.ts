@@ -11,6 +11,7 @@ interface GeneratedQuiz {
   options: string[];
   correct_answer: string;
   explanation: string;
+  hint: string;
   difficulty: number;
 }
 
@@ -197,37 +198,38 @@ async function generateQuizzes(
   chapterTitle: string,
   lessonTitle: string
 ): Promise<GeneratedQuiz[]> {
-  const systemPrompt = `أنت معلم رياضيات جزائري خبير. توليد أسئلة اختبار ذكية (QCM) باللغة العربية. الرد فقط بجدول JSON صحيح، بدون نص أو markdown حول.`;
+  const systemPrompt = `أنت معلم رياضيات جزائري خبير لشعبة العلوم في الثانوية. مهمتك توليد أسئلة اختبار ذكية (QCM) باللغة العربية مع تلميحات (hints) مفيدة. الرد فقط بمصفوفة JSON صحيحة، بدون أي نص خارج JSON.`;
 
   const userPrompt = `
-توليد 5 أسئلة اختبار متعددة الاختيار حول درس "${lessonTitle}" من فصل "${chapterTitle}".
+ولّد 5 أسئلة اختبار متعددة الاختيار حول درس "${lessonTitle}" من فصل "${chapterTitle}".
 
-صيغة JSON المتوقعة (مصفوفة بـ 5 كائنات):
+صيغة JSON المطلوبة (مصفوفة بـ 5 كائنات بالضبط):
 [
   {
-    "question": "السؤال باللغة العربية",
+    "question": "نص السؤال بالعربية (يمكن استعمال LaTeX داخل $...$ أو $$...$$)",
     "options": ["الخيار أ", "الخيار ب", "الخيار ج", "الخيار د"],
-    "correct_answer": "الخيار الصحيح (يجب أن يكون مطابقاً لأحد الخيارات)",
-    "explanation": "شرح قصير باللغة العربية يساعد الطالب على فهم الخطأ",
+    "correct_answer": "النص الكامل للخيار الصحيح (مطابق تماماً لأحد options)",
+    "explanation": "شرح مفصل للحل الصحيح بالعربية، مع خطوات رياضية واضحة (LaTeX)",
+    "hint": "💡 تلميح ذكي يوجّه الطالب نحو الحل دون كشفه (1-2 جملة بالعربية)",
     "difficulty": 2
   }
 ]
 
-نقاط مهمة:
-- كل "difficulty" هي قيمة من 1 إلى 5 (1=سهل جداً، 5=صعب جداً)
-- جميع الأسئلة والإجابات يجب أن تكون بالعربية
-- الأسئلة يجب أن تكون حصراً حول "${lessonTitle}"
-- متنوع الصعوبة بين الأسئلة الخمسة`;
+شروط مهمة:
+- "difficulty" قيمة من 1 إلى 5
+- جميع النصوص بالعربية فقط
+- استعمل LaTeX للصيغ الرياضية: $\\lim_{x\\to 0}$, $\\frac{a}{b}$, $\\sqrt{x}$ ...
+- "hint" يجب أن يعطي توجيهاً (مثلاً: "فكّر في تحليل البسط كفرق مربعين") وليس الإجابة
+- نوّع الصعوبة بين الأسئلة الـ5
+- ⚠️ الرد JSON فقط، بدون \`\`\`json أو أي نص آخر`;
 
   const rawContent = await generateWithAI(systemPrompt, userPrompt);
   
-  // Clean up markdown code fences if present
   let cleanedContent = rawContent
     .replace(/```json\s*/gi, "")
     .replace(/```\s*/gi, "")
     .trim();
 
-  // Try to extract JSON from text if it's wrapped
   const jsonMatch = cleanedContent.match(/\[\s*\{[\s\S]*\}\s*\]/);
   if (jsonMatch) {
     cleanedContent = jsonMatch[0];
@@ -235,14 +237,12 @@ async function generateQuizzes(
 
   try {
     const quizzes = JSON.parse(cleanedContent) as GeneratedQuiz[];
-    
-    // Validate quizzes have required fields
     return quizzes.filter(q => 
       q.question && q.options && Array.isArray(q.options) && 
       q.correct_answer && q.explanation && typeof q.difficulty === 'number'
     ).slice(0, 5);
   } catch (parseError) {
-    console.error("Failed to parse quizzes JSON:", parseError);
+    console.error("Failed to parse quizzes JSON:", parseError, "Raw:", rawContent.substring(0, 500));
     throw new Error(`Failed to parse generated quizzes: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
   }
 }
