@@ -1029,14 +1029,9 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
           {loading ? "جاري التحميل..." : showSolution ? "إخفاء الحل" : "عرض الحل"}
         </Button>
         {showSolution && (
-          <div className="p-3 bg-muted/50 rounded-lg text-sm space-y-2" dir="rtl">
-            <div><span className="font-medium">الإجابة: </span>{expectedAnswer || "—"}</div>
-            {solution && (
-              <div className="flex flex-col gap-1 border-t pt-2 mt-2 text-right" dir="rtl">
-                <span className="font-medium text-purple-700 dark:text-purple-400">الحل المفصل 🎯</span>
-                <HtmlWithMath htmlContent={solution} className="bg-white dark:bg-black/20 p-3 rounded-md border border-purple-100 dark:border-purple-900/30 text-right" />
-              </div>
-            )}
+          <div className="space-y-2" dir="rtl">
+            <div className="p-3 bg-muted/50 rounded-lg text-sm"><span className="font-medium">الإجابة: </span>{expectedAnswer || "—"}</div>
+            {solution && <MarkdownSolution content={solution} compact />}
           </div>
         )}
       </CardContent>
