@@ -24,6 +24,39 @@ interface GeneratedExercise {
   difficulty: number;
 }
 
+type AIProvider = {
+  name: string;
+  call: (systemPrompt: string, userPrompt: string) => Promise<string>;
+};
+
+function cleanGeneratedJson(rawContent: string): string {
+  let cleanedContent = rawContent
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*/gi, "")
+    .trim();
+
+  const jsonMatch = cleanedContent.match(/\[\s*\{[\s\S]*\}\s*\]/);
+  if (jsonMatch) cleanedContent = jsonMatch[0];
+
+  // AI providers often return LaTeX with single backslashes inside JSON strings
+  // (e.g. "\lim", "\frac", "\{", "\uparrow"), which is invalid JSON.
+  return cleanedContent.replace(/\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})/g, "\\\\");
+}
+
+function normalizeText(value: string | null | undefined): string {
+  return (value || "").replace(/\\n/g, "\n").trim();
+}
+
+function parseGeneratedArray<T>(content: string): T[] {
+  const cleaned = cleanGeneratedJson(content);
+  try {
+    return JSON.parse(cleaned) as T[];
+  } catch {
+    const withoutLatexBackslashes = cleaned.replace(/\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})/g, "");
+    return JSON.parse(withoutLatexBackslashes) as T[];
+  }
+}
+
 // ============ Provider 0: Lovable AI ============
 async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<string> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -148,50 +181,33 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<st
 // ============ Unified AI generation with fallback ============
 async function generateWithAI(
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
+  validateJson?: (content: string) => void
 ): Promise<string> {
-  // Provider 0: Lovable AI
-  try {
-    console.log("Trying Lovable AI for content generation...");
-    return await callLovableAI(systemPrompt, userPrompt);
-  } catch (e) {
-    console.error("Lovable AI failed, trying Gemini...", e);
+  const providers: AIProvider[] = [
+    { name: "Lovable AI", call: callLovableAI },
+    { name: "Gemini key 1", call: callGemini },
+    { name: "Groq", call: callGroq },
+    { name: "Gemini key 2", call: callGemini2 },
+  ];
+  const errors: string[] = [];
+
+  for (const provider of providers) {
+    try {
+      console.log(`Trying ${provider.name} for content generation...`);
+      const content = await provider.call(systemPrompt, userPrompt);
+      if (!content.trim()) throw new Error("Empty AI response");
+      if (validateJson) validateJson(content);
+      console.log(`${provider.name} succeeded.`);
+      return content;
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      errors.push(`${provider.name}: ${message}`);
+      console.error(`${provider.name} failed, trying next provider...`, e);
+    }
   }
 
-  // Provider 1: Gemini (1ère clé)
-  try {
-    console.log("Trying Gemini (key 1)...");
-    return await callGemini(systemPrompt, userPrompt);
-  } catch (e) {
-    console.error("Gemini failed, trying Groq...", e);
-  }
-
-  // Provider 2: Groq
-  try {
-    console.log("Trying Groq...");
-    return await callGroq(systemPrompt, userPrompt);
-  } catch (e) {
-    console.error("Groq failed, trying Gemini (key 2)...", e);
-  }
-
-  // Provider 3: Gemini (2e clé) - last resort
-  let lastError: any = null;
-  try {
-    console.log("Trying Gemini (key 2)...");
-    return await callGemini2(systemPrompt, userPrompt);
-  } catch (e) {
-    console.error("Gemini2 failed:", e);
-    lastError = e;
-  }
-
-  const msg = lastError?.message || "";
-  if (msg.includes("402") || msg.toLowerCase().includes("credit")) {
-    throw new Error("⚠️ رصيد Lovable AI نفد. يرجى إضافة رصيد من إعدادات المساحة (Workspace > Usage) أو الانتظار قليلاً.");
-  }
-  if (msg.includes("429") || msg.toLowerCase().includes("rate")) {
-    throw new Error("⚠️ تم تجاوز الحد المسموح به للطلبات. يرجى الانتظار دقيقة والمحاولة مرة أخرى.");
-  }
-  throw new Error("⚠️ جميع خدمات الذكاء الاصطناعي غير متاحة حالياً. يرجى المحاولة لاحقاً.");
+  throw new Error(`⚠️ جميع خدمات الذكاء الاصطناعي غير متاحة أو أعطت JSON غير صالح. التفاصيل: ${errors.join(" | ")}`);
 }
 
 async function generateQuizzes(
@@ -223,26 +239,28 @@ async function generateQuizzes(
 - نوّع الصعوبة بين الأسئلة الـ5
 - ⚠️ الرد JSON فقط، بدون \`\`\`json أو أي نص آخر`;
 
-  const rawContent = await generateWithAI(systemPrompt, userPrompt);
-  
-  let cleanedContent = rawContent
-    .replace(/```json\s*/gi, "")
-    .replace(/```\s*/gi, "")
-    .trim();
+  const validateQuizzes = (content: string) => {
+    const parsed = parseGeneratedArray<GeneratedQuiz>(content);
+    if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Invalid quizzes array");
+  };
 
-  const jsonMatch = cleanedContent.match(/\[\s*\{[\s\S]*\}\s*\]/);
-  if (jsonMatch) {
-    cleanedContent = jsonMatch[0];
-  }
+  const rawContent = await generateWithAI(systemPrompt, userPrompt, validateQuizzes);
 
   try {
-    const quizzes = JSON.parse(cleanedContent) as GeneratedQuiz[];
+    const quizzes = parseGeneratedArray<GeneratedQuiz>(rawContent);
     return quizzes.filter(q => 
       q.question && q.options && Array.isArray(q.options) && 
       q.correct_answer && q.explanation && typeof q.difficulty === 'number'
-    ).slice(0, 5);
+    ).slice(0, 5).map(q => ({
+      ...q,
+      question: normalizeText(q.question),
+      options: q.options.map(option => normalizeText(option)),
+      correct_answer: normalizeText(q.correct_answer),
+      explanation: normalizeText(q.explanation),
+      hint: normalizeText(q.hint),
+    }));
   } catch (parseError) {
-    console.error("Failed to parse quizzes JSON:", parseError, "Raw:", rawContent.substring(0, 500));
+    console.error("Failed to parse quizzes JSON after all providers:", parseError, "Raw:", rawContent.substring(0, 500));
     throw new Error(`Failed to parse generated quizzes: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
   }
 }
@@ -300,30 +318,30 @@ $$\\\\boxed{\\\\text{النتيجة}}$$
 - التمارين متنوعة الصعوبة وحصراً حول "${lessonTitle}"
 - ⚠️ الرد JSON فقط، بدون \`\`\`json أو أي نص آخر`;
 
-  const rawContent = await generateWithAI(systemPrompt, userPrompt);
-  
-  // Clean up markdown code fences if present
-  let cleanedContent = rawContent
-    .replace(/```json\s*/gi, "")
-    .replace(/```\s*/gi, "")
-    .trim();
+  const validateExercises = (content: string) => {
+    const parsed = parseGeneratedArray<GeneratedExercise>(content);
+    if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Invalid exercises array");
+  };
 
-  // Try to extract JSON from text if it's wrapped
-  const jsonMatch = cleanedContent.match(/\[\s*\{[\s\S]*\}\s*\]/);
-  if (jsonMatch) {
-    cleanedContent = jsonMatch[0];
-  }
+  const rawContent = await generateWithAI(systemPrompt, userPrompt, validateExercises);
 
   try {
-    const exercises = JSON.parse(cleanedContent) as GeneratedExercise[];
+    const exercises = parseGeneratedArray<GeneratedExercise>(rawContent);
     
     // Validate exercises have required fields
     return exercises.filter(e => 
       e.title && e.statement && e.expected_answer && 
       e.hint && e.solution && typeof e.difficulty === 'number'
-    ).slice(0, 5);
+    ).slice(0, 5).map(e => ({
+      ...e,
+      title: normalizeText(e.title),
+      statement: normalizeText(e.statement),
+      expected_answer: normalizeText(e.expected_answer),
+      hint: normalizeText(e.hint),
+      solution: normalizeText(e.solution),
+    }));
   } catch (parseError) {
-    console.error("Failed to parse exercises JSON:", parseError);
+    console.error("Failed to parse exercises JSON after all providers:", parseError);
     throw new Error(`Failed to parse generated exercises: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
   }
 }
@@ -382,11 +400,9 @@ serve(async (req) => {
 
     console.log(`Generating for chapter: ${chapterTitle}, lesson: ${lessonTitle}`);
 
-    // Generate quizzes and exercises
-    const [quizzes, exercises] = await Promise.all([
-      generateQuizzes(chapterTitle, lessonTitle),
-      generateExercises(chapterTitle, lessonTitle),
-    ]);
+    // Generate sequentially to avoid provider rate limits (especially Groq/Gemini) when fallbacks are used
+    const quizzes = await generateQuizzes(chapterTitle, lessonTitle);
+    const exercises = await generateExercises(chapterTitle, lessonTitle);
 
     // Calculate current max order_index for quizzes
     let startQuizOrder = 1;
@@ -510,10 +526,11 @@ serve(async (req) => {
       JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
+        fallback: true,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
+        status: 200,
       }
     );
   }
