@@ -1191,8 +1191,8 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
             )}
             {(solution || exercise.solution) && (
               <>
-                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
-                {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{solution || exercise.solution}</div>}
+                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "📖 عرض الحل المفصل"}</Button>
+                {revealed && <MarkdownSolution content={(solution || exercise.solution) as string} compact />}
               </>
             )}
             {!solution && !exercise.solution && result !== null && (
