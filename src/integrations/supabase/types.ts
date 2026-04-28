@@ -983,12 +983,15 @@ export type Database = {
       get_student_exercises: {
         Args: { _chapter_id: string; _lesson_id?: string }
         Returns: {
+          accepted_answers: Json
           chapter_id: string
           difficulty: number
+          expected_answer: string
           hint: string
           id: string
           lesson_id: string
           order_index: number
+          solution: string
           statement: string
           title: string
         }[]
@@ -997,7 +1000,9 @@ export type Database = {
         Args: { _chapter_id: string; _lesson_id?: string }
         Returns: {
           chapter_id: string
+          correct_answer: string
           difficulty: number
+          explanation: string
           hint: string
           id: string
           lesson_id: string
