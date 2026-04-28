@@ -242,7 +242,14 @@ async function generateQuizzes(
     return quizzes.filter(q => 
       q.question && q.options && Array.isArray(q.options) && 
       q.correct_answer && q.explanation && typeof q.difficulty === 'number'
-    ).slice(0, 5);
+    ).slice(0, 5).map(q => ({
+      ...q,
+      question: normalizeText(q.question),
+      options: q.options.map(option => normalizeText(option)),
+      correct_answer: normalizeText(q.correct_answer),
+      explanation: normalizeText(q.explanation),
+      hint: normalizeText(q.hint),
+    }));
   } catch (parseError) {
     console.error("Failed to parse quizzes JSON after all providers:", parseError, "Raw:", rawContent.substring(0, 500));
     throw new Error(`Failed to parse generated quizzes: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
@@ -317,7 +324,14 @@ $$\\\\boxed{\\\\text{النتيجة}}$$
     return exercises.filter(e => 
       e.title && e.statement && e.expected_answer && 
       e.hint && e.solution && typeof e.difficulty === 'number'
-    ).slice(0, 5);
+    ).slice(0, 5).map(e => ({
+      ...e,
+      title: normalizeText(e.title),
+      statement: normalizeText(e.statement),
+      expected_answer: normalizeText(e.expected_answer),
+      hint: normalizeText(e.hint),
+      solution: normalizeText(e.solution),
+    }));
   } catch (parseError) {
     console.error("Failed to parse exercises JSON after all providers:", parseError);
     throw new Error(`Failed to parse generated exercises: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
