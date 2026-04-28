@@ -38,7 +38,13 @@ function cleanGeneratedJson(rawContent: string): string {
   const jsonMatch = cleanedContent.match(/\[\s*\{[\s\S]*\}\s*\]/);
   if (jsonMatch) cleanedContent = jsonMatch[0];
 
-  return cleanedContent;
+  // AI providers often return LaTeX with single backslashes inside JSON strings
+  // (e.g. "\lim", "\frac"), which is invalid JSON. Escape those safely.
+  return cleanedContent.replace(/\\(?=[A-Za-z])/g, "\\\\");
+}
+
+function normalizeText(value: string | null | undefined): string {
+  return (value || "").replace(/\\n/g, "\n").trim();
 }
 
 // ============ Provider 0: Lovable AI ============
