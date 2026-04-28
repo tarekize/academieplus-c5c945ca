@@ -165,50 +165,33 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<st
 // ============ Unified AI generation with fallback ============
 async function generateWithAI(
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
+  validateJson?: (content: string) => void
 ): Promise<string> {
-  // Provider 0: Lovable AI
-  try {
-    console.log("Trying Lovable AI for content generation...");
-    return await callLovableAI(systemPrompt, userPrompt);
-  } catch (e) {
-    console.error("Lovable AI failed, trying Gemini...", e);
+  const providers: AIProvider[] = [
+    { name: "Lovable AI", call: callLovableAI },
+    { name: "Gemini key 1", call: callGemini },
+    { name: "Groq", call: callGroq },
+    { name: "Gemini key 2", call: callGemini2 },
+  ];
+  const errors: string[] = [];
+
+  for (const provider of providers) {
+    try {
+      console.log(`Trying ${provider.name} for content generation...`);
+      const content = await provider.call(systemPrompt, userPrompt);
+      if (!content.trim()) throw new Error("Empty AI response");
+      if (validateJson) validateJson(content);
+      console.log(`${provider.name} succeeded.`);
+      return content;
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      errors.push(`${provider.name}: ${message}`);
+      console.error(`${provider.name} failed, trying next provider...`, e);
+    }
   }
 
-  // Provider 1: Gemini (1ère clé)
-  try {
-    console.log("Trying Gemini (key 1)...");
-    return await callGemini(systemPrompt, userPrompt);
-  } catch (e) {
-    console.error("Gemini failed, trying Groq...", e);
-  }
-
-  // Provider 2: Groq
-  try {
-    console.log("Trying Groq...");
-    return await callGroq(systemPrompt, userPrompt);
-  } catch (e) {
-    console.error("Groq failed, trying Gemini (key 2)...", e);
-  }
-
-  // Provider 3: Gemini (2e clé) - last resort
-  let lastError: any = null;
-  try {
-    console.log("Trying Gemini (key 2)...");
-    return await callGemini2(systemPrompt, userPrompt);
-  } catch (e) {
-    console.error("Gemini2 failed:", e);
-    lastError = e;
-  }
-
-  const msg = lastError?.message || "";
-  if (msg.includes("402") || msg.toLowerCase().includes("credit")) {
-    throw new Error("⚠️ رصيد Lovable AI نفد. يرجى إضافة رصيد من إعدادات المساحة (Workspace > Usage) أو الانتظار قليلاً.");
-  }
-  if (msg.includes("429") || msg.toLowerCase().includes("rate")) {
-    throw new Error("⚠️ تم تجاوز الحد المسموح به للطلبات. يرجى الانتظار دقيقة والمحاولة مرة أخرى.");
-  }
-  throw new Error("⚠️ جميع خدمات الذكاء الاصطناعي غير متاحة حالياً. يرجى المحاولة لاحقاً.");
+  throw new Error(`⚠️ جميع خدمات الذكاء الاصطناعي غير متاحة أو أعطت JSON غير صالح. التفاصيل: ${errors.join(" | ")}`);
 }
 
 async function generateQuizzes(
