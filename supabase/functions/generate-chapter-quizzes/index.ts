@@ -63,7 +63,7 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<str
     throw new Error("GEMINI_API_KEY not configured");
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
   
   const response = await fetch(url, {
     method: "POST",
@@ -122,7 +122,7 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<st
   const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
   if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY_2}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY_2}`;
   
   const response = await fetch(url, {
     method: "POST",
@@ -174,13 +174,23 @@ async function generateWithAI(
   }
 
   // Provider 3: Gemini (2e clé) - last resort
+  let lastError: any = null;
   try {
     console.log("Trying Gemini (key 2)...");
     return await callGemini2(systemPrompt, userPrompt);
   } catch (e) {
     console.error("Gemini2 failed:", e);
-    throw new Error("جميع خدمات الذكاء الاصطناعي غير متاحة حالياً. يرجى المحاولة لاحقاً.");
+    lastError = e;
   }
+
+  const msg = lastError?.message || "";
+  if (msg.includes("402") || msg.toLowerCase().includes("credit")) {
+    throw new Error("⚠️ رصيد Lovable AI نفد. يرجى إضافة رصيد من إعدادات المساحة (Workspace > Usage) أو الانتظار قليلاً.");
+  }
+  if (msg.includes("429") || msg.toLowerCase().includes("rate")) {
+    throw new Error("⚠️ تم تجاوز الحد المسموح به للطلبات. يرجى الانتظار دقيقة والمحاولة مرة أخرى.");
+  }
+  throw new Error("⚠️ جميع خدمات الذكاء الاصطناعي غير متاحة حالياً. يرجى المحاولة لاحقاً.");
 }
 
 async function generateQuizzes(
