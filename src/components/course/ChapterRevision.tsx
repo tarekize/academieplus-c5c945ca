@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, BookOpen, Loader2, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import MarkdownSolution from "@/components/course/MarkdownSolution";
+import { MarkdownSolution } from "@/components/course/MarkdownSolution";
 
 interface ChapterRevisionProps {
   chapter: any;
