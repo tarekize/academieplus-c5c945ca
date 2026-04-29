@@ -40,6 +40,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         setLessonContent("");
         setActiveSectionLabel(null);
         setActiveSection(null);
+        setShowRevision(false);
     }, [chapter.id]);
 
     useEffect(() => {
