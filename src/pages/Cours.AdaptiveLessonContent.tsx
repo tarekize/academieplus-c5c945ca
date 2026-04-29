@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { TableOfContents } from "@/components/course/TableOfContents";
 import { injectHeaderIds } from "@/lib/toc-utils";
 import { LessonActivityTabs } from "@/components/course/LessonActivityTabs";
+import { ChapterRevision } from "@/components/course/ChapterRevision";
+import { Sparkles } from "lucide-react";
 import {
     Breadcrumb,
     BreadcrumbItem,
