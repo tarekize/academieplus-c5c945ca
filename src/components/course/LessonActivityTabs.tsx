@@ -20,6 +20,7 @@ export interface DBQuizQuestion {
   options: string[];
   correct_answer: string;
   explanation?: string;
+  hint?: string | null;
   difficulty?: number;
 }
 
