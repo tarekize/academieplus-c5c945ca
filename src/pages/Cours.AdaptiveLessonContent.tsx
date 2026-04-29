@@ -487,6 +487,15 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         );
     }
 
+    if (showRevision) {
+        return (
+            <>
+                {renderBreadcrumb()}
+                <ChapterRevision chapter={chapter} onBack={() => setShowRevision(false)} />
+            </>
+        );
+    }
+
     return (
         <>
             {!selectedLesson ? (
