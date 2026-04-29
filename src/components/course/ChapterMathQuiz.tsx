@@ -279,10 +279,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
               </div>
 
               {explanation && (
-                <div className="bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700">
-                  <p className="font-semibold text-sm mb-2 text-gray-900 dark:text-gray-100">📖 الشرح:</p>
-                  <HtmlWithMath htmlContent={explanation} className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" />
-                </div>
+                <MarkdownSolution content={explanation} title="📖 الشرح المفصل" compact />
               )}
 
               {!isCorrect && correctAnswer && (
