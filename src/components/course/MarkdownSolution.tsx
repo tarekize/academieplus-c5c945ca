@@ -16,10 +16,18 @@ interface MarkdownSolutionProps {
  * Used for exercise/quiz detailed solutions.
  */
 export const MarkdownSolution = ({ content, title = "الحل المفصل", compact = false }: MarkdownSolutionProps) => {
-  // Auto-fix common AI output issues: missing backslash on \boxed
-  const cleaned = (content || "")
-    .replace(/\$\$oxed\{/g, "$$\\boxed{")
-    .replace(/(?<!\\)boxed\{/g, "\\boxed{");
+  // Auto-fix common AI output issues:
+  // - Replace \boxed{X} (or broken "oxed{X}" / "\x08oxed{X}") with a clean highlighted answer
+  //   instead of relying on KaTeX rendering (which often fails outside math delimiters).
+  let cleaned = (content || "")
+    // Strip math delimiters around boxed so we render it as plain markdown
+    .replace(/\$\$\s*\\?boxed\{([^{}]+)\}\s*\$\$/g, "\n\n> ## ✅ **$1**\n\n")
+    .replace(/\$\s*\\?boxed\{([^{}]+)\}\s*\$/g, "**$1**")
+    // Backspace char variants
+    .replace(/\x08oxed\{([^{}]+)\}/g, "**$1**")
+    // Plain \boxed{...} or oxed{...} not wrapped in $...$
+    .replace(/\\boxed\{([^{}]+)\}/g, "**$1**")
+    .replace(/(^|[^a-zA-Z\\])oxed\{([^{}]+)\}/g, "$1**$2**");
 
   return (
     <div
