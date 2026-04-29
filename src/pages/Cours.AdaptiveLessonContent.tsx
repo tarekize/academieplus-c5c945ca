@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { TableOfContents } from "@/components/course/TableOfContents";
 import { injectHeaderIds } from "@/lib/toc-utils";
 import { LessonActivityTabs } from "@/components/course/LessonActivityTabs";
+import { ChapterRevision } from "@/components/course/ChapterRevision";
+import { Sparkles } from "lucide-react";
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -30,6 +32,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const [activeSectionLabel, setActiveSectionLabel] = useState<string | null>(null);
     const [activeSection, setActiveSection] = useState<"exercises" | "quiz" | "revision" | null>(null);
     const [activityResetKey, setActivityResetKey] = useState(0);
+    const [showRevision, setShowRevision] = useState(false);
 
     // Reset when chapter changes
     useEffect(() => {
@@ -37,6 +40,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         setLessonContent("");
         setActiveSectionLabel(null);
         setActiveSection(null);
+        setShowRevision(false);
     }, [chapter.id]);
 
     useEffect(() => {
@@ -226,6 +230,23 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     )}
                 </div>
             ))}
+
+            {/* Chapter-level revision card */}
+            <div
+                className="w-full p-4 mt-4 border-2 border-green-500/30 rounded-lg hover:bg-green-500/5 transition-colors cursor-pointer flex items-center gap-3 bg-gradient-to-r from-green-500/5 to-transparent"
+                onClick={() => setShowRevision(true)}
+            >
+                <span className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-600 shrink-0">
+                    <BookOpen className="h-5 w-5" />
+                </span>
+                <div className="flex-1">
+                    <p className="font-bold text-base flex items-center gap-2">
+                        Révision
+                        <Sparkles className="h-4 w-4 text-green-500" />
+                    </p>
+                    <p className="text-sm text-muted-foreground">Fiches de révision (résumé schématique du chapitre par IA)</p>
+                </div>
+            </div>
         </div>
     );
 
@@ -462,6 +483,15 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                 {showActivityCards && !canManage && renderActivityCards()}
                 {renderNoLesson()}
                 {renderNavigation()}
+            </>
+        );
+    }
+
+    if (showRevision) {
+        return (
+            <>
+                {renderBreadcrumb()}
+                <ChapterRevision chapter={chapter} onBack={() => setShowRevision(false)} />
             </>
         );
     }

@@ -537,7 +537,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
   if (activeSection === null) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
         <Card className="cursor-pointer group hover:shadow-lg hover:border-primary/50 transition-all" onClick={() => handleSectionChange("exercises")}>
           <CardContent className="p-6 flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -561,30 +561,6 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
           </CardContent>
-        </Card>
-        <Card className="cursor-pointer group hover:shadow-lg hover:border-green-500/50 transition-all" onClick={() => handleSectionChange("revision")}>
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-green-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <BookOpen className="h-7 w-7 text-green-500" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-bold">Révision</h3>
-              <p className="text-sm text-muted-foreground">Fiches de révision</p>
-            </div>
-            <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-green-500 transition-colors" />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (activeSection === "revision") {
-    return (
-      <div className="mt-6 space-y-4">
-        {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>← العودة</Button>}
-        <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><BookOpen className="h-5 w-5 text-green-500" /><span>Fiches de révision</span></CardTitle></CardHeader>
-          <CardContent><p className="text-muted-foreground text-center py-8" dir="rtl">بطاقات المراجعة الخاصة بالدرس متوفرة في القسم الذكي أعلاه..</p></CardContent>
         </Card>
       </div>
     );
