@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import LessonMarkdown from "@/components/course/LessonMarkdown";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import { LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
+import { EnrichChapterButton } from "@/components/course/EnrichChapterButton";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, PenTool, BookOpen, ArrowLeft, ChevronLeft } from "lucide-react";
@@ -199,10 +200,18 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     </CardContent>
                 </Card>
             )}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <h3 className="text-lg font-semibold">الدروس - Leçons</h3>
                 {canManage && (
-                    <LessonFormDialog chapterId={chapter.id} onSaved={fetchCourse} />
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <EnrichChapterButton
+                            chapterId={chapter.id}
+                            chapterTitle={chapter.titleAr || chapter.title}
+                            lessonsCount={chapter.lessons?.length || 0}
+                            onDone={fetchCourse}
+                        />
+                        <LessonFormDialog chapterId={chapter.id} onSaved={fetchCourse} />
+                    </div>
                 )}
             </div>
             {chapter.lessons?.map((lesson: any, idx: number) => (

@@ -104,7 +104,7 @@ export type Database = {
           created_at: string
           difficulty_level: number
           id: string
-          lesson_id: string
+          lesson_id: string | null
           updated_at: string
           user_id: string
         }
@@ -115,7 +115,7 @@ export type Database = {
           created_at?: string
           difficulty_level?: number
           id?: string
-          lesson_id: string
+          lesson_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -126,7 +126,7 @@ export type Database = {
           created_at?: string
           difficulty_level?: number
           id?: string
-          lesson_id?: string
+          lesson_id?: string | null
           updated_at?: string
           user_id?: string
         }
