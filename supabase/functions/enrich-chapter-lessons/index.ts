@@ -22,16 +22,15 @@ const SYSTEM_PROMPT = `أنت معلم رياضيات جزائري خبير وم
   • <div class="lesson-card lesson-summary"> → 📌 خلاصة (إطار وردي)
 - لكل بطاقة: <div class="lesson-card-title">العنوان مع الإيموجي</div> ثم <div class="lesson-card-body">المحتوى</div>.
 - استعمل عناوين <h2> و <h3> مرقمة (1. ، 1.1 ...).
-- استعمل جداول HTML <table> عند الحاجة (للنهايات المرجعية، حالات عدم التعيين، إلخ).
+- استعمل جداول HTML <table> عند الحاجة.
 - اشرح كل مفهوم خطوة بخطوة، مع أمثلة محلولة بالتفصيل.
 - لا تختصر المحتوى الموجود، بل أثرِه: أضف تعريفات أوضح، خصائص، أمثلة جديدة، تطبيقات، ملاحظات هامة، أخطاء شائعة، وخلاصة في الأخير.
-- لا تكتب CSS داخل style: الكلاسات (lesson-card, lesson-definition...) معرّفة في الـ frontend.
+- لا تكتب CSS داخل style.
 - ابدأ مباشرة بـ <div dir="rtl"> ... </div>.`;
 
-async function callGemini2Once(systemPrompt: string, userPrompt: string, model: string): Promise<string> {
-  const KEY = Deno.env.get("GEMINI_API_KEY_2");
-  if (!KEY) throw new Error("GEMINI_API_KEY_2 not configured");
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${KEY}`;
+// ===== Provider helpers =====
+async function callGeminiKey(systemPrompt: string, userPrompt: string, model: string, key: string, label: string): Promise<string> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -43,40 +42,106 @@ async function callGemini2Once(systemPrompt: string, userPrompt: string, model: 
   });
   if (!response.ok) {
     const t = await response.text();
-    const err: any = new Error(`Gemini2 (${model}) failed: ${response.status} ${t.slice(0, 200)}`);
+    const err: any = new Error(`${label} (${model}) ${response.status}: ${t.slice(0, 150)}`);
     err.status = response.status;
     throw err;
   }
   const data = await response.json();
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  if (!text.trim()) throw new Error("Empty response from Gemini2");
+  if (!text.trim()) throw new Error(`${label} empty response`);
   return text;
 }
 
-async function callGemini2(systemPrompt: string, userPrompt: string): Promise<string> {
-  // Retry chain: gemini-2.5-flash (3 attempts with backoff) → gemini-2.5-flash-lite (1 attempt)
-  const attempts: Array<{ model: string; delayMs: number }> = [
-    { model: "gemini-2.5-flash", delayMs: 0 },
-    { model: "gemini-2.5-flash", delayMs: 2000 },
-    { model: "gemini-2.5-flash", delayMs: 4000 },
-    { model: "gemini-2.5-flash-lite", delayMs: 1500 },
-  ];
-  let lastErr: any;
-  for (const a of attempts) {
-    if (a.delayMs) await new Promise((r) => setTimeout(r, a.delayMs));
-    try {
-      return await callGemini2Once(systemPrompt, userPrompt, a.model);
-    } catch (e: any) {
-      lastErr = e;
-      const status = e?.status;
-      // Only retry on 503/429/500/502/504
-      if (![429, 500, 502, 503, 504].includes(status)) throw e;
-      console.warn(`Gemini2 attempt failed (${a.model}, status=${status}), retrying...`);
-    }
+async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<string> {
+  const KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (!KEY) throw new Error("LOVABLE_API_KEY not set");
+  const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    const err: any = new Error(`Lovable ${r.status}: ${t.slice(0, 150)}`);
+    err.status = r.status;
+    throw err;
   }
-  throw lastErr;
+  const data = await r.json();
+  const text = data?.choices?.[0]?.message?.content || "";
+  if (!text.trim()) throw new Error("Lovable empty response");
+  return text;
 }
 
+async function callGroq(systemPrompt: string, userPrompt: string): Promise<string> {
+  const KEY = Deno.env.get("GROQ_API_KEY");
+  if (!KEY) throw new Error("GROQ_API_KEY not set");
+  const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      max_tokens: 8000,
+      temperature: 0.6,
+    }),
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    const err: any = new Error(`Groq ${r.status}: ${t.slice(0, 150)}`);
+    err.status = r.status;
+    throw err;
+  }
+  const data = await r.json();
+  const text = data?.choices?.[0]?.message?.content || "";
+  if (!text.trim()) throw new Error("Groq empty response");
+  return text;
+}
+
+// Multi-provider fallback chain (preferred: Gemini Key 2 first as user requested)
+async function generateEnrichedHtml(systemPrompt: string, userPrompt: string): Promise<string> {
+  const GEMINI_2 = Deno.env.get("GEMINI_API_KEY_2");
+  const GEMINI_1 = Deno.env.get("GEMINI_API_KEY");
+  const errors: string[] = [];
+
+  type Step = () => Promise<string>;
+  const steps: Array<{ name: string; run: Step }> = [];
+
+  if (GEMINI_2) {
+    steps.push({ name: "Gemini2/2.5-flash", run: () => callGeminiKey(systemPrompt, userPrompt, "gemini-2.5-flash", GEMINI_2, "Gemini2") });
+    steps.push({ name: "Gemini2/2.5-flash retry", run: async () => { await new Promise(r => setTimeout(r, 2500)); return callGeminiKey(systemPrompt, userPrompt, "gemini-2.5-flash", GEMINI_2, "Gemini2"); } });
+    steps.push({ name: "Gemini2/2.5-flash-lite", run: () => callGeminiKey(systemPrompt, userPrompt, "gemini-2.5-flash-lite", GEMINI_2, "Gemini2") });
+  }
+  if (GEMINI_1) {
+    steps.push({ name: "Gemini1/2.5-flash", run: () => callGeminiKey(systemPrompt, userPrompt, "gemini-2.5-flash", GEMINI_1, "Gemini1") });
+    steps.push({ name: "Gemini1/2.5-flash-lite", run: () => callGeminiKey(systemPrompt, userPrompt, "gemini-2.5-flash-lite", GEMINI_1, "Gemini1") });
+  }
+  steps.push({ name: "LovableAI", run: () => callLovableAI(systemPrompt, userPrompt) });
+  steps.push({ name: "Groq", run: () => callGroq(systemPrompt, userPrompt) });
+
+  for (const s of steps) {
+    try {
+      console.log(`→ Trying provider: ${s.name}`);
+      const out = await s.run();
+      console.log(`✓ Success with ${s.name}`);
+      return out;
+    } catch (e: any) {
+      const msg = e?.message || String(e);
+      console.warn(`✗ ${s.name} failed: ${msg}`);
+      errors.push(`${s.name}: ${msg}`);
+      // Continue to next provider
+    }
+  }
+  throw new Error(`All providers failed. ${errors.join(" | ")}`);
+}
 
 function stripHtml(html: string): string {
   return (html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
@@ -84,7 +149,6 @@ function stripHtml(html: string): string {
 
 function cleanGeneratedHtml(raw: string): string {
   let s = raw.trim();
-  // Remove markdown code fences if present
   s = s.replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/i, "");
   return s.trim();
 }
@@ -93,7 +157,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { chapterId } = await req.json();
+    const { chapterId } = await req.json().catch(() => ({}));
     if (!chapterId) {
       return new Response(
         JSON.stringify({ success: false, error: "chapterId required" }),
@@ -101,20 +165,29 @@ serve(async (req) => {
       );
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceKey) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Supabase env not configured" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Fetch chapter
     const { data: chapter, error: chErr } = await supabase
       .from("chapters")
       .select("id, title, title_ar")
       .eq("id", chapterId)
       .maybeSingle();
     if (chErr) throw chErr;
-    if (!chapter) throw new Error("Chapter not found");
+    if (!chapter) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Chapter not found" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    // Fetch lessons
     const { data: lessons, error: lErr } = await supabase
       .from("lessons")
       .select("id, title, title_ar, content, order_index")
@@ -130,21 +203,20 @@ serve(async (req) => {
 
     const results: Array<{ id: string; title: string; status: "ok" | "error"; error?: string }> = [];
 
-    // Sequential to avoid hitting rate limits
     for (const lesson of lessons) {
       const lessonTitle = lesson.title_ar || lesson.title;
-      const existing = stripHtml(lesson.content || "").slice(0, 4000);
+      const existing = stripHtml(lesson.content || "").slice(0, 3500);
 
       const userPrompt = `الفصل: ${chapter.title_ar || chapter.title}
 الدرس: ${lessonTitle}
 
 المحتوى الحالي للدرس (للاستئناس فقط، أعد بناءه وأثرِه بالكامل):
-${existing || "(لا يوجد محتوى حالي - أنشئ درساً كاملاً من الصفر بناءً على عنوان الدرس)"}
+${existing || "(لا يوجد محتوى حالي - أنشئ درساً كاملاً من الصفر)"}
 
 أنشئ الآن المحتوى المُثرى الكامل لهذا الدرس على شكل HTML جميل ومنظم حسب التعليمات.`;
 
       try {
-        const raw = await callGemini2(SYSTEM_PROMPT, userPrompt);
+        const raw = await generateEnrichedHtml(SYSTEM_PROMPT, userPrompt);
         const html = cleanGeneratedHtml(raw);
 
         const { error: upErr } = await supabase
@@ -161,8 +233,7 @@ ${existing || "(لا يوجد محتوى حالي - أنشئ درساً كامل
         results.push({ id: lesson.id, title: lessonTitle, status: "error", error: msg });
       }
 
-      // Small delay between calls to be gentle with rate limits
-      await new Promise((r) => setTimeout(r, 800));
+      await new Promise((r) => setTimeout(r, 1000));
     }
 
     const okCount = results.filter((r) => r.status === "ok").length;
@@ -178,7 +249,7 @@ ${existing || "(لا يوجد محتوى حالي - أنشئ درساً كامل
     );
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    console.error("enrich-chapter-lessons error:", msg);
+    console.error("enrich-chapter-lessons fatal:", msg);
     return new Response(
       JSON.stringify({ success: false, error: msg }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
