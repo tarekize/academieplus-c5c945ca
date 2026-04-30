@@ -364,3 +364,69 @@ All colors MUST be HSL.
   text-align: center;
   white-space: nowrap;
 }
+
+/* ===== Lesson enrichment cards (AI-generated, RTL) ===== */
+.lesson-card {
+  border-radius: 0.75rem;
+  padding: 1rem 1.1rem;
+  margin: 1rem 0;
+  border: 1px solid transparent;
+  background: hsl(var(--card));
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04);
+  direction: rtl;
+}
+.lesson-card .lesson-card-title {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.lesson-card .lesson-card-body {
+  line-height: 1.85;
+  font-size: 0.95rem;
+}
+.lesson-card .lesson-card-body p { margin: 0.4em 0; }
+.lesson-card table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.6rem 0;
+  font-size: 0.9rem;
+}
+.lesson-card th, .lesson-card td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.45rem 0.6rem;
+  text-align: center;
+}
+.lesson-card th { background: hsl(var(--muted)); font-weight: 600; }
+
+/* Definition - blue */
+.lesson-definition { background: hsl(217 91% 97%); border-color: hsl(217 91% 80%); border-right: 4px solid hsl(217 91% 55%); }
+.lesson-definition .lesson-card-title { color: hsl(217 91% 40%); }
+/* Property / theorem - purple */
+.lesson-property { background: hsl(270 70% 97%); border-color: hsl(270 60% 82%); border-right: 4px solid hsl(270 70% 55%); }
+.lesson-property .lesson-card-title { color: hsl(270 70% 40%); }
+/* Note - yellow */
+.lesson-note { background: hsl(45 95% 96%); border-color: hsl(45 85% 75%); border-right: 4px solid hsl(38 92% 50%); }
+.lesson-note .lesson-card-title { color: hsl(35 90% 38%); }
+/* Example - light grey */
+.lesson-example { background: hsl(220 15% 97%); border-color: hsl(220 15% 85%); border-right: 4px solid hsl(220 15% 55%); }
+.lesson-example .lesson-card-title { color: hsl(220 25% 30%); }
+/* Application - green */
+.lesson-application { background: hsl(150 60% 96%); border-color: hsl(150 50% 75%); border-right: 4px solid hsl(150 60% 40%); }
+.lesson-application .lesson-card-title { color: hsl(150 70% 28%); }
+/* Method - orange */
+.lesson-method { background: hsl(25 95% 96%); border-color: hsl(25 90% 78%); border-right: 4px solid hsl(25 90% 55%); }
+.lesson-method .lesson-card-title { color: hsl(20 90% 40%); }
+/* Summary - pink */
+.lesson-summary { background: hsl(330 80% 97%); border-color: hsl(330 70% 82%); border-right: 4px solid hsl(330 75% 55%); }
+.lesson-summary .lesson-card-title { color: hsl(330 70% 40%); }
+
+.dark .lesson-definition { background: hsl(217 50% 14%); border-color: hsl(217 50% 28%); }
+.dark .lesson-property { background: hsl(270 40% 14%); border-color: hsl(270 40% 28%); }
+.dark .lesson-note { background: hsl(38 40% 14%); border-color: hsl(38 40% 28%); }
+.dark .lesson-example { background: hsl(220 15% 14%); border-color: hsl(220 15% 25%); }
+.dark .lesson-application { background: hsl(150 30% 12%); border-color: hsl(150 30% 25%); }
+.dark .lesson-method { background: hsl(25 40% 13%); border-color: hsl(25 40% 26%); }
+.dark .lesson-summary { background: hsl(330 35% 14%); border-color: hsl(330 35% 26%); }
