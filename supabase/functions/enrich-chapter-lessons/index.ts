@@ -28,10 +28,10 @@ const SYSTEM_PROMPT = `أنت معلم رياضيات جزائري خبير وم
 - لا تكتب CSS داخل style: الكلاسات (lesson-card, lesson-definition...) معرّفة في الـ frontend.
 - ابدأ مباشرة بـ <div dir="rtl"> ... </div>.`;
 
-async function callGemini2(systemPrompt: string, userPrompt: string): Promise<string> {
+async function callGemini2Once(systemPrompt: string, userPrompt: string, model: string): Promise<string> {
   const KEY = Deno.env.get("GEMINI_API_KEY_2");
   if (!KEY) throw new Error("GEMINI_API_KEY_2 not configured");
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${KEY}`;
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -43,13 +43,40 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<st
   });
   if (!response.ok) {
     const t = await response.text();
-    throw new Error(`Gemini2 failed: ${response.status} ${t.slice(0, 200)}`);
+    const err: any = new Error(`Gemini2 (${model}) failed: ${response.status} ${t.slice(0, 200)}`);
+    err.status = response.status;
+    throw err;
   }
   const data = await response.json();
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
   if (!text.trim()) throw new Error("Empty response from Gemini2");
   return text;
 }
+
+async function callGemini2(systemPrompt: string, userPrompt: string): Promise<string> {
+  // Retry chain: gemini-2.5-flash (3 attempts with backoff) → gemini-2.5-flash-lite (1 attempt)
+  const attempts: Array<{ model: string; delayMs: number }> = [
+    { model: "gemini-2.5-flash", delayMs: 0 },
+    { model: "gemini-2.5-flash", delayMs: 2000 },
+    { model: "gemini-2.5-flash", delayMs: 4000 },
+    { model: "gemini-2.5-flash-lite", delayMs: 1500 },
+  ];
+  let lastErr: any;
+  for (const a of attempts) {
+    if (a.delayMs) await new Promise((r) => setTimeout(r, a.delayMs));
+    try {
+      return await callGemini2Once(systemPrompt, userPrompt, a.model);
+    } catch (e: any) {
+      lastErr = e;
+      const status = e?.status;
+      // Only retry on 503/429/500/502/504
+      if (![429, 500, 502, 503, 504].includes(status)) throw e;
+      console.warn(`Gemini2 attempt failed (${a.model}, status=${status}), retrying...`);
+    }
+  }
+  throw lastErr;
+}
+
 
 function stripHtml(html: string): string {
   return (html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
