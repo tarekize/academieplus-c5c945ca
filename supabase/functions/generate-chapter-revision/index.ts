@@ -17,13 +17,13 @@ async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<
     method: "POST",
     headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: "google/gemini-3-flash-preview",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
       temperature: 0.6,
-      max_tokens: 6000,
+      max_tokens: 3000,
     }),
   });
   if (!response.ok) {
@@ -37,17 +37,20 @@ async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<
 async function callGemini(systemPrompt: string, userPrompt: string): Promise<string> {
   const KEY = Deno.env.get("GEMINI_API_KEY");
   if (!KEY) throw new Error("GEMINI_API_KEY not configured");
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${KEY}`;
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       system_instruction: { parts: [{ text: systemPrompt }] },
       contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: { temperature: 0.6, maxOutputTokens: 6000 },
+      generationConfig: { temperature: 0.6, maxOutputTokens: 3000 },
     }),
   });
-  if (!response.ok) throw new Error(`Gemini failed: ${response.status}`);
+  if (!response.ok) {
+    const t = await response.text();
+    throw new Error(`Gemini failed: ${response.status} ${t}`);
+  }
   const data = await response.json();
   return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }
@@ -65,10 +68,13 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<strin
         { role: "user", content: userPrompt },
       ],
       temperature: 0.6,
-      max_tokens: 6000,
+      max_tokens: 2000,
     }),
   });
-  if (!response.ok) throw new Error(`Groq failed: ${response.status}`);
+  if (!response.ok) {
+    const t = await response.text();
+    throw new Error(`Groq failed: ${response.status} ${t}`);
+  }
   const data = await response.json();
   return data?.choices?.[0]?.message?.content || "";
 }
@@ -76,17 +82,20 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<strin
 async function callGemini2(systemPrompt: string, userPrompt: string): Promise<string> {
   const KEY = Deno.env.get("GEMINI_API_KEY_2");
   if (!KEY) throw new Error("GEMINI_API_KEY_2 not configured");
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${KEY}`;
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       system_instruction: { parts: [{ text: systemPrompt }] },
       contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: { temperature: 0.6, maxOutputTokens: 6000 },
+      generationConfig: { temperature: 0.6, maxOutputTokens: 3000 },
     }),
   });
-  if (!response.ok) throw new Error(`Gemini2 failed: ${response.status}`);
+  if (!response.ok) {
+    const t = await response.text();
+    throw new Error(`Gemini2 failed: ${response.status} ${t}`);
+  }
   const data = await response.json();
   return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }
@@ -134,7 +143,7 @@ serve(async (req) => {
     const lessonsBlock = lessons
       .map((l: any, i: number) => {
         const title = l.titleAr || l.title || `الدرس ${i + 1}`;
-        const body = stripHtml(l.content || "").slice(0, 2500);
+        const body = stripHtml(l.content || "").slice(0, 1500); // 1500 limit for Groq
         return `### ${i + 1}. ${title}\n${body || "(لا يوجد محتوى)"}`;
       })
       .join("\n\n");

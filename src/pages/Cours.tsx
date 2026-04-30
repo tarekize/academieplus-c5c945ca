@@ -968,8 +968,8 @@ const Cours = () => {
         )}
       </main>
 
-      {/* Floating Chat Button - Only show when a chapter is active */}
-      {viewMode === "content" && (
+      {/* Floating Chat Button - Only show when a chapter is active and user is not admin/pedago */}
+      {viewMode === "content" && !canManage && (
         <>
           <button
             onClick={() => { setIsChatOpen(!isChatOpen); setIsChatExpanded(false); }}
