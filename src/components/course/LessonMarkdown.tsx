@@ -55,8 +55,25 @@ function preprocessContent(raw: string): string {
   return s;
 }
 
+// Detect content that is primarily HTML (e.g. AI-enriched lessons starting with <div dir="rtl">)
+function isHtmlContent(s: string): boolean {
+  const t = (s || "").trim();
+  if (!t) return false;
+  // Strip optional ```html fences
+  const stripped = t.replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  return /^<(div|section|article|main|h[1-6])\b/i.test(stripped);
+}
+
+function stripCodeFences(s: string): string {
+  return (s || "").trim().replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/i, "").trim();
+}
+
 const LessonMarkdown: React.FC<LessonMarkdownProps> = ({ content, dir = "rtl" }) => {
-  const processed = useMemo(() => preprocessContent(content || ""), [content]);
+  const isHtml = useMemo(() => isHtmlContent(content || ""), [content]);
+  const processed = useMemo(
+    () => (isHtml ? stripCodeFences(content || "") : preprocessContent(content || "")),
+    [content, isHtml]
+  );
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -76,6 +93,18 @@ const LessonMarkdown: React.FC<LessonMarkdownProps> = ({ content, dir = "rtl" })
       console.error("KaTeX auto-render error", e);
     }
   }, [processed]);
+
+  if (isHtml) {
+    return (
+      <div
+        ref={containerRef}
+        dir={dir}
+        lang={dir === "rtl" ? "ar" : "fr"}
+        className="lesson-markdown prose prose-slate dark:prose-invert max-w-none"
+        dangerouslySetInnerHTML={{ __html: processed }}
+      />
+    );
+  }
 
   return (
     <div
