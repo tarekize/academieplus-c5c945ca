@@ -212,6 +212,12 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                             lessons={chapter.lessons || []}
                             onDone={fetchCourse}
                         />
+                        <CompleteChapterActivitiesButton
+                            chapterId={chapter.id}
+                            chapterTitleAr={chapter.titleAr || chapter.title}
+                            lessons={chapter.lessons || []}
+                            onDone={() => { fetchCourse?.(); fetchQuizExercises?.(null); }}
+                        />
                         <LessonFormDialog chapterId={chapter.id} onSaved={fetchCourse} />
                     </div>
                 )}
