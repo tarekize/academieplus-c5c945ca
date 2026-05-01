@@ -17,7 +17,6 @@ interface Props {
   onDone?: () => void;
 }
 
-const SHARED_TOKEN = "tx_terminale_2026_bulk_xY9";
 const TARGET = 10;
 
 export function CompleteChapterActivitiesButton({ chapterId, chapterTitleAr, lessons, onDone }: Props) {
@@ -79,7 +78,6 @@ export function CompleteChapterActivitiesButton({ chapterId, chapterTitleAr, les
               lesson_title_fr: lesson.title,
               chapter_title_ar: chapterTitleAr,
               replace: true, // remplacer pour atteindre 10/10 proprement
-              shared_token: SHARED_TOKEN,
             },
           });
           if (error) throw error;
