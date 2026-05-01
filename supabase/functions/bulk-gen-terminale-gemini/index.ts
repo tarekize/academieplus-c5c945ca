@@ -12,7 +12,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
 const GEMINI_KEYS = [Deno.env.get("GEMINI_API_KEY_2"), Deno.env.get("GEMINI_API_KEY")].filter(Boolean) as string[];
-const GEMINI_MODELS = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash"];
+const GEMINI_MODELS = ["gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-flash-latest"];
 
 const SYSTEM_PROMPT = `أنت معلم رياضيات خبير للسنة النهائية شعبة العلوم التجريبية في الجزائر.
 مهمتك: توليد 10 تمارين و 10 أسئلة اختيار من متعدد لدرس معطى، باللغة العربية، بمستوى مناسب للبكالوريا.
@@ -64,31 +64,39 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<any
       for (let attempt = 0; attempt < 3; attempt += 1) {
         try {
           const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+          const generationConfig: any = {
+            responseMimeType: "application/json",
+            temperature: 0.55,
+            maxOutputTokens: 32768,
+          };
+          // Disable "thinking" budget on 2.5 models so all tokens go to the actual answer
+          if (model.startsWith("gemini-2.5") || model.includes("flash-latest")) {
+            generationConfig.thinkingConfig = { thinkingBudget: 0 };
+          }
           const resp = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               systemInstruction: { parts: [{ text: systemPrompt }] },
               contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-              generationConfig: {
-                responseMimeType: "application/json",
-                temperature: 0.55,
-                maxOutputTokens: 16384,
-              },
+              generationConfig,
             }),
           });
 
           if (!resp.ok) {
             const txt = await resp.text();
             lastError = `${model} ${resp.status}: ${txt.slice(0, 220)}`;
-            if ([429, 500, 503, 504].includes(resp.status)) await sleep(1200 * (attempt + 1));
+            console.error("[gemini]", lastError);
+            if ([429, 500, 503, 504].includes(resp.status)) await sleep(1500 * (attempt + 1));
             continue;
           }
 
           const data = await resp.json();
+          const finishReason = data?.candidates?.[0]?.finishReason;
           const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("\n").trim();
           if (!text) {
-            lastError = `${model}: empty response`;
+            lastError = `${model}: empty response (finishReason=${finishReason || "unknown"})`;
+            console.error("[gemini]", lastError);
             continue;
           }
           return parseGeneratedObject(text);
