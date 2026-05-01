@@ -64,6 +64,7 @@ export function CompleteChapterActivitiesButton({ chapterId, chapterTitleAr, les
 
       let okCount = 0;
       let failCount = 0;
+      const failures: string[] = [];
 
       for (let i = 0; i < incomplete.length; i++) {
         const lesson = incomplete[i];
@@ -86,6 +87,7 @@ export function CompleteChapterActivitiesButton({ chapterId, chapterTitleAr, les
         } catch (e: any) {
           console.error("Génération échouée pour", lesson.title, e);
           failCount++;
+          failures.push(`${lesson.titleAr || lesson.title}: ${e?.message || "échec"}`);
         }
       }
 
@@ -93,7 +95,9 @@ export function CompleteChapterActivitiesButton({ chapterId, chapterTitleAr, les
 
       toast({
         title: "Génération terminée",
-        description: `${okCount} leçon(s) complétée(s)${failCount ? `, ${failCount} échec(s)` : ""}.`,
+        description: failCount
+          ? `${okCount} leçon(s) complétée(s), ${failCount} échec(s). ${failures[0] || ""}`
+          : `${okCount} leçon(s) complétée(s).`,
         variant: failCount ? "destructive" : "default",
       });
 
