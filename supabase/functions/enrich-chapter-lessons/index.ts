@@ -192,7 +192,7 @@ serve(async (req) => {
     if (!auth.ok) {
       return new Response(
         JSON.stringify({ success: false, error: auth.error }),
-        { status: auth.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
