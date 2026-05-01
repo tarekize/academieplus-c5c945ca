@@ -272,7 +272,6 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
             <Input value={titleAr} onChange={(e) => setTitleAr(e.target.value)} placeholder="العنوان بالعربية" dir="rtl" />
           </div>
         </div>
-        </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
           <Button onClick={handleSubmit} disabled={loading}>
