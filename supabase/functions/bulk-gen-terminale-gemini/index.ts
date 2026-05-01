@@ -169,6 +169,17 @@ Deno.serve(async (req) => {
       await admin.from("chapter_quizzes").delete().eq("lesson_id", lesson_id);
     }
 
+    let startExerciseOrder = 1;
+    let startQuizOrder = 1;
+    if (!replace) {
+      const [{ data: lastExercise }, { data: lastQuiz }] = await Promise.all([
+        admin.from("chapter_exercises").select("order_index").eq("lesson_id", lesson_id).order("order_index", { ascending: false }).limit(1).maybeSingle(),
+        admin.from("chapter_quizzes").select("order_index").eq("lesson_id", lesson_id).order("order_index", { ascending: false }).limit(1).maybeSingle(),
+      ]);
+      startExerciseOrder = Number((lastExercise as any)?.order_index || 0) + 1;
+      startQuizOrder = Number((lastQuiz as any)?.order_index || 0) + 1;
+    }
+
     const exercisesToInsert = parsed.exercises.slice(0, 10).map((ex: any, i: number) => ({
       chapter_id, lesson_id,
       title: String(ex.title ?? `تمرين ${i + 1}`).slice(0, 300),
@@ -178,7 +189,7 @@ Deno.serve(async (req) => {
       solution: String(ex.solution ?? ""),
       hint: String(ex.hint ?? ""),
       difficulty: Math.min(5, Math.max(1, Number(ex.difficulty) || 2)),
-      order_index: i + 1,
+      order_index: startExerciseOrder + i,
     }));
 
     const quizzesToInsert = parsed.quizzes.slice(0, 10).map((q: any, i: number) => ({
@@ -189,7 +200,7 @@ Deno.serve(async (req) => {
       explanation: String(q.explanation ?? ""),
       hint: String(q.hint ?? ""),
       difficulty: Math.min(5, Math.max(1, Number(q.difficulty) || 2)),
-      order_index: i + 1,
+      order_index: startQuizOrder + i,
     }));
 
     const { error: exErr } = await admin.from("chapter_exercises").insert(exercisesToInsert);
