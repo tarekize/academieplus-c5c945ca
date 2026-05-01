@@ -10,7 +10,9 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY_2") || Deno.env.get("GEMINI_API_KEY")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
+const GEMINI_KEYS = [Deno.env.get("GEMINI_API_KEY_2"), Deno.env.get("GEMINI_API_KEY")].filter(Boolean) as string[];
+const GEMINI_MODELS = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash"];
 
 const SYSTEM_PROMPT = `أنت معلم رياضيات خبير للسنة النهائية شعبة العلوم التجريبية في الجزائر.
 مهمتك: توليد 10 تمارين و 10 أسئلة اختيار من متعدد لدرس معطى، باللغة العربية، بمستوى مناسب للبكالوريا.
@@ -35,30 +37,70 @@ function buildUserPrompt(chapterAr: string, lessonAr: string, lessonFr: string) 
 {"exercises":[...10...],"quizzes":[...10...]}`;
 }
 
-async function callGemini(systemPrompt: string, userPrompt: string): Promise<any> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        temperature: 0.7,
-        maxOutputTokens: 16384,
-      },
-    }),
-  });
-  if (!resp.ok) {
-    const txt = await resp.text();
-    throw new Error(`Gemini ${resp.status}: ${txt.slice(0, 400)}`);
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function cleanGeneratedJson(rawContent: string): string {
+  let cleaned = rawContent.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
+  const objectMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (objectMatch) cleaned = objectMatch[0];
+  return cleaned.replace(/\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})/g, "\\\\");
+}
+
+function parseGeneratedObject(rawContent: string): any {
+  const cleaned = cleanGeneratedJson(rawContent);
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    return JSON.parse(cleaned.replace(/\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})/g, ""));
   }
-  const data = await resp.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error("Gemini empty response: " + JSON.stringify(data).slice(0, 300));
-  const cleaned = text.replace(/^```json\s*|\s*```$/g, "").trim();
-  return JSON.parse(cleaned);
+}
+
+async function callGemini(systemPrompt: string, userPrompt: string): Promise<any> {
+  if (!GEMINI_KEYS.length) throw new Error("GEMINI_API_KEY_2 not configured");
+
+  let lastError = "Gemini unavailable";
+  for (const key of GEMINI_KEYS) {
+    for (const model of GEMINI_MODELS) {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+          const resp = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemPrompt }] },
+              contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+              generationConfig: {
+                responseMimeType: "application/json",
+                temperature: 0.55,
+                maxOutputTokens: 16384,
+              },
+            }),
+          });
+
+          if (!resp.ok) {
+            const txt = await resp.text();
+            lastError = `${model} ${resp.status}: ${txt.slice(0, 220)}`;
+            if ([429, 500, 503, 504].includes(resp.status)) await sleep(1200 * (attempt + 1));
+            continue;
+          }
+
+          const data = await resp.json();
+          const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("\n").trim();
+          if (!text) {
+            lastError = `${model}: empty response`;
+            continue;
+          }
+          return parseGeneratedObject(text);
+        } catch (e: any) {
+          lastError = `${model}: ${e?.message || String(e)}`;
+          await sleep(1200 * (attempt + 1));
+        }
+      }
+    }
+  }
+
+  throw new Error(lastError);
 }
 
 Deno.serve(async (req) => {
