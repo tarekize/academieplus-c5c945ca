@@ -225,6 +225,7 @@ export default function Admin() {
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
+            <BulkRegenerateTerminale />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Parents */}
               <Card className="border-0 shadow-lg">
