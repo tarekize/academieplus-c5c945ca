@@ -17,7 +17,6 @@ interface Props {
   onDone?: () => void;
 }
 
-const SHARED_TOKEN = "tx_terminale_2026_bulk_xY9";
 const TARGET = 10;
 
 export function CompleteChapterActivitiesButton({ chapterId, chapterTitleAr, lessons, onDone }: Props) {
@@ -65,6 +64,7 @@ export function CompleteChapterActivitiesButton({ chapterId, chapterTitleAr, les
 
       let okCount = 0;
       let failCount = 0;
+      const failures: string[] = [];
 
       for (let i = 0; i < incomplete.length; i++) {
         const lesson = incomplete[i];
@@ -79,7 +79,6 @@ export function CompleteChapterActivitiesButton({ chapterId, chapterTitleAr, les
               lesson_title_fr: lesson.title,
               chapter_title_ar: chapterTitleAr,
               replace: true, // remplacer pour atteindre 10/10 proprement
-              shared_token: SHARED_TOKEN,
             },
           });
           if (error) throw error;
@@ -88,6 +87,7 @@ export function CompleteChapterActivitiesButton({ chapterId, chapterTitleAr, les
         } catch (e: any) {
           console.error("Génération échouée pour", lesson.title, e);
           failCount++;
+          failures.push(`${lesson.titleAr || lesson.title}: ${e?.message || "échec"}`);
         }
       }
 
@@ -95,7 +95,9 @@ export function CompleteChapterActivitiesButton({ chapterId, chapterTitleAr, les
 
       toast({
         title: "Génération terminée",
-        description: `${okCount} leçon(s) complétée(s)${failCount ? `, ${failCount} échec(s)` : ""}.`,
+        description: failCount
+          ? `${okCount} leçon(s) complétée(s), ${failCount} échec(s). ${failures[0] || ""}`
+          : `${okCount} leçon(s) complétée(s).`,
         variant: failCount ? "destructive" : "default",
       });
 
