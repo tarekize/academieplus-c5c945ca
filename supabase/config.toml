@@ -1,1 +1,4 @@
 project_id = "lfothlxoixayjiytwwqa"
+
+[functions.bulk-gen-terminale-gemini]
+verify_jwt = false
