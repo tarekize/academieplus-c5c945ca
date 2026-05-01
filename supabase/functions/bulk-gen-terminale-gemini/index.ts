@@ -114,11 +114,42 @@ Deno.serve(async (req) => {
     if (shared_token !== expectedToken) {
       return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    if (!lesson_id || !chapter_id || !lesson_title_ar) {
+    if (!lesson_id || !chapter_id) {
       return new Response(JSON.stringify({ error: "missing fields" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const userPrompt = buildUserPrompt(chapter_title_ar, lesson_title_ar, lesson_title_fr || "");
+    const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+    const publicClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY || SERVICE_ROLE, {
+      global: { headers: { Authorization: req.headers.get("Authorization") || "" } },
+    });
+
+    if (shared_token !== expectedToken) {
+      const { data: authData } = await publicClient.auth.getUser();
+      const userId = authData?.user?.id;
+      if (!userId) {
+        return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const { data: isAllowed, error: roleError } = await admin.rpc("has_role", { _user_id: userId, _role: "pedago" });
+      const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
+      if (roleError || (!isAllowed && !isAdmin)) {
+        return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
+
+    let chapterTitle = chapter_title_ar || "الفصل";
+    let lessonTitleAr = lesson_title_ar;
+    let lessonTitleFr = lesson_title_fr || "";
+    if (!lessonTitleAr || !chapter_title_ar) {
+      const [{ data: chapterData }, { data: lessonData }] = await Promise.all([
+        admin.from("chapters").select("title, title_ar").eq("id", chapter_id).maybeSingle(),
+        admin.from("lessons").select("title, title_ar").eq("id", lesson_id).maybeSingle(),
+      ]);
+      chapterTitle = chapter_title_ar || (chapterData as any)?.title_ar || (chapterData as any)?.title || "الفصل";
+      lessonTitleAr = lessonTitleAr || (lessonData as any)?.title_ar || (lessonData as any)?.title || "الدرس";
+      lessonTitleFr = lessonTitleFr || (lessonData as any)?.title || "";
+    }
+
+    const userPrompt = buildUserPrompt(chapterTitle, lessonTitleAr, lessonTitleFr);
 
     let parsed: any = null;
     let lastErr = "";
@@ -135,8 +166,6 @@ Deno.serve(async (req) => {
     if (!parsed?.exercises || !parsed?.quizzes) {
       return new Response(JSON.stringify({ error: `generation failed: ${lastErr}` }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
     if (replace) {
       await admin.from("chapter_exercises").delete().eq("lesson_id", lesson_id);
