@@ -64,31 +64,39 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<any
       for (let attempt = 0; attempt < 3; attempt += 1) {
         try {
           const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+          const generationConfig: any = {
+            responseMimeType: "application/json",
+            temperature: 0.55,
+            maxOutputTokens: 32768,
+          };
+          // Disable "thinking" budget on 2.5 models so all tokens go to the actual answer
+          if (model.startsWith("gemini-2.5") || model.includes("flash-latest")) {
+            generationConfig.thinkingConfig = { thinkingBudget: 0 };
+          }
           const resp = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               systemInstruction: { parts: [{ text: systemPrompt }] },
               contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-              generationConfig: {
-                responseMimeType: "application/json",
-                temperature: 0.55,
-                maxOutputTokens: 16384,
-              },
+              generationConfig,
             }),
           });
 
           if (!resp.ok) {
             const txt = await resp.text();
             lastError = `${model} ${resp.status}: ${txt.slice(0, 220)}`;
-            if ([429, 500, 503, 504].includes(resp.status)) await sleep(1200 * (attempt + 1));
+            console.error("[gemini]", lastError);
+            if ([429, 500, 503, 504].includes(resp.status)) await sleep(1500 * (attempt + 1));
             continue;
           }
 
           const data = await resp.json();
+          const finishReason = data?.candidates?.[0]?.finishReason;
           const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("\n").trim();
           if (!text) {
-            lastError = `${model}: empty response`;
+            lastError = `${model}: empty response (finishReason=${finishReason || "unknown"})`;
+            console.error("[gemini]", lastError);
             continue;
           }
           return parseGeneratedObject(text);
