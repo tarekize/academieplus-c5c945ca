@@ -76,8 +76,8 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
         const nextIndex = (existing?.[0]?.order_index ?? -1) + 1;
 
         const insertData: any = {
-          title: title.trim(),
-          title_ar: titleAr.trim() || null,
+          title: titleValue,
+          title_ar: titleValue,
           description: description.trim() || null,
           school_level: schoolLevel,
           subject,
@@ -87,11 +87,10 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
 
         const { error } = await supabase.from("chapters").insert(insertData);
         if (error) throw error;
-        toast.success("Chapitre ajouté avec succès");
+        toast.success("تمت إضافة الفصل بنجاح");
       }
 
       setOpen(false);
-      setTitle("");
       setTitleAr("");
       setDescription("");
       onSaved();
