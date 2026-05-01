@@ -3,6 +3,7 @@ import LessonMarkdown from "@/components/course/LessonMarkdown";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import { LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
 import { EnrichChapterButton } from "@/components/course/EnrichChapterButton";
+import { CompleteChapterActivitiesButton } from "@/components/course/CompleteChapterActivitiesButton";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, PenTool, BookOpen, ArrowLeft, ChevronLeft } from "lucide-react";
