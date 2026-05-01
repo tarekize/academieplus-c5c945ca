@@ -106,26 +106,19 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<strin
   return text;
 }
 
-// Multi-provider fallback chain (preferred: Gemini Key 2 first as user requested)
+// Gemini fallback chain (preferred: Gemini Key 2 only, as requested)
 async function generateEnrichedHtml(systemPrompt: string, userPrompt: string): Promise<string> {
   const GEMINI_2 = Deno.env.get("GEMINI_API_KEY_2");
-  const GEMINI_1 = Deno.env.get("GEMINI_API_KEY");
   const errors: string[] = [];
+
+  if (!GEMINI_2) throw new Error("GEMINI_API_KEY_2 غير موجودة في إعدادات المشروع");
 
   type Step = () => Promise<string>;
   const steps: Array<{ name: string; run: Step }> = [];
 
-  if (GEMINI_2) {
-    steps.push({ name: "Gemini2/2.5-flash", run: () => callGeminiKey(systemPrompt, userPrompt, "gemini-2.5-flash", GEMINI_2, "Gemini2") });
-    steps.push({ name: "Gemini2/2.5-flash retry", run: async () => { await new Promise(r => setTimeout(r, 2500)); return callGeminiKey(systemPrompt, userPrompt, "gemini-2.5-flash", GEMINI_2, "Gemini2"); } });
-    steps.push({ name: "Gemini2/2.5-flash-lite", run: () => callGeminiKey(systemPrompt, userPrompt, "gemini-2.5-flash-lite", GEMINI_2, "Gemini2") });
-  }
-  if (GEMINI_1) {
-    steps.push({ name: "Gemini1/2.5-flash", run: () => callGeminiKey(systemPrompt, userPrompt, "gemini-2.5-flash", GEMINI_1, "Gemini1") });
-    steps.push({ name: "Gemini1/2.5-flash-lite", run: () => callGeminiKey(systemPrompt, userPrompt, "gemini-2.5-flash-lite", GEMINI_1, "Gemini1") });
-  }
-  steps.push({ name: "LovableAI", run: () => callLovableAI(systemPrompt, userPrompt) });
-  steps.push({ name: "Groq", run: () => callGroq(systemPrompt, userPrompt) });
+  steps.push({ name: "Gemini2/2.5-flash-lite", run: () => callGeminiKey(systemPrompt, userPrompt, "gemini-2.5-flash-lite", GEMINI_2, "Gemini2") });
+  steps.push({ name: "Gemini2/2.5-flash-lite retry", run: async () => { await new Promise(r => setTimeout(r, 1800)); return callGeminiKey(systemPrompt, userPrompt, "gemini-2.5-flash-lite", GEMINI_2, "Gemini2"); } });
+  steps.push({ name: "Gemini2/2.5-flash", run: () => callGeminiKey(systemPrompt, userPrompt, "gemini-2.5-flash", GEMINI_2, "Gemini2") });
 
   for (const s of steps) {
     try {
@@ -140,7 +133,7 @@ async function generateEnrichedHtml(systemPrompt: string, userPrompt: string): P
       // Continue to next provider
     }
   }
-  throw new Error(`All providers failed. ${errors.join(" | ")}`);
+  throw new Error(`Gemini clé 2 a échoué. ${errors.join(" | ")}`);
 }
 
 function stripHtml(html: string): string {
