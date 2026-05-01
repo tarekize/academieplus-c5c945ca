@@ -345,6 +345,16 @@ export function GenerateQuizExercisesButton({ chapterId, lessonId, onGenerated }
   const handleGenerate = async () => {
     setLoading(true);
     try {
+      if (!lessonId && mode === "replace") {
+        const [delQuizResult, delExerciseResult] = await Promise.all([
+          supabase.from("chapter_quizzes").delete().eq("chapter_id", chapterId).is("lesson_id", null),
+          supabase.from("chapter_exercises").delete().eq("chapter_id", chapterId).is("lesson_id", null),
+        ]);
+        if (delQuizResult.error) throw delQuizResult.error;
+        if (delExerciseResult.error) throw delExerciseResult.error;
+        toast.success("تم حذف الأسئلة والتمارين السابقة");
+      }
+
       const { data, error } = lessonId
         ? await supabase.functions.invoke("bulk-gen-terminale-gemini", {
             body: { chapter_id: chapterId, lesson_id: lessonId, replace: mode === "replace" },
