@@ -37,15 +37,15 @@ interface PedagoChapterFormProps {
 export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, chapter }: PedagoChapterFormProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [title, setTitle] = useState(chapter?.title || "");
-  const [titleAr, setTitleAr] = useState(chapter?.title_ar || "");
+  const [titleAr, setTitleAr] = useState(chapter?.title_ar || chapter?.title || "");
   const [description, setDescription] = useState(chapter?.description || "");
 
   const isEdit = !!chapter;
 
   const handleSubmit = async () => {
-    if (!title.trim()) {
-      toast.error("Le titre est obligatoire");
+    const titleValue = titleAr.trim();
+    if (!titleValue) {
+      toast.error("العنوان مطلوب");
       return;
     }
 
@@ -55,8 +55,8 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
         const { error } = await supabase
           .from("chapters")
           .update({
-            title: title.trim(),
-            title_ar: titleAr.trim() || null,
+            title: titleValue,
+            title_ar: titleValue,
             description: description.trim() || null,
           })
           .eq("id", chapter.id);
