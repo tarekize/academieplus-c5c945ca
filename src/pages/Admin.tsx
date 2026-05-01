@@ -54,6 +54,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import { AddUserDialog } from "@/components/admin/AddUserDialog";
+import { BulkRegenerateTerminale } from "@/components/admin/BulkRegenerateTerminale";
 
 // Helper to get full name from profile
 const getFullName = (user: AdminUser): string => {
