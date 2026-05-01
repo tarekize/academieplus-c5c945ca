@@ -19,31 +19,49 @@ interface EnrichChapterButtonProps {
   chapterId: string;
   chapterTitle: string;
   lessonsCount: number;
+  lessons?: Array<{ id: string; title?: string; titleAr?: string; title_ar?: string }>;
   onDone?: () => void;
 }
 
-export function EnrichChapterButton({ chapterId, chapterTitle, lessonsCount, onDone }: EnrichChapterButtonProps) {
+export function EnrichChapterButton({ chapterId, chapterTitle, lessonsCount, lessons = [], onDone }: EnrichChapterButtonProps) {
   const [loading, setLoading] = useState(false);
 
   const run = async () => {
     setLoading(true);
-    const tId = toast.loading(`✨ جاري إثراء ${lessonsCount} درس بالذكاء الاصطناعي...`, {
-      description: "قد يستغرق هذا عدة دقائق. لا تغلق الصفحة.",
-    });
+    let tId: string | number | undefined;
     try {
-      const { data, error } = await supabase.functions.invoke("enrich-chapter-lessons", {
-        body: { chapterId },
-      });
-      toast.dismiss(tId);
-      if (error) throw new Error(error.message);
-      if (!data?.success) throw new Error(data?.error || "Échec de l'enrichissement");
+      const targetLessons = lessons.length > 0 ? lessons : Array.from({ length: lessonsCount }, (_, i) => ({ id: "", title: `درس ${i + 1}` }));
+      let enriched = 0;
+      const failed: string[] = [];
 
-      toast.success(`✅ تم إثراء ${data.enriched}/${data.total} درس بنجاح`, {
-        description: data.failed > 0 ? `فشل ${data.failed} درس - يمكنك إعادة المحاولة` : "تم تحديث محتوى الدروس بتصميم احترافي",
+      for (let i = 0; i < targetLessons.length; i += 1) {
+        const lesson = targetLessons[i];
+        const lessonLabel = lesson.titleAr || lesson.title_ar || lesson.title || `درس ${i + 1}`;
+        tId = toast.loading(`✨ جاري إثراء الدرس ${i + 1}/${targetLessons.length}`, {
+          id: tId,
+          description: lessonLabel,
+        });
+
+        const { data, error } = await supabase.functions.invoke("enrich-chapter-lessons", {
+          body: lesson.id ? { chapterId, lessonId: lesson.id } : { chapterId },
+        });
+
+        if (error || !data?.success) {
+          failed.push(`${lessonLabel}: ${error?.message || data?.error || "Échec"}`);
+          continue;
+        }
+        enriched += data.enriched || 1;
+      }
+
+      if (tId) toast.dismiss(tId);
+      if (enriched === 0) throw new Error(failed[0] || "Échec de l'enrichissement");
+
+      toast.success(`✅ تم إثراء ${enriched}/${targetLessons.length} درس بنجاح`, {
+        description: failed.length > 0 ? `فشل ${failed.length} درس - يمكنك إعادة المحاولة` : "تم حفظ المحتوى الجديد في قاعدة البيانات",
       });
       onDone?.();
     } catch (e: any) {
-      toast.dismiss(tId);
+      if (tId) toast.dismiss(tId);
       toast.error("خطأ في إثراء المحتوى", { description: e?.message || "حاول مرة أخرى" });
     } finally {
       setLoading(false);
