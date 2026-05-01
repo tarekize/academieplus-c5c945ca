@@ -43,15 +43,23 @@ function cleanGeneratedJson(rawContent: string): string {
   let cleaned = rawContent.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
   const objectMatch = cleaned.match(/\{[\s\S]*\}/);
   if (objectMatch) cleaned = objectMatch[0];
-  return cleaned.replace(/\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})/g, "\\\\");
+  // LaTeX produces invalid JSON escapes like \frac, \sqrt, \alpha. Double any backslash
+  // that isn't already a valid JSON escape (\" \\ \/ \b \f \n \r \t \uXXXX).
+  return cleaned.replace(/\\(?!["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, "\\\\");
 }
 
 function parseGeneratedObject(rawContent: string): any {
   const cleaned = cleanGeneratedJson(rawContent);
   try {
     return JSON.parse(cleaned);
-  } catch {
-    return JSON.parse(cleaned.replace(/\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})/g, ""));
+  } catch (e1) {
+    // Last resort: strip remaining lone backslashes
+    try {
+      return JSON.parse(cleaned.replace(/\\(?!["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, ""));
+    } catch (e2) {
+      console.error("[parse] failed:", (e1 as Error).message, "snippet:", cleaned.slice(0, 300));
+      throw e2;
+    }
   }
 }
 
