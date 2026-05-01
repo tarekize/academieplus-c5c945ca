@@ -1,16 +1,17 @@
 // Batch-generate exercises (10) + quizzes (10) for a list of lessons.
-// Auth: requires header "x-bulk-secret" matching SUPABASE_SERVICE_ROLE_KEY (server-only secret).
-// Designed to be called from a trusted script. Processes lessons sequentially with per-lesson AI calls.
+// Auth: admin or pedago user (Authorization: Bearer <user JWT>).
+// Processes lessons sequentially. Designed for small batches (3-5) to stay within timeout.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-bulk-secret",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 
 const SYSTEM_PROMPT = `أنت معلم رياضيات خبير للسنة النهائية شعبة العلوم التجريبية في الجزائر.
@@ -31,24 +32,23 @@ function buildUserPrompt(chapterAr: string, lessonAr: string, lessonFr: string) 
 - 10 أسئلة اختيار من متعدد (quizzes)
 
 كل تمرين:
-- title: عنوان قصير
-- statement: نص التمرين (LaTeX مسموح)
-- expected_answer: الإجابة النهائية (نص قصير)
-- accepted_answers: مصفوفة 2-4 صيغ مكافئة
-- solution: حل مفصل Markdown مع خطوات (### الخطوة 1: ...) وLaTeX، ينتهي بـ $$\\boxed{...}$$
+- title
+- statement (LaTeX مسموح)
+- expected_answer
+- accepted_answers: مصفوفة 2-4
+- solution: Markdown مع خطوات و LaTeX، ينتهي بـ $$\\boxed{...}$$
 - difficulty: 1..5
-- hint: تلميح يبدأ بـ 💡
+- hint: 💡...
 
 كل quiz:
 - question
-- options: مصفوفة 4 خيارات
-- correct_answer: يطابق أحد options بالضبط
-- explanation: شرح موجز
+- options: مصفوفة 4
+- correct_answer (يطابق أحد options)
+- explanation
 - difficulty: 1..5
-- hint: يبدأ بـ 💡
+- hint: 💡...
 
-أرجع JSON بهذا الشكل بالضبط:
-{"exercises":[...10...],"quizzes":[...10...]}`;
+أرجع JSON: {"exercises":[...10...],"quizzes":[...10...]}`;
 }
 
 async function callGemini(userPrompt: string): Promise<any> {
@@ -78,7 +78,7 @@ async function callGemini(userPrompt: string): Promise<any> {
   return JSON.parse(cleaned);
 }
 
-async function processLesson(admin: any, lesson: any): Promise<{ ok: boolean; error?: string }> {
+async function processLesson(admin: any, lesson: any): Promise<{ ok: boolean; error?: string; ex?: number; qz?: number }> {
   const userPrompt = buildUserPrompt(
     lesson.chapter_title_ar || lesson.chapter_title || "",
     lesson.lesson_title_ar || lesson.lesson_title || "",
@@ -98,7 +98,6 @@ async function processLesson(admin: any, lesson: any): Promise<{ ok: boolean; er
   }
   if (!parsed?.exercises || !parsed?.quizzes) return { ok: false, error: lastErr };
 
-  // replace existing
   await admin.from("chapter_exercises").delete().eq("lesson_id", lesson.lesson_id);
   await admin.from("chapter_quizzes").delete().eq("lesson_id", lesson.lesson_id);
 
@@ -130,20 +129,39 @@ async function processLesson(admin: any, lesson: any): Promise<{ ok: boolean; er
   if (e1) return { ok: false, error: `ex insert: ${e1.message}` };
   const { error: e2 } = await admin.from("chapter_quizzes").insert(quizzes);
   if (e2) return { ok: false, error: `qz insert: ${e2.message}` };
-  return { ok: true };
+  return { ok: true, ex: exercises.length, qz: quizzes.length };
 }
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    const secret = req.headers.get("x-bulk-secret");
-    const expected = Deno.env.get("BULK_GEN_SECRET") || SERVICE_ROLE;
-    if (!secret || secret !== expected) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "missing auth" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !user) {
+      return new Response(JSON.stringify({ error: "auth failed" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+    const { data: roleRows } = await admin.from("user_roles").select("role").eq("user_id", user.id);
+    const roles = (roleRows ?? []).map((r: any) => r.role);
+    if (!roles.includes("admin") && !roles.includes("pedago")) {
       return new Response(JSON.stringify({ error: "forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
     const body = await req.json();
     const lessons: any[] = body.lessons ?? [];
     if (!Array.isArray(lessons) || lessons.length === 0) {
@@ -152,13 +170,17 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+    if (lessons.length > 5) {
+      return new Response(JSON.stringify({ error: "max 5 lessons per call" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const results: any[] = [];
     for (const lesson of lessons) {
       const r = await processLesson(admin, lesson);
       results.push({ lesson_id: lesson.lesson_id, lesson_title: lesson.lesson_title, ...r });
-      // small delay to avoid rate limits
-      await new Promise((r) => setTimeout(r, 500));
+      await new Promise((res) => setTimeout(res, 400));
     }
     return new Response(JSON.stringify({ ok: true, results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
