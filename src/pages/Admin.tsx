@@ -54,7 +54,6 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import { AddUserDialog } from "@/components/admin/AddUserDialog";
-import { BulkRegenerateTerminale } from "@/components/admin/BulkRegenerateTerminale";
 
 // Helper to get full name from profile
 const getFullName = (user: AdminUser): string => {
@@ -225,7 +224,6 @@ export default function Admin() {
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
-            <BulkRegenerateTerminale />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Parents */}
               <Card className="border-0 shadow-lg">
