@@ -103,7 +103,7 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v && chapter) { setTitle(chapter.title); setTitleAr(chapter.title_ar || ""); setDescription(chapter.description || ""); } }}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v && chapter) { setTitleAr(chapter.title_ar || chapter.title || ""); setDescription(chapter.description || ""); } }}>
       <DialogTrigger asChild>
         {isEdit ? (
           <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -125,11 +125,7 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div>
-            <label className="text-sm font-medium mb-1 block">Titre (Français) *</label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Les fonctions affines" />
-          </div>
-          <div>
-            <label className="text-sm font-medium mb-1 block">Titre (Arabe)</label>
+            <label className="text-sm font-medium mb-1 block">العنوان *</label>
             <Input value={titleAr} onChange={(e) => setTitleAr(e.target.value)} placeholder="العنوان بالعربية" dir="rtl" />
           </div>
           <div>
