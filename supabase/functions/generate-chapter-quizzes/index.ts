@@ -97,26 +97,7 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<str
     throw new Error("GEMINI_API_KEY not configured");
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-  
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 8000 },
-    }),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("Gemini error:", response.status, errText);
-    throw new Error(`Gemini API failed: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  return callGeminiWithKey(GEMINI_API_KEY, "Gemini");
 }
 
 // ============ Provider 2: Groq ============
@@ -156,26 +137,33 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<st
   const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
   if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY_2}`;
-  
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 8000 },
-    }),
-  });
+  return callGeminiWithKey(GEMINI_API_KEY_2, "Gemini2");
+}
 
-  if (!response.ok) {
+async function callGeminiWithKey(apiKey: string, label: string): Promise<string> {
+  const models = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash"];
+  let lastError = `${label} unavailable`;
+  for (const model of models) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: { responseMimeType: "application/json", temperature: 0.55, maxOutputTokens: 12000 },
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("\n") || "";
+    }
     const errText = await response.text();
-    console.error("Gemini2 error:", response.status, errText);
-    throw new Error(`Gemini2 API failed: ${response.status}`);
+    console.error(`${label} ${model} error:`, response.status, errText);
+    lastError = `${label} API failed: ${response.status}`;
   }
-
-  const data = await response.json();
-  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  throw new Error(lastError);
 }
 
 // ============ Unified AI generation with fallback ============
