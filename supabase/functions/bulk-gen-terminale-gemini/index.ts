@@ -46,20 +46,49 @@ function cleanGeneratedJson(rawContent: string): string {
   return cleaned;
 }
 
+// Walk the JSON character-by-character; inside string literals, escape any
+// backslash that isn't followed by a valid JSON escape char. This handles
+// LaTeX commands (\frac, \alpha, \sqrt, \mathbb, \begin, \\) without
+// breaking already-valid escapes like \n, \t, \", \\, \uXXXX.
+function fixJsonStringEscapes(input: string): string {
+  let out = "";
+  let inString = false;
+  for (let i = 0; i < input.length; i++) {
+    const c = input[i];
+    if (!inString) {
+      out += c;
+      if (c === '"') inString = true;
+      continue;
+    }
+    // inside a string
+    if (c === '"') { out += c; inString = false; continue; }
+    if (c === "\n") { out += "\\n"; continue; }
+    if (c === "\r") { out += "\\r"; continue; }
+    if (c === "\t") { out += "\\t"; continue; }
+    if (c !== "\\") { out += c; continue; }
+    // current is backslash — look at next
+    const next = input[i + 1];
+    if (next === undefined) { out += "\\\\"; continue; }
+    if (next === '"' || next === "\\" || next === "/" ||
+        next === "b" || next === "f" || next === "n" || next === "r" || next === "t") {
+      out += "\\" + next; i++; continue;
+    }
+    if (next === "u" && /^[0-9a-fA-F]{4}$/.test(input.slice(i + 2, i + 6))) {
+      out += "\\u" + input.slice(i + 2, i + 6); i += 5; continue;
+    }
+    // invalid escape (LaTeX command, lone backslash, \\\\ pair, etc.) — double it
+    out += "\\\\";
+  }
+  return out;
+}
+
 function parseGeneratedObject(rawContent: string): any {
   const cleaned = cleanGeneratedJson(rawContent);
-  // Try plain parse first
   try { return JSON.parse(cleaned); } catch { /* fallthrough */ }
-  // LaTeX produces invalid JSON escapes (e.g. \frac, \sqrt, \alpha).
-  // Double any backslash followed by an ASCII letter so it survives JSON.parse.
-  const latexFixed = cleaned.replace(/\\([a-zA-Z])/g, "\\\\$1");
-  try { return JSON.parse(latexFixed); } catch (e) {
-    // Last resort: also double remaining lone backslashes
-    const allFixed = latexFixed.replace(/\\(?!["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, "\\\\");
-    try { return JSON.parse(allFixed); } catch (e2) {
-      console.error("[parse] failed:", (e as Error).message, "snippet:", cleaned.slice(0, 300));
-      throw e2;
-    }
+  const fixed = fixJsonStringEscapes(cleaned);
+  try { return JSON.parse(fixed); } catch (e) {
+    console.error("[parse] failed:", (e as Error).message, "snippet:", fixed.slice(0, 400));
+    throw e;
   }
 }
 
