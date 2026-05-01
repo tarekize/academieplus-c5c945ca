@@ -153,11 +153,31 @@ function cleanGeneratedHtml(raw: string): string {
   return s.trim();
 }
 
+async function ensureCanManage(req: Request, supabase: ReturnType<typeof createClient>) {
+  const authHeader = req.headers.get("Authorization") || "";
+  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (!token) return { ok: false, status: 401, error: "Authentification requise" };
+
+  const { data: userData, error: userError } = await supabase.auth.getUser(token);
+  const userId = userData?.user?.id;
+  if (userError || !userId) return { ok: false, status: 401, error: "Session invalide" };
+
+  const [adminCheck, pedagoCheck] = await Promise.all([
+    supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+    supabase.rpc("has_role", { _user_id: userId, _role: "pedago" }),
+  ]);
+
+  if (adminCheck.error || pedagoCheck.error) return { ok: false, status: 403, error: "Impossible de vérifier les droits" };
+  if (!adminCheck.data && !pedagoCheck.data) return { ok: false, status: 403, error: "Accès réservé aux admins et pédagogues" };
+
+  return { ok: true, userId };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { chapterId } = await req.json().catch(() => ({}));
+    const { chapterId, lessonId } = await req.json().catch(() => ({}));
     if (!chapterId) {
       return new Response(
         JSON.stringify({ success: false, error: "chapterId required" }),
@@ -174,6 +194,14 @@ serve(async (req) => {
       );
     }
     const supabase = createClient(supabaseUrl, serviceKey);
+
+    const auth = await ensureCanManage(req, supabase);
+    if (!auth.ok) {
+      return new Response(
+        JSON.stringify({ success: false, error: auth.error }),
+        { status: auth.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const { data: chapter, error: chErr } = await supabase
       .from("chapters")
@@ -192,6 +220,7 @@ serve(async (req) => {
       .from("lessons")
       .select("id, title, title_ar, content, order_index")
       .eq("chapter_id", chapterId)
+      .filter("id", lessonId ? "eq" : "neq", lessonId || "00000000-0000-0000-0000-000000000000")
       .order("order_index", { ascending: true });
     if (lErr) throw lErr;
     if (!lessons || lessons.length === 0) {
