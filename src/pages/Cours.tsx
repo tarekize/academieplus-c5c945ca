@@ -163,12 +163,12 @@ const Cours = () => {
           // Map database chapters to component format
           const mappedChapters: Chapter[] = dbChapters.map((ch) => ({
             id: ch.id,
-            title: ch.title_ar ? `${ch.title} - ${ch.title_ar}` : ch.title,
+            title: ch.title_ar || ch.title,
             order_index: ch.order_index,
-            content: `<h2>${ch.title_ar || ch.title}</h2>${ch.title_ar ? `<h3>${ch.title}</h3>` : ""}<p>${ch.description || `Ce chapitre contient ${ch.lessons.length} leçons.`}</p>`,
+            content: `<h2>${ch.title_ar || ch.title}</h2>${ch.description ? `<p>${ch.description}</p>` : ""}`,
             lessons: ch.lessons.map((l) => ({
               id: l.id,
-              title: l.title,
+              title: l.title_ar || l.title,
               titleAr: l.title_ar || l.title,
               content: l.content || "",
             })),
