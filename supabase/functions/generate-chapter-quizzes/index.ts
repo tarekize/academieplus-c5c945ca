@@ -97,7 +97,7 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<str
     throw new Error("GEMINI_API_KEY not configured");
   }
 
-  return callGeminiWithKey(GEMINI_API_KEY, "Gemini");
+  return callGeminiWithKey(GEMINI_API_KEY, "Gemini", systemPrompt, userPrompt);
 }
 
 // ============ Provider 2: Groq ============
@@ -137,10 +137,10 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<st
   const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
   if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
 
-  return callGeminiWithKey(GEMINI_API_KEY_2, "Gemini2");
+  return callGeminiWithKey(GEMINI_API_KEY_2, "Gemini2", systemPrompt, userPrompt);
 }
 
-async function callGeminiWithKey(apiKey: string, label: string): Promise<string> {
+async function callGeminiWithKey(apiKey: string, label: string, systemPrompt: string, userPrompt: string): Promise<string> {
   const models = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash"];
   let lastError = `${label} unavailable`;
   for (const model of models) {
@@ -173,10 +173,10 @@ async function generateWithAI(
   validateJson?: (content: string) => void
 ): Promise<string> {
   const providers: AIProvider[] = [
-    { name: "Lovable AI", call: callLovableAI },
-    { name: "Gemini key 1", call: callGemini },
-    { name: "Groq", call: callGroq },
     { name: "Gemini key 2", call: callGemini2 },
+    { name: "Gemini key 1", call: callGemini },
+    { name: "Lovable AI", call: callLovableAI },
+    { name: "Groq", call: callGroq },
   ];
   const errors: string[] = [];
 
