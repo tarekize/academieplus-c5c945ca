@@ -36,7 +36,7 @@ function buildUserPrompt(chapterAr: string, lessonAr: string, lessonFr: string) 
 }
 
 async function callGemini(systemPrompt: string, userPrompt: string): Promise<any> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
   const resp = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
