@@ -137,7 +137,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
     const secret = req.headers.get("x-bulk-secret");
-    if (!secret || secret !== SERVICE_ROLE) {
+    const expected = Deno.env.get("BULK_GEN_SECRET") || SERVICE_ROLE;
+    if (!secret || secret !== expected) {
       return new Response(JSON.stringify({ error: "forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
