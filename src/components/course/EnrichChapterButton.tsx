@@ -19,9 +19,11 @@ interface EnrichChapterButtonProps {
   chapterId: string;
   chapterTitle: string;
   lessonsCount: number;
-  lessons?: Array<{ id: string; title?: string; titleAr?: string; title_ar?: string }>;
+  lessons?: EnrichableLesson[];
   onDone?: () => void;
 }
+
+type EnrichableLesson = { id: string; title?: string; titleAr?: string; title_ar?: string };
 
 export function EnrichChapterButton({ chapterId, chapterTitle, lessonsCount, lessons = [], onDone }: EnrichChapterButtonProps) {
   const [loading, setLoading] = useState(false);
@@ -30,7 +32,9 @@ export function EnrichChapterButton({ chapterId, chapterTitle, lessonsCount, les
     setLoading(true);
     let tId: string | number | undefined;
     try {
-      const targetLessons = lessons.length > 0 ? lessons : Array.from({ length: lessonsCount }, (_, i) => ({ id: "", title: `درس ${i + 1}` }));
+      const targetLessons: EnrichableLesson[] = lessons.length > 0
+        ? lessons
+        : Array.from({ length: lessonsCount }, (_, i) => ({ id: "", title: `درس ${i + 1}` }));
       let enriched = 0;
       const failed: string[] = [];
 
