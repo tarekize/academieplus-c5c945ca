@@ -345,37 +345,18 @@ export function GenerateQuizExercisesButton({ chapterId, lessonId, onGenerated }
   const handleGenerate = async () => {
     setLoading(true);
     try {
-      // If mode is replace, delete existing exercises and quizzes first
-      if (mode === "replace") {
-        let deleteQuizzesQuery = supabase.from("chapter_quizzes").delete().eq("chapter_id", chapterId);
-        let deleteExercisesQuery = supabase.from("chapter_exercises").delete().eq("chapter_id", chapterId);
-        
-        if (lessonId) {
-          deleteQuizzesQuery = deleteQuizzesQuery.eq("lesson_id", lessonId);
-          deleteExercisesQuery = deleteExercisesQuery.eq("lesson_id", lessonId);
-        } else {
-          deleteQuizzesQuery = deleteQuizzesQuery.is("lesson_id", null);
-          deleteExercisesQuery = deleteExercisesQuery.is("lesson_id", null);
-        }
-
-        const [delQuizResult, delExerciseResult] = await Promise.all([
-          deleteQuizzesQuery,
-          deleteExercisesQuery,
-        ]);
-
-        if (delQuizResult.error) throw delQuizResult.error;
-        if (delExerciseResult.error) throw delExerciseResult.error;
-
-        toast.success("تم حذف الأسئلة والتمارين السابقة");
-      }
-
-      const { data, error } = await supabase.functions.invoke("generate-chapter-quizzes", {
-        body: { chapter_id: chapterId, lesson_id: lessonId ?? null },
-      });
+      const { data, error } = lessonId
+        ? await supabase.functions.invoke("bulk-gen-terminale-gemini", {
+            body: { chapter_id: chapterId, lesson_id: lessonId, replace: mode === "replace" },
+          })
+        : await supabase.functions.invoke("generate-chapter-quizzes", {
+            body: { chapter_id: chapterId, lesson_id: null },
+          });
       if (error) throw error;
       if (data?.success === false) throw new Error(data.error || "خطأ في التوليد");
-      const quizCount = data?.quizzes ?? 0;
-      const exerciseCount = data?.exercises ?? 0;
+      if (data?.error) throw new Error(data.error);
+      const quizCount = data?.quizzes ?? data?.inserted_quizzes ?? 0;
+      const exerciseCount = data?.exercises ?? data?.inserted_exercises ?? 0;
       toast.success(`تم إنشاء ${quizCount} أسئلة و ${exerciseCount} تمارين بنجاح`);
       setOpenDialog(false);
       onGenerated();
