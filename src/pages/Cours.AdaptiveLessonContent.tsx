@@ -208,6 +208,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                             chapterId={chapter.id}
                             chapterTitle={chapter.titleAr || chapter.title}
                             lessonsCount={chapter.lessons?.length || 0}
+                            lessons={chapter.lessons || []}
                             onDone={fetchCourse}
                         />
                         <LessonFormDialog chapterId={chapter.id} onSaved={fetchCourse} />
