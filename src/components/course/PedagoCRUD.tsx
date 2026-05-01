@@ -37,15 +37,15 @@ interface PedagoChapterFormProps {
 export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, chapter }: PedagoChapterFormProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [title, setTitle] = useState(chapter?.title || "");
-  const [titleAr, setTitleAr] = useState(chapter?.title_ar || "");
+  const [titleAr, setTitleAr] = useState(chapter?.title_ar || chapter?.title || "");
   const [description, setDescription] = useState(chapter?.description || "");
 
   const isEdit = !!chapter;
 
   const handleSubmit = async () => {
-    if (!title.trim()) {
-      toast.error("Le titre est obligatoire");
+    const titleValue = titleAr.trim();
+    if (!titleValue) {
+      toast.error("العنوان مطلوب");
       return;
     }
 
@@ -55,8 +55,8 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
         const { error } = await supabase
           .from("chapters")
           .update({
-            title: title.trim(),
-            title_ar: titleAr.trim() || null,
+            title: titleValue,
+            title_ar: titleValue,
             description: description.trim() || null,
           })
           .eq("id", chapter.id);
@@ -76,8 +76,8 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
         const nextIndex = (existing?.[0]?.order_index ?? -1) + 1;
 
         const insertData: any = {
-          title: title.trim(),
-          title_ar: titleAr.trim() || null,
+          title: titleValue,
+          title_ar: titleValue,
           description: description.trim() || null,
           school_level: schoolLevel,
           subject,
@@ -87,11 +87,10 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
 
         const { error } = await supabase.from("chapters").insert(insertData);
         if (error) throw error;
-        toast.success("Chapitre ajouté avec succès");
+        toast.success("تمت إضافة الفصل بنجاح");
       }
 
       setOpen(false);
-      setTitle("");
       setTitleAr("");
       setDescription("");
       onSaved();
@@ -104,7 +103,7 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v && chapter) { setTitle(chapter.title); setTitleAr(chapter.title_ar || ""); setDescription(chapter.description || ""); } }}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v && chapter) { setTitleAr(chapter.title_ar || chapter.title || ""); setDescription(chapter.description || ""); } }}>
       <DialogTrigger asChild>
         {isEdit ? (
           <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -126,11 +125,7 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div>
-            <label className="text-sm font-medium mb-1 block">Titre (Français) *</label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Les fonctions affines" />
-          </div>
-          <div>
-            <label className="text-sm font-medium mb-1 block">Titre (Arabe)</label>
+            <label className="text-sm font-medium mb-1 block">العنوان *</label>
             <Input value={titleAr} onChange={(e) => setTitleAr(e.target.value)} placeholder="العنوان بالعربية" dir="rtl" />
           </div>
           <div>
@@ -203,14 +198,14 @@ interface LessonFormDialogProps {
 export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [title, setTitle] = useState(lesson?.title || "");
-  const [titleAr, setTitleAr] = useState(lesson?.title_ar || "");
+  const [titleAr, setTitleAr] = useState(lesson?.title_ar || lesson?.title || "");
 
   const isEdit = !!lesson;
 
   const handleSubmit = async () => {
-    if (!title.trim()) {
-      toast.error("Le titre est obligatoire");
+    const titleValue = titleAr.trim();
+    if (!titleValue) {
+      toast.error("العنوان مطلوب");
       return;
     }
 
@@ -219,10 +214,10 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
       if (isEdit) {
         const { error } = await supabase
           .from("lessons")
-          .update({ title: title.trim(), title_ar: titleAr.trim() || null })
+          .update({ title: titleValue, title_ar: titleValue })
           .eq("id", lesson.id);
         if (error) throw error;
-        toast.success("Leçon modifiée");
+        toast.success("تم تعديل الدرس");
       } else {
         const { data: existing } = await supabase
           .from("lessons")
@@ -235,16 +230,15 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
 
         const { error } = await supabase.from("lessons").insert({
           chapter_id: chapterId,
-          title: title.trim(),
-          title_ar: titleAr.trim() || null,
+          title: titleValue,
+          title_ar: titleValue,
           order_index: nextIndex,
         });
         if (error) throw error;
-        toast.success("Leçon ajoutée");
+        toast.success("تمت إضافة الدرس");
       }
 
       setOpen(false);
-      setTitle("");
       setTitleAr("");
       onSaved();
     } catch (error: any) {
@@ -255,7 +249,7 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v && lesson) { setTitle(lesson.title); setTitleAr(lesson.title_ar || ""); } }}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v && lesson) { setTitleAr(lesson.title_ar || lesson.title || ""); } }}>
       <DialogTrigger asChild>
         {isEdit ? (
           <Button variant="ghost" size="icon" className="h-7 w-7">
@@ -274,11 +268,7 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div>
-            <label className="text-sm font-medium mb-1 block">Titre (Français) *</label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Introduction aux fonctions" />
-          </div>
-          <div>
-            <label className="text-sm font-medium mb-1 block">Titre (Arabe)</label>
+            <label className="text-sm font-medium mb-1 block">العنوان *</label>
             <Input value={titleAr} onChange={(e) => setTitleAr(e.target.value)} placeholder="العنوان بالعربية" dir="rtl" />
           </div>
         </div>
