@@ -38,6 +38,18 @@ interface ChatMessageProps {
   onNavigate?: (path: string) => void;
 }
 
+const isArabicText = (text: string): boolean => {
+  const stripped = text
+    .replace(/\$\$[\s\S]*?\$\$/g, "")
+    .replace(/\$[^$]*?\$/g, "")
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/`[^`]*`/g, "")
+    .replace(/\[\[BREADCRUMB:[^\]]+\]\]/g, "");
+  const arabic = (stripped.match(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/g) || []).length;
+  const latin = (stripped.match(/[A-Za-zÀ-ÿ]/g) || []).length;
+  return arabic > latin;
+};
+
 export const ChatMessage = ({ role, content, isStreaming, onNavigate }: ChatMessageProps) => {
   const isUser = role === "user";
   const navigate = useNavigate();
@@ -45,6 +57,10 @@ export const ChatMessage = ({ role, content, isStreaming, onNavigate }: ChatMess
   const { cleanContent, breadcrumbs } = isUser
     ? { cleanContent: content, breadcrumbs: [] }
     : parseBreadcrumbs(content);
+
+  const isRtl = isArabicText(content);
+  const dir: "rtl" | "ltr" = isRtl ? "rtl" : "ltr";
+  const textAlign = isRtl ? "text-right" : "text-left";
 
   const handleChapterClick = (bc: BreadcrumbNav) => {
     const path = `/cours/math?chapitre=${bc.chapterId}`;
