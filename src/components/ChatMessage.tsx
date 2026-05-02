@@ -106,7 +106,8 @@ export const ChatMessage = ({ role, content, isStreaming, onNavigate }: ChatMess
         </div>
       )}
 
-      <div className="flex-1 space-y-1.5 pt-0.5" dir={dir}>
+      <div className={cn("flex-1 space-y-1.5 pt-0.5", isRtl && "chat-msg-rtl")} dir={dir}>
+        <style>{rtlMathFixCss}</style>
         <p className={cn(
           "text-[0.75rem] font-bold tracking-wide uppercase",
           textAlign,
