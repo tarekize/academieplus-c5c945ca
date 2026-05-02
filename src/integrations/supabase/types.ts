@@ -1026,6 +1026,7 @@ export type Database = {
         Args: { _action: string; _details?: Json; _user_id: string }
         Returns: string
       }
+      user_has_any_role: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "student" | "parent" | "admin" | "pedago"
