@@ -6,6 +6,23 @@ import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { useNavigate } from "react-router-dom";
 
+// Force math (KaTeX) and code to render LTR even inside RTL messages
+const rtlMathFixCss = `
+  .chat-msg-rtl .katex,
+  .chat-msg-rtl .katex-display,
+  .chat-msg-rtl .katex-html,
+  .chat-msg-rtl .math,
+  .chat-msg-rtl .math-inline,
+  .chat-msg-rtl .math-display,
+  .chat-msg-rtl code,
+  .chat-msg-rtl pre {
+    direction: ltr !important;
+    unicode-bidi: isolate !important;
+    text-align: left;
+  }
+  .chat-msg-rtl .katex-display { display: block; text-align: center; }
+`;
+
 interface BreadcrumbNav {
   chapterId: string;
   chapterTitle: string;
