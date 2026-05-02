@@ -191,8 +191,8 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
           )}
 
           <div className="space-y-4" dir="rtl">
-            <div className="flex gap-3">
-              <Input placeholder="أدخل إجابتك..." value={userAnswers[exercise.id] || ""}
+            <div className="flex gap-3 items-center">
+              <Input id={`chap-exo-input-${exercise.id}`} placeholder="أدخل إجابتك..." value={userAnswers[exercise.id] || ""}
                 onChange={(e) => setUserAnswers(prev => ({ ...prev, [exercise.id]: e.target.value }))}
                 disabled={submitted || isSubmitting}
                 className={cn("flex-1", submitted && correct && "border-green-500 bg-green-500/10", submitted && !correct && "border-red-500 bg-red-500/10")}
@@ -202,6 +202,21 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
                 {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 تأكيد
               </Button>
+              {!submitted && (
+                <MathKeyboard onInsert={(sym) => {
+                  const el = document.getElementById(`chap-exo-input-${exercise.id}`) as HTMLInputElement | null;
+                  const current = userAnswers[exercise.id] || "";
+                  if (el) {
+                    const start = el.selectionStart ?? current.length;
+                    const end = el.selectionEnd ?? current.length;
+                    const next = current.slice(0, start) + sym + current.slice(end);
+                    setUserAnswers(prev => ({ ...prev, [exercise.id]: next }));
+                    requestAnimationFrame(() => { el.focus(); const pos = start + sym.length; el.setSelectionRange(pos, pos); });
+                  } else {
+                    setUserAnswers(prev => ({ ...prev, [exercise.id]: current + sym }));
+                  }
+                }} />
+              )}
             </div>
 
             {submitted && (
