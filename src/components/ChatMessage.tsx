@@ -166,6 +166,38 @@ export const ChatMessage = ({ role, content, isStreaming, onNavigate }: ChatMess
                         {children}
                       </blockquote>
                     ),
+                    // Force LTR direction on math (KaTeX) so formulas always read left-to-right,
+                    // even when the surrounding message is in Arabic (RTL).
+                    span: ({ node, className, children, ...props }: any) => {
+                      if (className && className.includes("math-inline")) {
+                        return (
+                          <span
+                            {...props}
+                            className={cn(className, "inline-block align-middle")}
+                            dir="ltr"
+                            style={{ unicodeBidi: "isolate" }}
+                          >
+                            {children}
+                          </span>
+                        );
+                      }
+                      return <span {...props} className={className}>{children}</span>;
+                    },
+                    div: ({ node, className, children, ...props }: any) => {
+                      if (className && className.includes("math-display")) {
+                        return (
+                          <div
+                            {...props}
+                            className={cn(className, "my-3 overflow-x-auto text-left")}
+                            dir="ltr"
+                            style={{ unicodeBidi: "isolate", textAlign: "left" }}
+                          >
+                            {children}
+                          </div>
+                        );
+                      }
+                      return <div {...props} className={className}>{children}</div>;
+                    },
                   }}
                 >
                   {cleanContent}
