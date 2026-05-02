@@ -9,11 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { MarkdownSolution } from "./MarkdownSolution";
 import { MathKeyboard } from "./MathKeyboard";
-
-function cleanMathStatement(raw: string): string {
-  if (!raw) return "";
-  return raw.replace(/\\\$/g, "$").replace(/\$\s*\$/g, "").replace(/[ \t]{2,}/g, " ").trim();
-}
+import { cleanMathStatement } from "@/lib/mathStatement";
 
 interface AdaptiveActivitiesProps {
   lessonId: string;
