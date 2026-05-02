@@ -509,9 +509,15 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
               <h3 className="text-[1.35rem] font-bold text-[#0A2551] dark:text-blue-300 leading-tight mb-3">
                 Bienvenue dans votre classe virtuelle&nbsp;!
               </h3>
-              <p className="text-[0.95rem] text-slate-600 dark:text-slate-400 font-medium leading-relaxed max-w-[280px]">
-                Je suis votre professeur personnel. Posez-moi n'importe quelle question de mathématiques en français, arabe ou toute autre langue.
+              <p className="text-[0.95rem] text-slate-600 dark:text-slate-400 font-medium leading-relaxed max-w-[320px]">
+                Je suis votre professeur personnel de mathématiques, encadré par votre programme. Posez votre question{chapterContext?.title ? <> sur le chapitre <span className="font-semibold text-[#0A2551] dark:text-blue-300">«&nbsp;{chapterContext.title}&nbsp;»</span></> : ""} en français ou en arabe.
               </p>
+              <div className="mt-5 grid grid-cols-2 gap-2 max-w-[320px] text-[0.7rem] text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5">📖 <span>Définition</span></div>
+                <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5">💡 <span>Exemple</span></div>
+                <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5">🔄 <span>Reformulation</span></div>
+                <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5">✏️ <span>Exercice</span></div>
+              </div>
               {!hasSubscription && !limitsLoading && (
                 <div className="mt-8 flex items-center gap-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 px-5 py-2.5 rounded-full text-xs font-semibold shadow-sm">
                   <Crown className="h-4 w-4 text-amber-500" />
