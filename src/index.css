@@ -430,3 +430,43 @@ All colors MUST be HSL.
 .dark .lesson-application { background: hsl(150 30% 12%); border-color: hsl(150 30% 25%); }
 .dark .lesson-method { background: hsl(25 40% 13%); border-color: hsl(25 40% 26%); }
 .dark .lesson-summary { background: hsl(330 35% 14%); border-color: hsl(330 35% 26%); }
+
+/* === Chatbot: force LTR rendering for math formulas inside RTL (Arabic) messages === */
+[dir="rtl"] .katex,
+[dir="rtl"] .katex-display,
+[dir="rtl"] .katex-html,
+[dir="rtl"] .katex-mathml {
+  direction: ltr !important;
+  unicode-bidi: isolate !important;
+  text-align: left !important;
+}
+
+/* Inline formulas: keep them inline but isolated LTR */
+[dir="rtl"] .katex {
+  display: inline-block;
+}
+
+/* Block (display) formulas: force a line break before & after, left-aligned */
+[dir="rtl"] .katex-display {
+  display: block !important;
+  margin: 0.75rem 0 !important;
+  text-align: left !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  clear: both;
+}
+
+[dir="rtl"] .katex-display > .katex {
+  text-align: left !important;
+  display: block;
+}
+
+/* Ensure paragraphs containing inline math don't reverse formula segments */
+[dir="rtl"] .katex .base,
+[dir="rtl"] .katex .mord,
+[dir="rtl"] .katex .mop,
+[dir="rtl"] .katex .mrel,
+[dir="rtl"] .katex .mbin {
+  direction: ltr !important;
+  unicode-bidi: isolate !important;
+}
