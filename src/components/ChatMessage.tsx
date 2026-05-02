@@ -89,15 +89,17 @@ export const ChatMessage = ({ role, content, isStreaming, onNavigate }: ChatMess
         </div>
       )}
 
-      <div className="flex-1 space-y-1.5 pt-0.5">
+      <div className="flex-1 space-y-1.5 pt-0.5" dir={dir}>
         <p className={cn(
           "text-[0.75rem] font-bold tracking-wide uppercase",
+          textAlign,
           isUser ? "text-blue-200/80" : "text-[#0A2551]/70 dark:text-blue-400"
         )}>
-          {isUser ? "Vous" : "Assistant mathématique"}
+          {isUser ? (isRtl ? "أنت" : "Vous") : (isRtl ? "المساعد الرياضي" : "Assistant mathématique")}
         </p>
         <div className={cn(
           "prose prose-sm max-w-none antialiased leading-relaxed font-medium",
+          textAlign,
           isUser ? "text-white prose-p:text-white" : "text-slate-700 dark:text-slate-300"
         )}>
           {isUser ? (
