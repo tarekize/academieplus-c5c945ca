@@ -15,12 +15,7 @@ import { ExerciseFormDialog, DeleteExerciseButton } from "./QuizExerciseCRUD";
 import { supabase } from "@/integrations/supabase/client";
 import { MarkdownSolution } from "./MarkdownSolution";
 import { MathKeyboard } from "./MathKeyboard";
-
-function cleanMathStatement(raw: string): string {
-  if (!raw) return "";
-  let s = raw.replace(/\\\$/g, "$").replace(/\$\s*\$/g, "").replace(/[ \t]{2,}/g, " ");
-  return s.trim();
-}
+import { cleanMathStatement } from "@/lib/mathStatement";
 
 export interface DBExercise {
   id: string;
