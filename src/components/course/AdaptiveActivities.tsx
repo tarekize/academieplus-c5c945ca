@@ -8,6 +8,12 @@ import { useAdaptiveContent } from "@/hooks/useAdaptiveContent";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { MarkdownSolution } from "./MarkdownSolution";
+import { MathKeyboard } from "./MathKeyboard";
+
+function cleanMathStatement(raw: string): string {
+  if (!raw) return "";
+  return raw.replace(/\\\$/g, "$").replace(/\$\s*\$/g, "").replace(/[ \t]{2,}/g, " ").trim();
+}
 
 interface AdaptiveActivitiesProps {
   lessonId: string;
@@ -328,8 +334,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                 <Card key={idx}>
                   <CardContent className="p-4 space-y-3">
                     <h4 className="font-semibold flex gap-2" dir="rtl"><span className="shrink-0">{idx + 1}.</span> <HtmlWithMath htmlContent={ex.title} className="flex-1" /></h4>
-                    <HtmlWithMath htmlContent={ex.statement} className="text-sm" dir="rtl" />
-
+                    <HtmlWithMath htmlContent={cleanMathStatement(ex.statement)} className="text-sm text-right" dir="rtl" />
                     {ex.hints && ex.hints.length > 0 && (
                       <Button
                         variant="ghost"
@@ -347,8 +352,9 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                     ))}
 
                     {exerciseResults[idx] === undefined && (
-                      <div className="flex gap-2" dir="rtl">
+                      <div className="flex gap-2 items-center" dir="rtl">
                         <input
+                          id={`adapt-exo-input-${idx}`}
                           className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
                           placeholder="أدخل إجابتك..."
                           value={exerciseAnswers[idx] || ""}
@@ -356,6 +362,19 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                           dir="rtl"
                         />
                         <Button size="sm" onClick={() => handleExerciseSubmit(idx)}>تحقق</Button>
+                        <MathKeyboard onInsert={(sym) => {
+                          const el = document.getElementById(`adapt-exo-input-${idx}`) as HTMLInputElement | null;
+                          const current = exerciseAnswers[idx] || "";
+                          if (el) {
+                            const start = el.selectionStart ?? current.length;
+                            const end = el.selectionEnd ?? current.length;
+                            const next = current.slice(0, start) + sym + current.slice(end);
+                            setExerciseAnswers(prev => ({ ...prev, [idx]: next }));
+                            requestAnimationFrame(() => { el.focus(); const pos = start + sym.length; el.setSelectionRange(pos, pos); });
+                          } else {
+                            setExerciseAnswers(prev => ({ ...prev, [idx]: current + sym }));
+                          }
+                        }} />
                       </div>
                     )}
 

@@ -12,6 +12,24 @@ import { useAdaptiveContent } from "@/hooks/useAdaptiveContent";
 import { useActivityTimeTracker } from "@/hooks/useActivityTimeTracker";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { MarkdownSolution } from "./MarkdownSolution";
+import { MathKeyboard } from "./MathKeyboard";
+
+// Cleans common AI-generated math statement glitches: escaped dollars, stray empty $$ pairs
+function cleanMathStatement(raw: string): string {
+  if (!raw) return "";
+  let s = raw;
+  // Convert escaped \$ into real $ delimiters
+  s = s.replace(/\\\$/g, "$");
+  // Collapse leftover empty $ $ or $$ $$
+  s = s.replace(/\$\s*\$/g, "");
+  // Trim multiple spaces created by replacements
+  s = s.replace(/[ \t]{2,}/g, " ");
+  return s.trim();
+}
+
+function statementHasMath(s: string): boolean {
+  return /[$\\<]|\\\(|\\\[/.test(s || "");
+}
 
 export interface DBQuizQuestion {
   id: string;
@@ -853,7 +871,14 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                           {Array.from({ length: 5 }).map((_, i) => <Pencil key={i} className={cn("h-4 w-4", i < (ex.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />)}
                         </div>
                       </div>
-                      <p className="text-sm" dir="rtl">{ex.statement}</p>
+                      {(() => {
+                        const cleaned = cleanMathStatement(ex.statement);
+                        return statementHasMath(cleaned) ? (
+                          <HtmlWithMath htmlContent={cleaned} className="text-sm text-right" dir="rtl" />
+                        ) : (
+                          <p className="text-sm" dir="rtl">{cleaned}</p>
+                        );
+                      })()}
                       {ex.hints && ex.hints.length > 0 && (
                         <Button variant="ghost" size="sm" onClick={() => setAiShowHints(prev => ({ ...prev, [idx]: !prev[idx] }))} className="text-yellow-600">
                           <Lightbulb className="h-4 w-4 mr-1" />
@@ -865,8 +890,8 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                         <p key={hIdx} className="text-xs text-muted-foreground bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {hint}</p>
                       ))}
                       {aiExerciseResults[idx] === undefined && (
-                        <div className="flex gap-2" dir="rtl">
-                          <input className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background" placeholder="أدخل إجابتك..." value={aiExerciseAnswers[idx] || ""} onChange={(e) => setAiExerciseAnswers(prev => ({ ...prev, [idx]: e.target.value }))} dir="rtl" />
+                        <div className="flex gap-2 items-center" dir="rtl">
+                          <input id={`ai-exo-input-${idx}`} className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background" placeholder="أدخل إجابتك..." value={aiExerciseAnswers[idx] || ""} onChange={(e) => setAiExerciseAnswers(prev => ({ ...prev, [idx]: e.target.value }))} dir="rtl" />
                           <Button size="sm" onClick={() => {
                             const userAnswer = aiExerciseAnswers[idx]?.trim();
                             if (!userAnswer) return;
@@ -874,6 +899,19 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                             setAiExerciseResults(prev => ({ ...prev, [idx]: isCorrect }));
                             adaptiveContent.recordAnswer(isCorrect, 0, "exercise");
                           }}>تحقق</Button>
+                          <MathKeyboard onInsert={(sym) => {
+                            const el = document.getElementById(`ai-exo-input-${idx}`) as HTMLInputElement | null;
+                            const current = aiExerciseAnswers[idx] || "";
+                            if (el) {
+                              const start = el.selectionStart ?? current.length;
+                              const end = el.selectionEnd ?? current.length;
+                              const next = current.slice(0, start) + sym + current.slice(end);
+                              setAiExerciseAnswers(prev => ({ ...prev, [idx]: next }));
+                              requestAnimationFrame(() => { el.focus(); const pos = start + sym.length; el.setSelectionRange(pos, pos); });
+                            } else {
+                              setAiExerciseAnswers(prev => ({ ...prev, [idx]: current + sym }));
+                            }
+                          }} />
                         </div>
                       )}
                       {aiExerciseResults[idx] !== undefined && (
@@ -1183,17 +1221,21 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
             <DialogTitle className="text-right">{index + 1}. {exercise.title}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            {exercise.statement.includes('<') || exercise.statement.includes('\\') ? (
-              <HtmlWithMath htmlContent={exercise.statement} className="text-sm border-t pt-2" />
-            ) : (
-              <p className="text-sm border-t pt-2 text-right" dir="rtl">{exercise.statement}</p>
-            )}
+            {(() => {
+              const cleaned = cleanMathStatement(exercise.statement);
+              return statementHasMath(cleaned) ? (
+                <HtmlWithMath htmlContent={cleaned} className="text-sm border-t pt-2 text-right" dir="rtl" />
+              ) : (
+                <p className="text-sm border-t pt-2 text-right" dir="rtl">{cleaned}</p>
+              );
+            })()}
             {exercise.hint && (
               <HintBlock hint={exercise.hint} />
             )}
             {!readOnly && result === null && (
-              <div className="flex gap-2" dir="rtl">
+              <div className="flex gap-2 items-center" dir="rtl">
                 <input
+                  id={`exo-input-${exercise.id}`}
                   className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
                   placeholder="أدخل إجابتك..."
                   value={answer}
@@ -1201,6 +1243,24 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
                   dir="rtl"
                 />
                 <Button size="sm" onClick={handleSubmit} disabled={submitting}>{submitting ? "..." : "تحقق"}</Button>
+                <MathKeyboard
+                  onInsert={(sym) => {
+                    const el = document.getElementById(`exo-input-${exercise.id}`) as HTMLInputElement | null;
+                    if (el) {
+                      const start = el.selectionStart ?? answer.length;
+                      const end = el.selectionEnd ?? answer.length;
+                      const next = answer.slice(0, start) + sym + answer.slice(end);
+                      setAnswer(next);
+                      requestAnimationFrame(() => {
+                        el.focus();
+                        const pos = start + sym.length;
+                        el.setSelectionRange(pos, pos);
+                      });
+                    } else {
+                      setAnswer((prev) => prev + sym);
+                    }
+                  }}
+                />
               </div>
             )}
             {result !== null && (

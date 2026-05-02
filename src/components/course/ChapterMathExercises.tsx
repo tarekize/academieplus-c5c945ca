@@ -14,6 +14,13 @@ import { useTimeTracking, formatTime } from "@/hooks/useTimeTracking";
 import { ExerciseFormDialog, DeleteExerciseButton } from "./QuizExerciseCRUD";
 import { supabase } from "@/integrations/supabase/client";
 import { MarkdownSolution } from "./MarkdownSolution";
+import { MathKeyboard } from "./MathKeyboard";
+
+function cleanMathStatement(raw: string): string {
+  if (!raw) return "";
+  let s = raw.replace(/\\\$/g, "$").replace(/\$\s*\$/g, "").replace(/[ \t]{2,}/g, " ");
+  return s.trim();
+}
 
 export interface DBExercise {
   id: string;
@@ -155,7 +162,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
         <CardContent className="space-y-6">
           <div className="p-4 bg-muted/50 rounded-lg" dir="rtl">
             <h4 className="font-semibold mb-3 flex items-center gap-2"><BookOpen className="h-4 w-4" />التمرين</h4>
-            <HtmlWithMath htmlContent={exercise.statement} className="text-sm border-t pt-2 block" />
+            <HtmlWithMath htmlContent={cleanMathStatement(exercise.statement)} className="text-sm border-t pt-2 block text-right" dir="rtl" />
           </div>
 
           {exercise.hint && (
@@ -184,8 +191,8 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
           )}
 
           <div className="space-y-4" dir="rtl">
-            <div className="flex gap-3">
-              <Input placeholder="أدخل إجابتك..." value={userAnswers[exercise.id] || ""}
+            <div className="flex gap-3 items-center">
+              <Input id={`chap-exo-input-${exercise.id}`} placeholder="أدخل إجابتك..." value={userAnswers[exercise.id] || ""}
                 onChange={(e) => setUserAnswers(prev => ({ ...prev, [exercise.id]: e.target.value }))}
                 disabled={submitted || isSubmitting}
                 className={cn("flex-1", submitted && correct && "border-green-500 bg-green-500/10", submitted && !correct && "border-red-500 bg-red-500/10")}
@@ -195,6 +202,21 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
                 {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 تأكيد
               </Button>
+              {!submitted && (
+                <MathKeyboard onInsert={(sym) => {
+                  const el = document.getElementById(`chap-exo-input-${exercise.id}`) as HTMLInputElement | null;
+                  const current = userAnswers[exercise.id] || "";
+                  if (el) {
+                    const start = el.selectionStart ?? current.length;
+                    const end = el.selectionEnd ?? current.length;
+                    const next = current.slice(0, start) + sym + current.slice(end);
+                    setUserAnswers(prev => ({ ...prev, [exercise.id]: next }));
+                    requestAnimationFrame(() => { el.focus(); const pos = start + sym.length; el.setSelectionRange(pos, pos); });
+                  } else {
+                    setUserAnswers(prev => ({ ...prev, [exercise.id]: current + sym }));
+                  }
+                }} />
+              )}
             </div>
 
             {submitted && (
