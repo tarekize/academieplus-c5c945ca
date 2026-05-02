@@ -162,7 +162,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
         <CardContent className="space-y-6">
           <div className="p-4 bg-muted/50 rounded-lg" dir="rtl">
             <h4 className="font-semibold mb-3 flex items-center gap-2"><BookOpen className="h-4 w-4" />التمرين</h4>
-            <HtmlWithMath htmlContent={exercise.statement} className="text-sm border-t pt-2 block" />
+            <HtmlWithMath htmlContent={cleanMathStatement(exercise.statement)} className="text-sm border-t pt-2 block text-right" dir="rtl" />
           </div>
 
           {exercise.hint && (
