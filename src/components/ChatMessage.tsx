@@ -91,6 +91,8 @@ export const ChatMessage = ({ role, content, isStreaming, onNavigate }: ChatMess
               {cleanContent && (
                 <ReactMarkdown
                   className="space-y-3"
+                  remarkPlugins={[remarkMath]}
+                  rehypePlugins={[rehypeKatex]}
                   components={{
                     h1: ({ children }) => (
                       <h1 className="text-2xl font-bold text-primary mb-3 mt-4 pb-2 border-b-2 border-primary/30">
