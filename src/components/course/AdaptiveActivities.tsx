@@ -334,8 +334,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                 <Card key={idx}>
                   <CardContent className="p-4 space-y-3">
                     <h4 className="font-semibold flex gap-2" dir="rtl"><span className="shrink-0">{idx + 1}.</span> <HtmlWithMath htmlContent={ex.title} className="flex-1" /></h4>
-                    <HtmlWithMath htmlContent={ex.statement} className="text-sm" dir="rtl" />
-
+                    <HtmlWithMath htmlContent={cleanMathStatement(ex.statement)} className="text-sm text-right" dir="rtl" />
                     {ex.hints && ex.hints.length > 0 && (
                       <Button
                         variant="ghost"
