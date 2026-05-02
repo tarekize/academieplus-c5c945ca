@@ -8,6 +8,12 @@ import { useAdaptiveContent } from "@/hooks/useAdaptiveContent";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { MarkdownSolution } from "./MarkdownSolution";
+import { MathKeyboard } from "./MathKeyboard";
+
+function cleanMathStatement(raw: string): string {
+  if (!raw) return "";
+  return raw.replace(/\\\$/g, "$").replace(/\$\s*\$/g, "").replace(/[ \t]{2,}/g, " ").trim();
+}
 
 interface AdaptiveActivitiesProps {
   lessonId: string;
