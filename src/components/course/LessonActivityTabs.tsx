@@ -1024,11 +1024,8 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
           <h4 className="font-semibold flex-1 text-right" dir="rtl">{index + 1}. {exercise.title}</h4>
           <DifficultyIndicator level={exercise.difficulty} />
         </div>
-        {exercise.statement.includes('<') || exercise.statement.includes('\\') ? (
-          <HtmlWithMath htmlContent={exercise.statement} className="text-sm border-t pt-2" />
-        ) : (
-          <p className="text-sm border-t pt-2 text-right" dir="rtl">{exercise.statement}</p>
-        )}
+        <HtmlWithMath htmlContent={cleanMathStatement(exercise.statement)} className="text-sm border-t pt-2 text-right" dir="rtl" />
+
         <div className="flex items-center gap-2 justify-end">
           <CheckCircle2 className="h-4 w-4 text-green-500" />
           <span className="text-sm text-green-600 font-medium">إجابة صحيحة</span>
