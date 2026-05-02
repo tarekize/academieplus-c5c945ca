@@ -13,23 +13,7 @@ import { useActivityTimeTracker } from "@/hooks/useActivityTimeTracker";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { MarkdownSolution } from "./MarkdownSolution";
 import { MathKeyboard } from "./MathKeyboard";
-
-// Cleans common AI-generated math statement glitches: escaped dollars, stray empty $$ pairs
-function cleanMathStatement(raw: string): string {
-  if (!raw) return "";
-  let s = raw;
-  // Convert escaped \$ into real $ delimiters
-  s = s.replace(/\\\$/g, "$");
-  // Collapse leftover empty $ $ or $$ $$
-  s = s.replace(/\$\s*\$/g, "");
-  // Trim multiple spaces created by replacements
-  s = s.replace(/[ \t]{2,}/g, " ");
-  return s.trim();
-}
-
-function statementHasMath(s: string): boolean {
-  return /[$\\<]|\\\(|\\\[/.test(s || "");
-}
+import { cleanMathStatement, statementHasMath } from "@/lib/mathStatement";
 
 export interface DBQuizQuestion {
   id: string;
