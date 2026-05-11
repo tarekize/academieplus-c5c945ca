@@ -361,7 +361,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
         try {
           const weak = Array.from(new Set(weakConceptsRef.current)).slice(0, 5);
           const strong = Array.from(new Set(strongConceptsRef.current)).slice(0, 5);
-          const link = `/cours/${chapterId}?lesson=${lessonId}`;
+          const link = `/cours/math?chapitre=${chapterId}&lecon=${lessonId}`;
           const { data: cmt } = await supabase.functions.invoke("generate-lesson-comment", {
             body: {
               lesson_title: lessonTitle,
