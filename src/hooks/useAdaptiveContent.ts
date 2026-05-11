@@ -409,7 +409,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     }
 
     return finalScore;
-  }, [userId, lessonId, chapterId, toast, generateContent, sessionTotal, sessionCorrect]);
+  }, [userId, lessonId, chapterId, toast, generateContent, sessionTotal, sessionCorrect, lessonTitle, chapterTitle]);
 
   const updateReadingTime = useCallback(async (seconds: number) => {
     const newScore = { ...scoreRef.current, reading_time_seconds: scoreRef.current.reading_time_seconds + seconds };
