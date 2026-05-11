@@ -353,10 +353,53 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
 
       // Auto-regenerate content for the active type
       toast({ title: "🔄 تحديث المستوى", description: "جاري إعادة إنشاء المحتوى حسب مستواك الجديد..." });
-      
+
+      // Generate AI personalized comment if level changed
+      const startLevel = sessionStartLevelRef.current ?? oldCurrentLevel;
+      const endLevel = finalScore.current_level;
+      if (endLevel !== startLevel) {
+        try {
+          const weak = Array.from(new Set(weakConceptsRef.current)).slice(0, 5);
+          const strong = Array.from(new Set(strongConceptsRef.current)).slice(0, 5);
+          const link = `/cours/${chapterId}?lesson=${lessonId}`;
+          const { data: cmt } = await supabase.functions.invoke("generate-lesson-comment", {
+            body: {
+              lesson_title: lessonTitle,
+              chapter_title: chapterTitle,
+              level_before: startLevel,
+              level_after: endLevel,
+              weak_concepts: weak,
+              strong_concepts: strong,
+              lesson_link: link,
+            },
+          });
+          if (cmt?.message) {
+            await supabase.from("ai_lesson_comments").insert({
+              user_id: userId,
+              lesson_id: lessonId,
+              chapter_id: chapterId,
+              lesson_title: lessonTitle,
+              chapter_title: chapterTitle,
+              level_before: startLevel,
+              level_after: endLevel,
+              level_delta: endLevel - startLevel,
+              weak_concepts: weak,
+              strong_concepts: strong,
+              message: cmt.message,
+              link_url: link,
+            });
+          }
+        } catch (e) {
+          console.error("AI comment error:", e);
+        }
+      }
+
       // Reset session counters for next batch
       setSessionCorrect(0);
       setSessionTotal(0);
+      sessionStartLevelRef.current = endLevel;
+      weakConceptsRef.current = [];
+      strongConceptsRef.current = [];
 
       setTimeout(async () => {
         await generateContent(type);
