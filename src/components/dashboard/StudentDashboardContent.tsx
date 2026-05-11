@@ -16,6 +16,7 @@ import {
   Clock, Target, TrendingUp, TrendingDown, GraduationCap, BookOpen, Brain, FileText,
   CheckCircle2, XCircle, Zap, RefreshCw, Activity, Sparkles, Award, ChevronRight,
 } from "lucide-react";
+import AICommentsCard from "./AICommentsCard";
 
 interface StudentDashboardContentProps {
   userId: string;
