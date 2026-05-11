@@ -298,9 +298,10 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       else weakConceptsRef.current.push(c);
     }
 
-    // Update session counters
-    const newSessionTotal = sessionTotal + 1;
-    const newSessionCorrect = sessionCorrect + (isCorrect ? 1 : 0);
+    // Update session counters using a ref so rapid clicks don't use stale React state
+    const newSessionTotal = sessionCountersRef.current.total + 1;
+    const newSessionCorrect = sessionCountersRef.current.correct + (isCorrect ? 1 : 0);
+    sessionCountersRef.current = { total: newSessionTotal, correct: newSessionCorrect };
     setSessionTotal(newSessionTotal);
     if (isCorrect) setSessionCorrect(prev => prev + 1);
 
@@ -413,49 +414,15 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       // Auto-regenerate content for the active type
       toast({ title: "🔄 تحديث المستوى", description: "جاري إعادة إنشاء المحتوى حسب مستواك الجديد..." });
 
-      // Generate AI personalized comment if level changed
+      // Generate AI personalized comment for every completed work session
       const startLevel = sessionStartLevelRef.current ?? oldCurrentLevel;
       const endLevel = finalScore.current_level;
-      if (endLevel !== startLevel) {
-        try {
-          const weak = Array.from(new Set(weakConceptsRef.current)).slice(0, 5);
-          const strong = Array.from(new Set(strongConceptsRef.current)).slice(0, 5);
-          const link = `/cours/math?chapitre=${chapterId}&lecon=${lessonId}`;
-          const { data: cmt } = await supabase.functions.invoke("generate-lesson-comment", {
-            body: {
-              lesson_title: lessonTitle,
-              chapter_title: chapterTitle,
-              level_before: startLevel,
-              level_after: endLevel,
-              weak_concepts: weak,
-              strong_concepts: strong,
-              lesson_link: link,
-            },
-          });
-          if (cmt?.message) {
-            await supabase.from("ai_lesson_comments").insert({
-              user_id: userId,
-              lesson_id: lessonId,
-              chapter_id: chapterId,
-              lesson_title: lessonTitle,
-              chapter_title: chapterTitle,
-              level_before: startLevel,
-              level_after: endLevel,
-              level_delta: endLevel - startLevel,
-              weak_concepts: weak,
-              strong_concepts: strong,
-              message: cmt.message,
-              link_url: link,
-            });
-          }
-        } catch (e) {
-          console.error("AI comment error:", e);
-        }
-      }
+      await saveLessonComment(startLevel, endLevel);
 
       // Reset session counters for next batch
       setSessionCorrect(0);
       setSessionTotal(0);
+      sessionCountersRef.current = { correct: 0, total: 0 };
       sessionStartLevelRef.current = endLevel;
       weakConceptsRef.current = [];
       strongConceptsRef.current = [];
@@ -468,7 +435,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     }
 
     return finalScore;
-  }, [userId, lessonId, chapterId, toast, generateContent, sessionTotal, sessionCorrect, lessonTitle, chapterTitle]);
+  }, [userId, lessonId, chapterId, toast, generateContent, saveLessonComment]);
 
   const updateReadingTime = useCallback(async (seconds: number) => {
     const newScore = { ...scoreRef.current, reading_time_seconds: scoreRef.current.reading_time_seconds + seconds };
@@ -498,6 +465,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     setSessionCorrect(0);
     setSessionTotal(0);
     setLevelUpMessage(null);
+    sessionCountersRef.current = { correct: 0, total: 0 };
   }, []);
 
   return {
