@@ -424,15 +424,17 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       toast({ title: "🔄 تحديث المستوى", description: "جاري إعادة إنشاء المحتوى حسب مستواك الجديد..." });
 
       // Generate AI personalized comment for every completed work session
-      const startLevel = sessionStartLevelRef.current ?? oldCurrentLevel;
-      const endLevel = finalScore.current_level;
-      await saveLessonComment(startLevel, endLevel);
+      const startScore = sessionStartScoreRef.current ?? scoreRef.current;
+      const startLevel = sessionStartLevelRef.current ?? computeCompositeLevel(startScore);
+      const endLevel = computeCompositeLevel(finalScore);
+      await saveLessonComment(startLevel, endLevel, newSessionCorrect, newSessionTotal);
 
       // Reset session counters for next batch
       setSessionCorrect(0);
       setSessionTotal(0);
       sessionCountersRef.current = { correct: 0, total: 0 };
       sessionStartLevelRef.current = endLevel;
+      sessionStartScoreRef.current = { ...finalScore };
       weakConceptsRef.current = [];
       strongConceptsRef.current = [];
 
