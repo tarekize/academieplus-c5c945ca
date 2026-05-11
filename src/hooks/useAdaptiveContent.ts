@@ -62,11 +62,19 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   const scoreRef = useRef(score);
   scoreRef.current = score;
 
+  // Track session start level + concepts answered (for AI comment)
+  const sessionStartLevelRef = useRef<number | null>(null);
+  const weakConceptsRef = useRef<string[]>([]);
+  const strongConceptsRef = useRef<string[]>([]);
+
   // Reset session counters when lesson changes
   useEffect(() => {
     setSessionCorrect(0);
     setSessionTotal(0);
     setLevelUpMessage(null);
+    sessionStartLevelRef.current = null;
+    weakConceptsRef.current = [];
+    strongConceptsRef.current = [];
   }, [lessonId]);
 
   // Load existing AI content and score
@@ -219,7 +227,18 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   }, [lessonId, chapterId, schoolLevel, lessonTitle, chapterTitle, userId, toast, quizzes, exercises, computeCompositeLevel]);
 
   // Record answer + update score + auto-refresh every 5 session answers
-  const recordAnswer = useCallback(async (isCorrect: boolean, timeSeconds: number, type: "quiz" | "exercise") => {
+  const recordAnswer = useCallback(async (isCorrect: boolean, timeSeconds: number, type: "quiz" | "exercise", concept?: string) => {
+    // Capture session start level once
+    if (sessionStartLevelRef.current === null) {
+      sessionStartLevelRef.current = scoreRef.current.current_level;
+    }
+    // Track concept (truncate text to keep prompt small)
+    if (concept) {
+      const c = concept.slice(0, 120);
+      if (isCorrect) strongConceptsRef.current.push(c);
+      else weakConceptsRef.current.push(c);
+    }
+
     // Update session counters
     const newSessionTotal = sessionTotal + 1;
     const newSessionCorrect = sessionCorrect + (isCorrect ? 1 : 0);
