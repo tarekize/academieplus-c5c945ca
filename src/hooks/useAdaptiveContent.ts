@@ -37,6 +37,12 @@ interface StudentScore {
   streak: number;
 }
 
+interface LearningStyleScores {
+  visual_score: number;
+  textual_score: number;
+  practical_score: number;
+}
+
 export function useAdaptiveContent(lessonId: string, chapterId: string, userId: string, schoolLevel: string, lessonTitle: string, chapterTitle: string) {
   const { toast } = useToast();
   const [quizzes, setQuizzes] = useState<QuizItem[]>([]);
@@ -161,11 +167,11 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
         });
       } else {
         // Check placement test level
-        const { data: learningData } = await (supabase as any)
+        const { data: learningData } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
           .from("learning_styles")
           .select("visual_score, textual_score, practical_score")
           .eq("user_id", userId)
-          .maybeSingle();
+          .maybeSingle() as { data: LearningStyleScores | null };
 
         if (learningData) {
           const avg = Math.round((learningData.visual_score + learningData.textual_score + learningData.practical_score) / 3);
@@ -182,10 +188,10 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
 
       if (contentData) {
         for (const item of contentData) {
-          const content = item.content as any[];
-          if (item.content_type === "quiz") setQuizzes(content);
-          if (item.content_type === "exercise") setExercises(content);
-          if (item.content_type === "revision") setRevisions(content);
+          const content = Array.isArray(item.content) ? item.content : [];
+          if (item.content_type === "quiz") setQuizzes(content as unknown as QuizItem[]);
+          if (item.content_type === "exercise") setExercises(content as unknown as ExerciseItem[]);
+          if (item.content_type === "revision") setRevisions(content as unknown as RevisionItem[]);
         }
       }
     };
@@ -277,9 +283,9 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       }
 
       toast({ title: "✅ تم إنشاء المحتوى", description: `5 ${contentType === "quiz" ? "أسئلة" : contentType === "exercise" ? "تمارين" : "بطاقات"} جديدة حسب مستواك (${compositeLevel}/100)` });
-    } catch (err: any) {
+    } catch (err) {
       console.error("Generate error:", err);
-      toast({ title: "خطأ", description: err.message || "فشل في إنشاء المحتوى", variant: "destructive" });
+      toast({ title: "خطأ", description: err instanceof Error ? err.message : "فشل في إنشاء المحتوى", variant: "destructive" });
     } finally {
       setLoading(prev => ({ ...prev, [contentType]: false }));
     }
@@ -306,7 +312,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     setSessionCorrect(newSessionCorrect);
 
     let finalScore: StudentScore | null = null;
-    let oldCurrentLevel = scoreRef.current.current_level;
+    const oldCurrentLevel = scoreRef.current.current_level;
 
     setScore((prev) => {
       const newScore = { ...prev };
