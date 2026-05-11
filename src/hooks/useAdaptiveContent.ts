@@ -69,8 +69,9 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   scoreRef.current = score;
   const sessionCountersRef = useRef({ correct: 0, total: 0 });
 
-  // Track session start level + concepts answered (for AI comment)
+  // Track session start composite level + concepts (for AI comment)
   const sessionStartLevelRef = useRef<number | null>(null);
+  const sessionStartScoreRef = useRef<StudentScore | null>(null);
   const weakConceptsRef = useRef<string[]>([]);
   const strongConceptsRef = useRef<string[]>([]);
 
