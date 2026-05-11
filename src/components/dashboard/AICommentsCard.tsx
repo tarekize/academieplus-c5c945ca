@@ -21,13 +21,24 @@ interface AIComment {
   created_at: string;
 }
 
+interface ScoreCommentSource {
+  id: string;
+  lesson_id: string;
+  chapter_id: string | null;
+  current_level: number;
+  accuracy_rate: number;
+  updated_at: string;
+  lesson?: { title: string | null; title_ar: string | null } | null;
+  chapter?: { title: string | null; title_ar: string | null } | null;
+}
+
 export default function AICommentsCard({ userId }: { userId: string }) {
   const navigate = useNavigate();
   const [comments, setComments] = useState<AIComment[]>([]);
   const [selected, setSelected] = useState<AIComment | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const buildScoreComment = (score: any): AIComment => {
+  const buildScoreComment = (score: ScoreCommentSource): AIComment => {
     const levelAfter = Number(score.current_level || 0);
     const levelBefore = levelAfter < 50 ? 50 : levelAfter;
     const lessonTitle = score.lesson?.title_ar || score.lesson?.title || "درس";
@@ -65,7 +76,7 @@ export default function AICommentsCard({ userId }: { userId: string }) {
 
     const seen = new Set<string>();
     const latest: AIComment[] = [];
-    (data || []).forEach((c: any) => {
+    (data || []).forEach((c) => {
       if (seen.has(c.lesson_id)) return;
       seen.add(c.lesson_id);
       latest.push(c as AIComment);
@@ -82,7 +93,7 @@ export default function AICommentsCard({ userId }: { userId: string }) {
 
     if (scoresError) console.error("Student scores fetch error:", scoresError);
 
-    (scores || []).forEach((score: any) => {
+    (scores || []).forEach((score) => {
       if (!score.lesson_id || seen.has(score.lesson_id)) return;
       seen.add(score.lesson_id);
       latest.push(buildScoreComment(score));
