@@ -257,6 +257,10 @@ serve(async (req) => {
       chapter_title,
       accuracy_rate,
       streak,
+      avoid_list,
+      seed,
+      quiz_accuracy,
+      exercise_accuracy,
     } = body;
 
     if (!content_type || !school_level || !lesson_title || !chapter_title) {
@@ -281,6 +285,10 @@ serve(async (req) => {
       chapter_title,
       accuracy_rate ?? 0,
       streak ?? 0,
+      Array.isArray(avoid_list) ? avoid_list : [],
+      typeof seed === "number" ? seed : Math.floor(Math.random() * 1_000_000),
+      quiz_accuracy ?? 0,
+      exercise_accuracy ?? 0,
     );
 
     let rawContent = "";
