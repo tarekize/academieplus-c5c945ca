@@ -37,6 +37,12 @@ interface StudentScore {
   streak: number;
 }
 
+interface LearningStyleScores {
+  visual_score: number;
+  textual_score: number;
+  practical_score: number;
+}
+
 export function useAdaptiveContent(lessonId: string, chapterId: string, userId: string, schoolLevel: string, lessonTitle: string, chapterTitle: string) {
   const { toast } = useToast();
   const [quizzes, setQuizzes] = useState<QuizItem[]>([]);
@@ -61,6 +67,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   const [levelUpMessage, setLevelUpMessage] = useState<string | null>(null);
   const scoreRef = useRef(score);
   scoreRef.current = score;
+  const sessionCountersRef = useRef({ correct: 0, total: 0 });
 
   // Track session start level + concepts answered (for AI comment)
   const sessionStartLevelRef = useRef<number | null>(null);
@@ -72,10 +79,68 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     setSessionCorrect(0);
     setSessionTotal(0);
     setLevelUpMessage(null);
+    sessionCountersRef.current = { correct: 0, total: 0 };
     sessionStartLevelRef.current = null;
     weakConceptsRef.current = [];
     strongConceptsRef.current = [];
   }, [lessonId]);
+
+  const buildFallbackComment = useCallback((levelBefore: number, levelAfter: number, weak: string[], strong: string[]) => {
+    if (levelAfter < levelBefore) {
+      return `📉 لاحظت أن مستواك انخفض من ${levelBefore}/100 إلى ${levelAfter}/100 في هذا الدرس.\nركّز الآن على المفاهيم التي أخطأت فيها: ${weak.join("، ") || "الأساسيات"}.\nراجع الدرس بهدوء، ثم اضغط على زر "تجديد" للحصول على 5 تمارين أو أسئلة أسهل ومناسبة لمستواك.`;
+    }
+
+    if (levelAfter > levelBefore) {
+      return `🌟 ممتاز! مستواك تحسّن من ${levelBefore}/100 إلى ${levelAfter}/100.\nأقوى نقاطك: ${strong.join("، ") || "التقدم العام"}.\nواصل بنفس الطريقة، واضغط "تجديد" للحصول على تحديات جديدة تناسب مستواك الحالي.`;
+    }
+
+    return `🤖 مستواك مستقر عند ${levelAfter}/100.\nواصل التدريب على هذا الدرس، وحاول مراجعة الأخطاء ثم تجديد التمارين للحصول على أسئلة مناسبة أكثر.`;
+  }, []);
+
+  const saveLessonComment = useCallback(async (levelBefore: number, levelAfter: number) => {
+    if (!userId || !lessonId) return;
+
+    const weak = Array.from(new Set(weakConceptsRef.current)).slice(0, 5);
+    const strong = Array.from(new Set(strongConceptsRef.current)).slice(0, 5);
+    const link = `/cours/math?chapitre=${chapterId}&lecon=${lessonId}`;
+    let message = buildFallbackComment(levelBefore, levelAfter, weak, strong);
+
+    try {
+      const { data: cmt, error } = await supabase.functions.invoke("generate-lesson-comment", {
+        body: {
+          lesson_title: lessonTitle,
+          chapter_title: chapterTitle,
+          level_before: levelBefore,
+          level_after: levelAfter,
+          weak_concepts: weak,
+          strong_concepts: strong,
+          lesson_link: link,
+        },
+      });
+
+      if (!error && cmt?.message) message = cmt.message;
+      if (error) console.warn("AI comment fallback used:", error.message);
+    } catch (e) {
+      console.warn("AI comment fallback used:", e);
+    }
+
+    const { error: insertError } = await supabase.from("ai_lesson_comments").insert({
+      user_id: userId,
+      lesson_id: lessonId,
+      chapter_id: chapterId,
+      lesson_title: lessonTitle,
+      chapter_title: chapterTitle,
+      level_before: levelBefore,
+      level_after: levelAfter,
+      level_delta: levelAfter - levelBefore,
+      weak_concepts: weak,
+      strong_concepts: strong,
+      message,
+      link_url: link,
+    });
+
+    if (insertError) console.error("AI comment insert error:", insertError);
+  }, [buildFallbackComment, chapterId, chapterTitle, lessonId, lessonTitle, userId]);
 
   // Load existing AI content and score
   useEffect(() => {
@@ -102,11 +167,11 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
         });
       } else {
         // Check placement test level
-        const { data: learningData } = await (supabase as any)
+        const { data: learningData } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
           .from("learning_styles")
           .select("visual_score, textual_score, practical_score")
           .eq("user_id", userId)
-          .maybeSingle();
+          .maybeSingle() as { data: LearningStyleScores | null };
 
         if (learningData) {
           const avg = Math.round((learningData.visual_score + learningData.textual_score + learningData.practical_score) / 3);
@@ -123,10 +188,10 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
 
       if (contentData) {
         for (const item of contentData) {
-          const content = item.content as any[];
-          if (item.content_type === "quiz") setQuizzes(content);
-          if (item.content_type === "exercise") setExercises(content);
-          if (item.content_type === "revision") setRevisions(content);
+          const content = Array.isArray(item.content) ? item.content : [];
+          if (item.content_type === "quiz") setQuizzes(content as unknown as QuizItem[]);
+          if (item.content_type === "exercise") setExercises(content as unknown as ExerciseItem[]);
+          if (item.content_type === "revision") setRevisions(content as unknown as RevisionItem[]);
         }
       }
     };
@@ -218,9 +283,9 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       }
 
       toast({ title: "✅ تم إنشاء المحتوى", description: `5 ${contentType === "quiz" ? "أسئلة" : contentType === "exercise" ? "تمارين" : "بطاقات"} جديدة حسب مستواك (${compositeLevel}/100)` });
-    } catch (err: any) {
+    } catch (err) {
       console.error("Generate error:", err);
-      toast({ title: "خطأ", description: err.message || "فشل في إنشاء المحتوى", variant: "destructive" });
+      toast({ title: "خطأ", description: err instanceof Error ? err.message : "فشل في إنشاء المحتوى", variant: "destructive" });
     } finally {
       setLoading(prev => ({ ...prev, [contentType]: false }));
     }
@@ -239,14 +304,15 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       else weakConceptsRef.current.push(c);
     }
 
-    // Update session counters
-    const newSessionTotal = sessionTotal + 1;
-    const newSessionCorrect = sessionCorrect + (isCorrect ? 1 : 0);
+    // Update session counters using a ref so rapid clicks don't use stale React state
+    const newSessionTotal = sessionCountersRef.current.total + 1;
+    const newSessionCorrect = sessionCountersRef.current.correct + (isCorrect ? 1 : 0);
+    sessionCountersRef.current = { total: newSessionTotal, correct: newSessionCorrect };
     setSessionTotal(newSessionTotal);
-    if (isCorrect) setSessionCorrect(prev => prev + 1);
+    setSessionCorrect(newSessionCorrect);
 
     let finalScore: StudentScore | null = null;
-    let oldCurrentLevel = scoreRef.current.current_level;
+    const oldCurrentLevel = scoreRef.current.current_level;
 
     setScore((prev) => {
       const newScore = { ...prev };
@@ -354,49 +420,15 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       // Auto-regenerate content for the active type
       toast({ title: "🔄 تحديث المستوى", description: "جاري إعادة إنشاء المحتوى حسب مستواك الجديد..." });
 
-      // Generate AI personalized comment if level changed
+      // Generate AI personalized comment for every completed work session
       const startLevel = sessionStartLevelRef.current ?? oldCurrentLevel;
       const endLevel = finalScore.current_level;
-      if (endLevel !== startLevel) {
-        try {
-          const weak = Array.from(new Set(weakConceptsRef.current)).slice(0, 5);
-          const strong = Array.from(new Set(strongConceptsRef.current)).slice(0, 5);
-          const link = `/cours/math?chapitre=${chapterId}&lecon=${lessonId}`;
-          const { data: cmt } = await supabase.functions.invoke("generate-lesson-comment", {
-            body: {
-              lesson_title: lessonTitle,
-              chapter_title: chapterTitle,
-              level_before: startLevel,
-              level_after: endLevel,
-              weak_concepts: weak,
-              strong_concepts: strong,
-              lesson_link: link,
-            },
-          });
-          if (cmt?.message) {
-            await supabase.from("ai_lesson_comments").insert({
-              user_id: userId,
-              lesson_id: lessonId,
-              chapter_id: chapterId,
-              lesson_title: lessonTitle,
-              chapter_title: chapterTitle,
-              level_before: startLevel,
-              level_after: endLevel,
-              level_delta: endLevel - startLevel,
-              weak_concepts: weak,
-              strong_concepts: strong,
-              message: cmt.message,
-              link_url: link,
-            });
-          }
-        } catch (e) {
-          console.error("AI comment error:", e);
-        }
-      }
+      await saveLessonComment(startLevel, endLevel);
 
       // Reset session counters for next batch
       setSessionCorrect(0);
       setSessionTotal(0);
+      sessionCountersRef.current = { correct: 0, total: 0 };
       sessionStartLevelRef.current = endLevel;
       weakConceptsRef.current = [];
       strongConceptsRef.current = [];
@@ -409,7 +441,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     }
 
     return finalScore;
-  }, [userId, lessonId, chapterId, toast, generateContent, sessionTotal, sessionCorrect, lessonTitle, chapterTitle]);
+  }, [userId, lessonId, chapterId, toast, generateContent, saveLessonComment]);
 
   const updateReadingTime = useCallback(async (seconds: number) => {
     const newScore = { ...scoreRef.current, reading_time_seconds: scoreRef.current.reading_time_seconds + seconds };
@@ -439,6 +471,10 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     setSessionCorrect(0);
     setSessionTotal(0);
     setLevelUpMessage(null);
+    sessionCountersRef.current = { correct: 0, total: 0 };
+    sessionStartLevelRef.current = null;
+    weakConceptsRef.current = [];
+    strongConceptsRef.current = [];
   }, []);
 
   return {

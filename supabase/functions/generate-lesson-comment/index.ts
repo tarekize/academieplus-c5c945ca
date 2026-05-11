@@ -4,6 +4,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+function fallbackMessage(levelBefore: number, levelAfter: number, weak: string[], strong: string[]) {
+  if (levelAfter < levelBefore) {
+    return `📉 لاحظت أن مستواك انخفض من ${levelBefore}/100 إلى ${levelAfter}/100.\nركّز على: ${weak.join('، ') || 'الأساسيات'}.\nراجع الدرس ثم اضغط على زر "تجديد" للحصول على تمارين وأسئلة مناسبة لمستواك.`;
+  }
+  if (levelAfter > levelBefore) {
+    return `🌟 ممتاز! مستواك تحسّن من ${levelBefore}/100 إلى ${levelAfter}/100.\nنقاط قوتك: ${strong.join('، ') || 'تقدم عام'}.\nواصل التدريب واضغط "تجديد" لتحديات جديدة.`;
+  }
+  return `🤖 مستواك مستقر عند ${levelAfter}/100.\nواصل التدريب وراجع أخطاءك ثم اضغط "تجديد" للحصول على أسئلة مناسبة أكثر.`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
@@ -23,9 +33,11 @@ Deno.serve(async (req) => {
     const direction = delta > 0 ? 'up' : delta < 0 ? 'down' : 'same';
 
     const apiKey = Deno.env.get('LOVABLE_API_KEY');
+    const fallback = fallbackMessage(level_before, level_after, weak_concepts as string[], strong_concepts as string[]);
+
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY missing' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      return new Response(JSON.stringify({ message: fallback, direction, fallback: true, error: 'API_KEY_MISSING' }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -60,8 +72,9 @@ Deno.serve(async (req) => {
 
     if (!aiResp.ok) {
       const txt = await aiResp.text();
-      return new Response(JSON.stringify({ error: `AI error: ${txt}` }), {
-        status: aiResp.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      console.error('AI comment service error:', aiResp.status, txt);
+      return new Response(JSON.stringify({ message: fallback, direction, fallback: true, error: `AI_ERROR_${aiResp.status}` }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -72,8 +85,9 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    console.error('Unexpected generate-lesson-comment error:', e);
+    return new Response(JSON.stringify({ message: '🤖 تم تحليل عملك. واصل التدريب واضغط "تجديد" للحصول على أسئلة مناسبة لمستواك.', fallback: true, error: String(e) }), {
+      status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
