@@ -147,6 +147,57 @@ export type Database = {
           },
         ]
       }
+      ai_lesson_comments: {
+        Row: {
+          chapter_id: string | null
+          chapter_title: string | null
+          created_at: string
+          id: string
+          lesson_id: string
+          lesson_title: string | null
+          level_after: number
+          level_before: number
+          level_delta: number
+          link_url: string | null
+          message: string
+          strong_concepts: Json
+          user_id: string
+          weak_concepts: Json
+        }
+        Insert: {
+          chapter_id?: string | null
+          chapter_title?: string | null
+          created_at?: string
+          id?: string
+          lesson_id: string
+          lesson_title?: string | null
+          level_after?: number
+          level_before?: number
+          level_delta?: number
+          link_url?: string | null
+          message: string
+          strong_concepts?: Json
+          user_id: string
+          weak_concepts?: Json
+        }
+        Update: {
+          chapter_id?: string | null
+          chapter_title?: string | null
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          lesson_title?: string | null
+          level_after?: number
+          level_before?: number
+          level_delta?: number
+          link_url?: string | null
+          message?: string
+          strong_concepts?: Json
+          user_id?: string
+          weak_concepts?: Json
+        }
+        Relationships: []
+      }
       chapter_exercises: {
         Row: {
           accepted_answers: Json
