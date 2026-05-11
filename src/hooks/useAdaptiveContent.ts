@@ -466,6 +466,9 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     setSessionTotal(0);
     setLevelUpMessage(null);
     sessionCountersRef.current = { correct: 0, total: 0 };
+    sessionStartLevelRef.current = null;
+    weakConceptsRef.current = [];
+    strongConceptsRef.current = [];
   }, []);
 
   return {
