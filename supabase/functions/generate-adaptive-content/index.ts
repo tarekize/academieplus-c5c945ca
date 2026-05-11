@@ -48,28 +48,43 @@ function buildPrompt(
   chapterTitle: string,
   accuracyRate: number,
   streak: number,
+  avoidList: string[] = [],
+  seed: number = 0,
+  quizAccuracy: number = 0,
+  exerciseAccuracy: number = 0,
 ): { system: string; user: string } {
   const levelLabel = SCHOOL_LEVEL_LABELS[schoolLevel] || schoolLevel;
   const diffScale = getDifficultyScale(difficultyLevel);
   const diffLabel = getDifficultyLabel(difficultyLevel);
   const weakPoints = getWeakPointsText(accuracyRate, streak);
 
+  const avoidBlock = avoidList.length > 0
+    ? `\n\nQUESTIONS / EXERCICES DÉJÀ POSÉS (À ÉVITER ABSOLUMENT, propose des variantes différentes) :\n${avoidList.slice(0, 20).map((t, i) => `${i + 1}. ${t}`).join("\n")}`
+    : "";
+
   const contextBlock = `
 CONTEXTE DE LA LEÇON :
 - Chapitre : ${chapterTitle}
 - Leçon actuelle : ${lessonTitle}
 
-PROFIL DE L'ÉLÈVE (KPI) :
+PROFIL DE L'ÉLÈVE (KPI pondérés selon spec adaptative) :
 - Niveau scolaire : ${levelLabel}
+- Score de niveau composite : ${difficultyLevel}/100 → difficulté cible ${diffScale}/5 (${diffLabel})
+- Taux de réussite exercices (poids 35%) : ${Math.round(exerciseAccuracy)}%
+- Taux de réussite quiz (poids 15%) : ${Math.round(quizAccuracy)}%
 - Taux de réussite global : ${Math.round(accuracyRate)}%
-- Niveau de difficulté actuel : ${diffScale}/5 (${diffLabel}, score brut ${difficultyLevel}/100)
-- Série actuelle : ${streak} réponses correctes consécutives
+- Série actuelle : ${streak} bonnes réponses consécutives
 - Points faibles détectés : ${weakPoints}
+- Seed de variation : ${seed}
 
-DIRECTIVES PÉDAGOGIQUES :
-- Ciblage : Ne pose aucune question sur d'autres leçons, même si elles sont proches. Reste STRICTEMENT dans le cadre de la leçon "${lessonTitle}".
-- Adaptation : Si le taux de réussite est bas (<50%), simplifie les calculs et propose des exercices d'application directe. S'il est élevé (>70%), propose des fonctions plus complexes et du raisonnement avancé.
-- Feedback : Pour chaque quiz, inclus une explication courte qui aide l'élève à comprendre son erreur.`;
+DIRECTIVES PÉDAGOGIQUES ADAPTATIVES :
+- Ciblage strict : Reste UNIQUEMENT sur la leçon "${lessonTitle}". Aucune question hors-sujet.
+- Calibration : Cible difficulté ${diffScale}/5. Varie : 1 facile (warm-up), 2-3 au niveau cible, 1 plus difficile (challenge).
+- Si réussite < 50% : simplifie, applications directes, énoncés courts, valeurs entières.
+- Si réussite 50-75% : niveau cible avec raisonnement intermédiaire.
+- Si réussite > 75% : pousse vers du raisonnement avancé, valeurs non triviales, plusieurs étapes.
+- Variation OBLIGATOIRE : utilise des valeurs numériques, contextes et formulations DIFFÉRENTS à chaque génération (utilise le seed ${seed} pour varier).
+- Feedback : explication concise qui cible l'erreur typique.${avoidBlock}`;
 
   let system: string;
   let user: string;
