@@ -295,9 +295,10 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
 
   // Record answer + update score + auto-refresh every 5 session answers
   const recordAnswer = useCallback(async (isCorrect: boolean, timeSeconds: number, type: "quiz" | "exercise", concept?: string) => {
-    // Capture session start level once
+    // Capture session start composite level once
     if (sessionStartLevelRef.current === null) {
-      sessionStartLevelRef.current = scoreRef.current.current_level;
+      sessionStartScoreRef.current = { ...scoreRef.current };
+      sessionStartLevelRef.current = computeCompositeLevel(scoreRef.current);
     }
     // Track concept (truncate text to keep prompt small)
     if (concept) {
