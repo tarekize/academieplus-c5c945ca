@@ -62,11 +62,19 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   const scoreRef = useRef(score);
   scoreRef.current = score;
 
+  // Track session start level + concepts answered (for AI comment)
+  const sessionStartLevelRef = useRef<number | null>(null);
+  const weakConceptsRef = useRef<string[]>([]);
+  const strongConceptsRef = useRef<string[]>([]);
+
   // Reset session counters when lesson changes
   useEffect(() => {
     setSessionCorrect(0);
     setSessionTotal(0);
     setLevelUpMessage(null);
+    sessionStartLevelRef.current = null;
+    weakConceptsRef.current = [];
+    strongConceptsRef.current = [];
   }, [lessonId]);
 
   // Load existing AI content and score
@@ -219,7 +227,18 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   }, [lessonId, chapterId, schoolLevel, lessonTitle, chapterTitle, userId, toast, quizzes, exercises, computeCompositeLevel]);
 
   // Record answer + update score + auto-refresh every 5 session answers
-  const recordAnswer = useCallback(async (isCorrect: boolean, timeSeconds: number, type: "quiz" | "exercise") => {
+  const recordAnswer = useCallback(async (isCorrect: boolean, timeSeconds: number, type: "quiz" | "exercise", concept?: string) => {
+    // Capture session start level once
+    if (sessionStartLevelRef.current === null) {
+      sessionStartLevelRef.current = scoreRef.current.current_level;
+    }
+    // Track concept (truncate text to keep prompt small)
+    if (concept) {
+      const c = concept.slice(0, 120);
+      if (isCorrect) strongConceptsRef.current.push(c);
+      else weakConceptsRef.current.push(c);
+    }
+
     // Update session counters
     const newSessionTotal = sessionTotal + 1;
     const newSessionCorrect = sessionCorrect + (isCorrect ? 1 : 0);
@@ -334,10 +353,53 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
 
       // Auto-regenerate content for the active type
       toast({ title: "🔄 تحديث المستوى", description: "جاري إعادة إنشاء المحتوى حسب مستواك الجديد..." });
-      
+
+      // Generate AI personalized comment if level changed
+      const startLevel = sessionStartLevelRef.current ?? oldCurrentLevel;
+      const endLevel = finalScore.current_level;
+      if (endLevel !== startLevel) {
+        try {
+          const weak = Array.from(new Set(weakConceptsRef.current)).slice(0, 5);
+          const strong = Array.from(new Set(strongConceptsRef.current)).slice(0, 5);
+          const link = `/cours/math?chapitre=${chapterId}&lecon=${lessonId}`;
+          const { data: cmt } = await supabase.functions.invoke("generate-lesson-comment", {
+            body: {
+              lesson_title: lessonTitle,
+              chapter_title: chapterTitle,
+              level_before: startLevel,
+              level_after: endLevel,
+              weak_concepts: weak,
+              strong_concepts: strong,
+              lesson_link: link,
+            },
+          });
+          if (cmt?.message) {
+            await supabase.from("ai_lesson_comments").insert({
+              user_id: userId,
+              lesson_id: lessonId,
+              chapter_id: chapterId,
+              lesson_title: lessonTitle,
+              chapter_title: chapterTitle,
+              level_before: startLevel,
+              level_after: endLevel,
+              level_delta: endLevel - startLevel,
+              weak_concepts: weak,
+              strong_concepts: strong,
+              message: cmt.message,
+              link_url: link,
+            });
+          }
+        } catch (e) {
+          console.error("AI comment error:", e);
+        }
+      }
+
       // Reset session counters for next batch
       setSessionCorrect(0);
       setSessionTotal(0);
+      sessionStartLevelRef.current = endLevel;
+      weakConceptsRef.current = [];
+      strongConceptsRef.current = [];
 
       setTimeout(async () => {
         await generateContent(type);
@@ -347,7 +409,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     }
 
     return finalScore;
-  }, [userId, lessonId, chapterId, toast, generateContent, sessionTotal, sessionCorrect]);
+  }, [userId, lessonId, chapterId, toast, generateContent, sessionTotal, sessionCorrect, lessonTitle, chapterTitle]);
 
   const updateReadingTime = useCallback(async (seconds: number) => {
     const newScore = { ...scoreRef.current, reading_time_seconds: scoreRef.current.reading_time_seconds + seconds };

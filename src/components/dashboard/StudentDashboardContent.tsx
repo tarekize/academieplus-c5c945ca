@@ -16,6 +16,7 @@ import {
   Clock, Target, TrendingUp, TrendingDown, GraduationCap, BookOpen, Brain, FileText,
   CheckCircle2, XCircle, Zap, RefreshCw, Activity, Sparkles, Award, ChevronRight,
 } from "lucide-react";
+import AICommentsCard from "./AICommentsCard";
 
 interface StudentDashboardContentProps {
   userId: string;
@@ -641,34 +642,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                 </Card>
               )}
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-primary" />
-                    ملخص سريع
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2.5">
-                  <div className="flex items-center justify-between p-2 rounded-lg bg-emerald-500/5">
-                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> إجابات صحيحة
-                    </span>
-                    <span className="text-sm font-bold text-emerald-600">{totalCorrect}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-2 rounded-lg bg-red-500/5">
-                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <XCircle className="h-3.5 w-3.5 text-red-500" /> إجابات خاطئة
-                    </span>
-                    <span className="text-sm font-bold text-red-500">{totalErrors}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
-                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <Target className="h-3.5 w-3.5 text-primary" /> إجمالي الإجابات
-                    </span>
-                    <span className="text-sm font-bold">{totalAnswers}</span>
-                  </div>
-                </CardContent>
-              </Card>
+              <AICommentsCard userId={userId} />
             </div>
           </div>
 
