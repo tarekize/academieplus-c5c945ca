@@ -303,7 +303,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     const newSessionCorrect = sessionCountersRef.current.correct + (isCorrect ? 1 : 0);
     sessionCountersRef.current = { total: newSessionTotal, correct: newSessionCorrect };
     setSessionTotal(newSessionTotal);
-    if (isCorrect) setSessionCorrect(prev => prev + 1);
+    setSessionCorrect(newSessionCorrect);
 
     let finalScore: StudentScore | null = null;
     let oldCurrentLevel = scoreRef.current.current_level;
