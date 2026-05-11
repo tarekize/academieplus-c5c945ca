@@ -27,14 +27,42 @@ export default function AICommentsCard({ userId }: { userId: string }) {
   const [selected, setSelected] = useState<AIComment | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const buildScoreComment = (score: any): AIComment => {
+    const levelAfter = Number(score.current_level || 0);
+    const levelBefore = levelAfter < 50 ? 50 : levelAfter;
+    const lessonTitle = score.lesson?.title_ar || score.lesson?.title || "درس";
+    const chapterTitle = score.chapter?.title_ar || score.chapter?.title || null;
+    const accuracy = Number(score.accuracy_rate || 0);
+    const message = levelAfter < 50 || accuracy < 50
+      ? `📉 لاحظت أن مستواك يحتاج دعماً في درس "${lessonTitle}".\nنسبة النجاح الحالية ${accuracy}% والمستوى ${levelAfter}/100.\nراجع الدرس ثم اضغط على "تجديد" للحصول على 5 تمارين أو أسئلة مناسبة لمستواك.`
+      : `🤖 تم تحليل عملك في درس "${lessonTitle}".\nمستواك الحالي ${levelAfter}/100 ونسبة النجاح ${accuracy}%.\nواصل التدريب واضغط "تجديد" للحصول على أسئلة جديدة حسب مستواك.`;
+
+    return {
+      id: `score-${score.id}`,
+      lesson_id: score.lesson_id,
+      chapter_id: score.chapter_id,
+      lesson_title: lessonTitle,
+      chapter_title: chapterTitle,
+      level_before: levelBefore,
+      level_after: levelAfter,
+      level_delta: levelAfter - levelBefore,
+      message,
+      link_url: `/cours/math?chapitre=${score.chapter_id}&lecon=${score.lesson_id}`,
+      created_at: score.updated_at,
+    };
+  };
+
   const fetchLatest = async () => {
     // Latest comment per lesson
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("ai_lesson_comments")
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(50);
+
+    if (error) console.error("AI comments fetch error:", error);
+
     const seen = new Set<string>();
     const latest: AIComment[] = [];
     (data || []).forEach((c: any) => {
@@ -42,6 +70,25 @@ export default function AICommentsCard({ userId }: { userId: string }) {
       seen.add(c.lesson_id);
       latest.push(c as AIComment);
     });
+
+    const { data: scores, error: scoresError } = await supabase
+      .from("student_scores")
+      .select("id, lesson_id, chapter_id, current_level, total_answers, correct_answers, accuracy_rate, updated_at, lesson:lessons(title, title_ar), chapter:chapters(title, title_ar)")
+      .eq("user_id", userId)
+      .not("lesson_id", "is", null)
+      .gt("total_answers", 0)
+      .order("updated_at", { ascending: false })
+      .limit(20);
+
+    if (scoresError) console.error("Student scores fetch error:", scoresError);
+
+    (scores || []).forEach((score: any) => {
+      if (!score.lesson_id || seen.has(score.lesson_id)) return;
+      seen.add(score.lesson_id);
+      latest.push(buildScoreComment(score));
+    });
+
+    latest.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     setComments(latest);
     setLoading(false);
   };
