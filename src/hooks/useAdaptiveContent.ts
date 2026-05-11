@@ -61,6 +61,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   const [levelUpMessage, setLevelUpMessage] = useState<string | null>(null);
   const scoreRef = useRef(score);
   scoreRef.current = score;
+  const sessionCountersRef = useRef({ correct: 0, total: 0 });
 
   // Track session start level + concepts answered (for AI comment)
   const sessionStartLevelRef = useRef<number | null>(null);
@@ -72,10 +73,68 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     setSessionCorrect(0);
     setSessionTotal(0);
     setLevelUpMessage(null);
+    sessionCountersRef.current = { correct: 0, total: 0 };
     sessionStartLevelRef.current = null;
     weakConceptsRef.current = [];
     strongConceptsRef.current = [];
   }, [lessonId]);
+
+  const buildFallbackComment = useCallback((levelBefore: number, levelAfter: number, weak: string[], strong: string[]) => {
+    if (levelAfter < levelBefore) {
+      return `📉 لاحظت أن مستواك انخفض من ${levelBefore}/100 إلى ${levelAfter}/100 في هذا الدرس.\nركّز الآن على المفاهيم التي أخطأت فيها: ${weak.join("، ") || "الأساسيات"}.\nراجع الدرس بهدوء، ثم اضغط على زر "تجديد" للحصول على 5 تمارين أو أسئلة أسهل ومناسبة لمستواك.`;
+    }
+
+    if (levelAfter > levelBefore) {
+      return `🌟 ممتاز! مستواك تحسّن من ${levelBefore}/100 إلى ${levelAfter}/100.\nأقوى نقاطك: ${strong.join("، ") || "التقدم العام"}.\nواصل بنفس الطريقة، واضغط "تجديد" للحصول على تحديات جديدة تناسب مستواك الحالي.`;
+    }
+
+    return `🤖 مستواك مستقر عند ${levelAfter}/100.\nواصل التدريب على هذا الدرس، وحاول مراجعة الأخطاء ثم تجديد التمارين للحصول على أسئلة مناسبة أكثر.`;
+  }, []);
+
+  const saveLessonComment = useCallback(async (levelBefore: number, levelAfter: number) => {
+    if (!userId || !lessonId) return;
+
+    const weak = Array.from(new Set(weakConceptsRef.current)).slice(0, 5);
+    const strong = Array.from(new Set(strongConceptsRef.current)).slice(0, 5);
+    const link = `/cours/math?chapitre=${chapterId}&lecon=${lessonId}`;
+    let message = buildFallbackComment(levelBefore, levelAfter, weak, strong);
+
+    try {
+      const { data: cmt, error } = await supabase.functions.invoke("generate-lesson-comment", {
+        body: {
+          lesson_title: lessonTitle,
+          chapter_title: chapterTitle,
+          level_before: levelBefore,
+          level_after: levelAfter,
+          weak_concepts: weak,
+          strong_concepts: strong,
+          lesson_link: link,
+        },
+      });
+
+      if (!error && cmt?.message) message = cmt.message;
+      if (error) console.warn("AI comment fallback used:", error.message);
+    } catch (e) {
+      console.warn("AI comment fallback used:", e);
+    }
+
+    const { error: insertError } = await supabase.from("ai_lesson_comments").insert({
+      user_id: userId,
+      lesson_id: lessonId,
+      chapter_id: chapterId,
+      lesson_title: lessonTitle,
+      chapter_title: chapterTitle,
+      level_before: levelBefore,
+      level_after: levelAfter,
+      level_delta: levelAfter - levelBefore,
+      weak_concepts: weak,
+      strong_concepts: strong,
+      message,
+      link_url: link,
+    });
+
+    if (insertError) console.error("AI comment insert error:", insertError);
+  }, [buildFallbackComment, chapterId, chapterTitle, lessonId, lessonTitle, userId]);
 
   // Load existing AI content and score
   useEffect(() => {
