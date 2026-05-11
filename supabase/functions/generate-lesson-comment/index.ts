@@ -4,14 +4,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-function fallbackMessage(levelBefore: number, levelAfter: number, weak: string[], strong: string[]) {
+function fallbackMessage(levelBefore: number, levelAfter: number, correct: number, total: number) {
+  const acc = total > 0 ? Math.round((correct / total) * 100) : 0;
   if (levelAfter < levelBefore) {
-    return `📉 لاحظت أن مستواك انخفض من ${levelBefore}/100 إلى ${levelAfter}/100.\nركّز على: ${weak.join('، ') || 'الأساسيات'}.\nراجع الدرس ثم اضغط على زر "تجديد" للحصول على تمارين وأسئلة مناسبة لمستواك.`;
+    return `📉 لاحظت أن مستواك انخفض من ${levelBefore}/100 إلى ${levelAfter}/100.\nأجبت على ${correct} من أصل ${total} (${acc}%).\nراجع الدرس بهدوء ثم اضغط "تجديد" للحصول على تمارين أسهل.`;
   }
   if (levelAfter > levelBefore) {
-    return `🌟 ممتاز! مستواك تحسّن من ${levelBefore}/100 إلى ${levelAfter}/100.\nنقاط قوتك: ${strong.join('، ') || 'تقدم عام'}.\nواصل التدريب واضغط "تجديد" لتحديات جديدة.`;
+    return `🌟 ممتاز! مستواك تحسّن من ${levelBefore}/100 إلى ${levelAfter}/100.\nأجبت على ${correct} من أصل ${total} (${acc}%).\nواصل التدريب واضغط "تجديد" لتحديات جديدة.`;
   }
-  return `🤖 مستواك مستقر عند ${levelAfter}/100.\nواصل التدريب وراجع أخطاءك ثم اضغط "تجديد" للحصول على أسئلة مناسبة أكثر.`;
+  return `🤖 مستواك مستقر عند ${levelAfter}/100.\nأجبت على ${correct} من أصل ${total} (${acc}%).\nواصل التدريب واضغط "تجديد" لمحتوى جديد.`;
 }
 
 Deno.serve(async (req) => {
@@ -26,14 +27,17 @@ Deno.serve(async (req) => {
       level_after = 0,
       weak_concepts = [],
       strong_concepts = [],
+      session_correct = 0,
+      session_total = 0,
       lesson_link = '',
     } = body;
 
     const delta = level_after - level_before;
     const direction = delta > 0 ? 'up' : delta < 0 ? 'down' : 'same';
+    const accuracy = session_total > 0 ? Math.round((session_correct / session_total) * 100) : 0;
 
     const apiKey = Deno.env.get('LOVABLE_API_KEY');
-    const fallback = fallbackMessage(level_before, level_after, weak_concepts as string[], strong_concepts as string[]);
+    const fallback = fallbackMessage(level_before, level_after, session_correct, session_total);
 
     if (!apiKey) {
       return new Response(JSON.stringify({ message: fallback, direction, fallback: true, error: 'API_KEY_MISSING' }), {
@@ -41,21 +45,32 @@ Deno.serve(async (req) => {
       });
     }
 
-    const systemPrompt = `أنت مساعد تربوي ذكي يكتب تعليقات قصيرة باللغة العربية لطالب جزائري. النبرة: لطيفة، محفّزة، إيجابية. استخدم رموز تعبيرية مناسبة. لا تتجاوز 4-5 أسطر.`;
+    const systemPrompt = `أنت مساعد تربوي ذكي لطالب جزائري. اكتب تعليقاً تربويّاً قصيراً (3 إلى 5 أسطر) باللغة العربية الفصحى الواضحة، بنبرة لطيفة ومحفّزة.
+قواعد إلزامية:
+- لا تنسخ نصوص الأسئلة حرفياً ولا تذكرها كقائمة.
+- بدلاً من ذلك، استخرج الفكرة العامة (المفاهيم أو المهارات) من الأسئلة المعطاة وعبّر عنها بكلماتك أنت بشكل مختصر.
+- اذكر مستوى الطالب بالأرقام (قبل/بعد) ونسبة الإجابات الصحيحة.
+- أعطِ نصيحة عملية واحدة محدّدة.
+- اختم بدعوة للضغط على زر "تجديد" للحصول على تمارين مناسبة.
+- استخدم رمزاً تعبيرياً واحداً أو اثنين فقط في البداية.
+- لا تستعمل قوائم نقطية ولا روابط HTML.`;
 
-    let userPrompt = '';
-    if (direction === 'down') {
-      userPrompt = `الطالب يدرس درس "${lesson_title}" في فصل "${chapter_title}". انخفض مستواه من ${level_before}/100 إلى ${level_after}/100.
-المفاهيم الضعيفة: ${(weak_concepts as string[]).join('، ') || 'غير محددة'}.
-اكتب تعليقاً يحدد نقاط الضعف، ينصح بمراجعة الدرس، ويطلب منه الذهاب إلى صفحة الدرس والنقر على زر "تجديد" للحصول على تمارين ملائمة. أضف الرابط: ${lesson_link}`;
-    } else if (direction === 'up') {
-      userPrompt = `الطالب يدرس درس "${lesson_title}" في فصل "${chapter_title}". تحسّن مستواه من ${level_before}/100 إلى ${level_after}/100.
-نقاط القوة: ${(strong_concepts as string[]).join('، ') || 'تقدم عام'}.
-نقاط ضعف متبقية: ${(weak_concepts as string[]).join('، ') || 'لا شيء كبير'}.
-اكتب تعليقاً للتهنئة، اذكر نقاط القوة، أشر إلى ما يحتاج تحسيناً، وشجعه على الاستمرار.`;
-    } else {
-      userPrompt = `الطالب يدرس "${lesson_title}". مستواه مستقر عند ${level_after}/100. اكتب تعليقاً قصيراً يشجعه على المتابعة.`;
-    }
+    const weakList = (weak_concepts as string[]).slice(0, 5).join(' | ') || 'لا شيء محدد';
+    const strongList = (strong_concepts as string[]).slice(0, 5).join(' | ') || 'لا شيء محدد';
+
+    let situation = '';
+    if (direction === 'down') situation = `انخفض مستواه من ${level_before}/100 إلى ${level_after}/100. يحتاج إلى مراجعة الأساسيات.`;
+    else if (direction === 'up') situation = `تحسّن مستواه من ${level_before}/100 إلى ${level_after}/100. أحسن أداءً.`;
+    else situation = `مستواه مستقر عند ${level_after}/100.`;
+
+    const userPrompt = `معلومات الجلسة:
+- الدرس: "${lesson_title}" — الفصل: "${chapter_title}"
+- ${situation}
+- نسبة الإجابات الصحيحة: ${session_correct}/${session_total} (${accuracy}%)
+- أمثلة من الأسئلة التي أخطأ فيها (للسياق فقط، لا تنسخها): ${weakList}
+- أمثلة من الأسئلة التي أجاب عنها بشكل صحيح (للسياق فقط، لا تنسخها): ${strongList}
+
+اكتب الآن التعليق التربوي وفق القواعد المذكورة في تعليمات النظام.`;
 
     const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -66,7 +81,7 @@ Deno.serve(async (req) => {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        temperature: 0.8,
+        temperature: 0.7,
       }),
     });
 
@@ -79,7 +94,7 @@ Deno.serve(async (req) => {
     }
 
     const aiData = await aiResp.json();
-    const message = aiData.choices?.[0]?.message?.content?.trim() || 'استمر في التقدم!';
+    const message = aiData.choices?.[0]?.message?.content?.trim() || fallback;
 
     return new Response(JSON.stringify({ message, direction }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
