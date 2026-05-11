@@ -126,20 +126,50 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     loadExisting();
   }, [lessonId, userId]);
 
+  // Composite level per spec (PDF "Phase 4 - Progression Adaptative IA"):
+  // 35% exercise accuracy + 30% difficulty achieved + 20% reading time factor + 15% quiz accuracy
+  const computeCompositeLevel = useCallback((s: StudentScore): number => {
+    const exerciseAcc = s.accuracy_rate; // global proxy
+    const quizAcc = s.accuracy_rate;
+    const difficultyAchieved = s.current_level; // current ELO-like level
+    // Reading time factor: target ~5min per lesson reading; cap at 100
+    const readingFactor = Math.min(100, (s.reading_time_seconds / 300) * 100);
+    const composite =
+      0.35 * exerciseAcc +
+      0.30 * difficultyAchieved +
+      0.20 * readingFactor +
+      0.15 * quizAcc;
+    // Streak bonus (up to +5)
+    const streakBonus = Math.min(5, s.streak);
+    return Math.round(Math.min(100, Math.max(5, composite + streakBonus)));
+  }, []);
+
   const generateContent = useCallback(async (contentType: "quiz" | "exercise" | "revision") => {
     setLoading(prev => ({ ...prev, [contentType]: true }));
     try {
+      // Build avoid-list from previously generated content of same type to force variety
+      const avoidList: string[] = [];
+      if (contentType === "quiz") quizzes.forEach(q => q.question && avoidList.push(q.question));
+      if (contentType === "exercise") exercises.forEach(e => (e.title || e.statement) && avoidList.push(e.title || e.statement));
+
+      const compositeLevel = computeCompositeLevel(scoreRef.current);
+      const seed = Math.floor(Math.random() * 1_000_000);
+
       const { data, error } = await supabase.functions.invoke("generate-adaptive-content", {
         body: {
           lesson_id: lessonId,
           chapter_id: chapterId,
           content_type: contentType,
           school_level: schoolLevel,
-          difficulty_level: scoreRef.current.current_level,
+          difficulty_level: compositeLevel,
           lesson_title: lessonTitle,
           chapter_title: chapterTitle,
           accuracy_rate: scoreRef.current.accuracy_rate,
+          quiz_accuracy: scoreRef.current.accuracy_rate,
+          exercise_accuracy: scoreRef.current.accuracy_rate,
           streak: scoreRef.current.streak,
+          avoid_list: avoidList,
+          seed,
         },
       });
 
@@ -147,10 +177,12 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       if (data?.error) throw new Error(data.error);
 
       const content = data.content;
+      // Guarantee 5 items (truncate if more)
+      const items = Array.isArray(content) ? content.slice(0, 5) : [];
 
-      if (contentType === "quiz") setQuizzes(content);
-      if (contentType === "exercise") setExercises(content);
-      if (contentType === "revision") setRevisions(content);
+      if (contentType === "quiz") setQuizzes(items);
+      if (contentType === "exercise") setExercises(items);
+      if (contentType === "revision") setRevisions(items);
 
       // Save to DB - upsert
       const { data: existing } = await supabase
@@ -164,7 +196,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       if (existing) {
         await supabase
           .from("ai_generated_content")
-          .update({ content, difficulty_level: scoreRef.current.current_level })
+          .update({ content: items, difficulty_level: compositeLevel })
           .eq("id", existing.id);
       } else {
         await supabase.from("ai_generated_content").insert({
@@ -172,19 +204,19 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           lesson_id: lessonId,
           chapter_id: chapterId,
           content_type: contentType,
-          content,
-          difficulty_level: scoreRef.current.current_level,
+          content: items,
+          difficulty_level: compositeLevel,
         });
       }
 
-      toast({ title: "✅ تم إنشاء المحتوى", description: "تم إنشاء المحتوى بنجاح حسب مستواك" });
+      toast({ title: "✅ تم إنشاء المحتوى", description: `5 ${contentType === "quiz" ? "أسئلة" : contentType === "exercise" ? "تمارين" : "بطاقات"} جديدة حسب مستواك (${compositeLevel}/100)` });
     } catch (err: any) {
       console.error("Generate error:", err);
       toast({ title: "خطأ", description: err.message || "فشل في إنشاء المحتوى", variant: "destructive" });
     } finally {
       setLoading(prev => ({ ...prev, [contentType]: false }));
     }
-  }, [lessonId, chapterId, schoolLevel, lessonTitle, chapterTitle, userId, toast]);
+  }, [lessonId, chapterId, schoolLevel, lessonTitle, chapterTitle, userId, toast, quizzes, exercises, computeCompositeLevel]);
 
   // Record answer + update score + auto-refresh every 5 session answers
   const recordAnswer = useCallback(async (isCorrect: boolean, timeSeconds: number, type: "quiz" | "exercise") => {
