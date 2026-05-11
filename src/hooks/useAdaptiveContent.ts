@@ -86,25 +86,24 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     strongConceptsRef.current = [];
   }, [lessonId]);
 
-  const buildFallbackComment = useCallback((levelBefore: number, levelAfter: number, weak: string[], strong: string[]) => {
+  const buildFallbackComment = useCallback((levelBefore: number, levelAfter: number, correct: number, total: number) => {
+    const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
     if (levelAfter < levelBefore) {
-      return `📉 لاحظت أن مستواك انخفض من ${levelBefore}/100 إلى ${levelAfter}/100 في هذا الدرس.\nركّز الآن على المفاهيم التي أخطأت فيها: ${weak.join("، ") || "الأساسيات"}.\nراجع الدرس بهدوء، ثم اضغط على زر "تجديد" للحصول على 5 تمارين أو أسئلة أسهل ومناسبة لمستواك.`;
+      return `📉 لاحظت أن مستواك انخفض من ${levelBefore}/100 إلى ${levelAfter}/100 في هذا الدرس.\nأجبت بشكل صحيح على ${correct} من أصل ${total} (${accuracy}%).\nأنصحك بمراجعة الدرس بهدوء، ثم الضغط على زر "تجديد" للحصول على تمارين أسهل تناسب مستواك الحالي.`;
     }
-
     if (levelAfter > levelBefore) {
-      return `🌟 ممتاز! مستواك تحسّن من ${levelBefore}/100 إلى ${levelAfter}/100.\nأقوى نقاطك: ${strong.join("، ") || "التقدم العام"}.\nواصل بنفس الطريقة، واضغط "تجديد" للحصول على تحديات جديدة تناسب مستواك الحالي.`;
+      return `🌟 ممتاز! مستواك تحسّن من ${levelBefore}/100 إلى ${levelAfter}/100.\nأجبت بشكل صحيح على ${correct} من أصل ${total} (${accuracy}%).\nواصل بنفس الطريقة، واضغط "تجديد" للحصول على تحديات جديدة تناسب مستواك الجديد.`;
     }
-
-    return `🤖 مستواك مستقر عند ${levelAfter}/100.\nواصل التدريب على هذا الدرس، وحاول مراجعة الأخطاء ثم تجديد التمارين للحصول على أسئلة مناسبة أكثر.`;
+    return `🤖 مستواك مستقر عند ${levelAfter}/100.\nأجبت بشكل صحيح على ${correct} من أصل ${total} (${accuracy}%).\nواصل التدريب وراجع أخطاءك ثم اضغط "تجديد" لمحتوى جديد.`;
   }, []);
 
-  const saveLessonComment = useCallback(async (levelBefore: number, levelAfter: number) => {
+  const saveLessonComment = useCallback(async (levelBefore: number, levelAfter: number, sessionCorrectCount: number, sessionTotalCount: number) => {
     if (!userId || !lessonId) return;
 
     const weak = Array.from(new Set(weakConceptsRef.current)).slice(0, 5);
     const strong = Array.from(new Set(strongConceptsRef.current)).slice(0, 5);
     const link = `/cours/math?chapitre=${chapterId}&lecon=${lessonId}`;
-    let message = buildFallbackComment(levelBefore, levelAfter, weak, strong);
+    let message = buildFallbackComment(levelBefore, levelAfter, sessionCorrectCount, sessionTotalCount);
 
     try {
       const { data: cmt, error } = await supabase.functions.invoke("generate-lesson-comment", {
@@ -115,6 +114,8 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           level_after: levelAfter,
           weak_concepts: weak,
           strong_concepts: strong,
+          session_correct: sessionCorrectCount,
+          session_total: sessionTotalCount,
           lesson_link: link,
         },
       });
