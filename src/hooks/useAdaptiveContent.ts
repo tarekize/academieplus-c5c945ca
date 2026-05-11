@@ -69,8 +69,9 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   scoreRef.current = score;
   const sessionCountersRef = useRef({ correct: 0, total: 0 });
 
-  // Track session start level + concepts answered (for AI comment)
+  // Track session start composite level + concepts (for AI comment)
   const sessionStartLevelRef = useRef<number | null>(null);
+  const sessionStartScoreRef = useRef<StudentScore | null>(null);
   const weakConceptsRef = useRef<string[]>([]);
   const strongConceptsRef = useRef<string[]>([]);
 
@@ -81,29 +82,29 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     setLevelUpMessage(null);
     sessionCountersRef.current = { correct: 0, total: 0 };
     sessionStartLevelRef.current = null;
+    sessionStartScoreRef.current = null;
     weakConceptsRef.current = [];
     strongConceptsRef.current = [];
   }, [lessonId]);
 
-  const buildFallbackComment = useCallback((levelBefore: number, levelAfter: number, weak: string[], strong: string[]) => {
+  const buildFallbackComment = useCallback((levelBefore: number, levelAfter: number, correct: number, total: number) => {
+    const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
     if (levelAfter < levelBefore) {
-      return `📉 لاحظت أن مستواك انخفض من ${levelBefore}/100 إلى ${levelAfter}/100 في هذا الدرس.\nركّز الآن على المفاهيم التي أخطأت فيها: ${weak.join("، ") || "الأساسيات"}.\nراجع الدرس بهدوء، ثم اضغط على زر "تجديد" للحصول على 5 تمارين أو أسئلة أسهل ومناسبة لمستواك.`;
+      return `📉 لاحظت أن مستواك انخفض من ${levelBefore}/100 إلى ${levelAfter}/100 في هذا الدرس.\nأجبت بشكل صحيح على ${correct} من أصل ${total} (${accuracy}%).\nأنصحك بمراجعة الدرس بهدوء، ثم الضغط على زر "تجديد" للحصول على تمارين أسهل تناسب مستواك الحالي.`;
     }
-
     if (levelAfter > levelBefore) {
-      return `🌟 ممتاز! مستواك تحسّن من ${levelBefore}/100 إلى ${levelAfter}/100.\nأقوى نقاطك: ${strong.join("، ") || "التقدم العام"}.\nواصل بنفس الطريقة، واضغط "تجديد" للحصول على تحديات جديدة تناسب مستواك الحالي.`;
+      return `🌟 ممتاز! مستواك تحسّن من ${levelBefore}/100 إلى ${levelAfter}/100.\nأجبت بشكل صحيح على ${correct} من أصل ${total} (${accuracy}%).\nواصل بنفس الطريقة، واضغط "تجديد" للحصول على تحديات جديدة تناسب مستواك الجديد.`;
     }
-
-    return `🤖 مستواك مستقر عند ${levelAfter}/100.\nواصل التدريب على هذا الدرس، وحاول مراجعة الأخطاء ثم تجديد التمارين للحصول على أسئلة مناسبة أكثر.`;
+    return `🤖 مستواك مستقر عند ${levelAfter}/100.\nأجبت بشكل صحيح على ${correct} من أصل ${total} (${accuracy}%).\nواصل التدريب وراجع أخطاءك ثم اضغط "تجديد" لمحتوى جديد.`;
   }, []);
 
-  const saveLessonComment = useCallback(async (levelBefore: number, levelAfter: number) => {
+  const saveLessonComment = useCallback(async (levelBefore: number, levelAfter: number, sessionCorrectCount: number, sessionTotalCount: number) => {
     if (!userId || !lessonId) return;
 
     const weak = Array.from(new Set(weakConceptsRef.current)).slice(0, 5);
     const strong = Array.from(new Set(strongConceptsRef.current)).slice(0, 5);
     const link = `/cours/math?chapitre=${chapterId}&lecon=${lessonId}`;
-    let message = buildFallbackComment(levelBefore, levelAfter, weak, strong);
+    let message = buildFallbackComment(levelBefore, levelAfter, sessionCorrectCount, sessionTotalCount);
 
     try {
       const { data: cmt, error } = await supabase.functions.invoke("generate-lesson-comment", {
@@ -114,6 +115,8 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           level_after: levelAfter,
           weak_concepts: weak,
           strong_concepts: strong,
+          session_correct: sessionCorrectCount,
+          session_total: sessionTotalCount,
           lesson_link: link,
         },
       });
@@ -293,9 +296,10 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
 
   // Record answer + update score + auto-refresh every 5 session answers
   const recordAnswer = useCallback(async (isCorrect: boolean, timeSeconds: number, type: "quiz" | "exercise", concept?: string) => {
-    // Capture session start level once
+    // Capture session start composite level once
     if (sessionStartLevelRef.current === null) {
-      sessionStartLevelRef.current = scoreRef.current.current_level;
+      sessionStartScoreRef.current = { ...scoreRef.current };
+      sessionStartLevelRef.current = computeCompositeLevel(scoreRef.current);
     }
     // Track concept (truncate text to keep prompt small)
     if (concept) {
@@ -421,15 +425,17 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       toast({ title: "🔄 تحديث المستوى", description: "جاري إعادة إنشاء المحتوى حسب مستواك الجديد..." });
 
       // Generate AI personalized comment for every completed work session
-      const startLevel = sessionStartLevelRef.current ?? oldCurrentLevel;
-      const endLevel = finalScore.current_level;
-      await saveLessonComment(startLevel, endLevel);
+      const startScore = sessionStartScoreRef.current ?? scoreRef.current;
+      const startLevel = sessionStartLevelRef.current ?? computeCompositeLevel(startScore);
+      const endLevel = computeCompositeLevel(finalScore);
+      await saveLessonComment(startLevel, endLevel, newSessionCorrect, newSessionTotal);
 
       // Reset session counters for next batch
       setSessionCorrect(0);
       setSessionTotal(0);
       sessionCountersRef.current = { correct: 0, total: 0 };
       sessionStartLevelRef.current = endLevel;
+      sessionStartScoreRef.current = { ...finalScore };
       weakConceptsRef.current = [];
       strongConceptsRef.current = [];
 
@@ -441,7 +447,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     }
 
     return finalScore;
-  }, [userId, lessonId, chapterId, toast, generateContent, saveLessonComment]);
+  }, [userId, lessonId, chapterId, toast, generateContent, saveLessonComment, computeCompositeLevel]);
 
   const updateReadingTime = useCallback(async (seconds: number) => {
     const newScore = { ...scoreRef.current, reading_time_seconds: scoreRef.current.reading_time_seconds + seconds };
@@ -473,6 +479,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     setLevelUpMessage(null);
     sessionCountersRef.current = { correct: 0, total: 0 };
     sessionStartLevelRef.current = null;
+    sessionStartScoreRef.current = null;
     weakConceptsRef.current = [];
     strongConceptsRef.current = [];
   }, []);
