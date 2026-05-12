@@ -89,14 +89,15 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
 
   const buildFallbackComment = useCallback((levelBefore: number, levelAfter: number, correct: number, total: number) => {
     const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+    const lessonRef = lessonTitle ? `في درس "${lessonTitle}"` : 'في هذا الدرس';
     if (levelAfter < levelBefore) {
-      return `📉 لاحظت أن مستواك انخفض من ${levelBefore}/100 إلى ${levelAfter}/100 في هذا الدرس.\nأجبت بشكل صحيح على ${correct} من أصل ${total} (${accuracy}%).\nأنصحك بمراجعة الدرس بهدوء، ثم الضغط على زر "تجديد" للحصول على تمارين أسهل تناسب مستواك الحالي.`;
+      return `📉 يبدو أنّك واجهت بعض الصعوبات ${lessonRef}. أجبت بشكل صحيح على ${correct} من ${total} سؤالاً (${accuracy}%)، وانخفض مستواك من ${levelBefore} إلى ${levelAfter} من 100.\n\nلا تقلق، هذا جزء طبيعي من التعلم. أعِد قراءة الدرس بتركيز وتوقّف عند الأمثلة المحلولة. ثم اضغط على "تجديد" للحصول على تمارين أسهل تساعدك على بناء أساس متين. 💪`;
     }
     if (levelAfter > levelBefore) {
-      return `🌟 ممتاز! مستواك تحسّن من ${levelBefore}/100 إلى ${levelAfter}/100.\nأجبت بشكل صحيح على ${correct} من أصل ${total} (${accuracy}%).\nواصل بنفس الطريقة، واضغط "تجديد" للحصول على تحديات جديدة تناسب مستواك الجديد.`;
+      return `🌟 أحسنت! تقدّم واضح ${lessonRef}. أجبت بشكل صحيح على ${correct} من ${total} سؤالاً (${accuracy}%)، وارتفع مستواك من ${levelBefore} إلى ${levelAfter} من 100.\n\nاستمر بهذه الوتيرة وحافظ على المراجعة المنتظمة. اضغط على "تجديد" لتجرّب تمارين أكثر تحديًا وتثبّت ما تعلّمته. 🚀`;
     }
-    return `🤖 مستواك مستقر عند ${levelAfter}/100.\nأجبت بشكل صحيح على ${correct} من أصل ${total} (${accuracy}%).\nواصل التدريب وراجع أخطاءك ثم اضغط "تجديد" لمحتوى جديد.`;
-  }, []);
+    return `🤖 أداء ثابت ${lessonRef}. أجبت بشكل صحيح على ${correct} من ${total} سؤالاً (${accuracy}%)، ومستواك مستقر عند ${levelAfter} من 100.\n\nركّز على الأسئلة التي ترددت فيها وراجع القاعدة المرتبطة بها. ثم اضغط "تجديد" لتمارين جديدة تساعدك على التقدّم خطوة إضافية. ✨`;
+  }, [lessonTitle]);
 
   const saveLessonComment = useCallback(async (levelBefore: number, levelAfter: number, sessionCorrectCount: number, sessionTotalCount: number) => {
     if (!userId || !lessonId) return;
