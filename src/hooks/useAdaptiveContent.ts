@@ -102,10 +102,12 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   const saveLessonComment = useCallback(async (levelBefore: number, levelAfter: number, sessionCorrectCount: number, sessionTotalCount: number) => {
     if (!userId || !lessonId) return;
 
-    // We intentionally do NOT send raw question texts to the AI to avoid
-    // the model echoing them back as a list. We only send counts + level.
+    // Send weak/strong concepts so AI can build per-lacune explanations
     const link = `/cours/math?chapitre=${chapterId}&lecon=${lessonId}`;
     let message = buildFallbackComment(levelBefore, levelAfter, sessionCorrectCount, sessionTotalCount);
+
+    const weak = Array.from(new Set(weakConceptsRef.current)).slice(0, 5);
+    const strong = Array.from(new Set(strongConceptsRef.current)).slice(0, 5);
 
     try {
       const { data: cmt, error } = await supabase.functions.invoke("generate-lesson-comment", {
@@ -114,8 +116,8 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           chapter_title: chapterTitle,
           level_before: levelBefore,
           level_after: levelAfter,
-          weak_concepts: [],
-          strong_concepts: [],
+          weak_concepts: weak,
+          strong_concepts: strong,
           session_correct: sessionCorrectCount,
           session_total: sessionTotalCount,
           lesson_link: link,
