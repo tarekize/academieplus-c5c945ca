@@ -118,64 +118,101 @@ export default function AICommentsCard({ userId }: { userId: string }) {
 
   const formatTime = (iso: string) => {
     const d = new Date(iso);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return "الآن";
+    if (mins < 60) return `قبل ${mins} د`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `قبل ${hours} س`;
     return d.toLocaleString("ar-DZ", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
   };
 
   return (
     <>
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Bot className="h-4 w-4 text-primary" />
-            تعليقات الذكاء الاصطناعي
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3 bg-gradient-to-l from-primary/10 via-primary/5 to-transparent">
+          <CardTitle className="text-sm flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2">
+              <div className="h-7 w-7 rounded-full bg-primary/15 flex items-center justify-center">
+                <Bot className="h-4 w-4 text-primary" />
+              </div>
+              تعليقات الذكاء الاصطناعي
+            </span>
+            {comments.length > 0 && (
+              <Badge variant="secondary" className="text-[10px]">{comments.length}</Badge>
+            )}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="p-2">
           {loading ? (
-            <p className="text-xs text-muted-foreground text-center py-3">جاري التحميل…</p>
+            <p className="text-xs text-muted-foreground text-center py-6">جاري التحميل…</p>
           ) : comments.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-3">
-              أكمل درسك الأول لتحصل على تحليل شخصي
-            </p>
+            <div className="text-center py-8 px-3">
+              <Bot className="h-10 w-10 text-muted-foreground/40 mx-auto mb-2" />
+              <p className="text-xs text-muted-foreground">
+                أكمل درسك الأول لتحصل على تحليل شخصي
+              </p>
+            </div>
           ) : (
-            comments.map((c) => {
-              const up = c.level_delta > 0;
-              const down = c.level_delta < 0;
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => setSelected(c)}
-                  className="w-full flex items-center justify-between gap-2 p-2.5 rounded-lg border bg-card hover:bg-accent/50 transition-colors text-right"
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    {up ? (
-                      <TrendingUp className="h-4 w-4 text-emerald-500 shrink-0" />
-                    ) : down ? (
-                      <TrendingDown className="h-4 w-4 text-red-500 shrink-0" />
-                    ) : (
-                      <Bot className="h-4 w-4 text-primary shrink-0" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium truncate">{c.lesson_title || "درس"}</p>
-                      <p className="text-[10px] text-muted-foreground truncate">{c.chapter_title}</p>
-                    </div>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className={
-                      up
-                        ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20"
-                        : down
-                          ? "bg-red-500/10 text-red-700 border-red-500/20"
-                          : ""
-                    }
+            <div className="space-y-1.5 max-h-[420px] overflow-y-auto pr-1">
+              {comments.map((c) => {
+                const up = c.level_delta > 0;
+                const down = c.level_delta < 0;
+                const accent = up
+                  ? "border-l-emerald-500 bg-emerald-500/5"
+                  : down
+                    ? "border-l-red-500 bg-red-500/5"
+                    : "border-l-primary/40 bg-primary/5";
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => setSelected(c)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg border border-l-4 hover:shadow-md transition-all text-right ${accent}`}
                   >
-                    {c.level_before}→{c.level_after}
-                  </Badge>
-                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground rtl:rotate-180" />
-                </button>
-              );
-            })
+                    <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${
+                      up ? "bg-emerald-500/15" : down ? "bg-red-500/15" : "bg-primary/15"
+                    }`}>
+                      {up ? (
+                        <TrendingUp className="h-4 w-4 text-emerald-600" />
+                      ) : down ? (
+                        <TrendingDown className="h-4 w-4 text-red-600" />
+                      ) : (
+                        <Bot className="h-4 w-4 text-primary" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-0.5">
+                      <p className="text-xs font-semibold truncate">{c.lesson_title || "درس"}</p>
+                      {c.chapter_title && (
+                        <p className="text-[10px] text-muted-foreground truncate">{c.chapter_title}</p>
+                      )}
+                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                        <Clock className="h-2.5 w-2.5" />
+                        {formatTime(c.created_at)}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] font-bold ${
+                          up
+                            ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30"
+                            : down
+                              ? "bg-red-500/10 text-red-700 border-red-500/30"
+                              : "bg-muted"
+                        }`}
+                      >
+                        {up && "+"}{c.level_delta}
+                      </Badge>
+                      <span className="text-[9px] text-muted-foreground">
+                        {c.level_before}→{c.level_after}
+                      </span>
+                    </div>
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground rtl:rotate-180 shrink-0" />
+                  </button>
+                );
+              })}
+            </div>
           )}
         </CardContent>
       </Card>
