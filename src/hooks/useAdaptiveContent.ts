@@ -431,17 +431,22 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       // The student must click "تجديد" manually to get a new batch.
       toast({ title: "✅ تم تحديث مستواك", description: "اضغط على \"تجديد\" للحصول على تمارين جديدة حسب مستواك." });
 
-      // Generate AI personalized comment for every completed work session
-      const startScore = sessionStartScoreRef.current ?? scoreRef.current;
-      const startLevel = sessionStartLevelRef.current ?? computeCompositeLevel(startScore);
-      const endLevel = computeCompositeLevel(finalScore);
-      await saveLessonComment(startLevel, endLevel, newSessionCorrect, newSessionTotal);
+      // Generate AI personalized comment ONCE per page-load session.
+      // Subsequent level recalculations in the same session do NOT trigger a new comment.
+      // The student must refresh / reopen the lesson to receive a new AI comment.
+      if (!commentGeneratedRef.current) {
+        commentGeneratedRef.current = true;
+        const startScore = sessionStartScoreRef.current ?? scoreRef.current;
+        const startLevel = sessionStartLevelRef.current ?? computeCompositeLevel(startScore);
+        const endLevel = computeCompositeLevel(finalScore);
+        await saveLessonComment(startLevel, endLevel, newSessionCorrect, newSessionTotal);
+      }
 
-      // Reset session counters for next batch
+      // Reset session counters for next batch (level keeps progressing, but no new comment)
       setSessionCorrect(0);
       setSessionTotal(0);
       sessionCountersRef.current = { correct: 0, total: 0 };
-      sessionStartLevelRef.current = endLevel;
+      sessionStartLevelRef.current = computeCompositeLevel(finalScore);
       sessionStartScoreRef.current = { ...finalScore };
       weakConceptsRef.current = [];
       strongConceptsRef.current = [];
