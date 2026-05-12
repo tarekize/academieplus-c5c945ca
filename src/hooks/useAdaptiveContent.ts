@@ -424,8 +424,9 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
         setLevelUpMessage(msg);
       }
 
-      // Auto-regenerate content for the active type
-      toast({ title: "🔄 تحديث المستوى", description: "جاري إعادة إنشاء المحتوى حسب مستواك الجديد..." });
+      // Notify user that level updated — but DO NOT auto-regenerate.
+      // The student must click "تجديد" manually to get a new batch.
+      toast({ title: "✅ تم تحديث مستواك", description: "اضغط على \"تجديد\" للحصول على تمارين جديدة حسب مستواك." });
 
       // Generate AI personalized comment for every completed work session
       const startScore = sessionStartScoreRef.current ?? scoreRef.current;
@@ -441,12 +442,6 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       sessionStartScoreRef.current = { ...finalScore };
       weakConceptsRef.current = [];
       strongConceptsRef.current = [];
-
-      setTimeout(async () => {
-        await generateContent(type);
-        if (type === "quiz") await generateContent("exercise");
-        else await generateContent("quiz");
-      }, 1000);
     }
 
     return finalScore;
