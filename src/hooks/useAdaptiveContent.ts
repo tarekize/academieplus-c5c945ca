@@ -102,8 +102,8 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   const saveLessonComment = useCallback(async (levelBefore: number, levelAfter: number, sessionCorrectCount: number, sessionTotalCount: number) => {
     if (!userId || !lessonId) return;
 
-    const weak = Array.from(new Set(weakConceptsRef.current)).slice(0, 5);
-    const strong = Array.from(new Set(strongConceptsRef.current)).slice(0, 5);
+    // We intentionally do NOT send raw question texts to the AI to avoid
+    // the model echoing them back as a list. We only send counts + level.
     const link = `/cours/math?chapitre=${chapterId}&lecon=${lessonId}`;
     let message = buildFallbackComment(levelBefore, levelAfter, sessionCorrectCount, sessionTotalCount);
 
@@ -114,8 +114,8 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           chapter_title: chapterTitle,
           level_before: levelBefore,
           level_after: levelAfter,
-          weak_concepts: weak,
-          strong_concepts: strong,
+          weak_concepts: [],
+          strong_concepts: [],
           session_correct: sessionCorrectCount,
           session_total: sessionTotalCount,
           lesson_link: link,
