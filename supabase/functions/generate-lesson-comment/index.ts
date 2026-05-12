@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     const accuracy = session_total > 0 ? Math.round((session_correct / session_total) * 100) : 0;
 
     const apiKey = Deno.env.get('LOVABLE_API_KEY');
-    const fallback = fallbackMessage(level_before, level_after, session_correct, session_total);
+    const fallback = fallbackMessage(lesson_title, level_before, level_after, session_correct, session_total);
 
     if (!apiKey) {
       return new Response(JSON.stringify({ message: fallback, direction, fallback: true, error: 'API_KEY_MISSING' }), {
@@ -46,32 +46,31 @@ Deno.serve(async (req) => {
       });
     }
 
-    const systemPrompt = `أنت مساعد تربوي ذكي لطالب جزائري. اكتب تعليقاً تربويّاً قصيراً (3 إلى 5 أسطر) باللغة العربية الفصحى الواضحة، بنبرة لطيفة ومحفّزة.
-قواعد إلزامية:
-- لا تنسخ نصوص الأسئلة حرفياً ولا تذكرها كقائمة.
-- بدلاً من ذلك، استخرج الفكرة العامة (المفاهيم أو المهارات) من الأسئلة المعطاة وعبّر عنها بكلماتك أنت بشكل مختصر.
-- اذكر مستوى الطالب بالأرقام (قبل/بعد) ونسبة الإجابات الصحيحة.
-- أعطِ نصيحة عملية واحدة محدّدة.
-- اختم بدعوة للضغط على زر "تجديد" للحصول على تمارين مناسبة.
-- استخدم رمزاً تعبيرياً واحداً أو اثنين فقط في البداية.
-- لا تستعمل قوائم نقطية ولا روابط HTML.`;
+    const systemPrompt = `أنت معلّم رياضيات عربي ودود، تخاطب طالباً جزائرياً مباشرةً بصيغة "أنت".
+مهمتك: كتابة تعليق تربوي قصير (4 إلى 6 أسطر) باللغة العربية الفصحى البسيطة، يشرح للطالب أين هو الآن وكيف يتقدّم في هذا الدرس.
 
-    const weakList = (weak_concepts as string[]).slice(0, 5).join(' | ') || 'لا شيء محدد';
-    const strongList = (strong_concepts as string[]).slice(0, 5).join(' | ') || 'لا شيء محدد';
+قواعد إلزامية:
+- خاطب الطالب مباشرةً (أنت، حاول، أحسنت...).
+- ابدأ بجملة تشجيع أو ملاحظة دافئة (حسب تقدّمه أو تراجعه).
+- اذكر الأرقام بشكل طبيعي داخل الجملة (المستوى قبل/بعد، نسبة النجاح).
+- أعطِ نصيحة عملية واحدة أو اثنتين مرتبطة بالدرس (مثلاً: راجع التعريف، أعد قراءة المثال، انتبه إلى الإشارات...).
+- اختم بدعوة لطيفة للضغط على زر "تجديد".
+- ممنوع منعاً باتاً: نسخ نصوص الأسئلة، عرض قائمة أسئلة، استعمال HTML أو نقاط (•/-).
+- استعمل رمزاً تعبيرياً واحداً في البداية فقط.
+- اجعل النبرة إنسانية، ليست آلية ولا تقريراً.`;
 
     let situation = '';
-    if (direction === 'down') situation = `انخفض مستواه من ${level_before}/100 إلى ${level_after}/100. يحتاج إلى مراجعة الأساسيات.`;
-    else if (direction === 'up') situation = `تحسّن مستواه من ${level_before}/100 إلى ${level_after}/100. أحسن أداءً.`;
-    else situation = `مستواه مستقر عند ${level_after}/100.`;
+    if (direction === 'down') situation = `تراجع مستواه من ${level_before}/100 إلى ${level_after}/100. يحتاج إلى الطمأنة وإلى نصيحة لمراجعة الأساسيات.`;
+    else if (direction === 'up') situation = `تقدّم مستواه من ${level_before}/100 إلى ${level_after}/100. يستحق التشجيع ودعوته لرفع التحدي.`;
+    else situation = `مستواه مستقر عند ${level_after}/100. يحتاج إلى دفعة لمواصلة التقدّم.`;
 
-    const userPrompt = `معلومات الجلسة:
-- الدرس: "${lesson_title}" — الفصل: "${chapter_title}"
+    const userPrompt = `معلومات الجلسة (لا تذكرها كقائمة، استعملها للسياق فقط):
+- اسم الدرس: "${lesson_title}"
+- اسم الفصل: "${chapter_title}"
 - ${situation}
-- نسبة الإجابات الصحيحة: ${session_correct}/${session_total} (${accuracy}%)
-- أمثلة من الأسئلة التي أخطأ فيها (للسياق فقط، لا تنسخها): ${weakList}
-- أمثلة من الأسئلة التي أجاب عنها بشكل صحيح (للسياق فقط، لا تنسخها): ${strongList}
+- نسبة الإجابات الصحيحة في هذه الجلسة: ${session_correct}/${session_total} (${accuracy}%)
 
-اكتب الآن التعليق التربوي وفق القواعد المذكورة في تعليمات النظام.`;
+اكتب الآن التعليق التربوي الموجّه للطالب وفق القواعد المذكورة في تعليمات النظام. لا تذكر أي نص سؤال.`;
 
     const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
