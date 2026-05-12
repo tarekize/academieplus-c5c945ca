@@ -64,24 +64,20 @@ export default function AICommentsCard({ userId }: { userId: string }) {
   };
 
   const fetchLatest = async () => {
-    // Latest comment per lesson
+    // Full history of AI comments — newest first
     const { data, error } = await supabase
       .from("ai_lesson_comments")
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(100);
 
     if (error) console.error("AI comments fetch error:", error);
 
-    const seen = new Set<string>();
-    const latest: AIComment[] = [];
-    (data || []).forEach((c) => {
-      if (seen.has(c.lesson_id)) return;
-      seen.add(c.lesson_id);
-      latest.push(c as AIComment);
-    });
+    const list: AIComment[] = (data || []).map((c) => c as AIComment);
+    const seenLessons = new Set(list.map((c) => c.lesson_id));
 
+    // Add fallback "score-based" comment only for lessons that have NO real AI comment yet
     const { data: scores, error: scoresError } = await supabase
       .from("student_scores")
       .select("id, lesson_id, chapter_id, current_level, total_answers, correct_answers, accuracy_rate, updated_at, lesson:lessons(title, title_ar), chapter:chapters(title, title_ar)")
@@ -94,13 +90,13 @@ export default function AICommentsCard({ userId }: { userId: string }) {
     if (scoresError) console.error("Student scores fetch error:", scoresError);
 
     (scores || []).forEach((score) => {
-      if (!score.lesson_id || seen.has(score.lesson_id)) return;
-      seen.add(score.lesson_id);
-      latest.push(buildScoreComment(score));
+      if (!score.lesson_id || seenLessons.has(score.lesson_id)) return;
+      seenLessons.add(score.lesson_id);
+      list.push(buildScoreComment(score));
     });
 
-    latest.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    setComments(latest);
+    list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    setComments(list);
     setLoading(false);
   };
 
