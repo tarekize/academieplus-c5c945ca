@@ -137,8 +137,8 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       level_before: levelBefore,
       level_after: levelAfter,
       level_delta: levelAfter - levelBefore,
-      weak_concepts: weak,
-      strong_concepts: strong,
+      weak_concepts: Array.from(new Set(weakConceptsRef.current)).slice(0, 5),
+      strong_concepts: Array.from(new Set(strongConceptsRef.current)).slice(0, 5),
       message,
       link_url: link,
     });
