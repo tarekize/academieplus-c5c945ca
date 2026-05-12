@@ -74,6 +74,8 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   const sessionStartScoreRef = useRef<StudentScore | null>(null);
   const weakConceptsRef = useRef<string[]>([]);
   const strongConceptsRef = useRef<string[]>([]);
+  // AI comment is generated at most once per page-load session per lesson
+  const commentGeneratedRef = useRef<boolean>(false);
 
   // Reset session counters when lesson changes
   useEffect(() => {
@@ -85,6 +87,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     sessionStartScoreRef.current = null;
     weakConceptsRef.current = [];
     strongConceptsRef.current = [];
+    commentGeneratedRef.current = false;
   }, [lessonId]);
 
   const buildFallbackComment = useCallback((levelBefore: number, levelAfter: number, correct: number, total: number) => {
