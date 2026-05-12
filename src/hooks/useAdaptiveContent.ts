@@ -63,7 +63,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   // Session-local x/y counter (resets when lesson changes or content regenerated)
   const [sessionCorrect, setSessionCorrect] = useState(0);
   const [sessionTotal, setSessionTotal] = useState(0);
-  // Track if we just triggered auto-refresh
+  // Message shown after the level is recalculated. Content is not regenerated here.
   const [levelUpMessage, setLevelUpMessage] = useState<string | null>(null);
   const scoreRef = useRef(score);
   scoreRef.current = score;
@@ -297,7 +297,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     }
   }, [lessonId, chapterId, schoolLevel, lessonTitle, chapterTitle, userId, toast, quizzes, exercises, computeCompositeLevel]);
 
-  // Record answer + update score + auto-refresh every 5 session answers
+  // Record answer + update score. New AI content is generated only from the manual "تجديد" button.
   const recordAnswer = useCallback(async (isCorrect: boolean, timeSeconds: number, type: "quiz" | "exercise", concept?: string) => {
     // Capture session start composite level once
     if (sessionStartLevelRef.current === null) {
@@ -385,7 +385,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       await supabase.from("student_scores").insert(scoreRow);
     }
 
-    // Every 5 session answers → auto-refresh with smart notification
+    // Every 5 session answers → update level and notify only. Do not regenerate content automatically.
     if (newSessionTotal > 0 && newSessionTotal % 5 === 0) {
       const sessionAccuracy = Math.round((newSessionCorrect / newSessionTotal) * 100);
       
@@ -402,7 +402,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           title: "📉 انخفاض في الأداء",
           message: msg,
           diagnostic: `نسبة الإجابات الصحيحة: ${sessionAccuracy}% (${newSessionCorrect}/${newSessionTotal})`,
-          advice: "لقد أعدنا إنشاء تمارين واسئله متعدده الاختيارات مكيفة مع مستواك الحالي لمساعدتك على التحسن.",
+          advice: "اضغط على زر تجديد عندما تريد تمارين أو أسئلة جديدة مكيفة مع مستواك الحالي.",
         });
       } else if (sessionAccuracy >= 80) {
         // Success notification
@@ -420,7 +420,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           advice: "تم رفع مستوى الصعوبة. استمر في التقدم!",
         });
       } else {
-        const msg = `تم تحليل أدائك (${newSessionCorrect}/${newSessionTotal}). يتم تحديث المحتوى حسب مستواك الجديد.`;
+        const msg = `تم تحليل أدائك (${newSessionCorrect}/${newSessionTotal}). اضغط على "تجديد" عندما تريد محتوى جديدًا حسب مستواك.`;
         setLevelUpMessage(msg);
       }
 
@@ -445,7 +445,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     }
 
     return finalScore;
-  }, [userId, lessonId, chapterId, toast, generateContent, saveLessonComment, computeCompositeLevel]);
+  }, [userId, lessonId, chapterId, toast, saveLessonComment, computeCompositeLevel]);
 
   const updateReadingTime = useCallback(async (seconds: number) => {
     const newScore = { ...scoreRef.current, reading_time_seconds: scoreRef.current.reading_time_seconds + seconds };
