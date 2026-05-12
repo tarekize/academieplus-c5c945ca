@@ -4,15 +4,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-function fallbackMessage(levelBefore: number, levelAfter: number, correct: number, total: number) {
+function fallbackMessage(lessonTitle: string, levelBefore: number, levelAfter: number, correct: number, total: number) {
   const acc = total > 0 ? Math.round((correct / total) * 100) : 0;
+  const lesson = lessonTitle ? `في درس "${lessonTitle}"` : 'في هذا الدرس';
   if (levelAfter < levelBefore) {
-    return `📉 لاحظت أن مستواك انخفض من ${levelBefore}/100 إلى ${levelAfter}/100.\nأجبت على ${correct} من أصل ${total} (${acc}%).\nراجع الدرس بهدوء ثم اضغط "تجديد" للحصول على تمارين أسهل.`;
+    return `📉 يبدو أنّك واجهت بعض الصعوبات ${lesson}. أجبت بشكل صحيح على ${correct} من ${total} سؤالاً (${acc}%)، وانخفض مستواك من ${levelBefore} إلى ${levelAfter} من 100.\n\nلا تقلق، هذا جزء طبيعي من التعلم. أنصحك بإعادة قراءة الدرس بتركيز، والتوقف عند الأمثلة المحلولة لفهم الخطوات. ثم اضغط على "تجديد" لتحصل على تمارين أسهل تساعدك على بناء الأساس بثقة. 💪`;
   }
   if (levelAfter > levelBefore) {
-    return `🌟 ممتاز! مستواك تحسّن من ${levelBefore}/100 إلى ${levelAfter}/100.\nأجبت على ${correct} من أصل ${total} (${acc}%).\nواصل التدريب واضغط "تجديد" لتحديات جديدة.`;
+    return `🌟 أحسنت! تقدّم واضح ${lesson}. أجبت بشكل صحيح على ${correct} من ${total} سؤالاً (${acc}%)، وارتفع مستواك من ${levelBefore} إلى ${levelAfter} من 100.\n\nاستمر بهذه الوتيرة وحافظ على المراجعة المنتظمة. اضغط على "تجديد" لتجرّب تمارين أكثر تحديًا وتثبّت ما تعلّمته. 🚀`;
   }
-  return `🤖 مستواك مستقر عند ${levelAfter}/100.\nأجبت على ${correct} من أصل ${total} (${acc}%).\nواصل التدريب واضغط "تجديد" لمحتوى جديد.`;
+  return `🤖 أداء ثابت ${lesson}. أجبت بشكل صحيح على ${correct} من ${total} سؤالاً (${acc}%)، ومستواك مستقر عند ${levelAfter} من 100.\n\nحاول التركيز على الأسئلة التي ترددت فيها، وراجع القاعدة المرتبطة بها. ثم اضغط "تجديد" لتمارين جديدة تساعدك على التقدّم خطوة إضافية. ✨`;
 }
 
 Deno.serve(async (req) => {
