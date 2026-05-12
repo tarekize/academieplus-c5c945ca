@@ -223,19 +223,19 @@ export default function AICommentsCard({ userId }: { userId: string }) {
       </Card>
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent dir="rtl" className="max-w-md">
+        <DialogContent dir="rtl" className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
               تعليق الذكاء الاصطناعي
             </DialogTitle>
             <DialogDescription className="text-right">
-              {selected?.lesson_title} — {selected?.chapter_title}
+              {selected?.lesson_title} {selected?.chapter_title ? `— ${selected.chapter_title}` : ""}
             </DialogDescription>
           </DialogHeader>
           {selected && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 {selected.level_delta > 0 ? (
                   <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20">
                     <TrendingUp className="h-3 w-3 mr-1" /> تحسّن +{selected.level_delta}
@@ -252,8 +252,22 @@ export default function AICommentsCard({ userId }: { userId: string }) {
                 </Badge>
               </div>
 
-              <div className="rounded-lg bg-muted/50 p-4 text-sm leading-relaxed whitespace-pre-line">
-                {selected.message}
+              <div className="ai-comment-markdown rounded-xl border bg-gradient-to-br from-primary/5 via-background to-background p-5 text-sm leading-relaxed">
+                <style>{`
+                  .ai-comment-markdown h3 { font-size: 1rem; font-weight: 700; color: hsl(var(--primary)); margin: 0.9rem 0 0.5rem; padding-bottom: 0.3rem; border-bottom: 1px solid hsl(var(--border)); }
+                  .ai-comment-markdown h4 { font-size: 0.95rem; font-weight: 700; margin: 0.8rem 0 0.4rem; padding: 0.35rem 0.6rem; background: hsl(var(--muted)); border-right: 3px solid hsl(var(--primary)); border-radius: 4px; }
+                  .ai-comment-markdown p { margin: 0.45rem 0; line-height: 1.8; }
+                  .ai-comment-markdown strong { color: hsl(var(--primary)); font-weight: 700; }
+                  .ai-comment-markdown ul, .ai-comment-markdown ol { margin: 0.4rem 1.5rem 0.4rem 0; padding-right: 1rem; }
+                  .ai-comment-markdown li { margin: 0.2rem 0; }
+                  .ai-comment-markdown .katex-display { margin: 0.6rem 0; padding: 0.6rem; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: 6px; overflow-x: auto; }
+                `}</style>
+                <ReactMarkdown
+                  remarkPlugins={[remarkMath, remarkGfm]}
+                  rehypePlugins={[rehypeKatex]}
+                >
+                  {selected.message}
+                </ReactMarkdown>
               </div>
 
               <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
