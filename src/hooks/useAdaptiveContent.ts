@@ -88,6 +88,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     sessionStartScoreRef.current = null;
     weakConceptsRef.current = [];
     strongConceptsRef.current = [];
+    wrongQuestionsRef.current = [];
     commentGeneratedRef.current = false;
   }, [lessonId]);
 
