@@ -55,6 +55,7 @@ interface LessonActivityTabsProps {
 
 type ActivitySection = "exercises" | "quiz" | "revision" | null;
 type StepLevel = "decouvrir" | "comprendre" | "approfondir";
+type AnswerPayload = { correct: boolean; concept?: string; userAnswer?: string; correctAnswer?: string };
 
 const REQUIRED_CORRECT = 3;
 
@@ -430,8 +431,15 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     onSectionChange?.(section);
   };
 
-  const handleUnderstandAnswer = useCallback((isCorrect: boolean, type: "exercise" | "quiz", itemId: string) => {
-    persistAnswerStats(isCorrect);
+  const handleUnderstandAnswer = useCallback((answer: AnswerPayload, type: "exercise" | "quiz", itemId: string) => {
+    const isCorrect = answer.correct;
+    adaptiveContent.recordAnswer(
+      isCorrect,
+      0,
+      type,
+      answer.concept,
+      isCorrect ? undefined : { user_answer: answer.userAnswer || "إجابة غير صحيحة", correct_answer: answer.correctAnswer || "راجع الحل الصحيح" },
+    );
 
     if (isCorrect) {
       if (type === "exercise") {
@@ -462,10 +470,17 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         });
       }
     }
-  }, [persistItemCompletion, dbExercises, dbQuizzes, persistAnswerStats]);
+  }, [persistItemCompletion, dbExercises, dbQuizzes, adaptiveContent]);
 
-  const handleDiscoverAnswer = useCallback((isCorrect: boolean, type: "exercise" | "quiz", itemId?: string) => {
-    persistAnswerStats(isCorrect);
+  const handleDiscoverAnswer = useCallback((answer: AnswerPayload, type: "exercise" | "quiz", itemId?: string) => {
+    const isCorrect = answer.correct;
+    adaptiveContent.recordAnswer(
+      isCorrect,
+      0,
+      type,
+      answer.concept,
+      isCorrect ? undefined : { user_answer: answer.userAnswer || "إجابة غير صحيحة", correct_answer: answer.correctAnswer || "راجع الحل الصحيح" },
+    );
 
     if (itemId && isCorrect) {
       if (type === "exercise") {
@@ -526,7 +541,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         });
       }
     }
-  }, [persistUnlock, persistedUnlockEx, persistedUnlockQz, persistItemCompletion, dbExercises, dbQuizzes, persistAnswerStats]);
+  }, [persistUnlock, persistedUnlockEx, persistedUnlockQz, persistItemCompletion, dbExercises, dbQuizzes, adaptiveContent]);
 
   const discoverQuizzes = subsetDiscoverQz;
   const understandQuizzes = subsetUnderstandQz;
@@ -679,11 +694,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             ) : (
               isQuiz ? (
                 discoverQuizzes.length > 0
-                  ? <div className="space-y-3" key={resetKey}>{discoverQuizzes.map((q, idx) => <TrackedQuizCard key={`${q.id}-${resetKey}`} question={q} index={idx} readOnly={readOnly} onAnswer={(c) => handleDiscoverAnswer(c, "quiz", q.id)} />)}</div>
+                  ? <div className="space-y-3" key={resetKey}>{discoverQuizzes.map((q, idx) => <TrackedQuizCard key={`${q.id}-${resetKey}`} question={q} index={idx} readOnly={readOnly} onAnswer={(payload) => handleDiscoverAnswer(payload, "quiz", q.id)} />)}</div>
                   : <EmptyState text={completedQuizIds.length > 0 ? "أكملت جميع اسئله متعدده الاختيارات المتاحة!" : "لا توجد اسئله متعدده الاختيارات تشخيصية بعد"} />
               ) : (
                 discoverExercises.length > 0
-                  ? <div className="space-y-3" key={resetKey}>{discoverExercises.map((ex, idx) => <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx} readOnly={readOnly} onAnswer={(c) => handleDiscoverAnswer(c, "exercise", ex.id)} />)}</div>
+                  ? <div className="space-y-3" key={resetKey}>{discoverExercises.map((ex, idx) => <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx} readOnly={readOnly} onAnswer={(payload) => handleDiscoverAnswer(payload, "exercise", ex.id)} />)}</div>
                   : <EmptyState text={completedExerciseIds.length > 0 ? "أكملت جميع التمارين المتاحة!" : "لا توجد تمارين تمهيدية بعد"} />
               )
             )}
@@ -745,11 +760,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             ) : (
               isQuiz ? (
                 subsetUnderstandQz.length > 0
-                  ? <div className="space-y-3">{subsetUnderstandQz.map((q, idx) => <TrackedQuizCard key={`${q.id}-${resetKey}`} question={q} index={idx + halfQuiz} readOnly={readOnly} onAnswer={(c) => handleUnderstandAnswer(c, "quiz", q.id)} />)}</div>
+                  ? <div className="space-y-3">{subsetUnderstandQz.map((q, idx) => <TrackedQuizCard key={`${q.id}-${resetKey}`} question={q} index={idx + halfQuiz} readOnly={readOnly} onAnswer={(payload) => handleUnderstandAnswer(payload, "quiz", q.id)} />)}</div>
                   : <EmptyState text={completedQuizIds.length > 0 ? "أكملت جميع اسئله متعدده الاختيارات المتاحة!" : "لا توجد اسئله متعدده الاختيارات تطبيقية بعد"} />
               ) : (
                 subsetUnderstandEx.length > 0
-                  ? <div className="space-y-3">{subsetUnderstandEx.map((ex, idx) => <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx + halfExercise} readOnly={readOnly} onAnswer={(c) => handleUnderstandAnswer(c, "exercise", ex.id)} />)}</div>
+                  ? <div className="space-y-3">{subsetUnderstandEx.map((ex, idx) => <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx + halfExercise} readOnly={readOnly} onAnswer={(payload) => handleUnderstandAnswer(payload, "exercise", ex.id)} />)}</div>
                   : <EmptyState text={completedExerciseIds.length > 0 ? "أكملت جميع التمارين المتاحة!" : "لا توجد تمارين تطبيقية بعد"} />
               )
             )}
@@ -1044,7 +1059,7 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
   );
 }
 
-function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DBQuizQuestion; index: number; readOnly?: boolean; onAnswer: (correct: boolean) => void }) {
+function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DBQuizQuestion; index: number; readOnly?: boolean; onAnswer: (answer: AnswerPayload) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState(false);
   const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
@@ -1066,7 +1081,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
       setCorrectAnswer(result.correct_answer);
       setExplanation(result.explanation || "");
       setAnswered(true);
-      onAnswer(result.is_correct);
+      onAnswer({ correct: result.is_correct, concept: question.question, userAnswer: opt, correctAnswer: result.correct_answer || question.correct_answer });
     } catch (err) {
       console.error("Error validating quiz:", err);
       if (question.correct_answer) {
@@ -1075,7 +1090,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
         setCorrectAnswer(correct ? null : question.correct_answer);
         setExplanation(question.explanation || "");
         setAnswered(true);
-        onAnswer(correct);
+        onAnswer({ correct, concept: question.question, userAnswer: opt, correctAnswer: question.correct_answer });
       }
     } finally {
       setSubmitting(false);
@@ -1149,7 +1164,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
   );
 }
 
-function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise: DBExercise; index: number; readOnly?: boolean; onAnswer: (correct: boolean) => void }) {
+function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise: DBExercise; index: number; readOnly?: boolean; onAnswer: (answer: AnswerPayload) => void }) {
   const [open, setOpen] = useState(false);
   const [answer, setAnswer] = useState("");
   const [revealed, setRevealed] = useState(false);
@@ -1169,7 +1184,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
       setResult(res.is_correct);
       setExpectedAnswer(res.expected_answer);
       setSolution(res.solution);
-      onAnswer(res.is_correct);
+      onAnswer({ correct: res.is_correct, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: res.expected_answer });
     } catch (err) {
       console.error("Error validating exercise:", err);
       if (exercise.expected_answer) {
@@ -1177,7 +1192,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
         setResult(isCorrect);
         setExpectedAnswer(exercise.expected_answer);
         setSolution(exercise.solution || "");
-        onAnswer(isCorrect);
+        onAnswer({ correct: isCorrect, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: exercise.expected_answer });
       }
     } finally {
       setSubmitting(false);

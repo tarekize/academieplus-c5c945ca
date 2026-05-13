@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Bot, TrendingUp, TrendingDown, BookOpen, Clock, ChevronRight } from "lucide-react";
+import { Bot, TrendingUp, TrendingDown, BookOpen, Clock, ChevronRight, RefreshCw } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
@@ -24,6 +24,7 @@ interface AIComment {
   message: string;
   link_url: string | null;
   created_at: string;
+  accuracy_rate?: number;
 }
 
 interface ScoreCommentSource {
@@ -37,11 +38,31 @@ interface ScoreCommentSource {
   chapter?: { title: string | null; title_ar: string | null } | null;
 }
 
+const buildPedagogicScoreMessage = (lessonTitle: string, accuracy: number, levelAfter: number) => `📉 لاحظت أن مستواك يحتاج دعماً في درس **"${lessonTitle}"**. نسبة النجاح الحالية **${accuracy}%** والمستوى **${levelAfter}/100**.
+
+### 🎯 مثال لمعالجة lacune
+**القاعدة:** لا تكتفِ بحفظ الجواب؛ ركّز على الطريقة. نحدّد المطلوب، نختار القاعدة المناسبة، ثم نطبّقها خطوة بخطوة ونتحقق من النتيجة.
+
+#### مثال جديد) تمرين مشابه
+لتكن الدالة $f(x)=3x^2-4x+1$. أوجد دالة أصلية $F$ للدالة $f$ على $\\mathbb{R}$.
+
+**الحل المفصّل:**
+1. المطلوب هو إيجاد $F$ بحيث $F'(x)=f(x)$.
+2. دالة أصلية لـ $3x^2$ هي $x^3$ لأن $(x^3)'=3x^2$.
+3. دالة أصلية لـ $-4x$ هي $-2x^2$ لأن $(-2x^2)'=-4x$.
+4. دالة أصلية لـ $1$ هي $x$ لأن $(x)'=1$.
+5. نضيف ثابتاً حقيقياً $C$ لأن مشتقة الثابت تساوي $0$.
+
+**الجواب:** $$F(x)=x^3-2x^2+x+C,\\quad C\\in\\mathbb{R}$$
+
+اضغط على **"توليد تعليق IA"** للحصول على أمثلة خاصة بأخطائك الحقيقية.`;
+
 export default function AICommentsCard({ userId }: { userId: string }) {
   const navigate = useNavigate();
   const [comments, setComments] = useState<AIComment[]>([]);
   const [selected, setSelected] = useState<AIComment | null>(null);
   const [loading, setLoading] = useState(true);
+  const [generatingId, setGeneratingId] = useState<string | null>(null);
 
   const buildScoreComment = (score: ScoreCommentSource): AIComment => {
     const levelAfter = Number(score.current_level || 0);
@@ -50,7 +71,7 @@ export default function AICommentsCard({ userId }: { userId: string }) {
     const chapterTitle = score.chapter?.title_ar || score.chapter?.title || null;
     const accuracy = Number(score.accuracy_rate || 0);
     const message = levelAfter < 50 || accuracy < 50
-      ? `📉 لاحظت أن مستواك يحتاج دعماً في درس "${lessonTitle}".\nنسبة النجاح الحالية ${accuracy}% والمستوى ${levelAfter}/100.\nراجع الدرس ثم اضغط على "تجديد" للحصول على 5 تمارين أو أسئلة مناسبة لمستواك.`
+      ? buildPedagogicScoreMessage(lessonTitle, accuracy, levelAfter)
       : `🤖 تم تحليل عملك في درس "${lessonTitle}".\nمستواك الحالي ${levelAfter}/100 ونسبة النجاح ${accuracy}%.\nواصل التدريب واضغط "تجديد" للحصول على أسئلة جديدة حسب مستواك.`;
 
     return {
@@ -65,7 +86,64 @@ export default function AICommentsCard({ userId }: { userId: string }) {
       message,
       link_url: `/cours/math?chapitre=${score.chapter_id}&lecon=${score.lesson_id}`,
       created_at: score.updated_at,
+      accuracy_rate: accuracy,
     };
+  };
+
+  const generateCommentForScore = async (scoreComment: AIComment) => {
+    if (!scoreComment.lesson_id || !userId) return;
+    setGeneratingId(scoreComment.id);
+    const levelBefore = scoreComment.level_before || scoreComment.level_after;
+    const levelAfter = scoreComment.level_after;
+    const accuracy = Number(scoreComment.accuracy_rate ?? 0);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-lesson-comment", {
+        body: {
+          lesson_title: scoreComment.lesson_title || "درس",
+          chapter_title: scoreComment.chapter_title || "",
+          level_before: levelBefore,
+          level_after: levelAfter,
+          weak_concepts: [scoreComment.lesson_title || "الفكرة الأساسية في الدرس"],
+          strong_concepts: [],
+          mistakes: [
+            {
+              question: `الطالب أخطأ في أسئلة مرتبطة بدرس ${scoreComment.lesson_title || "هذا الدرس"}`,
+              user_answer: "إجابة غير صحيحة",
+              correct_answer: "يحتاج إلى مراجعة القاعدة وتطبيقها خطوة بخطوة",
+              type: "quiz",
+            },
+          ],
+          session_correct: accuracy,
+          session_total: 100,
+          lesson_link: scoreComment.link_url,
+        },
+      });
+
+      const message = !error && data?.message
+        ? data.message
+        : buildPedagogicScoreMessage(scoreComment.lesson_title || "درس", accuracy, levelAfter);
+
+      await supabase.from("ai_lesson_comments").delete().eq("user_id", userId).eq("lesson_id", scoreComment.lesson_id);
+      await supabase.from("ai_lesson_comments").insert({
+        user_id: userId,
+        lesson_id: scoreComment.lesson_id,
+        chapter_id: scoreComment.chapter_id,
+        lesson_title: scoreComment.lesson_title,
+        chapter_title: scoreComment.chapter_title,
+        level_before: levelBefore,
+        level_after: levelAfter,
+        level_delta: levelAfter - levelBefore,
+        weak_concepts: [scoreComment.lesson_title || "الفكرة الأساسية في الدرس"],
+        strong_concepts: [],
+        message,
+        link_url: scoreComment.link_url,
+      });
+      setSelected(null);
+      await fetchLatest();
+    } finally {
+      setGeneratingId(null);
+    }
   };
 
   const fetchLatest = async () => {
@@ -285,6 +363,17 @@ export default function AICommentsCard({ userId }: { userId: string }) {
                   >
                     <BookOpen className="h-3.5 w-3.5 ml-1" />
                     اذهب إلى الدرس
+                  </Button>
+                )}
+                {selected.id.startsWith("score-") && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={generatingId === selected.id}
+                    onClick={() => generateCommentForScore(selected)}
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ml-1 ${generatingId === selected.id ? "animate-spin" : ""}`} />
+                    توليد تعليق IA
                   </Button>
                 )}
               </div>

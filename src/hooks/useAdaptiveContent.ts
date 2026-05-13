@@ -95,13 +95,13 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   const buildFallbackComment = useCallback((levelBefore: number, levelAfter: number, correct: number, total: number) => {
     const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
     const lessonRef = lessonTitle ? `في درس "${lessonTitle}"` : 'في هذا الدرس';
-    if (levelAfter < levelBefore) {
-      return `📉 يبدو أنّك واجهت بعض الصعوبات ${lessonRef}. أجبت بشكل صحيح على ${correct} من ${total} سؤالاً (${accuracy}%)، وانخفض مستواك من ${levelBefore} إلى ${levelAfter} من 100.\n\nلا تقلق، هذا جزء طبيعي من التعلم. أعِد قراءة الدرس بتركيز وتوقّف عند الأمثلة المحلولة. ثم اضغط على "تجديد" للحصول على تمارين أسهل تساعدك على بناء أساس متين. 💪`;
-    }
-    if (levelAfter > levelBefore) {
-      return `🌟 أحسنت! تقدّم واضح ${lessonRef}. أجبت بشكل صحيح على ${correct} من ${total} سؤالاً (${accuracy}%)، وارتفع مستواك من ${levelBefore} إلى ${levelAfter} من 100.\n\nاستمر بهذه الوتيرة وحافظ على المراجعة المنتظمة. اضغط على "تجديد" لتجرّب تمارين أكثر تحديًا وتثبّت ما تعلّمته. 🚀`;
-    }
-    return `🤖 أداء ثابت ${lessonRef}. أجبت بشكل صحيح على ${correct} من ${total} سؤالاً (${accuracy}%)، ومستواك مستقر عند ${levelAfter} من 100.\n\nركّز على الأسئلة التي ترددت فيها وراجع القاعدة المرتبطة بها. ثم اضغط "تجديد" لتمارين جديدة تساعدك على التقدّم خطوة إضافية. ✨`;
+    const intro = levelAfter < levelBefore
+      ? `📉 يبدو أنّك واجهت بعض الصعوبات ${lessonRef}. أجبت بشكل صحيح على ${correct} من ${total} سؤالاً (${accuracy}%)، وانخفض مستواك من ${levelBefore} إلى ${levelAfter} من 100.`
+      : levelAfter > levelBefore
+        ? `🌟 أحسنت! تقدّم واضح ${lessonRef}. أجبت بشكل صحيح على ${correct} من ${total} سؤالاً (${accuracy}%)، وارتفع مستواك من ${levelBefore} إلى ${levelAfter} من 100.`
+        : `🤖 أداء ثابت ${lessonRef}. أجبت بشكل صحيح على ${correct} من ${total} سؤالاً (${accuracy}%)، ومستواك مستقر عند ${levelAfter} من 100.`;
+
+    return `${intro}\n\n### 🎯 مثال لمعالجة lacune\n**القاعدة:** راجع الفكرة الخاطئة بطريقة عملية: نحدّد المطلوب، نختار القاعدة المناسبة، نطبقها على مثال جديد، ثم نتحقق من النتيجة.\n\n#### مثال جديد) تمرين مشابه\nلتكن الدالة $f(x)=3x^2-4x+1$. أوجد دالة أصلية $F$ للدالة $f$ على $\\mathbb{R}$.\n\n**الحل المفصّل:**\n1. نبحث عن $F$ بحيث يكون $F'(x)=f(x)$.\n2. دالة أصلية لـ $3x^2$ هي $x^3$ لأن $(x^3)'=3x^2$.\n3. دالة أصلية لـ $-4x$ هي $-2x^2$ لأن $(-2x^2)'=-4x$.\n4. دالة أصلية لـ $1$ هي $x$ لأن $(x)'=1$.\n5. نضيف ثابتاً $C$ لأن مشتقة الثابت تساوي $0$.\n\n**الجواب:** $$F(x)=x^3-2x^2+x+C,\\quad C\\in\\mathbb{R}$$\n\nاضغط **"تجديد"** للحصول على تمارين مكيّفة لمستواك. 💪`;
   }, [lessonTitle]);
 
   const saveLessonComment = useCallback(async (levelBefore: number, levelAfter: number, sessionCorrectCount: number, sessionTotalCount: number) => {
