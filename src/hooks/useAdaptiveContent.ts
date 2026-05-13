@@ -517,6 +517,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     sessionStartScoreRef.current = null;
     weakConceptsRef.current = [];
     strongConceptsRef.current = [];
+    mistakesRef.current = [];
   }, []);
 
   return {
