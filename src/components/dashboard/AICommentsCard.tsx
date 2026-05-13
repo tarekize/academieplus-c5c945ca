@@ -365,6 +365,17 @@ export default function AICommentsCard({ userId }: { userId: string }) {
                     اذهب إلى الدرس
                   </Button>
                 )}
+                {selected.id.startsWith("score-") && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={generatingId === selected.id}
+                    onClick={() => generateCommentForScore(selected)}
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ml-1 ${generatingId === selected.id ? "animate-spin" : ""}`} />
+                    توليد تعليق IA
+                  </Button>
+                )}
               </div>
             </div>
           )}
