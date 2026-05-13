@@ -74,6 +74,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   const sessionStartScoreRef = useRef<StudentScore | null>(null);
   const weakConceptsRef = useRef<string[]>([]);
   const strongConceptsRef = useRef<string[]>([]);
+  const mistakesRef = useRef<Array<{ question: string; user_answer: string; correct_answer: string; type: "quiz" | "exercise" }>>([]);
   // AI comment is generated at most once per page-load session per lesson
   const commentGeneratedRef = useRef<boolean>(false);
 
@@ -87,6 +88,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     sessionStartScoreRef.current = null;
     weakConceptsRef.current = [];
     strongConceptsRef.current = [];
+    mistakesRef.current = [];
     commentGeneratedRef.current = false;
   }, [lessonId]);
 
@@ -111,6 +113,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
 
     const weak = Array.from(new Set(weakConceptsRef.current)).slice(0, 5);
     const strong = Array.from(new Set(strongConceptsRef.current)).slice(0, 5);
+    const mistakes = mistakesRef.current.slice(0, 5);
 
     try {
       const { data: cmt, error } = await supabase.functions.invoke("generate-lesson-comment", {
@@ -121,6 +124,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           level_after: levelAfter,
           weak_concepts: weak,
           strong_concepts: strong,
+          mistakes,
           session_correct: sessionCorrectCount,
           session_total: sessionTotalCount,
           lesson_link: link,
@@ -308,7 +312,13 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   }, [lessonId, chapterId, schoolLevel, lessonTitle, chapterTitle, userId, toast, quizzes, exercises, computeCompositeLevel]);
 
   // Record answer + update score. New AI content is generated only from the manual "تجديد" button.
-  const recordAnswer = useCallback(async (isCorrect: boolean, timeSeconds: number, type: "quiz" | "exercise", concept?: string) => {
+  const recordAnswer = useCallback(async (
+    isCorrect: boolean,
+    timeSeconds: number,
+    type: "quiz" | "exercise",
+    concept?: string,
+    mistakeDetails?: { user_answer: string; correct_answer: string },
+  ) => {
     // Capture session start composite level once
     if (sessionStartLevelRef.current === null) {
       sessionStartScoreRef.current = { ...scoreRef.current };
@@ -316,9 +326,20 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     }
     // Track concept (truncate text to keep prompt small)
     if (concept) {
-      const c = concept.slice(0, 120);
-      if (isCorrect) strongConceptsRef.current.push(c);
-      else weakConceptsRef.current.push(c);
+      const c = concept.slice(0, 200);
+      if (isCorrect) {
+        strongConceptsRef.current.push(c);
+      } else {
+        weakConceptsRef.current.push(c);
+        if (mistakeDetails) {
+          mistakesRef.current.push({
+            question: c,
+            user_answer: String(mistakeDetails.user_answer ?? "").slice(0, 200),
+            correct_answer: String(mistakeDetails.correct_answer ?? "").slice(0, 200),
+            type,
+          });
+        }
+      }
     }
 
     // Update session counters using a ref so rapid clicks don't use stale React state
@@ -457,6 +478,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       sessionStartScoreRef.current = { ...finalScore };
       weakConceptsRef.current = [];
       strongConceptsRef.current = [];
+      mistakesRef.current = [];
     }
 
     return finalScore;
@@ -495,6 +517,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     sessionStartScoreRef.current = null;
     weakConceptsRef.current = [];
     strongConceptsRef.current = [];
+    mistakesRef.current = [];
   }, []);
 
   return {
