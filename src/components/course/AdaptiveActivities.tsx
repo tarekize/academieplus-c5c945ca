@@ -62,7 +62,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
     setQuizAnswers(prev => ({ ...prev, [qIdx]: answer }));
     const isCorrect = answer === quizzes[qIdx].correct_answer;
     setQuizResults(prev => ({ ...prev, [qIdx]: isCorrect }));
-    await recordAnswer(isCorrect, timerRef.current, "quiz", quizzes[qIdx].question);
+    await recordAnswer(isCorrect, timerRef.current, "quiz", quizzes[qIdx].question, isCorrect ? undefined : { user_answer: answer, correct_answer: quizzes[qIdx].correct_answer });
     timerRef.current = 0;
   };
 
