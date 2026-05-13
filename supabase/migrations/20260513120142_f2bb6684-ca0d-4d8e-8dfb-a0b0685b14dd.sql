@@ -1,0 +1,1 @@
+DELETE FROM public.ai_lesson_comments a USING public.ai_lesson_comments b WHERE a.user_id = b.user_id AND a.lesson_id = b.lesson_id AND a.created_at < b.created_at;
