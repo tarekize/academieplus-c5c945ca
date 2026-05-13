@@ -62,7 +62,12 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
     setQuizAnswers(prev => ({ ...prev, [qIdx]: answer }));
     const isCorrect = answer === quizzes[qIdx].correct_answer;
     setQuizResults(prev => ({ ...prev, [qIdx]: isCorrect }));
-    await recordAnswer(isCorrect, timerRef.current, "quiz", quizzes[qIdx].question);
+    await recordAnswer(isCorrect, timerRef.current, "quiz", quizzes[qIdx].question, {
+      question: quizzes[qIdx].question,
+      user_answer: answer,
+      correct_answer: quizzes[qIdx].correct_answer,
+      explanation: quizzes[qIdx].explanation,
+    });
     timerRef.current = 0;
   };
 
@@ -71,7 +76,12 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
     if (!userAnswer) return;
     const isCorrect = userAnswer === exercises[eIdx].expected_answer;
     setExerciseResults(prev => ({ ...prev, [eIdx]: isCorrect }));
-    await recordAnswer(isCorrect, timerRef.current, "exercise", exercises[eIdx].title || exercises[eIdx].statement);
+    await recordAnswer(isCorrect, timerRef.current, "exercise", exercises[eIdx].title || exercises[eIdx].statement, {
+      question: `${exercises[eIdx].title ? exercises[eIdx].title + ' — ' : ''}${exercises[eIdx].statement}`,
+      user_answer: userAnswer,
+      correct_answer: exercises[eIdx].expected_answer,
+      explanation: exercises[eIdx].solution,
+    });
     timerRef.current = 0;
   };
 
