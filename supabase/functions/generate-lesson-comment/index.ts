@@ -43,10 +43,12 @@ Deno.serve(async (req) => {
     const direction = delta > 0 ? 'up' : delta < 0 ? 'down' : 'same';
     const accuracy = session_total > 0 ? Math.round((session_correct / session_total) * 100) : 0;
 
-    const apiKey = Deno.env.get('LOVABLE_API_KEY');
+    const lovableKey = Deno.env.get('LOVABLE_API_KEY');
+    const geminiKey1 = Deno.env.get('GEMINI_API_KEY');
+    const geminiKey2 = Deno.env.get('GEMINI_API_KEY_2');
     const fallback = fallbackMessage(lesson_title, level_before, level_after, session_correct, session_total, weak_concepts);
 
-    if (!apiKey) {
+    if (!lovableKey && !geminiKey1 && !geminiKey2) {
       return new Response(JSON.stringify({ message: fallback, direction, fallback: true, error: 'API_KEY_MISSING' }), {
         status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -107,29 +109,60 @@ ${strongList.length ? strongList.map((s, i) => `${i + 1}. ${s}`).join('\n') : '�
 
 اكتب الآن التعليق التربوي الكامل بصيغة Markdown + LaTeX وفق التعليمات أعلاه. تذكّر: مثال جديد + حل مفصّل لكلّ خطأ.`;
 
-    const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        temperature: 0.6,
-      }),
-    });
+    // Try providers in order: Lovable AI → Gemini key 1 → Gemini key 2
+    async function tryLovable(): Promise<string | null> {
+      if (!lovableKey) return null;
+      const r = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${lovableKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          temperature: 0.6,
+        }),
+      });
+      if (!r.ok) {
+        console.error('Lovable AI failed:', r.status, await r.text());
+        return null;
+      }
+      const d = await r.json();
+      return d.choices?.[0]?.message?.content?.trim() || null;
+    }
 
-    if (!aiResp.ok) {
-      const txt = await aiResp.text();
-      console.error('AI comment service error:', aiResp.status, txt);
-      return new Response(JSON.stringify({ message: fallback, direction, fallback: true, error: `AI_ERROR_${aiResp.status}` }), {
+    async function tryGemini(key: string, label: string): Promise<string | null> {
+      const r = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+            generationConfig: { temperature: 0.6 },
+          }),
+        }
+      );
+      if (!r.ok) {
+        console.error(`Gemini ${label} failed:`, r.status, await r.text());
+        return null;
+      }
+      const d = await r.json();
+      const text = d.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || '').join('').trim();
+      return text || null;
+    }
+
+    let message: string | null = await tryLovable();
+    if (!message && geminiKey1) message = await tryGemini(geminiKey1, 'KEY_1');
+    if (!message && geminiKey2) message = await tryGemini(geminiKey2, 'KEY_2');
+
+    if (!message) {
+      return new Response(JSON.stringify({ message: fallback, direction, fallback: true, error: 'ALL_PROVIDERS_FAILED' }), {
         status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    const aiData = await aiResp.json();
-    const message = aiData.choices?.[0]?.message?.content?.trim() || fallback;
 
     return new Response(JSON.stringify({ message, direction }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
