@@ -55,6 +55,7 @@ interface LessonActivityTabsProps {
 
 type ActivitySection = "exercises" | "quiz" | "revision" | null;
 type StepLevel = "decouvrir" | "comprendre" | "approfondir";
+type AnswerPayload = { correct: boolean; concept?: string; userAnswer?: string; correctAnswer?: string };
 
 const REQUIRED_CORRECT = 3;
 
@@ -430,8 +431,15 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     onSectionChange?.(section);
   };
 
-  const handleUnderstandAnswer = useCallback((isCorrect: boolean, type: "exercise" | "quiz", itemId: string) => {
-    persistAnswerStats(isCorrect);
+  const handleUnderstandAnswer = useCallback((answer: AnswerPayload, type: "exercise" | "quiz", itemId: string) => {
+    const isCorrect = answer.correct;
+    adaptiveContent.recordAnswer(
+      isCorrect,
+      0,
+      type,
+      answer.concept,
+      isCorrect ? undefined : { user_answer: answer.userAnswer || "إجابة غير صحيحة", correct_answer: answer.correctAnswer || "راجع الحل الصحيح" },
+    );
 
     if (isCorrect) {
       if (type === "exercise") {
@@ -462,10 +470,17 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         });
       }
     }
-  }, [persistItemCompletion, dbExercises, dbQuizzes, persistAnswerStats]);
+  }, [persistItemCompletion, dbExercises, dbQuizzes, adaptiveContent]);
 
-  const handleDiscoverAnswer = useCallback((isCorrect: boolean, type: "exercise" | "quiz", itemId?: string) => {
-    persistAnswerStats(isCorrect);
+  const handleDiscoverAnswer = useCallback((answer: AnswerPayload, type: "exercise" | "quiz", itemId?: string) => {
+    const isCorrect = answer.correct;
+    adaptiveContent.recordAnswer(
+      isCorrect,
+      0,
+      type,
+      answer.concept,
+      isCorrect ? undefined : { user_answer: answer.userAnswer || "إجابة غير صحيحة", correct_answer: answer.correctAnswer || "راجع الحل الصحيح" },
+    );
 
     if (itemId && isCorrect) {
       if (type === "exercise") {
@@ -526,7 +541,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         });
       }
     }
-  }, [persistUnlock, persistedUnlockEx, persistedUnlockQz, persistItemCompletion, dbExercises, dbQuizzes, persistAnswerStats]);
+  }, [persistUnlock, persistedUnlockEx, persistedUnlockQz, persistItemCompletion, dbExercises, dbQuizzes, adaptiveContent]);
 
   const discoverQuizzes = subsetDiscoverQz;
   const understandQuizzes = subsetUnderstandQz;
