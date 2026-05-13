@@ -133,6 +133,13 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       console.warn("AI comment fallback used:", e);
     }
 
+    // Delete previous comments for this lesson — only keep the latest one
+    await supabase
+      .from("ai_lesson_comments")
+      .delete()
+      .eq("user_id", userId)
+      .eq("lesson_id", lessonId);
+
     const { error: insertError } = await supabase.from("ai_lesson_comments").insert({
       user_id: userId,
       lesson_id: lessonId,
