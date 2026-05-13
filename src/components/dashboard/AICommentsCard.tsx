@@ -61,6 +61,7 @@ export default function AICommentsCard({ userId }: { userId: string }) {
   const [comments, setComments] = useState<AIComment[]>([]);
   const [selected, setSelected] = useState<AIComment | null>(null);
   const [loading, setLoading] = useState(true);
+  const [generatingId, setGeneratingId] = useState<string | null>(null);
 
   const buildScoreComment = (score: ScoreCommentSource): AIComment => {
     const levelAfter = Number(score.current_level || 0);
@@ -69,7 +70,7 @@ export default function AICommentsCard({ userId }: { userId: string }) {
     const chapterTitle = score.chapter?.title_ar || score.chapter?.title || null;
     const accuracy = Number(score.accuracy_rate || 0);
     const message = levelAfter < 50 || accuracy < 50
-      ? `📉 لاحظت أن مستواك يحتاج دعماً في درس "${lessonTitle}".\nنسبة النجاح الحالية ${accuracy}% والمستوى ${levelAfter}/100.\nراجع الدرس ثم اضغط على "تجديد" للحصول على 5 تمارين أو أسئلة مناسبة لمستواك.`
+      ? buildPedagogicScoreMessage(lessonTitle, accuracy, levelAfter)
       : `🤖 تم تحليل عملك في درس "${lessonTitle}".\nمستواك الحالي ${levelAfter}/100 ونسبة النجاح ${accuracy}%.\nواصل التدريب واضغط "تجديد" للحصول على أسئلة جديدة حسب مستواك.`;
 
     return {
@@ -85,6 +86,62 @@ export default function AICommentsCard({ userId }: { userId: string }) {
       link_url: `/cours/math?chapitre=${score.chapter_id}&lecon=${score.lesson_id}`,
       created_at: score.updated_at,
     };
+  };
+
+  const generateCommentForScore = async (scoreComment: AIComment) => {
+    if (!scoreComment.lesson_id || !userId) return;
+    setGeneratingId(scoreComment.id);
+    const levelBefore = scoreComment.level_before || scoreComment.level_after;
+    const levelAfter = scoreComment.level_after;
+    const accuracy = scoreComment.level_after < 50 ? 0 : 50;
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-lesson-comment", {
+        body: {
+          lesson_title: scoreComment.lesson_title || "درس",
+          chapter_title: scoreComment.chapter_title || "",
+          level_before: levelBefore,
+          level_after: levelAfter,
+          weak_concepts: [scoreComment.lesson_title || "الفكرة الأساسية في الدرس"],
+          strong_concepts: [],
+          mistakes: [
+            {
+              question: `الطالب أخطأ في أسئلة مرتبطة بدرس ${scoreComment.lesson_title || "هذا الدرس"}`,
+              user_answer: "إجابة غير صحيحة",
+              correct_answer: "يحتاج إلى مراجعة القاعدة وتطبيقها خطوة بخطوة",
+              type: "quiz",
+            },
+          ],
+          session_correct: accuracy,
+          session_total: 100,
+          lesson_link: scoreComment.link_url,
+        },
+      });
+
+      const message = !error && data?.message
+        ? data.message
+        : buildPedagogicScoreMessage(scoreComment.lesson_title || "درس", accuracy, levelAfter);
+
+      await supabase.from("ai_lesson_comments").delete().eq("user_id", userId).eq("lesson_id", scoreComment.lesson_id);
+      await supabase.from("ai_lesson_comments").insert({
+        user_id: userId,
+        lesson_id: scoreComment.lesson_id,
+        chapter_id: scoreComment.chapter_id,
+        lesson_title: scoreComment.lesson_title,
+        chapter_title: scoreComment.chapter_title,
+        level_before: levelBefore,
+        level_after: levelAfter,
+        level_delta: levelAfter - levelBefore,
+        weak_concepts: [scoreComment.lesson_title || "الفكرة الأساسية في الدرس"],
+        strong_concepts: [],
+        message,
+        link_url: scoreComment.link_url,
+      });
+      setSelected(null);
+      await fetchLatest();
+    } finally {
+      setGeneratingId(null);
+    }
   };
 
   const fetchLatest = async () => {
