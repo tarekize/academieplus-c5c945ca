@@ -822,12 +822,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                               setAiQuizAnswers(prev => ({ ...prev, [idx]: opt }));
                               const isCorrect = opt === q.correct_answer;
                               setAiQuizResults(prev => ({ ...prev, [idx]: isCorrect }));
-                              adaptiveContent.recordAnswer(isCorrect, 0, "quiz", q.question, {
-                                question: q.question,
-                                user_answer: opt,
-                                correct_answer: q.correct_answer,
-                                explanation: q.explanation,
-                              });
+                              adaptiveContent.recordAnswer(isCorrect, 0, "quiz", q.question);
                             }}
                             disabled={aiQuizResults[idx] !== undefined}
                             dir="rtl">
@@ -886,12 +881,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                             if (!userAnswer) return;
                             const isCorrect = userAnswer === ex.expected_answer;
                             setAiExerciseResults(prev => ({ ...prev, [idx]: isCorrect }));
-                            adaptiveContent.recordAnswer(isCorrect, 0, "exercise", ex.title || ex.statement, {
-                              question: `${ex.title ? ex.title + ' — ' : ''}${ex.statement}`,
-                              user_answer: userAnswer,
-                              correct_answer: ex.expected_answer,
-                              explanation: ex.solution,
-                            });
+                            adaptiveContent.recordAnswer(isCorrect, 0, "exercise", ex.title || ex.statement);
                           }}>تحقق</Button>
                           <MathKeyboard onInsert={(sym) => {
                             const el = document.getElementById(`ai-exo-input-${idx}`) as HTMLInputElement | null;

@@ -74,7 +74,6 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   const sessionStartScoreRef = useRef<StudentScore | null>(null);
   const weakConceptsRef = useRef<string[]>([]);
   const strongConceptsRef = useRef<string[]>([]);
-  const wrongQuestionsRef = useRef<Array<{ question: string; user_answer?: string; correct_answer?: string; explanation?: string; type?: string }>>([]);
   // AI comment is generated at most once per page-load session per lesson
   const commentGeneratedRef = useRef<boolean>(false);
 
@@ -88,7 +87,6 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     sessionStartScoreRef.current = null;
     weakConceptsRef.current = [];
     strongConceptsRef.current = [];
-    wrongQuestionsRef.current = [];
     commentGeneratedRef.current = false;
   }, [lessonId]);
 
@@ -123,7 +121,6 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           level_after: levelAfter,
           weak_concepts: weak,
           strong_concepts: strong,
-          wrong_questions: wrongQuestionsRef.current.slice(0, 5),
           session_correct: sessionCorrectCount,
           session_total: sessionTotalCount,
           lesson_link: link,
@@ -311,13 +308,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   }, [lessonId, chapterId, schoolLevel, lessonTitle, chapterTitle, userId, toast, quizzes, exercises, computeCompositeLevel]);
 
   // Record answer + update score. New AI content is generated only from the manual "تجديد" button.
-  const recordAnswer = useCallback(async (
-    isCorrect: boolean,
-    timeSeconds: number,
-    type: "quiz" | "exercise",
-    concept?: string,
-    details?: { question?: string; user_answer?: string; correct_answer?: string; explanation?: string }
-  ) => {
+  const recordAnswer = useCallback(async (isCorrect: boolean, timeSeconds: number, type: "quiz" | "exercise", concept?: string) => {
     // Capture session start composite level once
     if (sessionStartLevelRef.current === null) {
       sessionStartScoreRef.current = { ...scoreRef.current };
@@ -328,16 +319,6 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       const c = concept.slice(0, 120);
       if (isCorrect) strongConceptsRef.current.push(c);
       else weakConceptsRef.current.push(c);
-    }
-    // Track full wrong-answer details so AI can give per-question example + solution
-    if (!isCorrect && details?.question) {
-      wrongQuestionsRef.current.push({
-        question: String(details.question).slice(0, 500),
-        user_answer: details.user_answer ? String(details.user_answer).slice(0, 200) : undefined,
-        correct_answer: details.correct_answer ? String(details.correct_answer).slice(0, 200) : undefined,
-        explanation: details.explanation ? String(details.explanation).slice(0, 500) : undefined,
-        type,
-      });
     }
 
     // Update session counters using a ref so rapid clicks don't use stale React state
@@ -476,7 +457,6 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       sessionStartScoreRef.current = { ...finalScore };
       weakConceptsRef.current = [];
       strongConceptsRef.current = [];
-      wrongQuestionsRef.current = [];
     }
 
     return finalScore;
@@ -515,7 +495,6 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     sessionStartScoreRef.current = null;
     weakConceptsRef.current = [];
     strongConceptsRef.current = [];
-    wrongQuestionsRef.current = [];
   }, []);
 
   return {
