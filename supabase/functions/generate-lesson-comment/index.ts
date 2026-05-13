@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
       level_after = 0,
       weak_concepts = [],
       strong_concepts = [],
+      wrong_questions = [],
       session_correct = 0,
       session_total = 0,
     } = body;
