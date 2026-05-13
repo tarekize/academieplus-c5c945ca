@@ -74,6 +74,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   const sessionStartScoreRef = useRef<StudentScore | null>(null);
   const weakConceptsRef = useRef<string[]>([]);
   const strongConceptsRef = useRef<string[]>([]);
+  const wrongQuestionsRef = useRef<Array<{ question: string; user_answer?: string; correct_answer?: string; explanation?: string; type?: string }>>([]);
   // AI comment is generated at most once per page-load session per lesson
   const commentGeneratedRef = useRef<boolean>(false);
 
