@@ -476,6 +476,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       sessionStartScoreRef.current = { ...finalScore };
       weakConceptsRef.current = [];
       strongConceptsRef.current = [];
+      wrongQuestionsRef.current = [];
     }
 
     return finalScore;
