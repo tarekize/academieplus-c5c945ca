@@ -1,0 +1,1 @@
+DELETE FROM public.ai_lesson_comments WHERE message LIKE '%راجع الأمثلة المحلولة في الدرس ثم اضغط%' OR message LIKE '%🤖 تم تحليل عملك%';
