@@ -123,6 +123,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           level_after: levelAfter,
           weak_concepts: weak,
           strong_concepts: strong,
+          wrong_questions: wrongQuestionsRef.current.slice(0, 5),
           session_correct: sessionCorrectCount,
           session_total: sessionTotalCount,
           lesson_link: link,
