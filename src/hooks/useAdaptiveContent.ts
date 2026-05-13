@@ -312,7 +312,13 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   }, [lessonId, chapterId, schoolLevel, lessonTitle, chapterTitle, userId, toast, quizzes, exercises, computeCompositeLevel]);
 
   // Record answer + update score. New AI content is generated only from the manual "تجديد" button.
-  const recordAnswer = useCallback(async (isCorrect: boolean, timeSeconds: number, type: "quiz" | "exercise", concept?: string) => {
+  const recordAnswer = useCallback(async (
+    isCorrect: boolean,
+    timeSeconds: number,
+    type: "quiz" | "exercise",
+    concept?: string,
+    mistakeDetails?: { user_answer: string; correct_answer: string },
+  ) => {
     // Capture session start composite level once
     if (sessionStartLevelRef.current === null) {
       sessionStartScoreRef.current = { ...scoreRef.current };
@@ -320,9 +326,20 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     }
     // Track concept (truncate text to keep prompt small)
     if (concept) {
-      const c = concept.slice(0, 120);
-      if (isCorrect) strongConceptsRef.current.push(c);
-      else weakConceptsRef.current.push(c);
+      const c = concept.slice(0, 200);
+      if (isCorrect) {
+        strongConceptsRef.current.push(c);
+      } else {
+        weakConceptsRef.current.push(c);
+        if (mistakeDetails) {
+          mistakesRef.current.push({
+            question: c,
+            user_answer: String(mistakeDetails.user_answer ?? "").slice(0, 200),
+            correct_answer: String(mistakeDetails.correct_answer ?? "").slice(0, 200),
+            type,
+          });
+        }
+      }
     }
 
     // Update session counters using a ref so rapid clicks don't use stale React state
