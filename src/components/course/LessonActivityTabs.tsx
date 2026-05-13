@@ -694,11 +694,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             ) : (
               isQuiz ? (
                 discoverQuizzes.length > 0
-                  ? <div className="space-y-3" key={resetKey}>{discoverQuizzes.map((q, idx) => <TrackedQuizCard key={`${q.id}-${resetKey}`} question={q} index={idx} readOnly={readOnly} onAnswer={(c) => handleDiscoverAnswer(c, "quiz", q.id)} />)}</div>
+                  ? <div className="space-y-3" key={resetKey}>{discoverQuizzes.map((q, idx) => <TrackedQuizCard key={`${q.id}-${resetKey}`} question={q} index={idx} readOnly={readOnly} onAnswer={(payload) => handleDiscoverAnswer(payload, "quiz", q.id)} />)}</div>
                   : <EmptyState text={completedQuizIds.length > 0 ? "أكملت جميع اسئله متعدده الاختيارات المتاحة!" : "لا توجد اسئله متعدده الاختيارات تشخيصية بعد"} />
               ) : (
                 discoverExercises.length > 0
-                  ? <div className="space-y-3" key={resetKey}>{discoverExercises.map((ex, idx) => <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx} readOnly={readOnly} onAnswer={(c) => handleDiscoverAnswer(c, "exercise", ex.id)} />)}</div>
+                  ? <div className="space-y-3" key={resetKey}>{discoverExercises.map((ex, idx) => <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx} readOnly={readOnly} onAnswer={(payload) => handleDiscoverAnswer(payload, "exercise", ex.id)} />)}</div>
                   : <EmptyState text={completedExerciseIds.length > 0 ? "أكملت جميع التمارين المتاحة!" : "لا توجد تمارين تمهيدية بعد"} />
               )
             )}
@@ -760,11 +760,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             ) : (
               isQuiz ? (
                 subsetUnderstandQz.length > 0
-                  ? <div className="space-y-3">{subsetUnderstandQz.map((q, idx) => <TrackedQuizCard key={`${q.id}-${resetKey}`} question={q} index={idx + halfQuiz} readOnly={readOnly} onAnswer={(c) => handleUnderstandAnswer(c, "quiz", q.id)} />)}</div>
+                  ? <div className="space-y-3">{subsetUnderstandQz.map((q, idx) => <TrackedQuizCard key={`${q.id}-${resetKey}`} question={q} index={idx + halfQuiz} readOnly={readOnly} onAnswer={(payload) => handleUnderstandAnswer(payload, "quiz", q.id)} />)}</div>
                   : <EmptyState text={completedQuizIds.length > 0 ? "أكملت جميع اسئله متعدده الاختيارات المتاحة!" : "لا توجد اسئله متعدده الاختيارات تطبيقية بعد"} />
               ) : (
                 subsetUnderstandEx.length > 0
-                  ? <div className="space-y-3">{subsetUnderstandEx.map((ex, idx) => <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx + halfExercise} readOnly={readOnly} onAnswer={(c) => handleUnderstandAnswer(c, "exercise", ex.id)} />)}</div>
+                  ? <div className="space-y-3">{subsetUnderstandEx.map((ex, idx) => <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx + halfExercise} readOnly={readOnly} onAnswer={(payload) => handleUnderstandAnswer(payload, "exercise", ex.id)} />)}</div>
                   : <EmptyState text={completedExerciseIds.length > 0 ? "أكملت جميع التمارين المتاحة!" : "لا توجد تمارين تطبيقية بعد"} />
               )
             )}
