@@ -24,6 +24,7 @@ interface AIComment {
   message: string;
   link_url: string | null;
   created_at: string;
+  accuracy_rate?: number;
 }
 
 interface ScoreCommentSource {
@@ -85,6 +86,7 @@ export default function AICommentsCard({ userId }: { userId: string }) {
       message,
       link_url: `/cours/math?chapitre=${score.chapter_id}&lecon=${score.lesson_id}`,
       created_at: score.updated_at,
+      accuracy_rate: accuracy,
     };
   };
 
@@ -93,7 +95,7 @@ export default function AICommentsCard({ userId }: { userId: string }) {
     setGeneratingId(scoreComment.id);
     const levelBefore = scoreComment.level_before || scoreComment.level_after;
     const levelAfter = scoreComment.level_after;
-    const accuracy = scoreComment.level_after < 50 ? 0 : 50;
+    const accuracy = Number(scoreComment.accuracy_rate ?? 0);
 
     try {
       const { data, error } = await supabase.functions.invoke("generate-lesson-comment", {
