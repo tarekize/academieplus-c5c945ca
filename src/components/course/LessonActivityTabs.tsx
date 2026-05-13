@@ -1059,7 +1059,7 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
   );
 }
 
-function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DBQuizQuestion; index: number; readOnly?: boolean; onAnswer: (correct: boolean) => void }) {
+function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DBQuizQuestion; index: number; readOnly?: boolean; onAnswer: (answer: AnswerPayload) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState(false);
   const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
@@ -1081,7 +1081,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
       setCorrectAnswer(result.correct_answer);
       setExplanation(result.explanation || "");
       setAnswered(true);
-      onAnswer(result.is_correct);
+      onAnswer({ correct: result.is_correct, concept: question.question, userAnswer: opt, correctAnswer: result.correct_answer || question.correct_answer });
     } catch (err) {
       console.error("Error validating quiz:", err);
       if (question.correct_answer) {
@@ -1090,7 +1090,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
         setCorrectAnswer(correct ? null : question.correct_answer);
         setExplanation(question.explanation || "");
         setAnswered(true);
-        onAnswer(correct);
+        onAnswer({ correct, concept: question.question, userAnswer: opt, correctAnswer: question.correct_answer });
       }
     } finally {
       setSubmitting(false);
@@ -1164,7 +1164,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
   );
 }
 
-function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise: DBExercise; index: number; readOnly?: boolean; onAnswer: (correct: boolean) => void }) {
+function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise: DBExercise; index: number; readOnly?: boolean; onAnswer: (answer: AnswerPayload) => void }) {
   const [open, setOpen] = useState(false);
   const [answer, setAnswer] = useState("");
   const [revealed, setRevealed] = useState(false);
@@ -1184,7 +1184,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
       setResult(res.is_correct);
       setExpectedAnswer(res.expected_answer);
       setSolution(res.solution);
-      onAnswer(res.is_correct);
+      onAnswer({ correct: res.is_correct, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: res.expected_answer });
     } catch (err) {
       console.error("Error validating exercise:", err);
       if (exercise.expected_answer) {
@@ -1192,7 +1192,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
         setResult(isCorrect);
         setExpectedAnswer(exercise.expected_answer);
         setSolution(exercise.solution || "");
-        onAnswer(isCorrect);
+        onAnswer({ correct: isCorrect, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: exercise.expected_answer });
       }
     } finally {
       setSubmitting(false);
