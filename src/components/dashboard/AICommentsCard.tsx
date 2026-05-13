@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Bot, TrendingUp, TrendingDown, BookOpen, Clock, ChevronRight } from "lucide-react";
+import { Bot, TrendingUp, TrendingDown, BookOpen, Clock, ChevronRight, RefreshCw } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
@@ -36,6 +36,25 @@ interface ScoreCommentSource {
   lesson?: { title: string | null; title_ar: string | null } | null;
   chapter?: { title: string | null; title_ar: string | null } | null;
 }
+
+const buildPedagogicScoreMessage = (lessonTitle: string, accuracy: number, levelAfter: number) => `📉 لاحظت أن مستواك يحتاج دعماً في درس **"${lessonTitle}"**. نسبة النجاح الحالية **${accuracy}%** والمستوى **${levelAfter}/100**.
+
+### 🎯 مثال لمعالجة lacune
+**القاعدة:** لا تكتفِ بحفظ الجواب؛ ركّز على الطريقة. نحدّد المطلوب، نختار القاعدة المناسبة، ثم نطبّقها خطوة بخطوة ونتحقق من النتيجة.
+
+#### مثال جديد) تمرين مشابه
+لتكن الدالة $f(x)=3x^2-4x+1$. أوجد دالة أصلية $F$ للدالة $f$ على $\\mathbb{R}$.
+
+**الحل المفصّل:**
+1. المطلوب هو إيجاد $F$ بحيث $F'(x)=f(x)$.
+2. دالة أصلية لـ $3x^2$ هي $x^3$ لأن $(x^3)'=3x^2$.
+3. دالة أصلية لـ $-4x$ هي $-2x^2$ لأن $(-2x^2)'=-4x$.
+4. دالة أصلية لـ $1$ هي $x$ لأن $(x)'=1$.
+5. نضيف ثابتاً حقيقياً $C$ لأن مشتقة الثابت تساوي $0$.
+
+**الجواب:** $$F(x)=x^3-2x^2+x+C,\\quad C\\in\\mathbb{R}$$
+
+اضغط على **"توليد تعليق IA"** للحصول على أمثلة خاصة بأخطائك الحقيقية.`;
 
 export default function AICommentsCard({ userId }: { userId: string }) {
   const navigate = useNavigate();
