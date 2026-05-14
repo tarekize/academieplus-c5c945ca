@@ -822,7 +822,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                   <Card key={idx} className={cn("transition-all", aiQuizResults[idx] === true && "border-green-500/50 bg-green-500/5", aiQuizResults[idx] === false && "border-red-500/50 bg-red-500/5")}>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3 mb-3" dir="rtl">
-                        <p className="font-medium flex-1">{idx + 1}. {q.question}</p>
+                        <div className="flex-1 font-medium flex gap-2">
+                          <span>{idx + 1}.</span>
+                          <HtmlWithMath htmlContent={cleanMathStatement(q.question)} className="flex-1" />
+                        </div>
                         <div className="flex items-center gap-0.5 shrink-0">
                           {Array.from({ length: 5 }).map((_, i) => <Pencil key={i} className={cn("h-4 w-4", i < (q.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />)}
                         </div>
