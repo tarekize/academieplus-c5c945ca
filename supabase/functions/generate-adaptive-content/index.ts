@@ -108,7 +108,15 @@ Format JSON attendu (tableau de 5 objets) :
 
 IMPORTANT: 
 - "difficulty" est un entier de 1 à 5 (1=très facile, 2=facile, 3=moyen, 4=difficile, 5=très difficile). Varie la difficulté des 5 questions autour du niveau ${diffScale}/5 de l'élève.
-- Les questions et réponses doivent être en ARABE. Les formules mathématiques peuvent rester en notation standard. NE GÉNÈRE AUCUNE question en dehors du sujet "${lessonTitle}".`;
+- Les questions et réponses doivent être en ARABE. NE GÉNÈRE AUCUNE question en dehors du sujet "${lessonTitle}".
+- FORMAT MATHÉMATIQUE OBLIGATOIRE : TOUTES les expressions mathématiques (variables, fonctions, fractions, puissances, indices, limites, racines, symboles ∞, ≤, ≥, ≠, ±, →, etc.) DOIVENT être écrites en LaTeX entre délimiteurs $...$ pour le rendu KaTeX.
+  * Utilise \\frac{a}{b} pour les fractions (JAMAIS a/b en texte brut).
+  * Utilise x^{n} pour les puissances (JAMAIS x^n ou x**n).
+  * Utilise x_{n} pour les indices.
+  * Utilise \\sqrt{x}, \\infty, \\to, \\lim_{x \\to +\\infty}, \\leq, \\geq, \\neq, \\pm, \\cdot, \\times.
+  * Exemple correct : "ما هي $\\lim_{x \\to +\\infty} \\frac{3x^{5} + 2x^{4} - x^{3}}{x^{4} - x^{3} + 1}$ ؟"
+  * INTERDIT : écrire f(x) = (3x^5 + 2x^4) / (x^4 + 1) en texte brut. À la place : $f(x) = \\frac{3x^{5} + 2x^{4}}{x^{4} + 1}$.
+- Les "options" et "correct_answer" DOIVENT aussi utiliser LaTeX entre $...$ quand elles contiennent des maths (ex: "$+\\infty$", "$3$", "$\\frac{1}{2}$").`;
   } else if (contentType === "exercise") {
     system = `Tu es un professeur de mathématiques algérien expert. Tu génères des exercices adaptés au niveau de l'élève. Réponds UNIQUEMENT avec un tableau JSON valide, sans texte ni markdown autour.`;
     user = `${contextBlock}
