@@ -1191,6 +1191,22 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
   const [expectedAnswer, setExpectedAnswer] = useState<string>("");
   const [solution, setSolution] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+  }, []);
+
+  const notifyAnswer = (payload: AnswerPayload) => {
+    if (payload.correct) {
+      completionTimerRef.current = setTimeout(() => {
+        setOpen(false);
+        onAnswer(payload);
+      }, 2000);
+      return;
+    }
+    onAnswer(payload);
+  };
 
   const handleSubmit = async () => {
     if (!answer.trim() || submitting) return;
@@ -1203,7 +1219,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
       setResult(res.is_correct);
       setExpectedAnswer(res.expected_answer);
       setSolution(res.solution);
-      onAnswer({ correct: res.is_correct, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: res.expected_answer });
+      notifyAnswer({ correct: res.is_correct, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: res.expected_answer });
     } catch (err) {
       console.error("Error validating exercise:", err);
       if (exercise.expected_answer) {
@@ -1211,7 +1227,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
         setResult(isCorrect);
         setExpectedAnswer(exercise.expected_answer);
         setSolution(exercise.solution || "");
-        onAnswer({ correct: isCorrect, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: exercise.expected_answer });
+        notifyAnswer({ correct: isCorrect, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: exercise.expected_answer });
       }
     } finally {
       setSubmitting(false);
@@ -1279,8 +1295,9 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
               </div>
             )}
             {result !== null && (
-              <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-                {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}
+              <div className={cn("p-3 rounded border text-sm font-semibold flex items-center gap-2", result ? "border-green-300 dark:border-green-700 bg-green-500/10 text-green-800 dark:text-green-300" : "border-red-300 dark:border-red-700 bg-red-500/10 text-red-700 dark:text-red-300")} dir="rtl">
+                {result && <CheckCircle2 className="h-4 w-4" />}
+                <span>{result ? "✅ إجابة صحيحة! أحسنت 🎉" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}</span>
               </div>
             )}
             {(solution || exercise.solution) && (
