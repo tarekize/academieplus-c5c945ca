@@ -630,7 +630,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                       <span className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> فتح دروسي</span>
                       <ChevronRight className="h-4 w-4 group-hover:-translate-x-1 transition-transform rtl:rotate-180" />
                     </Button>
-                    <Button variant="outline" className="w-full justify-between gap-2 group" onClick={() => navigate("/liste-cours")}>
+                    <Button variant="outline" className="w-full justify-between gap-2 group" onClick={() => navigate("/exams?niveau=terminale&subject=math")}>
                       <span className="flex items-center gap-2"><Brain className="h-4 w-4" /> إجراء اختبار</span>
                       <ChevronRight className="h-4 w-4 group-hover:-translate-x-1 transition-transform rtl:rotate-180" />
                     </Button>
