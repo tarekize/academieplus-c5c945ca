@@ -22,7 +22,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
   if (!userId) return null;
 
   const handleClick = async (n: typeof notifications[number]) => {
-    deleteNotification(n.id);
+    await deleteNotification(n.id);
     if (!n.lesson_id || !n.chapter_id) return;
 
     // Lookup chapter to find subject
