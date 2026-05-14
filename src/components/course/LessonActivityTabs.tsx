@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -442,35 +442,33 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     );
 
     if (isCorrect) {
-      setTimeout(() => {
-        if (type === "exercise") {
-          setCompletedExerciseIds(prev => {
-            if (prev.includes(itemId)) return prev;
-            persistItemCompletion("exercises", itemId);
-            const newCompleted = [...prev, itemId];
-            setSubsetUnderstandEx(currentSubset => {
-              const filtered = currentSubset.filter(e => e.id !== itemId);
-              const halfEx = Math.ceil(dbExercises.length / 2);
-              const pool = dbExercises.slice(halfEx).filter(e => !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
-              return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
-            });
-            return newCompleted;
+      if (type === "exercise") {
+        setCompletedExerciseIds(prev => {
+          if (prev.includes(itemId)) return prev;
+          persistItemCompletion("exercises", itemId);
+          const newCompleted = [...prev, itemId];
+          setSubsetUnderstandEx(currentSubset => {
+            const filtered = currentSubset.filter(e => e.id !== itemId);
+            const halfEx = Math.ceil(dbExercises.length / 2);
+            const pool = dbExercises.slice(halfEx).filter(e => !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
+            return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
-        } else {
-          setCompletedQuizIds(prev => {
-            if (prev.includes(itemId)) return prev;
-            persistItemCompletion("quizzes", itemId);
-            const newCompleted = [...prev, itemId];
-            setSubsetUnderstandQz(currentSubset => {
-              const filtered = currentSubset.filter(q => q.id !== itemId);
-              const halfQuiz = Math.ceil(dbQuizzes.length / 2);
-              const pool = dbQuizzes.slice(halfQuiz).filter(q => !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
-              return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
-            });
-            return newCompleted;
+          return newCompleted;
+        });
+      } else {
+        setCompletedQuizIds(prev => {
+          if (prev.includes(itemId)) return prev;
+          persistItemCompletion("quizzes", itemId);
+          const newCompleted = [...prev, itemId];
+          setSubsetUnderstandQz(currentSubset => {
+            const filtered = currentSubset.filter(q => q.id !== itemId);
+            const halfQuiz = Math.ceil(dbQuizzes.length / 2);
+            const pool = dbQuizzes.slice(halfQuiz).filter(q => !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
+            return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
-        }
-      }, 2000);
+          return newCompleted;
+        });
+      }
     }
   }, [persistItemCompletion, dbExercises, dbQuizzes, adaptiveContent]);
 
@@ -485,35 +483,33 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     );
 
     if (itemId && isCorrect) {
-      setTimeout(() => {
-        if (type === "exercise") {
-          setCompletedExerciseIds(prev => {
-            if (prev.includes(itemId)) return prev;
-            persistItemCompletion("exercises", itemId);
-            const newCompleted = [...prev, itemId];
-            setSubsetDiscoverEx(currentSubset => {
-              const filtered = currentSubset.filter(e => e.id !== itemId);
-              const halfEx = Math.ceil(dbExercises.length / 2);
-              const pool = dbExercises.slice(0, halfEx).filter(e => !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
-              return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
-            });
-            return newCompleted;
+      if (type === "exercise") {
+        setCompletedExerciseIds(prev => {
+          if (prev.includes(itemId)) return prev;
+          persistItemCompletion("exercises", itemId);
+          const newCompleted = [...prev, itemId];
+          setSubsetDiscoverEx(currentSubset => {
+            const filtered = currentSubset.filter(e => e.id !== itemId);
+            const halfEx = Math.ceil(dbExercises.length / 2);
+            const pool = dbExercises.slice(0, halfEx).filter(e => !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
+            return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
-        } else {
-          setCompletedQuizIds(prev => {
-            if (prev.includes(itemId)) return prev;
-            persistItemCompletion("quizzes", itemId);
-            const newCompleted = [...prev, itemId];
-            setSubsetDiscoverQz(currentSubset => {
-              const filtered = currentSubset.filter(q => q.id !== itemId);
-              const halfQuiz = Math.ceil(dbQuizzes.length / 2);
-              const pool = dbQuizzes.slice(0, halfQuiz).filter(q => !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
-              return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
-            });
-            return newCompleted;
+          return newCompleted;
+        });
+      } else {
+        setCompletedQuizIds(prev => {
+          if (prev.includes(itemId)) return prev;
+          persistItemCompletion("quizzes", itemId);
+          const newCompleted = [...prev, itemId];
+          setSubsetDiscoverQz(currentSubset => {
+            const filtered = currentSubset.filter(q => q.id !== itemId);
+            const halfQuiz = Math.ceil(dbQuizzes.length / 2);
+            const pool = dbQuizzes.slice(0, halfQuiz).filter(q => !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
+            return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
-        }
-      }, 2000);
+          return newCompleted;
+        });
+      }
     }
 
     if (type === "exercise") {
