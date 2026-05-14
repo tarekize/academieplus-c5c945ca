@@ -1067,6 +1067,19 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
   const [answered, setAnswered] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+  }, []);
+
+  const notifyAnswer = (payload: AnswerPayload) => {
+    if (payload.correct) {
+      completionTimerRef.current = setTimeout(() => onAnswer(payload), 2000);
+      return;
+    }
+    onAnswer(payload);
+  };
 
   const handleSelect = async (opt: string) => {
     if (readOnly || answered || submitting) return;
@@ -1081,7 +1094,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
       setCorrectAnswer(result.correct_answer);
       setExplanation(result.explanation || "");
       setAnswered(true);
-      onAnswer({ correct: result.is_correct, concept: question.question, userAnswer: opt, correctAnswer: result.correct_answer || question.correct_answer });
+      notifyAnswer({ correct: result.is_correct, concept: question.question, userAnswer: opt, correctAnswer: result.correct_answer || question.correct_answer });
     } catch (err) {
       console.error("Error validating quiz:", err);
       if (question.correct_answer) {
@@ -1090,7 +1103,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
         setCorrectAnswer(correct ? null : question.correct_answer);
         setExplanation(question.explanation || "");
         setAnswered(true);
-        onAnswer({ correct, concept: question.question, userAnswer: opt, correctAnswer: question.correct_answer });
+        notifyAnswer({ correct, concept: question.question, userAnswer: opt, correctAnswer: question.correct_answer });
       }
     } finally {
       setSubmitting(false);
