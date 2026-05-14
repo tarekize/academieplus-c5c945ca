@@ -916,14 +916,31 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                         </div>
                       )}
                       {aiExerciseResults[idx] !== undefined && (
-                        <div className={cn("p-2 rounded text-sm", aiExerciseResults[idx] ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-                          {aiExerciseResults[idx] ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${ex.expected_answer}`}
+                        <div className={cn("p-2 rounded text-sm flex items-center gap-2", aiExerciseResults[idx] ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
+                          {aiExerciseResults[idx] ? <span>✅ إجابة صحيحة!</span> : (
+                            <>
+                              <span>❌ الإجابة الصحيحة:</span>
+                              <HtmlWithMath htmlContent={cleanMathStatement(ex.expected_answer || "")} className="font-semibold" />
+                            </>
+                          )}
                         </div>
                       )}
                       {ex.solution && (
-                        <details className="text-sm">
-                          <summary className="cursor-pointer text-muted-foreground hover:text-foreground">عرض الحل</summary>
-                          <div className="p-3 bg-muted/50 rounded-lg mt-2" dir="rtl">{ex.solution}</div>
+                        <details className="text-sm group">
+                          <summary className="cursor-pointer flex items-center gap-2 text-primary hover:text-primary/80 font-semibold py-2 px-3 bg-primary/5 hover:bg-primary/10 rounded-lg border border-primary/20 transition-colors">
+                            <BookOpen className="h-4 w-4" />
+                            <span>📖 عرض الحل المفصل</span>
+                          </summary>
+                          <div className="mt-3 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-lg border border-blue-200 dark:border-blue-800 shadow-sm" dir="rtl">
+                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-blue-200 dark:border-blue-800">
+                              <Sparkles className="h-4 w-4 text-blue-600" />
+                              <h5 className="font-bold text-blue-900 dark:text-blue-100">الحل خطوة بخطوة</h5>
+                            </div>
+                            <HtmlWithMath
+                              htmlContent={cleanMathStatement(ex.solution)}
+                              className="prose prose-sm dark:prose-invert max-w-none text-right leading-relaxed text-gray-800 dark:text-gray-200 [&_p]:mb-2 [&_ol]:list-decimal [&_ul]:list-disc [&_li]:mb-1"
+                            />
+                          </div>
                         </details>
                       )}
                     </CardContent>
