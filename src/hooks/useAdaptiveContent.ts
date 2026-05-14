@@ -430,10 +430,10 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           lesson_id: lessonId,
           chapter_id: chapterId,
           notification_type: "performance_drop",
-          title: "📉 انخفاض في الأداء",
-          message: msg,
-          diagnostic: `نسبة الإجابات الصحيحة: ${sessionAccuracy}% (${newSessionCorrect}/${newSessionTotal})`,
-          advice: "اضغط على زر تجديد عندما تريد تمارين أو أسئلة جديدة مكيفة مع مستواك الحالي.",
+          title: "لديك ثغرات في هذا الدرس",
+          message: lessonTitle || "",
+          diagnostic: null,
+          advice: null,
         });
       } else if (sessionAccuracy >= 80) {
         // Success notification
@@ -445,10 +445,10 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           lesson_id: lessonId,
           chapter_id: chapterId,
           notification_type: "level_up",
-          title: "🎉 مستوى ممتاز!",
-          message: msg,
-          diagnostic: `نسبة الإجابات الصحيحة: ${sessionAccuracy}%`,
-          advice: "تم رفع مستوى الصعوبة. استمر في التقدم!",
+          title: "أتقنت هذا الدرس",
+          message: lessonTitle || "",
+          diagnostic: null,
+          advice: null,
         });
       } else {
         const msg = `تم تحليل أدائك (${newSessionCorrect}/${newSessionTotal}). اضغط على "تجديد" عندما تريد محتوى جديدًا حسب مستواك.`;
