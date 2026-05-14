@@ -1,4 +1,5 @@
 import { Bell } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -8,6 +9,7 @@ import {
 } from "@/components/ui/popover";
 import { useStudentNotifications } from "@/hooks/useStudentNotifications";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NotificationBellProps {
   userId: string;
@@ -15,8 +17,30 @@ interface NotificationBellProps {
 
 export function NotificationBell({ userId }: NotificationBellProps) {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useStudentNotifications(userId);
+  const navigate = useNavigate();
 
   if (!userId) return null;
+
+  const handleClick = async (n: typeof notifications[number]) => {
+    if (!n.is_read) markAsRead(n.id);
+    if (!n.lesson_id || !n.chapter_id) return;
+
+    // Lookup chapter to find subject
+    const { data: chapter } = await supabase
+      .from("chapters")
+      .select("subject")
+      .eq("id", n.chapter_id)
+      .maybeSingle();
+
+    const subject = chapter?.subject;
+    if (!subject) return;
+
+    const params = new URLSearchParams({
+      chapitre: n.chapter_id,
+      lecon: n.lesson_id,
+    });
+    navigate(`/cours/${subject}?${params.toString()}`);
+  };
 
   return (
     <Popover>
@@ -46,22 +70,18 @@ export function NotificationBell({ userId }: NotificationBellProps) {
             </div>
           ) : (
             notifications.map((n) => (
-              <div
+              <button
                 key={n.id}
-                className={`p-3 border-b last:border-0 cursor-pointer hover:bg-muted/50 transition-colors ${!n.is_read ? "bg-primary/5" : ""}`}
-                onClick={() => markAsRead(n.id)}
+                type="button"
+                className={`w-full text-right p-3 border-b last:border-0 cursor-pointer hover:bg-muted/50 transition-colors ${!n.is_read ? "bg-primary/5" : ""}`}
+                onClick={() => handleClick(n)}
                 dir="rtl"
               >
                 <div className="flex items-start gap-2">
-                  <span className="text-lg">{n.notification_type === "performance_drop" ? "📉" : n.notification_type === "improvement" ? "📈" : "🔔"}</span>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm">{n.title}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{n.message}</p>
-                    {n.diagnostic && (
-                      <p className="text-xs mt-1 text-yellow-600">{n.diagnostic}</p>
-                    )}
-                    {n.advice && (
-                      <p className="text-xs mt-1 text-green-600">{n.advice}</p>
+                    {n.message && (
+                      <p className="text-xs text-muted-foreground mt-1">{n.message}</p>
                     )}
                     <p className="text-xs text-muted-foreground mt-1">
                       {new Date(n.created_at).toLocaleDateString("ar-DZ")}
@@ -69,7 +89,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
                   </div>
                   {!n.is_read && <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1" />}
                 </div>
-              </div>
+              </button>
             ))
           )}
         </ScrollArea>
