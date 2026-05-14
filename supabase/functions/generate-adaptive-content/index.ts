@@ -137,7 +137,15 @@ Format JSON attendu (tableau de 5 objets) :
 
 IMPORTANT: 
 - "difficulty" est un entier de 1 à 5 (1=très facile, 2=facile, 3=moyen, 4=difficile, 5=très difficile). Varie la difficulté des 5 exercices autour du niveau ${diffScale}/5 de l'élève.
-- Tout le contenu doit être en ARABE. Les formules mathématiques restent en notation standard. NE GÉNÈRE AUCUN exercice en dehors du sujet "${lessonTitle}".`;
+- Tout le contenu doit être en ARABE. NE GÉNÈRE AUCUN exercice en dehors du sujet "${lessonTitle}".
+- FORMAT MATHÉMATIQUE OBLIGATOIRE : TOUTES les expressions mathématiques DOIVENT être en LaTeX entre $...$ pour le rendu KaTeX.
+  * Fractions : \\frac{a}{b} (JAMAIS a/b).
+  * Puissances : x^{n} (JAMAIS x^n ni x**n).
+  * Indices : x_{n}. Racine : \\sqrt{x}.
+  * Symboles : \\infty, \\to, \\lim_{x \\to +\\infty}, \\leq, \\geq, \\neq, \\pm, \\cdot.
+  * Exemple correct (statement) : "احسب $\\lim_{x \\to +\\infty} (2x^{2} + 3x - 1)$."
+  * INTERDIT d'écrire f(x) = 2x^2 + 3x - 1 en texte brut. À la place : $f(x) = 2x^{2} + 3x - 1$.
+- "expected_answer" et "hints" DOIVENT aussi utiliser LaTeX entre $...$ quand ils contiennent des maths.`;
   } else {
     system = `Tu es un professeur de mathématiques algérien expert. Tu génères des fiches de révision. Réponds UNIQUEMENT avec un tableau JSON valide, sans texte ni markdown autour.`;
     user = `${contextBlock}
