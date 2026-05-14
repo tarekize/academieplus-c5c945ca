@@ -430,8 +430,8 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           lesson_id: lessonId,
           chapter_id: chapterId,
           notification_type: "performance_drop",
-          title: "لديك ثغرات في هذا الدرس",
-          message: lessonTitle || "",
+          title: "📉 انخفاض في الأداء",
+          message: `لديك ثغرات في هذا الدرس (${lessonTitle || ""}).`,
           diagnostic: null,
           advice: null,
         });
@@ -445,8 +445,8 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           lesson_id: lessonId,
           chapter_id: chapterId,
           notification_type: "level_up",
-          title: "أتقنت هذا الدرس",
-          message: lessonTitle || "",
+          title: "🎉 أتقنت هذا الدرس",
+          message: `أحسنت! لقد أتقنت درس (${lessonTitle || ""}).`,
           diagnostic: null,
           advice: null,
         });
