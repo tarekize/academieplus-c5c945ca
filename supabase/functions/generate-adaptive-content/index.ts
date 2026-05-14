@@ -338,12 +338,20 @@ serve(async (req) => {
     // Strip markdown code fences if present
     rawContent = rawContent.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
 
+    // Fix invalid JSON escapes: LaTeX \lim, \frac, \infty etc. need double backslash inside JSON strings.
+    // Replace any \X where X is not a valid JSON escape char ("/bfnrtu\) with \\X.
+    const sanitizeJsonEscapes = (s: string) => s.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
+
     let content;
     try {
       content = JSON.parse(rawContent);
     } catch {
-      console.error("Failed to parse AI response:", rawContent.substring(0, 500));
-      throw new Error("L'IA a retourné un format invalide. Réessayez.");
+      try {
+        content = JSON.parse(sanitizeJsonEscapes(rawContent));
+      } catch {
+        console.error("Failed to parse AI response:", rawContent.substring(0, 500));
+        throw new Error("L'IA a retourné un format invalide. Réessayez.");
+      }
     }
 
     if (!Array.isArray(content)) {
