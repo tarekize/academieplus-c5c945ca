@@ -340,7 +340,11 @@ serve(async (req) => {
 
     // Fix invalid JSON escapes: LaTeX \lim, \frac, \infty etc. need double backslash inside JSON strings.
     // Replace any \X where X is not a valid JSON escape char ("/bfnrtu\) with \\X.
-    const sanitizeJsonEscapes = (s: string) => s.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
+    // Only treat \", \\, \/, and \uXXXX as real JSON escapes. Double every other backslash
+    // so LaTeX commands like \to, \frac, \infty, \neq, \beta survive (they would otherwise
+    // be parsed as tab, form-feed, etc. and corrupt the math).
+    const sanitizeJsonEscapes = (s: string) =>
+      s.replace(/\\(?!["\\/]|u[0-9a-fA-F]{4})/g, "\\\\");
 
     let content;
     try {
