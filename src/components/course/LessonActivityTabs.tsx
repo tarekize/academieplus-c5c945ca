@@ -822,7 +822,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                   <Card key={idx} className={cn("transition-all", aiQuizResults[idx] === true && "border-green-500/50 bg-green-500/5", aiQuizResults[idx] === false && "border-red-500/50 bg-red-500/5")}>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3 mb-3" dir="rtl">
-                        <p className="font-medium flex-1">{idx + 1}. {q.question}</p>
+                        <div className="flex-1 font-medium flex gap-2">
+                          <span>{idx + 1}.</span>
+                          <HtmlWithMath htmlContent={cleanMathStatement(q.question)} className="flex-1" />
+                        </div>
                         <div className="flex items-center gap-0.5 shrink-0">
                           {Array.from({ length: 5 }).map((_, i) => <Pencil key={i} className={cn("h-4 w-4", i < (q.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />)}
                         </div>
@@ -843,7 +846,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                             dir="rtl">
                             {aiQuizResults[idx] !== undefined && opt === q.correct_answer && <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />}
                             {aiQuizResults[idx] === false && aiQuizAnswers[idx] === opt && <XCircle className="h-4 w-4 mr-2" />}
-                            {opt}
+                            <HtmlWithMath htmlContent={cleanMathStatement(opt)} className="flex-1 text-right" />
                           </Button>
                         ))}
                       </div>
@@ -865,19 +868,15 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                   <Card key={idx}>
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-center gap-3" dir="rtl">
-                        <h4 className="font-semibold flex-1">{idx + 1}. {ex.title}</h4>
+                        <div className="flex-1 font-semibold flex gap-2">
+                          <span>{idx + 1}.</span>
+                          <HtmlWithMath htmlContent={cleanMathStatement(ex.title)} className="flex-1" />
+                        </div>
                         <div className="flex items-center gap-0.5 shrink-0">
                           {Array.from({ length: 5 }).map((_, i) => <Pencil key={i} className={cn("h-4 w-4", i < (ex.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />)}
                         </div>
                       </div>
-                      {(() => {
-                        const cleaned = cleanMathStatement(ex.statement);
-                        return statementHasMath(cleaned) ? (
-                          <HtmlWithMath htmlContent={cleaned} className="text-sm text-right" dir="rtl" />
-                        ) : (
-                          <p className="text-sm" dir="rtl">{cleaned}</p>
-                        );
-                      })()}
+                      <HtmlWithMath htmlContent={cleanMathStatement(ex.statement)} className="text-sm text-right" dir="rtl" />
                       {ex.hints && ex.hints.length > 0 && (
                         <Button variant="ghost" size="sm" onClick={() => setAiShowHints(prev => ({ ...prev, [idx]: !prev[idx] }))} className="text-yellow-600">
                           <Lightbulb className="h-4 w-4 mr-1" />
@@ -886,7 +885,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                         </Button>
                       )}
                       {aiShowHints[idx] && ex.hints?.map((hint: string, hIdx: number) => (
-                        <p key={hIdx} className="text-xs text-muted-foreground bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {hint}</p>
+                        <div key={hIdx} className="text-xs text-muted-foreground bg-yellow-500/5 p-2 rounded flex gap-1" dir="rtl">
+                          <span>💡</span>
+                          <HtmlWithMath htmlContent={cleanMathStatement(hint)} className="flex-1" />
+                        </div>
                       ))}
                       {aiExerciseResults[idx] === undefined && (
                         <div className="flex gap-2 items-center" dir="rtl">
