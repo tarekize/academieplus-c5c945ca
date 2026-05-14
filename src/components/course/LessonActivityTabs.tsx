@@ -846,7 +846,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                             dir="rtl">
                             {aiQuizResults[idx] !== undefined && opt === q.correct_answer && <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />}
                             {aiQuizResults[idx] === false && aiQuizAnswers[idx] === opt && <XCircle className="h-4 w-4 mr-2" />}
-                            {opt}
+                            <HtmlWithMath htmlContent={cleanMathStatement(opt)} className="flex-1 text-right" />
                           </Button>
                         ))}
                       </div>
