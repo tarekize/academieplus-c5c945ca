@@ -145,7 +145,21 @@ IMPORTANT:
   * Symboles : \\infty, \\to, \\lim_{x \\to +\\infty}, \\leq, \\geq, \\neq, \\pm, \\cdot.
   * Exemple correct (statement) : "احسب $\\lim_{x \\to +\\infty} (2x^{2} + 3x - 1)$."
   * INTERDIT d'écrire f(x) = 2x^2 + 3x - 1 en texte brut. À la place : $f(x) = 2x^{2} + 3x - 1$.
-- "expected_answer" et "hints" DOIVENT aussi utiliser LaTeX entre $...$ quand ils contiennent des maths.`;
+- "expected_answer" et "hints" DOIVENT aussi utiliser LaTeX entre $...$ quand ils contiennent des maths.
+- FORMAT DE LA SOLUTION ("solution") - OBLIGATOIRE :
+  * Solution RICHE et DÉTAILLÉE en HTML avec plusieurs étapes numérotées, JAMAIS une seule ligne.
+  * Structure HTML attendue :
+    <p><strong>المعطيات :</strong> ... (rappel de l'énoncé / données)</p>
+    <p><strong>الخطوة 1 :</strong> ... explication courte ...</p>
+    <p>$$ formule mathématique en display $$</p>
+    <p><strong>الخطوة 2 :</strong> ...</p>
+    <p>$$ ... $$</p>
+    <p><strong>الخطوة 3 :</strong> ... (autant que nécessaire)</p>
+    <p><strong>الاستنتاج :</strong> $$ \\boxed{réponse finale} $$</p>
+  * Utilise $$...$$ (display block) pour les formules importantes et $...$ (inline) dans le texte.
+  * Chaque étape doit JUSTIFIER le calcul (règle, théorème, propriété utilisée), pas seulement le résultat.
+  * Vise minimum 4 étapes claires. Termine TOUJOURS par <strong>الاستنتاج :</strong> avec la réponse encadrée \\boxed{...}.
+  * NE PAS écrire la solution comme un seul paragraphe. Utilise vraiment <p>, <strong>, et $$...$$.`;
   } else {
     system = `Tu es un professeur de mathématiques algérien expert. Tu génères des fiches de révision. Réponds UNIQUEMENT avec un tableau JSON valide, sans texte ni markdown autour.`;
     user = `${contextBlock}
