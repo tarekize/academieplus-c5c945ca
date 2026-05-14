@@ -1144,6 +1144,12 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
               dir="rtl"><HtmlWithMath htmlContent={opt} /></Button>
           ))}
         </div>
+        {answered && isCorrect && (
+          <div className="mt-3 p-3 rounded border border-green-300 dark:border-green-700 bg-green-500/10 text-green-800 dark:text-green-300 flex items-center gap-2 text-sm font-semibold" dir="rtl">
+            <CheckCircle2 className="h-4 w-4" />
+            <span>✅ إجابة صحيحة! أحسنت 🎉</span>
+          </div>
+        )}
         {answered && explanation && (
           <div className="mt-4 bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700" dir="rtl">
             <p className="font-semibold text-sm mb-2 text-gray-900 dark:text-gray-100 flex items-center gap-2">
