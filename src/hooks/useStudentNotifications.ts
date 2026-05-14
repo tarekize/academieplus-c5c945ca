@@ -29,7 +29,7 @@ export function useStudentNotifications(userId: string) {
 
     if (data) {
       setNotifications(data as StudentNotification[]);
-      setUnreadCount(data.filter((n: any) => !n.is_read).length);
+      setUnreadCount((data as StudentNotification[]).filter((n) => !n.is_read).length);
     }
   }, [userId]);
 
