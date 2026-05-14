@@ -29,7 +29,7 @@ export function useStudentNotifications(userId: string) {
 
     if (data) {
       setNotifications(data as StudentNotification[]);
-      setUnreadCount(data.filter((n: any) => !n.is_read).length);
+      setUnreadCount((data as StudentNotification[]).filter((n) => !n.is_read).length);
     }
   }, [userId]);
 
@@ -61,13 +61,22 @@ export function useStudentNotifications(userId: string) {
   }, [fetchNotifications]);
 
   const deleteNotification = useCallback(async (notificationId: string) => {
-    await supabase
+    let removedWasUnread = false;
+    setNotifications((prev) => {
+      const removed = prev.find((n) => n.id === notificationId);
+      removedWasUnread = Boolean(removed && !removed.is_read);
+      return prev.filter((n) => n.id !== notificationId);
+    });
+    if (removedWasUnread) setUnreadCount((c) => Math.max(0, c - 1));
+
+    const { error } = await supabase
       .from("student_notifications")
       .delete()
-      .eq("id", notificationId);
-    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
-    setUnreadCount((c) => Math.max(0, c - 1));
-  }, []);
+      .eq("id", notificationId)
+      .eq("user_id", userId);
+
+    if (error) fetchNotifications();
+  }, [fetchNotifications, userId]);
 
   const markAllAsRead = useCallback(async () => {
     await supabase
