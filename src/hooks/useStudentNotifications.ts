@@ -60,6 +60,15 @@ export function useStudentNotifications(userId: string) {
     fetchNotifications();
   }, [fetchNotifications]);
 
+  const deleteNotification = useCallback(async (notificationId: string) => {
+    await supabase
+      .from("student_notifications")
+      .delete()
+      .eq("id", notificationId);
+    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+    setUnreadCount((c) => Math.max(0, c - 1));
+  }, []);
+
   const markAllAsRead = useCallback(async () => {
     await supabase
       .from("student_notifications")
@@ -69,5 +78,5 @@ export function useStudentNotifications(userId: string) {
     fetchNotifications();
   }, [userId, fetchNotifications]);
 
-  return { notifications, unreadCount, markAsRead, markAllAsRead, refetch: fetchNotifications };
+  return { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, refetch: fetchNotifications };
 }
