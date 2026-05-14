@@ -130,7 +130,7 @@ Format JSON attendu (tableau de 5 objets) :
     "statement": "énoncé complet en arabe",
     "expected_answer": "réponse attendue (valeur numérique ou expression courte)",
     "hints": ["indice 1 en arabe", "indice 2 en arabe"],
-    "solution": "solution détaillée étape par étape en arabe",
+    "solution": "solution HTML détaillée multi-étapes en arabe (voir format ci-dessous)",
     "difficulty": 3
   }
 ]
