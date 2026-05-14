@@ -822,7 +822,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                   <Card key={idx} className={cn("transition-all", aiQuizResults[idx] === true && "border-green-500/50 bg-green-500/5", aiQuizResults[idx] === false && "border-red-500/50 bg-red-500/5")}>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3 mb-3" dir="rtl">
-                        <p className="font-medium flex-1">{idx + 1}. {q.question}</p>
+                        <div className="flex-1 flex items-start gap-1">
+                          <span className="font-medium">{idx + 1}.</span>
+                          <HtmlWithMath htmlContent={cleanMathStatement(q.question)} className="font-medium flex-1" dir="rtl" />
+                        </div>
                         <div className="flex items-center gap-0.5 shrink-0">
                           {Array.from({ length: 5 }).map((_, i) => <Pencil key={i} className={cn("h-4 w-4", i < (q.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />)}
                         </div>
@@ -831,7 +834,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                         {q.options.map((opt, oIdx) => (
                           <Button key={oIdx}
                             variant={aiQuizAnswers[idx] === opt ? (aiQuizResults[idx] ? "default" : "destructive") : "outline"}
-                            className={cn("justify-start text-right", opt === q.correct_answer && aiQuizResults[idx] !== undefined && "border-green-500 bg-green-500/10")}
+                            className={cn("justify-start text-right h-auto py-2 whitespace-normal", opt === q.correct_answer && aiQuizResults[idx] !== undefined && "border-green-500 bg-green-500/10")}
                             onClick={() => {
                               if (aiQuizResults[idx] !== undefined) return;
                               setAiQuizAnswers(prev => ({ ...prev, [idx]: opt }));
@@ -841,9 +844,9 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                             }}
                             disabled={aiQuizResults[idx] !== undefined}
                             dir="rtl">
-                            {aiQuizResults[idx] !== undefined && opt === q.correct_answer && <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />}
-                            {aiQuizResults[idx] === false && aiQuizAnswers[idx] === opt && <XCircle className="h-4 w-4 mr-2" />}
-                            {opt}
+                            {aiQuizResults[idx] !== undefined && opt === q.correct_answer && <CheckCircle2 className="h-4 w-4 mr-2 text-green-500 shrink-0" />}
+                            {aiQuizResults[idx] === false && aiQuizAnswers[idx] === opt && <XCircle className="h-4 w-4 mr-2 shrink-0" />}
+                            <HtmlWithMath htmlContent={cleanMathStatement(opt)} className="flex-1 text-right" dir="rtl" />
                           </Button>
                         ))}
                       </div>
