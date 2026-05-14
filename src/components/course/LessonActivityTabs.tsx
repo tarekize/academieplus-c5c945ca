@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -442,35 +442,33 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     );
 
     if (isCorrect) {
-      setTimeout(() => {
-        if (type === "exercise") {
-          setCompletedExerciseIds(prev => {
-            if (prev.includes(itemId)) return prev;
-            persistItemCompletion("exercises", itemId);
-            const newCompleted = [...prev, itemId];
-            setSubsetUnderstandEx(currentSubset => {
-              const filtered = currentSubset.filter(e => e.id !== itemId);
-              const halfEx = Math.ceil(dbExercises.length / 2);
-              const pool = dbExercises.slice(halfEx).filter(e => !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
-              return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
-            });
-            return newCompleted;
+      if (type === "exercise") {
+        setCompletedExerciseIds(prev => {
+          if (prev.includes(itemId)) return prev;
+          persistItemCompletion("exercises", itemId);
+          const newCompleted = [...prev, itemId];
+          setSubsetUnderstandEx(currentSubset => {
+            const filtered = currentSubset.filter(e => e.id !== itemId);
+            const halfEx = Math.ceil(dbExercises.length / 2);
+            const pool = dbExercises.slice(halfEx).filter(e => !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
+            return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
-        } else {
-          setCompletedQuizIds(prev => {
-            if (prev.includes(itemId)) return prev;
-            persistItemCompletion("quizzes", itemId);
-            const newCompleted = [...prev, itemId];
-            setSubsetUnderstandQz(currentSubset => {
-              const filtered = currentSubset.filter(q => q.id !== itemId);
-              const halfQuiz = Math.ceil(dbQuizzes.length / 2);
-              const pool = dbQuizzes.slice(halfQuiz).filter(q => !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
-              return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
-            });
-            return newCompleted;
+          return newCompleted;
+        });
+      } else {
+        setCompletedQuizIds(prev => {
+          if (prev.includes(itemId)) return prev;
+          persistItemCompletion("quizzes", itemId);
+          const newCompleted = [...prev, itemId];
+          setSubsetUnderstandQz(currentSubset => {
+            const filtered = currentSubset.filter(q => q.id !== itemId);
+            const halfQuiz = Math.ceil(dbQuizzes.length / 2);
+            const pool = dbQuizzes.slice(halfQuiz).filter(q => !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
+            return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
-        }
-      }, 2000);
+          return newCompleted;
+        });
+      }
     }
   }, [persistItemCompletion, dbExercises, dbQuizzes, adaptiveContent]);
 
@@ -485,35 +483,33 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     );
 
     if (itemId && isCorrect) {
-      setTimeout(() => {
-        if (type === "exercise") {
-          setCompletedExerciseIds(prev => {
-            if (prev.includes(itemId)) return prev;
-            persistItemCompletion("exercises", itemId);
-            const newCompleted = [...prev, itemId];
-            setSubsetDiscoverEx(currentSubset => {
-              const filtered = currentSubset.filter(e => e.id !== itemId);
-              const halfEx = Math.ceil(dbExercises.length / 2);
-              const pool = dbExercises.slice(0, halfEx).filter(e => !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
-              return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
-            });
-            return newCompleted;
+      if (type === "exercise") {
+        setCompletedExerciseIds(prev => {
+          if (prev.includes(itemId)) return prev;
+          persistItemCompletion("exercises", itemId);
+          const newCompleted = [...prev, itemId];
+          setSubsetDiscoverEx(currentSubset => {
+            const filtered = currentSubset.filter(e => e.id !== itemId);
+            const halfEx = Math.ceil(dbExercises.length / 2);
+            const pool = dbExercises.slice(0, halfEx).filter(e => !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
+            return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
-        } else {
-          setCompletedQuizIds(prev => {
-            if (prev.includes(itemId)) return prev;
-            persistItemCompletion("quizzes", itemId);
-            const newCompleted = [...prev, itemId];
-            setSubsetDiscoverQz(currentSubset => {
-              const filtered = currentSubset.filter(q => q.id !== itemId);
-              const halfQuiz = Math.ceil(dbQuizzes.length / 2);
-              const pool = dbQuizzes.slice(0, halfQuiz).filter(q => !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
-              return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
-            });
-            return newCompleted;
+          return newCompleted;
+        });
+      } else {
+        setCompletedQuizIds(prev => {
+          if (prev.includes(itemId)) return prev;
+          persistItemCompletion("quizzes", itemId);
+          const newCompleted = [...prev, itemId];
+          setSubsetDiscoverQz(currentSubset => {
+            const filtered = currentSubset.filter(q => q.id !== itemId);
+            const halfQuiz = Math.ceil(dbQuizzes.length / 2);
+            const pool = dbQuizzes.slice(0, halfQuiz).filter(q => !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
+            return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
-        }
-      }, 2000);
+          return newCompleted;
+        });
+      }
     }
 
     if (type === "exercise") {
@@ -1071,6 +1067,19 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
   const [answered, setAnswered] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+  }, []);
+
+  const notifyAnswer = (payload: AnswerPayload) => {
+    if (payload.correct) {
+      completionTimerRef.current = setTimeout(() => onAnswer(payload), 2000);
+      return;
+    }
+    onAnswer(payload);
+  };
 
   const handleSelect = async (opt: string) => {
     if (readOnly || answered || submitting) return;
@@ -1085,7 +1094,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
       setCorrectAnswer(result.correct_answer);
       setExplanation(result.explanation || "");
       setAnswered(true);
-      onAnswer({ correct: result.is_correct, concept: question.question, userAnswer: opt, correctAnswer: result.correct_answer || question.correct_answer });
+      notifyAnswer({ correct: result.is_correct, concept: question.question, userAnswer: opt, correctAnswer: result.correct_answer || question.correct_answer });
     } catch (err) {
       console.error("Error validating quiz:", err);
       if (question.correct_answer) {
@@ -1094,7 +1103,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
         setCorrectAnswer(correct ? null : question.correct_answer);
         setExplanation(question.explanation || "");
         setAnswered(true);
-        onAnswer({ correct, concept: question.question, userAnswer: opt, correctAnswer: question.correct_answer });
+        notifyAnswer({ correct, concept: question.question, userAnswer: opt, correctAnswer: question.correct_answer });
       }
     } finally {
       setSubmitting(false);
@@ -1182,6 +1191,22 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
   const [expectedAnswer, setExpectedAnswer] = useState<string>("");
   const [solution, setSolution] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+  }, []);
+
+  const notifyAnswer = (payload: AnswerPayload) => {
+    if (payload.correct) {
+      completionTimerRef.current = setTimeout(() => {
+        setOpen(false);
+        onAnswer(payload);
+      }, 2000);
+      return;
+    }
+    onAnswer(payload);
+  };
 
   const handleSubmit = async () => {
     if (!answer.trim() || submitting) return;
@@ -1194,7 +1219,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
       setResult(res.is_correct);
       setExpectedAnswer(res.expected_answer);
       setSolution(res.solution);
-      onAnswer({ correct: res.is_correct, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: res.expected_answer });
+      notifyAnswer({ correct: res.is_correct, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: res.expected_answer });
     } catch (err) {
       console.error("Error validating exercise:", err);
       if (exercise.expected_answer) {
@@ -1202,7 +1227,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
         setResult(isCorrect);
         setExpectedAnswer(exercise.expected_answer);
         setSolution(exercise.solution || "");
-        onAnswer({ correct: isCorrect, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: exercise.expected_answer });
+        notifyAnswer({ correct: isCorrect, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: exercise.expected_answer });
       }
     } finally {
       setSubmitting(false);
@@ -1270,8 +1295,9 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
               </div>
             )}
             {result !== null && (
-              <div className={cn("p-2 rounded text-sm", result ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-                {result ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}
+              <div className={cn("p-3 rounded border text-sm font-semibold flex items-center gap-2", result ? "border-green-300 dark:border-green-700 bg-green-500/10 text-green-800 dark:text-green-300" : "border-red-300 dark:border-red-700 bg-red-500/10 text-red-700 dark:text-red-300")} dir="rtl">
+                {result && <CheckCircle2 className="h-4 w-4" />}
+                <span>{result ? "✅ إجابة صحيحة! أحسنت 🎉" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}</span>
               </div>
             )}
             {(solution || exercise.solution) && (
