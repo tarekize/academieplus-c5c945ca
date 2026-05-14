@@ -876,14 +876,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                           {Array.from({ length: 5 }).map((_, i) => <Pencil key={i} className={cn("h-4 w-4", i < (ex.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />)}
                         </div>
                       </div>
-                      {(() => {
-                        const cleaned = cleanMathStatement(ex.statement);
-                        return statementHasMath(cleaned) ? (
-                          <HtmlWithMath htmlContent={cleaned} className="text-sm text-right" dir="rtl" />
-                        ) : (
-                          <p className="text-sm" dir="rtl">{cleaned}</p>
-                        );
-                      })()}
+                      <HtmlWithMath htmlContent={cleanMathStatement(ex.statement)} className="text-sm text-right" dir="rtl" />
                       {ex.hints && ex.hints.length > 0 && (
                         <Button variant="ghost" size="sm" onClick={() => setAiShowHints(prev => ({ ...prev, [idx]: !prev[idx] }))} className="text-yellow-600">
                           <Lightbulb className="h-4 w-4 mr-1" />
@@ -892,7 +885,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                         </Button>
                       )}
                       {aiShowHints[idx] && ex.hints?.map((hint: string, hIdx: number) => (
-                        <p key={hIdx} className="text-xs text-muted-foreground bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {hint}</p>
+                        <div key={hIdx} className="text-xs text-muted-foreground bg-yellow-500/5 p-2 rounded flex gap-1" dir="rtl">
+                          <span>💡</span>
+                          <HtmlWithMath htmlContent={cleanMathStatement(hint)} className="flex-1" />
+                        </div>
                       ))}
                       {aiExerciseResults[idx] === undefined && (
                         <div className="flex gap-2 items-center" dir="rtl">
