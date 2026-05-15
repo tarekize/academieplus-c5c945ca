@@ -71,7 +71,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
     if (!userAnswer) return;
     const isCorrect = userAnswer === exercises[eIdx].expected_answer;
     setExerciseResults(prev => ({ ...prev, [eIdx]: isCorrect }));
-    await recordAnswer(isCorrect, timerRef.current, "exercise", `${exercises[eIdx].title || ''} — ${exercises[eIdx].statement || ''}`.trim(), isCorrect ? undefined : { user_answer: userAnswer, correct_answer: exercises[eIdx].expected_answer });
+    await recordAnswer(isCorrect, timerRef.current, "exercise", `${exercises[eIdx].title || ''} — ${exercises[eIdx].statement || ''}`.trim(), isCorrect ? undefined : { user_answer: userAnswer, correct_answer: exercises[eIdx].expected_answer }, exercises[eIdx].difficulty);
     timerRef.current = 0;
   };
 
