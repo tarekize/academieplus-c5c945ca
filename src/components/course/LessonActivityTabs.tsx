@@ -1248,7 +1248,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
         setResult(isCorrect);
         setExpectedAnswer(exercise.expected_answer);
         setSolution(exercise.solution || "");
-        notifyAnswer({ correct: isCorrect, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: exercise.expected_answer });
+        notifyAnswer({ correct: isCorrect, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: exercise.expected_answer, difficulty: exercise.difficulty });
       }
     } finally {
       setSubmitting(false);
