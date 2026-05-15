@@ -186,7 +186,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
         if (decayResult.applied) {
           s.current_level = effectiveLevel;
           decayPersistPromises.push(
-            supabase.from("student_scores").update({ current_level: effectiveLevel }).eq("id", s.id)
+            (supabase.from("student_scores").update({ current_level: effectiveLevel }).eq("id", s.id) as unknown as Promise<unknown>)
           );
         }
 
