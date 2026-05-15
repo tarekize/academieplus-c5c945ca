@@ -171,8 +171,11 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
         .maybeSingle();
 
       if (scoreData) {
+        // Règle 5 — décroissance temporelle (oubli) appliquée à l'ouverture de session
+        const decayResult = applyDecay(scoreData.current_level, scoreData.updated_at);
+
         setScore({
-          current_level: scoreData.current_level,
+          current_level: decayResult.level,
           reading_time_seconds: scoreData.reading_time_seconds,
           quiz_time_seconds: scoreData.quiz_time_seconds,
           exercise_time_seconds: scoreData.exercise_time_seconds,
@@ -181,19 +184,17 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           accuracy_rate: Number(scoreData.accuracy_rate),
           streak: scoreData.streak,
         });
-      } else {
-        // Check placement test level
-        const { data: learningData } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
-          .from("learning_styles")
-          .select("visual_score, textual_score, practical_score")
-          .eq("user_id", userId)
-          .maybeSingle() as { data: LearningStyleScores | null };
 
-        if (learningData) {
-          const avg = Math.round((learningData.visual_score + learningData.textual_score + learningData.practical_score) / 3);
-          setScore(prev => ({ ...prev, current_level: Math.min(100, Math.max(10, avg)) }));
+        if (decayResult.applied) {
+          await supabase
+            .from("student_scores")
+            .update({ current_level: decayResult.level })
+            .eq("id", scoreData.id);
         }
       }
+      // Règle 4 — pas de seed depuis learning_styles (mesure le style, pas les acquis).
+      // Le niveau initial reste 50 par défaut. Un éventuel test de placement futur pourra
+      // alimenter score.current_level via student_scores.assessment_data.placement_score.
 
       // Load existing AI content
       const { data: contentData } = await supabase
