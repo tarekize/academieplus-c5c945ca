@@ -900,7 +900,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                             if (!userAnswer) return;
                             const isCorrect = userAnswer === ex.expected_answer;
                             setAiExerciseResults(prev => ({ ...prev, [idx]: isCorrect }));
-                            adaptiveContent.recordAnswer(isCorrect, 0, "exercise", `${ex.title || ''} — ${ex.statement || ''}`.trim(), isCorrect ? undefined : { user_answer: userAnswer, correct_answer: ex.expected_answer });
+                            adaptiveContent.recordAnswer(isCorrect, 0, "exercise", `${ex.title || ''} — ${ex.statement || ''}`.trim(), isCorrect ? undefined : { user_answer: userAnswer, correct_answer: ex.expected_answer }, ex.difficulty);
                           }}>تحقق</Button>
                           <MathKeyboard onInsert={(sym) => {
                             const el = document.getElementById(`ai-exo-input-${idx}`) as HTMLInputElement | null;
