@@ -1115,7 +1115,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
       setCorrectAnswer(result.correct_answer);
       setExplanation(result.explanation || "");
       setAnswered(true);
-      notifyAnswer({ correct: result.is_correct, concept: question.question, userAnswer: opt, correctAnswer: result.correct_answer || question.correct_answer });
+      notifyAnswer({ correct: result.is_correct, concept: question.question, userAnswer: opt, correctAnswer: result.correct_answer || question.correct_answer, difficulty: question.difficulty });
     } catch (err) {
       console.error("Error validating quiz:", err);
       if (question.correct_answer) {
