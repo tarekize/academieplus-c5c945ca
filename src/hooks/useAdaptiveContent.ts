@@ -362,16 +362,14 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       if (type === "quiz") newScore.quiz_time_seconds += timeSeconds;
       else newScore.exercise_time_seconds += timeSeconds;
 
-      // Dynamic level adjustment
-      if (isCorrect && timeSeconds < 30) {
-        newScore.current_level = Math.min(100, newScore.current_level + 3);
-      } else if (isCorrect) {
-        newScore.current_level = Math.min(100, newScore.current_level + 1);
-      } else if (timeSeconds > 120) {
-        newScore.current_level = Math.max(5, newScore.current_level - 4);
-      } else {
-        newScore.current_level = Math.max(5, newScore.current_level - 2);
-      }
+      // Règle 1 — Ajustement ELO pondéré par difficulté + temps
+      const delta = computeDelta({
+        isCorrect,
+        timeSec: timeSeconds,
+        difficulty,
+        currentLevel: newScore.current_level,
+      });
+      newScore.current_level = applyDelta(newScore.current_level, delta);
 
       finalScore = newScore;
       return newScore;
