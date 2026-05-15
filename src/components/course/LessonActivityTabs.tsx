@@ -481,6 +481,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       type,
       answer.concept,
       isCorrect ? undefined : { user_answer: answer.userAnswer || "إجابة غير صحيحة", correct_answer: answer.correctAnswer || "راجع الحل الصحيح" },
+      answer.difficulty,
     );
 
     if (itemId && isCorrect) {
