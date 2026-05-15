@@ -147,11 +147,20 @@ export default function AICommentsCard({ userId }: { userId: string }) {
   };
 
   const fetchLatest = async () => {
-    // Full history of AI comments — newest first
+    // Auto-delete AI comments older than 24h
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    await supabase
+      .from("ai_lesson_comments")
+      .delete()
+      .eq("user_id", userId)
+      .lt("created_at", cutoff);
+
+    // Full history of AI comments (last 24h) — newest first
     const { data, error } = await supabase
       .from("ai_lesson_comments")
       .select("*")
       .eq("user_id", userId)
+      .gte("created_at", cutoff)
       .order("created_at", { ascending: false })
       .limit(100);
 
@@ -174,6 +183,7 @@ export default function AICommentsCard({ userId }: { userId: string }) {
 
     (scores || []).forEach((score) => {
       if (!score.lesson_id || seenLessons.has(score.lesson_id)) return;
+      if (!score.updated_at || new Date(score.updated_at).getTime() < Date.now() - 24 * 60 * 60 * 1000) return;
       seenLessons.add(score.lesson_id);
       list.push(buildScoreComment(score));
     });
