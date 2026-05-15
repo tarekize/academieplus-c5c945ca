@@ -842,7 +842,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                               setAiQuizAnswers(prev => ({ ...prev, [idx]: opt }));
                               const isCorrect = opt === q.correct_answer;
                               setAiQuizResults(prev => ({ ...prev, [idx]: isCorrect }));
-                              adaptiveContent.recordAnswer(isCorrect, 0, "quiz", q.question, isCorrect ? undefined : { user_answer: opt, correct_answer: q.correct_answer });
+                              adaptiveContent.recordAnswer(isCorrect, 0, "quiz", q.question, isCorrect ? undefined : { user_answer: opt, correct_answer: q.correct_answer }, q.difficulty);
                             }}
                             disabled={aiQuizResults[idx] !== undefined}
                             dir="rtl">
