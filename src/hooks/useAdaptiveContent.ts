@@ -38,11 +38,6 @@ interface StudentScore {
   streak: number;
 }
 
-interface LearningStyleScores {
-  visual_score: number;
-  textual_score: number;
-  practical_score: number;
-}
 
 export function useAdaptiveContent(lessonId: string, chapterId: string, userId: string, schoolLevel: string, lessonTitle: string, chapterTitle: string) {
   const { toast } = useToast();
