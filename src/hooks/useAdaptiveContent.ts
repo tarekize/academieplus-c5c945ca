@@ -309,6 +309,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     type: "quiz" | "exercise",
     concept?: string,
     mistakeDetails?: { user_answer: string; correct_answer: string },
+    difficulty?: number,
   ) => {
     // Capture session start composite level once
     if (sessionStartLevelRef.current === null) {
