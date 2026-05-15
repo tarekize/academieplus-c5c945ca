@@ -1240,7 +1240,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
       setResult(res.is_correct);
       setExpectedAnswer(res.expected_answer);
       setSolution(res.solution);
-      notifyAnswer({ correct: res.is_correct, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: res.expected_answer });
+      notifyAnswer({ correct: res.is_correct, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: res.expected_answer, difficulty: exercise.difficulty });
     } catch (err) {
       console.error("Error validating exercise:", err);
       if (exercise.expected_answer) {
