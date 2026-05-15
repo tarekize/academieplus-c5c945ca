@@ -62,7 +62,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
     setQuizAnswers(prev => ({ ...prev, [qIdx]: answer }));
     const isCorrect = answer === quizzes[qIdx].correct_answer;
     setQuizResults(prev => ({ ...prev, [qIdx]: isCorrect }));
-    await recordAnswer(isCorrect, timerRef.current, "quiz", quizzes[qIdx].question, isCorrect ? undefined : { user_answer: answer, correct_answer: quizzes[qIdx].correct_answer });
+    await recordAnswer(isCorrect, timerRef.current, "quiz", quizzes[qIdx].question, isCorrect ? undefined : { user_answer: answer, correct_answer: quizzes[qIdx].correct_answer }, quizzes[qIdx].difficulty);
     timerRef.current = 0;
   };
 
@@ -71,7 +71,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
     if (!userAnswer) return;
     const isCorrect = userAnswer === exercises[eIdx].expected_answer;
     setExerciseResults(prev => ({ ...prev, [eIdx]: isCorrect }));
-    await recordAnswer(isCorrect, timerRef.current, "exercise", `${exercises[eIdx].title || ''} — ${exercises[eIdx].statement || ''}`.trim(), isCorrect ? undefined : { user_answer: userAnswer, correct_answer: exercises[eIdx].expected_answer });
+    await recordAnswer(isCorrect, timerRef.current, "exercise", `${exercises[eIdx].title || ''} — ${exercises[eIdx].statement || ''}`.trim(), isCorrect ? undefined : { user_answer: userAnswer, correct_answer: exercises[eIdx].expected_answer }, exercises[eIdx].difficulty);
     timerRef.current = 0;
   };
 

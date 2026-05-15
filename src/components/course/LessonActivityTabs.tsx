@@ -55,7 +55,7 @@ interface LessonActivityTabsProps {
 
 type ActivitySection = "exercises" | "quiz" | "revision" | null;
 type StepLevel = "decouvrir" | "comprendre" | "approfondir";
-type AnswerPayload = { correct: boolean; concept?: string; userAnswer?: string; correctAnswer?: string };
+type AnswerPayload = { correct: boolean; concept?: string; userAnswer?: string; correctAnswer?: string; difficulty?: number };
 
 const REQUIRED_CORRECT = 3;
 
@@ -439,6 +439,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       type,
       answer.concept,
       isCorrect ? undefined : { user_answer: answer.userAnswer || "إجابة غير صحيحة", correct_answer: answer.correctAnswer || "راجع الحل الصحيح" },
+      answer.difficulty,
     );
 
     if (isCorrect) {
@@ -480,6 +481,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       type,
       answer.concept,
       isCorrect ? undefined : { user_answer: answer.userAnswer || "إجابة غير صحيحة", correct_answer: answer.correctAnswer || "راجع الحل الصحيح" },
+      answer.difficulty,
     );
 
     if (itemId && isCorrect) {
@@ -840,7 +842,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                               setAiQuizAnswers(prev => ({ ...prev, [idx]: opt }));
                               const isCorrect = opt === q.correct_answer;
                               setAiQuizResults(prev => ({ ...prev, [idx]: isCorrect }));
-                              adaptiveContent.recordAnswer(isCorrect, 0, "quiz", q.question, isCorrect ? undefined : { user_answer: opt, correct_answer: q.correct_answer });
+                              adaptiveContent.recordAnswer(isCorrect, 0, "quiz", q.question, isCorrect ? undefined : { user_answer: opt, correct_answer: q.correct_answer }, q.difficulty);
                             }}
                             disabled={aiQuizResults[idx] !== undefined}
                             dir="rtl">
@@ -898,7 +900,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                             if (!userAnswer) return;
                             const isCorrect = userAnswer === ex.expected_answer;
                             setAiExerciseResults(prev => ({ ...prev, [idx]: isCorrect }));
-                            adaptiveContent.recordAnswer(isCorrect, 0, "exercise", `${ex.title || ''} — ${ex.statement || ''}`.trim(), isCorrect ? undefined : { user_answer: userAnswer, correct_answer: ex.expected_answer });
+                            adaptiveContent.recordAnswer(isCorrect, 0, "exercise", `${ex.title || ''} — ${ex.statement || ''}`.trim(), isCorrect ? undefined : { user_answer: userAnswer, correct_answer: ex.expected_answer }, ex.difficulty);
                           }}>تحقق</Button>
                           <MathKeyboard onInsert={(sym) => {
                             const el = document.getElementById(`ai-exo-input-${idx}`) as HTMLInputElement | null;
@@ -1113,7 +1115,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
       setCorrectAnswer(result.correct_answer);
       setExplanation(result.explanation || "");
       setAnswered(true);
-      notifyAnswer({ correct: result.is_correct, concept: question.question, userAnswer: opt, correctAnswer: result.correct_answer || question.correct_answer });
+      notifyAnswer({ correct: result.is_correct, concept: question.question, userAnswer: opt, correctAnswer: result.correct_answer || question.correct_answer, difficulty: question.difficulty });
     } catch (err) {
       console.error("Error validating quiz:", err);
       if (question.correct_answer) {
@@ -1122,7 +1124,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
         setCorrectAnswer(correct ? null : question.correct_answer);
         setExplanation(question.explanation || "");
         setAnswered(true);
-        notifyAnswer({ correct, concept: question.question, userAnswer: opt, correctAnswer: question.correct_answer });
+        notifyAnswer({ correct, concept: question.question, userAnswer: opt, correctAnswer: question.correct_answer, difficulty: question.difficulty });
       }
     } finally {
       setSubmitting(false);
@@ -1238,7 +1240,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
       setResult(res.is_correct);
       setExpectedAnswer(res.expected_answer);
       setSolution(res.solution);
-      notifyAnswer({ correct: res.is_correct, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: res.expected_answer });
+      notifyAnswer({ correct: res.is_correct, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: res.expected_answer, difficulty: exercise.difficulty });
     } catch (err) {
       console.error("Error validating exercise:", err);
       if (exercise.expected_answer) {
@@ -1246,7 +1248,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
         setResult(isCorrect);
         setExpectedAnswer(exercise.expected_answer);
         setSolution(exercise.solution || "");
-        notifyAnswer({ correct: isCorrect, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: exercise.expected_answer });
+        notifyAnswer({ correct: isCorrect, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: exercise.expected_answer, difficulty: exercise.difficulty });
       }
     } finally {
       setSubmitting(false);

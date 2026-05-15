@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { computeDelta, applyDelta, computeComposite, applyDecay } from "@/lib/levelEngine";
 
 interface QuizItem {
   question: string;
@@ -37,11 +38,6 @@ interface StudentScore {
   streak: number;
 }
 
-interface LearningStyleScores {
-  visual_score: number;
-  textual_score: number;
-  practical_score: number;
-}
 
 export function useAdaptiveContent(lessonId: string, chapterId: string, userId: string, schoolLevel: string, lessonTitle: string, chapterTitle: string) {
   const { toast } = useToast();
@@ -175,8 +171,11 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
         .maybeSingle();
 
       if (scoreData) {
+        // Règle 5 — décroissance temporelle (oubli) appliquée à l'ouverture de session
+        const decayResult = applyDecay(scoreData.current_level, scoreData.updated_at);
+
         setScore({
-          current_level: scoreData.current_level,
+          current_level: decayResult.level,
           reading_time_seconds: scoreData.reading_time_seconds,
           quiz_time_seconds: scoreData.quiz_time_seconds,
           exercise_time_seconds: scoreData.exercise_time_seconds,
@@ -185,19 +184,17 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
           accuracy_rate: Number(scoreData.accuracy_rate),
           streak: scoreData.streak,
         });
-      } else {
-        // Check placement test level
-        const { data: learningData } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
-          .from("learning_styles")
-          .select("visual_score, textual_score, practical_score")
-          .eq("user_id", userId)
-          .maybeSingle() as { data: LearningStyleScores | null };
 
-        if (learningData) {
-          const avg = Math.round((learningData.visual_score + learningData.textual_score + learningData.practical_score) / 3);
-          setScore(prev => ({ ...prev, current_level: Math.min(100, Math.max(10, avg)) }));
+        if (decayResult.applied) {
+          await supabase
+            .from("student_scores")
+            .update({ current_level: decayResult.level })
+            .eq("id", scoreData.id);
         }
       }
+      // Règle 4 — pas de seed depuis learning_styles (mesure le style, pas les acquis).
+      // Le niveau initial reste 50 par défaut. Un éventuel test de placement futur pourra
+      // alimenter score.current_level via student_scores.assessment_data.placement_score.
 
       // Load existing AI content
       const { data: contentData } = await supabase
@@ -219,22 +216,16 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     loadExisting();
   }, [lessonId, userId]);
 
-  // Composite level per spec (PDF "Phase 4 - Progression Adaptative IA"):
-  // 35% exercise accuracy + 30% difficulty achieved + 20% reading time factor + 15% quiz accuracy
+  // Règle 2 — composite (sans reading_time ni streak) :
+  //   0.40 × taux pondéré difficulté + 0.35 × current_level + 0.25 × quiz_accuracy
+  // Note: faute d'historique des 30 dernières réponses, on approxime le taux pondéré
+  // par accuracy_rate. Le streak est gardé pour l'affichage uniquement.
   const computeCompositeLevel = useCallback((s: StudentScore): number => {
-    const exerciseAcc = s.accuracy_rate; // global proxy
-    const quizAcc = s.accuracy_rate;
-    const difficultyAchieved = s.current_level; // current ELO-like level
-    // Reading time factor: target ~5min per lesson reading; cap at 100
-    const readingFactor = Math.min(100, (s.reading_time_seconds / 300) * 100);
-    const composite =
-      0.35 * exerciseAcc +
-      0.30 * difficultyAchieved +
-      0.20 * readingFactor +
-      0.15 * quizAcc;
-    // Streak bonus (up to +5)
-    const streakBonus = Math.min(5, s.streak);
-    return Math.round(Math.min(100, Math.max(5, composite + streakBonus)));
+    return computeComposite({
+      currentLevel: s.current_level,
+      weightedAccuracy: s.accuracy_rate,
+      quizAccuracy: s.accuracy_rate,
+    });
   }, []);
 
   const generateContent = useCallback(async (contentType: "quiz" | "exercise" | "revision") => {
@@ -318,6 +309,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     type: "quiz" | "exercise",
     concept?: string,
     mistakeDetails?: { user_answer: string; correct_answer: string },
+    difficulty?: number,
   ) => {
     // Capture session start composite level once
     if (sessionStartLevelRef.current === null) {
@@ -370,16 +362,14 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       if (type === "quiz") newScore.quiz_time_seconds += timeSeconds;
       else newScore.exercise_time_seconds += timeSeconds;
 
-      // Dynamic level adjustment
-      if (isCorrect && timeSeconds < 30) {
-        newScore.current_level = Math.min(100, newScore.current_level + 3);
-      } else if (isCorrect) {
-        newScore.current_level = Math.min(100, newScore.current_level + 1);
-      } else if (timeSeconds > 120) {
-        newScore.current_level = Math.max(5, newScore.current_level - 4);
-      } else {
-        newScore.current_level = Math.max(5, newScore.current_level - 2);
-      }
+      // Règle 1 — Ajustement ELO pondéré par difficulté + temps
+      const delta = computeDelta({
+        isCorrect,
+        timeSec: timeSeconds,
+        difficulty,
+        currentLevel: newScore.current_level,
+      });
+      newScore.current_level = applyDelta(newScore.current_level, delta);
 
       finalScore = newScore;
       return newScore;

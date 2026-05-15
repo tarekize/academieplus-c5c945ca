@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { computeGlobal, applyDecay } from "@/lib/levelEngine";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -166,7 +167,12 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
       });
 
       let totalReadTime = 0, totalQuizTime = 0, totalExTime = 0;
-      let sumCorrect = 0, sumTotal = 0, sumLevel = 0, maxStreak = 0, processedScoreRows = 0;
+      let sumCorrect = 0, sumTotal = 0, maxStreak = 0;
+
+      // Règle 5 — appliquer la décroissance temporelle (oubli) avant agrégation,
+      // et persister la valeur dégradée dans la base pour cohérence.
+      const decayedRows: Array<{ id: string; lesson_id: string | null; current_level: number; total_answers: number }> = [];
+      const decayPersistPromises: Promise<unknown>[] = [];
 
       (data || []).forEach((s: any) => {
         const cId = s.chapter_id;
@@ -174,16 +180,29 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
           return;
         }
 
-        processedScoreRows += 1;
+        // Decay
+        const decayResult = applyDecay(s.current_level || 0, s.updated_at);
+        const effectiveLevel = decayResult.level;
+        if (decayResult.applied) {
+          s.current_level = effectiveLevel;
+          decayPersistPromises.push(
+            (supabase.from("student_scores").update({ current_level: effectiveLevel }).eq("id", s.id) as unknown as Promise<unknown>)
+          );
+        }
+
+        decayedRows.push({
+          id: s.id,
+          lesson_id: s.lesson_id || null,
+          current_level: effectiveLevel,
+          total_answers: s.total_answers || 0,
+        });
 
         if (!cId) {
-          // Skip score rows not linked to a chapter in chapter details table.
           totalReadTime += s.reading_time_seconds || 0;
           totalQuizTime += s.quiz_time_seconds || 0;
           totalExTime += s.exercise_time_seconds || 0;
           sumCorrect += s.correct_answers || 0;
           sumTotal += s.total_answers || 0;
-          sumLevel += s.current_level || 0;
           if ((s.streak || 0) > maxStreak) maxStreak = s.streak;
           return;
         }
@@ -195,7 +214,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
         };
         existing.totalTime += (s.reading_time_seconds || 0) + (s.quiz_time_seconds || 0) + (s.exercise_time_seconds || 0);
         existing.accuracy = Number(s.accuracy_rate) || existing.accuracy;
-        existing.level = s.current_level || existing.level;
+        existing.level = effectiveLevel || existing.level;
         existing.correctAnswers += s.correct_answers || 0;
         existing.totalAnswers += s.total_answers || 0;
         chapterMap.set(cId, existing);
@@ -204,16 +223,23 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
         totalExTime += s.exercise_time_seconds || 0;
         sumCorrect += s.correct_answers || 0;
         sumTotal += s.total_answers || 0;
-        sumLevel += s.current_level || 0;
         if ((s.streak || 0) > maxStreak) maxStreak = s.streak;
       });
+
+      // Fire decay updates without blocking UI
+      if (decayPersistPromises.length > 0) {
+        Promise.allSettled(decayPersistPromises).catch(() => undefined);
+      }
 
       setChapterStats(Array.from(chapterMap.values()));
       setActivityBreakdown({ reading: totalReadTime, quiz: totalQuizTime, exercise: totalExTime });
       setTotalTime(totalReadTime + totalQuizTime + totalExTime);
       setTotalCorrect(sumCorrect);
       setTotalAnswers(sumTotal);
-      setAvgLevel(processedScoreRows > 0 ? Math.round(sumLevel / processedScoreRows) : 0);
+
+      // Règle 3 — niveau global pondéré par nombre de réponses (pas une moyenne plate).
+      const globalResult = computeGlobal(decayedRows);
+      setAvgLevel(globalResult.global);
       setStreak(maxStreak);
 
       // Build lesson progress by chapter (clickable details view)
