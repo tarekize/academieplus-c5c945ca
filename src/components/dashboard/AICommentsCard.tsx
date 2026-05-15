@@ -183,6 +183,7 @@ export default function AICommentsCard({ userId }: { userId: string }) {
 
     (scores || []).forEach((score) => {
       if (!score.lesson_id || seenLessons.has(score.lesson_id)) return;
+      if (!score.updated_at || new Date(score.updated_at).getTime() < Date.now() - 24 * 60 * 60 * 1000) return;
       seenLessons.add(score.lesson_id);
       list.push(buildScoreComment(score));
     });
