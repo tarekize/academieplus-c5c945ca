@@ -1124,7 +1124,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
         setCorrectAnswer(correct ? null : question.correct_answer);
         setExplanation(question.explanation || "");
         setAnswered(true);
-        notifyAnswer({ correct, concept: question.question, userAnswer: opt, correctAnswer: question.correct_answer });
+        notifyAnswer({ correct, concept: question.question, userAnswer: opt, correctAnswer: question.correct_answer, difficulty: question.difficulty });
       }
     } finally {
       setSubmitting(false);
