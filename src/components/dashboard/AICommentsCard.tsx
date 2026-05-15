@@ -188,8 +188,10 @@ export default function AICommentsCard({ userId }: { userId: string }) {
       list.push(buildScoreComment(score));
     });
 
-    list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    setComments(list);
+    const cutoffMs = Date.now() - 24 * 60 * 60 * 1000;
+    const filtered = list.filter((c) => c.created_at && new Date(c.created_at).getTime() >= cutoffMs);
+    filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    setComments(filtered);
     setLoading(false);
   };
 
