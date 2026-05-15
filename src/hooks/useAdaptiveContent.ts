@@ -216,22 +216,16 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     loadExisting();
   }, [lessonId, userId]);
 
-  // Composite level per spec (PDF "Phase 4 - Progression Adaptative IA"):
-  // 35% exercise accuracy + 30% difficulty achieved + 20% reading time factor + 15% quiz accuracy
+  // Règle 2 — composite (sans reading_time ni streak) :
+  //   0.40 × taux pondéré difficulté + 0.35 × current_level + 0.25 × quiz_accuracy
+  // Note: faute d'historique des 30 dernières réponses, on approxime le taux pondéré
+  // par accuracy_rate. Le streak est gardé pour l'affichage uniquement.
   const computeCompositeLevel = useCallback((s: StudentScore): number => {
-    const exerciseAcc = s.accuracy_rate; // global proxy
-    const quizAcc = s.accuracy_rate;
-    const difficultyAchieved = s.current_level; // current ELO-like level
-    // Reading time factor: target ~5min per lesson reading; cap at 100
-    const readingFactor = Math.min(100, (s.reading_time_seconds / 300) * 100);
-    const composite =
-      0.35 * exerciseAcc +
-      0.30 * difficultyAchieved +
-      0.20 * readingFactor +
-      0.15 * quizAcc;
-    // Streak bonus (up to +5)
-    const streakBonus = Math.min(5, s.streak);
-    return Math.round(Math.min(100, Math.max(5, composite + streakBonus)));
+    return computeComposite({
+      currentLevel: s.current_level,
+      weightedAccuracy: s.accuracy_rate,
+      quizAccuracy: s.accuracy_rate,
+    });
   }, []);
 
   const generateContent = useCallback(async (contentType: "quiz" | "exercise" | "revision") => {
