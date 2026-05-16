@@ -55,6 +55,7 @@ interface LessonProgress {
   quizzesDone: number;
   quizzesTotal: number;
   quizzesRate: number;
+  level: number | null;
 }
 
 interface ChapterLessonProgress {
@@ -302,10 +303,22 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
         const completedExercisesSet = new Set<string>();
         const completedQuizzesSet = new Set<string>();
 
+        let levelWeightedSum = 0;
+        let levelWeightTotal = 0;
         rows.forEach((r: any) => {
           readingSeconds += r.reading_time_seconds || 0;
           correctAnswers += r.correct_answers || 0;
           totalLessonAnswers += r.total_answers || 0;
+
+          const w = r.total_answers || 0;
+          if (w > 0 && typeof r.current_level === "number") {
+            levelWeightedSum += r.current_level * w;
+            levelWeightTotal += w;
+          } else if (typeof r.current_level === "number" && levelWeightTotal === 0) {
+            // fallback: at least record the level even without answers
+            levelWeightedSum += r.current_level;
+            levelWeightTotal = Math.max(levelWeightTotal, 1);
+          }
 
           const assessmentData = (r.assessment_data || {}) as Record<string, any>;
           if (Array.isArray(assessmentData.completed_exercises)) {
@@ -347,6 +360,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
         const hasActivityItems = exercisesTotal + quizzesTotal > 0;
         const isCompleted = hasActivityItems && exercisesRate === 100 && quizzesRate === 100;
         const isStarted = readingSeconds > 0 || totalLessonAnswers > 0 || exercisesDone > 0 || quizzesDone > 0;
+        const lessonLevel = levelWeightTotal > 0 ? Math.round(levelWeightedSum / levelWeightTotal) : null;
 
         const lessonProgress: LessonProgress = {
           lessonId: lesson.id,
@@ -361,6 +375,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
           quizzesDone,
           quizzesTotal,
           quizzesRate,
+          level: lessonLevel,
         };
 
         const chapterProgress = chapterProgressMap.get(lesson.chapter_id);
@@ -879,7 +894,15 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                                     <div className="mb-3">
                                       <div className="flex items-center justify-between text-[11px] mb-1">
                                         <span className="text-muted-foreground">التقدم العام</span>
-                                        <span className={`font-bold ${overallColor}`}>{lesson.overallRate}%</span>
+                                        <div className="flex items-center gap-2">
+                                          {lesson.level !== null && (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-indigo-500/10 to-violet-500/10 border border-violet-500/20 text-[10px] font-bold text-violet-700">
+                                              <Brain className="h-3 w-3" />
+                                              المستوى {lesson.level}/100
+                                            </span>
+                                          )}
+                                          <span className={`font-bold ${overallColor}`}>{lesson.overallRate}%</span>
+                                        </div>
                                       </div>
                                       <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
                                         <div className="h-full rounded-full bg-gradient-to-r from-violet-400 to-violet-600 transition-all duration-700" style={{ width: `${lesson.overallRate}%` }} />
