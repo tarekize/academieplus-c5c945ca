@@ -62,45 +62,45 @@ const App = () => (
           <AuthProvider>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/editorial" element={<DashboardEditorial />} />
-              <Route path="/editorial/cours/:id" element={<EditeurCours />} />
-              <Route path="/editorial/cours/:id/preview" element={<PreviewCours />} />
-              <Route path="/editorial/cours/:id/historique" element={<HistoriqueVersions />} />
-              <Route path="/editorial/cours/:id/compare" element={<CompareVersions />} />
-              <Route path="/editorial/revision" element={<PageRevision />} />
-              <Route path="/editorial/mediatheque" element={<Mediatheque />} />
-              <Route path="/editorial/equipe" element={<GestionEquipe />} />
-              <Route path="/editorial/historique/:id" element={<HistoriqueVersions />} />
+              <Route path="/editorial" element={<ProtectedRoute allowedRoles={['pedago','admin']}><DashboardEditorial /></ProtectedRoute>} />
+              <Route path="/editorial/cours/:id" element={<ProtectedRoute allowedRoles={['pedago','admin']}><EditeurCours /></ProtectedRoute>} />
+              <Route path="/editorial/cours/:id/preview" element={<ProtectedRoute allowedRoles={['pedago','admin']}><PreviewCours /></ProtectedRoute>} />
+              <Route path="/editorial/cours/:id/historique" element={<ProtectedRoute allowedRoles={['pedago','admin']}><HistoriqueVersions /></ProtectedRoute>} />
+              <Route path="/editorial/cours/:id/compare" element={<ProtectedRoute allowedRoles={['pedago','admin']}><CompareVersions /></ProtectedRoute>} />
+              <Route path="/editorial/revision" element={<ProtectedRoute allowedRoles={['pedago','admin']}><PageRevision /></ProtectedRoute>} />
+              <Route path="/editorial/mediatheque" element={<ProtectedRoute allowedRoles={['pedago','admin']}><Mediatheque /></ProtectedRoute>} />
+              <Route path="/editorial/equipe" element={<ProtectedRoute allowedRoles={['pedago','admin']}><GestionEquipe /></ProtectedRoute>} />
+              <Route path="/editorial/historique/:id" element={<ProtectedRoute allowedRoles={['pedago','admin']}><HistoriqueVersions /></ProtectedRoute>} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/complete-profile" element={<CompleteProfile />} />
-              <Route path="/learning-assessment" element={<LearningAssessment />} />
-              <Route path="/bot-onboarding" element={<BotOnboardingPage />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/parent-dashboard" element={<ParentDashboard />} />
-              <Route path="/parent-cours/:childId" element={<ParentCoursView />} />
+              <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
+              <Route path="/learning-assessment" element={<ProtectedRoute allowedRoles={['student']}><LearningAssessment /></ProtectedRoute>} />
+              <Route path="/bot-onboarding" element={<ProtectedRoute allowedRoles={['student']}><BotOnboardingPage /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['student']}><Dashboard /></ProtectedRoute>} />
+              <Route path="/parent-dashboard" element={<ProtectedRoute allowedRoles={['parent']}><ParentDashboard /></ProtectedRoute>} />
+              <Route path="/parent-cours/:childId" element={<ProtectedRoute allowedRoles={['parent']}><ParentCoursView /></ProtectedRoute>} />
               <Route path="/account" element={
                 <ProtectedRoute blockAdmin>
                   <Account />
                 </ProtectedRoute>
               } />
-              <Route path="/factures" element={<Factures />} />
-              <Route path="/mes-informations" element={<MesInformations />} />
-              <Route path="/update-success" element={<UpdateSuccess />} />
-              <Route path="/abonnements" element={<Abonnements />} />
-              <Route path="/paiement" element={<Paiement />} />
-              <Route path="/parrainage" element={<Parrainage />} />
-              <Route path="/mes-donnees-personnelles" element={<MesDonneesPersonnelles />} />
-              <Route path="/liste-cours" element={<ListeCours />} />
-              <Route path="/cours/:subjectId" element={<Cours />} />
-              <Route path="/lecon/:lessonId" element={<LessonEditor />} />
-              <Route path="/revision/:subjectId" element={<Revision />} />
-              <Route path="/simulation/:subjectId" element={<Simulation />} />
+              <Route path="/factures" element={<ProtectedRoute><Factures /></ProtectedRoute>} />
+              <Route path="/mes-informations" element={<ProtectedRoute><MesInformations /></ProtectedRoute>} />
+              <Route path="/update-success" element={<ProtectedRoute><UpdateSuccess /></ProtectedRoute>} />
+              <Route path="/abonnements" element={<ProtectedRoute><Abonnements /></ProtectedRoute>} />
+              <Route path="/paiement" element={<ProtectedRoute><Paiement /></ProtectedRoute>} />
+              <Route path="/parrainage" element={<ProtectedRoute><Parrainage /></ProtectedRoute>} />
+              <Route path="/mes-donnees-personnelles" element={<ProtectedRoute><MesDonneesPersonnelles /></ProtectedRoute>} />
+              <Route path="/liste-cours" element={<ProtectedRoute allowedRoles={['student','pedago','admin']}><ListeCours /></ProtectedRoute>} />
+              <Route path="/cours/:subjectId" element={<ProtectedRoute allowedRoles={['student','pedago','admin']}><Cours /></ProtectedRoute>} />
+              <Route path="/lecon/:lessonId" element={<ProtectedRoute allowedRoles={['pedago','admin']}><LessonEditor /></ProtectedRoute>} />
+              <Route path="/revision/:subjectId" element={<ProtectedRoute allowedRoles={['student','pedago','admin']}><Revision /></ProtectedRoute>} />
+              <Route path="/simulation/:subjectId" element={<ProtectedRoute allowedRoles={['student','pedago','admin']}><Simulation /></ProtectedRoute>} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/faq-admin" element={<FAQAdmin />} />
-              <Route path="/content-generation" element={<ContentGeneration />} />
-              <Route path="/exams" element={<ExamTrimesterSelect />} />
-              <Route path="/exams/list" element={<ExamList />} />
+              <Route path="/analytics" element={<ProtectedRoute allowedRoles={['admin','pedago']}><Analytics /></ProtectedRoute>} />
+              <Route path="/faq-admin" element={<ProtectedRoute allowedRoles={['admin','pedago']}><FAQAdmin /></ProtectedRoute>} />
+              <Route path="/content-generation" element={<ProtectedRoute allowedRoles={['admin','pedago']}><ContentGeneration /></ProtectedRoute>} />
+              <Route path="/exams" element={<ProtectedRoute allowedRoles={['student']}><ExamTrimesterSelect /></ProtectedRoute>} />
+              <Route path="/exams/list" element={<ProtectedRoute allowedRoles={['student']}><ExamList /></ProtectedRoute>} />
               <Route path="/admin" element={
                 <ProtectedRoute requireAdmin>
                   <Admin />
