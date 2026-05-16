@@ -3,9 +3,12 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 
+type AppRole = 'admin' | 'parent' | 'student' | 'pedago';
+
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredRole?: 'admin' | 'parent' | 'student' | 'pedago';
+  requiredRole?: AppRole;
+  allowedRoles?: AppRole[];
   requireAdmin?: boolean;
   blockAdmin?: boolean;
 }
@@ -13,6 +16,7 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ 
   children, 
   requiredRole,
+  allowedRoles,
   requireAdmin = false,
   blockAdmin = false
 }: ProtectedRouteProps) {
@@ -39,7 +43,7 @@ export default function ProtectedRoute({
       }
 
       // If no specific requirements, user is authorized
-      if (!requiredRole && !requireAdmin) {
+      if (!requiredRole && !requireAdmin && (!allowedRoles || allowedRoles.length === 0)) {
         setAuthorized(true);
         return;
       }
@@ -58,11 +62,18 @@ export default function ProtectedRoute({
         return;
       }
 
+      // Check any allowed role
+      if (allowedRoles && allowedRoles.length > 0) {
+        const checks = await Promise.all(allowedRoles.map((r) => hasRole(r)));
+        setAuthorized(checks.some(Boolean));
+        return;
+      }
+
       setAuthorized(true);
     }
 
     checkAuthorization();
-  }, [user, loading, requiredRole, requireAdmin, blockAdmin, hasRole, isAdmin]);
+  }, [user, loading, requiredRole, requireAdmin, blockAdmin, allowedRoles, hasRole, isAdmin]);
 
   // Show loading spinner while checking auth
   if (loading || authorized === null) {
