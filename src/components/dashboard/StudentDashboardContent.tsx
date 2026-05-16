@@ -55,6 +55,7 @@ interface LessonProgress {
   quizzesDone: number;
   quizzesTotal: number;
   quizzesRate: number;
+  level: number | null;
 }
 
 interface ChapterLessonProgress {
