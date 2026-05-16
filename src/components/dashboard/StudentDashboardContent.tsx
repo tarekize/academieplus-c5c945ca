@@ -894,7 +894,15 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                                     <div className="mb-3">
                                       <div className="flex items-center justify-between text-[11px] mb-1">
                                         <span className="text-muted-foreground">التقدم العام</span>
-                                        <span className={`font-bold ${overallColor}`}>{lesson.overallRate}%</span>
+                                        <div className="flex items-center gap-2">
+                                          {lesson.level !== null && (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-indigo-500/10 to-violet-500/10 border border-violet-500/20 text-[10px] font-bold text-violet-700">
+                                              <Brain className="h-3 w-3" />
+                                              المستوى {lesson.level}/100
+                                            </span>
+                                          )}
+                                          <span className={`font-bold ${overallColor}`}>{lesson.overallRate}%</span>
+                                        </div>
                                       </div>
                                       <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
                                         <div className="h-full rounded-full bg-gradient-to-r from-violet-400 to-violet-600 transition-all duration-700" style={{ width: `${lesson.overallRate}%` }} />
