@@ -22,8 +22,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  GraduationCap, LogOut, User as UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen, Key, Check, Calendar as CalendarIcon
+  GraduationCap, LogOut, User as UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen, Key, Check, Calendar as CalendarIcon, FileDown, FileText
 } from "lucide-react";
+import { downloadParentReportPdf, type ParentReportData } from "@/lib/parentReportPdf";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { getSchoolLevelLabel, allSchoolLevels } from "@/lib/validation";
@@ -104,6 +105,10 @@ const ParentDashboard = () => {
   const [activationCode, setActivationCode] = useState("");
   const [activating, setActivating] = useState(false);
 
+  // Parent reports state: child_id -> latest report row
+  const [latestReports, setLatestReports] = useState<Record<string, { id: string; generated_at: string; report_data: ParentReportData } | null>>({});
+  const [generatingFor, setGeneratingFor] = useState<string | null>(null);
+
   const fetchProfile = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -166,6 +171,52 @@ const ParentDashboard = () => {
       setChildrenLoading(false);
     }
   }, []);
+
+  const fetchLatestReports = useCallback(async (childIds: string[]) => {
+    if (childIds.length === 0) return;
+    const { data } = await supabase
+      .from("parent_reports")
+      .select("id, child_id, generated_at, report_data")
+      .in("child_id", childIds)
+      .order("generated_at", { ascending: false });
+    const map: Record<string, any> = {};
+    (data || []).forEach((r: any) => {
+      if (!map[r.child_id]) map[r.child_id] = r;
+    });
+    setLatestReports(map);
+  }, []);
+
+  useEffect(() => {
+    const ids = children.map((c) => c.child_id);
+    if (ids.length) fetchLatestReports(ids);
+  }, [children, fetchLatestReports]);
+
+  const handleDownloadReport = async (childId: string) => {
+    const report = latestReports[childId];
+    if (report?.report_data) {
+      downloadParentReportPdf(report.report_data, report.generated_at);
+      return;
+    }
+    // Generate a new one
+    setGeneratingFor(childId);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-parent-report", {
+        body: { child_id: childId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const r = data?.report;
+      if (r?.report_data) {
+        downloadParentReportPdf(r.report_data, r.generated_at);
+        setLatestReports((prev) => ({ ...prev, [childId]: r }));
+        sonnerToast.success("Rapport généré et téléchargé");
+      }
+    } catch (e: any) {
+      sonnerToast.error(e.message || "Erreur lors de la génération du rapport");
+    } finally {
+      setGeneratingFor(null);
+    }
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -685,6 +736,7 @@ const ParentDashboard = () => {
                       <TableHead>Email</TableHead>
                       <TableHead>Niveau</TableHead>
                       <TableHead>Statut</TableHead>
+                      <TableHead>Dernier rapport</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -713,6 +765,39 @@ const ParentDashboard = () => {
                             <Badge variant={link.status === "active" ? "default" : "secondary"}>
                               {link.status === "active" ? "Actif" : "En attente"}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {(() => {
+                              const report = latestReports[link.child_id];
+                              const isGen = generatingFor === link.child_id;
+                              if (report) {
+                                return (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-2"
+                                    onClick={() => handleDownloadReport(link.child_id)}
+                                    title={`Télécharger le rapport du ${new Date(report.generated_at).toLocaleDateString("fr-FR")}`}
+                                  >
+                                    <FileDown className="h-4 w-4" />
+                                    {new Date(report.generated_at).toLocaleDateString("fr-FR")}
+                                  </Button>
+                                );
+                              }
+                              return (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="gap-2 text-muted-foreground"
+                                  disabled={isGen}
+                                  onClick={() => handleDownloadReport(link.child_id)}
+                                  title="Générer et télécharger un rapport maintenant"
+                                >
+                                  {isGen ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                                  {isGen ? "Génération…" : "Générer"}
+                                </Button>
+                              );
+                            })()}
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-2">

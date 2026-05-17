@@ -632,6 +632,57 @@ export type Database = {
           },
         ]
       }
+      parent_reports: {
+        Row: {
+          ai_recommendations: string | null
+          child_id: string
+          created_at: string
+          generated_at: string
+          global_level: number | null
+          global_success_rate: number | null
+          id: string
+          parent_id: string
+          period_end: string
+          period_start: string
+          report_data: Json
+          strong_chapters: Json
+          summary: string | null
+          weak_chapters: Json
+        }
+        Insert: {
+          ai_recommendations?: string | null
+          child_id: string
+          created_at?: string
+          generated_at?: string
+          global_level?: number | null
+          global_success_rate?: number | null
+          id?: string
+          parent_id: string
+          period_end?: string
+          period_start: string
+          report_data?: Json
+          strong_chapters?: Json
+          summary?: string | null
+          weak_chapters?: Json
+        }
+        Update: {
+          ai_recommendations?: string | null
+          child_id?: string
+          created_at?: string
+          generated_at?: string
+          global_level?: number | null
+          global_success_rate?: number | null
+          id?: string
+          parent_id?: string
+          period_end?: string
+          period_start?: string
+          report_data?: Json
+          strong_chapters?: Json
+          summary?: string | null
+          weak_chapters?: Json
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
