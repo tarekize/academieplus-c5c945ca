@@ -105,6 +105,10 @@ const ParentDashboard = () => {
   const [activationCode, setActivationCode] = useState("");
   const [activating, setActivating] = useState(false);
 
+  // Parent reports state: child_id -> latest report row
+  const [latestReports, setLatestReports] = useState<Record<string, { id: string; generated_at: string; report_data: ParentReportData } | null>>({});
+  const [generatingFor, setGeneratingFor] = useState<string | null>(null);
+
   const fetchProfile = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
