@@ -22,8 +22,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  GraduationCap, LogOut, User as UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen, Key, Check, Calendar as CalendarIcon
+  GraduationCap, LogOut, User as UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen, Key, Check, Calendar as CalendarIcon, FileDown, FileText
 } from "lucide-react";
+import { downloadParentReportPdf, type ParentReportData } from "@/lib/parentReportPdf";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { getSchoolLevelLabel, allSchoolLevels } from "@/lib/validation";
