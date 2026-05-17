@@ -172,6 +172,52 @@ const ParentDashboard = () => {
     }
   }, []);
 
+  const fetchLatestReports = useCallback(async (childIds: string[]) => {
+    if (childIds.length === 0) return;
+    const { data } = await supabase
+      .from("parent_reports")
+      .select("id, child_id, generated_at, report_data")
+      .in("child_id", childIds)
+      .order("generated_at", { ascending: false });
+    const map: Record<string, any> = {};
+    (data || []).forEach((r: any) => {
+      if (!map[r.child_id]) map[r.child_id] = r;
+    });
+    setLatestReports(map);
+  }, []);
+
+  useEffect(() => {
+    const ids = children.map((c) => c.child_id);
+    if (ids.length) fetchLatestReports(ids);
+  }, [children, fetchLatestReports]);
+
+  const handleDownloadReport = async (childId: string) => {
+    const report = latestReports[childId];
+    if (report?.report_data) {
+      downloadParentReportPdf(report.report_data, report.generated_at);
+      return;
+    }
+    // Generate a new one
+    setGeneratingFor(childId);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-parent-report", {
+        body: { child_id: childId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const r = data?.report;
+      if (r?.report_data) {
+        downloadParentReportPdf(r.report_data, r.generated_at);
+        setLatestReports((prev) => ({ ...prev, [childId]: r }));
+        sonnerToast.success("Rapport généré et téléchargé");
+      }
+    } catch (e: any) {
+      sonnerToast.error(e.message || "Erreur lors de la génération du rapport");
+    } finally {
+      setGeneratingFor(null);
+    }
+  };
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate("/auth"); return; }
