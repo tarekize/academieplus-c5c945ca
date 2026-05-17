@@ -766,6 +766,39 @@ const ParentDashboard = () => {
                               {link.status === "active" ? "Actif" : "En attente"}
                             </Badge>
                           </TableCell>
+                          <TableCell>
+                            {(() => {
+                              const report = latestReports[link.child_id];
+                              const isGen = generatingFor === link.child_id;
+                              if (report) {
+                                return (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-2"
+                                    onClick={() => handleDownloadReport(link.child_id)}
+                                    title={`Télécharger le rapport du ${new Date(report.generated_at).toLocaleDateString("fr-FR")}`}
+                                  >
+                                    <FileDown className="h-4 w-4" />
+                                    {new Date(report.generated_at).toLocaleDateString("fr-FR")}
+                                  </Button>
+                                );
+                              }
+                              return (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="gap-2 text-muted-foreground"
+                                  disabled={isGen}
+                                  onClick={() => handleDownloadReport(link.child_id)}
+                                  title="Générer et télécharger un rapport maintenant"
+                                >
+                                  {isGen ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                                  {isGen ? "Génération…" : "Générer"}
+                                </Button>
+                              );
+                            })()}
+                          </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-2">
                               {link.subscription ? (
