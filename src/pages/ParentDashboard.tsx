@@ -736,6 +736,7 @@ const ParentDashboard = () => {
                       <TableHead>Email</TableHead>
                       <TableHead>Niveau</TableHead>
                       <TableHead>Statut</TableHead>
+                      <TableHead>Dernier rapport</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
