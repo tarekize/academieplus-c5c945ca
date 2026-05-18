@@ -1,4 +1,5 @@
 import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 interface ChapterStat {
   chapter_title: string;
@@ -28,186 +29,175 @@ const fmtDate = (iso: string) =>
     year: "numeric",
   });
 
-export function downloadParentReportPdf(data: ParentReportData, generatedAt: string) {
-  const doc = new jsPDF({ unit: "pt", format: "a4" });
-  const margin = 40;
-  let y = margin;
-  const pageW = doc.internal.pageSize.getWidth();
-  const pageH = doc.internal.pageSize.getHeight();
-  const contentW = pageW - margin * 2;
+const esc = (v: unknown) =>
+  String(v ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 
-  const ensureSpace = (h: number) => {
-    if (y + h > pageH - margin) {
-      doc.addPage();
-      y = margin;
+function buildHtml(data: ParentReportData, generatedAt: string): string {
+  const chapterRow = (c: ChapterStat) => `
+    <tr>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;">${esc(c.chapter_title)}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:center;">${c.level}/100</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:center;">${c.accuracy}%</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:center;">${c.total_answers}</td>
+    </tr>`;
+
+  const chapterListItem = (c: ChapterStat) => `
+    <li style="margin:6px 0;font-size:12px;line-height:1.5;">
+      <strong>${esc(c.chapter_title)}</strong>
+      — niveau ${c.level}/100 — réussite ${c.accuracy}%
+    </li>`;
+
+  return `
+  <div style="width:780px;padding:32px;font-family:-apple-system,'Segoe UI',Roboto,'Noto Sans Arabic','Arial',sans-serif;color:#1a1a1a;background:#fff;">
+    <div style="background:linear-gradient(135deg,#2563eb,#1e40af);color:#fff;padding:24px 28px;border-radius:14px;margin-bottom:24px;">
+      <div style="font-size:22px;font-weight:700;">Rapport de progression</div>
+      <div style="font-size:13px;margin-top:6px;opacity:.9;">AcadémiePlus — généré le ${fmtDate(generatedAt)}</div>
+    </div>
+
+    <div style="margin-bottom:22px;">
+      <div style="font-size:16px;font-weight:700;">Élève : ${esc(data.child_name)}</div>
+      <div style="font-size:12px;color:#666;margin-top:4px;">Niveau scolaire : ${esc(data.school_level || "—")}</div>
+      <div style="font-size:12px;color:#666;margin-top:2px;">Période : ${fmtDate(data.period_start)} → ${fmtDate(data.period_end)}</div>
+    </div>
+
+    <div style="font-size:14px;font-weight:700;margin-bottom:10px;">Indicateurs clés</div>
+    <div style="display:flex;gap:14px;margin-bottom:22px;">
+      <div style="flex:1;background:#f3f6fb;border:1px solid #e3e8f0;border-radius:10px;padding:16px;">
+        <div style="font-size:11px;color:#666;">Taux de réussite global</div>
+        <div style="font-size:26px;font-weight:800;color:#2563eb;margin-top:6px;">${data.global_success_rate}%</div>
+      </div>
+      <div style="flex:1;background:#f3f6fb;border:1px solid #e3e8f0;border-radius:10px;padding:16px;">
+        <div style="font-size:11px;color:#666;">Niveau moyen</div>
+        <div style="font-size:26px;font-weight:800;color:#2563eb;margin-top:6px;">${data.global_level}/100</div>
+      </div>
+    </div>
+
+    <div style="font-size:14px;font-weight:700;margin-bottom:8px;">Résumé</div>
+    <div style="font-size:12px;line-height:1.6;margin-bottom:22px;color:#333;">${esc(data.summary)}</div>
+
+    <div style="font-size:14px;font-weight:700;color:#107a57;margin-bottom:8px;">Chapitres forts</div>
+    ${
+      data.strong_chapters.length === 0
+        ? `<div style="font-size:12px;color:#999;margin-bottom:18px;">Aucun.</div>`
+        : `<ul style="margin:0 0 18px 18px;padding:0;">${data.strong_chapters.map(chapterListItem).join("")}</ul>`
     }
-  };
 
-  // Header
-  doc.setFillColor(37, 99, 235);
-  doc.rect(0, 0, pageW, 70, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(20);
-  doc.text("Rapport de progression", margin, 35);
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "normal");
-  doc.text(`AcademiePlus — genere le ${fmtDate(generatedAt)}`, margin, 55);
-
-  y = 100;
-  doc.setTextColor(20, 20, 20);
-
-  // Student info
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.text(`Eleve : ${data.child_name}`, margin, y);
-  y += 18;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(90, 90, 90);
-  doc.text(`Niveau scolaire : ${data.school_level || "—"}`, margin, y);
-  y += 14;
-  doc.text(
-    `Periode : ${fmtDate(data.period_start)} → ${fmtDate(data.period_end)}`,
-    margin,
-    y,
-  );
-  y += 24;
-
-  // Key metrics
-  doc.setTextColor(20, 20, 20);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text("Indicateurs cles", margin, y);
-  y += 12;
-
-  const boxW = (contentW - 20) / 2;
-  doc.setDrawColor(220, 220, 220);
-  doc.setFillColor(245, 247, 251);
-  doc.roundedRect(margin, y, boxW, 60, 6, 6, "FD");
-  doc.roundedRect(margin + boxW + 20, y, boxW, 60, 6, 6, "FD");
-
-  doc.setFontSize(10);
-  doc.setTextColor(100, 100, 100);
-  doc.setFont("helvetica", "normal");
-  doc.text("Taux de reussite global", margin + 12, y + 20);
-  doc.text("Niveau moyen", margin + boxW + 32, y + 20);
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
-  doc.setTextColor(37, 99, 235);
-  doc.text(`${data.global_success_rate}%`, margin + 12, y + 45);
-  doc.text(`${data.global_level}/100`, margin + boxW + 32, y + 45);
-
-  y += 80;
-  doc.setTextColor(20, 20, 20);
-
-  // Summary
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text("Resume", margin, y);
-  y += 16;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  const lines = doc.splitTextToSize(data.summary, contentW);
-  ensureSpace(lines.length * 12 + 10);
-  doc.text(lines, margin, y);
-  y += lines.length * 12 + 14;
-
-  const drawChapterList = (
-    title: string,
-    items: ChapterStat[],
-    color: [number, number, number],
-  ) => {
-    ensureSpace(40);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.setTextColor(...color);
-    doc.text(title, margin, y);
-    y += 16;
-    doc.setTextColor(20, 20, 20);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    if (items.length === 0) {
-      doc.setTextColor(140, 140, 140);
-      doc.text("Aucun.", margin, y);
-      y += 14;
-      doc.setTextColor(20, 20, 20);
-      return;
+    <div style="font-size:14px;font-weight:700;color:#c8503c;margin-bottom:8px;">Chapitres à renforcer</div>
+    ${
+      data.weak_chapters.length === 0
+        ? `<div style="font-size:12px;color:#999;margin-bottom:18px;">Aucun.</div>`
+        : `<ul style="margin:0 0 18px 18px;padding:0;">${data.weak_chapters.map(chapterListItem).join("")}</ul>`
     }
-    items.forEach((c) => {
-      ensureSpace(16);
-      const t = `• ${c.chapter_title}  —  niveau ${c.level}/100  —  reussite ${c.accuracy}%`;
-      const wrapped = doc.splitTextToSize(t, contentW);
-      doc.text(wrapped, margin, y);
-      y += wrapped.length * 12 + 2;
+
+    ${
+      data.chapters.length > 0
+        ? `
+      <div style="font-size:14px;font-weight:700;margin:18px 0 8px;">Détail par chapitre</div>
+      <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #eee;border-radius:8px;overflow:hidden;">
+        <thead>
+          <tr style="background:#f5f5f5;">
+            <th style="padding:9px 10px;text-align:left;font-size:11px;color:#555;font-weight:600;">Chapitre</th>
+            <th style="padding:9px 10px;text-align:center;font-size:11px;color:#555;font-weight:600;width:90px;">Niveau</th>
+            <th style="padding:9px 10px;text-align:center;font-size:11px;color:#555;font-weight:600;width:90px;">Réussite</th>
+            <th style="padding:9px 10px;text-align:center;font-size:11px;color:#555;font-weight:600;width:90px;">Réponses</th>
+          </tr>
+        </thead>
+        <tbody>${data.chapters.map(chapterRow).join("")}</tbody>
+      </table>`
+        : ""
+    }
+
+    <div style="font-size:14px;font-weight:700;margin:22px 0 8px;">Recommandations IA</div>
+    <div style="font-size:12px;line-height:1.6;color:#333;white-space:pre-wrap;">${esc(data.recommendations)}</div>
+
+    <div style="margin-top:30px;text-align:center;font-size:10px;color:#999;border-top:1px solid #eee;padding-top:10px;">
+      AcadémiePlus — Rapport parent
+    </div>
+  </div>`;
+}
+
+export async function downloadParentReportPdf(
+  data: ParentReportData,
+  generatedAt: string,
+) {
+  // Build off-screen container
+  const wrapper = document.createElement("div");
+  wrapper.style.position = "fixed";
+  wrapper.style.left = "-10000px";
+  wrapper.style.top = "0";
+  wrapper.style.zIndex = "-1";
+  wrapper.innerHTML = buildHtml(data, generatedAt);
+  document.body.appendChild(wrapper);
+
+  try {
+    const node = wrapper.firstElementChild as HTMLElement;
+    const canvas = await html2canvas(node, {
+      scale: 2,
+      backgroundColor: "#ffffff",
+      useCORS: true,
+      logging: false,
     });
-    y += 8;
-  };
 
-  drawChapterList("Chapitres forts", data.strong_chapters, [16, 122, 87]);
-  drawChapterList("Chapitres a renforcer", data.weak_chapters, [200, 80, 60]);
+    const pdf = new jsPDF({ unit: "pt", format: "a4" });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 24;
+    const imgW = pageW - margin * 2;
+    const imgH = (canvas.height * imgW) / canvas.width;
 
-  // All chapters table
-  if (data.chapters.length > 0) {
-    ensureSpace(40);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.text("Detail par chapitre", margin, y);
-    y += 14;
+    const imgData = canvas.toDataURL("image/png");
 
-    // header
-    doc.setFillColor(240, 240, 240);
-    doc.rect(margin, y, contentW, 18, "F");
-    doc.setFontSize(9);
-    doc.text("Chapitre", margin + 8, y + 12);
-    doc.text("Niveau", margin + contentW - 180, y + 12);
-    doc.text("Reussite", margin + contentW - 120, y + 12);
-    doc.text("Reponses", margin + contentW - 60, y + 12);
-    y += 18;
-    doc.setFont("helvetica", "normal");
-    data.chapters.forEach((c, i) => {
-      ensureSpace(18);
-      if (i % 2 === 1) {
-        doc.setFillColor(250, 250, 250);
-        doc.rect(margin, y, contentW, 18, "F");
+    if (imgH <= pageH - margin * 2) {
+      pdf.addImage(imgData, "PNG", margin, margin, imgW, imgH);
+    } else {
+      // Slice canvas into pages
+      const pageContentH = pageH - margin * 2;
+      const pxPerPage = (pageContentH * canvas.width) / imgW;
+      let renderedY = 0;
+      let pageIndex = 0;
+      while (renderedY < canvas.height) {
+        const sliceH = Math.min(pxPerPage, canvas.height - renderedY);
+        const slice = document.createElement("canvas");
+        slice.width = canvas.width;
+        slice.height = sliceH;
+        const ctx = slice.getContext("2d");
+        if (!ctx) break;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, slice.width, slice.height);
+        ctx.drawImage(
+          canvas,
+          0, renderedY, canvas.width, sliceH,
+          0, 0, canvas.width, sliceH,
+        );
+        const sliceImg = slice.toDataURL("image/png");
+        const sliceImgH = (sliceH * imgW) / canvas.width;
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(sliceImg, "PNG", margin, margin, imgW, sliceImgH);
+        renderedY += sliceH;
+        pageIndex += 1;
       }
-      const title = doc.splitTextToSize(c.chapter_title, contentW - 200)[0];
-      doc.text(title, margin + 8, y + 12);
-      doc.text(`${c.level}/100`, margin + contentW - 180, y + 12);
-      doc.text(`${c.accuracy}%`, margin + contentW - 120, y + 12);
-      doc.text(`${c.total_answers}`, margin + contentW - 60, y + 12);
-      y += 18;
-    });
-    y += 12;
+    }
+
+    // Footer page numbers
+    const pageCount = pdf.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      pdf.setPage(i);
+      pdf.setFontSize(8);
+      pdf.setTextColor(140, 140, 140);
+      pdf.text(
+        `AcademiePlus — Rapport parent  |  Page ${i} / ${pageCount}`,
+        pageW / 2,
+        pageH - 12,
+        { align: "center" },
+      );
+    }
+
+    const safeName = data.child_name.replace(/[^\p{L}\p{N}_-]+/gu, "_");
+    pdf.save(`rapport_${safeName}_${fmtDate(generatedAt).replace(/\//g, "-")}.pdf`);
+  } finally {
+    document.body.removeChild(wrapper);
   }
-
-  // Recommendations
-  ensureSpace(40);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text("Recommandations IA", margin, y);
-  y += 16;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  const rec = doc.splitTextToSize(data.recommendations, contentW);
-  ensureSpace(rec.length * 12);
-  doc.text(rec, margin, y);
-
-  // Footer
-  const pageCount = doc.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(8);
-    doc.setTextColor(140, 140, 140);
-    doc.text(
-      `AcademiePlus — Rapport parent  |  Page ${i} / ${pageCount}`,
-      pageW / 2,
-      pageH - 20,
-      { align: "center" },
-    );
-  }
-
-  const safeName = data.child_name.replace(/[^\p{L}\p{N}_-]+/gu, "_");
-  doc.save(`rapport_${safeName}_${fmtDate(generatedAt).replace(/\//g, "-")}.pdf`);
 }

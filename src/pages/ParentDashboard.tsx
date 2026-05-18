@@ -130,7 +130,7 @@ const ParentDashboard = () => {
     try {
       const { data, error } = await supabase
         .from("parent_child_links")
-        .select(`id, child_id, status, created_at, child:profiles!parent_child_links_child_id_fkey(id, first_name, last_name, email, school_level, avatar_url)`)
+        .select(`id, child_id, status, created_at, child:profiles!parent_child_links_child_id_fkey(id, first_name, last_name, email, school_level, filiere, avatar_url)`)
         .eq("parent_id", userId);
       if (error) throw error;
 
