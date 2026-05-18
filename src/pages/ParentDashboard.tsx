@@ -194,7 +194,7 @@ const ParentDashboard = () => {
   const handleDownloadReport = async (childId: string) => {
     const report = latestReports[childId];
     if (report?.report_data) {
-      downloadParentReportPdf(report.report_data, report.generated_at);
+      await downloadParentReportPdf(report.report_data, report.generated_at);
       return;
     }
     // Generate a new one
@@ -207,7 +207,7 @@ const ParentDashboard = () => {
       if (data?.error) throw new Error(data.error);
       const r = data?.report;
       if (r?.report_data) {
-        downloadParentReportPdf(r.report_data, r.generated_at);
+        await downloadParentReportPdf(r.report_data, r.generated_at);
         setLatestReports((prev) => ({ ...prev, [childId]: r }));
         sonnerToast.success("Rapport généré et téléchargé");
       }
