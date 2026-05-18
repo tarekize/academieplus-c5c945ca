@@ -645,6 +645,7 @@ export type Database = {
           period_end: string
           period_start: string
           report_data: Json
+          report_type: string
           strong_chapters: Json
           summary: string | null
           weak_chapters: Json
@@ -661,6 +662,7 @@ export type Database = {
           period_end?: string
           period_start: string
           report_data?: Json
+          report_type?: string
           strong_chapters?: Json
           summary?: string | null
           weak_chapters?: Json
@@ -677,6 +679,7 @@ export type Database = {
           period_end?: string
           period_start?: string
           report_data?: Json
+          report_type?: string
           strong_chapters?: Json
           summary?: string | null
           weak_chapters?: Json
