@@ -130,7 +130,7 @@ const ParentDashboard = () => {
     try {
       const { data, error } = await supabase
         .from("parent_child_links")
-        .select(`id, child_id, status, created_at, child:profiles!parent_child_links_child_id_fkey(id, first_name, last_name, email, school_level, avatar_url)`)
+        .select(`id, child_id, status, created_at, child:profiles!parent_child_links_child_id_fkey(id, first_name, last_name, email, school_level, filiere, avatar_url)`)
         .eq("parent_id", userId);
       if (error) throw error;
 
@@ -194,7 +194,7 @@ const ParentDashboard = () => {
   const handleDownloadReport = async (childId: string) => {
     const report = latestReports[childId];
     if (report?.report_data) {
-      downloadParentReportPdf(report.report_data, report.generated_at);
+      await downloadParentReportPdf(report.report_data, report.generated_at);
       return;
     }
     // Generate a new one
@@ -207,7 +207,7 @@ const ParentDashboard = () => {
       if (data?.error) throw new Error(data.error);
       const r = data?.report;
       if (r?.report_data) {
-        downloadParentReportPdf(r.report_data, r.generated_at);
+        await downloadParentReportPdf(r.report_data, r.generated_at);
         setLatestReports((prev) => ({ ...prev, [childId]: r }));
         sonnerToast.success("Rapport généré et téléchargé");
       }
