@@ -30,6 +30,7 @@ interface StudentDashboardContentProps {
     email: string | null;
   };
   hideActions?: boolean;
+  parentView?: boolean;
 }
 
 interface ChapterStat {
@@ -96,7 +97,7 @@ const REFRESH_INTERVAL = 30000; // 30s auto-refresh
 const makeUniqueChapterKey = (chapter: { title?: string | null; title_ar?: string | null; order_index?: number | null }) =>
   `${chapter.order_index ?? ""}|${(chapter.title_ar || chapter.title || "").replace(/\s+/g, " ").trim()}`;
 
-export default function StudentDashboardContent({ userId, profile, hideActions }: StudentDashboardContentProps) {
+export default function StudentDashboardContent({ userId, profile, hideActions, parentView }: StudentDashboardContentProps) {
   const navigate = useNavigate();
   const [chapterStats, setChapterStats] = useState<ChapterStat[]>([]);
   const [totalTime, setTotalTime] = useState(0);
@@ -459,6 +460,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
   return (
     <div className="space-y-6" dir="rtl">
       {/* Hero Header */}
+      {!parentView && (
       <Card className="overflow-hidden border-0 shadow-lg">
         <div className="relative bg-gradient-to-br from-primary via-primary/90 to-accent p-6 md:p-8">
           <div className="absolute inset-0 opacity-10">
@@ -512,6 +514,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
           </div>
         </div>
       </Card>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -683,7 +686,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions }
                 </Card>
               )}
 
-              <AICommentsCard userId={userId} />
+              {!parentView && <AICommentsCard userId={userId} />}
             </div>
           </div>
 
