@@ -51,12 +51,16 @@ Tu offres une expérience d'apprentissage CONTEXTUALISÉE et PÉDAGOGIQUE. Tes r
    - Si la question dépasse le programme du niveau de l'élève, signale-le poliment : "Cette notion va au-delà de ton programme actuel. Concentrons-nous sur ${chapterContext?.title || 'ton chapitre actuel'} 📘", puis propose une question liée au chapitre.
    - Chaque explication doit faire RÉFÉRENCE EXPLICITE au chapitre concerné (cite-le par son nom).
 
-4. **Question dans un AUTRE chapitre** : Si la question relève d'un chapitre DIFFÉRENT du chapitre actuel :
+4. **Question dans un AUTRE chapitre** : Si la question relève d'un chapitre DIFFÉRENT du chapitre actuel (y compris lorsqu'elle provient d'une **image** ou d'un **PDF** envoyé par l'élève) :
    - Ne donne AUCUNE explication ni formule.
-   - Indique gentiment le bon emplacement avec le BREADCRUMB : [[BREADCRUMB:chapter_id|chapter_title|lesson_id|lesson_title]]
-   - Exemple : "Tu es actuellement dans **${chapterContext?.title || ''}**. Cette notion est traitée ici : [[BREADCRUMB:...]]"
+   - Identifie le chapitre correct à partir de la liste des chapitres disponibles.
+   - Réponds : "📌 Cette question concerne le chapitre **[nom du chapitre]**, pas **${chapterContext?.title || ''}**. Va dans le bon chapitre puis pose-la dans son chat IA dédié : [[BREADCRUMB:chapter_id|chapter_title|lesson_id|lesson_title]]"
+   - Utilise toujours le format BREADCRUMB avec les vrais IDs.
 
-5. **Navigation** : Quand l'élève demande où se trouve un chapitre/sujet, réponds brièvement : "Le chapitre [nom] se trouve ici : [[BREADCRUMB:...]]". S'il est déjà au bon endroit : "Tu es déjà au bon endroit ! Tu es dans **${chapterContext?.title || ''}**."
+5. **Question d'image/PDF DANS le bon chapitre** : Lis attentivement le contenu de l'image/PDF, identifie l'énoncé, puis applique le **Format pédagogique structuré** ci-dessous avec la solution complète et l'explication détaillée étape par étape.
+
+6. **Navigation** : Quand l'élève demande où se trouve un chapitre/sujet, réponds brièvement : "Le chapitre [nom] se trouve ici : [[BREADCRUMB:...]]". S'il est déjà au bon endroit : "Tu es déjà au bon endroit ! Tu es dans **${chapterContext?.title || ''}**."
+
 
 ## 📐 Format pédagogique structuré (OBLIGATOIRE pour toute explication de notion)
 
@@ -140,28 +144,44 @@ async function callLovableAI(systemPrompt: string, messages: any[]): Promise<Res
   });
 }
 
+// Convert OpenAI-style messages (string OR [{type:'text'|'image_url',...}]) to Gemini parts
+function toGeminiParts(content: any): any[] {
+  if (typeof content === "string") return [{ text: content }];
+  if (!Array.isArray(content)) return [{ text: String(content ?? "") }];
+  const parts: any[] = [];
+  for (const p of content) {
+    if (!p) continue;
+    if (p.type === "text" && typeof p.text === "string") {
+      parts.push({ text: p.text });
+    } else if (p.type === "image_url" && p.image_url?.url) {
+      const url: string = p.image_url.url;
+      const m = url.match(/^data:([^;]+);base64,(.+)$/);
+      if (m) {
+        parts.push({ inlineData: { mimeType: m[1], data: m[2] } });
+      } else {
+        // remote URL — Gemini accepts fileData for some; fall back to text mention
+        parts.push({ text: `[Image jointe: ${url}]` });
+      }
+    }
+  }
+  if (parts.length === 0) parts.push({ text: "" });
+  return parts;
+}
+
+function messagesHaveMedia(messages: any[]): boolean {
+  return messages.some((m) => Array.isArray(m?.content) && m.content.some((p: any) => p?.type === "image_url"));
+}
+
 // ============ Provider 1: Google Gemini ============
 async function callGemini(systemPrompt: string, messages: any[]): Promise<Response> {
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
   if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
-  // Build Gemini contents format
-  const contents: any[] = [];
-
-  // Add system instruction as first user message context
   const geminiMessages = messages.map((m: any) => ({
     role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
+    parts: toGeminiParts(m.content),
   }));
 
-  const body = {
-    system_instruction: { parts: [{ text: systemPrompt }] },
-    contents: geminiMessages,
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 8192,
-    },
-  };
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
 
@@ -280,8 +300,9 @@ async function callGemini2(systemPrompt: string, messages: any[]): Promise<Respo
 
   const geminiMessages = messages.map((m: any) => ({
     role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
+    parts: toGeminiParts(m.content),
   }));
+
 
   const body = {
     system_instruction: { parts: [{ text: systemPrompt }] },
@@ -808,6 +829,8 @@ Aucun blabla, pas de texte "Voici le cours...", AUCUNE balise de code \`\`\`html
       ? systemPrompt.slice(0, 6000) + "\n\n... (prompt tronqué pour respecter la limite de tokens du provider)"
       : systemPrompt;
 
+    const hasMedia = messagesHaveMedia(messages);
+
     // Provider 0: Lovable AI (priorité)
     try {
       console.log("Trying Lovable AI...");
@@ -816,37 +839,39 @@ Aucun blabla, pas de texte "Voici le cours...", AUCUNE balise de code \`\`\`html
       console.error("Lovable AI failed, trying Gemini...", e);
     }
 
-    // Provider 1: Gemini (large context, on garde le prompt complet)
+    // Provider 1: Gemini (large context, supports vision + PDF)
     try {
       console.log("Trying Gemini...");
       return await callGemini(systemPrompt, messages);
     } catch (e) {
-      console.error("Gemini failed, trying Groq...", e);
+      console.error("Gemini failed...", e);
     }
 
-    // Provider 2: Groq (limite 12k TPM → prompt compact)
-    try {
-      console.log("Trying Groq...");
-      return await callGroq(compactSystemPrompt, messages);
-    } catch (e) {
-      console.error("Groq failed, trying Cloudflare...", e);
+    // Skip text-only providers if the message contains images/PDFs
+    if (!hasMedia) {
+      try {
+        console.log("Trying Groq...");
+        return await callGroq(compactSystemPrompt, messages);
+      } catch (e) {
+        console.error("Groq failed, trying Cloudflare...", e);
+      }
+
+      try {
+        console.log("Trying Cloudflare...");
+        return await callCloudflare(compactSystemPrompt, messages);
+      } catch (e) {
+        console.error("Cloudflare failed, trying Gemini secondary key...", e);
+      }
     }
 
-    // Provider 3: Cloudflare (context window 8k → prompt compact)
-    try {
-      console.log("Trying Cloudflare...");
-      return await callCloudflare(compactSystemPrompt, messages);
-    } catch (e) {
-      console.error("Cloudflare failed, trying Gemini secondary key...", e);
-    }
-
-    // Provider 4: Gemini secondary key (large context, prompt complet)
+    // Provider 4: Gemini secondary key (vision-capable fallback)
     try {
       console.log("Trying Gemini secondary key...");
       return await callGemini2(systemPrompt, messages);
     } catch (e) {
       console.error("Gemini secondary key also failed:", e);
     }
+
 
     // All providers failed
     return new Response(
