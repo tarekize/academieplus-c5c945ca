@@ -477,6 +477,7 @@ const ParentDashboard = () => {
               userId={selectedChild.child_id}
               profile={selectedChild.child}
               hideActions
+              parentView
             />
           </div>
         </main>
