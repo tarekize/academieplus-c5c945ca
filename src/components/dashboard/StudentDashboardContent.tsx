@@ -460,6 +460,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
   return (
     <div className="space-y-6" dir="rtl">
       {/* Hero Header */}
+      {!parentView && (
       <Card className="overflow-hidden border-0 shadow-lg">
         <div className="relative bg-gradient-to-br from-primary via-primary/90 to-accent p-6 md:p-8">
           <div className="absolute inset-0 opacity-10">
