@@ -127,7 +127,7 @@ export function useAdminUsers() {
   const deleteUser = async (userId: string, email?: string) => {
     try {
       // Use Edge Function to delete user from Auth and all related data
-      const response = await supabase.functions.invoke("admin-delete-user", {
+      const response = await supabase.functions.invoke("delete-user-account", {
         body: { userId },
       });
 
