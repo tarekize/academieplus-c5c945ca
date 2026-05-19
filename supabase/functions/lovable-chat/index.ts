@@ -825,6 +825,8 @@ Aucun blabla, pas de texte "Voici le cours...", AUCUNE balise de code \`\`\`html
       ? systemPrompt.slice(0, 6000) + "\n\n... (prompt tronqué pour respecter la limite de tokens du provider)"
       : systemPrompt;
 
+    const hasMedia = messagesHaveMedia(messages);
+
     // Provider 0: Lovable AI (priorité)
     try {
       console.log("Trying Lovable AI...");
@@ -833,37 +835,39 @@ Aucun blabla, pas de texte "Voici le cours...", AUCUNE balise de code \`\`\`html
       console.error("Lovable AI failed, trying Gemini...", e);
     }
 
-    // Provider 1: Gemini (large context, on garde le prompt complet)
+    // Provider 1: Gemini (large context, supports vision + PDF)
     try {
       console.log("Trying Gemini...");
       return await callGemini(systemPrompt, messages);
     } catch (e) {
-      console.error("Gemini failed, trying Groq...", e);
+      console.error("Gemini failed...", e);
     }
 
-    // Provider 2: Groq (limite 12k TPM → prompt compact)
-    try {
-      console.log("Trying Groq...");
-      return await callGroq(compactSystemPrompt, messages);
-    } catch (e) {
-      console.error("Groq failed, trying Cloudflare...", e);
+    // Skip text-only providers if the message contains images/PDFs
+    if (!hasMedia) {
+      try {
+        console.log("Trying Groq...");
+        return await callGroq(compactSystemPrompt, messages);
+      } catch (e) {
+        console.error("Groq failed, trying Cloudflare...", e);
+      }
+
+      try {
+        console.log("Trying Cloudflare...");
+        return await callCloudflare(compactSystemPrompt, messages);
+      } catch (e) {
+        console.error("Cloudflare failed, trying Gemini secondary key...", e);
+      }
     }
 
-    // Provider 3: Cloudflare (context window 8k → prompt compact)
-    try {
-      console.log("Trying Cloudflare...");
-      return await callCloudflare(compactSystemPrompt, messages);
-    } catch (e) {
-      console.error("Cloudflare failed, trying Gemini secondary key...", e);
-    }
-
-    // Provider 4: Gemini secondary key (large context, prompt complet)
+    // Provider 4: Gemini secondary key (vision-capable fallback)
     try {
       console.log("Trying Gemini secondary key...");
       return await callGemini2(systemPrompt, messages);
     } catch (e) {
       console.error("Gemini secondary key also failed:", e);
     }
+
 
     // All providers failed
     return new Response(
