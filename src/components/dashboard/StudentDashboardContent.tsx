@@ -686,7 +686,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
                 </Card>
               )}
 
-              <AICommentsCard userId={userId} />
+              {!parentView && <AICommentsCard userId={userId} />}
             </div>
           </div>
 
