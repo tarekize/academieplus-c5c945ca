@@ -114,7 +114,7 @@ export default function Admin() {
 
   const handleDeleteUser = async () => {
     if (userToDelete) {
-      await deleteUser(userToDelete.id);
+      await deleteUser(userToDelete.id, userToDelete.email);
       setDeleteDialogOpen(false);
       setUserToDelete(null);
     }
@@ -386,7 +386,7 @@ export default function Admin() {
                           key={user.id}
                           user={user}
                           onToggleStatus={() =>
-                            toggleUserStatus(user.id, !user.is_active)
+                            toggleUserStatus(user.id, !user.is_active, user.email || '')
                           }
                           onDelete={() => {
                             setUserToDelete(user);
@@ -452,7 +452,7 @@ export default function Admin() {
                           key={user.id}
                           user={user}
                           onToggleStatus={() =>
-                            toggleUserStatus(user.id, !user.is_active)
+                            toggleUserStatus(user.id, !user.is_active, user.email || '')
                           }
                           onDelete={() => {
                             setUserToDelete(user);
@@ -520,7 +520,7 @@ export default function Admin() {
                           user={user}
                           showLevel
                           onToggleStatus={() =>
-                            toggleUserStatus(user.id, !user.is_active)
+                            toggleUserStatus(user.id, !user.is_active, user.email || '')
                           }
                           onDelete={() => {
                             setUserToDelete(user);
@@ -572,7 +572,30 @@ export default function Admin() {
                     {logs.map((log) => {
                       const userName = log.user
                         ? [log.user.first_name, log.user.last_name].filter(Boolean).join(" ") || log.user.email
-                        : "Système";
+                        : "Admin Système";
+
+                      let actionText = log.action;
+                      let detailsText = log.details ? JSON.stringify(log.details) : null;
+
+                      if (log.action === "user_deleted") {
+                        actionText = "Suppression du compte d'un utilisateur";
+                        if (log.details && (log.details as any).target_user_email) {
+                          detailsText = `Utilisateur supprimé : ${(log.details as any).target_user_email}`;
+                        } else if (log.details && (log.details as any).target_user_id) {
+                          detailsText = `ID supprimé : ${(log.details as any).target_user_id}`;
+                        }
+                      } else if (log.action === "user_activated") {
+                        actionText = "Activation d'un compte utilisateur";
+                        if (log.details && (log.details as any).target_user_id) {
+                          detailsText = `ID activé : ${(log.details as any).target_user_id}`;
+                        }
+                      } else if (log.action === "user_deactivated") {
+                        actionText = "Désactivation d'un compte utilisateur";
+                        if (log.details && (log.details as any).target_user_id) {
+                          detailsText = `ID désactivé : ${(log.details as any).target_user_id}`;
+                        }
+                      }
+
                       return (
                         <div
                           key={log.id}
@@ -582,13 +605,13 @@ export default function Admin() {
                             <Activity className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium">{log.action}</p>
+                            <p className="font-medium text-primary">{actionText}</p>
                             <p className="text-sm text-muted-foreground">
                               Par {userName}
                             </p>
-                            {log.details && (
-                              <p className="text-sm text-muted-foreground mt-1 font-mono text-xs bg-muted/50 p-2 rounded">
-                                {JSON.stringify(log.details)}
+                            {detailsText && (
+                              <p className="text-sm text-muted-foreground mt-2 bg-muted p-2 rounded-md">
+                                {detailsText}
                               </p>
                             )}
                           </div>
@@ -757,15 +780,6 @@ function UserRow({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>
-              <Eye className="h-4 w-4 mr-2" />
-              Voir le profil
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <UserCog className="h-4 w-4 mr-2" />
-              Modifier
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onToggleStatus}>
               {user.is_active ? (
                 <>

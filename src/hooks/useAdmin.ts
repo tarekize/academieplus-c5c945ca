@@ -75,7 +75,7 @@ export function useAdminUsers() {
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-      const roleCount = (role: string) => 
+      const roleCount = (role: string) =>
         usersWithRoles.filter(u => u.roles?.includes(role as any)).length;
 
       setStats({
@@ -99,7 +99,7 @@ export function useAdminUsers() {
     fetchUsers();
   }, [fetchUsers]);
 
-  const toggleUserStatus = async (userId: string, active: boolean) => {
+  const toggleUserStatus = async (userId: string, active: boolean, email?: string) => {
     try {
       const { error } = await supabase
         .from("profiles")
@@ -111,7 +111,7 @@ export function useAdminUsers() {
       await supabase.rpc("log_activity", {
         _user_id: user?.id,
         _action: active ? "user_activated" : "user_deactivated",
-        _details: { target_user_id: userId },
+        _details: { target_user_id: userId, target_user_email: email },
       });
 
       await fetchUsers();
@@ -124,7 +124,7 @@ export function useAdminUsers() {
     }
   };
 
-  const deleteUser = async (userId: string) => {
+  const deleteUser = async (userId: string, email?: string) => {
     try {
       // Use Edge Function to delete user from Auth and all related data
       const response = await supabase.functions.invoke("admin-delete-user", {
@@ -138,7 +138,7 @@ export function useAdminUsers() {
       await supabase.rpc("log_activity", {
         _user_id: user?.id,
         _action: "user_deleted",
-        _details: { target_user_id: userId },
+        _details: { target_user_id: userId, target_user_email: email },
       });
 
       await fetchUsers();
