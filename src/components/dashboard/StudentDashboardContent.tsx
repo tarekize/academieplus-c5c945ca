@@ -97,7 +97,7 @@ const REFRESH_INTERVAL = 30000; // 30s auto-refresh
 const makeUniqueChapterKey = (chapter: { title?: string | null; title_ar?: string | null; order_index?: number | null }) =>
   `${chapter.order_index ?? ""}|${(chapter.title_ar || chapter.title || "").replace(/\s+/g, " ").trim()}`;
 
-export default function StudentDashboardContent({ userId, profile, hideActions }: StudentDashboardContentProps) {
+export default function StudentDashboardContent({ userId, profile, hideActions, parentView }: StudentDashboardContentProps) {
   const navigate = useNavigate();
   const [chapterStats, setChapterStats] = useState<ChapterStat[]>([]);
   const [totalTime, setTotalTime] = useState(0);
