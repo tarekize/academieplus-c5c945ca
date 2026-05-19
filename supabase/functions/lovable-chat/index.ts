@@ -296,8 +296,9 @@ async function callGemini2(systemPrompt: string, messages: any[]): Promise<Respo
 
   const geminiMessages = messages.map((m: any) => ({
     role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
+    parts: toGeminiParts(m.content),
   }));
+
 
   const body = {
     system_instruction: { parts: [{ text: systemPrompt }] },
