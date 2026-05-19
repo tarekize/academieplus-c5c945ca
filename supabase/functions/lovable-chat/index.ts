@@ -140,28 +140,44 @@ async function callLovableAI(systemPrompt: string, messages: any[]): Promise<Res
   });
 }
 
+// Convert OpenAI-style messages (string OR [{type:'text'|'image_url',...}]) to Gemini parts
+function toGeminiParts(content: any): any[] {
+  if (typeof content === "string") return [{ text: content }];
+  if (!Array.isArray(content)) return [{ text: String(content ?? "") }];
+  const parts: any[] = [];
+  for (const p of content) {
+    if (!p) continue;
+    if (p.type === "text" && typeof p.text === "string") {
+      parts.push({ text: p.text });
+    } else if (p.type === "image_url" && p.image_url?.url) {
+      const url: string = p.image_url.url;
+      const m = url.match(/^data:([^;]+);base64,(.+)$/);
+      if (m) {
+        parts.push({ inlineData: { mimeType: m[1], data: m[2] } });
+      } else {
+        // remote URL — Gemini accepts fileData for some; fall back to text mention
+        parts.push({ text: `[Image jointe: ${url}]` });
+      }
+    }
+  }
+  if (parts.length === 0) parts.push({ text: "" });
+  return parts;
+}
+
+function messagesHaveMedia(messages: any[]): boolean {
+  return messages.some((m) => Array.isArray(m?.content) && m.content.some((p: any) => p?.type === "image_url"));
+}
+
 // ============ Provider 1: Google Gemini ============
 async function callGemini(systemPrompt: string, messages: any[]): Promise<Response> {
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
   if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
-  // Build Gemini contents format
-  const contents: any[] = [];
-
-  // Add system instruction as first user message context
   const geminiMessages = messages.map((m: any) => ({
     role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
+    parts: toGeminiParts(m.content),
   }));
 
-  const body = {
-    system_instruction: { parts: [{ text: systemPrompt }] },
-    contents: geminiMessages,
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 8192,
-    },
-  };
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
 
