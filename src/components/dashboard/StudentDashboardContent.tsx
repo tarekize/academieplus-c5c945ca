@@ -30,6 +30,7 @@ interface StudentDashboardContentProps {
     email: string | null;
   };
   hideActions?: boolean;
+  parentView?: boolean;
 }
 
 interface ChapterStat {
