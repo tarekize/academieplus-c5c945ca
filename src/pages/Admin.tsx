@@ -117,6 +117,7 @@ export default function Admin() {
       await deleteUser(userToDelete.id, userToDelete.email);
       setDeleteDialogOpen(false);
       setUserToDelete(null);
+      refetchLogs();
     }
   };
 
