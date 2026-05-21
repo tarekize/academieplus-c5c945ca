@@ -220,7 +220,7 @@ export default function Admin() {
               </TabsTrigger>
             </TabsList>
 
-            <AddUserDialog onUserAdded={refetch} />
+            <AddUserDialog onUserAdded={() => { refetch(); refetchLogs(); }} />
           </div>
 
           {/* Dashboard Tab */}
