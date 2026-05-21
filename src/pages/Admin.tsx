@@ -314,7 +314,18 @@ export default function Admin() {
                     {logs.slice(0, 5).map((log) => {
                       const userName = log.user
                         ? [log.user.first_name, log.user.last_name].filter(Boolean).join(" ") || log.user.email
-                        : "Système";
+                        : "Admin Système";
+                      const actionLabels: Record<string, string> = {
+                        user_deleted: "Suppression d'un utilisateur",
+                        user_activated: "Activation d'un compte",
+                        user_deactivated: "Désactivation d'un compte",
+                        user_created: "Création d'un utilisateur",
+                        subscription_price_updated: "Mise à jour des tarifs d'abonnement",
+                        subscription_period_updated: "Mise à jour d'une période d'abonnement",
+                        subscription_period_created: "Création d'une période d'abonnement",
+                      };
+                      const actionText = actionLabels[log.action] || log.action;
+                      const targetEmail = (log.details as any)?.target_user_email;
                       return (
                         <div
                           key={log.id}
@@ -324,9 +335,9 @@ export default function Admin() {
                             <Activity className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{log.action}</p>
+                            <p className="font-medium truncate">{actionText}</p>
                             <p className="text-sm text-muted-foreground truncate">
-                              Par {userName}
+                              Par {userName}{targetEmail ? ` · ${targetEmail}` : ""}
                             </p>
                           </div>
                           <span className="text-sm text-muted-foreground whitespace-nowrap">
