@@ -131,7 +131,6 @@ export default function AdminAbonnements() {
   const handleSavePrices = async (configId: string) => {
     setSaving(true);
     const prices = editPrices[configId];
-    const config = configs.find((c) => c.id === configId);
     const { error } = await supabase
       .from("subscription_config")
       .update({ price_single: prices.single, price_family: prices.family, updated_at: new Date().toISOString() })
@@ -140,20 +139,6 @@ export default function AdminAbonnements() {
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
-      const { data: { user } } = await supabase.auth.getUser();
-      await supabase.rpc("log_activity", {
-        _user_id: user?.id,
-        _action: "subscription_price_updated",
-        _details: {
-          config_id: configId,
-          plan_type: config?.plan_type,
-          label: config?.label,
-          old_price_single: config?.price_single,
-          old_price_family: config?.price_family,
-          new_price_single: prices.single,
-          new_price_family: prices.family,
-        },
-      });
       toast({ title: "Succès", description: "Prix mis à jour avec succès" });
       fetchConfigs();
     }
@@ -162,36 +147,19 @@ export default function AdminAbonnements() {
 
   const handleSavePeriod = async () => {
     setSaving(true);
-    const { data: { user } } = await supabase.auth.getUser();
     if (editingPeriod) {
       const { error } = await supabase
         .from("subscription_periods")
         .update({ label: periodForm.label, start_date: periodForm.start_date, end_date: periodForm.end_date, updated_at: new Date().toISOString() })
         .eq("id", editingPeriod.id);
       if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" });
-      else {
-        await supabase.rpc("log_activity", {
-          _user_id: user?.id,
-          _action: "subscription_period_updated",
-          _details: { period_id: editingPeriod.id, label: periodForm.label, start_date: periodForm.start_date, end_date: periodForm.end_date },
-        });
-        toast({ title: "Succès", description: "Période mise à jour" });
-      }
+      else toast({ title: "Succès", description: "Période mise à jour" });
     } else {
-      const { data: inserted, error } = await supabase
+      const { error } = await supabase
         .from("subscription_periods")
-        .insert({ label: periodForm.label, start_date: periodForm.start_date, end_date: periodForm.end_date })
-        .select()
-        .single();
+        .insert({ label: periodForm.label, start_date: periodForm.start_date, end_date: periodForm.end_date });
       if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" });
-      else {
-        await supabase.rpc("log_activity", {
-          _user_id: user?.id,
-          _action: "subscription_period_created",
-          _details: { period_id: inserted?.id, label: periodForm.label, start_date: periodForm.start_date, end_date: periodForm.end_date },
-        });
-        toast({ title: "Succès", description: "Période créée" });
-      }
+      else toast({ title: "Succès", description: "Période créée" });
     }
     setPeriodDialog(false);
     setEditingPeriod(null);
