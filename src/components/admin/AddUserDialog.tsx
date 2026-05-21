@@ -108,6 +108,13 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
         throw new Error(errorMessage);
       }
 
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      await supabase.rpc("log_activity", {
+        _user_id: currentUser?.id,
+        _action: "user_created",
+        _details: { target_user_email: email, role, first_name: firstName, last_name: lastName, school_level: role === "student" ? schoolLevel : null },
+      });
+
       toast.success("Utilisateur créé avec succès !");
       setOpen(false);
       resetForm();
