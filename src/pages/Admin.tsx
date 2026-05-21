@@ -387,7 +387,7 @@ export default function Admin() {
                           key={user.id}
                           user={user}
                           onToggleStatus={() =>
-                            toggleUserStatus(user.id, !user.is_active, user.email || '')
+                            toggleUserStatus(user.id, !user.is_active, user.email || '').then(() => refetchLogs())
                           }
                           onDelete={() => {
                             setUserToDelete(user);
@@ -453,7 +453,7 @@ export default function Admin() {
                           key={user.id}
                           user={user}
                           onToggleStatus={() =>
-                            toggleUserStatus(user.id, !user.is_active, user.email || '')
+                            toggleUserStatus(user.id, !user.is_active, user.email || '').then(() => refetchLogs())
                           }
                           onDelete={() => {
                             setUserToDelete(user);
@@ -521,7 +521,7 @@ export default function Admin() {
                           user={user}
                           showLevel
                           onToggleStatus={() =>
-                            toggleUserStatus(user.id, !user.is_active, user.email || '')
+                            toggleUserStatus(user.id, !user.is_active, user.email || '').then(() => refetchLogs())
                           }
                           onDelete={() => {
                             setUserToDelete(user);
