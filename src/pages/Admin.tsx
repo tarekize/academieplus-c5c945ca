@@ -72,7 +72,7 @@ const getPrimaryRole = (user: AdminUser): string => {
 export default function Admin() {
   const navigate = useNavigate();
   const { users, stats, loading, toggleUserStatus, deleteUser, refetch } = useAdminUsers();
-  const { logs, loading: logsLoading } = useActivityLogs(100);
+  const { logs, loading: logsLoading, refetch: refetchLogs } = useActivityLogs(100);
 
   const [searchQueryPedagos, setSearchQueryPedagos] = useState("");
   const [searchQueryParents, setSearchQueryParents] = useState("");
