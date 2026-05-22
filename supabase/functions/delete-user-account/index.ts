@@ -78,6 +78,19 @@ serve(async (req) => {
       });
     }
 
+    // Fetch readable info BEFORE deletion
+    const [{ data: targetProfile }, { data: adminProfile }] = await Promise.all([
+      adminClient.from("profiles").select("email, first_name, last_name").eq("id", targetUserId).maybeSingle(),
+      adminClient.from("profiles").select("email, first_name, last_name").eq("id", userData.user.id).maybeSingle(),
+    ]);
+
+    const fullName = (p: any) =>
+      p ? [p.first_name, p.last_name].filter(Boolean).join(" ").trim() || null : null;
+
+    const targetEmail = targetProfile?.email ?? null;
+    const targetName = fullName(targetProfile);
+    const adminName = fullName(adminProfile) ?? (userData.user.email ?? "Admin");
+
     const { error: deleteAuthError } = await adminClient.auth.admin.deleteUser(targetUserId);
     if (deleteAuthError) {
       throw deleteAuthError;
@@ -110,9 +123,10 @@ serve(async (req) => {
       user_id: userData.user.id,
       action: "user_deleted",
       details: {
-        deleted_user_id: targetUserId,
-        deleted_by: userData.user.id,
-        deleted_by_email: userData.user.email ?? null,
+        admin_name: adminName,
+        admin_email: userData.user.email ?? null,
+        target_user_email: targetEmail,
+        target_user_name: targetName,
         self_delete: userData.user.id === targetUserId,
       },
     });
