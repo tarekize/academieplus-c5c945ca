@@ -79,15 +79,16 @@ serve(async (req) => {
     }
 
     // Fetch readable info BEFORE deletion
-    const [{ data: targetProfile }, { data: adminProfile }] = await Promise.all([
+    const [{ data: targetProfile }, { data: adminProfile }, { data: targetAuth }] = await Promise.all([
       adminClient.from("profiles").select("email, first_name, last_name").eq("id", targetUserId).maybeSingle(),
       adminClient.from("profiles").select("email, first_name, last_name").eq("id", userData.user.id).maybeSingle(),
+      adminClient.auth.admin.getUserById(targetUserId),
     ]);
 
     const fullName = (p: any) =>
       p ? [p.first_name, p.last_name].filter(Boolean).join(" ").trim() || null : null;
 
-    const targetEmail = targetProfile?.email ?? null;
+    const targetEmail = targetProfile?.email ?? targetAuth?.user?.email ?? null;
     const targetName = fullName(targetProfile);
     const adminName = fullName(adminProfile) ?? (userData.user.email ?? "Admin");
 
