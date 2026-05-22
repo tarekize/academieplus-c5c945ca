@@ -105,6 +105,21 @@ serve(async (req) => {
       }
     }
 
+    // Log the deletion action under the admin/actor user
+    const { error: logError } = await adminClient.from("activity_logs").insert({
+      user_id: userData.user.id,
+      action: "user_deleted",
+      details: {
+        deleted_user_id: targetUserId,
+        deleted_by: userData.user.id,
+        deleted_by_email: userData.user.email ?? null,
+        self_delete: userData.user.id === targetUserId,
+      },
+    });
+    if (logError) {
+      console.error("Failed to log user_deleted activity:", logError);
+    }
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
