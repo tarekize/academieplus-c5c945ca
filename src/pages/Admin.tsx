@@ -311,20 +311,32 @@ export default function Admin() {
                 ) : (
                   <div className="divide-y">
                     {logs.slice(0, 5).map((log) => {
-                      const d: any = log.details || {};
+                      const d: any = {};
+                      try {
+                        const parsed = typeof log.details === 'string' ? JSON.parse(log.details) : log.details;
+                        Object.assign(d, parsed || {});
+                      } catch (e) {
+                        console.warn("Could not parse log details", e);
+                      }
                       const actorName = d.admin_name
                         || (log.user ? [log.user.first_name, log.user.last_name].filter(Boolean).join(" ") || log.user.email : null)
                         || "Système";
 
                       let actionLine: string = log.action;
                       if (log.action === "user_deleted") {
-                        const target = d.target_user_name || d.target_user_email || "un utilisateur";
+                        const targetEmail = d.target_user_email || d.target_email || d.email;
+                        const targetName = d.target_user_name || d.target_name || d.name;
+                        const target = targetName || targetEmail || "un utilisateur";
                         actionLine = `${actorName} a supprimé ${target}`;
                       } else if (log.action === "user_activated") {
-                        const target = d.target_user_email || "un utilisateur";
+                        const targetEmail = d.target_user_email || d.target_email || d.email;
+                        const targetName = d.target_user_name || d.target_name || d.name;
+                        const target = targetName || targetEmail || "un utilisateur";
                         actionLine = `${actorName} a activé ${target}`;
                       } else if (log.action === "user_deactivated") {
-                        const target = d.target_user_email || "un utilisateur";
+                        const targetEmail = d.target_user_email || d.target_email || d.email;
+                        const targetName = d.target_user_name || d.target_name || d.name;
+                        const target = targetName || targetEmail || "un utilisateur";
                         actionLine = `${actorName} a désactivé ${target}`;
                       }
 
@@ -584,7 +596,13 @@ export default function Admin() {
                 ) : (
                   <div className="space-y-3">
                     {logs.map((log) => {
-                      const d: any = log.details || {};
+                      const d: any = {};
+                      try {
+                        const parsed = typeof log.details === 'string' ? JSON.parse(log.details) : log.details;
+                        Object.assign(d, parsed || {});
+                      } catch (e) {
+                        console.warn("Could not parse log details", e);
+                      }
                       const actorName = d.admin_name
                         || (log.user ? [log.user.first_name, log.user.last_name].filter(Boolean).join(" ") || log.user.email : null)
                         || "Admin Système";
@@ -594,21 +612,27 @@ export default function Admin() {
 
                       if (log.action === "user_deleted") {
                         actionText = "Suppression d'un compte utilisateur";
-                        const target = d.target_user_name && d.target_user_email
-                          ? `${d.target_user_name} (${d.target_user_email})`
-                          : d.target_user_email || d.target_user_name;
+                        const targetEmail = d.target_user_email || d.target_email || d.email;
+                        const targetName = d.target_user_name || d.target_name || d.name;
+                        const target = targetName && targetEmail
+                          ? `${targetName} (${targetEmail})`
+                          : targetEmail || targetName;
                         detailsText = target
                           ? `${actorName} a supprimé ${target}`
                           : `${actorName} a supprimé un utilisateur`;
                       } else if (log.action === "user_activated") {
                         actionText = "Activation d'un compte utilisateur";
-                        const target = d.target_user_email || d.target_user_name;
+                        const targetEmail = d.target_user_email || d.target_email || d.email;
+                        const targetName = d.target_user_name || d.target_name || d.name;
+                        const target = targetName && targetEmail ? `${targetName} (${targetEmail})` : targetEmail || targetName;
                         detailsText = target
                           ? `${actorName} a activé ${target}`
                           : `${actorName} a activé un utilisateur`;
                       } else if (log.action === "user_deactivated") {
                         actionText = "Désactivation d'un compte utilisateur";
-                        const target = d.target_user_email || d.target_user_name;
+                        const targetEmail = d.target_user_email || d.target_email || d.email;
+                        const targetName = d.target_user_name || d.target_name || d.name;
+                        const target = targetName && targetEmail ? `${targetName} (${targetEmail})` : targetEmail || targetName;
                         detailsText = target
                           ? `${actorName} a désactivé ${target}`
                           : `${actorName} a désactivé un utilisateur`;
