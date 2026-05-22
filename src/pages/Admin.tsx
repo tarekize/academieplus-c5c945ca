@@ -311,9 +311,23 @@ export default function Admin() {
                 ) : (
                   <div className="divide-y">
                     {logs.slice(0, 5).map((log) => {
-                      const userName = log.user
-                        ? [log.user.first_name, log.user.last_name].filter(Boolean).join(" ") || log.user.email
-                        : "Système";
+                      const d: any = log.details || {};
+                      const actorName = d.admin_name
+                        || (log.user ? [log.user.first_name, log.user.last_name].filter(Boolean).join(" ") || log.user.email : null)
+                        || "Système";
+
+                      let actionLine: string = log.action;
+                      if (log.action === "user_deleted") {
+                        const target = d.target_user_name || d.target_user_email || "un utilisateur";
+                        actionLine = `${actorName} a supprimé ${target}`;
+                      } else if (log.action === "user_activated") {
+                        const target = d.target_user_email || "un utilisateur";
+                        actionLine = `${actorName} a activé ${target}`;
+                      } else if (log.action === "user_deactivated") {
+                        const target = d.target_user_email || "un utilisateur";
+                        actionLine = `${actorName} a désactivé ${target}`;
+                      }
+
                       return (
                         <div
                           key={log.id}
@@ -323,9 +337,9 @@ export default function Admin() {
                             <Activity className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{log.action}</p>
+                            <p className="font-medium truncate">{actionLine}</p>
                             <p className="text-sm text-muted-foreground truncate">
-                              Par {userName}
+                              Par {actorName}
                             </p>
                           </div>
                           <span className="text-sm text-muted-foreground whitespace-nowrap">
