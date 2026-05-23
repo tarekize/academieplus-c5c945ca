@@ -1052,28 +1052,29 @@ const Cours = () => {
                 {chatBotNode}
               </div>
             ) : (
-              <Rnd
-                size={chatSize}
-                position={chatPos}
-                onDragStop={(e, d) => setChatPos({ x: d.x, y: d.y })}
-                onResizeStop={(e, direction, ref, delta, position) => {
-                  setChatSize({
-                    width: parseInt(ref.style.width, 10),
-                    height: parseInt(ref.style.height, 10)
-                  });
-                  setChatPos(position);
-                }}
-                minWidth={320}
-                minHeight={400}
-                bounds="window"
-                dragHandleClassName="chatbot-drag-handle"
-                className="z-50 !fixed"
-                style={{ position: 'fixed' }}
-              >
-                <div className="w-full h-full shadow-2xl rounded-2xl overflow-hidden bg-background">
-                  {chatBotNode}
-                </div>
-              </Rnd>
+              <div className="fixed inset-0 pointer-events-none z-50">
+                <Rnd
+                  size={chatSize}
+                  position={chatPos}
+                  onDragStop={(e, d) => setChatPos({ x: d.x, y: d.y })}
+                  onResizeStop={(e, direction, ref, delta, position) => {
+                    setChatSize({
+                      width: parseInt(ref.style.width, 10),
+                      height: parseInt(ref.style.height, 10)
+                    });
+                    setChatPos(position);
+                  }}
+                  minWidth={320}
+                  minHeight={400}
+                  bounds="parent"
+                  dragHandleClassName="chatbot-drag-handle"
+                  className="pointer-events-auto"
+                >
+                  <div className="w-full h-full shadow-2xl rounded-2xl overflow-hidden bg-background">
+                    {chatBotNode}
+                  </div>
+                </Rnd>
+              </div>
             );
           })()}
         </>
