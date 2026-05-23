@@ -467,7 +467,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
           {/* Usage banner for free users */}
           {showLimitBanner && (
             <div className="border-b bg-muted/30 px-4 py-2.5">
-              <div className="flex items-center justify-between gap-3 max-w-3xl mx-auto">
+              <div className={`flex items-center justify-between gap-3 mx-auto ${isExpanded ? 'max-w-4xl' : 'max-w-3xl'}`}>
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 text-xs">
                     <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
@@ -486,7 +486,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                 </div>
               </div>
               {/* Progress bars */}
-              <div className="flex gap-4 mt-1.5 max-w-3xl mx-auto">
+              <div className={`flex gap-4 mt-1.5 mx-auto ${isExpanded ? 'max-w-4xl' : 'max-w-3xl'}`}>
                 <Progress
                   value={(messagesRemaining / FREE_MESSAGE_LIMIT) * 100}
                   className="h-1 flex-1"
@@ -500,7 +500,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
           )}
 
           <ScrollArea className="flex-1 p-5">
-            <div className="space-y-6 max-w-xl mx-auto">
+            <div className={`space-y-6 mx-auto ${isExpanded ? 'max-w-4xl' : 'max-w-xl'}`}>
               {messages.length === 0 ? (
                 <div className="text-center py-14 flex flex-col items-center justify-center">
                   <div className="flex items-center justify-center w-20 h-20 rounded-[1.25rem] bg-gradient-to-br from-[#0A2551] to-blue-600 text-white shadow-[0_10px_25px_rgba(10,37,81,0.25)] mb-6 ring-4 ring-white dark:ring-slate-900 border border-[#0A2551]/20">
@@ -549,7 +549,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
           {/* Blocked overlay when limits reached */}
           {isBlocked && (
             <div className="border-t bg-gradient-to-r from-destructive/5 to-amber-500/5 p-4">
-              <div className="max-w-3xl mx-auto text-center space-y-3">
+              <div className={`mx-auto text-center space-y-3 ${isExpanded ? 'max-w-4xl' : 'max-w-3xl'}`}>
                 <div className="flex items-center justify-center gap-2 text-destructive">
                   <Lock className="h-5 w-5" />
                   <span className="font-semibold">Limite quotidienne atteinte</span>
@@ -571,7 +571,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
           {/* Input area - hidden when blocked */}
           {!isBlocked && (
             <div className="border-t border-[#0A2551]/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl p-4 shrink-0 shadow-[0_-10px_40px_-20px_rgba(10,37,81,0.15)] relative z-10 rounded-b-[1.05rem]">
-              <div className="max-w-xl mx-auto space-y-3">
+              <div className={`mx-auto space-y-3 ${isExpanded ? 'max-w-4xl' : 'max-w-xl'}`}>
                 {uploadedFiles.length > 0 && (
                   <div className="flex flex-wrap gap-2 px-1">
                     {uploadedFiles.map((file, index) => (
