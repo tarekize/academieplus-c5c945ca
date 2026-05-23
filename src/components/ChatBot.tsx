@@ -422,7 +422,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
       {!showHistory && (
         <>
           {/* Header */}
-          <div className="border-b border-[#0A2551]/10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-5 py-4 shrink-0 shadow-sm">
+          <div className="chatbot-drag-handle border-b border-[#0A2551]/10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-5 py-4 shrink-0 shadow-sm cursor-grab active:cursor-grabbing">
             <div className="flex items-center justify-between">
               <div className="flex flex-col min-w-0 flex-1">
                 <h2 className="text-xl font-bold text-[#0A2551] dark:text-blue-400 truncate flex items-center gap-2">
@@ -464,215 +464,215 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
             </div>
           </div>
 
-      {/* Usage banner for free users */}
-      {showLimitBanner && (
-        <div className="border-b bg-muted/30 px-4 py-2.5">
-          <div className="flex items-center justify-between gap-3 max-w-3xl mx-auto">
-            <div className="flex items-center gap-4 flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 text-xs">
-                <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-muted-foreground">Messages:</span>
-                <span className={`font-semibold ${messagesRemaining === 0 ? 'text-destructive' : 'text-foreground'}`}>
-                  {messagesRemaining}/{FREE_MESSAGE_LIMIT}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs">
-                <Image className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-muted-foreground">Images:</span>
-                <span className={`font-semibold ${imagesRemaining === 0 ? 'text-destructive' : 'text-foreground'}`}>
-                  {imagesRemaining}/{FREE_IMAGE_LIMIT}
-                </span>
-              </div>
-            </div>
-          </div>
-          {/* Progress bars */}
-          <div className="flex gap-4 mt-1.5 max-w-3xl mx-auto">
-            <Progress
-              value={(messagesRemaining / FREE_MESSAGE_LIMIT) * 100}
-              className="h-1 flex-1"
-            />
-            <Progress
-              value={(imagesRemaining / FREE_IMAGE_LIMIT) * 100}
-              className="h-1 w-20"
-            />
-          </div>
-        </div>
-      )}
-
-      <ScrollArea className="flex-1 p-5">
-        <div className="space-y-6 max-w-xl mx-auto">
-          {messages.length === 0 ? (
-            <div className="text-center py-14 flex flex-col items-center justify-center">
-              <div className="flex items-center justify-center w-20 h-20 rounded-[1.25rem] bg-gradient-to-br from-[#0A2551] to-blue-600 text-white shadow-[0_10px_25px_rgba(10,37,81,0.25)] mb-6 ring-4 ring-white dark:ring-slate-900 border border-[#0A2551]/20">
-                <Bot strokeWidth={1.5} className="w-10 h-10 drop-shadow-md" />
-              </div>
-              <h3 className="text-[1.35rem] font-bold text-[#0A2551] dark:text-blue-300 leading-tight mb-3">
-                Bienvenue dans votre classe virtuelle&nbsp;!
-              </h3>
-              <p className="text-[0.95rem] text-slate-600 dark:text-slate-400 font-medium leading-relaxed max-w-[320px]">
-                Je suis votre professeur personnel de mathématiques, encadré par votre programme. Posez votre question{chapterContext?.title ? <> sur le chapitre <span className="font-semibold text-[#0A2551] dark:text-blue-300">«&nbsp;{chapterContext.title}&nbsp;»</span></> : ""} en français ou en arabe.
-              </p>
-              <div className="mt-5 grid grid-cols-2 gap-2 max-w-[320px] text-[0.7rem] text-slate-500 dark:text-slate-400">
-                <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5">📖 <span>Définition</span></div>
-                <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5">💡 <span>Exemple</span></div>
-                <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5">🔄 <span>Reformulation</span></div>
-                <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5">✏️ <span>Exercice</span></div>
-              </div>
-              {!hasSubscription && !limitsLoading && (
-                <div className="mt-8 flex items-center gap-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 px-5 py-2.5 rounded-full text-xs font-semibold shadow-sm">
-                  <Crown className="h-4 w-4 text-amber-500" />
-                  <span>Version Gratuite : {FREE_MESSAGE_LIMIT} msgs &amp; {FREE_IMAGE_LIMIT} img / jour</span>
+          {/* Usage banner for free users */}
+          {showLimitBanner && (
+            <div className="border-b bg-muted/30 px-4 py-2.5">
+              <div className="flex items-center justify-between gap-3 max-w-3xl mx-auto">
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-muted-foreground">Messages:</span>
+                    <span className={`font-semibold ${messagesRemaining === 0 ? 'text-destructive' : 'text-foreground'}`}>
+                      {messagesRemaining}/{FREE_MESSAGE_LIMIT}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <Image className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-muted-foreground">Images:</span>
+                    <span className={`font-semibold ${imagesRemaining === 0 ? 'text-destructive' : 'text-foreground'}`}>
+                      {imagesRemaining}/{FREE_IMAGE_LIMIT}
+                    </span>
+                  </div>
                 </div>
-              )}
-            </div>
-          ) : (
-            <>
-              {messages.map((message, index) => (
-                <ChatMessage
-                  key={index}
-                  role={message.role}
-                  content={
-                    typeof message.content === "string"
-                      ? message.content
-                      : message.content.find((c) => c.type === "text")?.text || ""
-                  }
-                  isStreaming={isLoading && index === messages.length - 1 && message.role === "assistant"}
-                  onNavigate={onNavigate}
+              </div>
+              {/* Progress bars */}
+              <div className="flex gap-4 mt-1.5 max-w-3xl mx-auto">
+                <Progress
+                  value={(messagesRemaining / FREE_MESSAGE_LIMIT) * 100}
+                  className="h-1 flex-1"
                 />
-              ))}
-            </>
+                <Progress
+                  value={(imagesRemaining / FREE_IMAGE_LIMIT) * 100}
+                  className="h-1 w-20"
+                />
+              </div>
+            </div>
           )}
-          <div ref={messagesEndRef} />
-        </div>
-      </ScrollArea>
 
-      {/* Blocked overlay when limits reached */}
-      {isBlocked && (
-        <div className="border-t bg-gradient-to-r from-destructive/5 to-amber-500/5 p-4">
-          <div className="max-w-3xl mx-auto text-center space-y-3">
-            <div className="flex items-center justify-center gap-2 text-destructive">
-              <Lock className="h-5 w-5" />
-              <span className="font-semibold">Limite quotidienne atteinte</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Vous avez utilisé tous vos messages gratuits pour aujourd'hui. Abonnez-vous pour profiter d'un accès illimité au chatbot et aux images.
-            </p>
-            <Button
-              className="gap-2"
-              onClick={() => navigate('/abonnements')}
-            >
-              <Crown className="h-4 w-4" />
-              Débloquer l'accès illimité
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Input area - hidden when blocked */}
-      {!isBlocked && (
-        <div className="border-t border-[#0A2551]/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl p-4 shrink-0 shadow-[0_-10px_40px_-20px_rgba(10,37,81,0.15)] relative z-10 rounded-b-[1.05rem]">
-          <div className="max-w-xl mx-auto space-y-3">
-            {uploadedFiles.length > 0 && (
-              <div className="flex flex-wrap gap-2 px-1">
-                {uploadedFiles.map((file, index) => (
-                  <div key={index} className="flex items-center gap-2 bg-[#0A2551]/5 border border-[#0A2551]/10 px-3 py-1.5 rounded-[0.85rem] text-[0.8rem] font-medium text-[#0A2551] dark:text-blue-200">
-                    <span className="truncate max-w-[160px]">{file.name}</span>
-                    <button
-                      onClick={() => removeFile(index)}
-                      className="hover:text-red-500 transition-colors p-0.5 rounded-full hover:bg-white"
-                      disabled={isLoading}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
+          <ScrollArea className="flex-1 p-5">
+            <div className="space-y-6 max-w-xl mx-auto">
+              {messages.length === 0 ? (
+                <div className="text-center py-14 flex flex-col items-center justify-center">
+                  <div className="flex items-center justify-center w-20 h-20 rounded-[1.25rem] bg-gradient-to-br from-[#0A2551] to-blue-600 text-white shadow-[0_10px_25px_rgba(10,37,81,0.25)] mb-6 ring-4 ring-white dark:ring-slate-900 border border-[#0A2551]/20">
+                    <Bot strokeWidth={1.5} className="w-10 h-10 drop-shadow-md" />
                   </div>
-                ))}
-              </div>
-            )}
-            <form onSubmit={handleSubmit} className="flex gap-2.5 items-end relative">
-              <div className="flex flex-1 flex-col justify-end bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl transition-all focus-within:ring-2 focus-within:ring-[#0A2551]/20 focus-within:border-[#0A2551]/40 shadow-sm relative pt-1">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  disabled={isLoading}
-                />
-
-                <Input
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder={`Posez votre question...`}
-                  disabled={isLoading || isRecording}
-                  className={`flex-1 border-0 ring-0 focus-visible:ring-0 bg-transparent min-h-[48px] px-4 font-medium text-[0.95rem] shadow-none placeholder:text-slate-400 ${isRecording ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`}
-                />
-
-                <div className="flex items-center justify-between px-2 pb-2 mt-0.5">
-                  <div className="flex items-center gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isLoading || isRecording || (!canSendImage && !hasSubscription)}
-                      title={!canSendImage && !hasSubscription ? "Limite d'images atteinte" : "Joindre un fichier"}
-                      className="w-10 h-10 rounded-xl text-slate-500 hover:text-[#0A2551] hover:bg-slate-200/50"
-                    >
-                      <Paperclip strokeWidth={1.5} className="h-5 w-5" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setVoiceLang(voiceLang === 'fr-FR' ? 'ar-SA' : 'fr-FR')}
-                      disabled={isLoading || isRecording}
-                      className="w-10 h-10 rounded-xl text-slate-500 hover:text-[#0A2551] hover:bg-slate-200/50 text-xs font-bold font-mono tracking-tight"
-                      title={voiceLang === 'fr-FR' ? 'Français' : 'العربية'}
-                    >
-                      {voiceLang === 'fr-FR' ? 'FR' : 'AR'}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={isRecording ? stopRecording : startRecording}
-                      disabled={isLoading}
-                      className={`w-10 h-10 rounded-xl relative hover:bg-slate-200/50 ${isRecording ? 'text-red-500 hover:text-red-600 bg-red-50' : 'text-slate-500 hover:text-[#0A2551]'}`}
-                    >
-                      {isRecording ? <MicOff strokeWidth={1.5} className="h-5 w-5" /> : <Mic strokeWidth={1.5} className="h-5 w-5" />}
-
-                      {isRecording && (
-                        <div className="absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-red-50/90 dark:bg-red-900/90 backdrop-blur-sm border border-red-200 dark:border-red-800 px-4 py-2.5 rounded-full shadow-lg">
-                          {[...Array(5)].map((_, i) => (
-                            <div
-                              key={i}
-                              className="w-1 bg-red-500 rounded-full animate-pulse"
-                              style={{
-                                height: `${10 + Math.random() * 12}px`,
-                                animationDelay: `${i * 0.15}s`,
-                                animationDuration: `${0.4 + Math.random() * 0.4}s`
-                              }}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </Button>
+                  <h3 className="text-[1.35rem] font-bold text-[#0A2551] dark:text-blue-300 leading-tight mb-3">
+                    Bienvenue dans votre classe virtuelle&nbsp;!
+                  </h3>
+                  <p className="text-[0.95rem] text-slate-600 dark:text-slate-400 font-medium leading-relaxed max-w-[320px]">
+                    Je suis votre professeur personnel de mathématiques, encadré par votre programme. Posez votre question{chapterContext?.title ? <> sur le chapitre <span className="font-semibold text-[#0A2551] dark:text-blue-300">«&nbsp;{chapterContext.title}&nbsp;»</span></> : ""} en français ou en arabe.
+                  </p>
+                  <div className="mt-5 grid grid-cols-2 gap-2 max-w-[320px] text-[0.7rem] text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5">📖 <span>Définition</span></div>
+                    <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5">💡 <span>Exemple</span></div>
+                    <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5">🔄 <span>Reformulation</span></div>
+                    <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5">✏️ <span>Exercice</span></div>
                   </div>
+                  {!hasSubscription && !limitsLoading && (
+                    <div className="mt-8 flex items-center gap-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 px-5 py-2.5 rounded-full text-xs font-semibold shadow-sm">
+                      <Crown className="h-4 w-4 text-amber-500" />
+                      <span>Version Gratuite : {FREE_MESSAGE_LIMIT} msgs &amp; {FREE_IMAGE_LIMIT} img / jour</span>
+                    </div>
+                  )}
                 </div>
-              </div>
+              ) : (
+                <>
+                  {messages.map((message, index) => (
+                    <ChatMessage
+                      key={index}
+                      role={message.role}
+                      content={
+                        typeof message.content === "string"
+                          ? message.content
+                          : message.content.find((c) => c.type === "text")?.text || ""
+                      }
+                      isStreaming={isLoading && index === messages.length - 1 && message.role === "assistant"}
+                      onNavigate={onNavigate}
+                    />
+                  ))}
+                </>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
 
-              <Button
-                type="submit"
-                disabled={isLoading || isRecording || (!inputValue.trim() && uploadedFiles.length === 0)}
-                className="w-12 h-12 flex-shrink-0 rounded-[0.9rem] bg-[#0A2551] hover:bg-[#0A2551]/90 text-white shadow-[0_5px_15px_rgba(10,37,81,0.25)] flex items-center justify-center p-0 transition-transform active:scale-95 disabled:hover:scale-100 disabled:opacity-50"
-              >
-                <Send strokeWidth={2} className="h-5 w-5 -ml-0.5" />
-              </Button>
-            </form>
-          </div>
-        </div>
-      )}
+          {/* Blocked overlay when limits reached */}
+          {isBlocked && (
+            <div className="border-t bg-gradient-to-r from-destructive/5 to-amber-500/5 p-4">
+              <div className="max-w-3xl mx-auto text-center space-y-3">
+                <div className="flex items-center justify-center gap-2 text-destructive">
+                  <Lock className="h-5 w-5" />
+                  <span className="font-semibold">Limite quotidienne atteinte</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Vous avez utilisé tous vos messages gratuits pour aujourd'hui. Abonnez-vous pour profiter d'un accès illimité au chatbot et aux images.
+                </p>
+                <Button
+                  className="gap-2"
+                  onClick={() => navigate('/abonnements')}
+                >
+                  <Crown className="h-4 w-4" />
+                  Débloquer l'accès illimité
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Input area - hidden when blocked */}
+          {!isBlocked && (
+            <div className="border-t border-[#0A2551]/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl p-4 shrink-0 shadow-[0_-10px_40px_-20px_rgba(10,37,81,0.15)] relative z-10 rounded-b-[1.05rem]">
+              <div className="max-w-xl mx-auto space-y-3">
+                {uploadedFiles.length > 0 && (
+                  <div className="flex flex-wrap gap-2 px-1">
+                    {uploadedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center gap-2 bg-[#0A2551]/5 border border-[#0A2551]/10 px-3 py-1.5 rounded-[0.85rem] text-[0.8rem] font-medium text-[#0A2551] dark:text-blue-200">
+                        <span className="truncate max-w-[160px]">{file.name}</span>
+                        <button
+                          onClick={() => removeFile(index)}
+                          className="hover:text-red-500 transition-colors p-0.5 rounded-full hover:bg-white"
+                          disabled={isLoading}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <form onSubmit={handleSubmit} className="flex gap-2.5 items-end relative">
+                  <div className="flex flex-1 flex-col justify-end bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl transition-all focus-within:ring-2 focus-within:ring-[#0A2551]/20 focus-within:border-[#0A2551]/40 shadow-sm relative pt-1">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      disabled={isLoading}
+                    />
+
+                    <Input
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder={`Posez votre question...`}
+                      disabled={isLoading || isRecording}
+                      className={`flex-1 border-0 ring-0 focus-visible:ring-0 bg-transparent min-h-[48px] px-4 font-medium text-[0.95rem] shadow-none placeholder:text-slate-400 ${isRecording ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`}
+                    />
+
+                    <div className="flex items-center justify-between px-2 pb-2 mt-0.5">
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isLoading || isRecording || (!canSendImage && !hasSubscription)}
+                          title={!canSendImage && !hasSubscription ? "Limite d'images atteinte" : "Joindre un fichier"}
+                          className="w-10 h-10 rounded-xl text-slate-500 hover:text-[#0A2551] hover:bg-slate-200/50"
+                        >
+                          <Paperclip strokeWidth={1.5} className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setVoiceLang(voiceLang === 'fr-FR' ? 'ar-SA' : 'fr-FR')}
+                          disabled={isLoading || isRecording}
+                          className="w-10 h-10 rounded-xl text-slate-500 hover:text-[#0A2551] hover:bg-slate-200/50 text-xs font-bold font-mono tracking-tight"
+                          title={voiceLang === 'fr-FR' ? 'Français' : 'العربية'}
+                        >
+                          {voiceLang === 'fr-FR' ? 'FR' : 'AR'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={isRecording ? stopRecording : startRecording}
+                          disabled={isLoading}
+                          className={`w-10 h-10 rounded-xl relative hover:bg-slate-200/50 ${isRecording ? 'text-red-500 hover:text-red-600 bg-red-50' : 'text-slate-500 hover:text-[#0A2551]'}`}
+                        >
+                          {isRecording ? <MicOff strokeWidth={1.5} className="h-5 w-5" /> : <Mic strokeWidth={1.5} className="h-5 w-5" />}
+
+                          {isRecording && (
+                            <div className="absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-red-50/90 dark:bg-red-900/90 backdrop-blur-sm border border-red-200 dark:border-red-800 px-4 py-2.5 rounded-full shadow-lg">
+                              {[...Array(5)].map((_, i) => (
+                                <div
+                                  key={i}
+                                  className="w-1 bg-red-500 rounded-full animate-pulse"
+                                  style={{
+                                    height: `${10 + Math.random() * 12}px`,
+                                    animationDelay: `${i * 0.15}s`,
+                                    animationDuration: `${0.4 + Math.random() * 0.4}s`
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isLoading || isRecording || (!inputValue.trim() && uploadedFiles.length === 0)}
+                    className="w-12 h-12 flex-shrink-0 rounded-[0.9rem] bg-[#0A2551] hover:bg-[#0A2551]/90 text-white shadow-[0_5px_15px_rgba(10,37,81,0.25)] flex items-center justify-center p-0 transition-transform active:scale-95 disabled:hover:scale-100 disabled:opacity-50"
+                  >
+                    <Send strokeWidth={2} className="h-5 w-5 -ml-0.5" />
+                  </Button>
+                </form>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

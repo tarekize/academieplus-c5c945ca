@@ -182,7 +182,39 @@ IMPORTANT: Tout le contenu doit être en ARABE sauf les formules mathématiques.
   return { system, user };
 }
 
-// ============ Provider 1: Google Gemini (non-streaming) ============
+// ============ Provider 1: Lovable AI ============
+async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<string> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.95,
+      max_tokens: 4096,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("Lovable AI error:", response.status, errText);
+    throw new Error(`Lovable AI failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data?.choices?.[0]?.message?.content || "";
+}
+
+// ============ Provider 2: Google Gemini (Key 1) ============
 async function callGemini(systemPrompt: string, userPrompt: string): Promise<string> {
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
   if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
@@ -200,76 +232,38 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<str
 
   if (!response.ok) {
     const errText = await response.text();
-    console.error("Gemini error:", response.status, errText);
-    throw new Error(`Gemini failed: ${response.status}`);
+    console.error("Gemini 1 error:", response.status, errText);
+    throw new Error(`Gemini 1 failed: ${response.status}`);
   }
 
   const data = await response.json();
   return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }
 
-// ============ Provider 2: Groq (non-streaming) ============
-async function callGroq(systemPrompt: string, userPrompt: string): Promise<string> {
-  const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
-  if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY not configured");
+// ============ Provider 3: Google Gemini (Key 2) ============
+async function callGemini2(systemPrompt: string, userPrompt: string): Promise<string> {
+  const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
+  if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
 
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${GROQ_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.7,
-      max_tokens: 4096,
-    }),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("Groq error:", response.status, errText);
-    throw new Error(`Groq failed: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data?.choices?.[0]?.message?.content || "";
-}
-
-// ============ Provider 3: Cloudflare Workers AI (non-streaming) ============
-async function callCloudflare(systemPrompt: string, userPrompt: string): Promise<string> {
-  const CF_API_KEY = Deno.env.get("CLOUDFLARE_AI_API_KEY");
-  const CF_ACCOUNT_ID = Deno.env.get("CLOUDFLARE_ACCOUNT_ID");
-  if (!CF_API_KEY) throw new Error("CLOUDFLARE_AI_API_KEY not configured");
-  if (!CF_ACCOUNT_ID) throw new Error("CLOUDFLARE_ACCOUNT_ID not configured");
-
-  const url = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.1-8b-instruct`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY_2}`;
   const response = await fetch(url, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${CF_API_KEY}`,
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
+      system_instruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      generationConfig: { temperature: 0.95, topP: 0.95, maxOutputTokens: 4096 },
     }),
   });
 
   if (!response.ok) {
     const errText = await response.text();
-    console.error("Cloudflare error:", response.status, errText);
-    throw new Error(`Cloudflare failed: ${response.status}`);
+    console.error("Gemini 2 error:", response.status, errText);
+    throw new Error(`Gemini 2 failed: ${response.status}`);
   }
 
   const data = await response.json();
-  return data?.result?.response || "";
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }
 
 serve(async (req) => {
@@ -323,26 +317,23 @@ serve(async (req) => {
 
     let rawContent = "";
 
-    // Provider 1: Gemini
     try {
-      console.log("Trying Gemini for content generation...");
-      rawContent = await callGemini(system, user);
+      console.log("Trying Lovable AI for content generation...");
+      rawContent = await callLovableAI(system, user);
     } catch (e) {
-      console.error("Gemini failed, trying Groq...", e);
-      // Provider 2: Groq
+      console.error("Lovable AI failed, trying Gemini (Key 1)...", e);
       try {
-        console.log("Trying Groq...");
-        rawContent = await callGroq(system, user);
+        console.log("Trying Gemini (Key 1)...");
+        rawContent = await callGemini(system, user);
       } catch (e2) {
-        console.error("Groq failed, trying Cloudflare...", e2);
-        // Provider 3: Cloudflare
+        console.error("Gemini (Key 1) failed, trying Gemini (Key 2)...", e2);
         try {
-          console.log("Trying Cloudflare...");
-          rawContent = await callCloudflare(system, user);
+          console.log("Trying Gemini (Key 2)...");
+          rawContent = await callGemini2(system, user);
         } catch (e3) {
           console.error("All providers failed:", e3);
           return new Response(
-            JSON.stringify({ error: "Tous les services IA sont actuellement indisponibles. Veuillez réessayer plus tard." }),
+            JSON.stringify({ error: "Tous les services IA sont actuellement indisponibles. Veuillez rÃ©essayer plus tard." }),
             { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }

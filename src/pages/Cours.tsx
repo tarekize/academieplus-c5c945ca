@@ -16,6 +16,8 @@ import ChatBot from "@/components/ChatBot";
 import ITSRecommendations from "@/components/its/ITSRecommendations";
 import { ChapterFormDialog, DeleteChapterButton, LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
 import { useToast } from "@/hooks/use-toast";
+import { Rnd } from 'react-rnd';
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -82,6 +84,20 @@ const Cours = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isChatExpanded, setIsChatExpanded] = useState(false);
+  const [chatSize, setChatSize] = useState({ width: 400, height: typeof window !== 'undefined' ? window.innerHeight - 120 : 600 });
+  const [chatPos, setChatPos] = useState({ x: typeof window !== 'undefined' ? window.innerWidth - 420 : 0, y: 80 });
+
+  useEffect(() => {
+    if (isChatExpanded) {
+      setChatSize(prev => ({ ...prev, width: 800 }));
+      setChatPos(prev => ({ ...prev, x: Math.max(0, typeof window !== 'undefined' ? window.innerWidth - 820 : 0) }));
+    } else {
+      setChatSize(prev => ({ ...prev, width: 400 }));
+      setChatPos(prev => ({ ...prev, x: Math.max(0, typeof window !== 'undefined' ? window.innerWidth - 420 : 0) }));
+    }
+  }, [isChatExpanded]);
+
+  const isMobile = useIsMobile();
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; content: string; }[]>([]);
   const [chatChapterId, setChatChapterId] = useState<string | null>(null);
   const [activeActivity, setActiveActivity] = useState<string | null>(null);
@@ -984,9 +1000,8 @@ const Cours = () => {
           </button>
 
           {/* Chat Panel */}
-          {isChatOpen && (
-            <div className={`fixed top-16 lg:top-20 bottom-0 lg:bottom-4 right-0 lg:right-4 z-50 transition-all duration-300 ${isChatExpanded ? 'w-full lg:w-[800px]' : 'w-full lg:w-[400px]'
-              }`}>
+          {isChatOpen && (() => {
+            const chatBotNode = (
               <ChatBot
                 messages={chatMessages}
                 setMessages={setChatMessages}
@@ -1030,8 +1045,37 @@ const Cours = () => {
                   setSearchParams(newParams, { replace: true });
                 }}
               />
-            </div>
-          )}
+            );
+
+            return isMobile ? (
+              <div className="fixed top-16 bottom-0 right-0 z-50 w-full transition-all duration-300">
+                {chatBotNode}
+              </div>
+            ) : (
+              <Rnd
+                size={chatSize}
+                position={chatPos}
+                onDragStop={(e, d) => setChatPos({ x: d.x, y: d.y })}
+                onResizeStop={(e, direction, ref, delta, position) => {
+                  setChatSize({
+                    width: parseInt(ref.style.width, 10),
+                    height: parseInt(ref.style.height, 10)
+                  });
+                  setChatPos(position);
+                }}
+                minWidth={320}
+                minHeight={400}
+                bounds="window"
+                dragHandleClassName="chatbot-drag-handle"
+                className="z-50 !fixed"
+                style={{ position: 'fixed' }}
+              >
+                <div className="w-full h-full shadow-2xl rounded-2xl overflow-hidden bg-background">
+                  {chatBotNode}
+                </div>
+              </Rnd>
+            );
+          })()}
         </>
       )}
     </div>
