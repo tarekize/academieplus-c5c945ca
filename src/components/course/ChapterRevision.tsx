@@ -19,6 +19,8 @@ interface RevisionRow {
   created_at: string;
 }
 
+const CHAPTER_REVISION_CONTENT_TYPE = "revision";
+
 export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState<string>("");
@@ -39,7 +41,8 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
       .select("id, content, created_at")
       .eq("user_id", user.id)
       .eq("chapter_id", chapter.id)
-      .eq("content_type", "chapter_revision")
+      .eq("content_type", CHAPTER_REVISION_CONTENT_TYPE)
+      .is("lesson_id", null)
       .order("created_at", { ascending: false });
     if (error) {
       console.error(error);
@@ -98,13 +101,14 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
         user_id: user.id,
         chapter_id: chapter.id,
         lesson_id: null as any,
-        content_type: "chapter_revision",
+        content_type: CHAPTER_REVISION_CONTENT_TYPE,
         content: newContent as any,
         difficulty_level: 0,
       });
       if (dbError) {
         console.error("Error saving chapter revision to DB:", dbError);
         toast({ title: "تعذر حفظ بطاقة المراجعة", description: dbError.message, variant: "destructive" });
+        return;
       }
 
       await loadHistory();
