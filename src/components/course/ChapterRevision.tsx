@@ -9,13 +9,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ChapterRevisionProps {
-  chapter: any;
+  chapter: {
+    id: string;
+    title: string;
+    lessons?: ChapterLesson[];
+  };
   onBack: () => void;
+}
+
+interface ChapterLesson {
+  title?: string;
+  titleAr?: string;
+  content?: string | null;
 }
 
 interface RevisionRow {
   id: string;
-  content: any;
+  content: unknown;
   created_at: string;
 }
 
@@ -24,13 +34,19 @@ const CHAPTER_REVISION_CONTENT_TYPE = "revision";
 export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState<string>("");
-  const [provider, setProvider] = useState<string>("");
   const [isInitializing, setIsInitializing] = useState(true);
   const [history, setHistory] = useState<RevisionRow[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState<RevisionRow | null>(null);
 
-  const normalize = (c: any) => (typeof c === "string" ? c : (c?.text ?? JSON.stringify(c)));
+  const normalize = (c: unknown) => {
+    if (typeof c === "string") return c;
+    if (c && typeof c === "object" && "text" in c) {
+      const text = (c as { text?: unknown }).text;
+      if (typeof text === "string") return text;
+    }
+    return JSON.stringify(c);
+  };
 
   const loadHistory = async () => {
     if (!chapter?.id) return [];
@@ -58,7 +74,6 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
         const rows = await loadHistory();
         if (rows.length > 0) {
           setContent(normalize(rows[0].content));
-          setProvider("محفوظة");
         }
       } finally {
         setIsInitializing(false);
@@ -82,7 +97,7 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
       const { data, error } = await supabase.functions.invoke("generate-chapter-revision", {
         body: {
           chapterTitle: chapter.title,
-          lessons: chapter.lessons.map((l: any) => ({
+          lessons: chapter.lessons.map((l) => ({
             title: l.title,
             titleAr: l.titleAr,
             content: l.content || "",
@@ -98,9 +113,9 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
       const { error: dbError } = await supabase.from("ai_generated_content").insert({
         user_id: user.id,
         chapter_id: chapter.id,
-        lesson_id: null as any,
+        lesson_id: null,
         content_type: CHAPTER_REVISION_CONTENT_TYPE,
-        content: newContent as any,
+        content: newContent,
         difficulty_level: 0,
       });
       if (dbError) {
@@ -110,13 +125,12 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
       }
 
       setContent(newContent);
-      setProvider(data.provider || "");
       await loadHistory();
 
       toast({ title: "✅ تم إنشاء بطاقة المراجعة" });
 
-    } catch (e: any) {
-      toast({ title: "خطأ في توليد بطاقة المراجعة", description: e?.message || "حاول مرة أخرى", variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "خطأ في توليد بطاقة المراجعة", description: e instanceof Error ? e.message : "حاول مرة أخرى", variant: "destructive" });
     } finally {
       setLoading(false);
     }
