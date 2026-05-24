@@ -137,12 +137,17 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
               <BookOpen className="h-5 w-5 text-green-500" />
               <span>بطاقة المراجعة - {chapter.title}</span>
             </div>
-            {history.length > 0 && (
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => setHistoryOpen(true)}>
-                <History className="h-4 w-4" />
-                السجل ({history.length})
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => setHistoryOpen(true)}
+              disabled={history.length === 0}
+            >
+              <History className="h-4 w-4" />
+              السجل {history.length > 0 ? `(${history.length})` : ""}
+            </Button>
+
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
