@@ -174,17 +174,13 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
 
           {content && !loading && (
             <>
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                {provider && (
-                  <span className="text-xs text-muted-foreground">
-                    ✨ <strong>{provider}</strong>
-                  </span>
-                )}
+              <div className="flex items-center justify-end gap-2 flex-wrap">
                 <Button onClick={generate} variant="outline" size="sm" className="gap-2">
                   <RefreshCw className="h-4 w-4" />
                   إعادة التوليد
                 </Button>
               </div>
+
               <div className="border rounded-lg p-4 bg-gradient-to-br from-green-500/5 to-transparent">
                 <MarkdownSolution content={content} />
               </div>
