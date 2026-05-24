@@ -102,11 +102,15 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
         content: newContent as any,
         difficulty_level: 0,
       });
-      if (dbError) console.error("Error saving chapter revision to DB:", dbError);
+      if (dbError) {
+        console.error("Error saving chapter revision to DB:", dbError);
+        toast({ title: "تعذر حفظ بطاقة المراجعة", description: dbError.message, variant: "destructive" });
+      }
 
       await loadHistory();
 
-      toast({ title: "✅ تم إنشاء بطاقة المراجعة", description: `بواسطة ${data.provider || "AI"}` });
+      toast({ title: "✅ تم إنشاء بطاقة المراجعة" });
+
     } catch (e: any) {
       toast({ title: "خطأ في توليد بطاقة المراجعة", description: e?.message || "حاول مرة أخرى", variant: "destructive" });
     } finally {
