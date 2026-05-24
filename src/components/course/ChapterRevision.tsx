@@ -102,11 +102,15 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
         content: newContent as any,
         difficulty_level: 0,
       });
-      if (dbError) console.error("Error saving chapter revision to DB:", dbError);
+      if (dbError) {
+        console.error("Error saving chapter revision to DB:", dbError);
+        toast({ title: "تعذر حفظ بطاقة المراجعة", description: dbError.message, variant: "destructive" });
+      }
 
       await loadHistory();
 
-      toast({ title: "✅ تم إنشاء بطاقة المراجعة", description: `بواسطة ${data.provider || "AI"}` });
+      toast({ title: "✅ تم إنشاء بطاقة المراجعة" });
+
     } catch (e: any) {
       toast({ title: "خطأ في توليد بطاقة المراجعة", description: e?.message || "حاول مرة أخرى", variant: "destructive" });
     } finally {
@@ -133,12 +137,17 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
               <BookOpen className="h-5 w-5 text-green-500" />
               <span>بطاقة المراجعة - {chapter.title}</span>
             </div>
-            {history.length > 0 && (
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => setHistoryOpen(true)}>
-                <History className="h-4 w-4" />
-                السجل ({history.length})
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => setHistoryOpen(true)}
+              disabled={history.length === 0}
+            >
+              <History className="h-4 w-4" />
+              السجل {history.length > 0 ? `(${history.length})` : ""}
+            </Button>
+
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -165,17 +174,13 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
 
           {content && !loading && (
             <>
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                {provider && (
-                  <span className="text-xs text-muted-foreground">
-                    ✨ <strong>{provider}</strong>
-                  </span>
-                )}
+              <div className="flex items-center justify-end gap-2 flex-wrap">
                 <Button onClick={generate} variant="outline" size="sm" className="gap-2">
                   <RefreshCw className="h-4 w-4" />
                   إعادة التوليد
                 </Button>
               </div>
+
               <div className="border rounded-lg p-4 bg-gradient-to-br from-green-500/5 to-transparent">
                 <MarkdownSolution content={content} />
               </div>
