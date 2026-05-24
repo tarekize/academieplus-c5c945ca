@@ -94,8 +94,6 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
       if (!data?.success) throw new Error(data?.error || "AI generation failed");
 
       const newContent = data.content;
-      setContent(newContent);
-      setProvider(data.provider || "");
 
       const { error: dbError } = await supabase.from("ai_generated_content").insert({
         user_id: user.id,
@@ -111,6 +109,8 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
         return;
       }
 
+      setContent(newContent);
+      setProvider(data.provider || "");
       await loadHistory();
 
       toast({ title: "✅ تم إنشاء بطاقة المراجعة" });
