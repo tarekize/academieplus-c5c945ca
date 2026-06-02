@@ -67,6 +67,17 @@ interface ChapterLessonProgress {
   totalLessons: number;
 }
 
+interface LessonCommentDialog {
+  lessonId: string;
+  chapterId: string | null;
+  lessonTitle: string;
+  chapterTitle: string | null;
+  message: string;
+  levelBefore: number;
+  levelAfter: number;
+  createdAt: string;
+}
+
 const SCHOOL_LEVELS: Record<string, string> = {
   "5eme_primaire": "5ème Primaire",
   "1ere_cem": "1ère CEM",
