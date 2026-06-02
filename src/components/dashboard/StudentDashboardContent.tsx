@@ -573,8 +573,12 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
   const selectedChapter = chapterStats.find((c) => c.chapterId === selectedChapterId) || chapterStats[0];
   const selectedChapterLessons = chapterLessonProgress.find((c) => c.chapterId === selectedChapter?.chapterId);
 
-  const lessonHasNotification = (lessonId: string, level: number | null) =>
-    lessonComments.has(lessonId) || (level !== null && level < 50);
+  const lessonHasNotification = (lessonId: string, level: number | null) => {
+    // Si une remédiation existe pour cette leçon, le clignotement dépend uniquement
+    // de sa résolution : il reste tant que toutes les réponses ne sont pas correctes.
+    if (remediationStatus.has(lessonId)) return !remediationStatus.get(lessonId);
+    return lessonComments.has(lessonId) || (level !== null && level < 50);
+  };
 
   const chapterHasNotification = (chapterId: string) => {
     const lp = chapterLessonProgress.find((c) => c.chapterId === chapterId);
