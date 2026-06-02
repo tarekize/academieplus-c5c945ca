@@ -215,6 +215,9 @@ Deno.serve(async (req) => {
       chapter_title,
       weak_concepts = [],
       seed,
+      mode,
+      kind,
+      target_concept,
     } = body;
 
     if (!school_level || !lesson_title || !chapter_title) {
@@ -228,14 +231,27 @@ Deno.serve(async (req) => {
       .filter(Boolean)
       .slice(0, 8);
 
-    const { system, user } = buildPrompt(
-      school_level,
-      typeof level === "number" ? level : 40,
-      lesson_title,
-      chapter_title,
-      weak,
-      typeof seed === "number" ? seed : Math.floor(Math.random() * 1_000_000),
-    );
+    const safeSeed = typeof seed === "number" ? seed : Math.floor(Math.random() * 1_000_000);
+    const safeLevel = typeof level === "number" ? level : 40;
+
+    const { system, user } = mode === "single"
+      ? buildSinglePrompt(
+          kind === "quiz" ? "quiz" : "exercise",
+          school_level,
+          safeLevel,
+          lesson_title,
+          chapter_title,
+          String(target_concept || weak[0] || "").trim(),
+          safeSeed,
+        )
+      : buildPrompt(
+          school_level,
+          safeLevel,
+          lesson_title,
+          chapter_title,
+          weak,
+          safeSeed,
+        );
 
     const geminiKey1 = Deno.env.get("GEMINI_API_KEY");
     const geminiKey2 = Deno.env.get("GEMINI_API_KEY_2");
