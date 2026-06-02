@@ -472,7 +472,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, subject, schoolLevel, chapterContext, allChapters, editorialMode, editorialContext } = await req.json();
+    const { messages, subject, schoolLevel, chapterContext, allChapters, editorialMode, editorialContext, hideReformulation } = await req.json();
 
     const systemPrompt = editorialMode
       ? `Tu es un assistant IA expert en édition de contenus pédagogiques mathématiques (français/arabe).
