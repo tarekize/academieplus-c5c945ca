@@ -292,9 +292,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    const mode = body?.mode === "single" ? "single" : "full";
-    const exercises = Array.isArray(parsed?.exercises) ? parsed.exercises.slice(0, mode === "single" ? 1 : 3) : [];
-    const quizzes = Array.isArray(parsed?.quizzes) ? parsed.quizzes.slice(0, mode === "single" ? 1 : 2) : [];
+    const isSingle = mode === "single";
+    const exercises = Array.isArray(parsed?.exercises) ? parsed.exercises.slice(0, isSingle ? 1 : 3) : [];
+    const quizzes = Array.isArray(parsed?.quizzes) ? parsed.quizzes.slice(0, isSingle ? 1 : 2) : [];
 
     return new Response(JSON.stringify({ exercises, quizzes }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
