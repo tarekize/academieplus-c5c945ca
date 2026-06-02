@@ -517,9 +517,28 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
       setLessonComments(map);
     };
     fetchLessonComments();
+
+    // État de remédiation : une leçon résolue n'affiche plus de clignotement.
+    const fetchRemediation = async () => {
+      const { data } = await supabase
+        .from("ai_generated_content")
+        .select("lesson_id, content, updated_at")
+        .eq("user_id", userId)
+        .eq("content_type", "remediation")
+        .order("updated_at", { ascending: false });
+      const map = new Map<string, boolean>();
+      (data || []).forEach((r: any) => {
+        if (!r.lesson_id || map.has(r.lesson_id)) return;
+        map.set(r.lesson_id, Boolean(r.content?.resolved));
+      });
+      setRemediationStatus(map);
+    };
+    fetchRemediation();
+
     const channel = supabase
       .channel("dashboard-lesson-comments")
       .on("postgres_changes", { event: "*", schema: "public", table: "ai_lesson_comments", filter: `user_id=eq.${userId}` }, () => fetchLessonComments())
+      .on("postgres_changes", { event: "*", schema: "public", table: "ai_generated_content", filter: `user_id=eq.${userId}` }, () => fetchRemediation())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [userId]);
