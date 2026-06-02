@@ -85,6 +85,7 @@ function latexToSymbols(input: string): string {
 
 export function TableOfContents({ htmlContent, className, title = "Table des matières", dir = "rtl" }: TableOfContentsProps) {
     const [items, setItems] = useState<TocItem[]>([]);
+    const [activeId, setActiveId] = useState<string>("");
 
     useEffect(() => {
         if (!htmlContent) {
@@ -145,6 +146,39 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
         return () => clearTimeout(timer);
     }, [htmlContent]);
 
+    // Scroll spy: highlight the heading the student is currently reading
+    useEffect(() => {
+        if (items.length === 0) return;
+
+        const elements = items
+            .map((item) => document.getElementById(item.id))
+            .filter((el): el is HTMLElement => Boolean(el));
+
+        if (elements.length === 0) return;
+
+        const computeActive = () => {
+            const offset = 120; // account for sticky header
+            let currentId = elements[0].id;
+            for (const el of elements) {
+                if (el.getBoundingClientRect().top - offset <= 0) {
+                    currentId = el.id;
+                } else {
+                    break;
+                }
+            }
+            setActiveId(currentId);
+        };
+
+        computeActive();
+        window.addEventListener("scroll", computeActive, { passive: true });
+        window.addEventListener("resize", computeActive);
+
+        return () => {
+            window.removeEventListener("scroll", computeActive);
+            window.removeEventListener("resize", computeActive);
+        };
+    }, [items]);
+
     const scrollToHeading = (id: string) => {
         const element = document.getElementById(id);
         if (element) {
@@ -175,22 +209,27 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
 
             {items.length > 0 ? (
                 <nav className="space-y-2">
-                    {items.map((item) => (
-                        <button
-                            key={item.id}
-                            onClick={() => scrollToHeading(item.id)}
-                            dir={dir}
-                            className={cn(
-                                "block w-full text-sm transition-all hover:translate-x-1 hover:text-primary active:scale-95",
-                                dir === "rtl" ? "text-right" : "text-left",
-                                item.level === 1 && "font-bold border-l-2 border-primary/20 pl-2",
-                                item.level === 2 && "font-medium opacity-90 pl-4",
-                                item.level === 3 && "text-xs opacity-75 pl-7 text-muted-foreground"
-                            )}
-                        >
-                            {item.text}
-                        </button>
-                    ))}
+                    {items.map((item) => {
+                        const isActive = activeId === item.id;
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => scrollToHeading(item.id)}
+                                dir={dir}
+                                aria-current={isActive ? "true" : undefined}
+                                className={cn(
+                                    "block w-full text-sm transition-all hover:translate-x-1 hover:text-primary active:scale-95",
+                                    dir === "rtl" ? "text-right" : "text-left",
+                                    item.level === 1 && "font-bold border-l-2 border-primary/20 pl-2",
+                                    item.level === 2 && "font-medium opacity-90 pl-4",
+                                    item.level === 3 && "text-xs opacity-75 pl-7 text-muted-foreground",
+                                    isActive && "!text-primary !font-bold !opacity-100 bg-primary/10 rounded-md border-primary"
+                                )}
+                            >
+                                {item.text}
+                            </button>
+                        );
+                    })}
                 </nav>
             ) : (
                 <p className={cn("text-xs text-muted-foreground italic leading-relaxed", dir === "rtl" ? "text-right" : "text-left")}>
