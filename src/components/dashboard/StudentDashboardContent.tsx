@@ -864,19 +864,32 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
                       <div key={lesson.lessonId} className="flex items-center gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 mb-1">
-                            <button
-                              type="button"
-                              onClick={() => navigate(`/cours/math?chapitre=${selectedChapter.chapterId}&lecon=${lesson.lessonId}`)}
-                              className="text-sm font-medium truncate hover:text-primary text-right flex items-center gap-1.5 min-w-0"
-                            >
+                            <div className="flex items-center gap-1.5 min-w-0">
                               {hasNotif && (
-                                <span className="relative flex h-2.5 w-2.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (parentView) {
+                                      openLessonComment(lesson, selectedChapter.chapterId, selectedChapter.chapterTitle);
+                                    } else {
+                                      navigate(`/remediation?lecon=${lesson.lessonId}&chapitre=${selectedChapter.chapterId}`);
+                                    }
+                                  }}
+                                  className="relative flex h-2.5 w-2.5 shrink-0"
+                                  title="معالجة الثغرات بتمارين موجّهة"
+                                >
                                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
                                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
-                                </span>
+                                </button>
                               )}
-                              <span className="truncate">{lesson.lessonTitleAr || lesson.lessonTitle}</span>
-                            </button>
+                              <button
+                                type="button"
+                                onClick={() => navigate(`/cours/math?chapitre=${selectedChapter.chapterId}&lecon=${lesson.lessonId}`)}
+                                className="text-sm font-medium truncate hover:text-primary text-right min-w-0"
+                              >
+                                <span className="truncate">{lesson.lessonTitleAr || lesson.lessonTitle}</span>
+                              </button>
+                            </div>
                             <span className={`text-xs font-bold shrink-0 ${info.color}`}>{level}%</span>
                           </div>
                           <div className="h-2.5 rounded-full bg-secondary overflow-hidden">
