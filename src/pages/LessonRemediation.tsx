@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
 import {
-  ArrowRight, Bot, CheckCircle2, XCircle, PenTool, Brain, RefreshCw, Target, Loader2, Lightbulb,
+  ArrowRight, Bot, CheckCircle2, XCircle, PenTool, Brain, Target, Loader2, Lightbulb, PartyPopper,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
@@ -74,6 +74,7 @@ export default function LessonRemediation() {
 
   const [userId, setUserId] = useState<string | null>(null);
   const [schoolLevel, setSchoolLevel] = useState<string | null>(null);
+  const [effChapterId, setEffChapterId] = useState<string>(chapterId);
   const [lessonTitle, setLessonTitle] = useState<string>("");
   const [chapterTitle, setChapterTitle] = useState<string>("");
   const [aiComment, setAiComment] = useState<string>("");
@@ -82,6 +83,7 @@ export default function LessonRemediation() {
 
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [resolved, setResolved] = useState(false);
   const [exercises, setExercises] = useState<RemediationExercise[]>([]);
   const [quizzes, setQuizzes] = useState<RemediationQuiz[]>([]);
 
@@ -90,8 +92,49 @@ export default function LessonRemediation() {
   const [exResults, setExResults] = useState<Record<number, boolean>>({});
   const [quizPicks, setQuizPicks] = useState<Record<number, string>>({});
   const [quizSubmitted, setQuizSubmitted] = useState<Record<number, boolean>>({});
+  const [regenEx, setRegenEx] = useState<Record<number, boolean>>({});
+  const [regenQuiz, setRegenQuiz] = useState<Record<number, boolean>>({});
 
-  const generate = useCallback(async (level: number, weak: string[], lTitle: string, cTitle: string, sLevel: string) => {
+  // Refs to avoid stale closures inside async handlers
+  const rowIdRef = useRef<string | null>(null);
+  const exercisesRef = useRef<RemediationExercise[]>([]);
+  const quizzesRef = useRef<RemediationQuiz[]>([]);
+  useEffect(() => { exercisesRef.current = exercises; }, [exercises]);
+  useEffect(() => { quizzesRef.current = quizzes; }, [quizzes]);
+
+  // Persiste l'état des activités (exercices/quiz/résolu) — une seule ligne par leçon.
+  const persist = useCallback(async (
+    exs: RemediationExercise[],
+    qzs: RemediationQuiz[],
+    res: boolean,
+    chapIdArg?: string,
+    uidArg?: string,
+  ) => {
+    const uid = uidArg || userId;
+    const chap = chapIdArg || effChapterId;
+    if (!uid || !chap || !lessonId) return;
+    const payload = { exercises: exs, quizzes: qzs, resolved: res };
+    if (rowIdRef.current) {
+      await supabase.from("ai_generated_content")
+        .update({ content: payload as any, updated_at: new Date().toISOString() })
+        .eq("id", rowIdRef.current);
+    } else {
+      const { data } = await supabase.from("ai_generated_content").insert({
+        user_id: uid,
+        chapter_id: chap,
+        lesson_id: lessonId,
+        content_type: "remediation",
+        content: payload as any,
+        difficulty_level: lessonLevel,
+      }).select("id").maybeSingle();
+      if (data?.id) rowIdRef.current = data.id;
+    }
+  }, [userId, effChapterId, lessonId, lessonLevel]);
+
+  // Génère le lot initial (3 exercices + 2 quiz) puis le persiste.
+  const generateAndSave = useCallback(async (
+    level: number, weak: string[], lTitle: string, cTitle: string, sLevel: string, chapId: string, uid: string,
+  ) => {
     setGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-remediation", {
@@ -105,12 +148,18 @@ export default function LessonRemediation() {
         },
       });
       if (error) throw error;
-      setExercises(Array.isArray(data?.exercises) ? data.exercises : []);
-      setQuizzes(Array.isArray(data?.quizzes) ? data.quizzes : []);
+      const exs = Array.isArray(data?.exercises) ? data.exercises : [];
+      const qzs = Array.isArray(data?.quizzes) ? data.quizzes : [];
+      setExercises(exs);
+      setQuizzes(qzs);
       setExAnswers({});
       setExResults({});
       setQuizPicks({});
       setQuizSubmitted({});
+      setResolved(false);
+      if (exs.length > 0 || qzs.length > 0) {
+        await persist(exs, qzs, false, chapId, uid);
+      }
     } catch (e) {
       console.error(e);
       toast({
@@ -121,11 +170,12 @@ export default function LessonRemediation() {
     } finally {
       setGenerating(false);
     }
-  }, [toast]);
+  }, [persist, toast]);
 
   useEffect(() => {
     const init = async () => {
       setLoading(true);
+      rowIdRef.current = null;
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate("/auth"); return; }
       const uid = session.user.id;
@@ -156,9 +206,10 @@ export default function LessonRemediation() {
       setLessonTitle(lTitle);
 
       let cTitle = (comment?.chapter_title || "") as string;
-      const effChapterId = chapterId || (lesson?.chapter_id as string) || "";
-      if (!cTitle && effChapterId) {
-        const { data: chap } = await supabase.from("chapters").select("title, title_ar").eq("id", effChapterId).maybeSingle();
+      const resolvedChapterId = chapterId || (lesson?.chapter_id as string) || "";
+      setEffChapterId(resolvedChapterId);
+      if (!cTitle && resolvedChapterId) {
+        const { data: chap } = await supabase.from("chapters").select("title, title_ar").eq("id", resolvedChapterId).maybeSingle();
         cTitle = (chap?.title_ar || chap?.title || "") as string;
       }
       setChapterTitle(cTitle);
@@ -175,20 +226,151 @@ export default function LessonRemediation() {
       const lvl = (score?.current_level ?? comment?.level_after ?? 40) as number;
       setLessonLevel(lvl);
 
-      setLoading(false);
-      await generate(lvl, weak, lTitle, cTitle, sLevel);
+      // Charger les activités déjà générées (pas de re-génération à chaque visite).
+      let existing: { id: string; content: any } | null = null;
+      if (lessonId) {
+        const { data } = await supabase.from("ai_generated_content")
+          .select("id, content")
+          .eq("user_id", uid)
+          .eq("content_type", "remediation")
+          .eq("lesson_id", lessonId)
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        existing = (data as any) || null;
+      }
+
+      const savedExs = Array.isArray(existing?.content?.exercises) ? existing!.content.exercises : [];
+      const savedQzs = Array.isArray(existing?.content?.quizzes) ? existing!.content.quizzes : [];
+
+      if (existing && (savedExs.length > 0 || savedQzs.length > 0)) {
+        rowIdRef.current = existing.id;
+        setExercises(savedExs);
+        setQuizzes(savedQzs);
+        setResolved(Boolean(existing.content?.resolved));
+        setLoading(false);
+      } else {
+        setLoading(false);
+        await generateAndSave(lvl, weak, lTitle, cTitle, sLevel, resolvedChapterId, uid);
+      }
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonId, chapterId]);
 
-  const checkExercise = (idx: number, ex: RemediationExercise) => {
+  // Quand toutes les questions sont correctes : marquer résolu + couper le clignotement.
+  const clearNotifications = useCallback(async () => {
+    if (!userId || !lessonId) return;
+    await supabase.from("student_notifications")
+      .update({ is_read: true })
+      .eq("user_id", userId)
+      .eq("lesson_id", lessonId);
+  }, [userId, lessonId]);
+
+  const maybeResolve = useCallback(async (
+    exRes: Record<number, boolean>,
+    qSub: Record<number, boolean>,
+    qPicks: Record<number, string>,
+    exs: RemediationExercise[],
+    qzs: RemediationQuiz[],
+  ) => {
+    const allEx = exs.length > 0 && exs.every((_, i) => exRes[i] === true);
+    const allQ = qzs.every((q, i) => qSub[i] && normalizeAnswer(qPicks[i] || "") === normalizeAnswer(q.correct_answer));
+    if (allEx && allQ) {
+      setResolved(true);
+      await persist(exs, qzs, true);
+      await clearNotifications();
+      toast({ title: "أحسنت! 🎉", description: "عالجت كل الثغرات بنجاح. تم إيقاف التنبيه." });
+    }
+  }, [persist, clearNotifications, toast]);
+
+  // Sur erreur d'un exercice : générer un exercice similaire (même lacune) à refaire.
+  const regenerateExercise = useCallback(async (idx: number, ex: RemediationExercise) => {
+    if (!schoolLevel) return;
+    setRegenEx((p) => ({ ...p, [idx]: true }));
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-remediation", {
+        body: {
+          mode: "single", kind: "exercise",
+          school_level: schoolLevel, level: lessonLevel,
+          lesson_title: lessonTitle, chapter_title: chapterTitle,
+          target_concept: ex.concept || weakConcepts[0] || "",
+          weak_concepts: weakConcepts,
+          seed: Math.floor(Math.random() * 1_000_000),
+        },
+      });
+      if (error) throw error;
+      const fresh = Array.isArray(data?.exercises) ? data.exercises[0] : null;
+      if (fresh) {
+        const newExs = exercisesRef.current.map((e, i) => (i === idx ? fresh : e));
+        setExercises(newExs);
+        setExAnswers((p) => ({ ...p, [idx]: "" }));
+        setExResults((p) => { const n = { ...p }; delete n[idx]; return n; });
+        await persist(newExs, quizzesRef.current, false);
+        toast({ title: "تمرين جديد مشابه", description: "حاول مرة أخرى على نفس الثغرة." });
+      }
+    } catch (e) {
+      console.error(e);
+      toast({ title: "تعذّر توليد تمرين جديد", description: "حاول التحقق مجدداً.", variant: "destructive" });
+    } finally {
+      setRegenEx((p) => ({ ...p, [idx]: false }));
+    }
+  }, [schoolLevel, lessonLevel, lessonTitle, chapterTitle, weakConcepts, persist, toast]);
+
+  // Sur erreur d'un quiz : générer un quiz similaire (même lacune) à refaire.
+  const regenerateQuiz = useCallback(async (idx: number, q: RemediationQuiz) => {
+    if (!schoolLevel) return;
+    setRegenQuiz((p) => ({ ...p, [idx]: true }));
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-remediation", {
+        body: {
+          mode: "single", kind: "quiz",
+          school_level: schoolLevel, level: lessonLevel,
+          lesson_title: lessonTitle, chapter_title: chapterTitle,
+          target_concept: q.concept || weakConcepts[0] || "",
+          weak_concepts: weakConcepts,
+          seed: Math.floor(Math.random() * 1_000_000),
+        },
+      });
+      if (error) throw error;
+      const fresh = Array.isArray(data?.quizzes) ? data.quizzes[0] : null;
+      if (fresh) {
+        const newQzs = quizzesRef.current.map((e, i) => (i === idx ? fresh : e));
+        setQuizzes(newQzs);
+        setQuizPicks((p) => { const n = { ...p }; delete n[idx]; return n; });
+        setQuizSubmitted((p) => { const n = { ...p }; delete n[idx]; return n; });
+        await persist(exercisesRef.current, newQzs, false);
+        toast({ title: "سؤال جديد مشابه", description: "حاول مرة أخرى على نفس الثغرة." });
+      }
+    } catch (e) {
+      console.error(e);
+      toast({ title: "تعذّر توليد سؤال جديد", description: "حاول التأكيد مجدداً.", variant: "destructive" });
+    } finally {
+      setRegenQuiz((p) => ({ ...p, [idx]: false }));
+    }
+  }, [schoolLevel, lessonLevel, lessonTitle, chapterTitle, weakConcepts, persist, toast]);
+
+  const checkExercise = async (idx: number, ex: RemediationExercise) => {
     const correct = isAnswerCorrect(exAnswers[idx] || "", ex);
-    setExResults((p) => ({ ...p, [idx]: correct }));
+    const newResults = { ...exResults, [idx]: correct };
+    setExResults(newResults);
+    if (correct) {
+      await maybeResolve(newResults, quizSubmitted, quizPicks, exercisesRef.current, quizzesRef.current);
+    } else {
+      await regenerateExercise(idx, ex);
+    }
   };
 
-  const submitQuiz = (idx: number) => {
-    setQuizSubmitted((p) => ({ ...p, [idx]: true }));
+  const submitQuiz = async (idx: number) => {
+    const q = quizzes[idx];
+    const correct = normalizeAnswer(quizPicks[idx] || "") === normalizeAnswer(q.correct_answer);
+    const newSub = { ...quizSubmitted, [idx]: true };
+    setQuizSubmitted(newSub);
+    if (correct) {
+      await maybeResolve(exResults, newSub, quizPicks, exercisesRef.current, quizzesRef.current);
+    } else {
+      await regenerateQuiz(idx, q);
+    }
   };
 
   const lacunesList = useMemo(() => {
@@ -217,15 +399,6 @@ export default function LessonRemediation() {
             <ArrowRight className="h-4 w-4 rtl:rotate-180" />
             رجوع
           </Button>
-          <Button
-            variant="outline" size="sm"
-            disabled={generating || !schoolLevel}
-            onClick={() => generate(lessonLevel, weakConcepts, lessonTitle, chapterTitle, schoolLevel!)}
-            className="gap-1"
-          >
-            <RefreshCw className={`h-4 w-4 ${generating ? "animate-spin" : ""}`} />
-            تمارين جديدة
-          </Button>
         </div>
 
         {/* Header */}
@@ -233,6 +406,13 @@ export default function LessonRemediation() {
           <h1 className="text-2xl font-bold">{lessonTitle}</h1>
           {chapterTitle && <p className="text-sm text-muted-foreground mt-1">{chapterTitle}</p>}
         </div>
+
+        {resolved && (
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 flex items-center gap-3 text-emerald-700">
+            <PartyPopper className="h-5 w-5 shrink-0" />
+            <p className="text-sm font-medium">أجبت عن كل التمارين والأسئلة بشكل صحيح. تم إيقاف التنبيه عن هذا الدرس.</p>
+          </div>
+        )}
 
         {/* AI comment */}
         <Card className="border-primary/20">
@@ -288,6 +468,7 @@ export default function LessonRemediation() {
               </h2>
               {exercises.map((ex, idx) => {
                 const result = exResults[idx];
+                const regen = regenEx[idx];
                 return (
                   <Card key={idx}>
                     <CardHeader className="pb-2">
@@ -323,13 +504,21 @@ export default function LessonRemediation() {
                           value={exAnswers[idx] || ""}
                           onChange={(e) => setExAnswers((p) => ({ ...p, [idx]: e.target.value }))}
                           className="flex-1"
+                          disabled={regen}
                         />
-                        <Button onClick={() => checkExercise(idx, ex)} disabled={!exAnswers[idx]}>
-                          تحقّق
+                        <Button onClick={() => checkExercise(idx, ex)} disabled={!exAnswers[idx] || regen}>
+                          {regen ? <Loader2 className="h-4 w-4 animate-spin" /> : "تحقّق"}
                         </Button>
                       </div>
 
-                      {result !== undefined && (
+                      {regen && (
+                        <div className="flex items-center gap-2 text-sm text-amber-600">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          إجابة غير صحيحة — يُولّد تمرين مشابه جديد…
+                        </div>
+                      )}
+
+                      {!regen && result !== undefined && (
                         <div className={`flex items-center gap-2 text-sm font-medium ${result ? "text-emerald-600" : "text-red-500"}`}>
                           {result ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
                           {result ? "إجابة صحيحة! 🎉" : `إجابة غير صحيحة. الجواب المنتظر: ${ex.expected_answer}`}
@@ -361,6 +550,8 @@ export default function LessonRemediation() {
               {quizzes.map((q, idx) => {
                 const submitted = quizSubmitted[idx];
                 const pick = quizPicks[idx];
+                const regen = regenQuiz[idx];
+                const pickCorrect = submitted && normalizeAnswer(pick || "") === normalizeAnswer(q.correct_answer);
                 return (
                   <Card key={idx}>
                     <CardHeader className="pb-2">
@@ -390,7 +581,7 @@ export default function LessonRemediation() {
                             <button
                               key={oi}
                               type="button"
-                              disabled={submitted}
+                              disabled={submitted || regen}
                               onClick={() => setQuizPicks((p) => ({ ...p, [idx]: opt }))}
                               className={`w-full text-right rounded-lg border px-3 py-2 text-sm transition-all flex items-center justify-between gap-2 ${cls}`}
                             >
@@ -402,14 +593,30 @@ export default function LessonRemediation() {
                         })}
                       </div>
 
-                      {!submitted ? (
+                      {regen && (
+                        <div className="flex items-center gap-2 text-sm text-amber-600">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          إجابة غير صحيحة — يُولّد سؤال مشابه جديد…
+                        </div>
+                      )}
+
+                      {!submitted && !regen ? (
                         <Button size="sm" onClick={() => submitQuiz(idx)} disabled={!pick}>تأكيد</Button>
                       ) : (
-                        q.explanation && (
-                          <div className="rounded-lg bg-muted/60 p-3 text-xs leading-relaxed">
-                            <p className="font-semibold mb-1">الشرح</p>
-                            <div className="prose prose-sm dark:prose-invert max-w-none"><MD>{q.explanation}</MD></div>
-                          </div>
+                        !regen && submitted && (
+                          <>
+                            {!pickCorrect && (
+                              <div className="flex items-center gap-2 text-sm font-medium text-red-500">
+                                <XCircle className="h-4 w-4" /> إجابة غير صحيحة.
+                              </div>
+                            )}
+                            {q.explanation && (
+                              <div className="rounded-lg bg-muted/60 p-3 text-xs leading-relaxed">
+                                <p className="font-semibold mb-1">الشرح</p>
+                                <div className="prose prose-sm dark:prose-invert max-w-none"><MD>{q.explanation}</MD></div>
+                              </div>
+                            )}
+                          </>
                         )
                       )}
                     </CardContent>
@@ -425,7 +632,7 @@ export default function LessonRemediation() {
             <CardContent className="py-10 text-center text-muted-foreground">
               <p className="mb-3">لم نتمكن من توليد تمارين الآن.</p>
               <Button
-                onClick={() => schoolLevel && generate(lessonLevel, weakConcepts, lessonTitle, chapterTitle, schoolLevel)}
+                onClick={() => schoolLevel && userId && generateAndSave(lessonLevel, weakConcepts, lessonTitle, chapterTitle, schoolLevel, effChapterId, userId)}
               >
                 إعادة المحاولة
               </Button>
