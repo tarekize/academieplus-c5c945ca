@@ -146,6 +146,39 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
         return () => clearTimeout(timer);
     }, [htmlContent]);
 
+    // Scroll spy: highlight the heading the student is currently reading
+    useEffect(() => {
+        if (items.length === 0) return;
+
+        const elements = items
+            .map((item) => document.getElementById(item.id))
+            .filter((el): el is HTMLElement => Boolean(el));
+
+        if (elements.length === 0) return;
+
+        const computeActive = () => {
+            const offset = 120; // account for sticky header
+            let currentId = elements[0].id;
+            for (const el of elements) {
+                if (el.getBoundingClientRect().top - offset <= 0) {
+                    currentId = el.id;
+                } else {
+                    break;
+                }
+            }
+            setActiveId(currentId);
+        };
+
+        computeActive();
+        window.addEventListener("scroll", computeActive, { passive: true });
+        window.addEventListener("resize", computeActive);
+
+        return () => {
+            window.removeEventListener("scroll", computeActive);
+            window.removeEventListener("resize", computeActive);
+        };
+    }, [items]);
+
     const scrollToHeading = (id: string) => {
         const element = document.getElementById(id);
         if (element) {
