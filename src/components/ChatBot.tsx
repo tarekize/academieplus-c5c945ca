@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 import ChatHistory from "./ChatHistory";
 import { useChatHistory } from "@/hooks/useChatHistory";
+import { shouldHideReform, incrementReformShown, markReformClicked, hasReformMarker } from "@/lib/reformulationPrefs";
 
 type MessageContent = {
   type: "text" | "image_url";
