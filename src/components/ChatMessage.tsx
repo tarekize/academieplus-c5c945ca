@@ -28,7 +28,9 @@ function parseBreadcrumbs(content: string): { cleanContent: string; breadcrumbs:
     });
   }
 
-  const cleanContent = content.replace(/\[\[BREADCRUMB:([^|]+)\|([^|]+)\|([^|]+)\|([^\]]+?)\]\]/g, "").trim();
+  let cleanContent = content.replace(/\[\[BREADCRUMB:([^|]+)\|([^|]+)\|([^|]+)\|([^\]]+?)\]\]/g, "").trim();
+  // Retire le marqueur technique d'évaluation [[EVAL:...]] (jamais visible pour l'élève).
+  cleanContent = cleanContent.replace(/\[\[EVAL:\s*[01]\s*\|\s*\d\s*\|\s*[^\]]*?\]\]/gi, "").trim();
   return { cleanContent, breadcrumbs };
 }
 

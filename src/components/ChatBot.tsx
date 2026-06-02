@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import ChatHistory from "./ChatHistory";
 import { useChatHistory } from "@/hooks/useChatHistory";
 import { shouldHideReform, incrementReformShown, markReformClicked, hasReformMarker } from "@/lib/reformulationPrefs";
+import { extractEval, recordChatExerciseAnswer } from "@/lib/chatEvalTracker";
 
 type MessageContent = {
   type: "text" | "image_url";
@@ -262,6 +263,18 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
       // Comptabilise l'affichage de la "Reformulation simplifiée" pour ce chapitre.
       if (hasReformMarker(assistantMessage)) {
         incrementReformShown(chapterId);
+      }
+
+      // Connecte le chatbot au moteur de niveau : si l'IA a évalué une réponse
+      // de l'élève à un exercice, alimente le calcul de niveau + les lacunes.
+      const { evalData } = extractEval(assistantMessage);
+      if (evalData && chapterId && session?.user?.id) {
+        recordChatExerciseAnswer({
+          userId: session.user.id,
+          chapterId,
+          chapterTitle: chapterContext?.title,
+          evalData,
+        }).catch((e) => console.warn("recordChatExerciseAnswer failed:", e));
       }
     } catch (error: any) {
       console.error("Error sending message:", error);
