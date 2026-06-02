@@ -827,7 +827,8 @@ Aucun blabla, pas de texte "Voici le cours...", AUCUNE balise de code \`\`\`html
         subject || "mathématiques",
         schoolLevel,
         chapterContext,
-        allChapters
+        allChapters,
+        !!hideReformulation
       );
 
     // Version compacte du prompt pour les providers à petit contexte (Groq ~12k TPM, Cloudflare ~8k tokens)
