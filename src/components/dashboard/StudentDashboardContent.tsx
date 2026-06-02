@@ -457,6 +457,40 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
     };
   });
 
+  const selectedChapter = chapterStats.find((c) => c.chapterId === selectedChapterId) || chapterStats[0];
+  const selectedChapterLessons = chapterLessonProgress.find((c) => c.chapterId === selectedChapter?.chapterId);
+
+  const lessonHasNotification = (lessonId: string, level: number | null) =>
+    lessonComments.has(lessonId) || (level !== null && level < 50);
+
+  const chapterHasNotification = (chapterId: string) => {
+    const lp = chapterLessonProgress.find((c) => c.chapterId === chapterId);
+    if (!lp) return false;
+    return lp.lessons.some((l) => lessonHasNotification(l.lessonId, l.level));
+  };
+
+  const openLessonComment = (lesson: LessonProgress, chapterId: string | null, chapterTitle: string | null) => {
+    const existing = lessonComments.get(lesson.lessonId);
+    if (existing) {
+      setSelectedLessonComment(existing);
+      return;
+    }
+    setSelectedLessonComment({
+      lessonId: lesson.lessonId,
+      chapterId,
+      lessonTitle: lesson.lessonTitleAr || lesson.lessonTitle,
+      chapterTitle,
+      message: buildLessonLacunaMessage(lesson.lessonTitleAr || lesson.lessonTitle, lesson.level ?? 0),
+      levelBefore: lesson.level ?? 0,
+      levelAfter: lesson.level ?? 0,
+      createdAt: new Date().toISOString(),
+    });
+  };
+
+  const chapterSuggestion = selectedChapter
+    ? buildChapterSuggestion(selectedChapter.chapterTitle, selectedChapterLessons?.lessons || [])
+    : "";
+
   return (
     <div className="space-y-6" dir="rtl">
       {/* Hero Header */}
