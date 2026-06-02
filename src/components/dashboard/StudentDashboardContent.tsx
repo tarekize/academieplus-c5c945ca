@@ -430,6 +430,47 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
     return () => { supabase.removeChannel(channel); };
   }, [userId, fetchScores]);
 
+  // Auto-select first chapter
+  useEffect(() => {
+    if (!selectedChapterId && chapterStats.length > 0) {
+      setSelectedChapterId(chapterStats[0].chapterId);
+    }
+  }, [chapterStats, selectedChapterId]);
+
+  // Fetch AI lesson comments (for blinking notifications + dialog)
+  useEffect(() => {
+    const fetchLessonComments = async () => {
+      const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data } = await supabase
+        .from("ai_lesson_comments")
+        .select("lesson_id, chapter_id, lesson_title, chapter_title, message, level_before, level_after, created_at")
+        .eq("user_id", userId)
+        .gte("created_at", cutoff)
+        .order("created_at", { ascending: false });
+      const map = new Map<string, LessonCommentDialog>();
+      (data || []).forEach((c: any) => {
+        if (!c.lesson_id || map.has(c.lesson_id)) return;
+        map.set(c.lesson_id, {
+          lessonId: c.lesson_id,
+          chapterId: c.chapter_id,
+          lessonTitle: c.lesson_title || "درس",
+          chapterTitle: c.chapter_title,
+          message: c.message,
+          levelBefore: c.level_before ?? 0,
+          levelAfter: c.level_after ?? 0,
+          createdAt: c.created_at,
+        });
+      });
+      setLessonComments(map);
+    };
+    fetchLessonComments();
+    const channel = supabase
+      .channel("dashboard-lesson-comments")
+      .on("postgres_changes", { event: "*", schema: "public", table: "ai_lesson_comments", filter: `user_id=eq.${userId}` }, () => fetchLessonComments())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [userId]);
+
   const successRate = totalAnswers > 0 ? Math.round((totalCorrect / totalAnswers) * 100) : 0;
   const errorRate = totalAnswers > 0 ? 100 - successRate : 0;
   const totalErrors = totalAnswers - totalCorrect;
