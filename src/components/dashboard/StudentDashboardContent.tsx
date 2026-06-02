@@ -103,6 +103,37 @@ function getLevelInfo(accuracy: number) {
   return { label: "يحتاج تحسين", color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/20", ring: "hsl(0, 70%, 55%)" };
 }
 
+function buildLessonLacunaMessage(lessonTitle: string, level: number) {
+  return `📌 يبدو أن لديك بعض النقص في درس **"${lessonTitle}"** (المستوى الحالي ${level}/100).
+
+### 🎯 نصيحة سريعة
+- راجع القاعدة الأساسية للدرس قبل حل التمارين.
+- ركّز على فهم الطريقة خطوة بخطوة وليس حفظ الجواب.
+- أعد حل تمرين بسيط ثم انتقل إلى تمرين أصعب.
+
+اضغط على **"اذهب إلى الدرس"** للمراجعة الآن.`;
+}
+
+function buildChapterSuggestion(chapterTitle: string, lessons: LessonProgress[]) {
+  if (lessons.length === 0) {
+    return `لا توجد بيانات كافية بعد عن فصل "${chapterTitle}". ابدأ بدراسة الدروس للحصول على تحليل.`;
+  }
+  const leveled = lessons.filter((l) => l.level !== null);
+  if (leveled.length === 0) {
+    return `لم تبدأ بعد بحل التمارين في فصل "${chapterTitle}". ابدأ الآن لقياس مستواك.`;
+  }
+  const avg = Math.round(leveled.reduce((s, l) => s + (l.level || 0), 0) / leveled.length);
+  const weak = lessons.filter((l) => l.level !== null && (l.level as number) < 50);
+  if (weak.length > 0) {
+    const names = weak.slice(0, 3).map((l) => l.lessonTitleAr || l.lessonTitle).join("، ");
+    return `مستواك في فصل "${chapterTitle}" هو ${avg}/100. ننصحك بالتركيز على الدروس التي تحتاج دعماً: ${names}. راجع القواعد وأعد حل التمارين خطوة بخطوة.`;
+  }
+  if (avg >= 80) {
+    return `أداء ممتاز في فصل "${chapterTitle}" بمستوى ${avg}/100! 🎉 أنت جاهز للانتقال إلى أنشطة أصعب أو فصل جديد.`;
+  }
+  return `أداء جيد في فصل "${chapterTitle}" بمستوى ${avg}/100. واصل التدريب للوصول إلى مستوى متقدم.`;
+}
+
 const REFRESH_INTERVAL = 30000; // 30s auto-refresh
 
 const makeUniqueChapterKey = (chapter: { title?: string | null; title_ar?: string | null; order_index?: number | null }) =>
