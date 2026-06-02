@@ -23,7 +23,7 @@ import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
-import AICommentsCard from "./AICommentsCard";
+
 
 interface StudentDashboardContentProps {
   userId: string;
@@ -792,7 +792,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
               </CardContent>
             </Card>
           )}
-          {!parentView && <AICommentsCard userId={userId} />}
+          
         </div>
       </div>
 
