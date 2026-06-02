@@ -109,6 +109,9 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
   const [chapterLessonProgress, setChapterLessonProgress] = useState<ChapterLessonProgress[]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
+  const [lessonComments, setLessonComments] = useState<Map<string, LessonCommentDialog>>(new Map());
+  const [selectedLessonComment, setSelectedLessonComment] = useState<LessonCommentDialog | null>(null);
 
   const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Utilisateur";
 
