@@ -16,6 +16,7 @@ function buildSystemPrompt(
   schoolLevel: string | null,
   chapterContext: { title: string; lessonsContent: string } | null,
   allChapters: { id: string; title: string; lessons: { id: string; title: string }[] }[] | null,
+  hideReformulation = false,
   maxPromptSize = 6000
 ): string {
   const chaptersListStr = allChapters && allChapters.length > 0
