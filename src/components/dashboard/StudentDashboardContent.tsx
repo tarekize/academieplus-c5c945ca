@@ -886,11 +886,21 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
                         {hasNotif && (
                           <button
                             type="button"
-                            onClick={() => openLessonComment(lesson, selectedChapter.chapterId, selectedChapter.chapterTitle)}
-                            className="shrink-0 h-8 w-8 rounded-full bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center transition-colors"
-                            title="عرض تعليق الذكاء الاصطناعي"
+                            onClick={() => {
+                              if (parentView) {
+                                openLessonComment(lesson, selectedChapter.chapterId, selectedChapter.chapterTitle);
+                              } else {
+                                navigate(`/remediation?lecon=${lesson.lessonId}&chapitre=${selectedChapter.chapterId}`);
+                              }
+                            }}
+                            className="shrink-0 h-8 w-8 rounded-full bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center transition-colors relative"
+                            title="معالجة الثغرات بتمارين موجّهة"
                           >
                             <Bell className="h-4 w-4 text-red-500" />
+                            <span className="absolute -top-0.5 -left-0.5 flex h-2.5 w-2.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+                            </span>
                           </button>
                         )}
                       </div>
