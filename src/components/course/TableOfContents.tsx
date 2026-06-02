@@ -150,31 +150,39 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
     useEffect(() => {
         if (items.length === 0) return;
 
-        const elements = items
-            .map((item) => document.getElementById(item.id))
-            .filter((el): el is HTMLElement => Boolean(el));
-
-        if (elements.length === 0) return;
+        let frame = 0;
 
         const computeActive = () => {
-            const offset = 120; // account for sticky header
-            let currentId = elements[0].id;
-            for (const el of elements) {
-                if (el.getBoundingClientRect().top - offset <= 0) {
-                    currentId = el.id;
-                } else {
-                    break;
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => {
+                const elements = items
+                    .map((item) => document.getElementById(item.id))
+                    .filter((el): el is HTMLElement => Boolean(el));
+
+                if (elements.length === 0) return;
+
+                const offset = 140; // account for sticky header
+                let currentId = elements[0].id;
+                for (const el of elements) {
+                    if (el.getBoundingClientRect().top - offset <= 0) {
+                        currentId = el.id;
+                    } else {
+                        break;
+                    }
                 }
-            }
-            setActiveId(currentId);
+                setActiveId(currentId);
+            });
         };
 
         computeActive();
-        window.addEventListener("scroll", computeActive, { passive: true });
+        // Use capture phase so we also catch scrolling that happens inside
+        // an inner scroll container (scroll events don't bubble).
+        window.addEventListener("scroll", computeActive, { passive: true, capture: true });
         window.addEventListener("resize", computeActive);
 
         return () => {
-            window.removeEventListener("scroll", computeActive);
+            cancelAnimationFrame(frame);
+            window.removeEventListener("scroll", computeActive, { capture: true } as EventListenerOptions);
             window.removeEventListener("resize", computeActive);
         };
     }, [items]);
@@ -218,12 +226,12 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
                                 dir={dir}
                                 aria-current={isActive ? "true" : undefined}
                                 className={cn(
-                                    "block w-full text-sm transition-all hover:translate-x-1 hover:text-primary active:scale-95",
+                                    "block w-full text-sm transition-all hover:translate-x-1 hover:text-primary active:scale-95 px-2 py-1.5 rounded-md",
                                     dir === "rtl" ? "text-right" : "text-left",
                                     item.level === 1 && "font-bold border-l-2 border-primary/20 pl-2",
                                     item.level === 2 && "font-medium opacity-90 pl-4",
                                     item.level === 3 && "text-xs opacity-75 pl-7 text-muted-foreground",
-                                    isActive && "!text-primary !font-bold !opacity-100 bg-primary/10 rounded-md border-primary"
+                                    isActive && "!text-primary !font-extrabold !opacity-100 bg-primary/15 underline underline-offset-4 decoration-2 shadow-sm"
                                 )}
                             >
                                 {item.text}
