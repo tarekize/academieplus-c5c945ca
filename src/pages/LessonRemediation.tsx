@@ -66,9 +66,8 @@ function normalizeAnswer(s: string) {
     .replace(/,/g, ".")
     .trim();
 
-  // Normalise le signe : "+infinity" et "infinity" deviennent identiques
+  // Normalise le signe : "infinity" sans signe devient "+infinity"
   if (v === "infinity") v = "+infinity";
-  if (v === "-infinity" || v === "-infinity") v = "-infinity";
 
   return v;
 }
