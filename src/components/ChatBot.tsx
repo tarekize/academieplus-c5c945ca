@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 import ChatHistory from "./ChatHistory";
 import { useChatHistory } from "@/hooks/useChatHistory";
+import { shouldHideReform, incrementReformShown, markReformClicked, hasReformMarker } from "@/lib/reformulationPrefs";
 
 type MessageContent = {
   type: "text" | "image_url";
@@ -210,6 +211,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
           schoolLevel: schoolLevel,
           chapterContext: chapterContext,
           allChapters: allChapters,
+          hideReformulation: shouldHideReform(chapterId),
         }),
       });
 
@@ -255,6 +257,11 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
 
       if (buffer.includes("[DONE]")) {
         console.log("Stream completed");
+      }
+
+      // Comptabilise l'affichage de la "Reformulation simplifiée" pour ce chapitre.
+      if (hasReformMarker(assistantMessage)) {
+        incrementReformShown(chapterId);
       }
     } catch (error: any) {
       console.error("Error sending message:", error);
@@ -538,6 +545,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                       }
                       isStreaming={isLoading && index === messages.length - 1 && message.role === "assistant"}
                       onNavigate={onNavigate}
+                      onReformulationClick={() => markReformClicked(chapterId)}
                     />
                   ))}
                 </>
