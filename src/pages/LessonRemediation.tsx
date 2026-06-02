@@ -46,13 +46,31 @@ const MD = ({ children }: { children: string }) => (
 );
 
 function normalizeAnswer(s: string) {
-  return (s || "")
+  let v = (s || "")
     .replace(/\$/g, "")
-    .replace(/\\[a-zA-Z]+/g, (m) => m.slice(1)) // strip latex command backslashes
-    .replace(/[{}\s]/g, "")
-    .replace(/,/g, ".")
     .toLowerCase()
     .trim();
+
+  // Canonicalise les représentations de l'infini (∞, \infty, infty, inf, infinity)
+  v = v
+    .replace(/∞/g, "infinity")
+    .replace(/\\infty/g, "infinity")
+    .replace(/\binfty\b/g, "infinity")
+    .replace(/\binf\b/g, "infinity");
+
+  // Retire les commandes LaTeX restantes (\to, \frac, ...) en gardant leur nom
+  v = v.replace(/\\[a-zA-Z]+/g, (m) => m.slice(1));
+
+  v = v
+    .replace(/[{}\s]/g, "")
+    .replace(/,/g, ".")
+    .trim();
+
+  // Normalise le signe : "+infinity" et "infinity" deviennent identiques
+  if (v === "infinity") v = "+infinity";
+  if (v === "-infinity" || v === "-infinity") v = "-infinity";
+
+  return v;
 }
 
 function isAnswerCorrect(userAnswer: string, exercise: RemediationExercise) {
