@@ -150,31 +150,39 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
     useEffect(() => {
         if (items.length === 0) return;
 
-        const elements = items
-            .map((item) => document.getElementById(item.id))
-            .filter((el): el is HTMLElement => Boolean(el));
-
-        if (elements.length === 0) return;
+        let frame = 0;
 
         const computeActive = () => {
-            const offset = 120; // account for sticky header
-            let currentId = elements[0].id;
-            for (const el of elements) {
-                if (el.getBoundingClientRect().top - offset <= 0) {
-                    currentId = el.id;
-                } else {
-                    break;
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => {
+                const elements = items
+                    .map((item) => document.getElementById(item.id))
+                    .filter((el): el is HTMLElement => Boolean(el));
+
+                if (elements.length === 0) return;
+
+                const offset = 140; // account for sticky header
+                let currentId = elements[0].id;
+                for (const el of elements) {
+                    if (el.getBoundingClientRect().top - offset <= 0) {
+                        currentId = el.id;
+                    } else {
+                        break;
+                    }
                 }
-            }
-            setActiveId(currentId);
+                setActiveId(currentId);
+            });
         };
 
         computeActive();
-        window.addEventListener("scroll", computeActive, { passive: true });
+        // Use capture phase so we also catch scrolling that happens inside
+        // an inner scroll container (scroll events don't bubble).
+        window.addEventListener("scroll", computeActive, { passive: true, capture: true });
         window.addEventListener("resize", computeActive);
 
         return () => {
-            window.removeEventListener("scroll", computeActive);
+            cancelAnimationFrame(frame);
+            window.removeEventListener("scroll", computeActive, { capture: true } as EventListenerOptions);
             window.removeEventListener("resize", computeActive);
         };
     }, [items]);
