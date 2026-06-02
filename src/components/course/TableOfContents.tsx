@@ -85,6 +85,7 @@ function latexToSymbols(input: string): string {
 
 export function TableOfContents({ htmlContent, className, title = "Table des matières", dir = "rtl" }: TableOfContentsProps) {
     const [items, setItems] = useState<TocItem[]>([]);
+    const [activeId, setActiveId] = useState<string>("");
 
     useEffect(() => {
         if (!htmlContent) {
