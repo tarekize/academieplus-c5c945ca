@@ -160,6 +160,8 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
   const [lessonComments, setLessonComments] = useState<Map<string, LessonCommentDialog>>(new Map());
   const [selectedLessonComment, setSelectedLessonComment] = useState<LessonCommentDialog | null>(null);
+  // État de remédiation par leçon : true = résolu (toutes réponses correctes) → arrête le clignotement.
+  const [remediationStatus, setRemediationStatus] = useState<Map<string, boolean>>(new Map());
 
   const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Utilisateur";
 
