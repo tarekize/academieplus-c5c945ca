@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
-import { Bot, User, ChevronRight } from "lucide-react";
+import { Bot, ChevronRight, RefreshCw, ChevronDown } from "lucide-react";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -31,11 +32,42 @@ function parseBreadcrumbs(content: string): { cleanContent: string; breadcrumbs:
   return { cleanContent, breadcrumbs };
 }
 
+// Sépare la section "Reformulation simplifiée" du reste de la réponse.
+// La section débute à une ligne de titre contenant l'émoji 🔄 (ou le texte
+// "reformulation simplifiée") et s'arrête au titre d'étape suivant.
+function extractReformulation(content: string): { mainContent: string; reformulation: string | null } {
+  const lines = content.split("\n");
+  let startIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes("🔄") || /reformulation simplifi/i.test(lines[i])) {
+      startIdx = i;
+      break;
+    }
+  }
+  if (startIdx === -1) return { mainContent: content, reformulation: null };
+
+  const nextStepMarkers = ["✏️", "📖", "💡", "📝", "📌"];
+  let endIdx = lines.length;
+  for (let i = startIdx + 1; i < lines.length; i++) {
+    if (nextStepMarkers.some((m) => lines[i].includes(m))) {
+      endIdx = i;
+      break;
+    }
+  }
+
+  const body = lines.slice(startIdx + 1, endIdx).join("\n").trim();
+  if (!body) return { mainContent: content, reformulation: null };
+
+  const mainContent = [...lines.slice(0, startIdx), ...lines.slice(endIdx)].join("\n").trim();
+  return { mainContent, reformulation: body };
+}
+
 interface ChatMessageProps {
   role: "user" | "assistant";
   content: string;
   isStreaming?: boolean;
   onNavigate?: (path: string) => void;
+  onReformulationClick?: () => void;
 }
 
 const isArabicText = (text: string): boolean => {
@@ -50,13 +82,104 @@ const isArabicText = (text: string): boolean => {
   return arabic > latin;
 };
 
-export const ChatMessage = ({ role, content, isStreaming, onNavigate }: ChatMessageProps) => {
+const markdownComponents = {
+  h1: ({ children }: any) => (
+    <h1 className="text-2xl font-bold text-primary mb-3 mt-4 pb-2 border-b-2 border-primary/30">
+      {children}
+    </h1>
+  ),
+  h2: ({ children }: any) => (
+    <h2 className="text-xl font-bold text-primary mb-2 mt-3">{children}</h2>
+  ),
+  h3: ({ children }: any) => (
+    <h3 className="text-lg font-semibold text-secondary mb-2 mt-2">{children}</h3>
+  ),
+  strong: ({ children }: any) => <strong className="font-bold text-primary">{children}</strong>,
+  em: ({ children }: any) => <em className="italic text-accent">{children}</em>,
+  p: ({ children }: any) => <p className="leading-relaxed mb-2">{children}</p>,
+  ul: ({ children }: any) => (
+    <ul className="list-disc list-inside space-y-1 ml-2 text-foreground">{children}</ul>
+  ),
+  ol: ({ children }: any) => (
+    <ol className="list-decimal list-inside space-y-1 ml-2 text-foreground">{children}</ol>
+  ),
+  li: ({ children }: any) => <li className="ml-4 marker:text-primary">{children}</li>,
+  code: ({ children, className }: any) => {
+    const isInline = !className;
+    return isInline ? (
+      <code className="bg-primary/10 text-primary px-1.5 py-0.5 rounded font-mono text-sm">
+        {children}
+      </code>
+    ) : (
+      <code className="block bg-muted p-3 rounded-lg overflow-x-auto font-mono text-sm">
+        {children}
+      </code>
+    );
+  },
+  blockquote: ({ children }: any) => (
+    <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground my-2">
+      {children}
+    </blockquote>
+  ),
+  // Force LTR direction on math (KaTeX) so formulas always read left-to-right,
+  // even when the surrounding message is in Arabic (RTL).
+  span: ({ node, className, children, ...props }: any) => {
+    if (className && className.includes("math-inline")) {
+      return (
+        <span
+          {...props}
+          className={cn(className, "inline-block align-middle")}
+          dir="ltr"
+          style={{ unicodeBidi: "isolate" }}
+        >
+          {children}
+        </span>
+      );
+    }
+    return <span {...props} className={className}>{children}</span>;
+  },
+  div: ({ node, className, children, ...props }: any) => {
+    if (className && className.includes("math-display")) {
+      return (
+        <div
+          {...props}
+          className={cn(className, "my-3 overflow-x-auto text-left")}
+          dir="ltr"
+          style={{ unicodeBidi: "isolate", textAlign: "left" }}
+        >
+          {children}
+        </div>
+      );
+    }
+    return <div {...props} className={className}>{children}</div>;
+  },
+};
+
+const MarkdownContent = ({ children }: { children: string }) => (
+  <ReactMarkdown
+    className="space-y-3"
+    remarkPlugins={[remarkMath]}
+    rehypePlugins={[rehypeKatex]}
+    components={markdownComponents}
+  >
+    {children}
+  </ReactMarkdown>
+);
+
+export const ChatMessage = ({ role, content, isStreaming, onNavigate, onReformulationClick }: ChatMessageProps) => {
   const isUser = role === "user";
   const navigate = useNavigate();
+  const [showReformulation, setShowReformulation] = useState(false);
 
   const { cleanContent, breadcrumbs } = isUser
     ? { cleanContent: content, breadcrumbs: [] }
     : parseBreadcrumbs(content);
+
+  // On ne replie la reformulation qu'une fois la réponse complète (pas en streaming).
+  const { mainContent, reformulation } =
+    isUser || isStreaming
+      ? { mainContent: cleanContent, reformulation: null }
+      : extractReformulation(cleanContent);
 
   const isRtl = isArabicText(content);
   const dir: "rtl" | "ltr" = isRtl ? "rtl" : "ltr";
@@ -72,6 +195,14 @@ export const ChatMessage = ({ role, content, isStreaming, onNavigate }: ChatMess
     const path = `/cours/math?chapitre=${bc.chapterId}&lecon=${bc.lessonId}`;
     if (onNavigate) onNavigate(path);
     else navigate(path);
+  };
+
+  const toggleReformulation = () => {
+    setShowReformulation((prev) => {
+      const next = !prev;
+      if (next) onReformulationClick?.();
+      return next;
+    });
   };
 
   return (
@@ -106,102 +237,32 @@ export const ChatMessage = ({ role, content, isStreaming, onNavigate }: ChatMess
             <p className="whitespace-pre-wrap">{content}</p>
           ) : (
             <>
-              {cleanContent && (
-                <ReactMarkdown
-                  className="space-y-3"
-                  remarkPlugins={[remarkMath]}
-                  rehypePlugins={[rehypeKatex]}
-                  components={{
-                    h1: ({ children }) => (
-                      <h1 className="text-2xl font-bold text-primary mb-3 mt-4 pb-2 border-b-2 border-primary/30">
-                        {children}
-                      </h1>
-                    ),
-                    h2: ({ children }) => (
-                      <h2 className="text-xl font-bold text-primary mb-2 mt-3">
-                        {children}
-                      </h2>
-                    ),
-                    h3: ({ children }) => (
-                      <h3 className="text-lg font-semibold text-secondary mb-2 mt-2">
-                        {children}
-                      </h3>
-                    ),
-                    strong: ({ children }) => (
-                      <strong className="font-bold text-primary">{children}</strong>
-                    ),
-                    em: ({ children }) => (
-                      <em className="italic text-accent">{children}</em>
-                    ),
-                    p: ({ children }) => (
-                      <p className="leading-relaxed mb-2">{children}</p>
-                    ),
-                    ul: ({ children }) => (
-                      <ul className="list-disc list-inside space-y-1 ml-2 text-foreground">
-                        {children}
-                      </ul>
-                    ),
-                    ol: ({ children }) => (
-                      <ol className="list-decimal list-inside space-y-1 ml-2 text-foreground">
-                        {children}
-                      </ol>
-                    ),
-                    li: ({ children }) => (
-                      <li className="ml-4 marker:text-primary">{children}</li>
-                    ),
-                    code: ({ children, className }) => {
-                      const isInline = !className;
-                      return isInline ? (
-                        <code className="bg-primary/10 text-primary px-1.5 py-0.5 rounded font-mono text-sm">
-                          {children}
-                        </code>
-                      ) : (
-                        <code className="block bg-muted p-3 rounded-lg overflow-x-auto font-mono text-sm">
-                          {children}
-                        </code>
-                      );
-                    },
-                    blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground my-2">
-                        {children}
-                      </blockquote>
-                    ),
-                    // Force LTR direction on math (KaTeX) so formulas always read left-to-right,
-                    // even when the surrounding message is in Arabic (RTL).
-                    span: ({ node, className, children, ...props }: any) => {
-                      if (className && className.includes("math-inline")) {
-                        return (
-                          <span
-                            {...props}
-                            className={cn(className, "inline-block align-middle")}
-                            dir="ltr"
-                            style={{ unicodeBidi: "isolate" }}
-                          >
-                            {children}
-                          </span>
-                        );
-                      }
-                      return <span {...props} className={className}>{children}</span>;
-                    },
-                    div: ({ node, className, children, ...props }: any) => {
-                      if (className && className.includes("math-display")) {
-                        return (
-                          <div
-                            {...props}
-                            className={cn(className, "my-3 overflow-x-auto text-left")}
-                            dir="ltr"
-                            style={{ unicodeBidi: "isolate", textAlign: "left" }}
-                          >
-                            {children}
-                          </div>
-                        );
-                      }
-                      return <div {...props} className={className}>{children}</div>;
-                    },
-                  }}
-                >
-                  {cleanContent}
-                </ReactMarkdown>
+              {mainContent && <MarkdownContent>{mainContent}</MarkdownContent>}
+
+              {/* Reformulation simplifiée — masquée derrière un bouton */}
+              {reformulation && (
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={toggleReformulation}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-semibold text-sm transition-colors"
+                    aria-expanded={showReformulation}
+                  >
+                    <RefreshCw className="w-4 h-4 flex-shrink-0" />
+                    <span className="flex-1">{isRtl ? "إعادة صياغة مبسّطة" : "Reformulation simplifiée"}</span>
+                    <ChevronDown
+                      className={cn(
+                        "w-4 h-4 flex-shrink-0 transition-transform",
+                        showReformulation && "rotate-180"
+                      )}
+                    />
+                  </button>
+                  {showReformulation && (
+                    <div className="mt-2 px-3 py-2 rounded-xl bg-primary/5 border border-primary/10">
+                      <MarkdownContent>{reformulation}</MarkdownContent>
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Breadcrumb navigation */}
