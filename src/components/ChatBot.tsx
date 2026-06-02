@@ -211,6 +211,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
           schoolLevel: schoolLevel,
           chapterContext: chapterContext,
           allChapters: allChapters,
+          hideReformulation: shouldHideReform(chapterId),
         }),
       });
 
