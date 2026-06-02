@@ -48,6 +48,7 @@ import LessonEditor from "./pages/LessonEditor";
 import ContentGeneration from "./pages/ContentGeneration";
 import ExamTrimesterSelect from "./pages/ExamTrimesterSelect";
 import ExamList from "./pages/ExamList";
+import LessonRemediation from "./pages/LessonRemediation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -99,6 +100,7 @@ const App = () => (
               <Route path="/analytics" element={<ProtectedRoute allowedRoles={['admin', 'pedago']}><Analytics /></ProtectedRoute>} />
               <Route path="/faq-admin" element={<ProtectedRoute allowedRoles={['admin', 'pedago']}><FAQAdmin /></ProtectedRoute>} />
               <Route path="/content-generation" element={<ProtectedRoute allowedRoles={['admin', 'pedago']}><ContentGeneration /></ProtectedRoute>} />
+              <Route path="/remediation" element={<ProtectedRoute allowedRoles={['student']}><LessonRemediation /></ProtectedRoute>} />
               <Route path="/exams" element={<ProtectedRoute allowedRoles={['student']}><ExamTrimesterSelect /></ProtectedRoute>} />
               <Route path="/exams/list" element={<ProtectedRoute allowedRoles={['student']}><ExamList /></ProtectedRoute>} />
               <Route path="/admin" element={
