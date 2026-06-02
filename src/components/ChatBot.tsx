@@ -545,6 +545,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                       }
                       isStreaming={isLoading && index === messages.length - 1 && message.role === "assistant"}
                       onNavigate={onNavigate}
+                      onReformulationClick={() => markReformClicked(chapterId)}
                     />
                   ))}
                 </>
