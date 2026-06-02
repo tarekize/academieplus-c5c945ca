@@ -160,6 +160,8 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
   const [lessonComments, setLessonComments] = useState<Map<string, LessonCommentDialog>>(new Map());
   const [selectedLessonComment, setSelectedLessonComment] = useState<LessonCommentDialog | null>(null);
+  // État de remédiation par leçon : true = résolu (toutes réponses correctes) → arrête le clignotement.
+  const [remediationStatus, setRemediationStatus] = useState<Map<string, boolean>>(new Map());
 
   const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Utilisateur";
 
@@ -515,9 +517,28 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
       setLessonComments(map);
     };
     fetchLessonComments();
+
+    // État de remédiation : une leçon résolue n'affiche plus de clignotement.
+    const fetchRemediation = async () => {
+      const { data } = await supabase
+        .from("ai_generated_content")
+        .select("lesson_id, content, updated_at")
+        .eq("user_id", userId)
+        .eq("content_type", "remediation")
+        .order("updated_at", { ascending: false });
+      const map = new Map<string, boolean>();
+      (data || []).forEach((r: any) => {
+        if (!r.lesson_id || map.has(r.lesson_id)) return;
+        map.set(r.lesson_id, Boolean(r.content?.resolved));
+      });
+      setRemediationStatus(map);
+    };
+    fetchRemediation();
+
     const channel = supabase
       .channel("dashboard-lesson-comments")
       .on("postgres_changes", { event: "*", schema: "public", table: "ai_lesson_comments", filter: `user_id=eq.${userId}` }, () => fetchLessonComments())
+      .on("postgres_changes", { event: "*", schema: "public", table: "ai_generated_content", filter: `user_id=eq.${userId}` }, () => fetchRemediation())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [userId]);
@@ -552,8 +573,12 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
   const selectedChapter = chapterStats.find((c) => c.chapterId === selectedChapterId) || chapterStats[0];
   const selectedChapterLessons = chapterLessonProgress.find((c) => c.chapterId === selectedChapter?.chapterId);
 
-  const lessonHasNotification = (lessonId: string, level: number | null) =>
-    lessonComments.has(lessonId) || (level !== null && level < 50);
+  const lessonHasNotification = (lessonId: string, level: number | null) => {
+    // Si une remédiation existe pour cette leçon, le clignotement dépend uniquement
+    // de sa résolution : il reste tant que toutes les réponses ne sont pas correctes.
+    if (remediationStatus.has(lessonId)) return !remediationStatus.get(lessonId);
+    return lessonComments.has(lessonId) || (level !== null && level < 50);
+  };
 
   const chapterHasNotification = (chapterId: string) => {
     const lp = chapterLessonProgress.find((c) => c.chapterId === chapterId);

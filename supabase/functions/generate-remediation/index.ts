@@ -88,6 +88,76 @@ ${lacunesBlock}
   return { system, user };
 }
 
+// Génère UN seul exercice (ou quiz) similaire ciblé sur une lacune précise,
+// utilisé quand l'élève se trompe : on lui propose un exercice similaire à refaire.
+function buildSinglePrompt(
+  kind: "exercise" | "quiz",
+  schoolLevel: string,
+  level: number,
+  lessonTitle: string,
+  chapterTitle: string,
+  targetConcept: string,
+  seed: number,
+): { system: string; user: string } {
+  const levelLabel = SCHOOL_LEVEL_LABELS[schoolLevel] || schoolLevel;
+  const diff = getRemediationDifficulty(level);
+  const concept = targetConcept || lessonTitle;
+
+  const system = `أنت معلّم رياضيات جزائري خبير في الدعم والمعالجة (remédiation). الطالب أخطأ في نشاط، فولّد له نشاطاً **مشابهاً** على نفس الثغرة لإعادة المحاولة، **دون رفع الصعوبة**. أجب حصراً بكائن JSON صالح بدون أي نص أو markdown حوله.`;
+
+  const common = `سياق الطالب:
+- المستوى الدراسي: ${levelLabel}
+- مستوى الطالب الحالي في الدرس: ${level}/100 → صعوبة مستهدفة ${diff}/5 (سهل، للتثبيت)
+- الدرس: "${lessonTitle}"
+- الفصل: "${chapterTitle}"
+- الثغرة المستهدفة: "${concept}"
+- seed التنويع: ${seed}
+
+التعليمات الإلزامية:
+- النشاط يجب أن يعالج الثغرة "${concept}" فقط، مع قيم/أرقام **مختلفة** عن المحاولة السابقة لكن بنفس المستوى.
+- ممنوع رفع الصعوبة (ابقَ في ${diff}/5).
+- كل المحتوى باللغة العربية ما عدا الرموز الرياضية.
+- صيغة الرياضيات إلزامية بين $...$ (LaTeX/KaTeX): الكسور \\frac{a}{b}، القوى x^{n}، الجذور \\sqrt{x}، الرموز \\infty,\\to,\\leq,\\geq,\\neq,\\pm,\\cdot,\\lim_{x \\to +\\infty}.`;
+
+  if (kind === "exercise") {
+    const user = `${common}
+
+أعد كائن JSON بهذا الشكل بالضبط (تمرين واحد فقط):
+{
+  "exercises": [
+    {
+      "title": "عنوان قصير مرتبط بالثغرة",
+      "statement": "نص التمرين كامل بالعربية مع LaTeX",
+      "expected_answer": "الجواب المنتظر (قيمة أو تعبير قصير)",
+      "accepted_answers": ["صيغة مقبولة 1", "صيغة مقبولة 2"],
+      "hint": "تلميح قصير بالعربية",
+      "solution": "<p><strong>الخطوة 1 :</strong> ...</p><p>$$ ... $$</p><p><strong>الاستنتاج :</strong> $$ ... $$</p>",
+      "concept": "${concept}",
+      "difficulty": ${diff}
+    }
+  ]
+}`;
+    return { system, user };
+  }
+
+  const user = `${common}
+
+أعد كائن JSON بهذا الشكل بالضبط (سؤال اختيار من متعدد واحد فقط):
+{
+  "quizzes": [
+    {
+      "question": "سؤال مرتبط بالثغرة مع LaTeX",
+      "options": ["خيار A", "خيار B", "خيار C", "خيار D"],
+      "correct_answer": "الخيار الصحيح (مطابق تماماً لأحد الخيارات)",
+      "explanation": "شرح قصير يساعد على فهم الخطأ",
+      "concept": "${concept}",
+      "difficulty": ${diff}
+    }
+  ]
+}`;
+  return { system, user };
+}
+
 async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<string> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -145,6 +215,9 @@ Deno.serve(async (req) => {
       chapter_title,
       weak_concepts = [],
       seed,
+      mode,
+      kind,
+      target_concept,
     } = body;
 
     if (!school_level || !lesson_title || !chapter_title) {
@@ -158,14 +231,27 @@ Deno.serve(async (req) => {
       .filter(Boolean)
       .slice(0, 8);
 
-    const { system, user } = buildPrompt(
-      school_level,
-      typeof level === "number" ? level : 40,
-      lesson_title,
-      chapter_title,
-      weak,
-      typeof seed === "number" ? seed : Math.floor(Math.random() * 1_000_000),
-    );
+    const safeSeed = typeof seed === "number" ? seed : Math.floor(Math.random() * 1_000_000);
+    const safeLevel = typeof level === "number" ? level : 40;
+
+    const { system, user } = mode === "single"
+      ? buildSinglePrompt(
+          kind === "quiz" ? "quiz" : "exercise",
+          school_level,
+          safeLevel,
+          lesson_title,
+          chapter_title,
+          String(target_concept || weak[0] || "").trim(),
+          safeSeed,
+        )
+      : buildPrompt(
+          school_level,
+          safeLevel,
+          lesson_title,
+          chapter_title,
+          weak,
+          safeSeed,
+        );
 
     const geminiKey1 = Deno.env.get("GEMINI_API_KEY");
     const geminiKey2 = Deno.env.get("GEMINI_API_KEY_2");
@@ -206,8 +292,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    const exercises = Array.isArray(parsed?.exercises) ? parsed.exercises.slice(0, 3) : [];
-    const quizzes = Array.isArray(parsed?.quizzes) ? parsed.quizzes.slice(0, 2) : [];
+    const mode = body?.mode === "single" ? "single" : "full";
+    const exercises = Array.isArray(parsed?.exercises) ? parsed.exercises.slice(0, mode === "single" ? 1 : 3) : [];
+    const quizzes = Array.isArray(parsed?.quizzes) ? parsed.quizzes.slice(0, mode === "single" ? 1 : 2) : [];
 
     return new Response(JSON.stringify({ exercises, quizzes }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
