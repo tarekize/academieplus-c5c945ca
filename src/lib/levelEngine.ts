@@ -30,17 +30,35 @@ const normDifficulty = (d?: number): number => {
   return Math.round(d);
 };
 
+/** Quand l'élève a sollicité l'indice « مساعدة ». */
+export type HintUsage = "none" | "preventive" | "curative";
+
 export interface DeltaInput {
   isCorrect: boolean;
   timeSec: number;
   difficulty?: number;
   currentLevel: number;
+  /** Indice consulté avant (préventif) ou après une mauvaise réponse (curatif). */
+  hintUsage?: HintUsage;
+  /** Nombre de soumissions (1 = réussi du premier coup). */
+  attemptCount?: number;
+  /** L'élève a révélé la solution / quitté sans réussir. */
+  abandoned?: boolean;
 }
 
 /**
- * Règle 1 — ELO ajustement par réponse, pondéré par difficulté + temps.
+ * Règle 1 — ELO ajustement par réponse, pondéré par difficulté + temps,
+ * enrichi par les signaux comportementaux (indices, tentatives, abandon).
  */
-export function computeDelta({ isCorrect, timeSec, difficulty, currentLevel }: DeltaInput): number {
+export function computeDelta({
+  isCorrect,
+  timeSec,
+  difficulty,
+  currentLevel,
+  hintUsage = "none",
+  attemptCount = 1,
+  abandoned = false,
+}: DeltaInput): number {
   const diff = normDifficulty(difficulty);
   const weight = DIFFICULTY_WEIGHT[diff];
   const expected = 1 / (1 + Math.pow(10, (diff * 20 - currentLevel) / 40));
@@ -57,11 +75,41 @@ export function computeDelta({ isCorrect, timeSec, difficulty, currentLevel }: D
   else if (isCorrect && timeSec > median * 2.0) delta = Math.round(delta * 0.8);
   else if (!isCorrect && timeSec > 120) delta = Math.round(delta * 1.3);
 
-  // Re-clamp after time modulator
+  // ── Signaux comportementaux (3.1) ─────────────────────────────────────────
+  if (isCorrect) {
+    // Tentatives multiples → gain réduit (0.85 par tentative supplémentaire).
+    const attempts = Math.max(1, attemptCount);
+    if (attempts > 1) delta = delta * Math.pow(0.85, attempts - 1);
+    // Indice préventif → gain ×0.70 ; indice curatif → gain ×0.40.
+    if (hintUsage === "preventive") delta = delta * 0.7;
+    else if (hintUsage === "curative") delta = delta * 0.4;
+    delta = Math.max(1, Math.round(delta));
+  } else {
+    // Abandon avec indice curatif → perte accrue.
+    if (hintUsage === "curative") delta = Math.round(delta * 1.3);
+  }
+
+  // Re-clamp after modulators
   if (isCorrect) delta = clamp(delta, 1, 6);
   else delta = clamp(delta, -7, -1);
 
   return delta;
+}
+
+/**
+ * Règle 3.2 — ajustement lié à l'hésitation / l'abandon sans réponse soumise.
+ * - "timeout" : exercice ouvert > 1 min sans réponse puis quitté.
+ * - "erase"   : a saisi puis tout effacé puis quitté (profil seulement).
+ */
+export function hesitationAdjustment(
+  kind: "timeout" | "erase",
+  difficulty?: number,
+): number {
+  if (kind === "timeout") {
+    const diff = normDifficulty(difficulty);
+    return diff >= 4 ? -2 : -1;
+  }
+  return 0;
 }
 
 export function applyDelta(currentLevel: number, delta: number): number {
