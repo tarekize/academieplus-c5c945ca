@@ -55,6 +55,12 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
   const [showResults, setShowResults] = useState(false);
   const [answers, setAnswers] = useState<{ question: string; userAnswer: string; correct: boolean }[]>([]);
   const [showHint, setShowHint] = useState(false);
+  const [hintUsed, setHintUsed] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+  }, []);
 
   const quizContentId = useMemo(() => `quiz-${chapterId}`, [chapterId]);
   const { formattedTime, isPaused, pause, resume } = useTimeTracking({
