@@ -460,7 +460,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setShowHints(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                        onClick={() => handleToggleHint(idx)}
                         className="text-yellow-600"
                       >
                         <Lightbulb className="h-4 w-4 mr-1" />
@@ -472,43 +472,51 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                       <p key={hIdx} className="text-xs text-muted-foreground bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {hint}</p>
                     ))}
 
-                    {exerciseResults[idx] === undefined && (
+                    {!exerciseSolved[idx] && (
                       <div className="flex gap-2 items-center" dir="rtl">
                         <input
                           id={`adapt-exo-input-${idx}`}
-                          className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
-                          placeholder="أدخل إجابتك..."
+                          className={`flex-1 border rounded-lg px-3 py-2 text-sm bg-background transition-colors ${exerciseLocked[idx] ? "border-red-500 ring-2 ring-red-500/40 bg-red-500/5" : ""}`}
+                          placeholder={exerciseLocked[idx] ? "إجابة خاطئة، حاول مجدداً..." : "أدخل إجابتك..."}
                           value={exerciseAnswers[idx] || ""}
-                          onChange={(e) => setExerciseAnswers(prev => ({ ...prev, [idx]: e.target.value }))}
+                          onChange={(e) => handleExerciseChange(idx, e.target.value)}
+                          disabled={exerciseLocked[idx]}
                           dir="rtl"
                         />
-                        <Button size="sm" onClick={() => handleExerciseSubmit(idx)}>تحقق</Button>
+                        <Button size="sm" onClick={() => handleExerciseSubmit(idx)} disabled={exerciseLocked[idx]}>تحقق</Button>
                         <MathKeyboard onInsert={(sym) => {
+                          if (exerciseLocked[idx]) return;
                           const el = document.getElementById(`adapt-exo-input-${idx}`) as HTMLInputElement | null;
                           const current = exerciseAnswers[idx] || "";
                           if (el) {
                             const start = el.selectionStart ?? current.length;
                             const end = el.selectionEnd ?? current.length;
                             const next = current.slice(0, start) + sym + current.slice(end);
-                            setExerciseAnswers(prev => ({ ...prev, [idx]: next }));
+                            handleExerciseChange(idx, next);
                             requestAnimationFrame(() => { el.focus(); const pos = start + sym.length; el.setSelectionRange(pos, pos); });
                           } else {
-                            setExerciseAnswers(prev => ({ ...prev, [idx]: current + sym }));
+                            handleExerciseChange(idx, current + sym);
                           }
                         }} />
                       </div>
                     )}
 
-                    {exerciseResults[idx] !== undefined && (
-                      <div className={`p-2 rounded text-sm ${exerciseResults[idx] ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700"}`} dir="rtl">
-                        {exerciseResults[idx] ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${ex.expected_answer}`}
+                    {exerciseLocked[idx] && (
+                      <div className="p-2 rounded text-sm bg-red-500/10 text-red-700 flex items-center gap-2" dir="rtl">
+                        <XCircle className="h-4 w-4" /> إجابة غير صحيحة. ستتمكن من إعادة المحاولة بعد لحظات…
+                      </div>
+                    )}
+
+                    {exerciseSolved[idx] && (
+                      <div className="p-2 rounded text-sm bg-green-500/10 text-green-700 flex items-center gap-2" dir="rtl">
+                        <CheckCircle2 className="h-4 w-4" /> إجابة صحيحة!
                       </div>
                     )}
 
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setExerciseRevealed(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                      onClick={() => handleRevealSolution(idx)}
                     >
                       {exerciseRevealed[idx] ? "إخفاء الحل" : "📖 عرض الحل المفصل"}
                     </Button>
