@@ -935,39 +935,59 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                           <HtmlWithMath htmlContent={cleanMathStatement(hint)} className="flex-1" />
                         </div>
                       ))}
-                      {aiExerciseResults[idx] === undefined && (
+                      {aiExerciseResults[idx] !== true && (
                         <div className="flex gap-2 items-center" dir="rtl">
-                          <input id={`ai-exo-input-${idx}`} className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background" placeholder="أدخل إجابتك..." value={aiExerciseAnswers[idx] || ""} onChange={(e) => setAiExerciseAnswers(prev => ({ ...prev, [idx]: e.target.value }))} dir="rtl" />
-                          <Button size="sm" onClick={() => {
+                          <input id={`ai-exo-input-${idx}`}
+                            className={cn("flex-1 border rounded-lg px-3 py-2 text-sm bg-background transition-colors", aiExerciseLocked[idx] && "border-red-500 ring-2 ring-red-500/40 bg-red-500/5")}
+                            placeholder={aiExerciseLocked[idx] ? "إجابة خاطئة، حاول مجدداً..." : "أدخل إجابتك..."}
+                            value={aiExerciseAnswers[idx] || ""}
+                            disabled={aiExerciseLocked[idx]}
+                            onChange={(e) => setAiExerciseAnswers(prev => ({ ...prev, [idx]: e.target.value }))} dir="rtl" />
+                          <Button size="sm" disabled={aiExerciseLocked[idx] || !aiExerciseAnswers[idx]?.trim()} onClick={() => {
                             const userAnswer = aiExerciseAnswers[idx]?.trim();
-                            if (!userAnswer) return;
-                            const isCorrect = userAnswer === ex.expected_answer;
-                            setAiExerciseResults(prev => ({ ...prev, [idx]: isCorrect }));
+                            if (!userAnswer || aiExerciseLocked[idx]) return;
+                            const norm = (s: string) => (s || "").toLowerCase().trim().replace(/\s+/g, "");
+                            const isCorrect = norm(userAnswer) === norm(ex.expected_answer || "");
+                            if (isCorrect) {
+                              setAiExerciseResults(prev => ({ ...prev, [idx]: true }));
+                            } else {
+                              // Règle: rouge 3s, puis on rend la main pour retaper, sans révéler la réponse.
+                              setAiExerciseLocked(prev => ({ ...prev, [idx]: true }));
+                              const key = `e-${idx}`;
+                              if (aiLockTimersRef.current[key]) clearTimeout(aiLockTimersRef.current[key]);
+                              aiLockTimersRef.current[key] = setTimeout(() => {
+                                setAiExerciseLocked(prev => ({ ...prev, [idx]: false }));
+                              }, 3000);
+                            }
                             adaptiveContent.recordAnswer(isCorrect, 0, "exercise", `${ex.title || ''} — ${ex.statement || ''}`.trim(), isCorrect ? undefined : { user_answer: userAnswer, correct_answer: ex.expected_answer }, ex.difficulty);
                           }}>تحقق</Button>
-                          <MathKeyboard onInsert={(sym) => {
-                            const el = document.getElementById(`ai-exo-input-${idx}`) as HTMLInputElement | null;
-                            const current = aiExerciseAnswers[idx] || "";
-                            if (el) {
-                              const start = el.selectionStart ?? current.length;
-                              const end = el.selectionEnd ?? current.length;
-                              const next = current.slice(0, start) + sym + current.slice(end);
-                              setAiExerciseAnswers(prev => ({ ...prev, [idx]: next }));
-                              requestAnimationFrame(() => { el.focus(); const pos = start + sym.length; el.setSelectionRange(pos, pos); });
-                            } else {
-                              setAiExerciseAnswers(prev => ({ ...prev, [idx]: current + sym }));
-                            }
-                          }} />
+                          {!aiExerciseLocked[idx] && (
+                            <MathKeyboard onInsert={(sym) => {
+                              const el = document.getElementById(`ai-exo-input-${idx}`) as HTMLInputElement | null;
+                              const current = aiExerciseAnswers[idx] || "";
+                              if (el) {
+                                const start = el.selectionStart ?? current.length;
+                                const end = el.selectionEnd ?? current.length;
+                                const next = current.slice(0, start) + sym + current.slice(end);
+                                setAiExerciseAnswers(prev => ({ ...prev, [idx]: next }));
+                                requestAnimationFrame(() => { el.focus(); const pos = start + sym.length; el.setSelectionRange(pos, pos); });
+                              } else {
+                                setAiExerciseAnswers(prev => ({ ...prev, [idx]: current + sym }));
+                              }
+                            }} />
+                          )}
                         </div>
                       )}
-                      {aiExerciseResults[idx] !== undefined && (
-                        <div className={cn("p-2 rounded text-sm flex items-center gap-2", aiExerciseResults[idx] ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700")} dir="rtl">
-                          {aiExerciseResults[idx] ? <span>✅ إجابة صحيحة!</span> : (
-                            <>
-                              <span>❌ الإجابة الصحيحة:</span>
-                              <HtmlWithMath htmlContent={cleanMathStatement(ex.expected_answer || "")} className="font-semibold" />
-                            </>
-                          )}
+                      {aiExerciseLocked[idx] && (
+                        <div className="p-2 rounded text-sm bg-red-500/10 text-red-700 flex items-center gap-2" dir="rtl">
+                          <XCircle className="h-4 w-4" />
+                          <span>إجابة غير صحيحة. ستتمكن من إعادة المحاولة بعد لحظات…</span>
+                        </div>
+                      )}
+                      {aiExerciseResults[idx] === true && (
+                        <div className="p-2 rounded text-sm bg-green-500/10 text-green-700 flex items-center gap-2" dir="rtl">
+                          <CheckCircle2 className="h-4 w-4" />
+                          <span>✅ إجابة صحيحة!</span>
                         </div>
                       )}
                       {ex.solution && (
