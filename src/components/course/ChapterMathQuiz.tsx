@@ -114,6 +114,17 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
         setHasAnswered(true);
         if (correct) setScore(prev => prev + 1);
         setAnswers(prev => [...prev, { question: currentQuestion.question, userAnswer: selectedAnswer, correct }]);
+        if (userId) {
+          recordActivityAnswer({
+            userId,
+            chapterId,
+            lessonId: currentQuestion.lesson_id ?? null,
+            isCorrect: correct,
+            difficulty: currentQuestion.difficulty,
+            hintUsage: hintUsed ? "preventive" : "none",
+            attemptCount: 1,
+          }).catch(console.error);
+        }
       }
     } finally {
       setIsSubmitting(false);
