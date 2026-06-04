@@ -828,7 +828,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             ) : isQuiz ? (
               <div className="space-y-3">
                 {adaptiveContent.quizzes.map((q, idx) => (
-                  <Card key={idx} className={cn("transition-all", aiQuizResults[idx] === true && "border-green-500/50 bg-green-500/5", aiQuizResults[idx] === false && "border-red-500/50 bg-red-500/5")}>
+                  <Card key={idx} className={cn("transition-all", aiQuizResults[idx] === true && "border-green-500/50 bg-green-500/5", aiQuizLocked[idx] && "border-red-500/50 bg-red-500/5")}>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3 mb-3" dir="rtl">
                         <div className="flex-1 font-medium flex gap-2">
@@ -840,26 +840,62 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {q.options.map((opt, oIdx) => (
-                          <Button key={oIdx}
-                            variant={aiQuizAnswers[idx] === opt ? (aiQuizResults[idx] ? "default" : "destructive") : "outline"}
-                            className={cn("justify-start text-right", opt === q.correct_answer && aiQuizResults[idx] !== undefined && "border-green-500 bg-green-500/10")}
-                            onClick={() => {
-                              if (aiQuizResults[idx] !== undefined) return;
-                              setAiQuizAnswers(prev => ({ ...prev, [idx]: opt }));
-                              const isCorrect = opt === q.correct_answer;
-                              setAiQuizResults(prev => ({ ...prev, [idx]: isCorrect }));
-                              adaptiveContent.recordAnswer(isCorrect, 0, "quiz", q.question, isCorrect ? undefined : { user_answer: opt, correct_answer: q.correct_answer }, q.difficulty);
-                            }}
-                            disabled={aiQuizResults[idx] !== undefined}
-                            dir="rtl">
-                            {aiQuizResults[idx] !== undefined && opt === q.correct_answer && <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />}
-                            {aiQuizResults[idx] === false && aiQuizAnswers[idx] === opt && <XCircle className="h-4 w-4 mr-2" />}
-                            <HtmlWithMath htmlContent={cleanMathStatement(opt)} className="flex-1 text-right" />
-                          </Button>
-                        ))}
+                        {q.options.map((opt, oIdx) => {
+                          const solvedQ = aiQuizResults[idx] === true;
+                          const lockedQ = aiQuizLocked[idx];
+                          const isSelected = aiQuizSelected[idx] === opt;
+                          let variant: "default" | "destructive" | "secondary" | "outline" = "outline";
+                          if (solvedQ && isSelected) variant = "default";
+                          else if (lockedQ && isSelected) variant = "destructive";
+                          else if (isSelected) variant = "secondary";
+                          return (
+                            <Button key={oIdx}
+                              variant={variant}
+                              className={cn("justify-start text-right", !solvedQ && !lockedQ && isSelected && "ring-2 ring-primary")}
+                              onClick={() => {
+                                if (solvedQ || lockedQ) return;
+                                setAiQuizSelected(prev => ({ ...prev, [idx]: opt }));
+                              }}
+                              disabled={solvedQ || lockedQ}
+                              dir="rtl">
+                              <HtmlWithMath htmlContent={cleanMathStatement(opt)} className="flex-1 text-right" />
+                            </Button>
+                          );
+                        })}
                       </div>
-                      {aiQuizResults[idx] !== undefined && q.explanation && (
+                      {aiQuizResults[idx] !== true && (
+                        <div className="mt-3 flex justify-end" dir="rtl">
+                          <Button size="sm" disabled={!aiQuizSelected[idx] || aiQuizLocked[idx]}
+                            onClick={() => {
+                              const opt = aiQuizSelected[idx];
+                              if (!opt || aiQuizLocked[idx]) return;
+                              const isCorrect = opt === q.correct_answer;
+                              setAiQuizAnswers(prev => ({ ...prev, [idx]: opt }));
+                              if (isCorrect) {
+                                setAiQuizResults(prev => ({ ...prev, [idx]: true }));
+                              } else {
+                                // Règle: rouge 3s, puis on rend la main pour réessayer, sans révéler la réponse.
+                                setAiQuizLocked(prev => ({ ...prev, [idx]: true }));
+                                const key = `q-${idx}`;
+                                if (aiLockTimersRef.current[key]) clearTimeout(aiLockTimersRef.current[key]);
+                                aiLockTimersRef.current[key] = setTimeout(() => {
+                                  setAiQuizLocked(prev => ({ ...prev, [idx]: false }));
+                                  setAiQuizSelected(prev => { const n = { ...prev }; delete n[idx]; return n; });
+                                }, 3000);
+                              }
+                              adaptiveContent.recordAnswer(isCorrect, 0, "quiz", q.question, isCorrect ? undefined : { user_answer: opt, correct_answer: q.correct_answer }, q.difficulty);
+                            }}>
+                            تأكيد
+                          </Button>
+                        </div>
+                      )}
+                      {aiQuizLocked[idx] && (
+                        <div className="mt-3 p-3 rounded border border-red-300 dark:border-red-700 bg-red-500/10 text-red-700 dark:text-red-300 flex items-center gap-2 text-sm font-medium" dir="rtl">
+                          <XCircle className="h-4 w-4" />
+                          <span>إجابة غير صحيحة. ستتمكن من إعادة المحاولة بعد لحظات…</span>
+                        </div>
+                      )}
+                      {aiQuizResults[idx] === true && q.explanation && (
                         <div className="mt-4 bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700" dir="rtl">
                           <p className="font-semibold text-sm mb-2 text-gray-900 dark:text-gray-100 flex items-center gap-2">
                             <BookOpen className="h-4 w-4" /> الشرح:
