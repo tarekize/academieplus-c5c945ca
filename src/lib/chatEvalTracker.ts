@@ -58,7 +58,7 @@ export async function recordChatExerciseAnswer({ userId, chapterId, chapterTitle
     .is("lesson_id", null)
     .maybeSingle();
 
-  const currentLevel = existing?.current_level ?? 50;
+  const currentLevel = existing?.current_level ?? (await getPlacementLevel(userId));
   const totalAnswers = (existing?.total_answers ?? 0) + 1;
   const correctAnswers = (existing?.correct_answers ?? 0) + (evalData.isCorrect ? 1 : 0);
   const streak = evalData.isCorrect ? (existing?.streak ?? 0) + 1 : 0;
