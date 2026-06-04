@@ -289,10 +289,9 @@ export default function LessonRemediation() {
     if (allEx && allQ) {
       setResolved(true);
       await persist(exs, qzs, true);
-      await clearNotifications();
       toast({ title: "أحسنت! 🎉", description: "عالجت كل الثغرات بنجاح. تم إيقاف التنبيه." });
     }
-  }, [persist, clearNotifications, toast]);
+  }, [persist, toast]);
 
   // Sur erreur d'un exercice : générer un exercice similaire (même lacune) à refaire.
   const regenerateExercise = useCallback(async (idx: number, ex: RemediationExercise) => {
