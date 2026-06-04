@@ -90,6 +90,19 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
 
       if (result.is_correct) setScore(prev => prev + 1);
       setAnswers(prev => [...prev, { question: currentQuestion.question, userAnswer: selectedAnswer, correct: result.is_correct }]);
+
+      // Alimente le moteur de niveau (niveau-leçon si dispo, sinon niveau-chapitre).
+      if (userId) {
+        recordActivityAnswer({
+          userId,
+          chapterId,
+          lessonId: currentQuestion.lesson_id ?? null,
+          isCorrect: result.is_correct,
+          difficulty: currentQuestion.difficulty,
+          hintUsage: hintUsed ? "preventive" : "none",
+          attemptCount: 1,
+        }).catch(console.error);
+      }
     } catch (error) {
       console.error("Error validating answer:", error);
       // Fallback to client-side if RPC fails and correct_answer is available (admin/pedago)
