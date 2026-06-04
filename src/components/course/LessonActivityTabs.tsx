@@ -1082,16 +1082,17 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
 
 function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DBQuizQuestion; index: number; readOnly?: boolean; onAnswer: (answer: AnswerPayload) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
+  const [solved, setSolved] = useState(false);
+  const [locked, setLocked] = useState(false);
   const [explanation, setExplanation] = useState<string>("");
-  const [answered, setAnswered] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => {
     if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+    if (lockTimerRef.current) clearTimeout(lockTimerRef.current);
   }, []);
 
   const notifyAnswer = (payload: AnswerPayload) => {
@@ -1102,29 +1103,44 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
     onAnswer(payload);
   };
 
-  const handleSelect = async (opt: string) => {
-    if (readOnly || answered || submitting) return;
+  // Select an option (no submission yet — Règle: bouton "تأكيد" obligatoire).
+  const handleSelect = (opt: string) => {
+    if (readOnly || solved || locked || submitting) return;
     setSelected(opt);
+  };
+
+  const handleValidate = async () => {
+    if (readOnly || solved || locked || submitting || !selected) return;
+    const opt = selected;
     setSubmitting(true);
+
+    const apply = (isCorrect: boolean, expl: string, correctAnswer: string | null) => {
+      if (isCorrect) {
+        setSolved(true);
+        setExplanation(expl || "");
+        notifyAnswer({ correct: true, concept: question.question, userAnswer: opt, correctAnswer: correctAnswer || question.correct_answer, difficulty: question.difficulty });
+      } else {
+        // Règle: rouge 3s, puis on rend la main pour réessayer, sans révéler la réponse.
+        setLocked(true);
+        notifyAnswer({ correct: false, concept: question.question, userAnswer: opt, correctAnswer: correctAnswer || question.correct_answer, difficulty: question.difficulty });
+        if (lockTimerRef.current) clearTimeout(lockTimerRef.current);
+        lockTimerRef.current = setTimeout(() => {
+          setLocked(false);
+          setSelected(null);
+        }, 3000);
+      }
+    };
 
     try {
       const { data, error } = await supabase.rpc('check_quiz_answer', { _quiz_id: question.id, _user_answer: opt });
       if (error) throw error;
       const result = data as { is_correct: boolean; explanation: string; correct_answer: string | null };
-      setIsCorrect(result.is_correct);
-      setCorrectAnswer(result.correct_answer);
-      setExplanation(result.explanation || "");
-      setAnswered(true);
-      notifyAnswer({ correct: result.is_correct, concept: question.question, userAnswer: opt, correctAnswer: result.correct_answer || question.correct_answer, difficulty: question.difficulty });
+      apply(result.is_correct, result.explanation || "", result.correct_answer);
     } catch (err) {
       console.error("Error validating quiz:", err);
       if (question.correct_answer) {
         const correct = opt === question.correct_answer;
-        setIsCorrect(correct);
-        setCorrectAnswer(correct ? null : question.correct_answer);
-        setExplanation(question.explanation || "");
-        setAnswered(true);
-        notifyAnswer({ correct, concept: question.question, userAnswer: opt, correctAnswer: question.correct_answer, difficulty: question.difficulty });
+        apply(correct, question.explanation || "", question.correct_answer);
       }
     } finally {
       setSubmitting(false);
@@ -1132,7 +1148,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
   };
 
   return (
-    <Card className={cn("transition-all", answered && isCorrect && "border-green-500/50 bg-green-500/5", answered && !isCorrect && "border-red-500/50 bg-red-500/5")}>
+    <Card className={cn("transition-all", solved && "border-green-500/50 bg-green-500/5", locked && "border-red-500/50 bg-red-500/5")}>
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-3">
           <div className="font-medium flex-1 flex gap-2 items-start" dir="rtl">
@@ -1141,7 +1157,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
           </div>
           <div className="flex flex-col items-end gap-2">
             <DifficultyIndicator level={question.difficulty} />
-            {!answered && question.hint && (
+            {!solved && question.hint && (
               <Button
                 type="button"
                 variant="outline"
@@ -1156,7 +1172,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
           </div>
         </div>
 
-        {showHint && !answered && question.hint && (
+        {showHint && !solved && question.hint && (
           <div className="mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700 text-sm" dir="rtl">
             <div className="flex items-start gap-2">
               <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
@@ -1169,34 +1185,51 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {question.options.map((opt, oIdx) => (
-            <Button key={oIdx}
-              variant={selected === opt ? (isCorrect ? "default" : "destructive") : "outline"}
-              className={cn("justify-start text-right", correctAnswer && opt === correctAnswer && answered && "border-green-500 bg-green-500/10")}
-              onClick={() => handleSelect(opt)}
-              disabled={readOnly || answered || submitting}
-              dir="rtl"><HtmlWithMath htmlContent={opt} /></Button>
-          ))}
+          {question.options.map((opt, oIdx) => {
+            const isSelected = selected === opt;
+            let variant: "default" | "destructive" | "secondary" | "outline" = "outline";
+            if (solved && isSelected) variant = "default";
+            else if (locked && isSelected) variant = "destructive";
+            else if (isSelected) variant = "secondary";
+            return (
+              <Button key={oIdx}
+                variant={variant}
+                className={cn("justify-start text-right", !solved && !locked && isSelected && "ring-2 ring-primary")}
+                onClick={() => handleSelect(opt)}
+                disabled={readOnly || solved || locked || submitting}
+                dir="rtl"><HtmlWithMath htmlContent={opt} /></Button>
+            );
+          })}
         </div>
-        {answered && isCorrect && (
+
+        {!solved && (
+          <div className="mt-3 flex justify-end" dir="rtl">
+            <Button size="sm" onClick={handleValidate} disabled={readOnly || locked || submitting || !selected}>
+              {submitting ? "..." : "تأكيد"}
+            </Button>
+          </div>
+        )}
+
+        {locked && (
+          <div className="mt-3 p-3 rounded border border-red-300 dark:border-red-700 bg-red-500/10 text-red-700 dark:text-red-300 flex items-center gap-2 text-sm font-medium" dir="rtl">
+            <XCircle className="h-4 w-4" />
+            <span>إجابة غير صحيحة. ستتمكن من إعادة المحاولة بعد لحظات…</span>
+          </div>
+        )}
+
+        {solved && (
           <div className="mt-3 p-3 rounded border border-green-300 dark:border-green-700 bg-green-500/10 text-green-800 dark:text-green-300 flex items-center gap-2 text-sm font-semibold" dir="rtl">
             <CheckCircle2 className="h-4 w-4" />
             <span>✅ إجابة صحيحة! أحسنت 🎉</span>
           </div>
         )}
-        {answered && explanation && (
+
+        {solved && explanation && (
           <div className="mt-4 bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700" dir="rtl">
             <p className="font-semibold text-sm mb-2 text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <BookOpen className="h-4 w-4" /> الشرح:
             </p>
             <HtmlWithMath htmlContent={explanation} className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" />
-          </div>
-        )}
-        {answered && !isCorrect && correctAnswer && (
-          <div className="mt-2 p-3 rounded border border-green-200 dark:border-green-700 text-sm bg-green-500/10 text-green-800 dark:text-green-300 flex items-center gap-2" dir="rtl">
-            <CheckCircle2 className="h-4 w-4" />
-            <span className="font-medium">الإجابة الصحيحة:</span>
-            <HtmlWithMath htmlContent={correctAnswer} />
           </div>
         )}
       </CardContent>
@@ -1208,14 +1241,16 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
   const [open, setOpen] = useState(false);
   const [answer, setAnswer] = useState("");
   const [revealed, setRevealed] = useState(false);
-  const [result, setResult] = useState<boolean | null>(null);
-  const [expectedAnswer, setExpectedAnswer] = useState<string>("");
+  const [solved, setSolved] = useState(false);
+  const [locked, setLocked] = useState(false);
   const [solution, setSolution] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => {
     if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+    if (lockTimerRef.current) clearTimeout(lockTimerRef.current);
   }, []);
 
   const notifyAnswer = (payload: AnswerPayload) => {
@@ -1230,28 +1265,51 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
   };
 
   const handleSubmit = async () => {
-    if (!answer.trim() || submitting) return;
+    if (!answer.trim() || submitting || locked || solved) return;
     setSubmitting(true);
+
+    const apply = (isCorrect: boolean, sol: string) => {
+      if (sol) setSolution(sol);
+      if (isCorrect) {
+        setSolved(true);
+        notifyAnswer({ correct: true, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: exercise.expected_answer, difficulty: exercise.difficulty });
+      } else {
+        // Règle: rouge 3s, puis on rend la main pour retaper, sans révéler la réponse.
+        setLocked(true);
+        notifyAnswer({ correct: false, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: exercise.expected_answer, difficulty: exercise.difficulty });
+        if (lockTimerRef.current) clearTimeout(lockTimerRef.current);
+        lockTimerRef.current = setTimeout(() => setLocked(false), 3000);
+      }
+    };
 
     try {
       const { data, error } = await supabase.rpc('check_exercise_answer', { _exercise_id: exercise.id, _user_answer: answer.trim() });
       if (error) throw error;
       const res = data as { is_correct: boolean; expected_answer: string; solution: string };
-      setResult(res.is_correct);
-      setExpectedAnswer(res.expected_answer);
-      setSolution(res.solution);
-      notifyAnswer({ correct: res.is_correct, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: res.expected_answer, difficulty: exercise.difficulty });
+      apply(res.is_correct, res.solution);
     } catch (err) {
       console.error("Error validating exercise:", err);
       if (exercise.expected_answer) {
-        const isCorrect = answer.trim() === exercise.expected_answer || (exercise.accepted_answers || []).includes(answer.trim());
-        setResult(isCorrect);
-        setExpectedAnswer(exercise.expected_answer);
-        setSolution(exercise.solution || "");
-        notifyAnswer({ correct: isCorrect, concept: `${exercise.title || ''} — ${exercise.statement || ''}`.trim(), userAnswer: answer.trim(), correctAnswer: exercise.expected_answer, difficulty: exercise.difficulty });
+        const norm = (s: string) => s.toLowerCase().trim().replace(/\s+/g, "");
+        const isCorrect = norm(answer) === norm(exercise.expected_answer) || (exercise.accepted_answers || []).some(a => norm(a) === norm(answer));
+        apply(isCorrect, exercise.solution || "");
       }
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleRevealSolution = async () => {
+    const next = !revealed;
+    setRevealed(next);
+    if (next && !solution && !exercise.solution) {
+      try {
+        const { data } = await supabase.rpc('check_exercise_answer', { _exercise_id: exercise.id, _user_answer: "__reveal__" });
+        const res = data as { solution?: string } | null;
+        if (res?.solution) setSolution(res.solution);
+      } catch (err) {
+        console.error("Error loading solution:", err);
+      }
     }
   };
 
@@ -1284,54 +1342,56 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
             {exercise.hint && (
               <HintBlock hint={exercise.hint} />
             )}
-            {!readOnly && result === null && (
+            {!readOnly && !solved && (
               <div className="flex gap-2 items-center" dir="rtl">
                 <input
                   id={`exo-input-${exercise.id}`}
-                  className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
-                  placeholder="أدخل إجابتك..."
+                  className={cn("flex-1 border rounded-lg px-3 py-2 text-sm bg-background transition-colors", locked && "border-red-500 ring-2 ring-red-500/40 bg-red-500/5")}
+                  placeholder={locked ? "إجابة خاطئة، حاول مجدداً..." : "أدخل إجابتك..."}
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
+                  disabled={locked || submitting}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !locked && !submitting && answer.trim()) handleSubmit(); }}
                   dir="rtl"
                 />
-                <Button size="sm" onClick={handleSubmit} disabled={submitting}>{submitting ? "..." : "تحقق"}</Button>
-                <MathKeyboard
-                  onInsert={(sym) => {
-                    const el = document.getElementById(`exo-input-${exercise.id}`) as HTMLInputElement | null;
-                    if (el) {
-                      const start = el.selectionStart ?? answer.length;
-                      const end = el.selectionEnd ?? answer.length;
-                      const next = answer.slice(0, start) + sym + answer.slice(end);
-                      setAnswer(next);
-                      requestAnimationFrame(() => {
-                        el.focus();
-                        const pos = start + sym.length;
-                        el.setSelectionRange(pos, pos);
-                      });
-                    } else {
-                      setAnswer((prev) => prev + sym);
-                    }
-                  }}
-                />
+                <Button size="sm" onClick={handleSubmit} disabled={locked || submitting || !answer.trim()}>{submitting ? "..." : "تحقق"}</Button>
+                {!locked && (
+                  <MathKeyboard
+                    onInsert={(sym) => {
+                      const el = document.getElementById(`exo-input-${exercise.id}`) as HTMLInputElement | null;
+                      if (el) {
+                        const start = el.selectionStart ?? answer.length;
+                        const end = el.selectionEnd ?? answer.length;
+                        const next = answer.slice(0, start) + sym + answer.slice(end);
+                        setAnswer(next);
+                        requestAnimationFrame(() => {
+                          el.focus();
+                          const pos = start + sym.length;
+                          el.setSelectionRange(pos, pos);
+                        });
+                      } else {
+                        setAnswer((prev) => prev + sym);
+                      }
+                    }}
+                  />
+                )}
               </div>
             )}
-            {result !== null && (
-              <div className={cn("p-3 rounded border text-sm font-semibold flex items-center gap-2", result ? "border-green-300 dark:border-green-700 bg-green-500/10 text-green-800 dark:text-green-300" : "border-red-300 dark:border-red-700 bg-red-500/10 text-red-700 dark:text-red-300")} dir="rtl">
-                {result && <CheckCircle2 className="h-4 w-4" />}
-                <span>{result ? "✅ إجابة صحيحة! أحسنت 🎉" : `❌ الإجابة الصحيحة: ${expectedAnswer}`}</span>
+            {locked && (
+              <div className="p-3 rounded border border-red-300 dark:border-red-700 bg-red-500/10 text-red-700 dark:text-red-300 flex items-center gap-2 text-sm font-medium" dir="rtl">
+                <XCircle className="h-4 w-4" />
+                <span>إجابة غير صحيحة. ستتمكن من إعادة المحاولة بعد لحظات…</span>
               </div>
             )}
-            {(solution || exercise.solution) && (
-              <>
-                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "📖 عرض الحل المفصل"}</Button>
-                {revealed && <MarkdownSolution content={(solution || exercise.solution) as string} compact />}
-              </>
+            {solved && (
+              <div className="p-3 rounded border border-green-300 dark:border-green-700 bg-green-500/10 text-green-800 dark:text-green-300 flex items-center gap-2 text-sm font-semibold" dir="rtl">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>✅ إجابة صحيحة! أحسنت 🎉</span>
+              </div>
             )}
-            {!solution && !exercise.solution && result !== null && (
-              <>
-                <Button variant="ghost" size="sm" onClick={() => setRevealed(!revealed)}>{revealed ? "إخفاء الحل" : "عرض الحل"}</Button>
-                {revealed && <div className="p-3 bg-muted/50 rounded-lg text-sm" dir="rtl"><span className="font-medium">الحل: </span>{expectedAnswer}</div>}
-              </>
+            <Button variant="ghost" size="sm" onClick={handleRevealSolution}>{revealed ? "إخفاء الحل" : "📖 عرض الحل المفصل"}</Button>
+            {revealed && (solution || exercise.solution) && (
+              <MarkdownSolution content={(solution || exercise.solution) as string} compact />
             )}
           </div>
         </DialogContent>
