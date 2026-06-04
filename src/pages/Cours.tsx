@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check, Search, BarChart3, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { NotificationBell } from "@/components/course/NotificationBell";
+
 import ChatBot from "@/components/ChatBot";
 import ITSRecommendations from "@/components/its/ITSRecommendations";
 import { ChapterFormDialog, DeleteChapterButton, LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
@@ -435,7 +435,6 @@ const Cours = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              {profile?.id && <NotificationBell userId={profile.id} />}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/10 rounded-lg p-2 transition-colors">
