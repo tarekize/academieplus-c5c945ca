@@ -314,6 +314,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     concept?: string,
     mistakeDetails?: { user_answer: string; correct_answer: string },
     difficulty?: number,
+    behavior?: { hintUsage?: HintUsage; attemptCount?: number; abandoned?: boolean },
   ) => {
     // Capture session start composite level once
     if (sessionStartLevelRef.current === null) {
