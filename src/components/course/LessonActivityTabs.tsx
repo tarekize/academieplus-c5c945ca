@@ -793,8 +793,8 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
               {((isQuiz && adaptiveContent.quizzes.length > 0) || (!isQuiz && adaptiveContent.exercises.length > 0)) && (
                 <Button size="sm" variant="outline"
                   onClick={() => {
-                    if (isQuiz) { setAiQuizAnswers({}); setAiQuizResults({}); }
-                    else { setAiExerciseAnswers({}); setAiExerciseResults({}); }
+                    if (isQuiz) { setAiQuizAnswers({}); setAiQuizSelected({}); setAiQuizResults({}); setAiQuizLocked({}); }
+                    else { setAiExerciseAnswers({}); setAiExerciseResults({}); setAiExerciseLocked({}); }
                     adaptiveContent.resetSessionCounters();
                     adaptiveContent.generateContent(isQuiz ? "quiz" : "exercise");
                   }}
