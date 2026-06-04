@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { computeDelta, applyDelta, computeComposite, applyDecay } from "@/lib/levelEngine";
+import { computeDelta, applyDelta, computeComposite, applyDecay, hesitationAdjustment, HintUsage } from "@/lib/levelEngine";
+import { getPlacementLevel } from "@/lib/initialLevel";
 
 interface QuizItem {
   question: string;
@@ -191,10 +192,13 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
             .update({ current_level: decayResult.level })
             .eq("id", scoreData.id);
         }
+      } else {
+        // Règle 4 — niveau initial = score du test de positionnement (plus de 50
+        // arbitraire). On amorce la leçon avec le current_level de la ligne placement.
+        const placementLevel = await getPlacementLevel(userId);
+        setScore((prev) => ({ ...prev, current_level: placementLevel }));
       }
-      // Règle 4 — pas de seed depuis learning_styles (mesure le style, pas les acquis).
-      // Le niveau initial reste 50 par défaut. Un éventuel test de placement futur pourra
-      // alimenter score.current_level via student_scores.assessment_data.placement_score.
+
 
       // Load existing AI content
       const { data: contentData } = await supabase
@@ -310,6 +314,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     concept?: string,
     mistakeDetails?: { user_answer: string; correct_answer: string },
     difficulty?: number,
+    behavior?: { hintUsage?: HintUsage; attemptCount?: number; abandoned?: boolean },
   ) => {
     // Capture session start composite level once
     if (sessionStartLevelRef.current === null) {
@@ -362,12 +367,15 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       if (type === "quiz") newScore.quiz_time_seconds += timeSeconds;
       else newScore.exercise_time_seconds += timeSeconds;
 
-      // Règle 1 — Ajustement ELO pondéré par difficulté + temps
+      // Règle 1 + 3.1 — Ajustement ELO pondéré + signaux comportementaux
       const delta = computeDelta({
         isCorrect,
         timeSec: timeSeconds,
         difficulty,
         currentLevel: newScore.current_level,
+        hintUsage: behavior?.hintUsage ?? "none",
+        attemptCount: behavior?.attemptCount ?? 1,
+        abandoned: behavior?.abandoned ?? false,
       });
       newScore.current_level = applyDelta(newScore.current_level, delta);
 
@@ -476,6 +484,44 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     }
   }, [userId, lessonId, chapterId]);
 
+  // Règle 3.2 — hésitation/abandon sans réponse soumise.
+  const recordHesitation = useCallback(async (kind: "timeout" | "erase", difficulty?: number) => {
+    if (!userId || !lessonId) return;
+    const adjust = hesitationAdjustment(kind, difficulty);
+
+    setScore((prev) => ({ ...prev, current_level: applyDelta(prev.current_level, adjust) }));
+
+    const { data: existing } = await supabase
+      .from("student_scores")
+      .select("id, current_level, assessment_data")
+      .eq("user_id", userId)
+      .eq("lesson_id", lessonId)
+      .maybeSingle();
+
+    const assessment = (existing?.assessment_data as Record<string, any> | null) || {};
+    const nextAssessment = {
+      ...assessment,
+      hesitation_timeout: (assessment.hesitation_timeout || 0) + (kind === "timeout" ? 1 : 0),
+      hesitation_erase: (assessment.hesitation_erase || 0) + (kind === "erase" ? 1 : 0),
+    };
+
+    if (existing) {
+      await supabase
+        .from("student_scores")
+        .update({ assessment_data: nextAssessment, current_level: applyDelta(existing.current_level ?? 50, adjust) })
+        .eq("id", existing.id);
+    } else {
+      const baseLevel = await getPlacementLevel(userId);
+      await supabase.from("student_scores").insert({
+        user_id: userId,
+        lesson_id: lessonId,
+        chapter_id: chapterId,
+        current_level: applyDelta(baseLevel, adjust),
+        assessment_data: nextAssessment,
+      });
+    }
+  }, [userId, lessonId, chapterId]);
+
   const resetSessionCounters = useCallback(() => {
     setSessionCorrect(0);
     setSessionTotal(0);
@@ -488,6 +534,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     mistakesRef.current = [];
   }, []);
 
+
   return {
     quizzes,
     exercises,
@@ -499,6 +546,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     levelUpMessage,
     generateContent,
     recordAnswer,
+    recordHesitation,
     updateReadingTime,
     resetSessionCounters,
   };

@@ -1,107 +1,113 @@
 ## Objectif
 
-Refondre le calcul du niveau de l'élève selon les 5 règles de la nouvelle spécification (ELO pondéré difficulté, composite sans reading_time/streak, niveau global pondéré, suppression du seed `learning_styles`, décroissance temporelle).
+Corriger 3 points: (1) niveau initial = score du test de positionnement (plus de 50 par défaut), (2) nouvelle gestion des erreurs (pas de réponse révélée, rouge 3 s + nouvelle tentative, solution uniquement à la demande, bouton de validation pour les quiz), (3) enrichir le calcul du niveau avec des signaux comportementaux (indice préventif/curatif, hésitation/abandon). Choix confirmés: appliquer partout (adaptatif + chapitre), le chapitre alimente aussi le niveau, pénalités par défaut.
+
+Aucune migration DB nécessaire: les drapeaux d'hésitation seront stockés dans `student_scores.assessment_data` (jsonb existant).
+
+---
+
+## 1. Niveau initial = score du test diagnostic
+
+Le test (`LearningAssessment.tsx`) enregistre déjà `current_level = placementScore` dans une ligne globale (`lesson_id = null, chapter_id = null`). Il manque juste l'amorçage des leçons à partir de cette valeur.
+
+- **`src/lib/levelEngine.ts`** — ajouter une note; pas de logique.
+- **Nouveau `src/lib/initialLevel.ts`** — `getPlacementLevel(userId): Promise<number>` lit la ligne placement (`lesson_id is null`) et renvoie son `current_level`, sinon `50`.
+- **`src/hooks/useAdaptiveContent.ts`** — dans `loadExisting`, quand aucune ligne de score n'existe pour la leçon, initialiser `score.current_level` via `getPlacementLevel` (au lieu de 50). Idem comme valeur de départ lors du premier `insert` dans `recordAnswer`.
+- **`src/lib/chatEvalTracker.ts`** — remplacer le défaut `?? 50` par `getPlacementLevel(userId)` pour une nouvelle ligne chapitre.
+
+---
+
+## 2. Gestion des erreurs & interactions
+
+### A. Exercices (entraînement) — `AdaptiveActivities.tsx` + `ChapterMathExercises.tsx`
+
+Nouveau comportement par exercice:
+- Soumission fausse → état **verrouillé rouge pendant 3 s** (input désactivé, bordure/encadré rouge), **sans afficher la bonne réponse**.
+- Après 3 s → input réactivé, l'élève peut **retenter** (compteur de tentatives incrémenté).
+- La bonne réponse / résolution n'apparaît **que** via le bouton existant **« عرض الحل المفصل »** (déjà présent). Retirer l'affichage direct de `expected_answer` sur erreur (lignes ~379 de `AdaptiveActivities` et ~222 de `ChapterMathExercises`).
+- Soumission correcte → état vert, exercice résolu.
+- Cliquer « عرض الحل المفصل » avant d'avoir réussi = abandon (compté comme échec pour le niveau, voir §3).
+
+State ajouté: `attempts[id]`, `lockedUntil[id]` (timestamp), `solved[id]`. Un `setTimeout`/`useEffect` lève le verrou après 3 s.
+
+### B. Quiz (évaluation) — `AdaptiveActivities.tsx` (le chapitre a déjà un bouton)
+
+- Remplacer l'auto-soumission au clic (`handleQuizAnswer`) par: sélection d'une option (surbrillance) **puis bouton « تأكيد »** qui valide définitivement. Une seule validation par question; après validation, affichage du résultat + explication (comportement quiz = une tentative).
+- `ChapterMathQuiz.tsx` conserve son bouton « تأكيد »; on retire seulement la révélation directe si l'on veut homogénéiser — ici le quiz reste une évaluation à tentative unique, donc l'affichage post-validation est conservé.
+
+---
+
+## 3. Calcul du niveau enrichi (signaux comportementaux)
+
+### 3.1 Moteur — `src/lib/levelEngine.ts`
+
+Étendre `DeltaInput` et `computeDelta`:
+```text
+hintUsage?: "none" | "preventive" | "curative"   // indice avant / après 1ère réponse
+attemptCount?: number                            // nb de soumissions (1 = juste du 1er coup)
+abandoned?: boolean                              // a révélé la solution / quitté sans réussir
+```
+Application (après le calcul ELO actuel):
+- Si correct:
+  - `attemptCount > 1` → gain × 0.85^(attempts-1) (plancher +1)
+  - indice **préventif** → gain × 0.70 (réduction ~30 %)
+  - indice **curatif** → gain × 0.40 (réduction ~60 %)
+- Si abandon/échec:
+  - indice curatif → perte × 1.3
+- Re-clamp final (+1..+6 / -7..-1) inchangé.
+
+Nouvelle fonction pure `hesitationAdjustment(kind)` :
+- `"timeout"` (>1 min inactif puis sortie sans réponse) → `-1` (et −2 si difficulté ≥ 4).
+- `"erase"` (saisie puis effacement total puis sortie) → `0` (profil seulement, pas d'impact niveau).
+
+### 3.2 Enregistrement partagé — nouveau `src/lib/recordActivityAnswer.ts`
+
+Fonction unique réutilisée par le chapitre (et alignée avec le hook adaptatif):
+```text
+recordActivityAnswer({ userId, chapterId, lessonId|null, isCorrect, timeSec,
+  difficulty, hintUsage, attemptCount, abandoned })
+```
+- Charge/insère la ligne `student_scores` (niveau-leçon si `lessonId`, sinon niveau-chapitre `lesson_id null`).
+- Niveau initial via `getPlacementLevel`.
+- Applique `computeDelta` (avec signaux) → met à jour `current_level`, `total_answers`, `correct_answers`, `accuracy_rate`, `streak`.
+- Drapeaux d'hésitation/abandon: incrémentés dans `assessment_data` (`{ hesitation_timeout, hesitation_erase, abandons }`).
+
+### 3.3 Hook adaptatif — `src/hooks/useAdaptiveContent.ts`
+
+- `recordAnswer(... , extra?: { hintUsage, attemptCount, abandoned })` → transmis à `computeDelta`.
+- Ajouter `recordHesitation(kind)` qui applique `hesitationAdjustment` et persiste les drapeaux.
+
+### 3.4 Détection hésitation/abandon — `AdaptiveActivities.tsx` + `ChapterMathExercises.tsx`
+
+Par exercice ouvert, suivre: `openedAt`, `hasTyped`, `valueNonEmptyThenEmptied`, `submitted/solved`.
+- **Timeout**: si exercice actif > 60 s sans aucune soumission, à la sortie (changement d'onglet/exercice/unmount) → `recordHesitation("timeout")`.
+- **Effacement**: si l'élève a tapé puis vidé le champ et quitte sans soumettre → `recordHesitation("erase")`.
+- Déclenché dans le cleanup d'un `useEffect` lié à l'exercice courant + au `beforeunload`.
+
+### 3.5 Indices (bouton « مساعدة » / « تلميحات »)
+
+- À l'ouverture d'un indice, mémoriser `hintUsage`: `"preventive"` si aucune soumission encore faite, `"curative"` si au moins une mauvaise réponse déjà soumise. Passé à `recordAnswer`/`recordActivityAnswer` au moment où l'exercice/quiz est résolu ou abandonné.
+
+### 3.6 Chapitre alimente le niveau
+
+- `ChapterMathExercises.tsx` / `ChapterMathQuiz.tsx` récupèrent l'`userId` via `supabase.auth.getUser()` et appellent `recordActivityAnswer` (niveau-leçon via `ex.lesson_id`, sinon niveau-chapitre) à la résolution/abandon, avec les signaux comportementaux. (Ils ne modifiaient pas le niveau auparavant.)
+
+---
+
+## Détails techniques
+
+- Pénalités/centralisées dans `levelEngine.ts` (testable). Tests unitaires possibles dans `src/test/`.
+- Verrou 3 s = `lockedUntil` + `setTimeout` nettoyé au démontage; pas de blocage si l'élève change d'exercice.
+- Stockage hésitation: `assessment_data` jsonb (aucune migration).
+- Compat: lignes existantes (niveau 50) inchangées; le nouvel amorçage ne concerne que les leçons sans score.
 
 ## Fichiers impactés
-
-- `src/hooks/useAdaptiveContent.ts` — règles 1, 2, 4, et exposition du composite
-- `src/components/dashboard/StudentDashboardContent.tsx` — règle 3 (niveau global pondéré + leçon faible/forte + alerte) et règle 5 (decay à l'ouverture de session)
-- `src/lib/levelEngine.ts` *(nouveau)* — moteur isolé et testable
-- *(option)* `src/components/dashboard/StatCard.tsx` ou nouvelle carte pour afficher `weakest_lesson` / alerte lacune critique / streak séparé
-
-Aucun changement de schéma DB nécessaire (`current_level`, `streak`, `total_answers`, `correct_answers`, `updated_at` suffisent). On peut éventuellement stocker `accepted_answers`/historique des dernières réponses pour le « taux pondéré difficulté », mais on commence par approximer avec `accuracy_rate` + dernier ELO si pas d'historique.
-
-## Détail par règle
-
-### Règle 1 — Ajustement ELO par réponse (remplace lignes 373-382)
-
-```text
-expected = 1 / (1 + 10^((difficulty*20 - current_level) / 40))
-weight   = {1:0.6, 2:0.8, 3:1.0, 4:1.3, 5:1.6}[difficulty]
-delta    = correct ? clamp(round(3*(1-expected)*weight),  +1, +5)
-                   : clamp(round(-2*expected*weight),     -5, -1)
-
-// modulateur temps (median par difficulté, défauts 30/45/60/90/120s)
-if correct && t < median*0.6 : delta = round(delta*1.2)
-if correct && t > median*2.0 : delta = round(delta*0.8)
-if !correct && t > 120       : delta = round(delta*1.3)
-
-new_level = clamp(current_level + delta, 5, 100)
-```
-
-`recordAnswer` doit recevoir `difficulty` (1-5) — actuellement absent. On le passera depuis les composants quiz/exercice qui appellent déjà la donnée (`QuizItem.difficulty` / `ExerciseItem.difficulty` existent côté contenu IA). Fallback = 3.
-
-### Règle 2 — Composite (remplace `computeCompositeLevel`)
-
-```text
-composite = 0.40*taux_pondéré_difficulté
-          + 0.35*current_level
-          + 0.25*quiz_accuracy
-```
-
-- Suppression totale de `reading_time` et du bonus `streak` du composite.
-- `taux_pondéré_difficulté` : si on n'a pas l'historique des 30 dernières réponses, on utilise `accuracy_rate` comme fallback (à enrichir plus tard via une table `answer_history` si souhaité).
-- `streak` continue d'être stocké et exposé séparément pour l'UI (« indicateur de régularité »).
-
-### Règle 3 — Niveau global dashboard
-
-Dans `StudentDashboardContent.tsx`, remplacer `sumLevel/count` par :
-
-```text
-total_answers_all = Σ s.total_answers
-poids_l           = s.total_answers / total_answers_all
-global_level      = Σ (s.current_level * poids_l)
-weakest           = argmin(s.current_level où s.total_answers > 0)
-strongest         = argmax(...)
-critical_gap      = ∃ leçon avec current_level < 30
-```
-
-Ajouter dans l'UI : carte « مستواك العام »  + badge « نقطة ضعف » sur la leçon la plus faible + alerte rouge si `critical_gap`.
-
-### Règle 4 — Niveau initial
-
-Dans `useAdaptiveContent.ts` lignes 188-198 : **supprimer** la lecture de `learning_styles` pour seeder `current_level`. Garder `learning_styles` uniquement pour le format pédagogique (visuel/textuel/pratique). `current_level` reste à 50 par défaut, ou utilise `assessment_data.placement_score` si présent dans `student_scores`.
-
-### Règle 5 — Décroissance temporelle
-
-Au chargement du dashboard (et au mount de `useAdaptiveContent` pour la leçon courante) :
-
-```text
-days = floor((now - updated_at) / 86400000)
-if days > 7:
-  decay = max(0.10, 1 - 0.01*(days-7))   // plancher 0.10 (≈ ×0.90 max d'érosion)
-  current_level = max(5, round(current_level * decay))
-  → UPDATE student_scores SET current_level=..., updated_at=now()
-```
-
-Effet appliqué une seule fois par session (drapeau `decay_applied` en mémoire) pour ne pas re-déclencher au re-render.
-
-## Moteur isolé `src/lib/levelEngine.ts`
-
-Exporte des fonctions pures :
-
-```ts
-computeDelta({ isCorrect, timeSec, difficulty, currentLevel }): number
-computeComposite({ currentLevel, accuracy, quizAccuracy, weightedAccuracy? }): number
-computeGlobal(scores: { current_level, total_answers }[]): {
-  global, weakest, strongest, criticalGap
-}
-applyDecay(currentLevel: number, lastUpdate: Date): { level, applied }
-```
-
-Ces fonctions seront appelées depuis `useAdaptiveContent` et `StudentDashboardContent`. Couvrables par tests unitaires (`src/test/`).
-
-## Sortie JSON (Règle Format)
-
-`recordAnswer` retourne maintenant un objet :
-
-```json
-{ "new_level", "delta_applied", "composite_level", "streak_display", "decay_applied" }
-```
-
-`global_level / weakest_lesson / critical_gap` sont calculés au niveau dashboard.
-
-## Hors-scope (à confirmer)
-
-- Création d'une table `answer_history` pour le vrai « taux pondéré difficulté sur 30 dernières réponses » : non inclus, fallback sur `accuracy_rate`. Dis-moi si tu veux qu'on l'ajoute.
-- Test de placement réel (Règle 4) : on ne crée pas le test ici, on se contente de lire `assessment_data.placement_score` si présent.
+- `src/lib/levelEngine.ts` (signaux + hesitationAdjustment)
+- `src/lib/initialLevel.ts` (nouveau)
+- `src/lib/recordActivityAnswer.ts` (nouveau)
+- `src/hooks/useAdaptiveContent.ts` (seed placement + signaux + recordHesitation)
+- `src/lib/chatEvalTracker.ts` (seed placement)
+- `src/components/course/AdaptiveActivities.tsx` (UX erreur, validate quiz, hints, hésitation)
+- `src/components/course/ChapterMathExercises.tsx` (UX erreur, hints, hésitation, alimente niveau)
+- `src/components/course/ChapterMathQuiz.tsx` (alimente niveau, hints)
+- `src/test/` (tests du moteur, optionnel)

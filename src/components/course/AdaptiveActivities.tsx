@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Brain, PenTool, BookOpen, Sparkles, RefreshCw, CheckCircle2, XCircle, ChevronDown, ChevronUp, Lightbulb, AlertTriangle, Trophy } from "lucide-react";
 import { useAdaptiveContent } from "@/hooks/useAdaptiveContent";
+import type { HintUsage } from "@/lib/levelEngine";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { MarkdownSolution } from "./MarkdownSolution";
@@ -25,19 +26,45 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
   const {
     quizzes, exercises, revisions, loading, score,
     sessionCorrect, sessionTotal, levelUpMessage,
-    generateContent, recordAnswer, updateReadingTime, resetSessionCounters,
+    generateContent, recordAnswer, recordHesitation, updateReadingTime, resetSessionCounters,
   } = useAdaptiveContent(lessonId, chapterId, userId, schoolLevel, lessonTitle, chapterTitle);
 
   const [activeTab, setActiveTab] = useState<"quiz" | "exercise" | "revision" | null>(initialTab);
+  const [quizSelected, setQuizSelected] = useState<Record<number, string>>({});
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
   const [quizResults, setQuizResults] = useState<Record<number, boolean>>({});
   const [exerciseRevealed, setExerciseRevealed] = useState<Record<number, boolean>>({});
   const [exerciseAnswers, setExerciseAnswers] = useState<Record<number, string>>({});
   const [exerciseResults, setExerciseResults] = useState<Record<number, boolean | null>>({});
+  const [exerciseAttempts, setExerciseAttempts] = useState<Record<number, number>>({});
+  const [exerciseLocked, setExerciseLocked] = useState<Record<number, boolean>>({});
+  const [exerciseSolved, setExerciseSolved] = useState<Record<number, boolean>>({});
+  const [exerciseHint, setExerciseHint] = useState<Record<number, { before: boolean; after: boolean }>>({});
   const [showHints, setShowHints] = useState<Record<number, boolean>>({});
   const [flippedCards, setFlippedCards] = useState<Record<number, boolean>>({});
   const timerRef = useRef<number>(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lockTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+
+  // Refs for hesitation detection (avoid stale closures in cleanup)
+  const typedRef = useRef<Record<number, boolean>>({});
+  const emptiedRef = useRef<Record<number, boolean>>({});
+  const submittedAnyRef = useRef(false);
+  const exerciseTabOpenedAtRef = useRef<number>(0);
+  const solvedRef = useRef(exerciseSolved);
+  const resultsRef = useRef(exerciseResults);
+  const exercisesRef = useRef(exercises);
+  useEffect(() => { solvedRef.current = exerciseSolved; }, [exerciseSolved]);
+  useEffect(() => { resultsRef.current = exerciseResults; }, [exerciseResults]);
+  useEffect(() => { exercisesRef.current = exercises; }, [exercises]);
+
+  const hintUsageFor = (eIdx: number): HintUsage => {
+    const h = exerciseHint[eIdx];
+    if (!h) return "none";
+    if (h.after) return "curative";
+    if (h.before) return "preventive";
+    return "none";
+  };
 
   // Timer for tracking exercises/quizzes
   useEffect(() => {
@@ -48,6 +75,30 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [activeTab]);
 
+  // Hesitation / abandon detection on leaving the exercise tab (Règle 3.2)
+  useEffect(() => {
+    if (activeTab !== "exercise") return;
+    exerciseTabOpenedAtRef.current = Date.now();
+    typedRef.current = {};
+    emptiedRef.current = {};
+    submittedAnyRef.current = false;
+    return () => {
+      const openMs = Date.now() - (exerciseTabOpenedAtRef.current || Date.now());
+      let erased = false;
+      Object.keys(emptiedRef.current).forEach((k) => {
+        const i = Number(k);
+        if (emptiedRef.current[i] && !solvedRef.current[i] && resultsRef.current[i] === undefined) erased = true;
+      });
+      if (erased) recordHesitation("erase");
+      else if (openMs > 60000 && !submittedAnyRef.current && exercisesRef.current.length > 0) {
+        recordHesitation("timeout", exercisesRef.current[0]?.difficulty);
+      }
+    };
+  }, [activeTab, recordHesitation]);
+
+  // Cleanup lockout timers on unmount
+  useEffect(() => () => { Object.values(lockTimersRef.current).forEach(clearTimeout); }, []);
+
   // Reading time tracking
   useEffect(() => {
     const mountTime = Date.now();
@@ -57,30 +108,89 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
     };
   }, [lessonId, updateReadingTime]);
 
-  const handleQuizAnswer = async (qIdx: number, answer: string) => {
+  // Quiz: select then validate (Règle 2B)
+  const handleQuizSelect = (qIdx: number, answer: string) => {
     if (quizResults[qIdx] !== undefined) return;
-    setQuizAnswers(prev => ({ ...prev, [qIdx]: answer }));
+    setQuizSelected(prev => ({ ...prev, [qIdx]: answer }));
+  };
+
+  const handleQuizValidate = async (qIdx: number) => {
+    if (quizResults[qIdx] !== undefined) return;
+    const answer = quizSelected[qIdx];
+    if (!answer) return;
     const isCorrect = answer === quizzes[qIdx].correct_answer;
+    setQuizAnswers(prev => ({ ...prev, [qIdx]: answer }));
     setQuizResults(prev => ({ ...prev, [qIdx]: isCorrect }));
     await recordAnswer(isCorrect, timerRef.current, "quiz", quizzes[qIdx].question, isCorrect ? undefined : { user_answer: answer, correct_answer: quizzes[qIdx].correct_answer }, quizzes[qIdx].difficulty);
     timerRef.current = 0;
   };
 
+  // Exercise: wrong answer → red lockout 3s, no reveal, retry (Règle 2A)
   const handleExerciseSubmit = async (eIdx: number) => {
+    if (exerciseLocked[eIdx] || exerciseSolved[eIdx]) return;
     const userAnswer = exerciseAnswers[eIdx]?.trim();
     if (!userAnswer) return;
+    const attempts = (exerciseAttempts[eIdx] ?? 0) + 1;
+    setExerciseAttempts(prev => ({ ...prev, [eIdx]: attempts }));
+    submittedAnyRef.current = true;
     const isCorrect = userAnswer === exercises[eIdx].expected_answer;
-    setExerciseResults(prev => ({ ...prev, [eIdx]: isCorrect }));
-    await recordAnswer(isCorrect, timerRef.current, "exercise", `${exercises[eIdx].title || ''} — ${exercises[eIdx].statement || ''}`.trim(), isCorrect ? undefined : { user_answer: userAnswer, correct_answer: exercises[eIdx].expected_answer }, exercises[eIdx].difficulty);
-    timerRef.current = 0;
+
+    if (isCorrect) {
+      setExerciseSolved(prev => ({ ...prev, [eIdx]: true }));
+      setExerciseResults(prev => ({ ...prev, [eIdx]: true }));
+      await recordAnswer(true, timerRef.current, "exercise", `${exercises[eIdx].title || ''} — ${exercises[eIdx].statement || ''}`.trim(), undefined, exercises[eIdx].difficulty, { hintUsage: hintUsageFor(eIdx), attemptCount: attempts });
+      timerRef.current = 0;
+    } else {
+      setExerciseLocked(prev => ({ ...prev, [eIdx]: true }));
+      if (lockTimersRef.current[eIdx]) clearTimeout(lockTimersRef.current[eIdx]);
+      lockTimersRef.current[eIdx] = setTimeout(() => {
+        setExerciseLocked(prev => ({ ...prev, [eIdx]: false }));
+      }, 3000);
+    }
+  };
+
+  // Reveal detailed solution = give up if not solved → record as failure (abandoned)
+  const handleRevealSolution = async (eIdx: number) => {
+    const willReveal = !exerciseRevealed[eIdx];
+    setExerciseRevealed(prev => ({ ...prev, [eIdx]: !prev[eIdx] }));
+    if (willReveal && !exerciseSolved[eIdx] && exerciseResults[eIdx] === undefined) {
+      setExerciseResults(prev => ({ ...prev, [eIdx]: false }));
+      const attempts = Math.max(1, exerciseAttempts[eIdx] ?? 0);
+      submittedAnyRef.current = true;
+      await recordAnswer(false, timerRef.current, "exercise", `${exercises[eIdx].title || ''} — ${exercises[eIdx].statement || ''}`.trim(), { user_answer: exerciseAnswers[eIdx] || "", correct_answer: exercises[eIdx].expected_answer }, exercises[eIdx].difficulty, { hintUsage: hintUsageFor(eIdx), attemptCount: attempts, abandoned: true });
+      timerRef.current = 0;
+    }
+  };
+
+  const handleToggleHint = (eIdx: number) => {
+    const opening = !showHints[eIdx];
+    setShowHints(prev => ({ ...prev, [eIdx]: !prev[eIdx] }));
+    if (opening) {
+      const after = (exerciseAttempts[eIdx] ?? 0) > 0;
+      setExerciseHint(prev => ({
+        ...prev,
+        [eIdx]: { before: (prev[eIdx]?.before || !after), after: (prev[eIdx]?.after || after) },
+      }));
+    }
+  };
+
+  const handleExerciseChange = (eIdx: number, val: string) => {
+    setExerciseAnswers(prev => ({ ...prev, [eIdx]: val }));
+    if (val.trim().length > 0) typedRef.current[eIdx] = true;
+    else if (typedRef.current[eIdx]) emptiedRef.current[eIdx] = true;
   };
 
   const handleRegenerate = (type: "quiz" | "exercise" | "revision") => {
-    if (type === "quiz") { setQuizAnswers({}); setQuizResults({}); }
-    if (type === "exercise") { setExerciseRevealed({}); setExerciseAnswers({}); setExerciseResults({}); }
+    if (type === "quiz") { setQuizSelected({}); setQuizAnswers({}); setQuizResults({}); }
+    if (type === "exercise") {
+      setExerciseRevealed({}); setExerciseAnswers({}); setExerciseResults({});
+      setExerciseAttempts({}); setExerciseLocked({}); setExerciseSolved({}); setExerciseHint({});
+      typedRef.current = {}; emptiedRef.current = {}; submittedAnyRef.current = false;
+    }
     resetSessionCounters();
     generateContent(type);
   };
+
 
   const getDifficultyColor = (level: number) => {
     if (level < 30) return "text-green-500";
