@@ -98,10 +98,17 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     lessonId || "", chapterId, propUserId || userId || "", schoolLevel || "", lessonTitle, chapterTitle
   );
   const [aiQuizAnswers, setAiQuizAnswers] = useState<Record<number, string>>({});
+  const [aiQuizSelected, setAiQuizSelected] = useState<Record<number, string>>({});
   const [aiQuizResults, setAiQuizResults] = useState<Record<number, boolean>>({});
+  const [aiQuizLocked, setAiQuizLocked] = useState<Record<number, boolean>>({});
   const [aiExerciseAnswers, setAiExerciseAnswers] = useState<Record<number, string>>({});
   const [aiExerciseResults, setAiExerciseResults] = useState<Record<number, boolean | null>>({});
+  const [aiExerciseLocked, setAiExerciseLocked] = useState<Record<number, boolean>>({});
   const [aiShowHints, setAiShowHints] = useState<Record<number, boolean>>({});
+  const aiLockTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  useEffect(() => () => { Object.values(aiLockTimersRef.current).forEach(clearTimeout); }, []);
+
+
 
   const currentActivityType = activeSection === "exercises" ? "exercise" as const
     : activeSection === "quiz" ? "quiz" as const
