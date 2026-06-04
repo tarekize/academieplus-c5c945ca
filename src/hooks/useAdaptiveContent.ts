@@ -484,6 +484,44 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     }
   }, [userId, lessonId, chapterId]);
 
+  // Règle 3.2 — hésitation/abandon sans réponse soumise.
+  const recordHesitation = useCallback(async (kind: "timeout" | "erase", difficulty?: number) => {
+    if (!userId || !lessonId) return;
+    const adjust = hesitationAdjustment(kind, difficulty);
+
+    setScore((prev) => ({ ...prev, current_level: applyDelta(prev.current_level, adjust) }));
+
+    const { data: existing } = await supabase
+      .from("student_scores")
+      .select("id, current_level, assessment_data")
+      .eq("user_id", userId)
+      .eq("lesson_id", lessonId)
+      .maybeSingle();
+
+    const assessment = (existing?.assessment_data as Record<string, any> | null) || {};
+    const nextAssessment = {
+      ...assessment,
+      hesitation_timeout: (assessment.hesitation_timeout || 0) + (kind === "timeout" ? 1 : 0),
+      hesitation_erase: (assessment.hesitation_erase || 0) + (kind === "erase" ? 1 : 0),
+    };
+
+    if (existing) {
+      await supabase
+        .from("student_scores")
+        .update({ assessment_data: nextAssessment, current_level: applyDelta(existing.current_level ?? 50, adjust) })
+        .eq("id", existing.id);
+    } else {
+      const baseLevel = await getPlacementLevel(userId);
+      await supabase.from("student_scores").insert({
+        user_id: userId,
+        lesson_id: lessonId,
+        chapter_id: chapterId,
+        current_level: applyDelta(baseLevel, adjust),
+        assessment_data: nextAssessment,
+      });
+    }
+  }, [userId, lessonId, chapterId]);
+
   const resetSessionCounters = useCallback(() => {
     setSessionCorrect(0);
     setSessionTotal(0);
@@ -495,6 +533,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     strongConceptsRef.current = [];
     mistakesRef.current = [];
   }, []);
+
 
   return {
     quizzes,
