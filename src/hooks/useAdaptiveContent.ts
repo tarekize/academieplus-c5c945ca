@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { computeDelta, applyDelta, computeComposite, applyDecay } from "@/lib/levelEngine";
+import { computeDelta, applyDelta, computeComposite, applyDecay, hesitationAdjustment, HintUsage } from "@/lib/levelEngine";
+import { getPlacementLevel } from "@/lib/initialLevel";
 
 interface QuizItem {
   question: string;
