@@ -414,32 +414,10 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
         // Failure notification
         const msg = `لديك ثغرات في هذا الدرس (${newSessionCorrect}/${newSessionTotal}). انقر على "مراجعة" لمراجعة البطاقات ثم "تجديد" لتمارين مكيّفة.`;
         setLevelUpMessage(msg);
-
-        await supabase.from("student_notifications").insert({
-          user_id: userId,
-          lesson_id: lessonId,
-          chapter_id: chapterId,
-          notification_type: "performance_drop",
-          title: "📉 انخفاض في الأداء",
-          message: `لديك ثغرات في هذا الدرس (${lessonTitle || ""}).`,
-          diagnostic: null,
-          advice: null,
-        });
       } else if (sessionAccuracy >= 80) {
         // Success notification
         const msg = `تهانينا! أنت تتقن هذا المستوى (${newSessionCorrect}/${newSessionTotal}). انقر على "تجديد" للانتقال إلى تحديات أصعب!`;
         setLevelUpMessage(msg);
-
-        await supabase.from("student_notifications").insert({
-          user_id: userId,
-          lesson_id: lessonId,
-          chapter_id: chapterId,
-          notification_type: "level_up",
-          title: "🎉 أتقنت هذا الدرس",
-          message: `أحسنت! لقد أتقنت درس (${lessonTitle || ""}).`,
-          diagnostic: null,
-          advice: null,
-        });
       } else {
         const msg = `تم تحليل أدائك (${newSessionCorrect}/${newSessionTotal}). اضغط على "تجديد" عندما تريد محتوى جديدًا حسب مستواك.`;
         setLevelUpMessage(msg);
