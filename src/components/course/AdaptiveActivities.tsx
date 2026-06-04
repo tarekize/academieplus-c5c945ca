@@ -367,21 +367,36 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                       <HtmlWithMath htmlContent={q.question} className="flex-1" />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {q.options.map((opt, oIdx) => (
-                        <Button
-                          key={oIdx}
-                          variant={quizAnswers[idx] === opt ? (quizResults[idx] ? "default" : "destructive") : "outline"}
-                          className={`justify-start text-right ${opt === q.correct_answer && quizResults[idx] !== undefined ? "border-green-500 bg-green-500/10" : ""}`}
-                          onClick={() => handleQuizAnswer(idx, opt)}
-                          disabled={quizResults[idx] !== undefined}
-                          dir="rtl"
-                        >
-                          {quizResults[idx] !== undefined && opt === q.correct_answer && <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />}
-                          {quizResults[idx] === false && quizAnswers[idx] === opt && <XCircle className="h-4 w-4 mr-2" />}
-                          <HtmlWithMath htmlContent={opt} className="text-right flex-1" />
-                        </Button>
-                      ))}
+                      {q.options.map((opt, oIdx) => {
+                        const validated = quizResults[idx] !== undefined;
+                        const selected = quizSelected[idx] === opt;
+                        const isAnswer = opt === q.correct_answer;
+                        let variant: "default" | "destructive" | "outline" | "secondary" = "outline";
+                        if (validated) variant = quizAnswers[idx] === opt ? (quizResults[idx] ? "default" : "destructive") : "outline";
+                        else if (selected) variant = "secondary";
+                        return (
+                          <Button
+                            key={oIdx}
+                            variant={variant}
+                            className={`justify-start text-right ${validated && isAnswer ? "border-green-500 bg-green-500/10" : ""} ${!validated && selected ? "ring-2 ring-primary" : ""}`}
+                            onClick={() => handleQuizSelect(idx, opt)}
+                            disabled={validated}
+                            dir="rtl"
+                          >
+                            {validated && isAnswer && <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />}
+                            {validated && quizResults[idx] === false && quizAnswers[idx] === opt && <XCircle className="h-4 w-4 mr-2" />}
+                            <HtmlWithMath htmlContent={opt} className="text-right flex-1" />
+                          </Button>
+                        );
+                      })}
                     </div>
+                    {quizResults[idx] === undefined && (
+                      <div className="mt-3 flex justify-end" dir="rtl">
+                        <Button size="sm" disabled={!quizSelected[idx]} onClick={() => handleQuizValidate(idx)}>
+                          تأكيد
+                        </Button>
+                      </div>
+                    )}
                     {quizResults[idx] !== undefined && q.explanation && (
                       <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl">
                         <span className="font-medium">الشرح: </span>
