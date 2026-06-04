@@ -250,7 +250,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setShowHint(v => !v)}
+                onClick={() => { setShowHint(v => !v); if (!hasAnswered) setHintUsed(true); }}
                 className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950 font-semibold">
                 <Lightbulb className="h-4 w-4" />
                 {showHint ? "إخفاء المساعدة" : "💡 مساعدة"}
