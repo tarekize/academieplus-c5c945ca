@@ -367,21 +367,36 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                       <HtmlWithMath htmlContent={q.question} className="flex-1" />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {q.options.map((opt, oIdx) => (
-                        <Button
-                          key={oIdx}
-                          variant={quizAnswers[idx] === opt ? (quizResults[idx] ? "default" : "destructive") : "outline"}
-                          className={`justify-start text-right ${opt === q.correct_answer && quizResults[idx] !== undefined ? "border-green-500 bg-green-500/10" : ""}`}
-                          onClick={() => handleQuizAnswer(idx, opt)}
-                          disabled={quizResults[idx] !== undefined}
-                          dir="rtl"
-                        >
-                          {quizResults[idx] !== undefined && opt === q.correct_answer && <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />}
-                          {quizResults[idx] === false && quizAnswers[idx] === opt && <XCircle className="h-4 w-4 mr-2" />}
-                          <HtmlWithMath htmlContent={opt} className="text-right flex-1" />
-                        </Button>
-                      ))}
+                      {q.options.map((opt, oIdx) => {
+                        const validated = quizResults[idx] !== undefined;
+                        const selected = quizSelected[idx] === opt;
+                        const isAnswer = opt === q.correct_answer;
+                        let variant: "default" | "destructive" | "outline" | "secondary" = "outline";
+                        if (validated) variant = quizAnswers[idx] === opt ? (quizResults[idx] ? "default" : "destructive") : "outline";
+                        else if (selected) variant = "secondary";
+                        return (
+                          <Button
+                            key={oIdx}
+                            variant={variant}
+                            className={`justify-start text-right ${validated && isAnswer ? "border-green-500 bg-green-500/10" : ""} ${!validated && selected ? "ring-2 ring-primary" : ""}`}
+                            onClick={() => handleQuizSelect(idx, opt)}
+                            disabled={validated}
+                            dir="rtl"
+                          >
+                            {validated && isAnswer && <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />}
+                            {validated && quizResults[idx] === false && quizAnswers[idx] === opt && <XCircle className="h-4 w-4 mr-2" />}
+                            <HtmlWithMath htmlContent={opt} className="text-right flex-1" />
+                          </Button>
+                        );
+                      })}
                     </div>
+                    {quizResults[idx] === undefined && (
+                      <div className="mt-3 flex justify-end" dir="rtl">
+                        <Button size="sm" disabled={!quizSelected[idx]} onClick={() => handleQuizValidate(idx)}>
+                          تأكيد
+                        </Button>
+                      </div>
+                    )}
                     {quizResults[idx] !== undefined && q.explanation && (
                       <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm" dir="rtl">
                         <span className="font-medium">الشرح: </span>
@@ -445,7 +460,7 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setShowHints(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                        onClick={() => handleToggleHint(idx)}
                         className="text-yellow-600"
                       >
                         <Lightbulb className="h-4 w-4 mr-1" />
@@ -457,43 +472,51 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
                       <p key={hIdx} className="text-xs text-muted-foreground bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {hint}</p>
                     ))}
 
-                    {exerciseResults[idx] === undefined && (
+                    {!exerciseSolved[idx] && (
                       <div className="flex gap-2 items-center" dir="rtl">
                         <input
                           id={`adapt-exo-input-${idx}`}
-                          className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
-                          placeholder="أدخل إجابتك..."
+                          className={`flex-1 border rounded-lg px-3 py-2 text-sm bg-background transition-colors ${exerciseLocked[idx] ? "border-red-500 ring-2 ring-red-500/40 bg-red-500/5" : ""}`}
+                          placeholder={exerciseLocked[idx] ? "إجابة خاطئة، حاول مجدداً..." : "أدخل إجابتك..."}
                           value={exerciseAnswers[idx] || ""}
-                          onChange={(e) => setExerciseAnswers(prev => ({ ...prev, [idx]: e.target.value }))}
+                          onChange={(e) => handleExerciseChange(idx, e.target.value)}
+                          disabled={exerciseLocked[idx]}
                           dir="rtl"
                         />
-                        <Button size="sm" onClick={() => handleExerciseSubmit(idx)}>تحقق</Button>
+                        <Button size="sm" onClick={() => handleExerciseSubmit(idx)} disabled={exerciseLocked[idx]}>تحقق</Button>
                         <MathKeyboard onInsert={(sym) => {
+                          if (exerciseLocked[idx]) return;
                           const el = document.getElementById(`adapt-exo-input-${idx}`) as HTMLInputElement | null;
                           const current = exerciseAnswers[idx] || "";
                           if (el) {
                             const start = el.selectionStart ?? current.length;
                             const end = el.selectionEnd ?? current.length;
                             const next = current.slice(0, start) + sym + current.slice(end);
-                            setExerciseAnswers(prev => ({ ...prev, [idx]: next }));
+                            handleExerciseChange(idx, next);
                             requestAnimationFrame(() => { el.focus(); const pos = start + sym.length; el.setSelectionRange(pos, pos); });
                           } else {
-                            setExerciseAnswers(prev => ({ ...prev, [idx]: current + sym }));
+                            handleExerciseChange(idx, current + sym);
                           }
                         }} />
                       </div>
                     )}
 
-                    {exerciseResults[idx] !== undefined && (
-                      <div className={`p-2 rounded text-sm ${exerciseResults[idx] ? "bg-green-500/10 text-green-700" : "bg-red-500/10 text-red-700"}`} dir="rtl">
-                        {exerciseResults[idx] ? "✅ إجابة صحيحة!" : `❌ الإجابة الصحيحة: ${ex.expected_answer}`}
+                    {exerciseLocked[idx] && (
+                      <div className="p-2 rounded text-sm bg-red-500/10 text-red-700 flex items-center gap-2" dir="rtl">
+                        <XCircle className="h-4 w-4" /> إجابة غير صحيحة. ستتمكن من إعادة المحاولة بعد لحظات…
+                      </div>
+                    )}
+
+                    {exerciseSolved[idx] && (
+                      <div className="p-2 rounded text-sm bg-green-500/10 text-green-700 flex items-center gap-2" dir="rtl">
+                        <CheckCircle2 className="h-4 w-4" /> إجابة صحيحة!
                       </div>
                     )}
 
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setExerciseRevealed(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                      onClick={() => handleRevealSolution(idx)}
                     >
                       {exerciseRevealed[idx] ? "إخفاء الحل" : "📖 عرض الحل المفصل"}
                     </Button>

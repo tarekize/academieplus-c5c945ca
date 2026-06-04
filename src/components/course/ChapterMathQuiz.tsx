@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Trophy, BookOpen, Clock, Pause, Play, PenTool, Loader2, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { recordActivityAnswer } from "@/lib/recordActivityAnswer";
 
 function DifficultyPencils({ level }: { level: number }) {
   return (
@@ -54,6 +55,12 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
   const [showResults, setShowResults] = useState(false);
   const [answers, setAnswers] = useState<{ question: string; userAnswer: string; correct: boolean }[]>([]);
   const [showHint, setShowHint] = useState(false);
+  const [hintUsed, setHintUsed] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+  }, []);
 
   const quizContentId = useMemo(() => `quiz-${chapterId}`, [chapterId]);
   const { formattedTime, isPaused, pause, resume } = useTimeTracking({
@@ -83,6 +90,19 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
 
       if (result.is_correct) setScore(prev => prev + 1);
       setAnswers(prev => [...prev, { question: currentQuestion.question, userAnswer: selectedAnswer, correct: result.is_correct }]);
+
+      // Alimente le moteur de niveau (niveau-leçon si dispo, sinon niveau-chapitre).
+      if (userId) {
+        recordActivityAnswer({
+          userId,
+          chapterId,
+          lessonId: currentQuestion.lesson_id ?? null,
+          isCorrect: result.is_correct,
+          difficulty: currentQuestion.difficulty,
+          hintUsage: hintUsed ? "preventive" : "none",
+          attemptCount: 1,
+        }).catch(console.error);
+      }
     } catch (error) {
       console.error("Error validating answer:", error);
       // Fallback to client-side if RPC fails and correct_answer is available (admin/pedago)
@@ -94,6 +114,17 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
         setHasAnswered(true);
         if (correct) setScore(prev => prev + 1);
         setAnswers(prev => [...prev, { question: currentQuestion.question, userAnswer: selectedAnswer, correct }]);
+        if (userId) {
+          recordActivityAnswer({
+            userId,
+            chapterId,
+            lessonId: currentQuestion.lesson_id ?? null,
+            isCorrect: correct,
+            difficulty: currentQuestion.difficulty,
+            hintUsage: hintUsed ? "preventive" : "none",
+            attemptCount: 1,
+          }).catch(console.error);
+        }
       }
     } finally {
       setIsSubmitting(false);
@@ -109,6 +140,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
       setCorrectAnswer(null);
       setExplanation("");
       setShowHint(false);
+      setHintUsed(false);
     } else {
       setShowResults(true);
     }
@@ -218,7 +250,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setShowHint(v => !v)}
+                onClick={() => { setShowHint(v => !v); if (!hasAnswered) setHintUsed(true); }}
                 className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950 font-semibold">
                 <Lightbulb className="h-4 w-4" />
                 {showHint ? "إخفاء المساعدة" : "💡 مساعدة"}
