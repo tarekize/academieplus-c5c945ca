@@ -102,7 +102,7 @@ serve(async (req) => {
       () => adminClient.from("parent_child_links").delete().eq("parent_id", targetUserId),
       () => adminClient.from("student_subscriptions").delete().eq("user_id", targetUserId),
       () => adminClient.from("student_scores").delete().eq("user_id", targetUserId),
-      () => adminClient.from("student_notifications").delete().eq("user_id", targetUserId),
+      
       () => adminClient.from("chat_usage").delete().eq("user_id", targetUserId),
       () => adminClient.from("chat_conversations").delete().eq("user_id", targetUserId),
       () => adminClient.from("ai_generated_content").delete().eq("user_id", targetUserId),

@@ -88,40 +88,5 @@ export async function recordChatExerciseAnswer({ userId, chapterId, chapterTitle
   } else {
     await supabase.from("student_scores").insert(row);
   }
-
-  // 2) En cas d'erreur (lacune), générer un commentaire IA + notification élève.
-  if (!evalData.isCorrect) {
-    let message = "";
-    try {
-      const { data: cmt } = await supabase.functions.invoke("generate-lesson-comment", {
-        body: {
-          lesson_title: evalData.concept || chapterTitle || "",
-          chapter_title: chapterTitle || "",
-          level_before: currentLevel,
-          level_after: newLevel,
-          weak_concepts: evalData.concept ? [evalData.concept] : [],
-          strong_concepts: [],
-          mistakes: [],
-          session_correct: correctAnswers,
-          session_total: totalAnswers,
-        },
-      });
-      if (cmt?.message) message = cmt.message;
-    } catch (e) {
-      console.warn("Chat lacune comment fallback:", e);
-    }
-
-    await supabase.from("student_notifications").insert({
-      user_id: userId,
-      chapter_id: chapterId,
-      lesson_id: null,
-      notification_type: "chat_lacune",
-      title: "🤖 ثغرة من المحادثة",
-      message: evalData.concept
-        ? `لاحظ المساعد الذكي ثغرة حول: ${evalData.concept}`
-        : "لاحظ المساعد الذكي ثغرة في إجابتك.",
-      diagnostic: message || null,
-      advice: null,
-    });
-  }
 }
+
