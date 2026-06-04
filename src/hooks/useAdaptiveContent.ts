@@ -192,10 +192,13 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
             .update({ current_level: decayResult.level })
             .eq("id", scoreData.id);
         }
+      } else {
+        // Règle 4 — niveau initial = score du test de positionnement (plus de 50
+        // arbitraire). On amorce la leçon avec le current_level de la ligne placement.
+        const placementLevel = await getPlacementLevel(userId);
+        setScore((prev) => ({ ...prev, current_level: placementLevel }));
       }
-      // Règle 4 — pas de seed depuis learning_styles (mesure le style, pas les acquis).
-      // Le niveau initial reste 50 par défaut. Un éventuel test de placement futur pourra
-      // alimenter score.current_level via student_scores.assessment_data.placement_score.
+
 
       // Load existing AI content
       const { data: contentData } = await supabase
