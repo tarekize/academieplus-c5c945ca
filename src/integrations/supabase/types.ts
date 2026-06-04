@@ -505,47 +505,6 @@ export type Database = {
         }
         Relationships: []
       }
-      its_recommendations: {
-        Row: {
-          chapter_id: string | null
-          content: string
-          created_at: string
-          id: string
-          is_completed: boolean
-          priority: number
-          recommendation_type: string
-          user_id: string
-        }
-        Insert: {
-          chapter_id?: string | null
-          content: string
-          created_at?: string
-          id?: string
-          is_completed?: boolean
-          priority?: number
-          recommendation_type: string
-          user_id: string
-        }
-        Update: {
-          chapter_id?: string | null
-          content?: string
-          created_at?: string
-          id?: string
-          is_completed?: boolean
-          priority?: number
-          recommendation_type?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "its_recommendations_chapter_id_fkey"
-            columns: ["chapter_id"]
-            isOneToOne: false
-            referencedRelation: "chapters"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       lessons: {
         Row: {
           chapter_id: string
