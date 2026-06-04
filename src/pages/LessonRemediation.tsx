@@ -275,14 +275,7 @@ export default function LessonRemediation() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonId, chapterId]);
 
-  // Quand toutes les questions sont correctes : marquer résolu + couper le clignotement.
-  const clearNotifications = useCallback(async () => {
-    if (!userId || !lessonId) return;
-    await supabase.from("student_notifications")
-      .update({ is_read: true })
-      .eq("user_id", userId)
-      .eq("lesson_id", lessonId);
-  }, [userId, lessonId]);
+  // Quand toutes les questions sont correctes : marquer résolu.
 
   const maybeResolve = useCallback(async (
     exRes: Record<number, boolean>,
