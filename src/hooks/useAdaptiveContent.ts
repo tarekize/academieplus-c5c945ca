@@ -367,12 +367,15 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
       if (type === "quiz") newScore.quiz_time_seconds += timeSeconds;
       else newScore.exercise_time_seconds += timeSeconds;
 
-      // Règle 1 — Ajustement ELO pondéré par difficulté + temps
+      // Règle 1 + 3.1 — Ajustement ELO pondéré + signaux comportementaux
       const delta = computeDelta({
         isCorrect,
         timeSec: timeSeconds,
         difficulty,
         currentLevel: newScore.current_level,
+        hintUsage: behavior?.hintUsage ?? "none",
+        attemptCount: behavior?.attemptCount ?? 1,
+        abandoned: behavior?.abandoned ?? false,
       });
       newScore.current_level = applyDelta(newScore.current_level, delta);
 
