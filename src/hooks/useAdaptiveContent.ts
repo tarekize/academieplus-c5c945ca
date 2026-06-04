@@ -546,6 +546,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     levelUpMessage,
     generateContent,
     recordAnswer,
+    recordHesitation,
     updateReadingTime,
     resetSessionCounters,
   };
