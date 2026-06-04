@@ -755,63 +755,6 @@ export type Database = {
         }
         Relationships: []
       }
-      student_notifications: {
-        Row: {
-          advice: string | null
-          chapter_id: string | null
-          created_at: string
-          diagnostic: string | null
-          id: string
-          is_read: boolean
-          lesson_id: string | null
-          message: string
-          notification_type: string
-          title: string
-          user_id: string
-        }
-        Insert: {
-          advice?: string | null
-          chapter_id?: string | null
-          created_at?: string
-          diagnostic?: string | null
-          id?: string
-          is_read?: boolean
-          lesson_id?: string | null
-          message: string
-          notification_type: string
-          title: string
-          user_id: string
-        }
-        Update: {
-          advice?: string | null
-          chapter_id?: string | null
-          created_at?: string
-          diagnostic?: string | null
-          id?: string
-          is_read?: boolean
-          lesson_id?: string | null
-          message?: string
-          notification_type?: string
-          title?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "student_notifications_chapter_id_fkey"
-            columns: ["chapter_id"]
-            isOneToOne: false
-            referencedRelation: "chapters"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "student_notifications_lesson_id_fkey"
-            columns: ["lesson_id"]
-            isOneToOne: false
-            referencedRelation: "lessons"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       student_scores: {
         Row: {
           accuracy_rate: number
