@@ -140,6 +140,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
       setCorrectAnswer(null);
       setExplanation("");
       setShowHint(false);
+      setHintUsed(false);
     } else {
       setShowResults(true);
     }
