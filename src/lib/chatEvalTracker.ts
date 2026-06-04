@@ -4,6 +4,7 @@
 // Ce module extrait ce marqueur et alimente le calcul de niveau + les lacunes.
 import { supabase } from "@/integrations/supabase/client";
 import { computeDelta, applyDelta } from "@/lib/levelEngine";
+import { getPlacementLevel } from "@/lib/initialLevel";
 
 export interface ChatEval {
   isCorrect: boolean;
