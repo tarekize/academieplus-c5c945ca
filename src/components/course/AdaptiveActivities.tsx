@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Brain, PenTool, BookOpen, Sparkles, RefreshCw, CheckCircle2, XCircle, ChevronDown, ChevronUp, Lightbulb, AlertTriangle, Trophy } from "lucide-react";
 import { useAdaptiveContent } from "@/hooks/useAdaptiveContent";
+import type { HintUsage } from "@/lib/levelEngine";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { MarkdownSolution } from "./MarkdownSolution";
