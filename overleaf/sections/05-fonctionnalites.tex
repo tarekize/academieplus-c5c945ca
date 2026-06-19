@@ -83,22 +83,22 @@ Gestion équipe & \texttt{/editorial/equipe} & Gestion des membres de l'équipe 
 
 \section{Composants pédagogiques clés}
 \begin{itemize}
-  \item \filepath{AdaptiveLesson} — affiche la leçon avec bascule \emph{vidéo / texte}
+  \item \filepath{AdaptiveLesson} --- affiche la leçon avec bascule \emph{vidéo / texte}
         selon le style d'apprentissage ; rendu KaTeX des formules.
-  \item \filepath{LessonActivityTabs} — organise les activités en trois étapes
+  \item \filepath{LessonActivityTabs} --- organise les activités en trois étapes
         pédagogiques~: \emph{Découvrir}, \emph{Comprendre} et \emph{Approfondir}
         (contenu IA). L'accès à l'approfondissement est conditionné
         à l'abonnement ou à 3 bonnes réponses.
-  \item \filepath{ChapterMathExercises} — exercices à réponse libre, clavier
+  \item \filepath{ChapterMathExercises} --- exercices à réponse libre, clavier
         mathématique, indices, validation serveur, verrou 3\,s sur erreur,
         détection d'hésitation.
-  \item \filepath{ChapterMathQuiz} — quiz à choix multiples avec confirmation,
+  \item \filepath{ChapterMathQuiz} --- quiz à choix multiples avec confirmation,
         suivi du temps et bilan final.
-  \item \filepath{ChatBot} — assistant IA flottant et déplaçable (texte, image,
+  \item \filepath{ChatBot} --- assistant IA flottant et déplaçable (texte, image,
         saisie vocale FR/AR), encadré par le programme.
 \end{itemize}
 
-\section{Assistant IA — chatbot}
+\section{Assistant IA --- chatbot}
 Le chatbot (\filepath{src/components/ChatBot.tsx}) appelle la fonction Edge
 \texttt{lovable-chat}. Il est~:
 \begin{itemize}

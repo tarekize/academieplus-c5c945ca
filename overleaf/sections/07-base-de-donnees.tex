@@ -37,7 +37,7 @@ chapitre~\ref{chap:mcd} les illustre.
 \texttt{avatar\_url} & text & Photo de profil (bucket \texttt{avatars}). \\
 \texttt{school\_level} & enum & Niveau scolaire. \\
 \texttt{filiere} & text & Filière (secondaire). \\
-\texttt{linking\_code} & text & Code de liaison parent–enfant. \\
+\texttt{linking\_code} & text & Code de liaison parent--enfant. \\
 \texttt{is\_active} & boolean & Compte actif. \\
 \texttt{date\_of\_birth} & date & Date de naissance. \\
 \texttt{wilaya / ville / ecole} & text & Localisation et établissement. \\
@@ -117,7 +117,7 @@ chapitre~\ref{chap:mcd} les illustre.
 \texttt{accepted\_answers} & jsonb & Variantes acceptées. \\
 \texttt{solution} & text & Solution détaillée. \\
 \texttt{hint} & text & Indice. \\
-\texttt{difficulty} & integer & Difficulté (1–5). \\
+\texttt{difficulty} & integer & Difficulté (1--5). \\
 \bottomrule
 \end{longtable}
 
@@ -130,7 +130,7 @@ chapitre~\ref{chap:mcd} les illustre.
 \texttt{correct\_answer} & text & Bonne réponse. \\
 \texttt{explanation} & text & Explication. \\
 \texttt{hint} & text & Indice. \\
-\texttt{difficulty} & integer & Difficulté (1–5). \\
+\texttt{difficulty} & integer & Difficulté (1--5). \\
 \bottomrule
 \end{longtable}
 
@@ -153,7 +153,7 @@ chapitre~\ref{chap:mcd} les illustre.
 \toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
 \texttt{user\_id} & uuid & Élève. \\
 \texttt{chapter\_id / lesson\_id} & uuid & Portée (leçon, chapitre, ou globale si NULL). \\
-\texttt{current\_level} & integer & Niveau courant (5–100). \\
+\texttt{current\_level} & integer & Niveau courant (5--100). \\
 \texttt{reading/quiz/exercise\_time\_seconds} & integer & Temps passé par type. \\
 \texttt{total\_answers} & integer & Nombre total de réponses. \\
 \texttt{correct\_answers} & integer & Réponses correctes. \\
@@ -286,7 +286,7 @@ chapitre~\ref{chap:mcd} les illustre.
 \begin{longtable}{p{4.8cm}p{9.6cm}}
 \toprule \textbf{Fonction} & \textbf{Rôle} \\ \midrule \endhead
 \texttt{has\_role(uid, role)} & Vérifie un rôle (SECURITY DEFINER, anti-récursion RLS). \\
-\texttt{is\_parent\_of(parent, child)} & Vérifie une liaison parent–enfant active. \\
+\texttt{is\_parent\_of(parent, child)} & Vérifie une liaison parent--enfant active. \\
 \texttt{user\_has\_any\_role(uid)} & Indique si l'utilisateur a au moins un rôle. \\
 \texttt{handle\_new\_user()} & Trigger : crée profil + rôle à l'inscription. \\
 \texttt{handle\_updated\_at()} & Trigger : met à jour \texttt{updated\_at}. \\

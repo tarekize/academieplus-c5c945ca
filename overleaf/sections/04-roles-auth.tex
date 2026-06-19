@@ -56,12 +56,12 @@ insère le rôle dans \texttt{user\_roles} à partir des métadonnées d'inscrip
 Le composant \filepath{src/components/ProtectedRoute.tsx} encapsule chaque route
 privée. Il accepte~:
 \begin{itemize}
-  \item \texttt{allowedRoles} — liste blanche de rôles autorisés ;
-  \item \texttt{requireAdmin} — accès réservé aux administrateurs ;
-  \item \texttt{blockAdmin} — interdit l'accès aux administrateurs (ex.\ page Compte).
+  \item \texttt{allowedRoles} --- liste blanche de rôles autorisés ;
+  \item \texttt{requireAdmin} --- accès réservé aux administrateurs ;
+  \item \texttt{blockAdmin} --- interdit l'accès aux administrateurs (ex.\ page Compte).
 \end{itemize}
 
-\section{Liaison parent–enfant}
+\section{Liaison parent--enfant}
 Un parent relie un enfant grâce à un \textbf{code de liaison} (\texttt{linking\_code}
 dans \texttt{profiles}). La relation est stockée dans \texttt{parent\_child\_links}
 avec un statut (\texttt{pending}, \texttt{active}, \texttt{rejected}). La fonction

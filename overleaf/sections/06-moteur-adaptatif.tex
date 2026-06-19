@@ -24,7 +24,7 @@ Le niveau initial \textbf{n'est plus une valeur arbitraire de 50}. La fonction
 chaque nouvelle leçon. À défaut (ancien compte), la valeur 50 sert de repli.
 \end{infobox}
 
-\section{Étape 1 — Ajustement ELO par réponse}
+\section{Étape 1 --- Ajustement ELO par réponse}
 La fonction \texttt{computeDelta} calcule la variation $\Delta$ du niveau après
 chaque réponse.
 
@@ -65,7 +65,7 @@ avec $w$ le poids de difficulté.
   \item Réponse fausse après un temps très long ($> 120$\,s) : $\Delta \times 1{,}3$.
 \end{itemize}
 
-\section{Étape 2 — Signaux comportementaux}
+\section{Étape 2 --- Signaux comportementaux}
 Le moteur enrichit le delta en tenant compte de la manière dont l'élève a
 répondu~:
 
@@ -94,7 +94,7 @@ La fonction \texttt{hesitationAdjustment(kind, difficulty)} gère deux cas~:
 Ces drapeaux sont cumulés dans le champ JSON \texttt{assessment\_data}
 (\texttt{hesitation\_timeout}, \texttt{hesitation\_erase}).
 
-\section{Étape 3 — Score composite (calibration de l'IA)}
+\section{Étape 3 --- Score composite (calibration de l'IA)}
 Pour calibrer la difficulté du contenu généré, on calcule un \textbf{score
 composite} (\texttt{computeComposite})~:
 \[
@@ -103,7 +103,7 @@ C = 0{,}40 \times \text{taux pondéré} + 0{,}35 \times L + 0{,}25 \times \text{
 borné à $[5, 100]$. Ce score sert de \texttt{difficulty\_level} transmis aux
 fonctions de génération de contenu adaptatif.
 
-\section{Étape 4 — Niveau global pondéré}
+\section{Étape 4 --- Niveau global pondéré}
 \texttt{computeGlobal} agrège les niveaux de leçon en un niveau de chapitre,
 pondéré par le nombre de réponses~:
 \[
@@ -112,7 +112,7 @@ L_{\text{global}} = \frac{\sum_i L_i \times n_i}{\sum_i n_i}
 Elle identifie aussi la leçon la plus faible / la plus forte et signale une
 \emph{lacune critique} dès qu'une leçon descend sous 30.
 
-\section{Étape 5 — Décroissance temporelle (oubli)}
+\section{Étape 5 --- Décroissance temporelle (oubli)}
 \texttt{applyDecay} simule l'oubli en cas d'inactivité~:
 \begin{itemize}
   \item $\leq 7$ jours : aucune décroissance.
@@ -122,13 +122,13 @@ La décroissance est appliquée à l'ouverture d'une leçon et persistée en bas
 
 \section{Enregistrement des réponses}
 \begin{itemize}
-  \item \filepath{src/hooks/useAdaptiveContent.ts} — gère le contenu adaptatif,
+  \item \filepath{src/hooks/useAdaptiveContent.ts} --- gère le contenu adaptatif,
         les compteurs de session, et appelle \texttt{recordAnswer} (qui applique
         \texttt{computeDelta} puis met à jour \texttt{student\_scores}).
-  \item \filepath{src/lib/recordActivityAnswer.ts} — fonction partagée permettant
+  \item \filepath{src/lib/recordActivityAnswer.ts} --- fonction partagée permettant
         aux activités \emph{de chapitre} (non adaptatives) d'alimenter aussi le
         moteur de niveau, avec les mêmes signaux comportementaux.
-  \item \filepath{src/lib/chatEvalTracker.ts} — suit les évaluations issues du chat.
+  \item \filepath{src/lib/chatEvalTracker.ts} --- suit les évaluations issues du chat.
 \end{itemize}
 
 \begin{notebox}[\faLightbulb\ Comportement face à une mauvaise réponse]

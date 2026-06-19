@@ -6,7 +6,7 @@ Ce chapitre présente le modèle conceptuel des données. Les associations sont
 \texttt{chapter\_id}, \texttt{lesson\_id}\dots) plutôt que sur des contraintes de
 clés étrangères strictes vers \texttt{auth.users} (bonne pratique Supabase).
 
-\section{Diagramme entité–association}
+\section{Diagramme entité--association}
 Le schéma ci-dessous résume les principales entités et leurs cardinalités.
 
 \begin{center}
@@ -56,25 +56,25 @@ Le schéma ci-dessous résume les principales entités et leurs cardinalités.
 \toprule
 \textbf{Entité A} & \textbf{Card.} & \textbf{Entité B} & \textbf{Clé logique} \\
 \midrule \endhead
-profiles & 1 — 1 & auth.users & \texttt{id} \\
-user\_roles & * — 1 & auth.users & \texttt{user\_id} \\
-parent\_child\_links & * — 1 & profiles (parent) & \texttt{parent\_id} \\
-parent\_child\_links & * — 1 & profiles (enfant) & \texttt{child\_id} \\
-filieres & 1 — * & chapters & \texttt{filiere\_id} \\
-chapters & 1 — * & lessons & \texttt{chapter\_id} \\
-chapters & 1 — * & chapter\_exercises & \texttt{chapter\_id} \\
-chapters & 1 — * & chapter\_quizzes & \texttt{chapter\_id} \\
-lessons & 1 — * & chapter\_exercises & \texttt{lesson\_id} \\
-lessons & 1 — * & chapter\_quizzes & \texttt{lesson\_id} \\
-profiles (élève) & 1 — * & student\_scores & \texttt{user\_id} \\
-lessons & 1 — * & student\_scores & \texttt{lesson\_id} \\
-profiles (élève) & 1 — * & ai\_generated\_content & \texttt{user\_id} \\
-profiles (élève) & 1 — * & ai\_lesson\_comments & \texttt{user\_id} \\
-profiles & 1 — * & chat\_conversations & \texttt{user\_id} \\
-parent + enfant & 1 — * & parent\_reports & \texttt{parent\_id, child\_id} \\
-profiles (élève) & 1 — * & student\_subscriptions & \texttt{user\_id} \\
-activation\_codes & 1 — 1 & student\_subscriptions & \texttt{activation\_code\_id} \\
-profiles & 1 — * & payments & \texttt{user\_id} \\
+profiles & 1 --- 1 & auth.users & \texttt{id} \\
+user\_roles & * --- 1 & auth.users & \texttt{user\_id} \\
+parent\_child\_links & * --- 1 & profiles (parent) & \texttt{parent\_id} \\
+parent\_child\_links & * --- 1 & profiles (enfant) & \texttt{child\_id} \\
+filieres & 1 --- * & chapters & \texttt{filiere\_id} \\
+chapters & 1 --- * & lessons & \texttt{chapter\_id} \\
+chapters & 1 --- * & chapter\_exercises & \texttt{chapter\_id} \\
+chapters & 1 --- * & chapter\_quizzes & \texttt{chapter\_id} \\
+lessons & 1 --- * & chapter\_exercises & \texttt{lesson\_id} \\
+lessons & 1 --- * & chapter\_quizzes & \texttt{lesson\_id} \\
+profiles (élève) & 1 --- * & student\_scores & \texttt{user\_id} \\
+lessons & 1 --- * & student\_scores & \texttt{lesson\_id} \\
+profiles (élève) & 1 --- * & ai\_generated\_content & \texttt{user\_id} \\
+profiles (élève) & 1 --- * & ai\_lesson\_comments & \texttt{user\_id} \\
+profiles & 1 --- * & chat\_conversations & \texttt{user\_id} \\
+parent + enfant & 1 --- * & parent\_reports & \texttt{parent\_id, child\_id} \\
+profiles (élève) & 1 --- * & student\_subscriptions & \texttt{user\_id} \\
+activation\_codes & 1 --- 1 & student\_subscriptions & \texttt{activation\_code\_id} \\
+profiles & 1 --- * & payments & \texttt{user\_id} \\
 \bottomrule
 \end{longtable}
 

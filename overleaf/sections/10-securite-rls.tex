@@ -6,7 +6,7 @@ La sécurité repose sur trois piliers~:
   \item \textbf{Authentification JWT} via Supabase Auth.
   \item \textbf{Rôles séparés} dans \texttt{user\_roles}, vérifiés par des
         fonctions \texttt{SECURITY DEFINER} (\texttt{has\_role},
-        \texttt{is\_parent\_of}) — évite l'élévation de privilèges et la
+        \texttt{is\_parent\_of}) --- évite l'élévation de privilèges et la
         récursion RLS.
   \item \textbf{Row-Level Security (RLS)} activée sur \emph{toutes} les tables du
         schéma \texttt{public}, complétée par des \texttt{GRANT} explicites.
@@ -41,7 +41,7 @@ lecture par le propriétaire et les administrateurs. \\
         seulement à l'intérieur des Edge Functions.
   \item \textbf{Validation des réponses côté serveur} via des fonctions
         \texttt{SECURITY DEFINER} (\texttt{check\_exercise\_answer},
-        \texttt{check\_quiz\_answer}) — l'élève ne peut pas connaître la réponse
+        \texttt{check\_quiz\_answer}) --- l'élève ne peut pas connaître la réponse
         en inspectant le client.
   \item \textbf{GRANT explicites} pour chaque table conformément aux exigences de
         PostgREST.
