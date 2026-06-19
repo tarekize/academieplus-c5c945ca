@@ -1,8 +1,8 @@
 \chapter{Moteur d'apprentissage adaptatif}
 \label{chap:adaptatif}
 
-Ce chapitre répond directement à la question \emph{«~comment est calculé le
-niveau de l'élève~?~»}. Toute la logique de calcul est concentrée dans des
+Ce chapitre répond directement à la question \emph{\og comment est calculé le
+niveau de l'élève~?\fg{}}. Toute la logique de calcul est concentrée dans des
 fonctions pures de \filepath{src/lib/levelEngine.ts}, ce qui la rend testable
 et indépendante de l'interface.
 
@@ -44,7 +44,7 @@ chaque réponse.
 \end{center}
 
 \subsection{Score attendu et delta de base}
-Le «~score attendu~» suit une logistique de type ELO~:
+Le \og score attendu\fg{} suit une logistique de type ELO~:
 \[
 E = \frac{1}{1 + 10^{\,(20 \cdot d - L)/40}}
 \]
@@ -86,9 +86,9 @@ Le delta final est re-borné à $[+1, +6]$ (réussite) ou $[-7, -1]$ (échec).
 \subsection{Hésitation sans réponse soumise}
 La fonction \texttt{hesitationAdjustment(kind, difficulty)} gère deux cas~:
 \begin{itemize}
-  \item \textbf{«~timeout~»} (exercice ouvert $>1$\,min sans réponse puis quitté)~:
+  \item \textbf{\og timeout\fg{}} (exercice ouvert $>1$\,min sans réponse puis quitté)~:
         $-1$, ou $-2$ si difficulté $\geq 4$.
-  \item \textbf{«~erase~»} (saisie puis effacement total puis sortie)~: $0$ sur le
+  \item \textbf{\og erase\fg{}} (saisie puis effacement total puis sortie)~: $0$ sur le
         niveau (enregistré uniquement dans le profil pour affiner le suivi).
 \end{itemize}
 Ces drapeaux sont cumulés dans le champ JSON \texttt{assessment\_data}
@@ -135,9 +135,9 @@ La décroissance est appliquée à l'ouverture d'une leçon et persistée en bas
 Dans les exercices, une réponse fausse \textbf{n'affiche jamais la bonne réponse
 automatiquement}~: l'interface se verrouille en rouge pendant 3 secondes, puis
 l'élève peut réessayer. La solution détaillée n'apparaît que s'il clique
-volontairement sur le bouton «~Voir la solution détaillée~» (ce qui compte alors
+volontairement sur le bouton \og Voir la solution détaillée\fg{} (ce qui compte alors
 comme un abandon). Dans les quiz, l'élève sélectionne une option puis confirme
-via le bouton «~Confirmer~».
+via le bouton \og Confirmer\fg{}.
 \end{notebox}
 
 \section{Synthèse du calcul du niveau}
