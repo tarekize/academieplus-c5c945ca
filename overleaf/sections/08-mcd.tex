@@ -1,0 +1,95 @@
+\chapter{Modèle conceptuel de données (MCD)}
+\label{chap:mcd}
+
+Ce chapitre présente le modèle conceptuel des données. Les associations sont
+\emph{logiques}~: elles reposent sur des colonnes d'identifiant (\texttt{user\_id},
+\texttt{chapter\_id}, \texttt{lesson\_id}\dots) plutôt que sur des contraintes de
+clés étrangères strictes vers \texttt{auth.users} (bonne pratique Supabase).
+
+\section{Diagramme entité–association}
+Le schéma ci-dessous résume les principales entités et leurs cardinalités.
+
+\begin{center}
+\footnotesize
+\begin{verbatim}
+                          +---------------------+
+                          |     auth.users      |
+                          +----------+----------+
+                                     | 1
+              +----------------------+----------------------+
+              | 1                    | 1                    | 1
+        +-----v------+        +------v-------+       +-------v--------+
+        |  profiles  |        |  user_roles  |       | student_scores |
+        +-----+------+        +--------------+       +-------+--------+
+              | 1                                            | *
+              | (linking_code)                               |
+        +-----v---------------+                              |
+        | parent_child_links  |  * --- 1 (parent/child)      |
+        +---------------------+                              |
+                                                             |
+   PROGRAMME (geré par pedago/admin)                         |
+        +-----------+   1      *  +-----------+   1   *  +----v-----+
+        | filieres  |----------->| chapters  |--------->| lessons  |
+        +-----------+            +-----+-----+          +----+-----+
+                                    | 1                    | 1
+                       +------------+----------+   +-------+---------+
+                       | 1                     |   | *               | *
+                +------v-------+      +---------v---+        +--------v---------+
+                | chapter_     |      | chapter_    |        | ai_generated_    |
+                | quizzes      |      | exercises   |        | content          |
+                +--------------+      +-------------+        +------------------+
+
+   SUIVI & IA                         ABONNEMENTS & PAIEMENTS
+   +---------------------+            +------------------------+
+   | ai_lesson_comments  |            | subscription_config    |
+   | chat_conversations  |            | subscription_periods   |
+   | chat_usage          |            | student_subscriptions  |
+   | parent_reports      |            | activation_codes       |
+   | activity_logs       |            | payments               |
+   +---------------------+            +------------------------+
+              (rattachés à user_id)        (rattachés à user_id)
+\end{verbatim}
+\end{center}
+
+\section{Cardinalités principales}
+\begin{longtable}{p{4.5cm}p{1.6cm}p{4.5cm}p{2.8cm}}
+\toprule
+\textbf{Entité A} & \textbf{Card.} & \textbf{Entité B} & \textbf{Clé logique} \\
+\midrule \endhead
+profiles & 1 — 1 & auth.users & \texttt{id} \\
+user\_roles & * — 1 & auth.users & \texttt{user\_id} \\
+parent\_child\_links & * — 1 & profiles (parent) & \texttt{parent\_id} \\
+parent\_child\_links & * — 1 & profiles (enfant) & \texttt{child\_id} \\
+filieres & 1 — * & chapters & \texttt{filiere\_id} \\
+chapters & 1 — * & lessons & \texttt{chapter\_id} \\
+chapters & 1 — * & chapter\_exercises & \texttt{chapter\_id} \\
+chapters & 1 — * & chapter\_quizzes & \texttt{chapter\_id} \\
+lessons & 1 — * & chapter\_exercises & \texttt{lesson\_id} \\
+lessons & 1 — * & chapter\_quizzes & \texttt{lesson\_id} \\
+profiles (élève) & 1 — * & student\_scores & \texttt{user\_id} \\
+lessons & 1 — * & student\_scores & \texttt{lesson\_id} \\
+profiles (élève) & 1 — * & ai\_generated\_content & \texttt{user\_id} \\
+profiles (élève) & 1 — * & ai\_lesson\_comments & \texttt{user\_id} \\
+profiles & 1 — * & chat\_conversations & \texttt{user\_id} \\
+parent + enfant & 1 — * & parent\_reports & \texttt{parent\_id, child\_id} \\
+profiles (élève) & 1 — * & student\_subscriptions & \texttt{user\_id} \\
+activation\_codes & 1 — 1 & student\_subscriptions & \texttt{activation\_code\_id} \\
+profiles & 1 — * & payments & \texttt{user\_id} \\
+\bottomrule
+\end{longtable}
+
+\section{Regroupement fonctionnel des entités}
+\begin{itemize}
+  \item \textbf{Identité \& accès}~: \texttt{profiles}, \texttt{user\_roles},
+        \texttt{parent\_child\_links}, \texttt{activity\_logs}.
+  \item \textbf{Programme}~: \texttt{filieres}, \texttt{chapters},
+        \texttt{lessons}, \texttt{chapter\_exercises}, \texttt{chapter\_quizzes},
+        \texttt{exams}.
+  \item \textbf{Apprentissage adaptatif}~: \texttt{student\_scores},
+        \texttt{ai\_generated\_content}, \texttt{ai\_lesson\_comments}.
+  \item \textbf{Assistant IA}~: \texttt{chat\_conversations}, \texttt{chat\_usage}.
+  \item \textbf{Suivi parental}~: \texttt{parent\_reports}.
+  \item \textbf{Commerce}~: \texttt{subscription\_config},
+        \texttt{subscription\_periods}, \texttt{student\_subscriptions},
+        \texttt{activation\_codes}, \texttt{payments}.
+\end{itemize}

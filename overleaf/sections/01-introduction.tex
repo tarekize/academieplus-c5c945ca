@@ -1,0 +1,63 @@
+\chapter{Introduction}
+
+\section{Présentation du projet}
+\textbf{AcadémiePlus} est une plateforme web de soutien scolaire spécialisée en
+\textbf{mathématiques}, destinée aux élèves du système éducatif algérien
+(du primaire jusqu'au baccalauréat). L'application combine du contenu de cours
+structuré, des exercices et quiz interactifs, un \textbf{moteur d'apprentissage
+adaptatif} qui ajuste la difficulté au niveau réel de l'élève, et un
+\textbf{assistant pédagogique IA} (chatbot) encadré par le programme scolaire.
+
+\begin{infobox}[\faBullseye\ Objectif pédagogique]
+Offrir à chaque élève un parcours \emph{personnalisé} : le système mesure en
+permanence le niveau de l'élève (sur 100), détecte ses lacunes, génère des
+exercices calibrés et fournit des commentaires et recommandations automatiques.
+Les parents suivent la progression de leurs enfants via un tableau de bord dédié.
+\end{infobox}
+
+\section{Publics cibles et rôles}
+La plateforme distingue quatre rôles applicatifs :
+\begin{itemize}[leftmargin=1.4cm]
+  \item[\faUserGraduate] \textbf{Élève (\texttt{student})} — suit les cours, passe le test
+        de positionnement, réalise exercices/quiz, dialogue avec l'IA.
+  \item[\faUsers] \textbf{Parent (\texttt{parent})} — relie ses enfants à son compte et
+        consulte leurs rapports de progression.
+  \item[\faChalkboardTeacher] \textbf{Pédagogue (\texttt{pedago})} — rédige et gère le
+        contenu des cours, exercices, quiz et examens (espace éditorial).
+  \item[\faUserShield] \textbf{Administrateur (\texttt{admin})} — supervise les
+        utilisateurs, les abonnements, les codes d'activation et l'ensemble du contenu.
+\end{itemize}
+
+\section{Niveaux scolaires couverts}
+Le contenu est organisé par niveau scolaire (énumération \texttt{school\_level}) :
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Code interne} & \textbf{Niveau} \\
+\midrule
+\texttt{5eme\_primaire} & 5\textsuperscript{e} année primaire \\
+\texttt{1ere\_cem} & 1\textsuperscript{re} année CEM (collège) \\
+\texttt{2eme\_cem} & 2\textsuperscript{e} année CEM \\
+\texttt{3eme\_cem} & 3\textsuperscript{e} année CEM \\
+\texttt{4eme\_cem} & 4\textsuperscript{e} année CEM (BEM) \\
+\texttt{premiere} & 1\textsuperscript{re} année secondaire \\
+\texttt{seconde} & 2\textsuperscript{e} année secondaire \\
+\texttt{terminale} & 3\textsuperscript{e} année secondaire (BAC) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Chaque niveau secondaire peut être subdivisé en \textbf{filières} (sciences,
+lettres, gestion, math-techniques\dots), ce qui détermine les chapitres affichés.
+
+\section{Comment lire cette documentation}
+\begin{itemize}
+  \item Le \textbf{chapitre 2} décrit l'architecture globale.
+  \item Le \textbf{chapitre 3} détaille la pile technique et les versions.
+  \item Le \textbf{chapitre 4} explique l'authentification et la gestion des rôles.
+  \item Le \textbf{chapitre 5} liste les fonctionnalités (pages) écran par écran.
+  \item Le \textbf{chapitre 6} décrit le moteur adaptatif (calcul du niveau).
+  \item Les \textbf{chapitres 7 et 8} documentent la base de données et le MCD.
+  \item Le \textbf{chapitre 9} décrit les fonctions serveur (Edge Functions IA).
+  \item Les \textbf{chapitres 10 et 11} traitent la sécurité et le déploiement.
+\end{itemize}

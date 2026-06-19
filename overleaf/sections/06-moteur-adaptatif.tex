@@ -1,0 +1,150 @@
+\chapter{Moteur d'apprentissage adaptatif}
+\label{chap:adaptatif}
+
+Ce chapitre répond directement à la question \emph{«~comment est calculé le
+niveau de l'élève~?~»}. Toute la logique de calcul est concentrée dans des
+fonctions pures de \filepath{src/lib/levelEngine.ts}, ce qui la rend testable
+et indépendante de l'interface.
+
+\section{Principe général}
+Chaque élève possède un \textbf{niveau} compris entre \textbf{5 et 100} pour
+chaque leçon (et un niveau global par chapitre). Le niveau évolue après chaque
+réponse selon un modèle inspiré du système \textbf{ELO}, pondéré par la
+difficulté, le temps de réponse et des \textbf{signaux comportementaux}.
+
+\section{Niveau initial = test de positionnement}
+À la création de son compte, l'élève passe un \textbf{test diagnostic}
+(\filepath{src/pages/LearningAssessment.tsx}). Son score initial est enregistré
+dans une ligne globale de \texttt{student\_scores} (\texttt{lesson\_id = NULL}).
+
+\begin{infobox}[\faInfoCircle\ Pas de 50 par défaut]
+Le niveau initial \textbf{n'est plus une valeur arbitraire de 50}. La fonction
+\texttt{getPlacementLevel(userId)} (\filepath{src/lib/initialLevel.ts}) lit le
+\texttt{current\_level} de la ligne de positionnement et l'utilise pour amorcer
+chaque nouvelle leçon. À défaut (ancien compte), la valeur 50 sert de repli.
+\end{infobox}
+
+\section{Étape 1 — Ajustement ELO par réponse}
+La fonction \texttt{computeDelta} calcule la variation $\Delta$ du niveau après
+chaque réponse.
+
+\subsection{Pondérations}
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+\textbf{Difficulté} & \textbf{Poids} & \textbf{Temps médian attendu (s)} \\
+\midrule
+1 & 0,6 & 30 \\
+2 & 0,8 & 45 \\
+3 & 1,0 & 60 \\
+4 & 1,3 & 90 \\
+5 & 1,6 & 120 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Score attendu et delta de base}
+Le «~score attendu~» suit une logistique de type ELO~:
+\[
+E = \frac{1}{1 + 10^{\,(20 \cdot d - L)/40}}
+\]
+où $d$ est la difficulté et $L$ le niveau courant. Puis~:
+\[
+\Delta =
+\begin{cases}
+\mathrm{clamp}\big(\mathrm{round}(3(1-E)\cdot w),\,1,\,5\big) & \text{si correct}\\[4pt]
+\mathrm{clamp}\big(\mathrm{round}(-2E\cdot w),\,-5,\,-1\big) & \text{si faux}
+\end{cases}
+\]
+avec $w$ le poids de difficulté.
+
+\subsection{Modulation par le temps de réponse}
+\begin{itemize}
+  \item Réponse correcte \emph{très rapide} ($< 0{,}6 \times$ médian) : $\Delta \times 1{,}2$.
+  \item Réponse correcte \emph{très lente} ($> 2 \times$ médian) : $\Delta \times 0{,}8$.
+  \item Réponse fausse après un temps très long ($> 120$\,s) : $\Delta \times 1{,}3$.
+\end{itemize}
+
+\section{Étape 2 — Signaux comportementaux}
+Le moteur enrichit le delta en tenant compte de la manière dont l'élève a
+répondu~:
+
+\begin{longtable}{p{5.5cm}p{8.5cm}}
+\toprule
+\textbf{Signal} & \textbf{Effet sur le gain/la perte} \\
+\midrule
+\endhead
+Tentatives multiples (réussite après erreurs) & gain $\times\,0{,}85^{(\text{tentatives}-1)}$ (plancher $+1$). \\
+Indice \textbf{préventif} (consulté avant toute réponse) & gain $\times\,0{,}70$ ($-30\%$). \\
+Indice \textbf{curatif} (consulté après une erreur) & gain $\times\,0{,}40$ ($-60\%$). \\
+Abandon avec indice curatif & perte $\times\,1{,}3$. \\
+\bottomrule
+\end{longtable}
+
+Le delta final est re-borné à $[+1, +6]$ (réussite) ou $[-7, -1]$ (échec).
+
+\subsection{Hésitation sans réponse soumise}
+La fonction \texttt{hesitationAdjustment(kind, difficulty)} gère deux cas~:
+\begin{itemize}
+  \item \textbf{«~timeout~»} (exercice ouvert $>1$\,min sans réponse puis quitté)~:
+        $-1$, ou $-2$ si difficulté $\geq 4$.
+  \item \textbf{«~erase~»} (saisie puis effacement total puis sortie)~: $0$ sur le
+        niveau (enregistré uniquement dans le profil pour affiner le suivi).
+\end{itemize}
+Ces drapeaux sont cumulés dans le champ JSON \texttt{assessment\_data}
+(\texttt{hesitation\_timeout}, \texttt{hesitation\_erase}).
+
+\section{Étape 3 — Score composite (calibration de l'IA)}
+Pour calibrer la difficulté du contenu généré, on calcule un \textbf{score
+composite} (\texttt{computeComposite})~:
+\[
+C = 0{,}40 \times \text{taux pondéré} + 0{,}35 \times L + 0{,}25 \times \text{taux quiz}
+\]
+borné à $[5, 100]$. Ce score sert de \texttt{difficulty\_level} transmis aux
+fonctions de génération de contenu adaptatif.
+
+\section{Étape 4 — Niveau global pondéré}
+\texttt{computeGlobal} agrège les niveaux de leçon en un niveau de chapitre,
+pondéré par le nombre de réponses~:
+\[
+L_{\text{global}} = \frac{\sum_i L_i \times n_i}{\sum_i n_i}
+\]
+Elle identifie aussi la leçon la plus faible / la plus forte et signale une
+\emph{lacune critique} dès qu'une leçon descend sous 30.
+
+\section{Étape 5 — Décroissance temporelle (oubli)}
+\texttt{applyDecay} simule l'oubli en cas d'inactivité~:
+\begin{itemize}
+  \item $\leq 7$ jours : aucune décroissance.
+  \item $> 7$ jours : facteur $= \max(0{,}10,\ 1 - 0{,}01\times(\text{jours}-7))$.
+\end{itemize}
+La décroissance est appliquée à l'ouverture d'une leçon et persistée en base.
+
+\section{Enregistrement des réponses}
+\begin{itemize}
+  \item \filepath{src/hooks/useAdaptiveContent.ts} — gère le contenu adaptatif,
+        les compteurs de session, et appelle \texttt{recordAnswer} (qui applique
+        \texttt{computeDelta} puis met à jour \texttt{student\_scores}).
+  \item \filepath{src/lib/recordActivityAnswer.ts} — fonction partagée permettant
+        aux activités \emph{de chapitre} (non adaptatives) d'alimenter aussi le
+        moteur de niveau, avec les mêmes signaux comportementaux.
+  \item \filepath{src/lib/chatEvalTracker.ts} — suit les évaluations issues du chat.
+\end{itemize}
+
+\begin{notebox}[\faLightbulb\ Comportement face à une mauvaise réponse]
+Dans les exercices, une réponse fausse \textbf{n'affiche jamais la bonne réponse
+automatiquement}~: l'interface se verrouille en rouge pendant 3 secondes, puis
+l'élève peut réessayer. La solution détaillée n'apparaît que s'il clique
+volontairement sur \<عرض الحل المفصل> (ce qui compte alors comme un abandon).
+Dans les quiz, l'élève sélectionne une option puis confirme via \<تأكيد>.
+\end{notebox}
+
+\section{Synthèse du calcul du niveau}
+\begin{enumerate}
+  \item \textbf{Niveau initial} = score du test de positionnement.
+  \item \textbf{Après chaque réponse} : $\Delta$ ELO (difficulté + temps) modulé
+        par les signaux comportementaux $\rightarrow$ nouveau \texttt{current\_level}.
+  \item \textbf{Niveau de chapitre} = moyenne pondérée des niveaux de leçon.
+  \item \textbf{Score composite} = calibration de la difficulté du contenu IA.
+  \item \textbf{Décroissance} = $-1\%$/jour au-delà de 7 jours d'inactivité.
+\end{enumerate}

@@ -1,0 +1,68 @@
+\chapter{Authentification et gestion des rôles}
+
+\section{Système d'authentification}
+L'authentification s'appuie sur \textbf{Supabase Auth} (jetons JWT). Le contexte
+React \filepath{src/contexts/AuthContext.tsx} centralise l'état de session~:
+\begin{itemize}
+  \item Au chargement, \texttt{supabase.auth.getSession()} récupère la session
+        courante ; un abonnement \texttt{onAuthStateChange} maintient l'état à jour.
+  \item Il expose \texttt{user}, \texttt{session}, \texttt{loading},
+        \texttt{signOut()}, \texttt{hasRole(role)} et \texttt{isAdmin()}.
+\end{itemize}
+
+\section{Redirection intelligente après connexion}
+Après chaque connexion, le contexte oriente l'utilisateur selon son rôle et son
+état~:
+\begin{itemize}
+  \item \textbf{Sans rôle} $\rightarrow$ \filepath{/complete-profile} (compléter le profil).
+  \item \textbf{Pédago / Admin} $\rightarrow$ \filepath{/liste-cours}.
+  \item \textbf{Parent} $\rightarrow$ \filepath{/parent-dashboard}.
+  \item \textbf{Élève sans test de positionnement} $\rightarrow$
+        \filepath{/learning-assessment} (test initial obligatoire).
+  \item \textbf{Élève} (cas général) $\rightarrow$ \filepath{/cours/math}.
+\end{itemize}
+
+\begin{infobox}[\faKey\ Détection du test de positionnement]
+La fonction \texttt{hasCompletedPlacementAssessment} vérifie l'existence d'une
+ligne \texttt{student\_scores} «~globale~» (\texttt{lesson\_id IS NULL}). Si
+elle est absente, l'élève est forcé de passer le test initial avant d'accéder
+aux cours. Une compatibilité ascendante évite de re-forcer les anciens comptes.
+\end{infobox}
+
+\section{Stockage sécurisé des rôles}
+Conformément aux bonnes pratiques de sécurité, les rôles \textbf{ne sont jamais
+stockés sur le profil}. Ils résident dans une table dédiée \texttt{user\_roles}
+et sont vérifiés côté base via une fonction \texttt{SECURITY DEFINER}~:
+
+\begin{lstlisting}[language=SQL,caption={Vérification de rôle sans récursion RLS}]
+CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role app_role)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path TO 'public' AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE user_id = _user_id AND role = _role
+  )
+$$;
+\end{lstlisting}
+
+L'énumération des rôles est \texttt{app\_role = \{student, parent, admin, pedago\}}.
+
+\section{Création automatique de profil}
+Un trigger \texttt{handle\_new\_user} s'exécute à l'inscription~: il crée la ligne
+\texttt{profiles} (avec normalisation du niveau scolaire et des métadonnées) et
+insère le rôle dans \texttt{user\_roles} à partir des métadonnées d'inscription.
+
+\section{Protection des routes}
+Le composant \filepath{src/components/ProtectedRoute.tsx} encapsule chaque route
+privée. Il accepte~:
+\begin{itemize}
+  \item \texttt{allowedRoles} — liste blanche de rôles autorisés ;
+  \item \texttt{requireAdmin} — accès réservé aux administrateurs ;
+  \item \texttt{blockAdmin} — interdit l'accès aux administrateurs (ex.\ page Compte).
+\end{itemize}
+
+\section{Liaison parent–enfant}
+Un parent relie un enfant grâce à un \textbf{code de liaison} (\texttt{linking\_code}
+dans \texttt{profiles}). La relation est stockée dans \texttt{parent\_child\_links}
+avec un statut (\texttt{pending}, \texttt{active}, \texttt{rejected}). La fonction
+\texttt{is\_parent\_of} sécurise l'accès des parents aux données de leurs enfants.

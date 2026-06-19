@@ -1,0 +1,72 @@
+\chapter{Fonctions serveur (Edge Functions IA)}
+
+Toute la logique faisant appel à l'\textbf{intelligence artificielle} est
+déportée dans des \textbf{Edge Functions Deno} hébergées par Supabase
+(\filepath{supabase/functions/}). Ce choix garantit que les clés d'API ne sont
+\textbf{jamais} exposées au navigateur~: elles sont lues côté serveur via
+\texttt{Deno.env.get(...)}.
+
+\section{Fournisseurs et modèles d'IA}
+\begin{longtable}{p{5cm}p{9.5cm}}
+\toprule \textbf{Fournisseur} & \textbf{Usage} \\ \midrule \endhead
+\textbf{Lovable AI Gateway} & Passerelle principale vers Google Gemini
+(\texttt{google/gemini-2.5-flash}, \texttt{google/gemini-3-flash-preview}).
+Clé \texttt{LOVABLE\_API\_KEY}. \\
+\textbf{Groq} & Modèle de repli rapide \texttt{llama-3.3-70b-versatile}.
+Clé \texttt{GROQ\_API\_KEY}. \\
+\textbf{Google Gemini (direct)} & Génération en masse via \texttt{GEMINI\_API\_KEY} /
+\texttt{GEMINI\_API\_KEY\_2}. \\
+\textbf{OpenRouter / Cloudflare AI} & Clés additionnelles disponibles
+(\texttt{OPENROUTER\_API\_KEY}, \texttt{CLOUDFLARE\_AI\_API\_KEY}). \\
+\bottomrule
+\end{longtable}
+
+\begin{notebox}[\faShieldAlt\ Stratégie de repli]
+Plusieurs fonctions tentent d'abord Gemini (via la passerelle) puis basculent
+automatiquement sur Groq (Llama) en cas d'erreur, afin de garantir la
+disponibilité du service.
+\end{notebox}
+
+\section{Catalogue des fonctions}
+\begin{longtable}{p{5cm}p{9.5cm}}
+\toprule \textbf{Fonction} & \textbf{Rôle} \\ \midrule \endhead
+\texttt{lovable-chat} & Assistant pédagogique IA (chatbot). Réponses
+contextualisées et strictement encadrées par le programme de mathématiques.
+Gemini avec repli Llama. \\
+\texttt{generate-adaptive-content} & Génère quiz / exercices / révisions
+calibrés au niveau composite de l'élève (Gemini 3 flash). \\
+\texttt{generate-lesson-comment} & Produit un commentaire IA personnalisé en
+arabe après une session d'étude (forces/lacunes, conseils). \\
+\texttt{generate-remediation} & Génère des activités de remédiation ciblées
+\emph{uniquement} sur les lacunes détectées de l'élève. \\
+\texttt{generate-chapter-quizzes} & Génère des quiz pour tout un chapitre
+(Gemini + repli Llama). \\
+\texttt{generate-chapter-revision} & Génère des fiches de révision de chapitre. \\
+\texttt{generate-parent-report} & Construit le rapport de progression destiné
+aux parents (synthèse + recommandations IA). \\
+\texttt{scheduled-parent-reports} & Tâche planifiée (pg\_cron) générant
+quotidiennement les rapports pour chaque liaison parent–enfant active. \\
+\texttt{enrich-chapter-lessons} & Enrichit le contenu des leçons d'un chapitre. \\
+\texttt{bulk-generate-lesson-content} & Génère en masse 10 exercices + 10 quiz
+pour une leçon et les insère en base. \\
+\texttt{bulk-generate-all-terminale} & Génération par lot pour toutes les leçons
+de Terminale Sciences. \\
+\texttt{bulk-gen-terminale-gemini} & Variante de génération en masse via l'API
+Gemini directe (\texttt{GEMINI\_API\_KEY\_2}). \\
+\texttt{delete-user-account} & Suppression complète et sécurisée d'un compte
+utilisateur (privilèges service\_role). \\
+\bottomrule
+\end{longtable}
+
+\section{Secrets configurés}
+Les secrets suivants sont disponibles côté Edge Functions (jamais exposés au
+client)~:
+\begin{itemize}
+  \item IA~: \texttt{LOVABLE\_API\_KEY}, \texttt{GROQ\_API\_KEY},
+        \texttt{GEMINI\_API\_KEY}, \texttt{GEMINI\_API\_KEY\_2},
+        \texttt{OPENROUTER\_API\_KEY}, \texttt{CLOUDFLARE\_AI\_API\_KEY},
+        \texttt{CLOUDFLARE\_ACCOUNT\_ID}.
+  \item Supabase~: \texttt{SUPABASE\_URL}, \texttt{SUPABASE\_DB\_URL},
+        \texttt{SUPABASE\_SERVICE\_ROLE\_KEY}, \texttt{SUPABASE\_ANON\_KEY},
+        \texttt{SUPABASE\_PUBLISHABLE\_KEY}, \texttt{SUPABASE\_JWKS}\dots
+\end{itemize}

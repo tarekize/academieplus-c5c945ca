@@ -1,0 +1,68 @@
+\chapter{Pile technique et versions}
+
+\section{Technologies principales}
+L'application repose sur une pile \textbf{React/Vite/TypeScript} moderne avec
+\textbf{Tailwind CSS} pour le style et \textbf{Supabase} pour le backend.
+
+\begin{longtable}{p{4.2cm}p{2.2cm}p{8cm}}
+\toprule
+\textbf{Technologie} & \textbf{Version} & \textbf{Rôle} \\
+\midrule
+\endhead
+React & 18.3 & Bibliothèque d'interface (composants, hooks). \\
+Vite & 5.4 & Bundler / serveur de développement rapide. \\
+TypeScript & 5.8 & Typage statique de tout le code. \\
+Tailwind CSS & 3.4 & Système de design utilitaire (tokens sémantiques). \\
+shadcn/ui (Radix) & — & Composants accessibles (dialogues, menus, onglets\dots). \\
+React Router DOM & 6.30 & Routage côté client (SPA). \\
+TanStack React Query & 5.83 & Cache et synchronisation des requêtes serveur. \\
+Supabase JS & 2.97 & Client base de données / Auth / Storage / Functions. \\
+\bottomrule
+\end{longtable}
+
+\section{Bibliothèques notables}
+\begin{longtable}{p{4.5cm}p{10cm}}
+\toprule
+\textbf{Paquet} & \textbf{Usage dans le projet} \\
+\midrule
+\endhead
+\texttt{i18next} / \texttt{react-i18next} & Internationalisation FR/AR + détection de langue. \\
+\texttt{katex}, \texttt{react-katex}, \texttt{rehype-katex}, \texttt{remark-math} & Rendu des formules mathématiques (\LaTeX) dans les leçons et le chat. \\
+\texttt{react-markdown}, \texttt{remark-gfm}, \texttt{rehype-raw} & Rendu du contenu Markdown (cours, solutions, commentaires IA). \\
+\texttt{@tiptap/*} & Éditeur de texte riche WYSIWYG pour l'espace éditorial. \\
+\texttt{recharts} & Graphiques de progression (tableaux de bord, analytics). \\
+\texttt{framer-motion} & Animations (compagnon-bot, transitions). \\
+\texttt{jspdf}, \texttt{html2canvas} & Export PDF (cours, rapports parents). \\
+\texttt{react-hook-form} + \texttt{zod} & Formulaires et validation de schémas. \\
+\texttt{@dnd-kit/*} & Glisser-déposer (réordonnancement de sections éditoriales). \\
+\texttt{date-fns} & Manipulation des dates. \\
+\texttt{lucide-react}, \texttt{react-icons} & Jeux d'icônes. \\
+\texttt{sonner}, \texttt{vaul}, \texttt{embla-carousel} & Toasts, tiroirs, carrousels. \\
+\bottomrule
+\end{longtable}
+
+\section{Outils de développement et qualité}
+\begin{itemize}
+  \item \textbf{ESLint 9} + \texttt{typescript-eslint} — qualité et cohérence du code.
+  \item \textbf{Vitest 3} + \texttt{@testing-library/react} — tests unitaires/composants.
+  \item \textbf{Playwright 1.57} — tests de bout en bout (navigateur).
+  \item \textbf{PostCSS / Autoprefixer} — chaîne CSS.
+  \item \textbf{@vitejs/plugin-react-swc} — compilation rapide via SWC.
+\end{itemize}
+
+\section{Scripts npm}
+\begin{lstlisting}[language=bash,caption={package.json — scripts}]
+npm run dev        # serveur de developpement Vite
+npm run build      # build de production
+npm run build:dev  # build en mode developpement
+npm run lint       # analyse ESLint
+npm run test       # tests Vitest (une passe)
+npm run test:watch # tests en mode surveillance
+\end{lstlisting}
+
+\begin{notebox}
+Le projet est construit avec l'écosystème \textbf{Lovable}. Les fonctions Edge
+sont déployées automatiquement à chaque modification ; le fichier \filepath{.env}
+est auto-rempli avec \texttt{VITE\_SUPABASE\_URL},
+\texttt{VITE\_SUPABASE\_PUBLISHABLE\_KEY} et \texttt{VITE\_SUPABASE\_PROJECT\_ID}.
+\end{notebox}

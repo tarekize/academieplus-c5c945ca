@@ -1,0 +1,154 @@
+% =====================================================================
+%  Documentation technique — AcadémiePlus
+%  Plateforme adaptative d'apprentissage des mathématiques
+%  Compilation : pdfLaTeX (Overleaf) — encodage UTF-8
+% =====================================================================
+\documentclass[11pt,a4paper]{report}
+
+% ---------- Encodage & langue ----------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% ---------- Mise en page ----------
+\usepackage[a4paper,margin=2.4cm,headheight=15pt]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+\usepackage{tcolorbox}
+\usepackage{listings}
+\usepackage{fontawesome5}
+\tcbuselibrary{skins,breakable}
+
+% ---------- Palette (charte AcadémiePlus) ----------
+\definecolor{apblue}{HTML}{1E3A8A}     % bleu profond
+\definecolor{apaccent}{HTML}{2563EB}   % bleu accent
+\definecolor{apgreen}{HTML}{059669}    % vert réussite
+\definecolor{apgray}{HTML}{475569}     % gris texte
+\definecolor{aplight}{HTML}{EFF4FF}    % fond clair
+\definecolor{apdark}{HTML}{0F172A}     % fond foncé
+\definecolor{apcode}{HTML}{F1F5F9}     % fond code
+
+% ---------- Hyperliens ----------
+\hypersetup{
+  colorlinks=true,
+  linkcolor=apaccent,
+  urlcolor=apaccent,
+  citecolor=apaccent,
+  pdftitle={Documentation technique - AcademiePlus},
+  pdfauthor={Equipe AcademiePlus}
+}
+
+% ---------- En-têtes / pieds ----------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyhead[L]{\small\textcolor{apblue}{\textbf{AcadémiePlus}}}
+\fancyhead[R]{\small\textcolor{apgray}{\leftmark}}
+\fancyfoot[C]{\small\textcolor{apgray}{\thepage}}
+
+% ---------- Style des titres ----------
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{apblue}}
+  {\filright\Large\color{apaccent}Chapitre~\thechapter}{8pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-10pt}{24pt}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{apblue}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{apaccent}}{\thesubsection}{1em}{}
+
+% ---------- Encadrés ----------
+\newtcolorbox{infobox}[1][]{
+  enhanced, breakable, colback=aplight, colframe=apaccent,
+  boxrule=0.8pt, arc=3pt, left=10pt, right=10pt, top=8pt, bottom=8pt,
+  fonttitle=\bfseries\color{white},
+  coltitle=white, attach boxed title to top left={yshift=-2mm,xshift=4mm},
+  boxed title style={colback=apaccent,arc=2pt}, title={#1}}
+
+\newtcolorbox{notebox}[1][\faInfoCircle\ Note]{
+  enhanced, breakable, colback=white, colframe=apgreen,
+  boxrule=0.8pt, arc=3pt, left=10pt, right=10pt, top=8pt, bottom=8pt,
+  fonttitle=\bfseries\color{white}, coltitle=white,
+  attach boxed title to top left={yshift=-2mm,xshift=4mm},
+  boxed title style={colback=apgreen,arc=2pt}, title={#1}}
+
+% ---------- Style code ----------
+\lstdefinestyle{ap}{
+  backgroundcolor=\color{apcode},
+  basicstyle=\ttfamily\footnotesize\color{apdark},
+  keywordstyle=\color{apaccent}\bfseries,
+  commentstyle=\color{apgreen}\itshape,
+  stringstyle=\color{apgreen},
+  numberstyle=\tiny\color{apgray},
+  numbers=left, numbersep=8pt, frame=single,
+  rulecolor=\color{apgray!40},
+  breaklines=true, showstringspaces=false, tabsize=2,
+  captionpos=b, xleftmargin=14pt, framexleftmargin=10pt}
+\lstset{style=ap}
+
+\newcommand{\filepath}[1]{\textcolor{apgray}{\ttfamily\small #1}}
+
+% =====================================================================
+\begin{document}
+
+% ---------- Page de titre ----------
+\begin{titlepage}
+\centering
+\vspace*{1.5cm}
+{\color{apaccent}\rule{\linewidth}{2pt}}\\[0.6cm]
+{\Huge\bfseries\color{apblue} AcadémiePlus}\\[0.4cm]
+{\LARGE\color{apgray} Plateforme adaptative d'apprentissage\\ des mathématiques}\\[0.5cm]
+{\color{apaccent}\rule{\linewidth}{2pt}}\\[1.4cm]
+
+{\Large\bfseries Documentation technique complète}\\[0.4cm]
+{\large\color{apgray} Architecture, fonctionnalités, base de données et moteur adaptatif}\\[2.2cm]
+
+\begin{tcolorbox}[width=0.8\linewidth,colback=aplight,colframe=apblue,arc=4pt]
+\centering
+\begin{tabular}{rl}
+\textbf{Projet} & AcadémiePlus (\texttt{academieplus.lovable.app})\\
+\textbf{Type} & Application web SPA (React + Supabase)\\
+\textbf{Domaine} & Soutien scolaire en mathématiques\\
+\textbf{Public} & Élèves, Parents, Pédagogues, Administrateurs\\
+\textbf{Version doc.} & 1.0\\
+\textbf{Date} & Juin 2026\\
+\end{tabular}
+\end{tcolorbox}
+
+\vfill
+{\large\color{apgray}\faGraduationCap\quad Document destiné aux futures équipes de développement}\\[0.4cm]
+{\small\color{apgray} Ce document décrit l'intégralité des choix techniques, des fonctionnalités\\ et de la structure de données du projet.}
+\end{titlepage}
+
+% ---------- Sommaire ----------
+\tableofcontents
+\thispagestyle{empty}
+\clearpage
+
+% ---------- Chapitres ----------
+\input{sections/01-introduction}
+\input{sections/02-architecture}
+\input{sections/03-stack-technique}
+\input{sections/04-roles-auth}
+\input{sections/05-fonctionnalites}
+\input{sections/06-moteur-adaptatif}
+\input{sections/07-base-de-donnees}
+\input{sections/08-mcd}
+\input{sections/09-edge-functions}
+\input{sections/10-securite-rls}
+\input{sections/11-deploiement}
+
+\end{document}
