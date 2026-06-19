@@ -1,0 +1,55 @@
+\chapter{Sécurité et règles d'accès (RLS)}
+
+\section{Modèle de sécurité}
+La sécurité repose sur trois piliers~:
+\begin{enumerate}
+  \item \textbf{Authentification JWT} via Supabase Auth.
+  \item \textbf{Rôles séparés} dans \texttt{user\_roles}, vérifiés par des
+        fonctions \texttt{SECURITY DEFINER} (\texttt{has\_role},
+        \texttt{is\_parent\_of}) --- évite l'élévation de privilèges et la
+        récursion RLS.
+  \item \textbf{Row-Level Security (RLS)} activée sur \emph{toutes} les tables du
+        schéma \texttt{public}, complétée par des \texttt{GRANT} explicites.
+\end{enumerate}
+
+\section{Principes des politiques RLS}
+\begin{longtable}{p{4.5cm}p{10cm}}
+\toprule \textbf{Domaine} & \textbf{Règle d'accès} \\ \midrule \endhead
+Données personnelles & Chaque utilisateur ne voit/modifie que ses propres lignes
+(\texttt{auth.uid() = user\_id}) : \texttt{student\_scores},
+\texttt{ai\_generated\_content}, \texttt{ai\_lesson\_comments},
+\texttt{chat\_conversations}, \texttt{chat\_usage}. \\
+Contenu pédagogique & Lecture réservée aux utilisateurs authentifiés ; gestion
+(écriture) réservée aux \texttt{pedago} et \texttt{admin} : \texttt{chapters},
+\texttt{lessons}, \texttt{chapter\_exercises}, \texttt{chapter\_quizzes},
+\texttt{exams}, \texttt{filieres}. \\
+Suivi parental & Un parent accède aux données de ses enfants \emph{uniquement}
+si une liaison active existe (\texttt{is\_parent\_of}) :
+\texttt{parent\_reports}, \texttt{ai\_lesson\_comments} (enfants). \\
+Administration & Les administrateurs disposent de politiques \og manage\fg{}
+(ALL) sur les codes, abonnements, journaux, etc. \\
+Audit & \texttt{activity\_logs} : insertion par utilisateurs authentifiés,
+lecture par le propriétaire et les administrateurs. \\
+\bottomrule
+\end{longtable}
+
+\section{Bonnes pratiques appliquées}
+\begin{itemize}
+  \item \textbf{Aucun secret en base} : les clés d'API vivent dans les secrets
+        Supabase, jamais dans les tables ni dans le client.
+  \item \textbf{\texttt{service\_role} jamais exposé} au navigateur ; utilisé
+        seulement à l'intérieur des Edge Functions.
+  \item \textbf{Validation des réponses côté serveur} via des fonctions
+        \texttt{SECURITY DEFINER} (\texttt{check\_exercise\_answer},
+        \texttt{check\_quiz\_answer}) --- l'élève ne peut pas connaître la réponse
+        en inspectant le client.
+  \item \textbf{GRANT explicites} pour chaque table conformément aux exigences de
+        PostgREST.
+\end{itemize}
+
+\begin{infobox}[\faExclamationTriangle\ Point de vigilance]
+Les rôles ne doivent jamais migrer vers la table \texttt{profiles}. Toute
+vérification d'autorisation côté client (\texttt{hasRole}) est un confort d'UX~;
+la véritable barrière de sécurité reste la \textbf{RLS} et les fonctions
+\texttt{SECURITY DEFINER} côté base.
+\end{infobox}

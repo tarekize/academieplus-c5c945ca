@@ -1,0 +1,72 @@
+\chapter{Déploiement et maintenance}
+
+\section{Environnements}
+\begin{longtable}{p{4cm}p{10.5cm}}
+\toprule \textbf{Environnement} & \textbf{URL} \\ \midrule \endhead
+Aperçu (preview) & \url{https://id-preview--d3d48394-d747-4de9-844c-541a6a3403d6.lovable.app} \\
+Production & \url{https://academieplus.lovable.app} \\
+\bottomrule
+\end{longtable}
+
+Le projet Supabase associé porte la référence \texttt{lfothlxoixayjiytwwqa}.
+
+\section{Variables d'environnement}
+Le fichier \filepath{.env} est rempli automatiquement avec~:
+\begin{lstlisting}[language=bash]
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_PUBLISHABLE_KEY=...   # cle publique (anon) - OK cote client
+VITE_SUPABASE_PROJECT_ID=...
+\end{lstlisting}
+La clé publique (\texttt{anon}) est volontairement publique~; la protection
+réelle des données provient de la RLS. Les clés \emph{privées} restent dans les
+secrets Supabase.
+
+\section{Cycle de déploiement}
+\begin{itemize}
+  \item \textbf{Frontend} : build Vite (\texttt{npm run build}) servi en statique.
+  \item \textbf{Edge Functions} : déploiement \textbf{automatique} à chaque
+        modification (aucune commande manuelle).
+  \item \textbf{Migrations} : les fichiers SQL de \filepath{supabase/migrations/}
+        sont versionnés et appliqués via l'outil de migration.
+\end{itemize}
+
+\section{Internationalisation}
+L'application est bilingue \textbf{français / arabe} via \texttt{i18next}
+(\filepath{src/i18n/}). Les libellés sont stockés dans
+\filepath{src/i18n/locales/fr.json} et \filepath{src/i18n/locales/ar.json}.
+L'interface élève est majoritairement en \textbf{arabe} (RTL), tandis que les
+espaces d'administration et éditorial sont en français.
+
+\section{Tests}
+\begin{itemize}
+  \item \textbf{Unitaires / composants} : Vitest + Testing Library
+        (\filepath{src/test/}). Le moteur de niveau (\filepath{src/lib/levelEngine.ts})
+        étant constitué de fonctions pures, il est idéal à couvrir par des tests.
+  \item \textbf{Bout en bout} : Playwright (\filepath{playwright.config.ts}).
+\end{itemize}
+
+\section{Conseils pour les prochaines équipes}
+\begin{enumerate}
+  \item \textbf{Logique de niveau} : toute évolution du calcul du niveau doit
+        passer par \filepath{src/lib/levelEngine.ts} (fonctions pures, testables)
+        plutôt que d'être dispersée dans les composants.
+  \item \textbf{Accès données} : privilégier les services (\filepath{src/services})
+        et hooks (\filepath{src/hooks}) existants plutôt que des appels Supabase
+        directs dans les composants.
+  \item \textbf{Sécurité} : ne jamais déplacer les rôles dans \texttt{profiles}~;
+        toujours créer les \texttt{GRANT} et politiques RLS dans la même migration
+        qu'un \texttt{CREATE TABLE}.
+  \item \textbf{IA} : ajouter toute nouvelle intégration IA dans une Edge Function,
+        jamais côté client.
+  \item \textbf{Nettoyage} : la racine du dépôt contient des scripts ponctuels
+        historiques (\filepath{fix*.mjs}, \filepath{patch*.cjs}\dots) qui ne font
+        pas partie du runtime et peuvent être archivés.
+\end{enumerate}
+
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+AcadémiePlus est une plateforme adaptative complète couvrant l'ensemble du
+parcours d'un élève~: positionnement initial, cours, exercices/quiz calibrés,
+assistant IA, suivi de progression et reporting parental. Son architecture
+(React + Supabase + Edge Functions IA) sépare clairement présentation, logique
+métier pure et accès données, ce qui en facilite l'évolution.

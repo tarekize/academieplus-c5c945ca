@@ -1,0 +1,77 @@
+\chapter{Architecture générale}
+
+\section{Vue d'ensemble}
+AcadémiePlus est une \textbf{application monopage (SPA)} React, hébergée et
+servie en statique, qui communique avec un \textbf{backend Supabase}
+(PostgreSQL + Auth + Storage + Edge Functions). Aucune partie serveur \og maison\fg{}
+n'est maintenue~: toute la logique métier vit soit dans le client React, soit
+dans des \textbf{fonctions Edge Deno} déployées sur l'infrastructure Supabase.
+
+\begin{verbatim}
+        +-------------------------------------------------------------+
+        |                     NAVIGATEUR (Client)                     |
+        |                                                             |
+        |   React 18 + Vite + TypeScript + Tailwind + shadcn/ui      |
+        |   - Pages & composants (src/pages, src/components)          |
+        |   - Hooks métier (src/hooks)                                |
+        |   - Services d'accès données (src/services)                 |
+        |   - Moteur adaptatif pur (src/lib/levelEngine.ts)          |
+        +-----------------------------+-------------------------------+
+                                      |  HTTPS (supabase-js)
+                                      v
+        +-------------------------------------------------------------+
+        |                   SUPABASE (Backend cloud)                  |
+        |                                                             |
+        |   Auth (JWT)   PostgreSQL (RLS)   Storage (avatars)         |
+        |                                                             |
+        |   Edge Functions (Deno) :                                   |
+        |     - lovable-chat (assistant IA)                           |
+        |     - generate-adaptive-content                             |
+        |     - generate-lesson-comment / remediation / report ...    |
+        +-----------------------------+-------------------------------+
+                                      |  HTTPS
+                                      v
+        +-------------------------------------------------------------+
+        |          FOURNISSEURS IA (via clés stockées en secret)      |
+        |   Lovable AI Gateway (Gemini) | Groq (Llama) | Gemini API   |
+        +-------------------------------------------------------------+
+\end{verbatim}
+
+\section{Principes architecturaux}
+\begin{itemize}
+  \item \textbf{Séparation des responsabilités} : les composants d'UI
+        (\filepath{src/components}) ne contiennent pas la logique de calcul.
+        Le calcul du niveau est isolé dans des \emph{fonctions pures}
+        (\filepath{src/lib/levelEngine.ts}), testables unitairement.
+  \item \textbf{Accès données centralisé} : les appels Supabase passent par des
+        \emph{services} (\filepath{src/services}) et des \emph{hooks}
+        (\filepath{src/hooks}).
+  \item \textbf{Sécurité côté base} : chaque table est protégée par des règles
+        \textbf{RLS} (Row-Level Security) ; les rôles sont stockés dans une table
+        dédiée \texttt{user\_roles} (jamais sur le profil).
+  \item \textbf{IA déportée} : les appels aux modèles d'IA se font exclusivement
+        depuis des Edge Functions, afin de ne jamais exposer les clés au client.
+\end{itemize}
+
+\section{Organisation des dossiers}
+\begin{longtable}{p{5cm}p{9.5cm}}
+\toprule
+\textbf{Dossier} & \textbf{Contenu} \\
+\midrule
+\endhead
+\filepath{src/pages/} & Les pages routées (une par écran). \\
+\filepath{src/pages/editorial/} & Espace de rédaction pour pédagogues/admins. \\
+\filepath{src/components/} & Composants réutilisables (UI, course, dashboard\dots). \\
+\filepath{src/components/ui/} & Bibliothèque shadcn/ui (boutons, dialogues\dots). \\
+\filepath{src/components/course/} & Cœur pédagogique : leçons, exercices, quiz. \\
+\filepath{src/hooks/} & Hooks React métier (adaptatif, profil, abonnement\dots). \\
+\filepath{src/lib/} & Logique pure : moteur de niveau, helpers, validation. \\
+\filepath{src/services/} & Accès aux données Supabase encapsulés. \\
+\filepath{src/contexts/} & Contextes React (authentification). \\
+\filepath{src/data/} & Données statiques des programmes (chapitres par niveau). \\
+\filepath{src/i18n/} & Internationalisation (français / arabe). \\
+\filepath{src/integrations/supabase/} & Client Supabase et types générés. \\
+\filepath{supabase/functions/} & Fonctions Edge (Deno) côté serveur. \\
+\filepath{supabase/migrations/} & Migrations SQL versionnées de la base. \\
+\bottomrule
+\end{longtable}

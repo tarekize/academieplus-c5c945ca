@@ -1,0 +1,306 @@
+\chapter{Base de données Supabase}
+
+La base est une instance \textbf{PostgreSQL} gérée par Supabase. Elle comporte
+\textbf{21 tables} dans le schéma \texttt{public}, protégées par RLS. Cette
+section décrit chaque table, ses colonnes principales et son rôle. Les
+énumérations utilisées sont~:
+\begin{itemize}
+  \item \texttt{app\_role} : \texttt{student, parent, admin, pedago} ;
+  \item \texttt{school\_level} : \texttt{5eme\_primaire, 1ere\_cem, 2eme\_cem,
+        3eme\_cem, 4eme\_cem, premiere, seconde, terminale} ;
+  \item \texttt{link\_status} : \texttt{pending, active, rejected}.
+\end{itemize}
+
+\begin{notebox}
+Les relations entre tables sont \emph{logiques} (par \texttt{user\_id},
+\texttt{chapter\_id}, \texttt{lesson\_id}\dots) et non matérialisées par des clés
+étrangères strictes vers \texttt{auth.users} (recommandation Supabase). Le MCD du
+chapitre~\ref{chap:mcd} les illustre.
+\end{notebox}
+
+% ---------- Macro pour décrire une table ----------
+\newcommand{\dbtable}[2]{%
+\subsection{\texttt{#1}}%
+\emph{#2}%
+}
+
+\section{Utilisateurs et rôles}
+
+\dbtable{profiles}{Profil applicatif de chaque utilisateur (extension de auth.users).}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{id} & uuid & Identifiant (= id auth). \\
+\texttt{email} & text & Adresse e-mail. \\
+\texttt{email\_verified} & boolean & E-mail confirmé. \\
+\texttt{first\_name / last\_name} & text & Nom et prénom. \\
+\texttt{phone} & text & Téléphone. \\
+\texttt{avatar\_url} & text & Photo de profil (bucket \texttt{avatars}). \\
+\texttt{school\_level} & enum & Niveau scolaire. \\
+\texttt{filiere} & text & Filière (secondaire). \\
+\texttt{linking\_code} & text & Code de liaison parent--enfant. \\
+\texttt{is\_active} & boolean & Compte actif. \\
+\texttt{date\_of\_birth} & date & Date de naissance. \\
+\texttt{wilaya / ville / ecole} & text & Localisation et établissement. \\
+\bottomrule
+\end{longtable}
+
+\dbtable{user\_roles}{Rôles applicatifs (séparés du profil pour la sécurité).}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{id} & uuid & Identifiant. \\
+\texttt{user\_id} & uuid & Utilisateur concerné. \\
+\texttt{role} & app\_role & Rôle (student/parent/admin/pedago). \\
+\texttt{created\_at} & timestamptz & Date d'attribution. \\
+\bottomrule
+\end{longtable}
+
+\dbtable{parent\_child\_links}{Liaison entre un parent et un enfant.}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{parent\_id} & uuid & Parent. \\
+\texttt{child\_id} & uuid & Enfant. \\
+\texttt{status} & link\_status & État (pending/active/rejected). \\
+\bottomrule
+\end{longtable}
+
+\dbtable{activity\_logs}{Journal d'audit des actions (via fonction \texttt{log\_activity}).}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{user\_id} & uuid & Auteur de l'action. \\
+\texttt{action} & text & Code de l'action. \\
+\texttt{details} & jsonb & Détails contextuels. \\
+\texttt{ip\_address} & text & Adresse IP (optionnelle). \\
+\bottomrule
+\end{longtable}
+
+\section{Contenu pédagogique}
+
+\dbtable{filieres}{Filières disponibles par niveau scolaire.}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{school\_level} & enum & Niveau associé. \\
+\texttt{code} & text & Code court (ex.\ \texttt{sciences}). \\
+\texttt{name / name\_ar} & text & Libellé FR / AR. \\
+\bottomrule
+\end{longtable}
+
+\dbtable{chapters}{Chapitres de cours, organisés par niveau, filière et matière.}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{school\_level} & enum & Niveau scolaire. \\
+\texttt{filiere\_id} & uuid & Filière (nullable). \\
+\texttt{title / title\_ar} & text & Titre FR / AR. \\
+\texttt{description} & text & Description. \\
+\texttt{subject} & text & Matière (\texttt{math}). \\
+\texttt{order\_index} & integer & Ordre d'affichage. \\
+\bottomrule
+\end{longtable}
+
+\dbtable{lessons}{Leçons appartenant à un chapitre.}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{chapter\_id} & uuid & Chapitre parent. \\
+\texttt{title / title\_ar} & text & Titre FR / AR. \\
+\texttt{content} & text & Contenu (Markdown/HTML). \\
+\texttt{video\_url} & text & Vidéo associée. \\
+\texttt{order\_index} & integer & Ordre. \\
+\bottomrule
+\end{longtable}
+
+\dbtable{chapter\_exercises}{Exercices d'entraînement (réponse libre).}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{chapter\_id / lesson\_id} & uuid & Rattachement. \\
+\texttt{title} & text & Titre de l'exercice. \\
+\texttt{statement} & text & Énoncé. \\
+\texttt{expected\_answer} & text & Réponse attendue. \\
+\texttt{accepted\_answers} & jsonb & Variantes acceptées. \\
+\texttt{solution} & text & Solution détaillée. \\
+\texttt{hint} & text & Indice. \\
+\texttt{difficulty} & integer & Difficulté (1--5). \\
+\bottomrule
+\end{longtable}
+
+\dbtable{chapter\_quizzes}{Questions de quiz (choix multiples).}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{chapter\_id / lesson\_id} & uuid & Rattachement. \\
+\texttt{question} & text & Énoncé de la question. \\
+\texttt{options} & jsonb & Liste des choix. \\
+\texttt{correct\_answer} & text & Bonne réponse. \\
+\texttt{explanation} & text & Explication. \\
+\texttt{hint} & text & Indice. \\
+\texttt{difficulty} & integer & Difficulté (1--5). \\
+\bottomrule
+\end{longtable}
+
+\dbtable{exams}{Examens / sujets par trimestre.}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{school\_level} & enum & Niveau. \\
+\texttt{trimester} & integer & Trimestre. \\
+\texttt{title / title\_ar} & text & Titre. \\
+\texttt{content} & jsonb & Contenu structuré. \\
+\texttt{duration\_minutes} & integer & Durée. \\
+\texttt{subject} & text & Matière. \\
+\bottomrule
+\end{longtable}
+
+\section{Suivi de l'apprentissage}
+
+\dbtable{student\_scores}{Cœur du moteur adaptatif : niveau et statistiques par élève/leçon/chapitre.}
+\begin{longtable}{p{4.0cm}p{2.4cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{user\_id} & uuid & Élève. \\
+\texttt{chapter\_id / lesson\_id} & uuid & Portée (leçon, chapitre, ou globale si NULL). \\
+\texttt{current\_level} & integer & Niveau courant (5--100). \\
+\texttt{reading/quiz/exercise\_time\_seconds} & integer & Temps passé par type. \\
+\texttt{total\_answers} & integer & Nombre total de réponses. \\
+\texttt{correct\_answers} & integer & Réponses correctes. \\
+\texttt{accuracy\_rate} & numeric & Taux de réussite (\%). \\
+\texttt{streak} & integer & Série de bonnes réponses. \\
+\texttt{assessment\_data} & jsonb & Drapeaux d'hésitation, données du test. \\
+\texttt{periodic\_advice} & jsonb & Conseils périodiques. \\
+\texttt{advice\_seen} & boolean & Conseil consulté. \\
+\texttt{report\_first\_shown\_at} & timestamptz & Premier affichage du rapport. \\
+\bottomrule
+\end{longtable}
+
+\dbtable{ai\_generated\_content}{Contenu (quiz/exercices/révision) généré par IA et calibré par niveau.}
+\begin{longtable}{p{4.0cm}p{2.4cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{user\_id} & uuid & Élève destinataire. \\
+\texttt{chapter\_id / lesson\_id} & uuid & Rattachement. \\
+\texttt{content\_type} & text & \texttt{quiz} / \texttt{exercise} / \texttt{revision}. \\
+\texttt{content} & jsonb & Items générés. \\
+\texttt{difficulty\_level} & integer & Niveau de calibration (composite). \\
+\bottomrule
+\end{longtable}
+
+\dbtable{ai\_lesson\_comments}{Commentaires IA personnalisés après une session d'étude.}
+\begin{longtable}{p{4.0cm}p{2.4cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{user\_id} & uuid & Élève. \\
+\texttt{lesson\_id / chapter\_id} & uuid & Leçon/chapitre concernés. \\
+\texttt{level\_before / level\_after / level\_delta} & integer & Évolution du niveau. \\
+\texttt{weak\_concepts / strong\_concepts} & jsonb & Lacunes et acquis détectés. \\
+\texttt{message} & text & Commentaire (arabe, Markdown). \\
+\texttt{link\_url} & text & Lien vers la leçon. \\
+\bottomrule
+\end{longtable}
+
+\dbtable{parent\_reports}{Rapports de progression destinés aux parents.}
+\begin{longtable}{p{4.0cm}p{2.4cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{parent\_id / child\_id} & uuid & Parent et enfant. \\
+\texttt{period\_start / period\_end} & timestamptz & Période couverte. \\
+\texttt{report\_data} & jsonb & Données brutes. \\
+\texttt{global\_success\_rate} & numeric & Taux de réussite global. \\
+\texttt{global\_level} & integer & Niveau global. \\
+\texttt{strong\_chapters / weak\_chapters} & jsonb & Forces et faiblesses. \\
+\texttt{ai\_recommendations / summary} & text & Recommandations IA. \\
+\texttt{report\_type} & text & Type de rapport. \\
+\bottomrule
+\end{longtable}
+
+\section{Assistant IA (chat)}
+
+\dbtable{chat\_conversations}{Historique des conversations avec l'assistant IA.}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{user\_id} & uuid & Propriétaire. \\
+\texttt{chapter\_id} & uuid & Contexte (nullable). \\
+\texttt{title} & text & Titre de la conversation. \\
+\texttt{messages} & jsonb & Fil de messages. \\
+\bottomrule
+\end{longtable}
+
+\dbtable{chat\_usage}{Quotas d'utilisation quotidienne du chat (messages/images).}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{user\_id} & uuid & Utilisateur. \\
+\texttt{usage\_date} & date & Jour. \\
+\texttt{message\_count} & integer & Nombre de messages. \\
+\texttt{image\_count} & integer & Nombre d'images. \\
+\bottomrule
+\end{longtable}
+
+\section{Abonnements et paiements}
+
+\dbtable{subscription\_config}{Configuration des offres (prix individuel/famille).}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{plan\_type} & text & Type d'offre. \\
+\texttt{price\_single / price\_family} & integer & Tarifs. \\
+\texttt{label} & text & Libellé. \\
+\texttt{is\_active} & boolean & Offre active. \\
+\bottomrule
+\end{longtable}
+
+\dbtable{subscription\_periods}{Périodes de validité des abonnements.}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{label} & text & Libellé. \\
+\texttt{start\_date / end\_date} & date & Bornes. \\
+\texttt{is\_active} & boolean & Période active. \\
+\bottomrule
+\end{longtable}
+
+\dbtable{student\_subscriptions}{Abonnement actif d'un élève (décompte de jours).}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{user\_id} & uuid & Élève. \\
+\texttt{activation\_code\_id} & uuid & Code utilisé. \\
+\texttt{plan\_type} & text & Type d'offre. \\
+\texttt{total\_days / days\_used} & integer/numeric & Crédit et consommation. \\
+\texttt{is\_paused / paused\_at} & boolean/ts & Mise en pause. \\
+\texttt{started\_at / last\_tick\_at} & timestamptz & Démarrage et dernier décompte. \\
+\bottomrule
+\end{longtable}
+
+\dbtable{activation\_codes}{Codes prépayés d'activation d'abonnement.}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{code} & text & Code unique. \\
+\texttt{plan\_type} & text & Offre liée. \\
+\texttt{is\_family} & boolean & Offre famille. \\
+\texttt{status} & text & État (free/used\dots). \\
+\texttt{created\_by / used\_by} & uuid & Créateur / utilisateur. \\
+\texttt{payment\_id} & uuid & Paiement associé. \\
+\bottomrule
+\end{longtable}
+
+\dbtable{payments}{Historique des paiements.}
+\begin{longtable}{p{3.6cm}p{2.6cm}p{8cm}}
+\toprule \textbf{Colonne} & \textbf{Type} & \textbf{Description} \\ \midrule \endhead
+\texttt{user\_id} & uuid & Payeur. \\
+\texttt{plan\_type / plan\_label} & text & Offre. \\
+\texttt{amount} & integer & Montant. \\
+\texttt{is\_family / children\_count} & bool/int & Offre famille. \\
+\texttt{period\_id} & uuid & Période. \\
+\texttt{status} & text & État du paiement. \\
+\bottomrule
+\end{longtable}
+
+\section{Fonctions de base de données}
+\begin{longtable}{p{4.8cm}p{9.6cm}}
+\toprule \textbf{Fonction} & \textbf{Rôle} \\ \midrule \endhead
+\texttt{has\_role(uid, role)} & Vérifie un rôle (SECURITY DEFINER, anti-récursion RLS). \\
+\texttt{is\_parent\_of(parent, child)} & Vérifie une liaison parent--enfant active. \\
+\texttt{user\_has\_any\_role(uid)} & Indique si l'utilisateur a au moins un rôle. \\
+\texttt{handle\_new\_user()} & Trigger : crée profil + rôle à l'inscription. \\
+\texttt{handle\_updated\_at()} & Trigger : met à jour \texttt{updated\_at}. \\
+\texttt{log\_activity(uid, action, details)} & Insère une ligne d'audit. \\
+\texttt{generate\_activation\_code()} & Génère un code d'activation aléatoire. \\
+\texttt{check\_exercise\_answer(id, rep)} & Valide une réponse d'exercice (comparaison normalisée exacte). \\
+\texttt{check\_quiz\_answer(id, rep)} & Valide une réponse de quiz. \\
+\texttt{get\_student\_exercises / get\_student\_quizzes} & Renvoie les exercices/quiz d'un chapitre/leçon. \\
+\bottomrule
+\end{longtable}
+
+\begin{infobox}[\faCheckCircle\ Validation exacte des réponses]
+La fonction \texttt{check\_exercise\_answer} normalise la saisie (minuscules,
+suppression des espaces) puis effectue une \textbf{comparaison exacte} avec la
+réponse attendue et les variantes acceptées. Cela évite qu'une saisie partielle
+(ex.\ \og 1\fg{}) soit acceptée pour une réponse \og 12\fg{}.
+\end{infobox}
