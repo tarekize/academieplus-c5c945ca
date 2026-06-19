@@ -1,0 +1,126 @@
+\chapter{Fonctionnalités (écran par écran)}
+
+L'application est une SPA dont chaque écran correspond à une route déclarée dans
+\filepath{src/App.tsx}. Les routes sont protégées par rôle via
+\texttt{ProtectedRoute}. Cette section décrit chaque page par domaine.
+
+\section{Pages publiques}
+\begin{longtable}{p{3.2cm}p{3.4cm}p{7.6cm}}
+\toprule \textbf{Page} & \textbf{Route} & \textbf{Description} \\ \midrule \endhead
+Accueil & \texttt{/} & Page marketing (hero, atouts, tarifs, FAQ, CTA). \\
+Authentification & \texttt{/auth} & Connexion / inscription (e-mail + mot de passe, choix du rôle, localisation, SSO). \\
+Contact & \texttt{/contact} & Formulaire de contact. \\
+Mentions légales & \texttt{/mentions-legales} & Page légale statique. \\
+Confidentialité & \texttt{/politique-confidentialite} & Politique de confidentialité. \\
+404 & \texttt{*} & Page «~non trouvée~». \\
+\bottomrule
+\end{longtable}
+
+\section{Onboarding}
+\begin{longtable}{p{3.2cm}p{3.4cm}p{7.6cm}}
+\toprule \textbf{Page} & \textbf{Route} & \textbf{Description} \\ \midrule \endhead
+Compléter profil & \texttt{/complete-profile} & Complétion post-SSO (rôle, niveau, filière, localisation, date de naissance). \\
+Test de positionnement & \texttt{/learning-assessment} & \textbf{Test initial} de l'élève : 5 questions adaptées au niveau scolaire ; le score initialise le niveau (ligne globale \texttt{student\_scores}). \\
+Onboarding Bot & \texttt{/bot-onboarding} & Questionnaire conversationnel du style d'apprentissage (visuel / textuel / pratique) animé par un bot bilingue. \\
+\bottomrule
+\end{longtable}
+
+\section{Espace élève}
+\begin{longtable}{p{3.2cm}p{3.2cm}p{7.8cm}}
+\toprule \textbf{Page} & \textbf{Route} & \textbf{Description} \\ \midrule \endhead
+Tableau de bord & \texttt{/dashboard} & Synthèse de l'élève : niveau, activité récente, commentaires IA, recommandations. \\
+Liste des cours & \texttt{/liste-cours} & Catalogue des matières / chapitres selon le niveau. \\
+Cours & \texttt{/cours/:subjectId} & \textbf{Interface centrale} : arbre chapitres/leçons, contenu adaptatif, chatbot flottant, quiz et exercices, export PDF. \\
+Révision & \texttt{/revision/:subjectId} & Mode fiches (flashcards) de révision, cartes retournables. \\
+Simulation & \texttt{/simulation/:subjectId} & Examen blanc chronométré (30 min), score et bilan par chapitre. \\
+Examens (trimestre) & \texttt{/exams} & Sélection du trimestre. \\
+Liste d'examens & \texttt{/exams/list} & Sujets d'examen par trimestre, mode chronométré. \\
+Remédiation & \texttt{/remediation} & Activités ciblées sur les lacunes (3 exercices + 2 quiz via IA). \\
+Compte & \texttt{/account} & Gestion du compte : avatar, abonnement (jours restants, pause), mot de passe. \\
+Abonnements & \texttt{/abonnements} & Offres et état de l'abonnement, résiliation. \\
+Paiement & \texttt{/paiement} & Tunnel de paiement. \\
+Parrainage & \texttt{/parrainage} & Programme de parrainage (code, suivi, récompenses). \\
+Profil & \texttt{/profile} & Vue profil (avatar, infos scolaires, statistiques). \\
+Factures & \texttt{/factures} & Historique des factures. \\
+Mes informations & \texttt{/mes-informations} & Édition des informations personnelles. \\
+Mes données & \texttt{/mes-donnees-personnelles} & Consultation / suppression des données (RGPD). \\
+\bottomrule
+\end{longtable}
+
+\section{Espace parent}
+\begin{longtable}{p{3.2cm}p{3.6cm}p{7.4cm}}
+\toprule \textbf{Page} & \textbf{Route} & \textbf{Description} \\ \midrule \endhead
+Tableau parent & \texttt{/parent-dashboard} & Liste des enfants liés, progression par matière, rapports IA, ajout d'enfant par code, export PDF. \\
+Cours (vue parent) & \texttt{/parent-cours/:childId} & Vue en lecture seule de la progression d'un enfant. \\
+\bottomrule
+\end{longtable}
+
+\section{Espace administration}
+\begin{longtable}{p{3.4cm}p{3.6cm}p{7.2cm}}
+\toprule \textbf{Page} & \textbf{Route} & \textbf{Description} \\ \midrule \endhead
+Admin & \texttt{/admin} & Gestion des utilisateurs (recherche, activation, suppression), statistiques, audit. \\
+Abonnements admin & \texttt{/admin/abonnements} & Gestion des abonnements et des offres. \\
+Analytics & \texttt{/analytics} & Journal d'activité, comptages, répartition des actions. \\
+FAQ Admin & \texttt{/faq-admin} & Édition des FAQ de la page d'accueil. \\
+Génération de contenu & \texttt{/content-generation} & Génération en masse d'exercices/quiz (progression en flux). \\
+Éditeur de leçon & \texttt{/lecon/:lessonId} & Édition riche d'une leçon (TipTap, enrichissement IA, versions). \\
+\bottomrule
+\end{longtable}
+
+\section{Espace éditorial (pédagogues / admins)}
+\begin{longtable}{p{3.6cm}p{3.8cm}p{6.8cm}}
+\toprule \textbf{Page} & \textbf{Route} & \textbf{Description} \\ \midrule \endhead
+Tableau éditorial & \texttt{/editorial} & Liste des chapitres/filières avec statut et date de modification. \\
+Éditeur de cours & \texttt{/editorial/cours/:id} & Édition complète : sections, texte riche, formules, détection de conflit. \\
+Prévisualisation & \texttt{.../preview} & Aperçu d'une leçon telle que vue par l'élève. \\
+Historique & \texttt{.../historique} & Historique des versions, restauration. \\
+Comparaison & \texttt{.../compare} & Comparaison de deux versions (diff). \\
+Révision & \texttt{/editorial/revision} & File de relecture / validation. \\
+Médiathèque & \texttt{/editorial/mediatheque} & Bibliothèque de médias (Storage). \\
+Gestion équipe & \texttt{/editorial/equipe} & Gestion des membres de l'équipe pédagogique. \\
+\bottomrule
+\end{longtable}
+
+\section{Composants pédagogiques clés}
+\begin{itemize}
+  \item \filepath{AdaptiveLesson} — affiche la leçon avec bascule \emph{vidéo / texte}
+        selon le style d'apprentissage ; rendu KaTeX des formules.
+  \item \filepath{LessonActivityTabs} — organise les activités en trois étapes
+        pédagogiques~: \<اكتشف> (découvrir), \<افهم> (comprendre), \<تعمّق>
+        (approfondir, contenu IA). L'accès à l'approfondissement est conditionné
+        à l'abonnement ou à 3 bonnes réponses.
+  \item \filepath{ChapterMathExercises} — exercices à réponse libre, clavier
+        mathématique, indices, validation serveur, verrou 3\,s sur erreur,
+        détection d'hésitation.
+  \item \filepath{ChapterMathQuiz} — quiz à choix multiples avec confirmation,
+        suivi du temps et bilan final.
+  \item \filepath{ChatBot} — assistant IA flottant et déplaçable (texte, image,
+        saisie vocale FR/AR), encadré par le programme.
+\end{itemize}
+
+\section{Assistant IA — chatbot}
+Le chatbot (\filepath{src/components/ChatBot.tsx}) appelle la fonction Edge
+\texttt{lovable-chat}. Il est~:
+\begin{itemize}
+  \item \textbf{contextualisé} : reçoit le contenu du chapitre courant et la liste
+        des leçons (pour des liens de navigation) ;
+  \item \textbf{cadré} : répond uniquement en mathématiques, dans le programme ;
+  \item \textbf{multimodal} : accepte texte, images et saisie vocale ;
+  \item \textbf{évaluateur} : peut poser des exercices ; un marqueur caché
+        \texttt{[[EVAL:correct|difficulté|concept]]} permet d'alimenter
+        directement le moteur de niveau (\filepath{src/lib/chatEvalTracker.ts}).
+\end{itemize}
+
+\subsection{Quotas d'usage}
+Le hook \filepath{src/hooks/useChatLimits.ts} applique des quotas pour les comptes
+gratuits~: \textbf{10 messages} et \textbf{3 images} par jour (table
+\texttt{chat\_usage}). Les abonnés actifs ont un accès illimité. L'historique est
+sauvegardé (avec anti-rebond de 2\,s) dans \texttt{chat\_conversations}, en
+retirant les données d'image pour alléger le stockage.
+
+\section{Suivi parental et rapports}
+Les parents lient leurs enfants via un code, puis consultent des
+\textbf{rapports de progression} générés par IA (fonction
+\texttt{generate-parent-report}). Une tâche planifiée
+(\texttt{scheduled-parent-reports}) produit ces rapports périodiquement et
+envoie des alertes en cas d'inactivité prolongée de l'enfant.
