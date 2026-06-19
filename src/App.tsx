@@ -74,7 +74,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
               <Route path="/learning-assessment" element={<ProtectedRoute allowedRoles={['student']}><LearningAssessment /></ProtectedRoute>} />
-              <Route path="/bot-onboarding" element={<ProtectedRoute allowedRoles={['student']}><BotOnboardingPage /></ProtectedRoute>} />
+              
               <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['student', 'admin', 'pedago']}><Dashboard /></ProtectedRoute>} />
               <Route path="/parent-dashboard" element={<ProtectedRoute allowedRoles={['parent']}><ParentDashboard /></ProtectedRoute>} />
               <Route path="/parent-cours/:childId" element={<ProtectedRoute allowedRoles={['parent']}><ParentCoursView /></ProtectedRoute>} />
