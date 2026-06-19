@@ -43,7 +43,6 @@ import Analytics from "./pages/Analytics";
 import FAQAdmin from "./pages/FAQAdmin";
 import CompleteProfile from "./pages/CompleteProfile";
 import LearningAssessment from "./pages/LearningAssessment";
-import BotOnboardingPage from "./pages/BotOnboardingPage";
 import LessonEditor from "./pages/LessonEditor";
 import ContentGeneration from "./pages/ContentGeneration";
 import ExamTrimesterSelect from "./pages/ExamTrimesterSelect";
