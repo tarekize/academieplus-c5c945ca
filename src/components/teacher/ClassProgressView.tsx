@@ -138,8 +138,10 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
       }
 
       // 4. Compute per student
-      const computed: ComputedStudent[] = memberRows.map((m) => {
-        const p = m.profiles as StudentProfile;
+      const computed: ComputedStudent[] = memberRows
+        .filter((m) => profilesById[m.student_id])
+        .map((m) => {
+        const p = profilesById[m.student_id];
         const own = scoreRows.filter((s) => s.user_id === p.id);
 
         // Per chapter average level
