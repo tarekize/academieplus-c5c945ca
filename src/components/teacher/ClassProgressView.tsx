@@ -90,7 +90,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
   const [loading, setLoading] = useState(true);
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
   const [students, setStudents] = useState<ComputedStudent[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  
 
   const fetchData = useCallback(async () => {
     setLoading(true);
