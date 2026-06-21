@@ -150,6 +150,8 @@ const Auth = () => {
 
             if (roleData?.role === 'parent') {
               navigate("/parent-dashboard");
+            } else if (roleData?.role === 'teacher') {
+              navigate("/teacher-dashboard");
             } else if (roleData?.role === 'admin') {
               navigate("/dashboard");
             } else {
