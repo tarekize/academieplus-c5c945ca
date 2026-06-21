@@ -98,12 +98,22 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
       // 1. Class members
       const { data: members, error: memErr } = await supabase
         .from("class_students")
-        .select("id, student_id, profiles:profiles!class_students_student_id_fkey(id, first_name, last_name, email, school_level, filiere, avatar_url)")
+        .select("id, student_id")
         .eq("class_id", classRow.id);
       if (memErr) throw memErr;
 
-      const memberRows = ((members as any[]) || []).filter((m) => m.profiles);
+      const memberRows = (members as any[]) || [];
       const studentIds = memberRows.map((m) => m.student_id);
+
+      // 1b. Member profiles
+      let profilesById: Record<string, StudentProfile> = {};
+      if (studentIds.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, first_name, last_name, email, school_level, filiere, avatar_url")
+          .in("id", studentIds);
+        for (const p of (profs as any[]) || []) profilesById[p.id] = p as StudentProfile;
+      }
 
       // 2. Chapters for the class level
       let chapterRows: ChapterRow[] = [];
