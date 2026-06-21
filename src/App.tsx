@@ -78,6 +78,7 @@ const App = () => (
               
               <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['student', 'admin', 'pedago']}><Dashboard /></ProtectedRoute>} />
               <Route path="/parent-dashboard" element={<ProtectedRoute allowedRoles={['parent']}><ParentDashboard /></ProtectedRoute>} />
+              <Route path="/teacher-dashboard" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />
               <Route path="/parent-cours/:childId" element={<ProtectedRoute allowedRoles={['parent']}><ParentCoursView /></ProtectedRoute>} />
               <Route path="/account" element={
                 <ProtectedRoute blockAdmin>
