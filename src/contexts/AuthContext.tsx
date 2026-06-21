@@ -127,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     navigate('/auth');
   };
 
-  const hasRole = async (role: 'admin' | 'parent' | 'student' | 'pedago'): Promise<boolean> => {
+  const hasRole = async (role: 'admin' | 'parent' | 'student' | 'pedago' | 'teacher'): Promise<boolean> => {
     if (!user) return false;
 
     const { data, error } = await supabase.rpc('has_role', {
