@@ -31,6 +31,7 @@ import Parrainage from "./pages/Parrainage";
 import MesDonneesPersonnelles from "./pages/MesDonneesPersonnelles";
 import ParentDashboard from "./pages/ParentDashboard";
 import ParentCoursView from "./pages/ParentCoursView";
+import TeacherDashboard from "./pages/TeacherDashboard";
 import DashboardEditorial from "./pages/editorial/DashboardEditorial";
 import EditeurCours from "./pages/editorial/EditeurCours";
 import PageRevision from "./pages/editorial/PageRevision";
@@ -77,6 +78,7 @@ const App = () => (
               
               <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['student', 'admin', 'pedago']}><Dashboard /></ProtectedRoute>} />
               <Route path="/parent-dashboard" element={<ProtectedRoute allowedRoles={['parent']}><ParentDashboard /></ProtectedRoute>} />
+              <Route path="/teacher-dashboard" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />
               <Route path="/parent-cours/:childId" element={<ProtectedRoute allowedRoles={['parent']}><ParentCoursView /></ProtectedRoute>} />
               <Route path="/account" element={
                 <ProtectedRoute blockAdmin>

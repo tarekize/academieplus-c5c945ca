@@ -8,7 +8,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
-  hasRole: (role: 'admin' | 'parent' | 'student' | 'pedago') => Promise<boolean>;
+  hasRole: (role: 'admin' | 'parent' | 'student' | 'pedago' | 'teacher') => Promise<boolean>;
   isAdmin: () => Promise<boolean>;
 }
 
@@ -101,6 +101,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
           }
 
+          // Rediriger les enseignants vers /teacher-dashboard après connexion
+          if (roleData?.role === 'teacher' &&
+            (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/' || currentPath.includes('/liste-cours') || currentPath.startsWith('/cours'))) {
+            window.location.href = '/teacher-dashboard';
+            return;
+          }
+
           // Rediriger les élèves vers /cours/math après connexion par défaut
           if (roleData?.role === 'student' &&
             (currentPath.includes('/auth') || currentPath === '/')) {
@@ -127,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     navigate('/auth');
   };
 
-  const hasRole = async (role: 'admin' | 'parent' | 'student' | 'pedago'): Promise<boolean> => {
+  const hasRole = async (role: 'admin' | 'parent' | 'student' | 'pedago' | 'teacher'): Promise<boolean> => {
     if (!user) return false;
 
     const { data, error } = await supabase.rpc('has_role', {
