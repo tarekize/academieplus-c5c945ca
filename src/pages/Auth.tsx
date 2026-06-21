@@ -721,34 +721,47 @@ const Auth = () => {
                         required
                       >
                         <div className={cn(
-                          "grid grid-cols-2 gap-4 p-1 rounded-lg",
+                          "grid grid-cols-3 gap-3 p-1 rounded-lg",
                           (submitted || touched.profileType) && !profileType ? "ring-2 ring-red-500" : ""
                         )}>
                           <Label
                             htmlFor="enfant"
                             className={cn(
-                              "flex flex-col items-center justify-center h-32 px-4 rounded-lg border-2 cursor-pointer transition-all",
+                              "flex flex-col items-center justify-center h-32 px-2 rounded-lg border-2 cursor-pointer transition-all",
                               profileType === "enfant"
                                 ? "bg-primary text-primary-foreground border-primary shadow-lg"
                                 : "bg-secondary/20 border-border hover:bg-secondary/30"
                             )}
                           >
                             <RadioGroupItem value="enfant" id="enfant" className="sr-only" />
-                            <img src={iconStudent} alt="Élève" className="h-20 w-20 mb-2 object-contain" />
+                            <img src={iconStudent} alt="Élève" className="h-16 w-16 mb-2 object-contain" />
                             <span className="font-semibold">Élève</span>
                           </Label>
                           <Label
                             htmlFor="parent"
                             className={cn(
-                              "flex flex-col items-center justify-center h-32 px-4 rounded-lg border-2 cursor-pointer transition-all",
+                              "flex flex-col items-center justify-center h-32 px-2 rounded-lg border-2 cursor-pointer transition-all",
                               profileType === "parent"
                                 ? "bg-primary text-primary-foreground border-primary shadow-lg"
                                 : "bg-secondary/20 border-border hover:bg-secondary/30"
                             )}
                           >
                             <RadioGroupItem value="parent" id="parent" className="sr-only" />
-                            <img src={iconParent} alt="Parent" className="h-20 w-20 mb-2 object-contain" />
+                            <img src={iconParent} alt="Parent" className="h-16 w-16 mb-2 object-contain" />
                             <span className="font-semibold">Parent</span>
+                          </Label>
+                          <Label
+                            htmlFor="enseignant"
+                            className={cn(
+                              "flex flex-col items-center justify-center h-32 px-2 rounded-lg border-2 cursor-pointer transition-all",
+                              profileType === "enseignant"
+                                ? "bg-primary text-primary-foreground border-primary shadow-lg"
+                                : "bg-secondary/20 border-border hover:bg-secondary/30"
+                            )}
+                          >
+                            <RadioGroupItem value="enseignant" id="enseignant" className="sr-only" />
+                            <GraduationCap className="h-16 w-16 mb-2" strokeWidth={1.5} />
+                            <span className="font-semibold">Enseignant</span>
                           </Label>
                         </div>
                       </RadioGroup>
