@@ -8,7 +8,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
-  hasRole: (role: 'admin' | 'parent' | 'student' | 'pedago') => Promise<boolean>;
+  hasRole: (role: 'admin' | 'parent' | 'student' | 'pedago' | 'teacher') => Promise<boolean>;
   isAdmin: () => Promise<boolean>;
 }
 
