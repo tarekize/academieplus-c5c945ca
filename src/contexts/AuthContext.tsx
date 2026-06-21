@@ -101,6 +101,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
           }
 
+          // Rediriger les enseignants vers /teacher-dashboard après connexion
+          if (roleData?.role === 'teacher' &&
+            (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/' || currentPath.includes('/liste-cours') || currentPath.startsWith('/cours'))) {
+            window.location.href = '/teacher-dashboard';
+            return;
+          }
+
           // Rediriger les élèves vers /cours/math après connexion par défaut
           if (roleData?.role === 'student' &&
             (currentPath.includes('/auth') || currentPath === '/')) {
