@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
-import { Calendar as CalendarIcon, Eye, EyeOff, User } from "lucide-react";
+import { Calendar as CalendarIcon, Eye, EyeOff, User, GraduationCap } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 import { format, parse, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
