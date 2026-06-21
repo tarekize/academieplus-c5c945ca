@@ -299,7 +299,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
               <table className="border-separate" style={{ borderSpacing: "2px" }}>
                 <thead>
                   <tr>
-                    <th className="text-left text-xs font-medium text-muted-foreground sticky left-0 bg-background pr-3 min-w-[140px]">Élève</th>
+                    <th className="text-left text-xs font-medium text-muted-foreground sticky left-0 bg-background pr-3 min-w-[200px]">Élève</th>
                     {chapters.map((ch, i) => (
                       <th key={ch.id} title={ch.title} className="text-[10px] font-medium text-muted-foreground align-bottom h-16">
                         <div className="rotate-180 [writing-mode:vertical-rl] mx-auto max-h-16 overflow-hidden whitespace-nowrap">
@@ -309,24 +309,43 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
                     ))}
                     <th className="text-xs font-medium text-muted-foreground px-2">Score</th>
                     <th className="text-xs font-medium text-muted-foreground px-1">Gr.</th>
-                    <th className="text-xs font-medium text-muted-foreground px-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {students.map((s) => (
                     <tr key={s.profile.id}>
-                      <td className="sticky left-0 bg-background pr-3">
-                        <button
-                          onClick={() => onOpenStudentDetail(s.profile)}
-                          className="text-sm font-medium text-foreground hover:text-primary hover:underline whitespace-nowrap text-left"
-                        >
-                          {fullName(s.profile)}
-                        </button>
+                      <td className="sticky left-0 bg-background pr-3 align-top py-2">
+                        <div className="space-y-1.5">
+                          <button
+                            onClick={() => onOpenStudentDetail(s.profile)}
+                            className="text-sm font-medium text-foreground hover:text-primary hover:underline whitespace-nowrap text-left block"
+                          >
+                            {fullName(s.profile)}
+                          </button>
+                          <div className="flex items-center gap-1 whitespace-nowrap">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => onOpenStudentDetail(s.profile)}
+                              className="gap-1 h-7"
+                            >
+                              Voir en détail <ChevronRight className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeStudent(s.linkId)}
+                              className="text-destructive h-7 px-2"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
                       </td>
                       {chapters.map((ch) => {
                         const lvl = s.chapterLevels[ch.id];
                         return (
-                          <td key={ch.id}>
+                          <td key={ch.id} className="align-top">
                             <div
                               title={`${ch.title} : ${lvl === null ? "Non évalué" : lvl + "%"}`}
                               className={`w-5 h-5 rounded-sm ${cellColor(lvl)} cursor-default`}
@@ -334,35 +353,15 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
                           </td>
                         );
                       })}
-                      <td className="px-2 text-center">
+                      <td className="px-2 text-center align-top">
                         <span className="text-sm font-semibold">
                           {s.answered ? `${s.global}%` : "—"}
                         </span>
                       </td>
-                      <td className="px-1 text-center">
+                      <td className="px-1 text-center align-top">
                         <span className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold ${GROUP_INFO[s.group].tone}`}>
                           {s.group}
                         </span>
-                      </td>
-                      <td className="px-2">
-                        <div className="flex items-center gap-1 justify-end whitespace-nowrap">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onOpenStudentDetail(s.profile)}
-                            className="gap-1"
-                          >
-                            Voir en détail <ChevronRight className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeStudent(s.linkId)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
                       </td>
                     </tr>
                   ))}
