@@ -326,7 +326,7 @@ const Auth = () => {
         first_name: firstName,
         last_name: lastName,
         full_name: `${firstName} ${lastName}`,
-        role: profileType === 'enfant' ? 'student' : 'parent',
+        role: profileType === 'enfant' ? 'student' : profileType === 'enseignant' ? 'teacher' : 'parent',
       };
 
       if (dateOfBirth) {
