@@ -433,6 +433,68 @@ export type Database = {
         }
         Relationships: []
       }
+      class_students: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          student_id: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id?: string
+          student_id: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_students_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classes: {
+        Row: {
+          created_at: string
+          filiere: string | null
+          id: string
+          name: string
+          school_level: Database["public"]["Enums"]["school_level"] | null
+          subject: string
+          teacher_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          filiere?: string | null
+          id?: string
+          name: string
+          school_level?: Database["public"]["Enums"]["school_level"] | null
+          subject?: string
+          teacher_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          filiere?: string | null
+          id?: string
+          name?: string
+          school_level?: Database["public"]["Enums"]["school_level"] | null
+          subject?: string
+          teacher_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       exams: {
         Row: {
           content: Json
@@ -1027,6 +1089,10 @@ export type Database = {
       }
       is_parent_of: {
         Args: { _child_id: string; _parent_id: string }
+        Returns: boolean
+      }
+      is_teacher_of: {
+        Args: { _student_id: string; _teacher_id: string }
         Returns: boolean
       }
       log_activity: {
