@@ -207,8 +207,6 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
     return { total, active, avg, blocages, mastered };
   }, [students]);
 
-  const selected = students.find((s) => s.profile.id === selectedId) || null;
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
