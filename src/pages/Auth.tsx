@@ -371,6 +371,10 @@ const Auth = () => {
       // Si l'inscription vient d'un clic Pricing, respecter la redirection demandée.
       if (returnTo === '/abonnements') {
         navigate('/abonnements');
+      } else if (profileType === 'enseignant') {
+        navigate('/teacher-dashboard');
+      } else if (profileType === 'parent') {
+        navigate('/parent-dashboard');
       } else {
         navigate('/learning-assessment');
       }
