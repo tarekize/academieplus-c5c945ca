@@ -90,7 +90,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
   const [loading, setLoading] = useState(true);
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
   const [students, setStudents] = useState<ComputedStudent[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -207,8 +207,6 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
     return { total, active, avg, blocages, mastered };
   }, [students]);
 
-  const selected = students.find((s) => s.profile.id === selectedId) || null;
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -311,6 +309,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
                     ))}
                     <th className="text-xs font-medium text-muted-foreground px-2">Score</th>
                     <th className="text-xs font-medium text-muted-foreground px-1">Gr.</th>
+                    <th className="text-xs font-medium text-muted-foreground px-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -336,104 +335,39 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
                         );
                       })}
                       <td className="px-2 text-center">
-                        <button
-                          onClick={() => setSelectedId(s.profile.id)}
-                          className="text-sm font-semibold hover:text-primary"
-                        >
+                        <span className="text-sm font-semibold">
                           {s.answered ? `${s.global}%` : "—"}
-                        </button>
+                        </span>
                       </td>
                       <td className="px-1 text-center">
                         <span className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold ${GROUP_INFO[s.group].tone}`}>
                           {s.group}
                         </span>
                       </td>
+                      <td className="px-2">
+                        <div className="flex items-center gap-1 justify-end whitespace-nowrap">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onOpenStudentDetail(s.profile)}
+                            className="gap-1"
+                          >
+                            Voir en détail <ChevronRight className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeStudent(s.linkId)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Student selector */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Sélectionner un élève</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {students.map((s) => (
-              <Button
-                key={s.profile.id}
-                variant={selectedId === s.profile.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedId(s.profile.id)}
-              >
-                {fullName(s.profile)}
-              </Button>
-            ))}
-          </div>
-
-          {selected && (
-            <div className="mt-6 rounded-lg border p-5 space-y-5">
-              <div className="flex items-start justify-between gap-4 flex-wrap">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                      {initials(selected.profile)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold text-lg">{fullName(selected.profile)}</p>
-                    <div className="flex items-center gap-2 flex-wrap text-sm">
-                      <Badge className={GROUP_INFO[selected.group].tone}>
-                        {selected.group} — {GROUP_INFO[selected.group].label}
-                      </Badge>
-                      <span className="text-muted-foreground">
-                        {getSchoolLevelLabel(selected.profile.school_level || "")}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => onOpenStudentDetail(selected.profile)} className="gap-1">
-                    Voir en détail <ChevronRight className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => removeStudent(selected.linkId)} className="text-destructive">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-6 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Score global : </span>
-                  <span className="font-bold">{selected.answered ? `${selected.global}%` : "Non évalué"}</span>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium mb-3">Progression par notion</p>
-                <div className="space-y-2">
-                  {chapters.map((ch) => {
-                    const lvl = selected.chapterLevels[ch.id];
-                    return (
-                      <div key={ch.id} className="flex items-center gap-3">
-                        <span className="text-xs w-44 shrink-0 truncate" title={ch.title}>{ch.title}</span>
-                        <Progress value={lvl ?? 0} className="h-2 flex-1" />
-                        <span className="text-xs w-12 text-right text-muted-foreground">
-                          {lvl === null ? "—" : `${lvl}%`}
-                        </span>
-                      </div>
-                    );
-                  })}
-                  {chapters.length === 0 && (
-                    <p className="text-xs text-muted-foreground">Aucune notion disponible.</p>
-                  )}
-                </div>
-              </div>
             </div>
           )}
         </CardContent>
