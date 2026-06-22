@@ -433,6 +433,44 @@ export type Database = {
         }
         Relationships: []
       }
+      class_announcements: {
+        Row: {
+          class_id: string
+          content: string
+          created_at: string
+          id: string
+          teacher_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          content: string
+          created_at?: string
+          id?: string
+          teacher_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          teacher_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_announcements_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_students: {
         Row: {
           class_id: string
@@ -1016,6 +1054,80 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      teacher_parent_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          parent_id: string
+          read_at: string | null
+          sender_id: string
+          student_id: string
+          teacher_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          parent_id: string
+          read_at?: string | null
+          sender_id: string
+          student_id: string
+          teacher_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          parent_id?: string
+          read_at?: string | null
+          sender_id?: string
+          student_id?: string
+          teacher_id?: string
+        }
+        Relationships: []
+      }
+      teacher_student_notes: {
+        Row: {
+          class_id: string | null
+          content: string
+          created_at: string
+          id: string
+          is_private: boolean
+          student_id: string
+          teacher_id: string
+          updated_at: string
+        }
+        Insert: {
+          class_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_private?: boolean
+          student_id: string
+          teacher_id: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_private?: boolean
+          student_id?: string
+          teacher_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_student_notes_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
