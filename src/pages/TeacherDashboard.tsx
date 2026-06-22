@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  GraduationCap, LogOut, ArrowLeft, Loader2, Users, BookOpen, Trash2,
+  GraduationCap, LogOut, ArrowLeft, Loader2, Users, BookOpen, Trash2, Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getSchoolLevelLabel } from "@/lib/validation";
