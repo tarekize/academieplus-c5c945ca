@@ -39,7 +39,7 @@ const TeacherDashboard = () => {
     try {
       const { data, error } = await supabase
         .from("classes")
-        .select("id, name, school_level, filiere, subject")
+        .select("id, name, school_level, filiere, subject, join_code")
         .eq("teacher_id", teacherId)
         .order("created_at", { ascending: false });
       if (error) throw error;
