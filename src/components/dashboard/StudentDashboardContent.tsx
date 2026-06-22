@@ -610,6 +610,9 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
 
   return (
     <div className="space-y-6" dir="rtl">
+      <div dir="ltr">
+        <StudentAnnouncementsBanner userId={userId} />
+      </div>
       {/* Hero Header */}
       {!parentView && (
       <Card className="overflow-hidden border-0 shadow-lg">
