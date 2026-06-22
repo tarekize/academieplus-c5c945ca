@@ -16,6 +16,7 @@ export interface ClassRow {
   school_level: string | null;
   filiere: string | null;
   subject: string;
+  join_code?: string | null;
 }
 
 interface StudentProfile {

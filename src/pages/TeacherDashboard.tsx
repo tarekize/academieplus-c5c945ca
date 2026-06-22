@@ -6,12 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  GraduationCap, LogOut, ArrowLeft, Loader2, Users, BookOpen, Trash2,
+  GraduationCap, LogOut, ArrowLeft, Loader2, Users, BookOpen, Trash2, Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import CreateClassDialog from "@/components/teacher/CreateClassDialog";
-import AddStudentToClassDialog from "@/components/teacher/AddStudentToClassDialog";
+
 import ClassProgressView, { ClassRow } from "@/components/teacher/ClassProgressView";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
 
@@ -39,7 +39,7 @@ const TeacherDashboard = () => {
     try {
       const { data, error } = await supabase
         .from("classes")
-        .select("id, name, school_level, filiere, subject")
+        .select("id, name, school_level, filiere, subject, join_code")
         .eq("teacher_id", teacherId)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -137,22 +137,40 @@ const TeacherDashboard = () => {
               <Button variant="ghost" size="sm" onClick={() => setSelectedClass(null)} className="gap-2">
                 <ArrowLeft className="h-4 w-4" /> Mes classes
               </Button>
-              <AddStudentToClassDialog
-                classId={selectedClass.id}
-                onAdded={() => setSelectedClass({ ...selectedClass })}
-              />
             </div>
           </div>
         </header>
         <main className="container mx-auto px-4 pt-24 pb-12">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-primary" /> {selectedClass.name}
-            </h1>
-            <p className="text-muted-foreground">
-              {getSchoolLevelLabel(selectedClass.school_level || "")}
-              {selectedClass.filiere ? ` · ${selectedClass.filiere}` : ""}
-            </p>
+          <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                <BookOpen className="h-6 w-6 text-primary" /> {selectedClass.name}
+              </h1>
+              <p className="text-muted-foreground">
+                {getSchoolLevelLabel(selectedClass.school_level || "")}
+                {selectedClass.filiere ? ` · ${selectedClass.filiere}` : ""}
+              </p>
+            </div>
+            {selectedClass.join_code && (
+              <div className="rounded-xl border bg-muted/40 px-4 py-3">
+                <p className="text-xs text-muted-foreground mb-1">Code de la classe</p>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-lg font-bold tracking-widest">{selectedClass.join_code}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedClass.join_code || "");
+                      toast.success("Code copié");
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Partagez-le pour que vos élèves rejoignent la classe.</p>
+              </div>
+            )}
           </div>
           <ClassProgressView
             key={JSON.stringify(selectedClass)}

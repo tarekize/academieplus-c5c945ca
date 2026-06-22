@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChangePasswordButton } from "@/components/ChangePasswordButton";
+import JoinClassDialog from "@/components/student/JoinClassDialog";
 
 interface Profile {
   id: string;
@@ -384,6 +385,7 @@ const Account = () => {
               <BarChart3 className="h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
               Tableau de bord
             </button>
+            {isStudent && <JoinClassDialog />}
           </div>
         )}
         {isParent && (
