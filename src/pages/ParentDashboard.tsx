@@ -479,6 +479,13 @@ const ParentDashboard = () => {
               hideActions
               parentView
             />
+            <div className="mt-6">
+              <ParentTeacherChat
+                studentId={selectedChild.child_id}
+                studentName={getChildFullName(selectedChild.child)}
+                role="parent"
+              />
+            </div>
           </div>
         </main>
       </div>
