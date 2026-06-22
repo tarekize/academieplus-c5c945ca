@@ -14,6 +14,9 @@ import CreateClassDialog from "@/components/teacher/CreateClassDialog";
 
 import ClassProgressView, { ClassRow } from "@/components/teacher/ClassProgressView";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
+import TeacherStudentNotes from "@/components/teacher/TeacherStudentNotes";
+import ParentTeacherChat from "@/components/messaging/ParentTeacherChat";
+import ClassAnnouncementsManager from "@/components/teacher/ClassAnnouncementsManager";
 
 interface DetailStudent {
   id: string;
