@@ -111,7 +111,7 @@ const TeacherDashboard = () => {
             </div>
           </div>
         </header>
-        <main className="container mx-auto px-4 pt-24 pb-12">
+        <main className="container mx-auto px-4 pt-24 pb-12 space-y-6">
           <StudentDashboardContent
             userId={detailStudent.id}
             profile={{
@@ -125,6 +125,14 @@ const TeacherDashboard = () => {
             parentView
             hideActions
           />
+          <div className="grid gap-6 lg:grid-cols-2">
+            <TeacherStudentNotes studentId={detailStudent.id} classId={selectedClass?.id ?? null} />
+            <ParentTeacherChat
+              studentId={detailStudent.id}
+              studentName={[detailStudent.first_name, detailStudent.last_name].filter(Boolean).join(" ")}
+              role="teacher"
+            />
+          </div>
         </main>
       </div>
     );
