@@ -11,7 +11,7 @@ import {
 import { toast } from "sonner";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import CreateClassDialog from "@/components/teacher/CreateClassDialog";
-import AddStudentToClassDialog from "@/components/teacher/AddStudentToClassDialog";
+
 import ClassProgressView, { ClassRow } from "@/components/teacher/ClassProgressView";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
 
