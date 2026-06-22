@@ -30,6 +30,7 @@ import { toast as sonnerToast } from "sonner";
 import { getSchoolLevelLabel, allSchoolLevels } from "@/lib/validation";
 import { ChangePasswordButton } from "@/components/ChangePasswordButton";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
+import ParentTeacherChat from "@/components/messaging/ParentTeacherChat";
 import { format, parse, isValid } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
