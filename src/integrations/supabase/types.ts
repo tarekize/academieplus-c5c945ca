@@ -467,6 +467,7 @@ export type Database = {
           created_at: string
           filiere: string | null
           id: string
+          join_code: string
           name: string
           school_level: Database["public"]["Enums"]["school_level"] | null
           subject: string
@@ -477,6 +478,7 @@ export type Database = {
           created_at?: string
           filiere?: string | null
           id?: string
+          join_code?: string
           name: string
           school_level?: Database["public"]["Enums"]["school_level"] | null
           subject?: string
@@ -487,6 +489,7 @@ export type Database = {
           created_at?: string
           filiere?: string | null
           id?: string
+          join_code?: string
           name?: string
           school_level?: Database["public"]["Enums"]["school_level"] | null
           subject?: string
