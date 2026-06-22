@@ -183,6 +183,7 @@ const TeacherDashboard = () => {
               </div>
             )}
           </div>
+          <ClassAnnouncementsManager classId={selectedClass.id} />
           <ClassProgressView
             key={JSON.stringify(selectedClass)}
             classRow={selectedClass}
