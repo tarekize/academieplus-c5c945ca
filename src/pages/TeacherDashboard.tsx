@@ -14,6 +14,9 @@ import CreateClassDialog from "@/components/teacher/CreateClassDialog";
 
 import ClassProgressView, { ClassRow } from "@/components/teacher/ClassProgressView";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
+import TeacherStudentNotes from "@/components/teacher/TeacherStudentNotes";
+import ParentTeacherChat from "@/components/messaging/ParentTeacherChat";
+import ClassAnnouncementsManager from "@/components/teacher/ClassAnnouncementsManager";
 
 interface DetailStudent {
   id: string;
@@ -108,7 +111,7 @@ const TeacherDashboard = () => {
             </div>
           </div>
         </header>
-        <main className="container mx-auto px-4 pt-24 pb-12">
+        <main className="container mx-auto px-4 pt-24 pb-12 space-y-6">
           <StudentDashboardContent
             userId={detailStudent.id}
             profile={{
@@ -122,6 +125,14 @@ const TeacherDashboard = () => {
             parentView
             hideActions
           />
+          <div className="grid gap-6 lg:grid-cols-2">
+            <TeacherStudentNotes studentId={detailStudent.id} classId={selectedClass?.id ?? null} />
+            <ParentTeacherChat
+              studentId={detailStudent.id}
+              studentName={[detailStudent.first_name, detailStudent.last_name].filter(Boolean).join(" ")}
+              role="teacher"
+            />
+          </div>
         </main>
       </div>
     );
@@ -172,6 +183,7 @@ const TeacherDashboard = () => {
               </div>
             )}
           </div>
+          <ClassAnnouncementsManager classId={selectedClass.id} />
           <ClassProgressView
             key={JSON.stringify(selectedClass)}
             classRow={selectedClass}

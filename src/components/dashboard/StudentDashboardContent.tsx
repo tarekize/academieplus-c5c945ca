@@ -23,6 +23,8 @@ import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
+import StudentAnnouncementsBanner from "@/components/dashboard/StudentAnnouncementsBanner";
+
 
 
 interface StudentDashboardContentProps {
@@ -610,6 +612,9 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
 
   return (
     <div className="space-y-6" dir="rtl">
+      <div dir="ltr">
+        <StudentAnnouncementsBanner userId={userId} />
+      </div>
       {/* Hero Header */}
       {!parentView && (
       <Card className="overflow-hidden border-0 shadow-lg">
