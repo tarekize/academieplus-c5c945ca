@@ -54,7 +54,7 @@ interface LessonActivityTabsProps {
 }
 
 type ActivitySection = "exercises" | "quiz" | "revision" | null;
-type StepLevel = "decouvrir" | "comprendre" | "approfondir";
+type StepLevel = "decouvrir" | "comprendre" | "approfondir" | "maclasse";
 type AnswerPayload = { correct: boolean; concept?: string; userAnswer?: string; correctAnswer?: string; difficulty?: number };
 
 const REQUIRED_CORRECT = 3;
