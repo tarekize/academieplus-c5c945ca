@@ -578,6 +578,13 @@ const ListeCours = () => {
             </div>
           </div>
 
+          {user?.id && (
+            <div className="mb-8">
+              <StudentAnnouncementsBanner userId={user.id} />
+              <StudentAssignedContent userId={user.id} />
+            </div>
+          )}
+
           {/* All Subjects */}
           {filteredSubjects.length > 0 && (
             <section className="mb-12">
