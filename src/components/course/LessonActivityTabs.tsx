@@ -1034,6 +1034,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           </CardContent>
         </Card>
       )}
+
+      {/* Ma classe — contenu envoyé par l'enseignant */}
+      {activeStep === "maclasse" && (
+        <MyClassContent userId={propUserId || userId || ""} contentType={isQuiz ? "quiz" : "exercise"} />
+      )}
     </div>
   );
 }
