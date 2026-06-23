@@ -14,6 +14,7 @@ import { HtmlWithMath } from "./HtmlWithMath";
 import { MarkdownSolution } from "./MarkdownSolution";
 import { MathKeyboard } from "./MathKeyboard";
 import { cleanMathStatement, statementHasMath } from "@/lib/mathStatement";
+import { MyClassContent } from "./MyClassContent";
 
 export interface DBQuizQuestion {
   id: string;
