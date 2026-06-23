@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Brain, PenTool, BookOpen, Sparkles, Eye, Lightbulb, Rocket, ChevronRight, Lock, CheckCircle2, RefreshCw, Pencil, Dices, XCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { Brain, PenTool, BookOpen, Sparkles, Eye, Lightbulb, Rocket, ChevronRight, Lock, CheckCircle2, RefreshCw, Pencil, Dices, XCircle, ChevronDown, ChevronUp, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,6 +14,7 @@ import { HtmlWithMath } from "./HtmlWithMath";
 import { MarkdownSolution } from "./MarkdownSolution";
 import { MathKeyboard } from "./MathKeyboard";
 import { cleanMathStatement, statementHasMath } from "@/lib/mathStatement";
+import { MyClassContent } from "./MyClassContent";
 
 export interface DBQuizQuestion {
   id: string;
@@ -54,7 +55,7 @@ interface LessonActivityTabsProps {
 }
 
 type ActivitySection = "exercises" | "quiz" | "revision" | null;
-type StepLevel = "decouvrir" | "comprendre" | "approfondir";
+type StepLevel = "decouvrir" | "comprendre" | "approfondir" | "maclasse";
 type AnswerPayload = { correct: boolean; concept?: string; userAnswer?: string; correctAnswer?: string; difficulty?: number };
 
 const REQUIRED_CORRECT = 3;
@@ -81,6 +82,21 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [triggerReload, setTriggerReload] = useState(0);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [inClass, setInClass] = useState(false);
+
+  useEffect(() => {
+    const uid = propUserId || userId;
+    if (!uid) return;
+    let active = true;
+    (async () => {
+      const { count } = await (supabase as any)
+        .from("class_students")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", uid);
+      if (active) setInClass((count || 0) > 0);
+    })();
+    return () => { active = false; };
+  }, [propUserId, userId]);
 
   const [completedExerciseIds, setCompletedExerciseIds] = useState<string[]>([]);
   const [completedQuizIds, setCompletedQuizIds] = useState<string[]>([]);
@@ -559,7 +575,9 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const halfQuiz = Math.ceil(dbQuizzes.length / 2);
   const halfExercise = Math.ceil(dbExercises.length / 2);
 
-  const visibleSteps = readOnly ? stepConfig.filter(s => s.id !== "approfondir") : stepConfig;
+  const baseSteps = readOnly ? stepConfig.filter(s => s.id !== "approfondir") : stepConfig;
+  const myClassStep = { id: "maclasse" as StepLevel, label: "Ma classe", labelAr: "صفي", icon: Users, color: "text-emerald-500" };
+  const visibleSteps = (inClass && !readOnly) ? [...baseSteps, myClassStep] : baseSteps;
 
   if (activeSection === null) {
     return (
@@ -1015,6 +1033,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* Ma classe — contenu envoyé par l'enseignant */}
+      {activeStep === "maclasse" && (
+        <MyClassContent userId={propUserId || userId || ""} contentType={isQuiz ? "quiz" : "exercise"} />
       )}
     </div>
   );
