@@ -25,6 +25,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChangePasswordButton } from "@/components/ChangePasswordButton";
+import StudentAnnouncementsBanner from "@/components/dashboard/StudentAnnouncementsBanner";
+import StudentAssignedContent from "@/components/dashboard/StudentAssignedContent";
 
 interface Profile {
   id: string;
@@ -577,6 +579,13 @@ const ListeCours = () => {
               </div>
             </div>
           </div>
+
+          {user?.id && (
+            <div className="mb-8">
+              <StudentAnnouncementsBanner userId={user.id} />
+              <StudentAssignedContent userId={user.id} />
+            </div>
+          )}
 
           {/* All Subjects */}
           {filteredSubjects.length > 0 && (

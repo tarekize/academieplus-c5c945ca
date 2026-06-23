@@ -46,10 +46,11 @@ const FILIERE_OPTIONS: Record<string, { value: string; label: string }[]> = {
 
 interface CreateClassDialogProps {
   teacherId: string;
+  establishmentId?: string | null;
   onCreated: () => void;
 }
 
-export default function CreateClassDialog({ teacherId, onCreated }: CreateClassDialogProps) {
+export default function CreateClassDialog({ teacherId, establishmentId, onCreated }: CreateClassDialogProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [schoolLevel, setSchoolLevel] = useState("");
@@ -85,7 +86,8 @@ export default function CreateClassDialog({ teacherId, onCreated }: CreateClassD
         school_level: schoolLevel as any,
         filiere: needsFiliere ? filiere : null,
         subject: "math",
-      });
+        establishment_id: establishmentId ?? null,
+      } as any);
       if (error) throw error;
       toast.success("Classe créée avec succès");
       reset();
