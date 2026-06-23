@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, LogOut, Loader2 } from "lucide-react";
-import { useNavigate as _ } from "react-router-dom";
+
 import TeacherHome, { TeacherSection } from "@/components/teacher/TeacherHome";
 import EstablishmentManager from "@/components/teacher/EstablishmentManager";
 import TeacherContentSpace from "@/components/teacher/TeacherContentSpace";
