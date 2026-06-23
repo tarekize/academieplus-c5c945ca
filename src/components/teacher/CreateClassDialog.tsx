@@ -86,7 +86,8 @@ export default function CreateClassDialog({ teacherId, establishmentId, onCreate
         school_level: schoolLevel as any,
         filiere: needsFiliere ? filiere : null,
         subject: "math",
-      });
+        establishment_id: establishmentId ?? null,
+      } as any);
       if (error) throw error;
       toast.success("Classe créée avec succès");
       reset();
