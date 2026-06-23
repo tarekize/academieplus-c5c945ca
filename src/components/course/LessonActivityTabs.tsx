@@ -82,6 +82,21 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [triggerReload, setTriggerReload] = useState(0);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [inClass, setInClass] = useState(false);
+
+  useEffect(() => {
+    const uid = propUserId || userId;
+    if (!uid) return;
+    let active = true;
+    (async () => {
+      const { count } = await (supabase as any)
+        .from("class_students")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", uid);
+      if (active) setInClass((count || 0) > 0);
+    })();
+    return () => { active = false; };
+  }, [propUserId, userId]);
 
   const [completedExerciseIds, setCompletedExerciseIds] = useState<string[]>([]);
   const [completedQuizIds, setCompletedQuizIds] = useState<string[]>([]);
