@@ -1,113 +1,96 @@
-## Objectif
+# Fonctionnalités Enseignant — Plan de mise en œuvre
 
-Corriger 3 points: (1) niveau initial = score du test de positionnement (plus de 50 par défaut), (2) nouvelle gestion des erreurs (pas de réponse révélée, rouge 3 s + nouvelle tentative, solution uniquement à la demande, bouton de validation pour les quiz), (3) enrichir le calcul du niveau avec des signaux comportementaux (indice préventif/curatif, hésitation/abandon). Choix confirmés: appliquer partout (adaptatif + chapitre), le chapitre alimente aussi le niveau, pénalités par défaut.
-
-Aucune migration DB nécessaire: les drapeaux d'hésitation seront stockés dans `student_scores.assessment_data` (jsonb existant).
+Le périmètre est important. Je propose de le livrer en **4 phases** pour garder un produit fonctionnel à chaque étape. Chaque phase est indépendante et testable.
 
 ---
 
-## 1. Niveau initial = score du test diagnostic
+## Phase 1 — Onboarding Établissement + Tableau de bord à 4 icônes
 
-Le test (`LearningAssessment.tsx`) enregistre déjà `current_level = placementScore` dans une ligne globale (`lesson_id = null, chapter_id = null`). Il manque juste l'amorçage des leçons à partir de cette valeur.
+**Objectif :** l'enseignant crée son établissement avant les classes, puis arrive sur un accueil à 4 boutons.
 
-- **`src/lib/levelEngine.ts`** — ajouter une note; pas de logique.
-- **Nouveau `src/lib/initialLevel.ts`** — `getPlacementLevel(userId): Promise<number>` lit la ligne placement (`lesson_id is null`) et renvoie son `current_level`, sinon `50`.
-- **`src/hooks/useAdaptiveContent.ts`** — dans `loadExisting`, quand aucune ligne de score n'existe pour la leçon, initialiser `score.current_level` via `getPlacementLevel` (au lieu de 50). Idem comme valeur de départ lors du premier `insert` dans `recordAnswer`.
-- **`src/lib/chatEvalTracker.ts`** — remplacer le défaut `?? 50` par `getPlacementLevel(userId)` pour une nouvelle ligne chapitre.
+- Nouvelle table `establishments` (nom, type, ville) rattachée à l'enseignant ; nouvelle colonne `establishment_id` sur `classes`.
+- À la connexion enseignant : si aucun établissement → écran de création d'établissement, puis redirection vers la gestion des classes (page existante, désormais rattachée à l'établissement).
+- Nouvelle page d'accueil `/teacher-dashboard` avec 4 cartes-icônes :
+  - 🏫 **Établissement** → gestion établissement + classes (vue actuelle)
+  - 📝 **Exercices** → espace création exercices
+  - 🎯 **Quiz** → espace création quiz
+  - 📋 **Examens** → espace création examens
 
----
+## Phase 2 — Création de contenu : mode Manuel + chatbot IA guidé
 
-## 2. Gestion des erreurs & interactions
+**Objectif :** pour Exercices / Quiz / Examens, deux modes de création.
 
-### A. Exercices (entraînement) — `AdaptiveActivities.tsx` + `ChapterMathExercises.tsx`
+- **Stockage** : nouvelles tables `teacher_content` (le contenu généré/saisi) et `teacher_content_assignments` (envoi vers classes ou élèves).
+- **Mode Manuel** : formulaire dédié (énoncé, réponse, indices, difficulté, niveau, leçon).
+- **Mode IA — chatbot à flux contrôlé** (les 7 étapes du cahier des charges) :
+  1. Accueil « Salut ! » + demande du niveau.
+  2. Niveau : uniquement les niveaux des classes réellement enseignées.
+  3. Cours : chapitres (avec animation) puis leçons du chapitre choisi.
+  4. Nombre de contenus : sélecteur 1 → 10.
+  5. Difficulté : min et max.
+  6. Génération : contenus détaillés avec indices, **sans** réponses/corrections affichées.
+  7. Bouton **Envoyer** par contenu → liste des classes du niveau choisi → confirmation d'envoi.
+- Logique identique pour Quiz. Examens : même cadre (génération d'un ensemble).
+- Edge function dédiée `generate-teacher-content` (réutilise la logique IA existante, Gemini + repli Llama).
 
-Nouveau comportement par exercice:
-- Soumission fausse → état **verrouillé rouge pendant 3 s** (input désactivé, bordure/encadré rouge), **sans afficher la bonne réponse**.
-- Après 3 s → input réactivé, l'élève peut **retenter** (compteur de tentatives incrémenté).
-- La bonne réponse / résolution n'apparaît **que** via le bouton existant **« عرض الحل المفصل »** (déjà présent). Retirer l'affichage direct de `expected_answer` sur erreur (lignes ~379 de `AdaptiveActivities` et ~222 de `ChapterMathExercises`).
-- Soumission correcte → état vert, exercice résolu.
-- Cliquer « عرض الحل المفصل » avant d'avoir réussi = abandon (compté comme échec pour le niveau, voir §3).
+## Phase 3 — Affichage côté élève
 
-State ajouté: `attempts[id]`, `lockedUntil[id]` (timestamp), `solved[id]`. Un `setTimeout`/`useEffect` lève le verrou après 3 s.
+**Objectif :** déplacer les annonces et afficher le contenu reçu.
 
-### B. Quiz (évaluation) — `AdaptiveActivities.tsx` (le chapitre a déjà un bouton)
+- Les annonces enseignant **n'apparaissent plus** dans le dashboard élève : retrait du bandeau dans `StudentDashboardContent`.
+- Elles s'affichent sur la **page principale de l'élève / liste des cours** (`ListeCours`).
+- Le contenu (exercices/quiz) envoyé à l'élève ou sa classe apparaît dans une section « Contenu de mon enseignant ».
 
-- Remplacer l'auto-soumission au clic (`handleQuizAnswer`) par: sélection d'une option (surbrillance) **puis bouton « تأكيد »** qui valide définitivement. Une seule validation par question; après validation, affichage du résultat + explication (comportement quiz = une tentative).
-- `ChapterMathQuiz.tsx` conserve son bouton « تأكيد »; on retire seulement la révélation directe si l'on veut homogénéiser — ici le quiz reste une évaluation à tentative unique, donc l'affichage post-validation est conservé.
+## Phase 4 — Aide classe & élève (assistants IA ciblés)
 
----
+**Objectif :** boutons d'aide dans la vue classe et la vue élève.
 
-## 3. Calcul du niveau enrichi (signaux comportementaux)
-
-### 3.1 Moteur — `src/lib/levelEngine.ts`
-
-Étendre `DeltaInput` et `computeDelta`:
-```text
-hintUsage?: "none" | "preventive" | "curative"   // indice avant / après 1ère réponse
-attemptCount?: number                            // nb de soumissions (1 = juste du 1er coup)
-abandoned?: boolean                              // a révélé la solution / quitté sans réussir
-```
-Application (après le calcul ELO actuel):
-- Si correct:
-  - `attemptCount > 1` → gain × 0.85^(attempts-1) (plancher +1)
-  - indice **préventif** → gain × 0.70 (réduction ~30 %)
-  - indice **curatif** → gain × 0.40 (réduction ~60 %)
-- Si abandon/échec:
-  - indice curatif → perte × 1.3
-- Re-clamp final (+1..+6 / -7..-1) inchangé.
-
-Nouvelle fonction pure `hesitationAdjustment(kind)` :
-- `"timeout"` (>1 min inactif puis sortie sans réponse) → `-1` (et −2 si difficulté ≥ 4).
-- `"erase"` (saisie puis effacement total puis sortie) → `0` (profil seulement, pas d'impact niveau).
-
-### 3.2 Enregistrement partagé — nouveau `src/lib/recordActivityAnswer.ts`
-
-Fonction unique réutilisée par le chapitre (et alignée avec le hook adaptatif):
-```text
-recordActivityAnswer({ userId, chapterId, lessonId|null, isCorrect, timeSec,
-  difficulty, hintUsage, attemptCount, abandoned })
-```
-- Charge/insère la ligne `student_scores` (niveau-leçon si `lessonId`, sinon niveau-chapitre `lesson_id null`).
-- Niveau initial via `getPlacementLevel`.
-- Applique `computeDelta` (avec signaux) → met à jour `current_level`, `total_answers`, `correct_answers`, `accuracy_rate`, `streak`.
-- Drapeaux d'hésitation/abandon: incrémentés dans `assessment_data` (`{ hesitation_timeout, hesitation_erase, abandons }`).
-
-### 3.3 Hook adaptatif — `src/hooks/useAdaptiveContent.ts`
-
-- `recordAnswer(... , extra?: { hintUsage, attemptCount, abandoned })` → transmis à `computeDelta`.
-- Ajouter `recordHesitation(kind)` qui applique `hesitationAdjustment` et persiste les drapeaux.
-
-### 3.4 Détection hésitation/abandon — `AdaptiveActivities.tsx` + `ChapterMathExercises.tsx`
-
-Par exercice ouvert, suivre: `openedAt`, `hasTyped`, `valueNonEmptyThenEmptied`, `submitted/solved`.
-- **Timeout**: si exercice actif > 60 s sans aucune soumission, à la sortie (changement d'onglet/exercice/unmount) → `recordHesitation("timeout")`.
-- **Effacement**: si l'élève a tapé puis vidé le champ et quitte sans soumettre → `recordHesitation("erase")`.
-- Déclenché dans le cleanup d'un `useEffect` lié à l'exercice courant + au `beforeunload`.
-
-### 3.5 Indices (bouton « مساعدة » / « تلميحات »)
-
-- À l'ouverture d'un indice, mémoriser `hintUsage`: `"preventive"` si aucune soumission encore faite, `"curative"` si au moins une mauvaise réponse déjà soumise. Passé à `recordAnswer`/`recordActivityAnswer` au moment où l'exercice/quiz est résolu ou abandonné.
-
-### 3.6 Chapitre alimente le niveau
-
-- `ChapterMathExercises.tsx` / `ChapterMathQuiz.tsx` récupèrent l'`userId` via `supabase.auth.getUser()` et appellent `recordActivityAnswer` (niveau-leçon via `ex.lesson_id`, sinon niveau-chapitre) à la résolution/abandon, avec les signaux comportementaux. (Ils ne modifiaient pas le niveau auparavant.)
+- **Vue classe** : bouton « Aider les élèves » → Exercices (manuel), Quiz (manuel), Examens (manuel), **Chatbot IA classe**.
+  - Le chatbot IA classe lit les performances **globales** de la classe et ne signale une lacune que si elle touche la **majorité** des élèves. Sur « Oui » : génère 5 exercices + 5 quiz, validés individuellement, envoyés à toute la classe.
+- **Vue élève** : bouton « Aider l'élève » → Exercices (manuel), Quiz (manuel), **Chatbot IA élève**.
+  - Le chatbot IA élève lit le profil individuel, identifie les lacunes et propose des contenus adaptés, validés puis envoyés à l'élève.
 
 ---
 
 ## Détails techniques
 
-- Pénalités/centralisées dans `levelEngine.ts` (testable). Tests unitaires possibles dans `src/test/`.
-- Verrou 3 s = `lockedUntil` + `setTimeout` nettoyé au démontage; pas de blocage si l'élève change d'exercice.
-- Stockage hésitation: `assessment_data` jsonb (aucune migration).
-- Compat: lignes existantes (niveau 50) inchangées; le nouvel amorçage ne concerne que les leçons sans score.
+### Nouvelles tables (migrations Supabase)
+```text
+establishments
+  id, teacher_id (auth.users), name, type, ville?, created_at, updated_at
+  RLS: l'enseignant gère ses propres établissements (service_role full)
 
-## Fichiers impactés
-- `src/lib/levelEngine.ts` (signaux + hesitationAdjustment)
-- `src/lib/initialLevel.ts` (nouveau)
-- `src/lib/recordActivityAnswer.ts` (nouveau)
-- `src/hooks/useAdaptiveContent.ts` (seed placement + signaux + recordHesitation)
-- `src/lib/chatEvalTracker.ts` (seed placement)
-- `src/components/course/AdaptiveActivities.tsx` (UX erreur, validate quiz, hints, hésitation)
-- `src/components/course/ChapterMathExercises.tsx` (UX erreur, hints, hésitation, alimente niveau)
-- `src/components/course/ChapterMathQuiz.tsx` (alimente niveau, hints)
-- `src/test/` (tests du moteur, optionnel)
+classes  (modif)
+  + establishment_id uuid null -> establishments(id)
+
+teacher_content
+  id, teacher_id, content_type ('exercise'|'quiz'|'exam'),
+  chapter_id?, lesson_id?, school_level, filiere?,
+  payload jsonb (statement/question/options/expected_answer/hint/solution...),
+  difficulty int, source ('manual'|'ai'), created_at, updated_at
+  RLS: enseignant gère son contenu ; élève/classe lisent via assignations
+
+teacher_content_assignments
+  id, content_id -> teacher_content(id), class_id? -> classes,
+  student_id?, assigned_by, created_at
+  RLS: enseignant gère ses assignations ;
+       élève voit les assignations le visant ou visant ses classes
+```
+Chaque `CREATE TABLE public.*` est suivi des `GRANT` (authenticated + service_role) puis `ENABLE RLS` + policies, conformément aux règles du projet. Helpers existants `is_teacher_of` / `is_parent_of` réutilisés.
+
+### Edge functions
+- `generate-teacher-content` : génération calibrée (niveau, leçon, nombre, difficulté min/max). Sortie sans corrections pour l'aperçu, corrections stockées séparément à l'envoi.
+- `class-performance-summary` : agrège les performances de la classe pour le chatbot classe (lacunes majoritaires).
+- Réutilisation des données `student_scores`, `chapters`, `lessons`.
+
+### Frontend (principaux fichiers)
+- `EstablishmentOnboarding.tsx`, refonte de `TeacherDashboard.tsx` (accueil 4 icônes).
+- `pages/teacher/CreateExercises.tsx`, `CreateQuiz.tsx`, `CreateExams.tsx` (onglets Manuel / IA).
+- `components/teacher/GuidedContentChatbot.tsx` (machine à états des 7 étapes).
+- `components/teacher/ClassHelpChatbot.tsx`, `StudentHelpChatbot.tsx`.
+- `ListeCours.tsx` : intégration des annonces + contenu reçu ; retrait du bandeau dans le dashboard élève.
+
+---
+
+## Question de cadrage
+Je peux commencer immédiatement par la **Phase 1** (onboarding + accueil 4 icônes) qui débloque tout le reste. Souhaitez-vous que j'enchaîne directement les phases 1→4, ou que je m'arrête après chaque phase pour validation ?
