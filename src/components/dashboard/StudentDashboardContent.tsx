@@ -23,7 +23,7 @@ import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
-import StudentAnnouncementsBanner from "@/components/dashboard/StudentAnnouncementsBanner";
+
 
 
 
