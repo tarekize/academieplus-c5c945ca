@@ -25,6 +25,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChangePasswordButton } from "@/components/ChangePasswordButton";
+import StudentAnnouncementsBanner from "@/components/dashboard/StudentAnnouncementsBanner";
+import StudentAssignedContent from "@/components/dashboard/StudentAssignedContent";
 
 interface Profile {
   id: string;
