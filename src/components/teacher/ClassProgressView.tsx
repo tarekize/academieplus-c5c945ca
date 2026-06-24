@@ -358,7 +358,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
                           key={g.ch.id}
                           colSpan={g.lessons.length}
                           title={g.ch.title}
-                          className="text-[10px] font-semibold text-foreground/80 px-1 pb-1 border-b text-center"
+                          className="text-[10px] font-semibold text-foreground/80 px-1 pb-1 border-b border-l-2 border-border text-center"
                         >
                           <div className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
                             {g.ch.title.length > 22 ? g.ch.title.slice(0, 22) + "…" : g.ch.title}
@@ -371,7 +371,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
                     {/* Lesson (notion) row */}
                     <tr>
                       {flatLessons.map((ls) => (
-                        <th key={ls.id} title={ls.title} className="text-[10px] font-medium text-muted-foreground align-bottom h-20">
+                        <th key={ls.id} title={ls.title} className={`text-[10px] font-medium text-muted-foreground align-bottom h-20 ${sepClass(ls.id)}`}>
                           <div className="rotate-180 [writing-mode:vertical-rl] mx-auto max-h-20 overflow-hidden whitespace-nowrap">
                             {ls.title.length > 22 ? ls.title.slice(0, 22) + "…" : ls.title}
                           </div>
