@@ -75,6 +75,20 @@ Deno.serve(async (req) => {
       });
     }
 
+    // A student can belong to only one class at a time.
+    const { data: existing } = await admin
+      .from("class_students")
+      .select("id")
+      .eq("student_id", studentId)
+      .limit(1)
+      .maybeSingle();
+    if (existing) {
+      return new Response(
+        JSON.stringify({ error: "Vous êtes déjà membre d'une classe. Quittez-la avant d'en rejoindre une autre." }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // Insert the membership (ignore duplicates).
     const { error: insertErr } = await admin
       .from("class_students")
