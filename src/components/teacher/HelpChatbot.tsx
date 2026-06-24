@@ -37,8 +37,9 @@ interface GenEntry extends GeneratedItem { _type: "exercise" | "quiz"; }
 
 export default function HelpChatbot(props: Props) {
   const { teacherId, schoolLevel, classId, studentIds, studentId, targetName, mode } = props;
-  const [phase, setPhase] = useState<"analyzing" | "proposal" | "none" | "generating" | "results">("analyzing");
+  const [phase, setPhase] = useState<"analyzing" | "select" | "none" | "generating" | "results">("analyzing");
   const [weak, setWeak] = useState<WeakLesson[]>([]);
+  const [selected, setSelected] = useState<WeakLesson | null>(null);
   const [items, setItems] = useState<GenEntry[]>([]);
   const [sent, setSent] = useState<Record<number, boolean>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
