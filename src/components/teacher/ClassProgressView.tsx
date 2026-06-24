@@ -228,7 +228,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
     const active = students.filter((s) => s.answered).length;
     const avg = total > 0 ? Math.round(students.reduce((a, s) => a + s.global, 0) / total) : 0;
     const blocages = students.reduce((a, s) => {
-      const n = Object.values(s.chapterLevels).filter((l) => l !== null && (l as number) < 20).length;
+      const n = Object.values(s.lessonLevels).filter((l) => l !== null && (l as number) < 20).length;
       return a + n;
     }, 0);
     const mastered = students.filter((s) => s.global >= 75).length;
