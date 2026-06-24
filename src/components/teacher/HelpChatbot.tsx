@@ -206,7 +206,7 @@ export default function HelpChatbot(props: Props) {
 
           {phase === "results" && (
             <>
-              <Bubble>Validez individuellement chaque contenu à envoyer à {targetName}.</Bubble>
+              <Bubble>Voici des exercices et quiz pour la leçon « <strong>{selected?.title}</strong> ». Validez individuellement chaque contenu à envoyer à {targetName}. Vous pouvez aussi choisir une autre leçon ci-dessus.</Bubble>
               <div className="space-y-3 pl-2">
                 {items.map((it, idx) => (
                   <Card key={idx} className="border-primary/20">
