@@ -94,12 +94,17 @@ export default function HelpChatbot(props: Props) {
     })();
   }, [mode, classId, studentId, JSON.stringify(studentIds)]);
 
-  const generate = async () => {
+  const generate = async (lesson: WeakLesson) => {
+    setSelected(lesson);
+    setItems([]);
+    setSent({});
     setPhase("generating");
     try {
-      const focus = `Les élèves sont en difficulté sur : ${weak.map((w) => w.title).join(", ")}.`;
-      const lessonTitle = weak[0]?.title;
-      const chapterTitle = weak[0]?.chapterTitle;
+      const focus = mode === "class"
+        ? `Plusieurs élèves sont en difficulté sur cette leçon : ${lesson.title}.`
+        : `${targetName} est en difficulté sur cette leçon : ${lesson.title}.`;
+      const lessonTitle = lesson.title;
+      const chapterTitle = lesson.chapterTitle;
       const [ex, qz] = await Promise.all([
         generateTeacherContent({
           contentType: "exercise", schoolLevel: schoolLevel || undefined,
@@ -114,12 +119,12 @@ export default function HelpChatbot(props: Props) {
         ...ex.map((e) => ({ ...e, _type: "exercise" as const })),
         ...qz.map((q) => ({ ...q, _type: "quiz" as const })),
       ];
-      if (merged.length === 0) { toast.error("Aucun contenu généré."); setPhase("proposal"); return; }
+      if (merged.length === 0) { toast.error("Aucun contenu généré."); setPhase("select"); return; }
       setItems(merged);
       setPhase("results");
     } catch (e: any) {
       toast.error(e.message || "Erreur de génération");
-      setPhase("proposal");
+      setPhase("select");
     }
   };
 
