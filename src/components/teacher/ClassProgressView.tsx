@@ -97,6 +97,7 @@ interface ClassProgressViewProps {
 export default function ClassProgressView({ classRow, onOpenStudentDetail }: ClassProgressViewProps) {
   const [loading, setLoading] = useState(true);
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
+  const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [students, setStudents] = useState<ComputedStudent[]>([]);
   
 
