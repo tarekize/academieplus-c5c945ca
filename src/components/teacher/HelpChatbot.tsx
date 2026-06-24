@@ -166,26 +166,42 @@ export default function HelpChatbot(props: Props) {
             </Bubble>
           )}
 
-          {(phase === "proposal" || phase === "generating" || phase === "results") && (
+          {(phase === "select" || phase === "generating" || phase === "results") && (
             <Bubble>
               {mode === "class" ? (
-                <>La majorité de vos élèves sont en difficulté sur : <strong>{weak.map((w) => w.title).join(", ")}</strong>. Souhaitez-vous les aider avec des exercices ?</>
+                <>Plusieurs élèves ont des lacunes dans différentes leçons. Sélectionnez la leçon pour laquelle vous souhaitez générer des exercices et quiz adaptés.</>
               ) : (
-                <>{targetName} est en difficulté sur : <strong>{weak.map((w) => w.title).join(", ")}</strong>. Voici une liste d'exercices et quiz adaptés.</>
+                <>{targetName} a des lacunes dans plusieurs leçons. Sélectionnez la leçon pour laquelle vous souhaitez générer des exercices et quiz adaptés.</>
               )}
             </Bubble>
           )}
 
-          {phase === "proposal" && (
-            <div className="pl-10">
-              <Button size="sm" className="gap-2" onClick={generate}>
-                <Sparkles className="h-4 w-4" /> Oui, générer 5 exercices + 5 quiz
-              </Button>
+          {(phase === "select" || phase === "generating" || phase === "results") && (
+            <div className="pl-10 flex flex-col gap-2">
+              {weak.map((w) => {
+                const isActive = selected?.lessonId === w.lessonId;
+                return (
+                  <Button
+                    key={w.lessonId}
+                    size="sm"
+                    variant={isActive ? "default" : "outline"}
+                    disabled={phase === "generating"}
+                    className="gap-2 justify-start text-left h-auto py-2 whitespace-normal"
+                    onClick={() => generate(w)}
+                  >
+                    <Sparkles className="h-4 w-4 shrink-0" />
+                    <span className="flex flex-col items-start">
+                      <span className="font-medium">{w.title}</span>
+                      {w.chapterTitle && <span className="text-[11px] opacity-70">{w.chapterTitle}</span>}
+                    </span>
+                  </Button>
+                );
+              })}
             </div>
           )}
 
           {phase === "generating" && (
-            <Bubble><span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Génération en cours…</span></Bubble>
+            <Bubble><span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Génération pour « {selected?.title} » en cours…</span></Bubble>
           )}
 
           {phase === "results" && (
