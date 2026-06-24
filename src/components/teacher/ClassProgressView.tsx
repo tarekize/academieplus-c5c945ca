@@ -35,6 +35,13 @@ interface ChapterRow {
   order_index: number;
 }
 
+interface LessonRow {
+  id: string;
+  title: string;
+  chapter_id: string;
+  order_index: number;
+}
+
 interface ScoreRow {
   user_id: string;
   chapter_id: string | null;
@@ -48,7 +55,7 @@ interface ComputedStudent {
   linkId: string;
   global: number;
   group: "A" | "B" | "C" | "D";
-  chapterLevels: Record<string, number | null>;
+  lessonLevels: Record<string, number | null>;
   answered: boolean;
 }
 
@@ -90,6 +97,7 @@ interface ClassProgressViewProps {
 export default function ClassProgressView({ classRow, onOpenStudentDetail }: ClassProgressViewProps) {
   const [loading, setLoading] = useState(true);
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
+  const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [students, setStudents] = useState<ComputedStudent[]>([]);
   
 
@@ -128,6 +136,25 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
       }
       setChapters(chapterRows);
 
+      // 2b. Lessons for all chapters of the level (the "notions")
+      let lessonRows: LessonRow[] = [];
+      if (chapterRows.length > 0) {
+        const { data: lessonsData } = await supabase
+          .from("lessons")
+          .select("id, title, chapter_id, order_index")
+          .in("chapter_id", chapterRows.map((c) => c.id))
+          .order("order_index", { ascending: true });
+        const orderByChapter: Record<string, number> = {};
+        chapterRows.forEach((c, i) => { orderByChapter[c.id] = i; });
+        lessonRows = ((lessonsData as any[]) || []).slice().sort((a, b) => {
+          const ca = orderByChapter[a.chapter_id] ?? 999;
+          const cb = orderByChapter[b.chapter_id] ?? 999;
+          if (ca !== cb) return ca - cb;
+          return (a.order_index || 0) - (b.order_index || 0);
+        });
+      }
+      setLessons(lessonRows);
+
       // 3. Scores for all students
       let scoreRows: ScoreRow[] = [];
       if (studentIds.length > 0) {
@@ -145,15 +172,15 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
         const p = profilesById[m.student_id];
         const own = scoreRows.filter((s) => s.user_id === p.id);
 
-        // Per chapter average level
-        const chapterLevels: Record<string, number | null> = {};
-        for (const ch of chapterRows) {
-          const rows = own.filter((s) => s.chapter_id === ch.id && (s.total_answers || 0) > 0);
+        // Per lesson (notion) average level
+        const lessonLevels: Record<string, number | null> = {};
+        for (const ls of lessonRows) {
+          const rows = own.filter((s) => s.lesson_id === ls.id && (s.total_answers || 0) > 0);
           if (rows.length === 0) {
-            chapterLevels[ch.id] = null;
+            lessonLevels[ls.id] = null;
           } else {
             const avg = rows.reduce((a, s) => a + (s.current_level || 0), 0) / rows.length;
-            chapterLevels[ch.id] = Math.round(avg);
+            lessonLevels[ls.id] = Math.round(avg);
           }
         }
 
@@ -168,7 +195,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
           linkId: m.id,
           global: pct,
           group: groupFromPct(pct),
-          chapterLevels,
+          lessonLevels,
           answered,
         };
       });
@@ -201,7 +228,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
     const active = students.filter((s) => s.answered).length;
     const avg = total > 0 ? Math.round(students.reduce((a, s) => a + s.global, 0) / total) : 0;
     const blocages = students.reduce((a, s) => {
-      const n = Object.values(s.chapterLevels).filter((l) => l !== null && (l as number) < 20).length;
+      const n = Object.values(s.lessonLevels).filter((l) => l !== null && (l as number) < 20).length;
       return a + n;
     }, 0);
     const mastered = students.filter((s) => s.global >= 75).length;
@@ -293,83 +320,108 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
           </div>
         </CardHeader>
         <CardContent>
-          {chapters.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Aucun chapitre disponible pour ce niveau.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="border-separate" style={{ borderSpacing: "2px" }}>
-                <thead>
-                  <tr>
-                    <th className="text-left text-xs font-medium text-muted-foreground sticky left-0 bg-background pr-3 min-w-[200px]">Élève</th>
-                    {chapters.map((ch, i) => (
-                      <th key={ch.id} title={ch.title} className="text-[10px] font-medium text-muted-foreground align-bottom h-16">
-                        <div className="rotate-180 [writing-mode:vertical-rl] mx-auto max-h-16 overflow-hidden whitespace-nowrap">
-                          {ch.title.length > 18 ? ch.title.slice(0, 18) + "…" : ch.title}
-                        </div>
-                      </th>
-                    ))}
-                    <th className="text-xs font-medium text-muted-foreground px-2">Score</th>
-                    <th className="text-xs font-medium text-muted-foreground px-1">Gr.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {students.map((s) => (
-                    <tr key={s.profile.id}>
-                      <td className="sticky left-0 bg-background pr-3 align-top py-2">
-                        <div className="space-y-1.5">
-                          <button
-                            onClick={() => onOpenStudentDetail(s.profile)}
-                            className="text-sm font-medium text-foreground hover:text-primary hover:underline whitespace-nowrap text-left block"
-                          >
-                            {fullName(s.profile)}
-                          </button>
-                          <div className="flex items-center gap-1 whitespace-nowrap">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => onOpenStudentDetail(s.profile)}
-                              className="gap-1 h-7"
-                            >
-                              Voir en détail <ChevronRight className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeStudent(s.linkId)}
-                              className="text-destructive h-7 px-2"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+          {(() => {
+            const chapterGroups = chapters
+              .map((ch) => ({ ch, lessons: lessons.filter((l) => l.chapter_id === ch.id) }))
+              .filter((g) => g.lessons.length > 0);
+            const flatLessons = chapterGroups.flatMap((g) => g.lessons);
+
+            if (flatLessons.length === 0) {
+              return <p className="text-sm text-muted-foreground">Aucune leçon disponible pour ce niveau.</p>;
+            }
+
+            return (
+              <div className="overflow-x-auto">
+                <table className="border-separate" style={{ borderSpacing: "2px" }}>
+                  <thead>
+                    {/* Chapter grouping row */}
+                    <tr>
+                      <th rowSpan={2} className="text-left text-xs font-medium text-muted-foreground sticky left-0 bg-background pr-3 min-w-[200px] align-bottom">Élève</th>
+                      {chapterGroups.map((g) => (
+                        <th
+                          key={g.ch.id}
+                          colSpan={g.lessons.length}
+                          title={g.ch.title}
+                          className="text-[10px] font-semibold text-foreground/80 px-1 pb-1 border-b text-center"
+                        >
+                          <div className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
+                            {g.ch.title.length > 22 ? g.ch.title.slice(0, 22) + "…" : g.ch.title}
                           </div>
-                        </div>
-                      </td>
-                      {chapters.map((ch) => {
-                        const lvl = s.chapterLevels[ch.id];
-                        return (
-                          <td key={ch.id} className="align-top">
-                            <div
-                              title={`${ch.title} : ${lvl === null ? "Non évalué" : lvl + "%"}`}
-                              className={`w-5 h-5 rounded-sm ${cellColor(lvl)} cursor-default`}
-                            />
-                          </td>
-                        );
-                      })}
-                      <td className="px-2 text-center align-top">
-                        <span className="text-sm font-semibold">
-                          {s.answered ? `${s.global}%` : "—"}
-                        </span>
-                      </td>
-                      <td className="px-1 text-center align-top">
-                        <span className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold ${GROUP_INFO[s.group].tone}`}>
-                          {s.group}
-                        </span>
-                      </td>
+                        </th>
+                      ))}
+                      <th rowSpan={2} className="text-xs font-medium text-muted-foreground px-2 align-bottom">Score</th>
+                      <th rowSpan={2} className="text-xs font-medium text-muted-foreground px-1 align-bottom">Gr.</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                    {/* Lesson (notion) row */}
+                    <tr>
+                      {flatLessons.map((ls) => (
+                        <th key={ls.id} title={ls.title} className="text-[10px] font-medium text-muted-foreground align-bottom h-20">
+                          <div className="rotate-180 [writing-mode:vertical-rl] mx-auto max-h-20 overflow-hidden whitespace-nowrap">
+                            {ls.title.length > 22 ? ls.title.slice(0, 22) + "…" : ls.title}
+                          </div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {students.map((s) => (
+                      <tr key={s.profile.id}>
+                        <td className="sticky left-0 bg-background pr-3 align-top py-2">
+                          <div className="space-y-1.5">
+                            <button
+                              onClick={() => onOpenStudentDetail(s.profile)}
+                              className="text-sm font-medium text-foreground hover:text-primary hover:underline whitespace-nowrap text-left block"
+                            >
+                              {fullName(s.profile)}
+                            </button>
+                            <div className="flex items-center gap-1 whitespace-nowrap">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => onOpenStudentDetail(s.profile)}
+                                className="gap-1 h-7"
+                              >
+                                Voir en détail <ChevronRight className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeStudent(s.linkId)}
+                                className="text-destructive h-7 px-2"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </td>
+                        {flatLessons.map((ls) => {
+                          const lvl = s.lessonLevels[ls.id];
+                          return (
+                            <td key={ls.id} className="align-top">
+                              <div
+                                title={`${ls.title} : ${lvl === null ? "Non évalué" : lvl + "%"}`}
+                                className={`w-5 h-5 rounded-sm ${cellColor(lvl)} cursor-default`}
+                              />
+                            </td>
+                          );
+                        })}
+                        <td className="px-2 text-center align-top">
+                          <span className="text-sm font-semibold">
+                            {s.answered ? `${s.global}%` : "—"}
+                          </span>
+                        </td>
+                        <td className="px-1 text-center align-top">
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold ${GROUP_INFO[s.group].tone}`}>
+                            {s.group}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
     </div>

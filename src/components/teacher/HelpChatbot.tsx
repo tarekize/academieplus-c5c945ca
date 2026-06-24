@@ -37,8 +37,9 @@ interface GenEntry extends GeneratedItem { _type: "exercise" | "quiz"; }
 
 export default function HelpChatbot(props: Props) {
   const { teacherId, schoolLevel, classId, studentIds, studentId, targetName, mode } = props;
-  const [phase, setPhase] = useState<"analyzing" | "proposal" | "none" | "generating" | "results">("analyzing");
+  const [phase, setPhase] = useState<"analyzing" | "select" | "none" | "generating" | "results">("analyzing");
   const [weak, setWeak] = useState<WeakLesson[]>([]);
+  const [selected, setSelected] = useState<WeakLesson | null>(null);
   const [items, setItems] = useState<GenEntry[]>([]);
   const [sent, setSent] = useState<Record<number, boolean>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -85,20 +86,25 @@ export default function HelpChatbot(props: Props) {
       const chapMap: Record<string, string> = {};
       for (const c of (chaps as any[]) || []) chapMap[c.id] = c.title;
 
-      const w: WeakLesson[] = ((lessons as any[]) || []).slice(0, 4).map((l) => ({
+      const w: WeakLesson[] = ((lessons as any[]) || []).map((l) => ({
         lessonId: l.id, title: l.title, chapterTitle: chapMap[l.chapter_id] || "",
       }));
       setWeak(w);
-      setPhase("proposal");
+      setPhase("select");
     })();
   }, [mode, classId, studentId, JSON.stringify(studentIds)]);
 
-  const generate = async () => {
+  const generate = async (lesson: WeakLesson) => {
+    setSelected(lesson);
+    setItems([]);
+    setSent({});
     setPhase("generating");
     try {
-      const focus = `Les élèves sont en difficulté sur : ${weak.map((w) => w.title).join(", ")}.`;
-      const lessonTitle = weak[0]?.title;
-      const chapterTitle = weak[0]?.chapterTitle;
+      const focus = mode === "class"
+        ? `Plusieurs élèves sont en difficulté sur cette leçon : ${lesson.title}.`
+        : `${targetName} est en difficulté sur cette leçon : ${lesson.title}.`;
+      const lessonTitle = lesson.title;
+      const chapterTitle = lesson.chapterTitle;
       const [ex, qz] = await Promise.all([
         generateTeacherContent({
           contentType: "exercise", schoolLevel: schoolLevel || undefined,
@@ -113,18 +119,18 @@ export default function HelpChatbot(props: Props) {
         ...ex.map((e) => ({ ...e, _type: "exercise" as const })),
         ...qz.map((q) => ({ ...q, _type: "quiz" as const })),
       ];
-      if (merged.length === 0) { toast.error("Aucun contenu généré."); setPhase("proposal"); return; }
+      if (merged.length === 0) { toast.error("Aucun contenu généré."); setPhase("select"); return; }
       setItems(merged);
       setPhase("results");
     } catch (e: any) {
       toast.error(e.message || "Erreur de génération");
-      setPhase("proposal");
+      setPhase("select");
     }
   };
 
   const sendOne = async (idx: number) => {
     const it = items[idx];
-    const weakForType = weak[0];
+    const weakForType = selected;
     try {
       const id = await saveTeacherContent({
         teacherId, contentType: it._type,
@@ -160,31 +166,47 @@ export default function HelpChatbot(props: Props) {
             </Bubble>
           )}
 
-          {(phase === "proposal" || phase === "generating" || phase === "results") && (
+          {(phase === "select" || phase === "generating" || phase === "results") && (
             <Bubble>
               {mode === "class" ? (
-                <>La majorité de vos élèves sont en difficulté sur : <strong>{weak.map((w) => w.title).join(", ")}</strong>. Souhaitez-vous les aider avec des exercices ?</>
+                <>Plusieurs élèves ont des lacunes dans différentes leçons. Sélectionnez la leçon pour laquelle vous souhaitez générer des exercices et quiz adaptés.</>
               ) : (
-                <>{targetName} est en difficulté sur : <strong>{weak.map((w) => w.title).join(", ")}</strong>. Voici une liste d'exercices et quiz adaptés.</>
+                <>{targetName} a des lacunes dans plusieurs leçons. Sélectionnez la leçon pour laquelle vous souhaitez générer des exercices et quiz adaptés.</>
               )}
             </Bubble>
           )}
 
-          {phase === "proposal" && (
-            <div className="pl-10">
-              <Button size="sm" className="gap-2" onClick={generate}>
-                <Sparkles className="h-4 w-4" /> Oui, générer 5 exercices + 5 quiz
-              </Button>
+          {(phase === "select" || phase === "generating" || phase === "results") && (
+            <div className="pl-10 flex flex-col gap-2">
+              {weak.map((w) => {
+                const isActive = selected?.lessonId === w.lessonId;
+                return (
+                  <Button
+                    key={w.lessonId}
+                    size="sm"
+                    variant={isActive ? "default" : "outline"}
+                    disabled={phase === "generating"}
+                    className="gap-2 justify-start text-left h-auto py-2 whitespace-normal"
+                    onClick={() => generate(w)}
+                  >
+                    <Sparkles className="h-4 w-4 shrink-0" />
+                    <span className="flex flex-col items-start">
+                      <span className="font-medium">{w.title}</span>
+                      {w.chapterTitle && <span className="text-[11px] opacity-70">{w.chapterTitle}</span>}
+                    </span>
+                  </Button>
+                );
+              })}
             </div>
           )}
 
           {phase === "generating" && (
-            <Bubble><span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Génération en cours…</span></Bubble>
+            <Bubble><span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Génération pour « {selected?.title} » en cours…</span></Bubble>
           )}
 
           {phase === "results" && (
             <>
-              <Bubble>Validez individuellement chaque contenu à envoyer à {targetName}.</Bubble>
+              <Bubble>Voici des exercices et quiz pour la leçon « <strong>{selected?.title}</strong> ». Validez individuellement chaque contenu à envoyer à {targetName}. Vous pouvez aussi choisir une autre leçon ci-dessus.</Bubble>
               <div className="space-y-3 pl-2">
                 {items.map((it, idx) => (
                   <Card key={idx} className="border-primary/20">
