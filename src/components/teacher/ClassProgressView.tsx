@@ -172,15 +172,15 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
         const p = profilesById[m.student_id];
         const own = scoreRows.filter((s) => s.user_id === p.id);
 
-        // Per chapter average level
-        const chapterLevels: Record<string, number | null> = {};
-        for (const ch of chapterRows) {
-          const rows = own.filter((s) => s.chapter_id === ch.id && (s.total_answers || 0) > 0);
+        // Per lesson (notion) average level
+        const lessonLevels: Record<string, number | null> = {};
+        for (const ls of lessonRows) {
+          const rows = own.filter((s) => s.lesson_id === ls.id && (s.total_answers || 0) > 0);
           if (rows.length === 0) {
-            chapterLevels[ch.id] = null;
+            lessonLevels[ls.id] = null;
           } else {
             const avg = rows.reduce((a, s) => a + (s.current_level || 0), 0) / rows.length;
-            chapterLevels[ch.id] = Math.round(avg);
+            lessonLevels[ls.id] = Math.round(avg);
           }
         }
 
@@ -195,7 +195,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
           linkId: m.id,
           global: pct,
           group: groupFromPct(pct),
-          chapterLevels,
+          lessonLevels,
           answered,
         };
       });
