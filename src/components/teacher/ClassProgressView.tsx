@@ -124,19 +124,33 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
         for (const p of (profs as any[]) || []) profilesById[p.id] = p as StudentProfile;
       }
 
-      // 2. Chapters for the class level
+      // 2. Resolve the class filière to its id (chapters are filière-specific)
+      let filiereId: string | null = null;
+      if (classRow.school_level && classRow.filiere) {
+        const { data: fil } = await supabase
+          .from("filieres")
+          .select("id, code, name")
+          .eq("school_level", classRow.school_level as any);
+        const match = ((fil as any[]) || []).find(
+          (f) => f.code === classRow.filiere || f.name === classRow.filiere,
+        );
+        filiereId = match?.id ?? null;
+      }
+
+      // 2b. Chapters for the class level + filière (avoids cross-filière duplicates)
       let chapterRows: ChapterRow[] = [];
       if (classRow.school_level) {
-        const { data: chs } = await supabase
+        let q = supabase
           .from("chapters")
-          .select("id, title, order_index")
-          .eq("school_level", classRow.school_level as any)
-          .order("order_index", { ascending: true });
+          .select("id, title, order_index, filiere_id")
+          .eq("school_level", classRow.school_level as any);
+        if (filiereId) q = q.eq("filiere_id", filiereId);
+        const { data: chs } = await q.order("order_index", { ascending: true });
         chapterRows = (chs as any[]) || [];
       }
       setChapters(chapterRows);
 
-      // 2b. Lessons for all chapters of the level (the "notions")
+      // 2c. Lessons for all chapters of the level (the "notions")
       let lessonRows: LessonRow[] = [];
       if (chapterRows.length > 0) {
         const { data: lessonsData } = await supabase
@@ -325,6 +339,8 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
               .map((ch) => ({ ch, lessons: lessons.filter((l) => l.chapter_id === ch.id) }))
               .filter((g) => g.lessons.length > 0);
             const flatLessons = chapterGroups.flatMap((g) => g.lessons);
+            const groupStartIds = new Set(chapterGroups.map((g) => g.lessons[0]?.id).filter(Boolean));
+            const sepClass = (id: string) => (groupStartIds.has(id) ? "border-l-2 border-border pl-1" : "");
 
             if (flatLessons.length === 0) {
               return <p className="text-sm text-muted-foreground">Aucune leçon disponible pour ce niveau.</p>;
@@ -342,7 +358,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
                           key={g.ch.id}
                           colSpan={g.lessons.length}
                           title={g.ch.title}
-                          className="text-[10px] font-semibold text-foreground/80 px-1 pb-1 border-b text-center"
+                          className="text-[10px] font-semibold text-foreground/80 px-1 pb-1 border-b border-l-2 border-border text-center"
                         >
                           <div className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
                             {g.ch.title.length > 22 ? g.ch.title.slice(0, 22) + "…" : g.ch.title}
@@ -355,7 +371,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
                     {/* Lesson (notion) row */}
                     <tr>
                       {flatLessons.map((ls) => (
-                        <th key={ls.id} title={ls.title} className="text-[10px] font-medium text-muted-foreground align-bottom h-20">
+                        <th key={ls.id} title={ls.title} className={`text-[10px] font-medium text-muted-foreground align-bottom h-20 ${sepClass(ls.id)}`}>
                           <div className="rotate-180 [writing-mode:vertical-rl] mx-auto max-h-20 overflow-hidden whitespace-nowrap">
                             {ls.title.length > 22 ? ls.title.slice(0, 22) + "…" : ls.title}
                           </div>
@@ -397,7 +413,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
                         {flatLessons.map((ls) => {
                           const lvl = s.lessonLevels[ls.id];
                           return (
-                            <td key={ls.id} className="align-top">
+                            <td key={ls.id} className={`align-top ${sepClass(ls.id)}`}>
                               <div
                                 title={`${ls.title} : ${lvl === null ? "Non évalué" : lvl + "%"}`}
                                 className={`w-5 h-5 rounded-sm ${cellColor(lvl)} cursor-default`}
