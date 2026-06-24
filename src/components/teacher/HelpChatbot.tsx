@@ -130,7 +130,7 @@ export default function HelpChatbot(props: Props) {
 
   const sendOne = async (idx: number) => {
     const it = items[idx];
-    const weakForType = weak[0];
+    const weakForType = selected;
     try {
       const id = await saveTeacherContent({
         teacherId, contentType: it._type,
