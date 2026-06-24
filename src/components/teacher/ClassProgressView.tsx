@@ -339,6 +339,8 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
               .map((ch) => ({ ch, lessons: lessons.filter((l) => l.chapter_id === ch.id) }))
               .filter((g) => g.lessons.length > 0);
             const flatLessons = chapterGroups.flatMap((g) => g.lessons);
+            const groupStartIds = new Set(chapterGroups.map((g) => g.lessons[0]?.id).filter(Boolean));
+            const sepClass = (id: string) => (groupStartIds.has(id) ? "border-l-2 border-border pl-1" : "");
 
             if (flatLessons.length === 0) {
               return <p className="text-sm text-muted-foreground">Aucune leçon disponible pour ce niveau.</p>;
