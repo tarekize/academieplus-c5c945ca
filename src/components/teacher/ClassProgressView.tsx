@@ -320,83 +320,108 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
           </div>
         </CardHeader>
         <CardContent>
-          {chapters.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Aucun chapitre disponible pour ce niveau.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="border-separate" style={{ borderSpacing: "2px" }}>
-                <thead>
-                  <tr>
-                    <th className="text-left text-xs font-medium text-muted-foreground sticky left-0 bg-background pr-3 min-w-[200px]">Élève</th>
-                    {chapters.map((ch, i) => (
-                      <th key={ch.id} title={ch.title} className="text-[10px] font-medium text-muted-foreground align-bottom h-16">
-                        <div className="rotate-180 [writing-mode:vertical-rl] mx-auto max-h-16 overflow-hidden whitespace-nowrap">
-                          {ch.title.length > 18 ? ch.title.slice(0, 18) + "…" : ch.title}
-                        </div>
-                      </th>
-                    ))}
-                    <th className="text-xs font-medium text-muted-foreground px-2">Score</th>
-                    <th className="text-xs font-medium text-muted-foreground px-1">Gr.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {students.map((s) => (
-                    <tr key={s.profile.id}>
-                      <td className="sticky left-0 bg-background pr-3 align-top py-2">
-                        <div className="space-y-1.5">
-                          <button
-                            onClick={() => onOpenStudentDetail(s.profile)}
-                            className="text-sm font-medium text-foreground hover:text-primary hover:underline whitespace-nowrap text-left block"
-                          >
-                            {fullName(s.profile)}
-                          </button>
-                          <div className="flex items-center gap-1 whitespace-nowrap">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => onOpenStudentDetail(s.profile)}
-                              className="gap-1 h-7"
-                            >
-                              Voir en détail <ChevronRight className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeStudent(s.linkId)}
-                              className="text-destructive h-7 px-2"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+          {(() => {
+            const chapterGroups = chapters
+              .map((ch) => ({ ch, lessons: lessons.filter((l) => l.chapter_id === ch.id) }))
+              .filter((g) => g.lessons.length > 0);
+            const flatLessons = chapterGroups.flatMap((g) => g.lessons);
+
+            if (flatLessons.length === 0) {
+              return <p className="text-sm text-muted-foreground">Aucune leçon disponible pour ce niveau.</p>;
+            }
+
+            return (
+              <div className="overflow-x-auto">
+                <table className="border-separate" style={{ borderSpacing: "2px" }}>
+                  <thead>
+                    {/* Chapter grouping row */}
+                    <tr>
+                      <th rowSpan={2} className="text-left text-xs font-medium text-muted-foreground sticky left-0 bg-background pr-3 min-w-[200px] align-bottom">Élève</th>
+                      {chapterGroups.map((g) => (
+                        <th
+                          key={g.ch.id}
+                          colSpan={g.lessons.length}
+                          title={g.ch.title}
+                          className="text-[10px] font-semibold text-foreground/80 px-1 pb-1 border-b text-center"
+                        >
+                          <div className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
+                            {g.ch.title.length > 22 ? g.ch.title.slice(0, 22) + "…" : g.ch.title}
                           </div>
-                        </div>
-                      </td>
-                      {chapters.map((ch) => {
-                        const lvl = s.chapterLevels[ch.id];
-                        return (
-                          <td key={ch.id} className="align-top">
-                            <div
-                              title={`${ch.title} : ${lvl === null ? "Non évalué" : lvl + "%"}`}
-                              className={`w-5 h-5 rounded-sm ${cellColor(lvl)} cursor-default`}
-                            />
-                          </td>
-                        );
-                      })}
-                      <td className="px-2 text-center align-top">
-                        <span className="text-sm font-semibold">
-                          {s.answered ? `${s.global}%` : "—"}
-                        </span>
-                      </td>
-                      <td className="px-1 text-center align-top">
-                        <span className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold ${GROUP_INFO[s.group].tone}`}>
-                          {s.group}
-                        </span>
-                      </td>
+                        </th>
+                      ))}
+                      <th rowSpan={2} className="text-xs font-medium text-muted-foreground px-2 align-bottom">Score</th>
+                      <th rowSpan={2} className="text-xs font-medium text-muted-foreground px-1 align-bottom">Gr.</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                    {/* Lesson (notion) row */}
+                    <tr>
+                      {flatLessons.map((ls) => (
+                        <th key={ls.id} title={ls.title} className="text-[10px] font-medium text-muted-foreground align-bottom h-20">
+                          <div className="rotate-180 [writing-mode:vertical-rl] mx-auto max-h-20 overflow-hidden whitespace-nowrap">
+                            {ls.title.length > 22 ? ls.title.slice(0, 22) + "…" : ls.title}
+                          </div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {students.map((s) => (
+                      <tr key={s.profile.id}>
+                        <td className="sticky left-0 bg-background pr-3 align-top py-2">
+                          <div className="space-y-1.5">
+                            <button
+                              onClick={() => onOpenStudentDetail(s.profile)}
+                              className="text-sm font-medium text-foreground hover:text-primary hover:underline whitespace-nowrap text-left block"
+                            >
+                              {fullName(s.profile)}
+                            </button>
+                            <div className="flex items-center gap-1 whitespace-nowrap">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => onOpenStudentDetail(s.profile)}
+                                className="gap-1 h-7"
+                              >
+                                Voir en détail <ChevronRight className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeStudent(s.linkId)}
+                                className="text-destructive h-7 px-2"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </td>
+                        {flatLessons.map((ls) => {
+                          const lvl = s.lessonLevels[ls.id];
+                          return (
+                            <td key={ls.id} className="align-top">
+                              <div
+                                title={`${ls.title} : ${lvl === null ? "Non évalué" : lvl + "%"}`}
+                                className={`w-5 h-5 rounded-sm ${cellColor(lvl)} cursor-default`}
+                              />
+                            </td>
+                          );
+                        })}
+                        <td className="px-2 text-center align-top">
+                          <span className="text-sm font-semibold">
+                            {s.answered ? `${s.global}%` : "—"}
+                          </span>
+                        </td>
+                        <td className="px-1 text-center align-top">
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold ${GROUP_INFO[s.group].tone}`}>
+                            {s.group}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
     </div>
