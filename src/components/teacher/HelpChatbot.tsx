@@ -86,11 +86,11 @@ export default function HelpChatbot(props: Props) {
       const chapMap: Record<string, string> = {};
       for (const c of (chaps as any[]) || []) chapMap[c.id] = c.title;
 
-      const w: WeakLesson[] = ((lessons as any[]) || []).slice(0, 4).map((l) => ({
+      const w: WeakLesson[] = ((lessons as any[]) || []).map((l) => ({
         lessonId: l.id, title: l.title, chapterTitle: chapMap[l.chapter_id] || "",
       }));
       setWeak(w);
-      setPhase("proposal");
+      setPhase("select");
     })();
   }, [mode, classId, studentId, JSON.stringify(studentIds)]);
 
