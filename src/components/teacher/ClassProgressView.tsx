@@ -413,7 +413,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
                         {flatLessons.map((ls) => {
                           const lvl = s.lessonLevels[ls.id];
                           return (
-                            <td key={ls.id} className="align-top">
+                            <td key={ls.id} className={`align-top ${sepClass(ls.id)}`}>
                               <div
                                 title={`${ls.title} : ${lvl === null ? "Non évalué" : lvl + "%"}`}
                                 className={`w-5 h-5 rounded-sm ${cellColor(lvl)} cursor-default`}
