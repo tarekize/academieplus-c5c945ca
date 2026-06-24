@@ -124,19 +124,33 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
         for (const p of (profs as any[]) || []) profilesById[p.id] = p as StudentProfile;
       }
 
-      // 2. Chapters for the class level
+      // 2. Resolve the class filière to its id (chapters are filière-specific)
+      let filiereId: string | null = null;
+      if (classRow.school_level && classRow.filiere) {
+        const { data: fil } = await supabase
+          .from("filieres")
+          .select("id, code, name")
+          .eq("school_level", classRow.school_level as any);
+        const match = ((fil as any[]) || []).find(
+          (f) => f.code === classRow.filiere || f.name === classRow.filiere,
+        );
+        filiereId = match?.id ?? null;
+      }
+
+      // 2b. Chapters for the class level + filière (avoids cross-filière duplicates)
       let chapterRows: ChapterRow[] = [];
       if (classRow.school_level) {
-        const { data: chs } = await supabase
+        let q = supabase
           .from("chapters")
-          .select("id, title, order_index")
-          .eq("school_level", classRow.school_level as any)
-          .order("order_index", { ascending: true });
+          .select("id, title, order_index, filiere_id")
+          .eq("school_level", classRow.school_level as any);
+        if (filiereId) q = q.eq("filiere_id", filiereId);
+        const { data: chs } = await q.order("order_index", { ascending: true });
         chapterRows = (chs as any[]) || [];
       }
       setChapters(chapterRows);
 
-      // 2b. Lessons for all chapters of the level (the "notions")
+      // 2c. Lessons for all chapters of the level (the "notions")
       let lessonRows: LessonRow[] = [];
       if (chapterRows.length > 0) {
         const { data: lessonsData } = await supabase
