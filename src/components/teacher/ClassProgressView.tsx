@@ -35,6 +35,13 @@ interface ChapterRow {
   order_index: number;
 }
 
+interface LessonRow {
+  id: string;
+  title: string;
+  chapter_id: string;
+  order_index: number;
+}
+
 interface ScoreRow {
   user_id: string;
   chapter_id: string | null;
@@ -48,7 +55,7 @@ interface ComputedStudent {
   linkId: string;
   global: number;
   group: "A" | "B" | "C" | "D";
-  chapterLevels: Record<string, number | null>;
+  lessonLevels: Record<string, number | null>;
   answered: boolean;
 }
 
