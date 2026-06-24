@@ -136,6 +136,25 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
       }
       setChapters(chapterRows);
 
+      // 2b. Lessons for all chapters of the level (the "notions")
+      let lessonRows: LessonRow[] = [];
+      if (chapterRows.length > 0) {
+        const { data: lessonsData } = await supabase
+          .from("lessons")
+          .select("id, title, chapter_id, order_index")
+          .in("chapter_id", chapterRows.map((c) => c.id))
+          .order("order_index", { ascending: true });
+        const orderByChapter: Record<string, number> = {};
+        chapterRows.forEach((c, i) => { orderByChapter[c.id] = i; });
+        lessonRows = ((lessonsData as any[]) || []).slice().sort((a, b) => {
+          const ca = orderByChapter[a.chapter_id] ?? 999;
+          const cb = orderByChapter[b.chapter_id] ?? 999;
+          if (ca !== cb) return ca - cb;
+          return (a.order_index || 0) - (b.order_index || 0);
+        });
+      }
+      setLessons(lessonRows);
+
       // 3. Scores for all students
       let scoreRows: ScoreRow[] = [];
       if (studentIds.length > 0) {
