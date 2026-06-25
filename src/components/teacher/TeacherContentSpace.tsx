@@ -33,12 +33,17 @@ export default function TeacherContentSpace({ teacherId, contentType, onBack }: 
           <Button variant={mode === "manual" ? "default" : "outline"} size="sm" className="gap-2" onClick={() => setMode("manual")}>
             <PencilLine className="h-4 w-4" /> Mode manuel
           </Button>
+          <Button variant={mode === "history" ? "default" : "outline"} size="sm" className="gap-2" onClick={() => setMode("history")}>
+            <History className="h-4 w-4" /> Historique
+          </Button>
         </div>
       </div>
 
       {mode === "ai"
         ? <GuidedContentChatbot key={contentType} teacherId={teacherId} contentType={contentType} />
-        : <ManualContentForm key={contentType} teacherId={teacherId} contentType={contentType} />}
+        : mode === "manual"
+        ? <ManualContentForm key={contentType} teacherId={teacherId} contentType={contentType} />
+        : <TeacherContentHistory key={contentType} teacherId={teacherId} contentType={contentType} />}
     </div>
   );
 }
