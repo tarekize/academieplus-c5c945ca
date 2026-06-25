@@ -215,7 +215,7 @@ export function MyClassContent({ userId, contentType }: Props) {
                     {p.statement && (
                       <HtmlWithMath htmlContent={cleanMathStatement(p.statement)} className="text-sm text-right" dir="rtl" />
                     )}
-                    {p.hint && (
+                    {p.hint && showHint[it.id] && (
                       <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {p.hint}</div>
                     )}
                     <div className="flex gap-2 items-center" dir="rtl">
@@ -225,8 +225,13 @@ export function MyClassContent({ userId, contentType }: Props) {
                         value={answers[it.id] || ""}
                         onChange={(e) => setAnswers((a) => ({ ...a, [it.id]: e.target.value }))}
                         dir="rtl" />
+                      {p.hint && !showHint[it.id] && (
+                        <Button size="sm" variant="ghost" onClick={() => handleHint(it.id)}>
+                          <Lightbulb className="h-4 w-4 mr-1" /> تلميح
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline"
-                        onClick={() => setRevealed((r) => ({ ...r, [it.id]: !r[it.id] }))}>
+                        onClick={() => handleExerciseCheck(it, p)}>
                         <CheckCircle2 className="h-4 w-4 mr-1" /> {isRevealed ? "إخفاء" : "التصحيح"}
                       </Button>
                     </div>
