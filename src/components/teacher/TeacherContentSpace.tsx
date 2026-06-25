@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function TeacherContentSpace({ teacherId, contentType, onBack }: Props) {
-  const [mode, setMode] = useState<"manual" | "ai">("ai");
+  const [mode, setMode] = useState<"manual" | "ai" | "history">("ai");
   const label = CONTENT_TYPE_LABELS[contentType];
 
   return (
