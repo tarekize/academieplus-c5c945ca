@@ -582,7 +582,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
   const baseSteps = readOnly ? stepConfig.filter(s => s.id !== "approfondir") : stepConfig;
   const myClassStep = { id: "maclasse" as StepLevel, label: "Ma classe", labelAr: "صفي", icon: Users, color: "text-emerald-500" };
-  const visibleSteps = (inClass && !readOnly) ? [...baseSteps, myClassStep] : baseSteps;
+  const visibleSteps = inClass ? [...baseSteps, myClassStep] : baseSteps;
 
   if (activeSection === null) {
     return (
