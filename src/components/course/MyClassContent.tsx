@@ -167,9 +167,17 @@ export function MyClassContent({ userId, contentType }: Props) {
                         })}
                       </div>
                     )}
-                    <div className="flex justify-end" dir="rtl">
+                    {p.hint && showHint[it.id] && (
+                      <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {p.hint}</div>
+                    )}
+                    <div className="flex justify-end gap-2" dir="rtl">
+                      {p.hint && !showHint[it.id] && (
+                        <Button size="sm" variant="ghost" onClick={() => handleHint(it.id)}>
+                          <Lightbulb className="h-4 w-4 mr-1" /> تلميح
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline" disabled={!selected[it.id]}
-                        onClick={() => setRevealed((r) => ({ ...r, [it.id]: !r[it.id] }))}>
+                        onClick={() => handleQuizCheck(it, p)}>
                         <Eye className="h-4 w-4 mr-1" /> {isRevealed ? "إخفاء" : "تحقق"}
                       </Button>
                     </div>
