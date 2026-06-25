@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, PencilLine, Sparkles } from "lucide-react";
+import { ArrowLeft, PencilLine, Sparkles, History } from "lucide-react";
 import { ContentType, CONTENT_TYPE_LABELS } from "@/lib/teacherContent";
 import ManualContentForm from "./ManualContentForm";
 import GuidedContentChatbot from "./GuidedContentChatbot";
+import TeacherContentHistory from "./TeacherContentHistory";
 
 interface Props {
   teacherId: string;
@@ -12,7 +13,7 @@ interface Props {
 }
 
 export default function TeacherContentSpace({ teacherId, contentType, onBack }: Props) {
-  const [mode, setMode] = useState<"manual" | "ai">("ai");
+  const [mode, setMode] = useState<"manual" | "ai" | "history">("ai");
   const label = CONTENT_TYPE_LABELS[contentType];
 
   return (
@@ -32,12 +33,17 @@ export default function TeacherContentSpace({ teacherId, contentType, onBack }: 
           <Button variant={mode === "manual" ? "default" : "outline"} size="sm" className="gap-2" onClick={() => setMode("manual")}>
             <PencilLine className="h-4 w-4" /> Mode manuel
           </Button>
+          <Button variant={mode === "history" ? "default" : "outline"} size="sm" className="gap-2" onClick={() => setMode("history")}>
+            <History className="h-4 w-4" /> Historique
+          </Button>
         </div>
       </div>
 
       {mode === "ai"
         ? <GuidedContentChatbot key={contentType} teacherId={teacherId} contentType={contentType} />
-        : <ManualContentForm key={contentType} teacherId={teacherId} contentType={contentType} />}
+        : mode === "manual"
+        ? <ManualContentForm key={contentType} teacherId={teacherId} contentType={contentType} />
+        : <TeacherContentHistory key={contentType} teacherId={teacherId} contentType={contentType} />}
     </div>
   );
 }

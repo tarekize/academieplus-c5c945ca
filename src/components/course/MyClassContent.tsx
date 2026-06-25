@@ -7,7 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { cleanMathStatement } from "@/lib/mathStatement";
 import { cn } from "@/lib/utils";
-import { Users, BookOpen, CheckCircle2, Pencil, Eye } from "lucide-react";
+import { Users, BookOpen, CheckCircle2, Pencil, Eye, Lightbulb } from "lucide-react";
+import { recordTeacherContentAttempt, normalizeAnswer } from "@/lib/teacherContentAttempt";
 
 interface TeacherContentRow {
   id: string;
@@ -31,6 +32,41 @@ export function MyClassContent({ userId, contentType }: Props) {
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<Record<string, string>>({});
+  const [showHint, setShowHint] = useState<Record<string, boolean>>({});
+
+  const handleHint = (id: string) => {
+    if (showHint[id]) return;
+    setShowHint((h) => ({ ...h, [id]: true }));
+    recordTeacherContentAttempt(id, userId, { hintDelta: 1 });
+  };
+
+  const handleQuizCheck = (it: TeacherContentRow, p: any) => {
+    if (revealed[it.id]) { setRevealed((r) => ({ ...r, [it.id]: false })); return; }
+    const sel = selected[it.id];
+    const correct = sel === p.correct_answer;
+    setRevealed((r) => ({ ...r, [it.id]: true }));
+    recordTeacherContentAttempt(it.id, userId, {
+      attemptDelta: 1,
+      errorDelta: correct ? 0 : 1,
+      completed: true,
+      isCorrect: correct,
+      answer: sel || null,
+    });
+  };
+
+  const handleExerciseCheck = (it: TeacherContentRow, p: any) => {
+    if (revealed[it.id]) { setRevealed((r) => ({ ...r, [it.id]: false })); return; }
+    const ans = answers[it.id] || "";
+    const correct = !!p.expected_answer && normalizeAnswer(ans) === normalizeAnswer(p.expected_answer);
+    setRevealed((r) => ({ ...r, [it.id]: true }));
+    recordTeacherContentAttempt(it.id, userId, {
+      attemptDelta: 1,
+      errorDelta: correct ? 0 : 1,
+      completed: true,
+      isCorrect: correct,
+      answer: ans || null,
+    });
+  };
 
   useEffect(() => {
     let active = true;
@@ -131,9 +167,17 @@ export function MyClassContent({ userId, contentType }: Props) {
                         })}
                       </div>
                     )}
-                    <div className="flex justify-end" dir="rtl">
+                    {p.hint && showHint[it.id] && (
+                      <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {p.hint}</div>
+                    )}
+                    <div className="flex justify-end gap-2" dir="rtl">
+                      {p.hint && !showHint[it.id] && (
+                        <Button size="sm" variant="ghost" onClick={() => handleHint(it.id)}>
+                          <Lightbulb className="h-4 w-4 mr-1" /> تلميح
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline" disabled={!selected[it.id]}
-                        onClick={() => setRevealed((r) => ({ ...r, [it.id]: !r[it.id] }))}>
+                        onClick={() => handleQuizCheck(it, p)}>
                         <Eye className="h-4 w-4 mr-1" /> {isRevealed ? "إخفاء" : "تحقق"}
                       </Button>
                     </div>
@@ -171,7 +215,7 @@ export function MyClassContent({ userId, contentType }: Props) {
                     {p.statement && (
                       <HtmlWithMath htmlContent={cleanMathStatement(p.statement)} className="text-sm text-right" dir="rtl" />
                     )}
-                    {p.hint && (
+                    {p.hint && showHint[it.id] && (
                       <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {p.hint}</div>
                     )}
                     <div className="flex gap-2 items-center" dir="rtl">
@@ -181,8 +225,13 @@ export function MyClassContent({ userId, contentType }: Props) {
                         value={answers[it.id] || ""}
                         onChange={(e) => setAnswers((a) => ({ ...a, [it.id]: e.target.value }))}
                         dir="rtl" />
+                      {p.hint && !showHint[it.id] && (
+                        <Button size="sm" variant="ghost" onClick={() => handleHint(it.id)}>
+                          <Lightbulb className="h-4 w-4 mr-1" /> تلميح
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline"
-                        onClick={() => setRevealed((r) => ({ ...r, [it.id]: !r[it.id] }))}>
+                        onClick={() => handleExerciseCheck(it, p)}>
                         <CheckCircle2 className="h-4 w-4 mr-1" /> {isRevealed ? "إخفاء" : "التصحيح"}
                       </Button>
                     </div>

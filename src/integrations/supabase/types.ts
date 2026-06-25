@@ -1201,6 +1201,56 @@ export type Database = {
           },
         ]
       }
+      teacher_content_attempts: {
+        Row: {
+          attempts: number
+          completed: boolean
+          content_id: string
+          created_at: string
+          errors: number
+          hints_used: number
+          id: string
+          is_correct: boolean | null
+          last_answer: string | null
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          completed?: boolean
+          content_id: string
+          created_at?: string
+          errors?: number
+          hints_used?: number
+          id?: string
+          is_correct?: boolean | null
+          last_answer?: string | null
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          completed?: boolean
+          content_id?: string
+          created_at?: string
+          errors?: number
+          hints_used?: number
+          id?: string
+          is_correct?: boolean | null
+          last_answer?: string | null
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_content_attempts_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "teacher_content"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teacher_parent_messages: {
         Row: {
           content: string
