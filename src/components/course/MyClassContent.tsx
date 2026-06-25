@@ -32,6 +32,41 @@ export function MyClassContent({ userId, contentType }: Props) {
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<Record<string, string>>({});
+  const [showHint, setShowHint] = useState<Record<string, boolean>>({});
+
+  const handleHint = (id: string) => {
+    if (showHint[id]) return;
+    setShowHint((h) => ({ ...h, [id]: true }));
+    recordTeacherContentAttempt(id, userId, { hintDelta: 1 });
+  };
+
+  const handleQuizCheck = (it: TeacherContentRow, p: any) => {
+    if (revealed[it.id]) { setRevealed((r) => ({ ...r, [it.id]: false })); return; }
+    const sel = selected[it.id];
+    const correct = sel === p.correct_answer;
+    setRevealed((r) => ({ ...r, [it.id]: true }));
+    recordTeacherContentAttempt(it.id, userId, {
+      attemptDelta: 1,
+      errorDelta: correct ? 0 : 1,
+      completed: true,
+      isCorrect: correct,
+      answer: sel || null,
+    });
+  };
+
+  const handleExerciseCheck = (it: TeacherContentRow, p: any) => {
+    if (revealed[it.id]) { setRevealed((r) => ({ ...r, [it.id]: false })); return; }
+    const ans = answers[it.id] || "";
+    const correct = !!p.expected_answer && normalizeAnswer(ans) === normalizeAnswer(p.expected_answer);
+    setRevealed((r) => ({ ...r, [it.id]: true }));
+    recordTeacherContentAttempt(it.id, userId, {
+      attemptDelta: 1,
+      errorDelta: correct ? 0 : 1,
+      completed: true,
+      isCorrect: correct,
+      answer: ans || null,
+    });
+  };
 
   useEffect(() => {
     let active = true;
