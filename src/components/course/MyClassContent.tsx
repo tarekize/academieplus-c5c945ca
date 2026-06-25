@@ -7,7 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { cleanMathStatement } from "@/lib/mathStatement";
 import { cn } from "@/lib/utils";
-import { Users, BookOpen, CheckCircle2, Pencil, Eye } from "lucide-react";
+import { Users, BookOpen, CheckCircle2, Pencil, Eye, Lightbulb } from "lucide-react";
+import { recordTeacherContentAttempt, normalizeAnswer } from "@/lib/teacherContentAttempt";
 
 interface TeacherContentRow {
   id: string;
