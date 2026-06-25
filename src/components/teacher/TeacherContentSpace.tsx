@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, PencilLine, Sparkles } from "lucide-react";
+import { ArrowLeft, PencilLine, Sparkles, History } from "lucide-react";
 import { ContentType, CONTENT_TYPE_LABELS } from "@/lib/teacherContent";
 import ManualContentForm from "./ManualContentForm";
 import GuidedContentChatbot from "./GuidedContentChatbot";
+import TeacherContentHistory from "./TeacherContentHistory";
 
 interface Props {
   teacherId: string;
