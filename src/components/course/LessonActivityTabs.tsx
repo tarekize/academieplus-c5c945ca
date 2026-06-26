@@ -151,18 +151,36 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   }, [dbQuizzes, dbExercises]);
 
   useEffect(() => {
-    const loadUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
+    let active = true;
+    const loadUserAndClass = async () => {
+      let uid = propUserId;
+      if (!uid) {
+        const { data: { user } } = await supabase.auth.getUser();
+        uid = user?.id || null;
+      }
+      
+      if (!uid) {
+        if (active) {
+          setInClass(false);
+          setIsLoadingUser(false);
+        }
+        return;
+      }
+
+      if (active) {
+        setUserId(uid);
+      }
+
+      // Check subscription
+      try {
         const { data: sub } = await supabase
           .from("student_subscriptions")
           .select("*")
-          .eq("user_id", user.id)
+          .eq("user_id", uid)
           .eq("is_paused", false)
           .maybeSingle();
 
-        if (sub) {
+        if (active && sub) {
           const now = new Date();
           const lastTick = new Date(sub.last_tick_at);
           const elapsed = (now.getTime() - lastTick.getTime()) / (1000 * 60 * 60 * 24);
@@ -170,11 +188,53 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           const remaining = (sub.total_days || 0) - totalUsed;
           if (remaining > 0) setHasActiveSubscription(true);
         }
+      } catch (err) {
+        console.error("Error checking subscription:", err);
       }
-      setIsLoadingUser(false);
+
+      // Check class student
+      try {
+        const { data, error } = await supabase
+          .from("class_students")
+          .select("id")
+          .eq("student_id", uid)
+          .limit(1);
+
+        if (active) {
+          setInClass(!error && (data?.length || 0) > 0);
+        }
+      } catch (err) {
+        console.error("Error checking class student:", err);
+      } finally {
+        if (active) {
+          setIsLoadingUser(false);
+        }
+      }
     };
-    loadUser();
-  }, []);
+
+    loadUserAndClass();
+
+    // Listen to changes in class students
+    const channel = supabase
+      .channel("class_students_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "class_students",
+        },
+        () => {
+          loadUserAndClass();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      supabase.removeChannel(channel);
+    };
+  }, [propUserId]);
 
   useEffect(() => {
     const loadProgress = async () => {
