@@ -84,24 +84,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [inClass, setInClass] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      let uid = propUserId || userId;
-      if (!uid) {
-        const { data: { user } } = await supabase.auth.getUser();
-        uid = user?.id || null;
-      }
-      if (!uid) { if (active) setInClass(false); return; }
-      const { data, error } = await (supabase as any)
-        .from("class_students")
-        .select("id")
-        .eq("student_id", uid)
-        .limit(1);
-      if (active) setInClass(!error && (data?.length || 0) > 0);
-    })();
-    return () => { active = false; };
-  }, [propUserId, userId]);
+  // Handled inside unified effect below
 
   const [completedExerciseIds, setCompletedExerciseIds] = useState<string[]>([]);
   const [completedQuizIds, setCompletedQuizIds] = useState<string[]>([]);
