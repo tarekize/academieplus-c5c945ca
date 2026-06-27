@@ -469,13 +469,33 @@ const Auth = () => {
   return (
     <>
       <Header minimal={true} />
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary to-background p-4 pt-24">
+      <div className="relative min-h-screen flex items-center justify-center p-4 pt-24 overflow-hidden">
+        {/* Soft gradient mesh background */}
+        <div className="absolute inset-0 -z-10 bg-[image:var(--gradient-soft)]" />
+        <div className="absolute -top-24 -right-20 -z-10 h-96 w-96 rounded-full bg-primary/25 blur-3xl" />
+        <div className="absolute -bottom-24 -left-20 -z-10 h-96 w-96 rounded-full bg-accent/25 blur-3xl" />
+
         <div className="w-full max-w-2xl">
-          <div className="bg-card rounded-2xl shadow-[var(--shadow-elegant)] p-8 border border-border">
-            {/* Title */}
-            <h1 className="text-3xl font-bold text-center text-foreground mb-8">
-              {showForgotPassword ? "Mot de passe oublié" : isLogin ? "Connecte-toi !" : "Inscription"}
-            </h1>
+          <div className="bg-card/90 backdrop-blur-sm rounded-3xl shadow-[var(--shadow-elegant)] border border-border overflow-hidden">
+            {/* Branded header banner */}
+            <div className="relative bg-[image:var(--gradient-primary)] px-8 pt-8 pb-10 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-card/25 backdrop-blur-sm">
+                <GraduationCap className="h-7 w-7 text-primary-foreground" />
+              </div>
+              <h1 className="mt-4 font-display text-3xl font-extrabold text-primary-foreground">
+                {showForgotPassword ? "Mot de passe oublié" : isLogin ? "Connecte-toi !" : "Inscription"}
+              </h1>
+              <p className="mt-1 text-sm text-primary-foreground/80">
+                {showForgotPassword
+                  ? "Réinitialise ton accès"
+                  : isLogin
+                  ? "Heureux de te revoir 👋"
+                  : "Rejoins-nous en quelques secondes 🚀"}
+              </p>
+            </div>
+
+            <div className="p-8">
+
 
             {showForgotPassword ? (
               /* Forgot Password Form */
@@ -1096,9 +1116,11 @@ const Auth = () => {
               </>
             )}
           </div>
+          </div>
         </div>
       </div>
     </>
+
   );
 };
 
