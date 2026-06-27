@@ -594,36 +594,38 @@ const ListeCours = () => {
                 {filteredSubjects.map((subject, index) => {
                   const Icon = subject.icon;
                   return (
-                    <Card
+                    <button
                       key={subject.id}
-                      className={`group transition-all duration-300 hover:shadow-2xl border-2 hover:border-primary/50 animate-fade-in overflow-hidden ${subject.available ? "cursor-pointer" : "opacity-60 cursor-not-allowed"
-                        }`}
-                      style={{
-                        animationDelay: `${index * 50}ms`,
-                        backgroundColor: `${subject.color}15`,
-                      }}
+                      type="button"
+                      disabled={!subject.available}
                       onClick={() => subject.available && navigate(`/cours/${subject.id}`)}
+                      className={`group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 animate-fade-in ${
+                        subject.available
+                          ? "cursor-pointer hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40"
+                          : "opacity-60 cursor-not-allowed"
+                      }`}
+                      style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <CardContent className="p-6">
-                        <div className="flex flex-col items-center text-center gap-4">
-                          <div
-                            className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"
-                            style={{ backgroundColor: subject.color }}
-                          >
-                            <Icon className="h-8 w-8 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg leading-tight">{subject.name}</h3>
-                            {!subject.available && (
-                              <span className="text-xs text-muted-foreground">Bientôt disponible</span>
-                            )}
-                          </div>
+                      <div className="h-1.5 w-full" style={{ backgroundColor: subject.color }} />
+                      <div className="flex flex-col items-center text-center gap-3 p-6">
+                        <div
+                          className="w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-md transition-transform group-hover:scale-110"
+                          style={{ backgroundColor: subject.color }}
+                        >
+                          <Icon className="h-8 w-8" />
                         </div>
-                      </CardContent>
-                    </Card>
+                        <div>
+                          <h3 className="font-display font-bold text-lg leading-tight">{subject.name}</h3>
+                          {!subject.available && (
+                            <span className="text-xs text-muted-foreground">Bientôt disponible</span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
                   );
                 })}
               </div>
+
             </section>
           )}
 
