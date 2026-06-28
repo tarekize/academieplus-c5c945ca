@@ -63,12 +63,24 @@ const ExamList = () => {
     1: "اختبارات الفصل الأول",
     2: "اختبارات الفصل الثاني",
     3: "اختبارات الفصل الثالث",
+    4: "بكالوريا بيضاء",
+    5: "بكالوريا نهائية",
+  };
+
+  const trimesterLabelsFr: Record<number, string> = {
+    1: "1er Trimestre",
+    2: "2ème Trimestre",
+    3: "3ème Trimestre",
+    4: "Bac Blanc",
+    5: "Bac Finale",
   };
 
   const trimesterColors: Record<number, string> = {
     1: "from-blue-500 to-blue-600",
     2: "from-emerald-500 to-emerald-600",
     3: "from-amber-500 to-orange-500",
+    4: "from-violet-500 to-purple-600",
+    5: "from-rose-500 to-red-600",
   };
 
   const fetchExams = async () => {
@@ -214,9 +226,12 @@ const ExamList = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-gradient-to-r ${trimesterColors[trimester]} text-white shadow-md`}>
+          <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-gradient-to-r ${trimesterColors[trimester] || "from-primary to-primary/70"} text-white shadow-md`}>
             <BookOpenCheck className="h-4 w-4" />
             <span className="text-sm font-medium">{trimesterLabels[trimester]}</span>
+            {trimesterLabelsFr[trimester] && (
+              <span className="text-white/70 text-xs">— {trimesterLabelsFr[trimester]}</span>
+            )}
           </div>
         </motion.div>
 

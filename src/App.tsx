@@ -75,7 +75,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
               <Route path="/learning-assessment" element={<ProtectedRoute allowedRoles={['student']}><LearningAssessment /></ProtectedRoute>} />
-              
+
               <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['student', 'admin', 'pedago']}><Dashboard /></ProtectedRoute>} />
               <Route path="/parent-dashboard" element={<ProtectedRoute allowedRoles={['parent']}><ParentDashboard /></ProtectedRoute>} />
               <Route path="/teacher-dashboard" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />
@@ -102,8 +102,8 @@ const App = () => (
               <Route path="/faq-admin" element={<ProtectedRoute allowedRoles={['admin', 'pedago']}><FAQAdmin /></ProtectedRoute>} />
               <Route path="/content-generation" element={<ProtectedRoute allowedRoles={['admin', 'pedago']}><ContentGeneration /></ProtectedRoute>} />
               <Route path="/remediation" element={<ProtectedRoute allowedRoles={['student']}><LessonRemediation /></ProtectedRoute>} />
-              <Route path="/exams" element={<ProtectedRoute allowedRoles={['student']}><ExamTrimesterSelect /></ProtectedRoute>} />
-              <Route path="/exams/list" element={<ProtectedRoute allowedRoles={['student']}><ExamList /></ProtectedRoute>} />
+              <Route path="/exams" element={<ProtectedRoute allowedRoles={['student', 'admin', 'pedago']}><ExamTrimesterSelect /></ProtectedRoute>} />
+              <Route path="/exams/list" element={<ProtectedRoute allowedRoles={['student', 'admin', 'pedago']}><ExamList /></ProtectedRoute>} />
               <Route path="/admin" element={
                 <ProtectedRoute requireAdmin>
                   <Admin />

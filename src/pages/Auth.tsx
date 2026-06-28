@@ -126,8 +126,16 @@ const Auth = () => {
             .limit(1)
             .maybeSingle();
 
-          // Pour les nouveaux utilisateurs (sans rôle) ou élèves, vérifier s'ils ont un style d'apprentissage
-          if (!roleData?.role || roleData?.role === 'student') {
+          // Nouveaux utilisateurs sans rôle → compléter le profil (school_level, etc.)
+          if (!roleData?.role) {
+            if (hasNavigated.current) return;
+            hasNavigated.current = true;
+            navigate('/complete-profile');
+            return;
+          }
+
+          // Élèves sans assessment → évaluation de placement
+          if (roleData?.role === 'student') {
             const hasAssessment = await hasCompletedPlacementAssessment(session.user.id);
             if (!hasAssessment) {
               if (hasNavigated.current) return;
@@ -182,6 +190,14 @@ const Auth = () => {
           .eq('user_id', session.user.id)
           .limit(1)
           .maybeSingle();
+
+        // Nouveaux utilisateurs sans rôle → compléter le profil
+        if (!roleData?.role) {
+          if (hasNavigated.current) return;
+          hasNavigated.current = true;
+          navigate('/complete-profile');
+          return;
+        }
 
         // Si élève, vérifier s'il a déjà un style d'apprentissage
         if (roleData?.role === 'student') {
@@ -469,636 +485,658 @@ const Auth = () => {
   return (
     <>
       <Header minimal={true} />
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary to-background p-4 pt-24">
+      <div className="relative min-h-screen flex items-center justify-center p-4 pt-24 overflow-hidden">
+        {/* Soft gradient mesh background */}
+        <div className="absolute inset-0 -z-10 bg-[image:var(--gradient-soft)]" />
+        <div className="absolute -top-24 -right-20 -z-10 h-96 w-96 rounded-full bg-primary/25 blur-3xl" />
+        <div className="absolute -bottom-24 -left-20 -z-10 h-96 w-96 rounded-full bg-accent/25 blur-3xl" />
+
         <div className="w-full max-w-2xl">
-          <div className="bg-card rounded-2xl shadow-[var(--shadow-elegant)] p-8 border border-border">
-            {/* Title */}
-            <h1 className="text-3xl font-bold text-center text-foreground mb-8">
-              {showForgotPassword ? "Mot de passe oublié" : isLogin ? "Connecte-toi !" : "Inscription"}
-            </h1>
+          <div className="bg-card/90 backdrop-blur-sm rounded-3xl shadow-[var(--shadow-elegant)] border border-border overflow-hidden">
+            {/* Branded header banner */}
+            <div className="relative bg-[image:var(--gradient-primary)] px-8 pt-8 pb-10 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-card/25 backdrop-blur-sm">
+                <GraduationCap className="h-7 w-7 text-primary-foreground" />
+              </div>
+              <h1 className="mt-4 font-display text-3xl font-extrabold text-primary-foreground">
+                {showForgotPassword ? "Mot de passe oublié" : isLogin ? "Connecte-toi !" : "Inscription"}
+              </h1>
+              <p className="mt-1 text-sm text-primary-foreground/80">
+                {showForgotPassword
+                  ? "Réinitialise ton accès"
+                  : isLogin
+                    ? "Heureux de te revoir 👋"
+                    : "Rejoins-nous en quelques secondes 🚀"}
+              </p>
+            </div>
 
-            {showForgotPassword ? (
-              /* Forgot Password Form */
-              <form onSubmit={handleForgotPassword} className="space-y-4">
-                <div>
-                  <Input
-                    type="email"
-                    placeholder="Adresse e-mail"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="bg-secondary/20 border-border"
-                    required
-                  />
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Entrez l'adresse e-mail avec laquelle vous vous êtes inscrit. Nous allons vous envoyer un e-mail avec votre nom d'utilisateur et un lien pour réinitialiser votre mot de passe.
-                  </p>
-                  <p className="text-sm font-medium text-warning mt-2">
-                    ⚠️ Ce lien expirera dans 1 heure.
-                  </p>
-                </div>
+            <div className="p-8">
 
-                <Button type="submit" className="w-full bg-primary" disabled={loading}>
-                  {loading ? "Envoi..." : "Réinitialiser le mot de passe"}
-                </Button>
 
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-full"
-                  onClick={() => setShowForgotPassword(false)}
-                >
-                  Retour à la connexion
-                </Button>
-              </form>
-            ) : (
-              <>
-                {!isLogin && (
-                  <form onSubmit={handleEmailAuth} className="space-y-4">
-                    {/* Social Login Buttons */}
-                    <div className="space-y-3 mb-6">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleGoogleAuth}
-                        disabled={loading}
-                        className="w-full justify-start"
-                      >
-                        <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
-                          <path
-                            fill="#EA4335"
-                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                          />
-                          <path
-                            fill="#34A853"
-                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                          />
-                          <path
-                            fill="#FBBC04"
-                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                          />
-                          <path
-                            fill="#4285F4"
-                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                          />
-                        </svg>
-                        Continuer avec Google
-                      </Button>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="relative my-6">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-border" />
-                      </div>
-                      <div className="relative flex justify-center text-sm uppercase">
-                        <span className="bg-card px-3 text-muted-foreground">OU</span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label className="text-foreground">Prénom <span className="text-red-500">*</span></Label>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            type="text"
-                            placeholder="Prénom"
-                            value={firstName}
-                            onChange={(e) => {
-                              setFirstName(e.target.value);
-                              setTouched(prev => ({ ...prev, firstName: true }));
-                            }}
-                            onBlur={() => setTouched(prev => ({ ...prev, firstName: true }))}
-                            className={cn(
-                              "bg-secondary/20 pl-10",
-                              (submitted || touched.firstName) && !firstName ? "border-red-500 border-2" : "border-border"
-                            )}
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-foreground">Nom <span className="text-red-500">*</span></Label>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            type="text"
-                            placeholder="Nom"
-                            value={lastName}
-                            onChange={(e) => {
-                              setLastName(e.target.value);
-                              setTouched(prev => ({ ...prev, lastName: true }));
-                            }}
-                            onBlur={() => setTouched(prev => ({ ...prev, lastName: true }))}
-                            className={cn(
-                              "bg-secondary/20 pl-10",
-                              (submitted || touched.lastName) && !lastName ? "border-red-500 border-2" : "border-border"
-                            )}
-                            required
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-foreground">Date de naissance</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          type="text"
-                          placeholder="JJ/MM/AAAA"
-                          value={dateOfBirthInput}
-                          onChange={(e) => {
-                            let value = e.target.value.replace(/\D/g, "");
-                            if (value.length > 8) value = value.slice(0, 8);
-
-                            let formattedValue = "";
-                            if (value.length > 0) formattedValue += value.slice(0, 2);
-                            if (value.length > 2) formattedValue += "/" + value.slice(2, 4);
-                            if (value.length > 4) formattedValue += "/" + value.slice(4, 8);
-
-                            setDateOfBirthInput(formattedValue);
-
-                            if (formattedValue.length === 10) {
-                              const parsedDate = parse(formattedValue, "dd/MM/yyyy", new Date());
-                              if (isValid(parsedDate)) {
-                                setDateOfBirth(parsedDate);
-                              }
-                            }
-                          }}
-                          className="bg-secondary/20 border-border"
-                        />
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className={cn(
-                                "aspect-square h-10 w-10 flex-shrink-0 bg-secondary/20",
-                                !dateOfBirth && "text-muted-foreground",
-                                (submitted || touched.dateOfBirth) && !dateOfBirth ? "border-red-500 border-2" : "border-border"
-                              )}
-                            >
-                              <CalendarIcon className="h-4 w-4" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={dateOfBirth}
-                              onSelect={(date) => {
-                                setDateOfBirth(date);
-                                if (date) {
-                                  setDateOfBirthInput(format(date, "dd/MM/yyyy"));
-                                }
-                                setTouched(prev => ({ ...prev, dateOfBirth: true }));
-                              }}
-                              disabled={(date) =>
-                                date > new Date() || date < new Date("1900-01-01")
-                              }
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
-
+              {showForgotPassword ? (
+                /* Forgot Password Form */
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div>
                     <Input
-                      type="tel"
-                      placeholder="Numéro de téléphone (ex: 0555 123 456)"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      type="email"
+                      placeholder="Adresse e-mail"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="bg-secondary/20 border-border"
+                      required
                     />
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Entrez l'adresse e-mail avec laquelle vous vous êtes inscrit. Nous allons vous envoyer un e-mail avec votre nom d'utilisateur et un lien pour réinitialiser votre mot de passe.
+                    </p>
+                    <p className="text-sm font-medium text-warning mt-2">
+                      ⚠️ Ce lien expirera dans 1 heure.
+                    </p>
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-foreground">Adresse e-mail <span className="text-red-500">*</span></Label>
+                  <Button type="submit" className="w-full bg-primary" disabled={loading}>
+                    {loading ? "Envoi..." : "Réinitialiser le mot de passe"}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => setShowForgotPassword(false)}
+                  >
+                    Retour à la connexion
+                  </Button>
+                </form>
+              ) : (
+                <>
+                  {!isLogin && (
+                    <form onSubmit={handleEmailAuth} className="space-y-4">
+                      {/* Social Login Buttons */}
+                      <div className="space-y-3 mb-6">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleGoogleAuth}
+                          disabled={loading}
+                          className="w-full justify-start"
+                        >
+                          <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
+                            <path
+                              fill="#EA4335"
+                              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                            />
+                            <path
+                              fill="#34A853"
+                              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                            />
+                            <path
+                              fill="#FBBC04"
+                              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                            />
+                            <path
+                              fill="#4285F4"
+                              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                            />
+                          </svg>
+                          Continuer avec Google
+                        </Button>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t border-border" />
+                        </div>
+                        <div className="relative flex justify-center text-sm uppercase">
+                          <span className="bg-card px-3 text-muted-foreground">OU</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-foreground">Prénom <span className="text-red-500">*</span></Label>
+                          <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              type="text"
+                              placeholder="Prénom"
+                              value={firstName}
+                              onChange={(e) => {
+                                setFirstName(e.target.value);
+                                setTouched(prev => ({ ...prev, firstName: true }));
+                              }}
+                              onBlur={() => setTouched(prev => ({ ...prev, firstName: true }))}
+                              className={cn(
+                                "bg-secondary/20 pl-10",
+                                (submitted || touched.firstName) && !firstName ? "border-red-500 border-2" : "border-border"
+                              )}
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-foreground">Nom <span className="text-red-500">*</span></Label>
+                          <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              type="text"
+                              placeholder="Nom"
+                              value={lastName}
+                              onChange={(e) => {
+                                setLastName(e.target.value);
+                                setTouched(prev => ({ ...prev, lastName: true }));
+                              }}
+                              onBlur={() => setTouched(prev => ({ ...prev, lastName: true }))}
+                              className={cn(
+                                "bg-secondary/20 pl-10",
+                                (submitted || touched.lastName) && !lastName ? "border-red-500 border-2" : "border-border"
+                              )}
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-foreground">Date de naissance</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="text"
+                            placeholder="JJ/MM/AAAA"
+                            value={dateOfBirthInput}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/\D/g, "");
+                              if (value.length > 8) value = value.slice(0, 8);
+
+                              let formattedValue = "";
+                              if (value.length > 0) formattedValue += value.slice(0, 2);
+                              if (value.length > 2) formattedValue += "/" + value.slice(2, 4);
+                              if (value.length > 4) formattedValue += "/" + value.slice(4, 8);
+
+                              setDateOfBirthInput(formattedValue);
+
+                              if (formattedValue.length === 10) {
+                                const parsedDate = parse(formattedValue, "dd/MM/yyyy", new Date());
+                                if (isValid(parsedDate)) {
+                                  setDateOfBirth(parsedDate);
+                                }
+                              }
+                            }}
+                            className="bg-secondary/20 border-border"
+                          />
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className={cn(
+                                  "aspect-square h-10 w-10 flex-shrink-0 bg-secondary/20",
+                                  !dateOfBirth && "text-muted-foreground",
+                                  (submitted || touched.dateOfBirth) && !dateOfBirth ? "border-red-500 border-2" : "border-border"
+                                )}
+                              >
+                                <CalendarIcon className="h-4 w-4" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={dateOfBirth}
+                                onSelect={(date) => {
+                                  setDateOfBirth(date);
+                                  if (date) {
+                                    setDateOfBirthInput(format(date, "dd/MM/yyyy"));
+                                  }
+                                  setTouched(prev => ({ ...prev, dateOfBirth: true }));
+                                }}
+                                disabled={(date) =>
+                                  date > new Date() || date < new Date("1900-01-01")
+                                }
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </div>
+
                       <Input
-                        type="email"
-                        placeholder="Adresse e-mail"
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          setTouched(prev => ({ ...prev, email: true }));
-                        }}
-                        onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
-                        className={cn(
-                          "bg-secondary/20",
-                          (submitted || touched.email) && !email ? "border-red-500 border-2" : "border-border"
-                        )}
-                        required
+                        type="tel"
+                        placeholder="Numéro de téléphone (ex: 0555 123 456)"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="bg-secondary/20 border-border"
                       />
-                    </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-foreground">Mot de passe <span className="text-red-500">*</span></Label>
-                      <div className="relative">
+                      <div className="space-y-2">
+                        <Label className="text-foreground">Adresse e-mail <span className="text-red-500">*</span></Label>
                         <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Mot de passe"
-                          value={password}
+                          type="email"
+                          placeholder="Adresse e-mail"
+                          value={email}
                           onChange={(e) => {
-                            setPassword(e.target.value);
-                            setTouched(prev => ({ ...prev, password: true }));
+                            setEmail(e.target.value);
+                            setTouched(prev => ({ ...prev, email: true }));
                           }}
-                          onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
+                          onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
                           className={cn(
-                            "bg-secondary/20 pr-10",
-                            (submitted || touched.password) && !password ? "border-red-500 border-2" : "border-border"
+                            "bg-secondary/20",
+                            (submitted || touched.email) && !email ? "border-red-500 border-2" : "border-border"
                           )}
                           required
-                          minLength={6}
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
                       </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-foreground">Qui es-tu ? <span className="text-red-500">*</span></Label>
-                      <RadioGroup
-                        value={profileType}
-                        onValueChange={(value) => {
-                          setProfileType(value);
-                          setTouched(prev => ({ ...prev, profileType: true }));
-                        }}
-                        required
-                      >
-                        <div className={cn(
-                          "grid grid-cols-3 gap-3 p-1 rounded-lg",
-                          (submitted || touched.profileType) && !profileType ? "ring-2 ring-red-500" : ""
-                        )}>
-                          <Label
-                            htmlFor="enfant"
-                            className={cn(
-                              "flex flex-col items-center justify-center h-32 px-2 rounded-lg border-2 cursor-pointer transition-all",
-                              profileType === "enfant"
-                                ? "bg-primary text-primary-foreground border-primary shadow-lg"
-                                : "bg-secondary/20 border-border hover:bg-secondary/30"
-                            )}
-                          >
-                            <RadioGroupItem value="enfant" id="enfant" className="sr-only" />
-                            <img src={iconStudent} alt="Élève" className="h-16 w-16 mb-2 object-contain" />
-                            <span className="font-semibold">Élève</span>
-                          </Label>
-                          <Label
-                            htmlFor="parent"
-                            className={cn(
-                              "flex flex-col items-center justify-center h-32 px-2 rounded-lg border-2 cursor-pointer transition-all",
-                              profileType === "parent"
-                                ? "bg-primary text-primary-foreground border-primary shadow-lg"
-                                : "bg-secondary/20 border-border hover:bg-secondary/30"
-                            )}
-                          >
-                            <RadioGroupItem value="parent" id="parent" className="sr-only" />
-                            <img src={iconParent} alt="Parent" className="h-16 w-16 mb-2 object-contain" />
-                            <span className="font-semibold">Parent</span>
-                          </Label>
-                          <Label
-                            htmlFor="enseignant"
-                            className={cn(
-                              "flex flex-col items-center justify-center h-32 px-2 rounded-lg border-2 cursor-pointer transition-all",
-                              profileType === "enseignant"
-                                ? "bg-primary text-primary-foreground border-primary shadow-lg"
-                                : "bg-secondary/20 border-border hover:bg-secondary/30"
-                            )}
-                          >
-                            <RadioGroupItem value="enseignant" id="enseignant" className="sr-only" />
-                            <GraduationCap className="h-16 w-16 mb-2" strokeWidth={1.5} />
-                            <span className="font-semibold">Enseignant</span>
-                          </Label>
-                        </div>
-                      </RadioGroup>
-                    </div>
-
-                    {profileType === "enfant" && (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label className="text-foreground">En quelle classe es-tu ? <span className="text-red-500">*</span></Label>
-                          <RadioGroup
-                            value={classLevel}
-                            onValueChange={(value) => {
-                              setClassLevel(value);
-                              setFiliere(""); // Reset filière when class changes
-                              setTouched(prev => ({ ...prev, classLevel: true, filiere: false }));
+                      <div className="space-y-2">
+                        <Label className="text-foreground">Mot de passe <span className="text-red-500">*</span></Label>
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Mot de passe"
+                            value={password}
+                            onChange={(e) => {
+                              setPassword(e.target.value);
+                              setTouched(prev => ({ ...prev, password: true }));
                             }}
+                            onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
+                            className={cn(
+                              "bg-secondary/20 pr-10",
+                              (submitted || touched.password) && !password ? "border-red-500 border-2" : "border-border"
+                            )}
                             required
-                          >
-                            <div className={cn(
-                              "grid grid-cols-2 gap-3 p-1 rounded-lg",
-                              (submitted || touched.classLevel) && !classLevel && profileType === "enfant" ? "ring-2 ring-red-500" : ""
-                            )}>
-                              {["5ème Primaire", "1ère CEM", "2ème CEM", "3ème CEM", "4ème CEM", "Première", "Seconde", "Terminale"].map((level) => (
-                                <Label
-                                  key={level}
-                                  htmlFor={level}
-                                  className={cn(
-                                    "flex items-center justify-center h-10 px-4 rounded-md border-2 cursor-pointer transition-all font-medium",
-                                    classLevel === level
-                                      ? "bg-primary text-primary-foreground border-primary shadow-md"
-                                      : "bg-secondary/20 border-border hover:bg-secondary/30 hover:border-primary"
-                                  )}
-                                >
-                                  <RadioGroupItem value={level} id={level} className="sr-only" />
-                                  {level}
-                                </Label>
-                              ))}
-                            </div>
-                          </RadioGroup>
-                        </div>
-
-                        {(classLevel === "Terminale" || classLevel === "Seconde") && (
-                          <div className="space-y-2">
-                            <Label className="text-foreground">Quelle est ta filière ? <span className="text-red-500">*</span></Label>
-                            <RadioGroup
-                              value={filiere}
-                              onValueChange={(value) => {
-                                setFiliere(value);
-                                setTouched(prev => ({ ...prev, filiere: true }));
-                              }}
-                              required
-                            >
-                              <div className={cn(
-                                "grid grid-cols-2 gap-3 p-1 rounded-lg",
-                                (submitted || touched.filiere) && !filiere ? "ring-2 ring-red-500" : ""
-                              )}>
-                                {["Sciences", "Lettres", "Gestion", "Math techniques", "Mathématiques"].map((f) => (
-                                  <Label
-                                    key={f}
-                                    htmlFor={`filiere-${f}`}
-                                    className={cn(
-                                      "flex items-center justify-center h-10 px-4 rounded-md border-2 cursor-pointer transition-all font-medium text-sm",
-                                      filiere === f
-                                        ? "bg-accent text-accent-foreground border-accent shadow-md"
-                                        : "bg-secondary/20 border-border hover:bg-secondary/30 hover:border-accent"
-                                    )}
-                                  >
-                                    <RadioGroupItem value={f} id={`filiere-${f}`} className="sr-only" />
-                                    {f}
-                                  </Label>
-                                ))}
-                              </div>
-                            </RadioGroup>
-                          </div>
-                        )}
-
-                        {classLevel === "Première" && (
-                          <div className="space-y-2">
-                            <Label className="text-foreground">Quel est ton tronc commun ? <span className="text-red-500">*</span></Label>
-                            <RadioGroup
-                              value={filiere}
-                              onValueChange={(value) => {
-                                setFiliere(value);
-                                setTouched(prev => ({ ...prev, filiere: true }));
-                              }}
-                              required
-                            >
-                              <div className={cn(
-                                "grid grid-cols-2 gap-3 p-1 rounded-lg",
-                                (submitted || touched.filiere) && !filiere ? "ring-2 ring-red-500" : ""
-                              )}>
-                                {["Tronc commun scientifique", "Tronc commun lettres"].map((f) => (
-                                  <Label
-                                    key={f}
-                                    htmlFor={`filiere-${f}`}
-                                    className={cn(
-                                      "flex items-center justify-center h-10 px-4 rounded-md border-2 cursor-pointer transition-all font-medium text-sm",
-                                      filiere === f
-                                        ? "bg-accent text-accent-foreground border-accent shadow-md"
-                                        : "bg-secondary/20 border-border hover:bg-secondary/30 hover:border-accent"
-                                    )}
-                                  >
-                                    <RadioGroupItem value={f} id={`filiere-${f}`} className="sr-only" />
-                                    {f}
-                                  </Label>
-                                ))}
-                              </div>
-                            </RadioGroup>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Wilaya, Ville, École - conditionnel */}
-                    <LocationFields
-                      wilaya={wilaya}
-                      ville={ville}
-                      ecole={ecole}
-                      onWilayaChange={setWilaya}
-                      onVilleChange={setVille}
-                      onEcoleChange={setEcole}
-                      hideEcole={profileType === "parent"}
-                    />
-
-                    {/* RGPD Consents */}
-                    <div className="space-y-4 pt-4 border-t border-border">
-                      <div className="flex items-start space-x-3">
-                        <Checkbox
-                          id="consentDataProcessing"
-                          checked={consentDataProcessing}
-                          onCheckedChange={(checked) => setConsentDataProcessing(checked as boolean)}
-                          className="mt-1"
-                        />
-                        <label
-                          htmlFor="consentDataProcessing"
-                          className="text-sm text-foreground cursor-pointer leading-relaxed"
-                        >
-                          <span className="text-red-500">*</span> J'accepte le traitement de mes données personnelles conformément au RGPD
-                        </label>
-                      </div>
-
-                      <div className="flex items-start space-x-3">
-                        <Checkbox
-                          id="consentTermsPrivacy"
-                          checked={consentTermsPrivacy}
-                          onCheckedChange={(checked) => setConsentTermsPrivacy(checked as boolean)}
-                          className="mt-1"
-                        />
-                        <label
-                          htmlFor="consentTermsPrivacy"
-                          className="text-sm text-foreground cursor-pointer leading-relaxed"
-                        >
-                          <span className="text-red-500">*</span> J'accepte les{" "}
-                          <a
-                            href="/mentions-legales"
-                            target="_blank"
-                            className="text-primary hover:underline font-medium"
-                          >
-                            Conditions Générales d'Utilisation
-                          </a>
-                          {" "}et la{" "}
-                          <a
-                            href="/politique-confidentialite"
-                            target="_blank"
-                            className="text-primary hover:underline font-medium"
-                          >
-                            Politique de Confidentialité
-                          </a>
-                        </label>
-                      </div>
-
-                      {dateOfBirth && new Date().getFullYear() - dateOfBirth.getFullYear() < 15 && (
-                        <div className="flex items-start space-x-3 bg-accent/10 p-3 rounded-lg">
-                          <Checkbox
-                            id="consentParental"
-                            checked={consentParental}
-                            onCheckedChange={(checked) => setConsentParental(checked as boolean)}
-                            className="mt-1"
+                            minLength={6}
                           />
-                          <label
-                            htmlFor="consentParental"
-                            className="text-sm text-foreground cursor-pointer leading-relaxed"
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                           >
-                            <span className="text-red-500">*</span> Je certifie que mes parents/tuteurs légaux consentent à mon inscription et au traitement de mes données personnelles (requis pour les mineurs de moins de 15 ans)
-                          </label>
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-foreground">Qui es-tu ? <span className="text-red-500">*</span></Label>
+                        <RadioGroup
+                          value={profileType}
+                          onValueChange={(value) => {
+                            setProfileType(value);
+                            setTouched(prev => ({ ...prev, profileType: true }));
+                          }}
+                          required
+                        >
+                          <div className={cn(
+                            "grid grid-cols-3 gap-3 p-1 rounded-lg",
+                            (submitted || touched.profileType) && !profileType ? "ring-2 ring-red-500" : ""
+                          )}>
+                            <Label
+                              htmlFor="enfant"
+                              className={cn(
+                                "flex flex-col items-center justify-center h-32 px-2 rounded-lg border-2 cursor-pointer transition-all",
+                                profileType === "enfant"
+                                  ? "bg-primary text-primary-foreground border-primary shadow-lg"
+                                  : "bg-secondary/20 border-border hover:bg-secondary/30"
+                              )}
+                            >
+                              <RadioGroupItem value="enfant" id="enfant" className="sr-only" />
+                              <img src={iconStudent} alt="Élève" className="h-16 w-16 mb-2 object-contain" />
+                              <span className="font-semibold">Élève</span>
+                            </Label>
+                            <Label
+                              htmlFor="parent"
+                              className={cn(
+                                "flex flex-col items-center justify-center h-32 px-2 rounded-lg border-2 cursor-pointer transition-all",
+                                profileType === "parent"
+                                  ? "bg-primary text-primary-foreground border-primary shadow-lg"
+                                  : "bg-secondary/20 border-border hover:bg-secondary/30"
+                              )}
+                            >
+                              <RadioGroupItem value="parent" id="parent" className="sr-only" />
+                              <img src={iconParent} alt="Parent" className="h-16 w-16 mb-2 object-contain" />
+                              <span className="font-semibold">Parent</span>
+                            </Label>
+                            <Label
+                              htmlFor="enseignant"
+                              className={cn(
+                                "flex flex-col items-center justify-center h-32 px-2 rounded-lg border-2 cursor-pointer transition-all",
+                                profileType === "enseignant"
+                                  ? "bg-primary text-primary-foreground border-primary shadow-lg"
+                                  : "bg-secondary/20 border-border hover:bg-secondary/30"
+                              )}
+                            >
+                              <RadioGroupItem value="enseignant" id="enseignant" className="sr-only" />
+                              <GraduationCap className="h-16 w-16 mb-2" strokeWidth={1.5} />
+                              <span className="font-semibold">Enseignant</span>
+                            </Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+
+                      {profileType === "enfant" && (
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label className="text-foreground">En quelle classe es-tu ? <span className="text-red-500">*</span></Label>
+                            <RadioGroup
+                              value={classLevel}
+                              onValueChange={(value) => {
+                                setClassLevel(value);
+                                setFiliere(""); // Reset filière when class changes
+                                setTouched(prev => ({ ...prev, classLevel: true, filiere: false }));
+                              }}
+                              required
+                            >
+                              <div className={cn(
+                                "grid grid-cols-2 gap-3 p-1 rounded-lg",
+                                (submitted || touched.classLevel) && !classLevel && profileType === "enfant" ? "ring-2 ring-red-500" : ""
+                              )}>
+                                {["5ème Primaire", "1ère CEM", "2ème CEM", "3ème CEM", "4ème CEM", "Première", "Seconde", "Terminale"].map((level) => (
+                                  <Label
+                                    key={level}
+                                    htmlFor={level}
+                                    className={cn(
+                                      "flex items-center justify-center h-10 px-4 rounded-md border-2 cursor-pointer transition-all font-medium",
+                                      classLevel === level
+                                        ? "bg-primary text-primary-foreground border-primary shadow-md"
+                                        : "bg-secondary/20 border-border hover:bg-secondary/30 hover:border-primary"
+                                    )}
+                                  >
+                                    <RadioGroupItem value={level} id={level} className="sr-only" />
+                                    {level}
+                                  </Label>
+                                ))}
+                              </div>
+                            </RadioGroup>
+                          </div>
+
+                          {(classLevel === "Terminale" || classLevel === "Seconde") && (
+                            <div className="space-y-2">
+                              <Label className="text-foreground">Quelle est ta filière ? <span className="text-red-500">*</span></Label>
+                              <RadioGroup
+                                value={filiere}
+                                onValueChange={(value) => {
+                                  setFiliere(value);
+                                  setTouched(prev => ({ ...prev, filiere: true }));
+                                }}
+                                required
+                              >
+                                <div className={cn(
+                                  "grid grid-cols-2 gap-3 p-1 rounded-lg",
+                                  (submitted || touched.filiere) && !filiere ? "ring-2 ring-red-500" : ""
+                                )}>
+                                  {["Sciences", "Lettres", "Gestion", "Math techniques", "Mathématiques"].map((f) => (
+                                    <Label
+                                      key={f}
+                                      htmlFor={`filiere-${f}`}
+                                      className={cn(
+                                        "flex items-center justify-center h-10 px-4 rounded-md border-2 cursor-pointer transition-all font-medium text-sm",
+                                        filiere === f
+                                          ? "bg-accent text-accent-foreground border-accent shadow-md"
+                                          : "bg-secondary/20 border-border hover:bg-secondary/30 hover:border-accent"
+                                      )}
+                                    >
+                                      <RadioGroupItem value={f} id={`filiere-${f}`} className="sr-only" />
+                                      {f}
+                                    </Label>
+                                  ))}
+                                </div>
+                              </RadioGroup>
+                            </div>
+                          )}
+
+                          {classLevel === "Première" && (
+                            <div className="space-y-2">
+                              <Label className="text-foreground">Quel est ton tronc commun ? <span className="text-red-500">*</span></Label>
+                              <RadioGroup
+                                value={filiere}
+                                onValueChange={(value) => {
+                                  setFiliere(value);
+                                  setTouched(prev => ({ ...prev, filiere: true }));
+                                }}
+                                required
+                              >
+                                <div className={cn(
+                                  "grid grid-cols-2 gap-3 p-1 rounded-lg",
+                                  (submitted || touched.filiere) && !filiere ? "ring-2 ring-red-500" : ""
+                                )}>
+                                  {["Tronc commun scientifique", "Tronc commun lettres"].map((f) => (
+                                    <Label
+                                      key={f}
+                                      htmlFor={`filiere-${f}`}
+                                      className={cn(
+                                        "flex items-center justify-center h-10 px-4 rounded-md border-2 cursor-pointer transition-all font-medium text-sm",
+                                        filiere === f
+                                          ? "bg-accent text-accent-foreground border-accent shadow-md"
+                                          : "bg-secondary/20 border-border hover:bg-secondary/30 hover:border-accent"
+                                      )}
+                                    >
+                                      <RadioGroupItem value={f} id={`filiere-${f}`} className="sr-only" />
+                                      {f}
+                                    </Label>
+                                  ))}
+                                </div>
+                              </RadioGroup>
+                            </div>
+                          )}
                         </div>
                       )}
 
-                      <p className="text-xs text-muted-foreground">
-                        <span className="text-red-500">*</span> Champs obligatoires.
-                        Pour en savoir plus sur la protection de vos données, consultez notre{" "}
-                        <a
-                          href="/politique-confidentialite"
-                          target="_blank"
-                          className="text-primary hover:underline"
-                        >
-                          Politique de Confidentialité
-                        </a>.
-                      </p>
-                    </div>
-
-                    <Button type="submit" className="w-full bg-primary" disabled={loading}>
-                      {loading ? "Chargement..." : "S'inscrire"}
-                    </Button>
-                  </form>
-                )}
-
-                {isLogin && (
-                  <>
-                    {/* Social Login Buttons */}
-                    <div className="space-y-3 mb-6">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleGoogleAuth}
-                        disabled={loading}
-                        className="w-full justify-start"
-                      >
-                        <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
-                          <path
-                            fill="#EA4335"
-                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                          />
-                          <path
-                            fill="#34A853"
-                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                          />
-                          <path
-                            fill="#FBBC04"
-                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                          />
-                          <path
-                            fill="#4285F4"
-                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                          />
-                        </svg>
-                        Se connecter avec Google
-                      </Button>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="relative my-6">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-border" />
-                      </div>
-                      <div className="relative flex justify-center text-sm uppercase">
-                        <span className="bg-card px-3 text-muted-foreground">OU</span>
-                      </div>
-                    </div>
-
-                    {/* Email/Password Form */}
-                    <form onSubmit={handleEmailAuth} className="space-y-4">
-                      <Input
-                        type="email"
-                        placeholder="Adresse e-mail"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="bg-secondary/20 border-border"
-                        required
+                      {/* Wilaya, Ville, École - conditionnel */}
+                      <LocationFields
+                        wilaya={wilaya}
+                        ville={ville}
+                        ecole={ecole}
+                        onWilayaChange={setWilaya}
+                        onVilleChange={setVille}
+                        onEcoleChange={setEcole}
+                        hideEcole={profileType === "parent"}
                       />
 
-                      <div className="relative">
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Mot de passe"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          className="bg-secondary/20 border-border pr-10"
-                          required
-                          minLength={6}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
+                      {/* RGPD Consents */}
+                      <div className="space-y-4 pt-4 border-t border-border">
+                        <div className="flex items-start space-x-3">
                           <Checkbox
-                            id="remember"
-                            checked={rememberMe}
-                            onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                            id="consentDataProcessing"
+                            checked={consentDataProcessing}
+                            onCheckedChange={(checked) => setConsentDataProcessing(checked as boolean)}
+                            className="mt-1"
                           />
                           <label
-                            htmlFor="remember"
-                            className="text-sm text-foreground cursor-pointer"
+                            htmlFor="consentDataProcessing"
+                            className="text-sm text-foreground cursor-pointer leading-relaxed"
                           >
-                            Se souvenir de moi
+                            <span className="text-red-500">*</span> J'accepte le traitement de mes données personnelles conformément au RGPD
                           </label>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => setShowForgotPassword(true)}
-                          className="text-sm text-primary hover:underline"
-                        >
-                          Mot de passe oublié ?
-                        </button>
+
+                        <div className="flex items-start space-x-3">
+                          <Checkbox
+                            id="consentTermsPrivacy"
+                            checked={consentTermsPrivacy}
+                            onCheckedChange={(checked) => setConsentTermsPrivacy(checked as boolean)}
+                            className="mt-1"
+                          />
+                          <label
+                            htmlFor="consentTermsPrivacy"
+                            className="text-sm text-foreground cursor-pointer leading-relaxed"
+                          >
+                            <span className="text-red-500">*</span> J'accepte les{" "}
+                            <a
+                              href="/mentions-legales"
+                              target="_blank"
+                              className="text-primary hover:underline font-medium"
+                            >
+                              Conditions Générales d'Utilisation
+                            </a>
+                            {" "}et la{" "}
+                            <a
+                              href="/politique-confidentialite"
+                              target="_blank"
+                              className="text-primary hover:underline font-medium"
+                            >
+                              Politique de Confidentialité
+                            </a>
+                          </label>
+                        </div>
+
+                        {dateOfBirth && new Date().getFullYear() - dateOfBirth.getFullYear() < 15 && (
+                          <div className="flex items-start space-x-3 bg-accent/10 p-3 rounded-lg">
+                            <Checkbox
+                              id="consentParental"
+                              checked={consentParental}
+                              onCheckedChange={(checked) => setConsentParental(checked as boolean)}
+                              className="mt-1"
+                            />
+                            <label
+                              htmlFor="consentParental"
+                              className="text-sm text-foreground cursor-pointer leading-relaxed"
+                            >
+                              <span className="text-red-500">*</span> Je certifie que mes parents/tuteurs légaux consentent à mon inscription et au traitement de mes données personnelles (requis pour les mineurs de moins de 15 ans)
+                            </label>
+                          </div>
+                        )}
+
+                        <p className="text-xs text-muted-foreground">
+                          <span className="text-red-500">*</span> Champs obligatoires.
+                          Pour en savoir plus sur la protection de vos données, consultez notre{" "}
+                          <a
+                            href="/politique-confidentialite"
+                            target="_blank"
+                            className="text-primary hover:underline"
+                          >
+                            Politique de Confidentialité
+                          </a>.
+                        </p>
                       </div>
 
                       <Button type="submit" className="w-full bg-primary" disabled={loading}>
-                        {loading ? "Chargement..." : "Se connecter"}
+                        {loading ? "Chargement..." : "S'inscrire"}
                       </Button>
                     </form>
-                  </>
-                )}
+                  )}
 
-                {/* Toggle Login/Signup */}
-                <div className="text-center mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setIsLogin(!isLogin)}
-                    className="text-sm text-foreground"
-                  >
-                    {isLogin ? "Pas encore de compte ? " : "Déjà un compte ? "}
-                    <span className="text-primary hover:underline font-medium">
-                      {isLogin ? "Inscris-toi" : "Connecte-toi"}
-                    </span>
-                  </button>
-                </div>
-              </>
-            )}
+                  {isLogin && (
+                    <>
+                      {/* Social Login Buttons */}
+                      <div className="space-y-3 mb-6">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleGoogleAuth}
+                          disabled={loading}
+                          className="w-full justify-start"
+                        >
+                          <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
+                            <path
+                              fill="#EA4335"
+                              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                            />
+                            <path
+                              fill="#34A853"
+                              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                            />
+                            <path
+                              fill="#FBBC04"
+                              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                            />
+                            <path
+                              fill="#4285F4"
+                              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                            />
+                          </svg>
+                          Se connecter avec Google
+                        </Button>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t border-border" />
+                        </div>
+                        <div className="relative flex justify-center text-sm uppercase">
+                          <span className="bg-card px-3 text-muted-foreground">OU</span>
+                        </div>
+                      </div>
+
+                      {/* Email/Password Form */}
+                      <form onSubmit={handleEmailAuth} className="space-y-4">
+                        <Input
+                          type="email"
+                          placeholder="Adresse e-mail"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="bg-secondary/20 border-border"
+                          required
+                        />
+
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Mot de passe"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="bg-secondary/20 border-border pr-10"
+                            required
+                            minLength={6}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="remember"
+                              checked={rememberMe}
+                              onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                            />
+                            <label
+                              htmlFor="remember"
+                              className="text-sm text-foreground cursor-pointer"
+                            >
+                              Se souvenir de moi
+                            </label>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowForgotPassword(true)}
+                            className="text-sm text-primary hover:underline"
+                          >
+                            Mot de passe oublié ?
+                          </button>
+                        </div>
+
+                        <Button type="submit" className="w-full bg-primary" disabled={loading}>
+                          {loading ? "Chargement..." : "Se connecter"}
+                        </Button>
+                      </form>
+                    </>
+                  )}
+
+                  {/* Toggle Login/Signup */}
+                  <div className="text-center mt-6">
+                    <button
+                      type="button"
+                      onClick={() => setIsLogin(!isLogin)}
+                      className="text-sm text-foreground"
+                    >
+                      {isLogin ? "Pas encore de compte ? " : "Déjà un compte ? "}
+                      <span className="text-primary hover:underline font-medium">
+                        {isLogin ? "Inscris-toi" : "Connecte-toi"}
+                      </span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
     </>
+
   );
 };
 

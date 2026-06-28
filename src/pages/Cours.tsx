@@ -75,6 +75,7 @@ const Cours = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [needsProfileCompletion, setNeedsProfileCompletion] = useState(false);
   const [schoolLevel, setSchoolLevel] = useState<string>("");
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [activeChapter, setActiveChapter] = useState<Chapter | null>(null);
@@ -155,6 +156,12 @@ const Cours = () => {
       const effectiveLevel = adminNiveau || profileData?.school_level || "";
       const effectiveFiliere = adminFiliere || (adminNiveau ? null : profileData?.filiere) || null;
       setSchoolLevel(effectiveLevel);
+
+      // Si l'utilisateur n'a pas de niveau scolaire défini et n'est pas admin, marquer pour redirection
+      if (!effectiveLevel && !roles.includes("admin") && !roles.includes("pedago")) {
+        setNeedsProfileCompletion(true);
+        return;
+      }
 
       // Resolve filiere_id for CRUD
       if (effectiveFiliere && effectiveLevel) {
@@ -311,6 +318,13 @@ const Cours = () => {
     }
   }, [subjectId, fetchCourse]);
 
+  // Rediriger vers complete-profile si school_level manquant
+  useEffect(() => {
+    if (needsProfileCompletion) {
+      navigate('/complete-profile', { replace: true });
+    }
+  }, [needsProfileCompletion, navigate]);
+
   const handleMarkComplete = async () => {
     if (!activeChapter) return;
 
@@ -398,8 +412,17 @@ const Cours = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-[var(--shadow-elegant)]">
+            <GraduationCap className="h-7 w-7 text-white" />
+          </div>
+          <div className="flex gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
+            <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
+            <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -421,48 +444,48 @@ const Cours = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div
-              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate("/liste-cours")}
             >
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-white" />
+              <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
+                <GraduationCap className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold">AcadémiePlus</span>
+              <span className="text-lg font-bold hidden sm:block">AcadémiePlus</span>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/10 rounded-lg p-2 transition-colors">
-                    <Avatar className="h-8 w-8">
+                  <div className="flex items-center gap-2 cursor-pointer rounded-xl px-2 py-1.5 hover:bg-muted transition-colors">
+                    <Avatar className="h-8 w-8 ring-2 ring-primary/20">
                       <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback>
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
                         {fullName.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="text-left hidden md:block">
-                      <p className="text-sm font-medium">{fullName}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-sm font-semibold leading-tight">{fullName}</p>
+                      <p className="text-xs text-muted-foreground leading-tight">
                         {schoolLevel && getSchoolLevelName(schoolLevel)}
                       </p>
                     </div>
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/account")}>
+                <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg border-border/50">
+                  <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
                     <UserIcon className="mr-2 h-4 w-4" />
                     <span>Gérer mon compte</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                  <DropdownMenuItem onClick={() => navigate("/dashboard")} className="rounded-lg cursor-pointer">
                     <BarChart3 className="mr-2 h-4 w-4" />
                     <span>Tableau de bord</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Se déconnecter</span>
                   </DropdownMenuItem>
@@ -561,7 +584,7 @@ const Cours = () => {
               <Button
                 variant="outline"
                 className="gap-2"
-                onClick={() => navigate(`/exams?niveau=${schoolLevel}&subject=${subjectId || "math"}`)}
+                onClick={() => navigate(`/exams?niveau=${schoolLevel}&subject=${subjectId || "math"}${adminFiliere ? `&filiere=${adminFiliere}` : ''}`)}
               >
                 <FileText className="h-4 w-4" />
                 الاختبارات

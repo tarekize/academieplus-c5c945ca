@@ -103,8 +103,17 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-[var(--shadow-elegant)]">
+            <GraduationCap className="h-7 w-7 text-white" />
+          </div>
+          <div className="flex gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
+            <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
+            <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -116,73 +125,86 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/liste-cours")}>
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-primary-foreground" />
+            {/* Logo */}
+            <div className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/liste-cours")}>
+              <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
+                <GraduationCap className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold">AcadémiePlus</span>
+              <span className="text-lg font-bold hidden sm:block">AcadémiePlus</span>
             </div>
 
-            <div className="flex-1 max-w-xl mx-8">
+            {/* Search */}
+            <div className="flex-1 max-w-md mx-6 hidden md:block">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input type="text" placeholder="Rechercher un cours, une matière..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 w-full" />
+                <Input
+                  type="text"
+                  placeholder="Rechercher un cours, une matière..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 bg-muted/40 border-0 rounded-xl h-9 focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-offset-0"
+                />
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            {/* Right actions */}
+            <div className="flex items-center gap-2">
               {!isAdmin && (
-                <Button variant="destructive" className="font-semibold" onClick={() => navigate("/pricing")}>
-                  Passer Premium
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-r from-accent to-orange-400 border-0 text-white font-semibold hidden sm:flex shadow-sm hover:opacity-90 transition-opacity rounded-xl h-8 px-4"
+                  onClick={() => navigate("/pricing")}
+                >
+                  Premium
                 </Button>
               )}
-              <div className="flex items-center gap-3">
-                <ChangePasswordButton />
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <div className="flex items-center gap-2 cursor-pointer hover:bg-accent rounded-lg p-2 transition-colors">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={profile?.avatar_url || undefined} />
-                        <AvatarFallback>{fullName.charAt(0).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <div className="text-left hidden md:block">
-                        <p className="text-sm font-medium">{fullName}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {isAdmin ? 'Administrateur' : profile?.school_level && getSchoolLevelName(profile.school_level)}
-                        </p>
-                      </div>
+              <ChangePasswordButton />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="flex items-center gap-2 cursor-pointer rounded-xl px-2 py-1.5 hover:bg-muted transition-colors">
+                    <Avatar className="h-8 w-8 ring-2 ring-primary/20">
+                      <AvatarImage src={profile?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                        {fullName.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-left hidden md:block">
+                      <p className="text-sm font-semibold leading-tight">{fullName}</p>
+                      <p className="text-xs text-muted-foreground leading-tight">
+                        {isAdmin ? 'Administrateur' : profile?.school_level && getSchoolLevelName(profile.school_level)}
+                      </p>
                     </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    {!isAdmin && (
-                      <DropdownMenuItem onClick={() => navigate("/account")}>
-                        <UserIcon className="mr-2 h-4 w-4" />
-                        <span>Gérer mon compte</span>
-                      </DropdownMenuItem>
-                    )}
-                    {isAdmin && (
-                      <DropdownMenuItem onClick={() => navigate("/admin")}>
-                        <Users className="mr-2 h-4 w-4" />
-                        <span>Gestion Utilisateurs</span>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Se déconnecter</span>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg border-border/50">
+                  {!isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
+                      <UserIcon className="mr-2 h-4 w-4" />
+                      <span>Gérer mon compte</span>
                     </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+                  )}
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate("/admin")} className="rounded-lg cursor-pointer">
+                      <Users className="mr-2 h-4 w-4" />
+                      <span>Gestion Utilisateurs</span>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Se déconnecter</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 mt-20">
+      <main className="container mx-auto px-4 pt-20 pb-12">
         <div className="max-w-7xl mx-auto">
           {/* Student Dashboard */}
           {isStudent && user && profile && (
@@ -192,54 +214,91 @@ const Dashboard = () => {
           {/* Admin / Other roles */}
           {!isStudent && (
             <>
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2">Bonjour {fullName} 👋</h1>
-                <p className="text-muted-foreground">
-                  {isAdmin ? "Bienvenue sur votre espace d'administration" : "Bienvenue sur votre tableau de bord"}
+              {/* Welcome banner */}
+              <div className="mb-8 rounded-2xl bg-[image:var(--gradient-primary)] px-6 py-5 text-primary-foreground shadow-[var(--shadow-elegant)]">
+                <p className="text-primary-foreground/70 text-sm font-medium">
+                  {isAdmin ? "Espace Administration" : "Tableau de bord"}
                 </p>
+                <h1 className="text-2xl font-bold mt-0.5">Bonjour, {fullName} 👋</h1>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {userRole === 'parent' && (
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/mes-informations")}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" />Mes Enfants</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">Suivez la progression de vos enfants</p>
-                    </CardContent>
-                  </Card>
+                  <div
+                    className="group bg-card rounded-2xl border border-border/50 p-6 cursor-pointer hover:shadow-lg hover:border-blue-200 transition-all duration-200"
+                    onClick={() => navigate("/mes-informations")}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 rounded-xl bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors flex-shrink-0">
+                        <Users className="h-6 w-6 text-blue-500" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold mb-1">Mes Enfants</h3>
+                        <p className="text-sm text-muted-foreground">Suivez la progression de vos enfants</p>
+                      </div>
+                    </div>
+                  </div>
                 )}
                 {isAdmin && (
                   <>
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/admin")}>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" />Gestion Utilisateurs</CardTitle>
-                      </CardHeader>
-                      <CardContent><p className="text-muted-foreground">Gérez les utilisateurs de la plateforme</p></CardContent>
-                    </Card>
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/analytics")}>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5" />Analytics</CardTitle>
-                      </CardHeader>
-                      <CardContent><p className="text-muted-foreground">Consultez les statistiques d'utilisation</p></CardContent>
-                    </Card>
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/admin/abonnements")}>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><CreditCard className="h-5 w-5" />Gérer les Abonnements</CardTitle>
-                      </CardHeader>
-                      <CardContent><p className="text-muted-foreground">Configurez les tarifs, périodes et consultez les paiements</p></CardContent>
-                    </Card>
+                    <div
+                      className="group bg-card rounded-2xl border border-border/50 p-6 cursor-pointer hover:shadow-lg hover:border-primary/30 transition-all duration-200"
+                      onClick={() => navigate("/admin")}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors flex-shrink-0">
+                          <Users className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold mb-1">Gestion Utilisateurs</h3>
+                          <p className="text-sm text-muted-foreground">Gérez les utilisateurs de la plateforme</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      className="group bg-card rounded-2xl border border-border/50 p-6 cursor-pointer hover:shadow-lg hover:border-orange-200 transition-all duration-200"
+                      onClick={() => navigate("/analytics")}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 rounded-xl bg-orange-500/10 group-hover:bg-orange-500/20 transition-colors flex-shrink-0">
+                          <BarChart3 className="h-6 w-6 text-orange-500" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold mb-1">Analytics</h3>
+                          <p className="text-sm text-muted-foreground">Consultez les statistiques d'utilisation</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      className="group bg-card rounded-2xl border border-border/50 p-6 cursor-pointer hover:shadow-lg hover:border-green-200 transition-all duration-200"
+                      onClick={() => navigate("/admin/abonnements")}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 rounded-xl bg-green-500/10 group-hover:bg-green-500/20 transition-colors flex-shrink-0">
+                          <CreditCard className="h-6 w-6 text-green-500" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold mb-1">Abonnements</h3>
+                          <p className="text-sm text-muted-foreground">Configurez les tarifs et paiements</p>
+                        </div>
+                      </div>
+                    </div>
                   </>
                 )}
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/liste-cours")}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><GraduationCap className="h-5 w-5" />{isAdmin ? "Voir les Cours" : "Mes Cours"}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">{isAdmin ? "Consultez les cours par niveau" : "Accédez à vos cours et leçons"}</p>
-                  </CardContent>
-                </Card>
+                <div
+                  className="group bg-card rounded-2xl border border-border/50 p-6 cursor-pointer hover:shadow-lg hover:border-purple-200 transition-all duration-200"
+                  onClick={() => navigate("/liste-cours")}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors flex-shrink-0">
+                      <GraduationCap className="h-6 w-6 text-purple-500" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-1">{isAdmin ? "Voir les Cours" : "Mes Cours"}</h3>
+                      <p className="text-sm text-muted-foreground">{isAdmin ? "Consultez les cours par niveau" : "Accédez à vos cours et leçons"}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </>
           )}

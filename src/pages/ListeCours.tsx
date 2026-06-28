@@ -231,8 +231,17 @@ const ListeCours = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-[var(--shadow-elegant)]">
+            <GraduationCap className="h-7 w-7 text-white" />
+          </div>
+          <div className="flex gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
+            <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
+            <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -242,53 +251,54 @@ const ListeCours = () => {
   // Admin/Pédago view - Level Selection
   if ((isAdmin || isPedago) && !selectedLevel) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
+      <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between h-16">
               <div
-                className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={() => navigate("/dashboard")}
               >
-                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                  <GraduationCap className="h-6 w-6 text-white" />
+                <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
+                  <GraduationCap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xl font-bold">AcadémiePlus</span>
+                <span className="text-lg font-bold hidden sm:block">AcadémiePlus</span>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/10 rounded-lg p-2 transition-colors">
-                      <Avatar className="h-8 w-8">
+                    <div className="flex items-center gap-2 cursor-pointer rounded-xl px-2 py-1.5 hover:bg-muted transition-colors">
+                      <Avatar className="h-8 w-8 ring-2 ring-primary/20">
                         <AvatarImage src={profile?.avatar_url || undefined} />
-                        <AvatarFallback>{fullName.charAt(0).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                          {fullName.charAt(0).toUpperCase()}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="text-left hidden md:block">
-                        <p className="text-sm font-medium">{fullName}</p>
-                        <p className="text-xs text-muted-foreground">{isAdmin ? 'Administrateur' : 'Pédagogue'}</p>
+                        <p className="text-sm font-semibold leading-tight">{fullName}</p>
+                        <p className="text-xs text-muted-foreground leading-tight">{isAdmin ? 'Administrateur' : 'Pédagogue'}</p>
                       </div>
-
                     </div>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg border-border/50">
                     {isAdmin && (
-                      <DropdownMenuItem onClick={() => navigate("/admin")}>
+                      <DropdownMenuItem onClick={() => navigate("/admin")} className="rounded-lg cursor-pointer">
                         <Users className="mr-2 h-4 w-4" />
                         <span>Gestion Utilisateurs</span>
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem onClick={() => navigate("/account")}>
+                    <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
                       <UserIcon className="mr-2 h-4 w-4" />
                       <span>Gérer mon compte</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard")} className="rounded-lg cursor-pointer">
                       <GraduationCap className="mr-2 h-4 w-4" />
                       <span>Tableau de bord</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                    <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Se déconnecter</span>
                     </DropdownMenuItem>
@@ -299,27 +309,29 @@ const ListeCours = () => {
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-8 mt-20">
+        <main className="container mx-auto px-4 py-8 mt-16">
           <div className="max-w-7xl mx-auto">
             {/* Hero Section */}
-            <div className="text-center mb-12 animate-fade-in">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Contenu Pédagogique par Niveau
-              </h1>
-              <p className="text-xl text-muted-foreground mb-8">
-                Sélectionnez un niveau pour voir les cours disponibles 📚
-              </p>
+            <div className="mb-10 animate-fade-in">
+              <div className="rounded-2xl bg-[image:var(--gradient-primary)] px-6 py-8 text-center text-primary-foreground shadow-[var(--shadow-elegant)] mb-7">
+                <h1 className="text-3xl md:text-4xl font-extrabold mb-2">
+                  Contenu Pédagogique par Niveau
+                </h1>
+                <p className="text-primary-foreground/75 text-base">
+                  Sélectionnez un niveau pour voir les cours disponibles
+                </p>
+              </div>
 
               {/* Search Bar */}
-              <div className="max-w-2xl mx-auto">
+              <div className="max-w-xl mx-auto">
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="text"
                     placeholder="Rechercher un niveau..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 h-14 text-lg rounded-full shadow-lg border-2 focus:border-primary"
+                    className="pl-11 h-11 rounded-xl bg-card border-border/50 shadow-sm focus-visible:ring-1 focus-visible:ring-primary/50"
                   />
                 </div>
               </div>
@@ -334,31 +346,27 @@ const ListeCours = () => {
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
                   {filteredLevels.map((level, index) => (
-                    <Card
+                    <button
                       key={level.id}
-                      className="group transition-all duration-300 hover:shadow-2xl border-2 hover:border-primary/50 animate-fade-in overflow-hidden cursor-pointer"
-                      style={{
-                        animationDelay: `${index * 50}ms`,
-                        backgroundColor: `${level.color}15`,
-                      }}
+                      type="button"
                       onClick={() => handleLevelSelect(level.id)}
+                      className="group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40 animate-fade-in"
+                      style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <CardContent className="p-6">
-                        <div className="flex flex-col items-center text-center gap-4">
-                          <div
-                            className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"
-                            style={{ backgroundColor: level.color }}
-                          >
-                            <GraduationCap className="h-8 w-8 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg leading-tight">{level.name}</h3>
-                          </div>
+                      <div className="h-1.5 w-full" style={{ backgroundColor: level.color }} />
+                      <div className="flex flex-col items-center text-center gap-3 p-6">
+                        <div
+                          className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md transition-transform group-hover:scale-110"
+                          style={{ backgroundColor: level.color }}
+                        >
+                          <GraduationCap className="h-7 w-7" />
                         </div>
-                      </CardContent>
-                    </Card>
+                        <h3 className="font-display font-bold text-base leading-tight">{level.name}</h3>
+                      </div>
+                    </button>
                   ))}
                 </div>
+
               </section>
             )}
 
@@ -380,50 +388,52 @@ const ListeCours = () => {
     const levelColor = schoolLevels.find(l => l.id === selectedLevel)?.color || "#8B5CF6";
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
-        <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+      <div className="min-h-screen bg-background">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between h-16">
               <div
-                className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={() => navigate("/dashboard")}
               >
-                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                  <GraduationCap className="h-6 w-6 text-white" />
+                <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
+                  <GraduationCap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xl font-bold">AcadémiePlus</span>
+                <span className="text-lg font-bold hidden sm:block">AcadémiePlus</span>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/10 rounded-lg p-2 transition-colors">
-                      <Avatar className="h-8 w-8">
+                    <div className="flex items-center gap-2 cursor-pointer rounded-xl px-2 py-1.5 hover:bg-muted transition-colors">
+                      <Avatar className="h-8 w-8 ring-2 ring-primary/20">
                         <AvatarImage src={profile?.avatar_url || undefined} />
-                        <AvatarFallback>{fullName.charAt(0).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                          {fullName.charAt(0).toUpperCase()}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="text-left hidden md:block">
-                        <p className="text-sm font-medium">{fullName}</p>
-                        <p className="text-xs text-muted-foreground">{isAdmin ? 'Administrateur' : 'Pédagogue'}</p>
+                        <p className="text-sm font-semibold leading-tight">{fullName}</p>
+                        <p className="text-xs text-muted-foreground leading-tight">{isAdmin ? 'Administrateur' : 'Pédagogue'}</p>
                       </div>
                     </div>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg border-border/50">
                     {isAdmin && (
-                      <DropdownMenuItem onClick={() => navigate("/admin")}>
+                      <DropdownMenuItem onClick={() => navigate("/admin")} className="rounded-lg cursor-pointer">
                         <Users className="mr-2 h-4 w-4" />
                         <span>Gestion Utilisateurs</span>
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem onClick={() => navigate("/account")}>
+                    <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
                       <UserIcon className="mr-2 h-4 w-4" />
                       <span>Gérer mon compte</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard")} className="rounded-lg cursor-pointer">
                       <GraduationCap className="mr-2 h-4 w-4" />
                       <span>Tableau de bord</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                    <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Se déconnecter</span>
                     </DropdownMenuItem>
@@ -434,62 +444,62 @@ const ListeCours = () => {
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-8 mt-20">
-          <div className="max-w-7xl mx-auto">
-            <Button variant="ghost" className="mb-6 gap-2" onClick={handleBackToLevels}>
+        <main className="container mx-auto px-4 py-8 mt-16">
+          <div className="max-w-5xl mx-auto">
+            <Button variant="ghost" size="sm" className="mb-5 gap-2 rounded-xl" onClick={handleBackToLevels}>
               <ArrowLeft className="h-4 w-4" />
               Retour aux niveaux
             </Button>
 
-            <div className="text-center mb-12 animate-fade-in">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                {levelName} - Choisir une filière
+            <div className="rounded-2xl bg-[image:var(--gradient-primary)] px-6 py-7 text-center text-primary-foreground shadow-[var(--shadow-elegant)] mb-8 animate-fade-in">
+              <h1 className="text-2xl md:text-3xl font-extrabold mb-1">
+                {levelName} — Choisir une filière
               </h1>
-              <p className="text-xl text-muted-foreground mb-8">
-                Sélectionnez une filière pour voir les cours disponibles 📚
+              <p className="text-primary-foreground/75 text-sm">
+                Sélectionnez une filière pour voir les cours disponibles
               </p>
             </div>
 
             {loadingFilieres ? (
               <div className="flex justify-center py-16">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                <div className="flex gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
+                  <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
+                  <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
+                </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filieres.map((filiere, index) => (
-                  <Card
+                  <button
                     key={filiere.code}
-                    className="group transition-all duration-300 hover:shadow-2xl border-2 hover:border-primary/50 animate-fade-in overflow-hidden cursor-pointer"
-                    style={{
-                      animationDelay: `${index * 80}ms`,
-                      backgroundColor: `${levelColor}10`,
-                    }}
+                    type="button"
                     onClick={() => handleFiliereSelect(filiere.code)}
+                    className="group bg-card rounded-2xl border border-border/50 p-6 text-left hover:shadow-lg hover:border-primary/30 transition-all duration-200 animate-fade-in"
+                    style={{ animationDelay: `${index * 60}ms` }}
                   >
-                    <CardContent className="p-8">
-                      <div className="flex flex-col items-center text-center gap-4">
-                        <div
-                          className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"
-                          style={{ backgroundColor: levelColor }}
-                        >
-                          <BookOpen className="h-8 w-8 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-lg">{filiere.name}</h3>
-                          {filiere.name_ar && (
-                            <p className="text-muted-foreground mt-1" dir="rtl">{filiere.name_ar}</p>
-                          )}
-                        </div>
+                    <div className="flex flex-col items-center text-center gap-3">
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform"
+                        style={{ backgroundColor: levelColor }}
+                      >
+                        <BookOpen className="h-6 w-6 text-white" />
                       </div>
-                    </CardContent>
-                  </Card>
+                      <div>
+                        <h3 className="font-semibold">{filiere.name}</h3>
+                        {filiere.name_ar && (
+                          <p className="text-muted-foreground text-sm mt-0.5" dir="rtl">{filiere.name_ar}</p>
+                        )}
+                      </div>
+                    </div>
+                  </button>
                 ))}
               </div>
             )}
 
             {!loadingFilieres && filieres.length === 0 && (
               <div className="text-center py-16">
-                <p className="text-xl text-muted-foreground">Aucune filière disponible pour ce niveau</p>
+                <p className="text-muted-foreground">Aucune filière disponible pour ce niveau</p>
               </div>
             )}
           </div>
@@ -598,36 +608,37 @@ const ListeCours = () => {
                 {filteredSubjects.map((subject, index) => {
                   const Icon = subject.icon;
                   return (
-                    <Card
+                    <button
                       key={subject.id}
-                      className={`group transition-all duration-300 hover:shadow-2xl border-2 hover:border-primary/50 animate-fade-in overflow-hidden ${subject.available ? "cursor-pointer" : "opacity-60 cursor-not-allowed"
-                        }`}
-                      style={{
-                        animationDelay: `${index * 50}ms`,
-                        backgroundColor: `${subject.color}15`,
-                      }}
+                      type="button"
+                      disabled={!subject.available}
                       onClick={() => subject.available && navigate(`/cours/${subject.id}`)}
+                      className={`group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 animate-fade-in ${subject.available
+                          ? "cursor-pointer hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40"
+                          : "opacity-60 cursor-not-allowed"
+                        }`}
+                      style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <CardContent className="p-6">
-                        <div className="flex flex-col items-center text-center gap-4">
-                          <div
-                            className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"
-                            style={{ backgroundColor: subject.color }}
-                          >
-                            <Icon className="h-8 w-8 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg leading-tight">{subject.name}</h3>
-                            {!subject.available && (
-                              <span className="text-xs text-muted-foreground">Bientôt disponible</span>
-                            )}
-                          </div>
+                      <div className="h-1.5 w-full" style={{ backgroundColor: subject.color }} />
+                      <div className="flex flex-col items-center text-center gap-3 p-6">
+                        <div
+                          className="w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-md transition-transform group-hover:scale-110"
+                          style={{ backgroundColor: subject.color }}
+                        >
+                          <Icon className="h-8 w-8" />
                         </div>
-                      </CardContent>
-                    </Card>
+                        <div>
+                          <h3 className="font-display font-bold text-lg leading-tight">{subject.name}</h3>
+                          {!subject.available && (
+                            <span className="text-xs text-muted-foreground">Bientôt disponible</span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
                   );
                 })}
               </div>
+
             </section>
           )}
 

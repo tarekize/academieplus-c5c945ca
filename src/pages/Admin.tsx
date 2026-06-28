@@ -132,37 +132,37 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                onClick={() => navigate("/dashboard")}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Retour
-              </Button>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-primary/10">
-                  <Shield className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold">Administration</h1>
-                  <p className="text-sm text-muted-foreground">Tableau de bord administrateur</p>
-                </div>
+      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center h-16 gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/dashboard")}
+              className="flex items-center gap-1.5 rounded-xl"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Retour</span>
+            </Button>
+            <div className="w-px h-5 bg-border" />
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
+                <Shield className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold leading-tight">Administration</h1>
+                <p className="text-xs text-muted-foreground leading-tight">Tableau de bord administrateur</p>
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-8">
+      <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             title="Total utilisateurs"
             value={stats.totalUsers}
@@ -194,28 +194,28 @@ export default function Admin() {
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="dashboard" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <TabsList className="bg-muted/50 p-1">
-              <TabsTrigger value="dashboard" className="flex items-center gap-2 data-[state=active]:bg-background">
-                <LayoutDashboard className="h-4 w-4" />
-                Dashboard
+        <Tabs defaultValue="dashboard" className="space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <TabsList className="bg-muted/60 rounded-xl p-1 h-auto gap-0.5">
+              <TabsTrigger value="dashboard" className="flex items-center gap-1.5 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm px-3 py-2 text-sm">
+                <LayoutDashboard className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Dashboard</span>
               </TabsTrigger>
-              <TabsTrigger value="pedagos" className="flex items-center gap-2 data-[state=active]:bg-background">
-                <Shield className="h-4 w-4" />
-                Pédagos ({pedagos.length})
+              <TabsTrigger value="pedagos" className="flex items-center gap-1.5 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm px-3 py-2 text-sm">
+                <Shield className="h-3.5 w-3.5" />
+                Pédagos <span className="text-xs opacity-60">({pedagos.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="parents" className="flex items-center gap-2 data-[state=active]:bg-background">
-                <User className="h-4 w-4" />
-                Parents ({parents.length})
+              <TabsTrigger value="parents" className="flex items-center gap-1.5 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm px-3 py-2 text-sm">
+                <User className="h-3.5 w-3.5" />
+                Parents <span className="text-xs opacity-60">({parents.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="students" className="flex items-center gap-2 data-[state=active]:bg-background">
-                <GraduationCap className="h-4 w-4" />
-                Élèves ({students.length})
+              <TabsTrigger value="students" className="flex items-center gap-1.5 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm px-3 py-2 text-sm">
+                <GraduationCap className="h-3.5 w-3.5" />
+                Élèves <span className="text-xs opacity-60">({students.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="logs" className="flex items-center gap-2 data-[state=active]:bg-background">
-                <Activity className="h-4 w-4" />
-                Activité
+              <TabsTrigger value="logs" className="flex items-center gap-1.5 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm px-3 py-2 text-sm">
+                <Activity className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Activité</span>
               </TabsTrigger>
             </TabsList>
 
@@ -713,19 +713,17 @@ function StatCard({
   iconColor: string;
 }) {
   return (
-    <Card className="border-0 shadow-lg overflow-hidden">
-      <CardContent className={`p-6 bg-gradient-to-br ${gradient}`}>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground font-medium">{title}</p>
-            <p className="text-4xl font-bold mt-1">{value}</p>
-          </div>
-          <div className={`p-3 rounded-xl bg-background/80 shadow-sm`}>
-            <Icon className={`h-8 w-8 ${iconColor}`} />
-          </div>
+    <div className={`rounded-2xl p-5 bg-gradient-to-br ${gradient} border border-border/40`}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs text-muted-foreground font-medium truncate">{title}</p>
+          <p className="text-3xl font-bold mt-0.5">{value}</p>
         </div>
-      </CardContent>
-    </Card>
+        <div className="p-2.5 rounded-xl bg-background/80 shadow-sm flex-shrink-0">
+          <Icon className={`h-6 w-6 ${iconColor}`} />
+        </div>
+      </div>
+    </div>
   );
 }
 
