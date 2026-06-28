@@ -3,6 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -45,6 +49,7 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
   const [selectedClass, setSelectedClass] = useState<ClassRow | null>(null);
   const [detailStudent, setDetailStudent] = useState<DetailStudent | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<string | null>(null);
 
   // Establishment creation form
   const [creating, setCreating] = useState(false);
@@ -122,7 +127,6 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
     try {
       const { error } = await supabase.from("classes").delete().eq("id", id);
       if (error) throw error;
-      toast.success("Classe supprimée");
       fetchClasses();
     } catch {
       toast.error("Impossible de supprimer la classe");
@@ -254,10 +258,22 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
                     variant="outline"
                     size="sm"
                     className="mt-1 w-fit text-xs"
-                    onClick={() => {
+                    onClick={async () => {
                       const url = `${window.location.origin}/rejoindre/${selectedClass.join_code}`;
-                      navigator.clipboard.writeText(url);
-                      toast.success("Lien QR copié");
+                      try {
+                        await navigator.clipboard.writeText(url);
+                        toast.success("Lien QR copié");
+                      } catch {
+                        const el = document.createElement("textarea");
+                        el.value = url;
+                        el.style.position = "fixed";
+                        el.style.opacity = "0";
+                        document.body.appendChild(el);
+                        el.select();
+                        document.execCommand("copy");
+                        document.body.removeChild(el);
+                        toast.success("Lien QR copié");
+                      }
                     }}
                   >
                     <Copy className="h-3 w-3 mr-1" /> Copier le lien QR
@@ -295,6 +311,7 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
   // --- Classes list view ---
   const active = establishments.find((e) => e.id === activeEstab);
   return (
+    <>
     <div className="space-y-6">
       <Button variant="ghost" size="sm" onClick={onBack} className="gap-2 -ml-2">
         <ArrowLeft className="h-4 w-4" /> Accueil
@@ -358,7 +375,7 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-lg">{c.name}</CardTitle>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteClass(c.id)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setClassToDelete(c.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -378,5 +395,26 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
         </div>
       )}
     </div>
+
+    <AlertDialog open={!!classToDelete} onOpenChange={(open) => { if (!open) setClassToDelete(null); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Supprimer la classe ?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Cette action est irréversible. La classe et toutes ses données seront définitivement supprimées.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            onClick={() => { if (classToDelete) { handleDeleteClass(classToDelete); setClassToDelete(null); } }}
+          >
+            Supprimer
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }

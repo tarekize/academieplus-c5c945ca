@@ -89,7 +89,6 @@ export default function CreateClassDialog({ teacherId, establishmentId, onCreate
         establishment_id: establishmentId ?? null,
       } as any);
       if (error) throw error;
-      toast.success("Classe créée avec succès");
       reset();
       setOpen(false);
       onCreated();
