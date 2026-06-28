@@ -77,9 +77,18 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
     setClasses(rows);
     if (rows.length > 0) {
       const { data: members } = await supabase
-        .from("class_students").select("class_id").in("class_id", rows.map((c) => c.id));
+        .from("class_students").select("class_id, student_id").in("class_id", rows.map((c) => c.id));
+      const memberRows = (members as any[]) || [];
+      const studentIds = [...new Set(memberRows.map((m) => m.student_id))];
+      let activeIds = new Set<string>();
+      if (studentIds.length > 0) {
+        const { data: profs } = await supabase.from("profiles").select("id").in("id", studentIds);
+        activeIds = new Set((profs as any[] || []).map((p) => p.id));
+      }
       const map: Record<string, number> = {};
-      for (const m of (members as any[]) || []) map[m.class_id] = (map[m.class_id] || 0) + 1;
+      for (const m of memberRows) {
+        if (activeIds.has(m.student_id)) map[m.class_id] = (map[m.class_id] || 0) + 1;
+      }
       setCounts(map);
     }
   }, [teacherId, activeEstab]);

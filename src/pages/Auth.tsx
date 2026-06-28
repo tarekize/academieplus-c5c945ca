@@ -297,7 +297,6 @@ const Auth = () => {
         });
 
         if (error) throw error;
-        toast.success("Connexion réussie !");
       } catch (error: any) {
         if (error.message.includes("Email not confirmed")) {
           toast.error("Veuillez d'abord confirmer votre email en cliquant sur le lien envoyé dans votre boîte de réception.", {

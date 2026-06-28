@@ -168,10 +168,6 @@ const ListeCours = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast({
-      title: "Déconnexion",
-      description: "Vous avez été déconnecté avec succès",
-    });
     navigate("/");
   };
 
@@ -614,8 +610,8 @@ const ListeCours = () => {
                       disabled={!subject.available}
                       onClick={() => subject.available && navigate(`/cours/${subject.id}`)}
                       className={`group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 animate-fade-in ${subject.available
-                          ? "cursor-pointer hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40"
-                          : "opacity-60 cursor-not-allowed"
+                        ? "cursor-pointer hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40"
+                        : "opacity-60 cursor-not-allowed"
                         }`}
                       style={{ animationDelay: `${index * 50}ms` }}
                     >

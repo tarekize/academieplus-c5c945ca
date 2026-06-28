@@ -260,11 +260,6 @@ const MesInformations = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Compte supprimé",
-        description: "Votre compte a été supprimé avec succès",
-      });
-
       await supabase.auth.signOut();
       navigate("/");
     } catch (error: any) {
@@ -324,10 +319,6 @@ const MesInformations = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast({
-      title: "Déconnexion",
-      description: "Vous avez été déconnecté avec succès",
-    });
     navigate("/");
   };
 

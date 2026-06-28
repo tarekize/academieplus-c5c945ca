@@ -116,6 +116,12 @@ const getLocalEvaluation = (correctCount: number, total: number): Report => {
   };
 };
 
+const shuffleQuestionOptions = (question: Question): Question => {
+  const correct = question.options[question.correct_index];
+  const shuffled = [...question.options].sort(() => Math.random() - 0.5);
+  return { ...question, options: shuffled, correct_index: shuffled.indexOf(correct) };
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 const LearningAssessment = () => {
@@ -243,7 +249,7 @@ const LearningAssessment = () => {
       if (data?.error) throw new Error(data.error);
 
       if (data?.questions?.length > 0) {
-        setQuestions(data.questions);
+        setQuestions((data.questions as Question[]).map(shuffleQuestionOptions));
         setPhase("intro");
         return;
       }
@@ -253,7 +259,7 @@ const LearningAssessment = () => {
     } catch (err: any) {
       console.warn("Edge Function indisponible, utilisation des questions locales:", err?.message);
       // ✅ Utiliser les questions de secours au lieu de rediriger
-      const fallback = getFallbackQuestions(schoolLevel);
+      const fallback = getFallbackQuestions(schoolLevel).map(shuffleQuestionOptions);
       setQuestions(fallback);
       setPhase("intro");
     }
@@ -369,7 +375,6 @@ const LearningAssessment = () => {
         if (insertError) throw insertError;
       }
 
-      toast.success("Résultats sauvegardés !");
       const returnTo = sessionStorage.getItem('returnTo');
       if (returnTo) {
         sessionStorage.removeItem('returnTo');
@@ -411,8 +416,7 @@ const LearningAssessment = () => {
           if (legacyInsertError) throw legacyInsertError;
         }
 
-        toast.success("Résultats sauvegardés !");
-        const returnToFallback = sessionStorage.getItem('returnTo');
+          const returnToFallback = sessionStorage.getItem('returnTo');
         if (returnToFallback) {
           sessionStorage.removeItem('returnTo');
           navigate(returnToFallback);

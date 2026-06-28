@@ -32,8 +32,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) { toast.error("Erreur lors de la déconnexion"); }
-    else { toast.success("Déconnexion réussie"); navigate("/"); }
+    if (!error) { navigate("/"); }
   };
 
   const scrollToSection = (id: string) => {

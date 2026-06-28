@@ -232,7 +232,6 @@ const Account = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast({ title: "Déconnexion", description: "Vous avez été déconnecté avec succès" });
     navigate("/");
   };
 
