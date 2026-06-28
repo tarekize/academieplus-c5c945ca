@@ -12,6 +12,7 @@ import {
   ArrowLeft, Loader2, Users, BookOpen, Trash2, Copy, School, Plus, HeartHandshake,
 } from "lucide-react";
 import { toast } from "sonner";
+import QRCode from "react-qr-code";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import CreateClassDialog from "./CreateClassDialog";
 import ClassProgressView, { ClassRow } from "./ClassProgressView";
@@ -228,15 +229,42 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
           </div>
           {selectedClass.join_code && (
             <div className="rounded-xl border bg-muted/40 px-4 py-3">
-              <p className="text-xs text-muted-foreground mb-1">Code de la classe</p>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-lg font-bold tracking-widest">{selectedClass.join_code}</span>
-                <Button variant="ghost" size="icon" className="h-8 w-8"
-                  onClick={() => { navigator.clipboard.writeText(selectedClass.join_code || ""); toast.success("Code copié"); }}>
-                  <Copy className="h-4 w-4" />
-                </Button>
+              <p className="text-xs text-muted-foreground mb-2">Code de la classe</p>
+              <div className="flex items-start gap-6 flex-wrap">
+                {/* Text code */}
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-lg font-bold tracking-widest">{selectedClass.join_code}</span>
+                    <Button variant="ghost" size="icon" className="h-8 w-8"
+                      onClick={() => { navigator.clipboard.writeText(selectedClass.join_code || ""); toast.success("Code copié"); }}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Partagez-le pour que vos élèves rejoignent la classe.</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-1 w-fit text-xs"
+                    onClick={() => {
+                      const url = `${window.location.origin}/rejoindre/${selectedClass.join_code}`;
+                      navigator.clipboard.writeText(url);
+                      toast.success("Lien QR copié");
+                    }}
+                  >
+                    <Copy className="h-3 w-3 mr-1" /> Copier le lien QR
+                  </Button>
+                </div>
+                {/* QR code */}
+                <div className="flex flex-col items-center gap-1">
+                  <div className="bg-white p-2 rounded-lg shadow-sm">
+                    <QRCode
+                      value={`${window.location.origin}/rejoindre/${selectedClass.join_code}`}
+                      size={100}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Scanner pour rejoindre</p>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Partagez-le pour que vos élèves rejoignent la classe.</p>
             </div>
           )}
         </div>

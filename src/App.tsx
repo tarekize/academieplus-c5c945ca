@@ -49,6 +49,7 @@ import ContentGeneration from "./pages/ContentGeneration";
 import ExamTrimesterSelect from "./pages/ExamTrimesterSelect";
 import ExamList from "./pages/ExamList";
 import LessonRemediation from "./pages/LessonRemediation";
+import JoinClass from "./pages/JoinClass";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -114,6 +115,7 @@ const App = () => (
                   <AdminAbonnements />
                 </ProtectedRoute>
               } />
+              <Route path="/rejoindre/:code" element={<JoinClass />} />
               <Route path="/mentions-legales" element={<MentionsLegales />} />
               <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
