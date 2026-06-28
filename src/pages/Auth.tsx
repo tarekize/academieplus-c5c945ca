@@ -505,20 +505,10 @@ const Auth = () => {
                 {showForgotPassword
                   ? "Réinitialise ton accès"
                   : isLogin
-<<<<<<< HEAD
                     ? "Heureux de te revoir 👋"
                     : "Rejoins-nous en quelques secondes 🚀"}
               </p>
             </div>
-=======
-                  ? "Heureux de te revoir 👋"
-                  : "Rejoins-nous en quelques secondes 🚀"}
-              </p>
-            </div>
-
-            <div className="p-8">
-
->>>>>>> eb3ad0d58bacb9e125061257b4fe13258541ff01
 
             <div className="p-8">
 
@@ -1142,7 +1132,6 @@ const Auth = () => {
                 </>
               )}
             </div>
-          </div>
           </div>
         </div>
       </div>

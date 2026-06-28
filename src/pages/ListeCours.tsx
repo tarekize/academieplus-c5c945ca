@@ -613,18 +613,10 @@ const ListeCours = () => {
                       type="button"
                       disabled={!subject.available}
                       onClick={() => subject.available && navigate(`/cours/${subject.id}`)}
-<<<<<<< HEAD
                       className={`group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 animate-fade-in ${subject.available
                           ? "cursor-pointer hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40"
                           : "opacity-60 cursor-not-allowed"
                         }`}
-=======
-                      className={`group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 animate-fade-in ${
-                        subject.available
-                          ? "cursor-pointer hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40"
-                          : "opacity-60 cursor-not-allowed"
-                      }`}
->>>>>>> eb3ad0d58bacb9e125061257b4fe13258541ff01
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <div className="h-1.5 w-full" style={{ backgroundColor: subject.color }} />
