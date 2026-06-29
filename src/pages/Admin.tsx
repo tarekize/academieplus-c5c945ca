@@ -77,6 +77,8 @@ export default function Admin() {
   const [searchQueryPedagos, setSearchQueryPedagos] = useState("");
   const [searchQueryParents, setSearchQueryParents] = useState("");
   const [searchQueryStudents, setSearchQueryStudents] = useState("");
+  const [searchQueryTeachers, setSearchQueryTeachers] = useState("");
+  const [searchQueryEtablissements, setSearchQueryEtablissements] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
 
@@ -84,6 +86,8 @@ export default function Admin() {
   const pedagos = users.filter((user) => getPrimaryRole(user) === "pedago");
   const parents = users.filter((user) => getPrimaryRole(user) === "parent");
   const students = users.filter((user) => getPrimaryRole(user) === "student");
+  const teachers = users.filter((user) => getPrimaryRole(user) === "teacher");
+  const etablissements = users.filter((user) => getPrimaryRole(user) === "etablissement");
 
   // Filter pedagos
   const filteredPedagos = pedagos.filter((user) => {
