@@ -601,6 +601,140 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
+          {/* Teachers Tab */}
+          <TabsContent value="teachers">
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="border-b bg-muted/30">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-indigo-500/10">
+                      <UserCog className="h-5 w-5 text-indigo-500" />
+                    </div>
+                    <div>
+                      <CardTitle>Gestion des Enseignants</CardTitle>
+                      <CardDescription>
+                        {filteredTeachers.length} enseignant(s) affiché(s)
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Rechercher un enseignant..."
+                      value={searchQueryTeachers}
+                      onChange={(e) => setSearchQueryTeachers(e.target.value)}
+                      className="pl-9 w-full sm:w-64"
+                    />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/30">
+                        <TableHead>Enseignant</TableHead>
+                        <TableHead>Statut</TableHead>
+                        <TableHead>Inscription</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredTeachers.map((user) => (
+                        <UserRow
+                          key={user.id}
+                          user={user}
+                          onToggleStatus={() =>
+                            toggleUserStatus(user.id, !user.is_active, user.email || '')
+                          }
+                          onDelete={() => {
+                            setUserToDelete(user);
+                            setDeleteDialogOpen(true);
+                          }}
+                        />
+                      ))}
+                      {filteredTeachers.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                            Aucun enseignant trouvé
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Etablissements Tab */}
+          <TabsContent value="etablissements">
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="border-b bg-muted/30">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-amber-500/10">
+                      <Building2 className="h-5 w-5 text-amber-500" />
+                    </div>
+                    <div>
+                      <CardTitle>Gestion des Établissements</CardTitle>
+                      <CardDescription>
+                        {filteredEtablissements.length} établissement(s) affiché(s)
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Rechercher un établissement..."
+                      value={searchQueryEtablissements}
+                      onChange={(e) => setSearchQueryEtablissements(e.target.value)}
+                      className="pl-9 w-full sm:w-64"
+                    />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/30">
+                        <TableHead>Établissement</TableHead>
+                        <TableHead>Statut</TableHead>
+                        <TableHead>Inscription</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredEtablissements.map((user) => (
+                        <UserRow
+                          key={user.id}
+                          user={user}
+                          onToggleStatus={() =>
+                            toggleUserStatus(user.id, !user.is_active, user.email || '')
+                          }
+                          onDelete={() => {
+                            setUserToDelete(user);
+                            setDeleteDialogOpen(true);
+                          }}
+                        />
+                      ))}
+                      {filteredEtablissements.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                            Aucun établissement trouvé
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+
+
           {/* Activity Logs Tab */}
           <TabsContent value="logs">
             <Card className="border-0 shadow-lg">
