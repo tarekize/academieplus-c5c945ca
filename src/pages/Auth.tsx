@@ -162,6 +162,8 @@ const Auth = () => {
               navigate("/teacher-dashboard");
             } else if (roleData?.role === 'admin') {
               navigate("/dashboard");
+            } else if (roleData?.role === 'etablissement') {
+              navigate("/etablissement-dashboard");
             } else {
               navigate("/cours/math");
             }
@@ -219,6 +221,8 @@ const Auth = () => {
           navigate("/teacher-dashboard");
         } else if (roleData?.role === 'admin') {
           navigate("/dashboard");
+        } else if (roleData?.role === 'etablissement') {
+          navigate("/etablissement-dashboard");
         } else {
           navigate("/cours/math");
         }

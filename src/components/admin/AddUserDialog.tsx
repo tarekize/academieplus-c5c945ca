@@ -114,14 +114,11 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
       });
 
       if (response.error) {
-        let errorMessage = response.error.message || "Erreur lors de la création";
-        if (errorMessage.includes("Edge Function returned a non-2xx status code")) {
-          errorMessage = "Un compte existe déjà avec cet email.";
-        }
-        throw new Error(errorMessage);
+        // response.data contains the actual JSON body from the edge function
+        const actualError = (response.data as any)?.error || response.error.message || "Erreur lors de la création";
+        throw new Error(actualError);
       }
 
-      toast.success("Utilisateur créé avec succès !");
       setOpen(false);
       resetForm();
       onUserAdded();
