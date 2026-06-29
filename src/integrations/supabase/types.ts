@@ -1413,7 +1413,13 @@ export type Database = {
       user_has_any_role: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "student" | "parent" | "admin" | "pedago" | "teacher"
+      app_role:
+        | "student"
+        | "parent"
+        | "admin"
+        | "pedago"
+        | "teacher"
+        | "etablissement"
       link_status: "pending" | "active" | "rejected"
       school_level:
         | "5eme_primaire"
@@ -1551,7 +1557,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["student", "parent", "admin", "pedago", "teacher"],
+      app_role: [
+        "student",
+        "parent",
+        "admin",
+        "pedago",
+        "teacher",
+        "etablissement",
+      ],
       link_status: ["pending", "active", "rejected"],
       school_level: [
         "5eme_primaire",
