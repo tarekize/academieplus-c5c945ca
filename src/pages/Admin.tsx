@@ -116,6 +116,26 @@ export default function Admin() {
     );
   });
 
+  // Filter teachers
+  const filteredTeachers = teachers.filter((user) => {
+    const fullName = getFullName(user);
+    return (
+      fullName.toLowerCase().includes(searchQueryTeachers.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQueryTeachers.toLowerCase())
+    );
+  });
+
+  // Filter etablissements
+  const filteredEtablissements = etablissements.filter((user) => {
+    const fullName = getFullName(user);
+    return (
+      fullName.toLowerCase().includes(searchQueryEtablissements.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQueryEtablissements.toLowerCase())
+    );
+  });
+
+
+
   const handleDeleteUser = async () => {
     if (userToDelete) {
       await deleteUser(userToDelete.id, userToDelete.email);
