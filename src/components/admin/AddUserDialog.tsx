@@ -42,10 +42,13 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [establishmentName, setEstablishmentName] = useState("");
   const [role, setRole] = useState<string>("");
   const [schoolLevel, setSchoolLevel] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const isEstablishment = role === "etablissement";
 
   const validatePassword = (password: string): string | null => {
     if (password.length < 8) {
@@ -63,8 +66,18 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password || !role) {
+    if (!role) {
+      toast.error("Veuillez sélectionner un rôle.");
+      return;
+    }
+
+    if (!email || !password) {
       toast.error("Veuillez remplir tous les champs obligatoires.");
+      return;
+    }
+
+    if (isEstablishment && !establishmentName.trim()) {
+      toast.error("Veuillez saisir le nom de l'établissement.");
       return;
     }
 
@@ -93,8 +106,8 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
         body: {
           email,
           password,
-          firstName,
-          lastName,
+          firstName: isEstablishment ? establishmentName.trim() : firstName,
+          lastName: isEstablishment ? "" : lastName,
           role,
           schoolLevel: role === "student" ? schoolLevel : null,
         },
@@ -129,6 +142,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
     setPassword("");
     setFirstName("");
     setLastName("");
+    setEstablishmentName("");
     setRole("");
     setSchoolLevel("");
   };
@@ -156,61 +170,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">Prénom</Label>
-                <Input
-                  id="firstName"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="Jean"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Nom</Label>
-                <Input
-                  id="lastName"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Dupont"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="email@exemple.com"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe *</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min. 8 caractères, 1 majuscule, 1 chiffre"
-                  required
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-
+            {/* Role selection FIRST */}
             <div className="space-y-2">
               <Label htmlFor="role">Rôle *</Label>
               <Select value={role} onValueChange={setRole}>
@@ -228,22 +188,95 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
               </Select>
             </div>
 
-            {role === "student" && (
-              <div className="space-y-2">
-                <Label htmlFor="schoolLevel">Niveau scolaire *</Label>
-                <Select value={schoolLevel} onValueChange={setSchoolLevel}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionnez un niveau" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SCHOOL_LEVELS.map((level) => (
-                      <SelectItem key={level.value} value={level.value}>
-                        {level.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Remaining fields only after a role is chosen */}
+            {role && (
+              <>
+                {isEstablishment ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="establishmentName">Nom de l'établissement *</Label>
+                    <Input
+                      id="establishmentName"
+                      value={establishmentName}
+                      onChange={(e) => setEstablishmentName(e.target.value)}
+                      placeholder="Lycée Ibn Khaldoun"
+                      required
+                    />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">Prénom</Label>
+                      <Input
+                        id="firstName"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        placeholder="Jean"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Nom</Label>
+                      <Input
+                        id="lastName"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        placeholder="Dupont"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="email@exemple.com"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Mot de passe *</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Min. 8 caractères, 1 majuscule, 1 chiffre"
+                      required
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {role === "student" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="schoolLevel">Niveau scolaire *</Label>
+                    <Select value={schoolLevel} onValueChange={setSchoolLevel}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionnez un niveau" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SCHOOL_LEVELS.map((level) => (
+                          <SelectItem key={level.value} value={level.value}>
+                            {level.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </>
             )}
           </div>
           <DialogFooter>

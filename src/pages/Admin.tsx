@@ -49,6 +49,7 @@ import {
   Activity,
   TrendingUp,
   LayoutDashboard,
+  Building2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -77,6 +78,8 @@ export default function Admin() {
   const [searchQueryPedagos, setSearchQueryPedagos] = useState("");
   const [searchQueryParents, setSearchQueryParents] = useState("");
   const [searchQueryStudents, setSearchQueryStudents] = useState("");
+  const [searchQueryTeachers, setSearchQueryTeachers] = useState("");
+  const [searchQueryEtablissements, setSearchQueryEtablissements] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
 
@@ -84,6 +87,8 @@ export default function Admin() {
   const pedagos = users.filter((user) => getPrimaryRole(user) === "pedago");
   const parents = users.filter((user) => getPrimaryRole(user) === "parent");
   const students = users.filter((user) => getPrimaryRole(user) === "student");
+  const teachers = users.filter((user) => getPrimaryRole(user) === "teacher");
+  const etablissements = users.filter((user) => getPrimaryRole(user) === "etablissement");
 
   // Filter pedagos
   const filteredPedagos = pedagos.filter((user) => {
@@ -111,6 +116,26 @@ export default function Admin() {
       user.email?.toLowerCase().includes(searchQueryStudents.toLowerCase())
     );
   });
+
+  // Filter teachers
+  const filteredTeachers = teachers.filter((user) => {
+    const fullName = getFullName(user);
+    return (
+      fullName.toLowerCase().includes(searchQueryTeachers.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQueryTeachers.toLowerCase())
+    );
+  });
+
+  // Filter etablissements
+  const filteredEtablissements = etablissements.filter((user) => {
+    const fullName = getFullName(user);
+    return (
+      fullName.toLowerCase().includes(searchQueryEtablissements.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQueryEtablissements.toLowerCase())
+    );
+  });
+
+
 
   const handleDeleteUser = async () => {
     if (userToDelete) {
@@ -212,6 +237,14 @@ export default function Admin() {
               <TabsTrigger value="students" className="flex items-center gap-1.5 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm px-3 py-2 text-sm">
                 <GraduationCap className="h-3.5 w-3.5" />
                 Élèves <span className="text-xs opacity-60">({students.length})</span>
+              </TabsTrigger>
+              <TabsTrigger value="teachers" className="flex items-center gap-1.5 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm px-3 py-2 text-sm">
+                <UserCog className="h-3.5 w-3.5" />
+                Enseignants <span className="text-xs opacity-60">({teachers.length})</span>
+              </TabsTrigger>
+              <TabsTrigger value="etablissements" className="flex items-center gap-1.5 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm px-3 py-2 text-sm">
+                <Building2 className="h-3.5 w-3.5" />
+                Établissements <span className="text-xs opacity-60">({etablissements.length})</span>
               </TabsTrigger>
               <TabsTrigger value="logs" className="flex items-center gap-1.5 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm px-3 py-2 text-sm">
                 <Activity className="h-3.5 w-3.5" />
@@ -567,6 +600,140 @@ export default function Admin() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Teachers Tab */}
+          <TabsContent value="teachers">
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="border-b bg-muted/30">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-indigo-500/10">
+                      <UserCog className="h-5 w-5 text-indigo-500" />
+                    </div>
+                    <div>
+                      <CardTitle>Gestion des Enseignants</CardTitle>
+                      <CardDescription>
+                        {filteredTeachers.length} enseignant(s) affiché(s)
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Rechercher un enseignant..."
+                      value={searchQueryTeachers}
+                      onChange={(e) => setSearchQueryTeachers(e.target.value)}
+                      className="pl-9 w-full sm:w-64"
+                    />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/30">
+                        <TableHead>Enseignant</TableHead>
+                        <TableHead>Statut</TableHead>
+                        <TableHead>Inscription</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredTeachers.map((user) => (
+                        <UserRow
+                          key={user.id}
+                          user={user}
+                          onToggleStatus={() =>
+                            toggleUserStatus(user.id, !user.is_active, user.email || '')
+                          }
+                          onDelete={() => {
+                            setUserToDelete(user);
+                            setDeleteDialogOpen(true);
+                          }}
+                        />
+                      ))}
+                      {filteredTeachers.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                            Aucun enseignant trouvé
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Etablissements Tab */}
+          <TabsContent value="etablissements">
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="border-b bg-muted/30">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-amber-500/10">
+                      <Building2 className="h-5 w-5 text-amber-500" />
+                    </div>
+                    <div>
+                      <CardTitle>Gestion des Établissements</CardTitle>
+                      <CardDescription>
+                        {filteredEtablissements.length} établissement(s) affiché(s)
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Rechercher un établissement..."
+                      value={searchQueryEtablissements}
+                      onChange={(e) => setSearchQueryEtablissements(e.target.value)}
+                      className="pl-9 w-full sm:w-64"
+                    />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/30">
+                        <TableHead>Établissement</TableHead>
+                        <TableHead>Statut</TableHead>
+                        <TableHead>Inscription</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredEtablissements.map((user) => (
+                        <UserRow
+                          key={user.id}
+                          user={user}
+                          onToggleStatus={() =>
+                            toggleUserStatus(user.id, !user.is_active, user.email || '')
+                          }
+                          onDelete={() => {
+                            setUserToDelete(user);
+                            setDeleteDialogOpen(true);
+                          }}
+                        />
+                      ))}
+                      {filteredEtablissements.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                            Aucun établissement trouvé
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+
 
           {/* Activity Logs Tab */}
           <TabsContent value="logs">
