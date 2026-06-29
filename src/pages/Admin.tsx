@@ -237,6 +237,14 @@ export default function Admin() {
                 <GraduationCap className="h-3.5 w-3.5" />
                 Élèves <span className="text-xs opacity-60">({students.length})</span>
               </TabsTrigger>
+              <TabsTrigger value="teachers" className="flex items-center gap-1.5 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm px-3 py-2 text-sm">
+                <UserCog className="h-3.5 w-3.5" />
+                Enseignants <span className="text-xs opacity-60">({teachers.length})</span>
+              </TabsTrigger>
+              <TabsTrigger value="etablissements" className="flex items-center gap-1.5 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm px-3 py-2 text-sm">
+                <Building2 className="h-3.5 w-3.5" />
+                Établissements <span className="text-xs opacity-60">({etablissements.length})</span>
+              </TabsTrigger>
               <TabsTrigger value="logs" className="flex items-center gap-1.5 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm px-3 py-2 text-sm">
                 <Activity className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Activité</span>
