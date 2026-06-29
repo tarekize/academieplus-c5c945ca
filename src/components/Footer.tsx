@@ -48,11 +48,6 @@ const Footer = () => {
             <h3 className="font-bold mb-4">{t("footer.subjects")}</h3>
             <ul className="space-y-2 text-sm text-gray-400">
               <li>{t("footer.math")}</li>
-              <li>{t("footer.physics")}</li>
-              <li>{t("footer.science")}</li>
-              <li>{t("footer.french")}</li>
-              <li>{t("footer.arabic")}</li>
-              <li>{t("footer.english")}</li>
             </ul>
           </div>
 

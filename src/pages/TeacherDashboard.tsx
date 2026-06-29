@@ -8,6 +8,7 @@ import { GraduationCap, LogOut, Loader2 } from "lucide-react";
 import TeacherHome, { TeacherSection } from "@/components/teacher/TeacherHome";
 import EstablishmentManager from "@/components/teacher/EstablishmentManager";
 import TeacherContentSpace from "@/components/teacher/TeacherContentSpace";
+import TeacherReclamationPanel from "@/components/teacher/TeacherReclamationPanel";
 
 const TeacherDashboard = () => {
   const navigate = useNavigate();
@@ -82,6 +83,10 @@ const TeacherDashboard = () => {
 
         {(section === "exercise" || section === "quiz" || section === "exam") && (
           <TeacherContentSpace teacherId={user.id} contentType={section} onBack={() => setSection(null)} />
+        )}
+
+        {section === "reclamation" && (
+          <TeacherReclamationPanel onBack={() => setSection(null)} />
         )}
       </main>
     </div>

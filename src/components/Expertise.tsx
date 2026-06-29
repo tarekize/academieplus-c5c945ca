@@ -83,11 +83,6 @@ const Expertise = () => {
           })}
         </div>
 
-        <div className="text-center">
-          <Button size="lg" className="text-lg">
-            {t("expertise.cta")}
-          </Button>
-        </div>
       </div>
     </section>
   );

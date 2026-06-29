@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { School, FileText, Target, ClipboardList } from "lucide-react";
+import { School, FileText, Target, ClipboardList, AlertCircle } from "lucide-react";
 
-export type TeacherSection = "establishment" | "exercise" | "quiz" | "exam";
+export type TeacherSection = "establishment" | "exercise" | "quiz" | "exam" | "reclamation";
 
 interface Props {
   onSelect: (section: TeacherSection) => void;
@@ -12,11 +12,12 @@ const TILES: { key: TeacherSection; label: string; desc: string; icon: any; colo
   { key: "exercise", label: "Exercices", desc: "Créer & envoyer des exercices", icon: FileText, color: "text-emerald-600 bg-emerald-600/10" },
   { key: "quiz", label: "Quiz", desc: "Créer & envoyer des quiz", icon: Target, color: "text-amber-600 bg-amber-600/10" },
   { key: "exam", label: "Examens", desc: "Créer & envoyer des examens", icon: ClipboardList, color: "text-purple-600 bg-purple-600/10" },
+  { key: "reclamation", label: "Réclamation", desc: "Soumettre une réclamation", icon: AlertCircle, color: "text-red-600 bg-red-600/10" },
 ];
 
 export default function TeacherHome({ onSelect }: Props) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
       {TILES.map((t) => {
         const Icon = t.icon;
         return (

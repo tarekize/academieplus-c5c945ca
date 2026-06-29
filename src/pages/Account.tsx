@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { UserCircle, BarChart3, ArrowLeft, GraduationCap, LogOut, User as UserIcon, Key, Pause, Play, Clock, FileText, Loader2 } from "lucide-react";
+import { UserCircle, BarChart3, ArrowLeft, GraduationCap, LogOut, User as UserIcon, Key, Pause, Play, Clock, FileText, Loader2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChangePasswordButton } from "@/components/ChangePasswordButton";
 import JoinClassDialog from "@/components/student/JoinClassDialog";
+import ReclamationDialog from "@/components/ReclamationDialog";
 
 interface Profile {
   id: string;
@@ -385,6 +386,7 @@ const Account = () => {
               Tableau de bord
             </button>
             {isStudent && <JoinClassDialog />}
+            {isStudent && <ReclamationDialog userRole="student" />}
           </div>
         )}
         {isParent && (
@@ -467,7 +469,7 @@ const Account = () => {
               </div>
 
               <div className="p-6">
-                {subscription ? (
+                {subscription && remaining > 0 ? (
                   <div className="space-y-5">
                     <div className="flex items-center justify-between">
                       <div>
@@ -498,7 +500,7 @@ const Account = () => {
                       </div>
                     </div>
 
-                    {subscription.plan_type === "annual" && remaining > 0 && (
+                    {subscription.plan_type === "annual" && (
                       <Button
                         variant={subscription.is_paused ? "default" : "outline"}
                         className="w-full rounded-xl h-11"
@@ -514,11 +516,27 @@ const Account = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="text-center py-2">
-                      <p className="text-muted-foreground text-sm mb-4">
-                        Vous n'avez pas encore d'abonnement actif. Entrez votre code d'activation pour commencer.
-                      </p>
-                    </div>
+                    {subscription && remaining <= 0 && (
+                      <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
+                        <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold text-red-700 text-sm">Abonnement expiré</p>
+                          <p className="text-red-600 text-xs mt-0.5">
+                            Votre abonnement {subscription.plan_type === "annual" ? "scolaire" : "mensuel"} est terminé. Activez un nouveau code pour continuer.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {!subscription && (
+                      <div className="text-center py-2">
+                        <p className="text-muted-foreground text-sm mb-1">
+                          Vous n'avez pas encore d'abonnement actif.
+                        </p>
+                        <p className="text-muted-foreground text-sm">
+                          Entrez votre code d'activation pour commencer.
+                        </p>
+                      </div>
+                    )}
                     <div className="flex gap-3">
                       <Input
                         placeholder="XXXX-XXXX-XXXX"

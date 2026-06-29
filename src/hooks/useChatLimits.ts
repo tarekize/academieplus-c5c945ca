@@ -43,7 +43,7 @@ export function useChatLimits() {
       // Check subscription
       const { data: sub } = await supabase
         .from('student_subscriptions')
-        .select('id, days_used, total_days, is_paused')
+        .select('id, days_used, total_days, is_paused, last_tick_at')
         .eq('user_id', uid)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -51,8 +51,16 @@ export function useChatLimits() {
 
       if (cancelled) return;
 
-      if (sub && sub.days_used < sub.total_days && !sub.is_paused) {
-        setHasSubscription(true);
+      if (sub && !sub.is_paused && sub.last_tick_at) {
+        const now = new Date();
+        const lastTick = new Date(sub.last_tick_at);
+        const elapsed = (now.getTime() - lastTick.getTime()) / (1000 * 60 * 60 * 24);
+        const totalUsed = (sub.days_used || 0) + elapsed;
+        const remaining = (sub.total_days || 0) - totalUsed;
+        setHasSubscription(remaining > 0);
+      } else if (sub && sub.is_paused) {
+        const remaining = (sub.total_days || 0) - (sub.days_used || 0);
+        setHasSubscription(remaining > 0);
       } else {
         setHasSubscription(false);
       }

@@ -151,7 +151,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
         <DialogHeader>
           <DialogTitle>Ajouter un utilisateur</DialogTitle>
           <DialogDescription>
-            Créez un nouveau compte utilisateur (admin, parent ou élève).
+            Créez un nouveau compte utilisateur (admin, pédago, enseignant, parent, élève ou établissement).
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -220,8 +220,10 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
                 <SelectContent>
                   <SelectItem value="admin">Administrateur</SelectItem>
                   <SelectItem value="pedago">Pédago</SelectItem>
+                  <SelectItem value="teacher">Enseignant</SelectItem>
                   <SelectItem value="parent">Parent</SelectItem>
                   <SelectItem value="student">Élève</SelectItem>
+                  <SelectItem value="etablissement">Établissement</SelectItem>
                 </SelectContent>
               </Select>
             </div>

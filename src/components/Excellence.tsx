@@ -85,15 +85,6 @@ const Excellence = () => {
           })}
         </div>
 
-        {/* CTA Button */}
-        <div className="text-center">
-          <Button 
-            size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            {t("excellence.cta")}
-          </Button>
-        </div>
       </div>
     </section>
   );
