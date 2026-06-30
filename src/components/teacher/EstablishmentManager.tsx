@@ -40,6 +40,7 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
   const [detailStudent, setDetailStudent] = useState<DetailStudent | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState<string | null>(null);
+  const [estabToDelete, setEstabToDelete] = useState<string | null>(null);
 
   // Add establishment by code
   const [creating, setCreating] = useState(false);
@@ -134,6 +135,21 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
       toast.error(e.message || "Erreur lors de l'ajout");
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleDeleteEstablishment = async (id: string) => {
+    try {
+      const { error } = await supabase.from("establishments" as any).delete().eq("id", id);
+      if (error) throw error;
+      const remaining = establishments.filter((e) => e.id !== id);
+      setEstablishments(remaining);
+      if (activeEstab === id) setActiveEstab(remaining[0]?.id ?? "");
+      toast.success("Établissement supprimé");
+    } catch {
+      toast.error("Impossible de supprimer l'établissement");
+    } finally {
+      setEstabToDelete(null);
     }
   };
 
@@ -293,10 +309,20 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
 
       <div className="flex flex-wrap items-center gap-2">
         {establishments.map((e) => (
-          <Button key={e.id} size="sm" variant={e.id === activeEstab ? "default" : "outline"}
-            className="gap-2" onClick={() => setActiveEstab(e.id)}>
-            <School className="h-4 w-4" /> {e.name}
-          </Button>
+          <div key={e.id} className="flex items-center gap-1">
+            <Button size="sm" variant={e.id === activeEstab ? "default" : "outline"}
+              className="gap-2" onClick={() => setActiveEstab(e.id)}>
+              <School className="h-4 w-4" /> {e.name}
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={() => setEstabToDelete(e.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         ))}
         <Button size="sm" variant="ghost" className="gap-1" onClick={() => setShowCreateForm((s) => !s)}>
           <Plus className="h-4 w-4" /> Établissement
@@ -362,6 +388,26 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
         </div>
       )}
     </div>
+
+    <AlertDialog open={!!estabToDelete} onOpenChange={(open) => { if (!open) setEstabToDelete(null); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Supprimer l'établissement ?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Cette action est irréversible. L'établissement et toutes ses classes associées seront définitivement supprimés.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            onClick={() => { if (estabToDelete) handleDeleteEstablishment(estabToDelete); }}
+          >
+            Supprimer
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
 
     <AlertDialog open={!!classToDelete} onOpenChange={(open) => { if (!open) setClassToDelete(null); }}>
       <AlertDialogContent>
