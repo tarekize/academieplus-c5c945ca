@@ -267,6 +267,10 @@ const Auth = () => {
         }
       }
 
+      if (profileType === 'enseignant' && !establishmentCode.trim()) {
+        missingFields.push("Code d'établissement");
+      }
+
       if (missingFields.length > 0) {
         toast.error(`Veuillez remplir les champs obligatoires suivants : ${missingFields.join(", ")}`);
         return;
