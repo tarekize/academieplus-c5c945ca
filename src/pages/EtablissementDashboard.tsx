@@ -291,6 +291,44 @@ const EtablissementDashboard = () => {
             <p className="text-primary-foreground/70 text-sm mt-1">Suivi des enseignants, classes et réclamations</p>
           </div>
 
+          {/* Establishment code & QR — shared with teachers so they can register */}
+          <Card className="rounded-2xl border-border/50 overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <KeyRound className="h-5 w-5 text-primary" />
+                Code d'inscription enseignant
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {establishmentCode ? (
+                <div className="flex flex-col sm:flex-row items-center gap-5">
+                  <div className="bg-white p-3 rounded-xl border border-border/50 flex-shrink-0">
+                    <QRCode value={establishmentCode} size={120} />
+                  </div>
+                  <div className="flex-1 w-full space-y-3 text-center sm:text-left">
+                    <p className="text-sm text-muted-foreground">
+                      Communiquez ce code (ou le QR code) à vos enseignants. Ils doivent le saisir lors de
+                      la création de leur compte « Enseignant » — sans ce code, le compte ne peut pas être créé.
+                    </p>
+                    <div className="flex items-center gap-2 justify-center sm:justify-start">
+                      <span className="font-mono text-2xl font-bold tracking-[0.3em] bg-muted px-4 py-2 rounded-xl">
+                        {establishmentCode}
+                      </span>
+                      <Button variant="outline" size="icon" className="rounded-xl" onClick={copyCode}>
+                        {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground py-2">
+                  Aucun code d'établissement n'est encore disponible pour ce compte.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="rounded-2xl border-border/50">
