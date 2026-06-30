@@ -336,7 +336,8 @@ const Auth = () => {
     wilaya: string,
     ville: string,
     ecole: string,
-    phone: string
+    phone: string,
+    establishmentCode: string = ""
   ) => {
     try {
       const schoolLevelMapping: Record<string, string> = {
