@@ -115,27 +115,21 @@ const EtablissementDashboard = () => {
   const fetchTeachers = async () => {
     setLoadingTeachers(true);
     try {
-      // Get all teacher user_ids
-      const { data: roleRows } = await (supabase as any)
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "teacher");
+      // Only teachers linked to THIS establishment (via the establishment code they used at sign-up)
+      const { data: profiles } = await (supabase as any)
+        .from("profiles")
+        .select("id, first_name, last_name, email")
+        .eq("establishment_id", user!.id);
 
-      if (!roleRows || roleRows.length === 0) {
+      if (!profiles || profiles.length === 0) {
         setTeachers([]);
         setLoadingTeachers(false);
         return;
       }
 
-      const teacherIds = roleRows.map((r: any) => r.user_id);
+      const teacherIds = profiles.map((p: any) => p.id);
 
-      // Get teacher profiles
-      const { data: profiles } = await (supabase as any)
-        .from("profiles")
-        .select("id, first_name, last_name, email")
-        .in("id", teacherIds);
-
-      // Get classes for all teachers
+      // Get classes for these teachers
       const { data: classes } = await (supabase as any)
         .from("classes")
         .select("id, name, school_level, subject, teacher_id")
