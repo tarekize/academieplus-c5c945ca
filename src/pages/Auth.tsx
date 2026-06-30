@@ -933,6 +933,34 @@ const Auth = () => {
                         </div>
                       )}
 
+                      {profileType === "enseignant" && (
+                        <div className="space-y-2">
+                          <Label htmlFor="establishmentCode" className="text-foreground">
+                            Code d'établissement <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            id="establishmentCode"
+                            value={establishmentCode}
+                            onChange={(e) => {
+                              setEstablishmentCode(e.target.value.toUpperCase());
+                              setTouched((prev) => ({ ...prev, establishmentCode: true }));
+                            }}
+                            placeholder="Ex. A1B2C3D4"
+                            className={cn(
+                              "font-mono tracking-widest uppercase",
+                              (submitted || touched.establishmentCode) && !establishmentCode.trim()
+                                ? "ring-2 ring-red-500"
+                                : ""
+                            )}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Demandez ce code à votre établissement. Il est obligatoire pour créer un compte enseignant.
+                          </p>
+                        </div>
+                      )}
+
+
+
                       {/* Wilaya, Ville, École - conditionnel */}
                       <LocationFields
                         wilaya={wilaya}
