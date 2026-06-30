@@ -419,6 +419,8 @@ const Auth = () => {
         toast.error("Email ou mot de passe incorrect.");
       } else if (error.message.includes("User already registered") || error.message.includes("already registered")) {
         toast.error("Cette adresse email existe déjà. Utilisez la connexion ou la réinitialisation du mot de passe.");
+      } else if (error.message.includes("établissement")) {
+        toast.error(error.message);
       } else {
         toast.error(error.message || "Une erreur s'est produite.");
       }
