@@ -383,6 +383,9 @@ const Auth = () => {
       if (ville) userData.ville = ville;
       if (ecole) userData.ecole = ecole;
       if (phone) userData.phone = phone;
+      if (profileType === 'enseignant' && establishmentCode) {
+        userData.establishment_code = establishmentCode.trim().toUpperCase();
+      }
 
       const { error } = await supabase.auth.signUp({
         email,
