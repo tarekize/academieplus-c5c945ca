@@ -22,6 +22,9 @@ import {
   CheckCircle,
   XCircle,
   Send,
+  KeyRound,
+  Copy,
+  Check,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
