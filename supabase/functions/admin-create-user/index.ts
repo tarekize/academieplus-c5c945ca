@@ -98,6 +98,16 @@ Deno.serve(async (req) => {
 
     if (roleError) throw roleError;
 
+    // Establishment accounts get a unique enrollment code (used by teachers at sign-up).
+    let establishmentCode: string | null = null;
+    if (role === "etablissement") {
+      const { data: codeData, error: codeError } = await adminClient.rpc(
+        "generate_establishment_code"
+      );
+      if (codeError) throw codeError;
+      establishmentCode = codeData as unknown as string;
+    }
+
     // Upsert profile (the trigger may have already created it)
     await adminClient.from("profiles").upsert(
       {
@@ -106,12 +116,13 @@ Deno.serve(async (req) => {
         first_name: firstName ?? null,
         last_name: lastName ?? null,
         school_level: role === "student" && schoolLevel ? schoolLevel : null,
+        establishment_code: establishmentCode,
         is_active: true,
       },
       { onConflict: "id" }
     );
 
-    return new Response(JSON.stringify({ success: true, userId: newUserId }), {
+    return new Response(JSON.stringify({ success: true, userId: newUserId, establishmentCode }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

@@ -28,6 +28,7 @@ const Auth = () => {
   const [profileType, setProfileType] = useState("");
   const [classLevel, setClassLevel] = useState("");
   const [filiere, setFiliere] = useState("");
+  const [establishmentCode, setEstablishmentCode] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -266,6 +267,10 @@ const Auth = () => {
         }
       }
 
+      if (profileType === 'enseignant' && !establishmentCode.trim()) {
+        missingFields.push("Code d'établissement");
+      }
+
       if (missingFields.length > 0) {
         toast.error(`Veuillez remplir les champs obligatoires suivants : ${missingFields.join(", ")}`);
         return;
@@ -290,7 +295,7 @@ const Auth = () => {
       setLoading(true);
 
       // Envoyer l'inscription en arrière-plan
-      performSignUp(firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth, wilaya, ville, ecole, phone);
+      performSignUp(firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth, wilaya, ville, ecole, phone, establishmentCode);
     } else {
       // LOGIN
       setLoading(true);
@@ -331,7 +336,8 @@ const Auth = () => {
     wilaya: string,
     ville: string,
     ecole: string,
-    phone: string
+    phone: string,
+    establishmentCode: string = ""
   ) => {
     try {
       const schoolLevelMapping: Record<string, string> = {
@@ -377,6 +383,9 @@ const Auth = () => {
       if (ville) userData.ville = ville;
       if (ecole) userData.ecole = ecole;
       if (phone) userData.phone = phone;
+      if (profileType === 'enseignant' && establishmentCode) {
+        userData.establishment_code = establishmentCode.trim().toUpperCase();
+      }
 
       const { error } = await supabase.auth.signUp({
         email,
@@ -410,6 +419,8 @@ const Auth = () => {
         toast.error("Email ou mot de passe incorrect.");
       } else if (error.message.includes("User already registered") || error.message.includes("already registered")) {
         toast.error("Cette adresse email existe déjà. Utilisez la connexion ou la réinitialisation du mot de passe.");
+      } else if (error.message.includes("établissement")) {
+        toast.error(error.message);
       } else {
         toast.error(error.message || "Une erreur s'est produite.");
       }
@@ -921,6 +932,34 @@ const Auth = () => {
                           )}
                         </div>
                       )}
+
+                      {profileType === "enseignant" && (
+                        <div className="space-y-2">
+                          <Label htmlFor="establishmentCode" className="text-foreground">
+                            Code d'établissement <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            id="establishmentCode"
+                            value={establishmentCode}
+                            onChange={(e) => {
+                              setEstablishmentCode(e.target.value.toUpperCase());
+                              setTouched((prev) => ({ ...prev, establishmentCode: true }));
+                            }}
+                            placeholder="Ex. A1B2C3D4"
+                            className={cn(
+                              "font-mono tracking-widest uppercase",
+                              (submitted || touched.establishmentCode) && !establishmentCode.trim()
+                                ? "ring-2 ring-red-500"
+                                : ""
+                            )}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Demandez ce code à votre établissement. Il est obligatoire pour créer un compte enseignant.
+                          </p>
+                        </div>
+                      )}
+
+
 
                       {/* Wilaya, Ville, École - conditionnel */}
                       <LocationFields
