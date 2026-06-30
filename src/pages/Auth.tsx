@@ -28,6 +28,7 @@ const Auth = () => {
   const [profileType, setProfileType] = useState("");
   const [classLevel, setClassLevel] = useState("");
   const [filiere, setFiliere] = useState("");
+  const [establishmentCode, setEstablishmentCode] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
