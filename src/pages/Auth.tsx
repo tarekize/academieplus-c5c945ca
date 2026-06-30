@@ -295,7 +295,7 @@ const Auth = () => {
       setLoading(true);
 
       // Envoyer l'inscription en arrière-plan
-      performSignUp(firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth, wilaya, ville, ecole, phone);
+      performSignUp(firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth, wilaya, ville, ecole, phone, establishmentCode);
     } else {
       // LOGIN
       setLoading(true);
