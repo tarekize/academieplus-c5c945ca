@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { School, FileText, Target, ClipboardList, AlertCircle } from "lucide-react";
+import { School, FileText, Target, ClipboardList, AlertCircle, User } from "lucide-react";
 
-export type TeacherSection = "establishment" | "exercise" | "quiz" | "exam" | "reclamation";
+export type TeacherSection = "establishment" | "exercise" | "quiz" | "exam" | "reclamation" | "profil";
 
 interface Props {
   onSelect: (section: TeacherSection) => void;
@@ -13,6 +13,7 @@ const TILES: { key: TeacherSection; label: string; desc: string; icon: any; colo
   { key: "quiz", label: "Quiz", desc: "Créer & envoyer des quiz", icon: Target, color: "text-amber-600 bg-amber-600/10" },
   { key: "exam", label: "Examens", desc: "Créer & envoyer des examens", icon: ClipboardList, color: "text-purple-600 bg-purple-600/10" },
   { key: "reclamation", label: "Réclamation", desc: "Soumettre une réclamation", icon: AlertCircle, color: "text-red-600 bg-red-600/10" },
+  { key: "profil", label: "Mon profil", desc: "Informations & compte", icon: User, color: "text-indigo-600 bg-indigo-600/10" },
 ];
 
 export default function TeacherHome({ onSelect }: Props) {

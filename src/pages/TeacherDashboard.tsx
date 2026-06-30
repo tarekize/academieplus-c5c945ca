@@ -9,6 +9,7 @@ import TeacherHome, { TeacherSection } from "@/components/teacher/TeacherHome";
 import EstablishmentManager from "@/components/teacher/EstablishmentManager";
 import TeacherContentSpace from "@/components/teacher/TeacherContentSpace";
 import TeacherReclamationPanel from "@/components/teacher/TeacherReclamationPanel";
+import TeacherProfile from "@/components/teacher/TeacherProfile";
 
 const TeacherDashboard = () => {
   const navigate = useNavigate();
@@ -87,6 +88,10 @@ const TeacherDashboard = () => {
 
         {section === "reclamation" && (
           <TeacherReclamationPanel onBack={() => setSection(null)} />
+        )}
+
+        {section === "profil" && (
+          <TeacherProfile onBack={() => setSection(null)} />
         )}
       </main>
     </div>

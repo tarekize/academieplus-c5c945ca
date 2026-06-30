@@ -8,10 +8,6 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import {
   ArrowLeft, Loader2, Users, BookOpen, Trash2, Copy, School, Plus, HeartHandshake,
 } from "lucide-react";
@@ -32,12 +28,6 @@ interface DetailStudent {
   email: string | null; school_level: string | null; filiere?: string | null; avatar_url: string | null;
 }
 
-const ESTAB_TYPES = [
-  { value: "primaire", label: "École primaire" },
-  { value: "cem", label: "CEM (Collège)" },
-  { value: "lycee", label: "Lycée" },
-  { value: "autre", label: "Autre" },
-];
 
 export default function EstablishmentManager({ teacherId, onBack }: { teacherId: string; onBack: () => void; }) {
   const [loading, setLoading] = useState(true);
@@ -51,11 +41,9 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
   const [helpOpen, setHelpOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState<string | null>(null);
 
-  // Establishment creation form
+  // Add establishment by code
   const [creating, setCreating] = useState(false);
-  const [estName, setEstName] = useState("");
-  const [estType, setEstType] = useState("");
-  const [estVille, setEstVille] = useState("");
+  const [estCode, setEstCode] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   const fetchEstablishments = useCallback(async () => {
@@ -65,7 +53,25 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
       .select("id, name, type, ville")
       .eq("teacher_id", teacherId)
       .order("created_at", { ascending: true });
-    const rows = (data as any as Establishment[]) || [];
+    let rows = (data as any as Establishment[]) || [];
+
+    // Auto-populate from the establishment linked during signup
+    if (rows.length === 0) {
+      try {
+        const { data: nameResult } = await supabase.rpc("get_my_primary_establishment_name" as any);
+        if (nameResult) {
+          const { data: created } = await supabase
+            .from("establishments" as any)
+            .insert({ teacher_id: teacherId, name: nameResult })
+            .select("id, name, type, ville")
+            .single();
+          if (created) rows = [created as any as Establishment];
+        }
+      } catch {
+        // fail silently — teacher can add via code
+      }
+    }
+
     setEstablishments(rows);
     if (rows.length > 0 && !activeEstab) setActiveEstab(rows[0].id);
     setLoading(false);
@@ -101,23 +107,31 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
   useEffect(() => { fetchEstablishments(); }, [fetchEstablishments]);
   useEffect(() => { if (activeEstab) fetchClasses(); }, [activeEstab, fetchClasses]);
 
-  const createEstablishment = async () => {
-    if (!estName.trim()) { toast.error("Donnez un nom à l'établissement."); return; }
+  const addByCode = async () => {
+    const code = estCode.trim().toUpperCase();
+    if (!code) { toast.error("Entrez un code d'établissement."); return; }
     setCreating(true);
     try {
+      const { data: nameResult, error: rpcError } = await supabase
+        .rpc("get_establishment_name_by_code" as any, { p_code: code });
+      if (rpcError || !nameResult) {
+        toast.error("Code d'établissement invalide.");
+        return;
+      }
       const { data, error } = await supabase
         .from("establishments" as any)
-        .insert({ teacher_id: teacherId, name: estName.trim(), type: estType || null, ville: estVille.trim() || null })
+        .insert({ teacher_id: teacherId, name: nameResult })
         .select("id, name, type, ville")
         .single();
       if (error) throw error;
-      toast.success("Établissement créé");
-      setEstName(""); setEstType(""); setEstVille(""); setShowCreateForm(false);
+      toast.success("Établissement ajouté");
+      setEstCode("");
+      setShowCreateForm(false);
       const created = data as any as Establishment;
       setEstablishments((prev) => [...prev, created]);
       setActiveEstab(created.id);
     } catch (e: any) {
-      toast.error(e.message || "Erreur lors de la création");
+      toast.error(e.message || "Erreur lors de l'ajout");
     } finally {
       setCreating(false);
     }
@@ -141,46 +155,6 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
 
   if (loading) {
     return <div className="flex justify-center py-24"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>;
-  }
-
-  // --- Onboarding: no establishment yet ---
-  if (establishments.length === 0) {
-    return (
-      <div className="max-w-lg mx-auto">
-        <Button variant="ghost" size="sm" onClick={onBack} className="gap-2 -ml-2 mb-3">
-          <ArrowLeft className="h-4 w-4" /> Accueil
-        </Button>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><School className="h-5 w-5 text-primary" /> Créez votre établissement</CardTitle>
-            <p className="text-sm text-muted-foreground">Avant de gérer vos classes, créez votre établissement scolaire.</p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Nom de l'établissement *</Label>
-              <Input value={estName} onChange={(e) => setEstName(e.target.value)} placeholder="Ex : Lycée El Feth" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Type</Label>
-              <Select value={estType} onValueChange={setEstType}>
-                <SelectTrigger><SelectValue placeholder="Type d'établissement" /></SelectTrigger>
-                <SelectContent>
-                  {ESTAB_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Ville</Label>
-              <Input value={estVille} onChange={(e) => setEstVille(e.target.value)} placeholder="Ville (optionnel)" />
-            </div>
-            <Button onClick={createEstablishment} disabled={creating} className="w-full gap-2">
-              {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-              Créer et continuer
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
   }
 
   // --- Student detail view ---
@@ -331,21 +305,14 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
 
       {showCreateForm && (
         <Card>
-          <CardContent className="p-4 grid gap-3 sm:grid-cols-4 items-end">
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label>Nom *</Label>
-              <Input value={estName} onChange={(e) => setEstName(e.target.value)} placeholder="Nom de l'établissement" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Type</Label>
-              <Select value={estType} onValueChange={setEstType}>
-                <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
-                <SelectContent>
-                  {ESTAB_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button onClick={createEstablishment} disabled={creating} className="gap-2">
+          <CardContent className="p-4 flex gap-3 items-center">
+            <Input
+              value={estCode}
+              onChange={(e) => setEstCode(e.target.value.toUpperCase())}
+              placeholder="Code d'établissement"
+              className="font-mono tracking-widest uppercase flex-1"
+            />
+            <Button onClick={addByCode} disabled={creating} className="gap-2 shrink-0">
               {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Ajouter
             </Button>
           </CardContent>
