@@ -847,6 +847,8 @@ export type Database = {
           ecole: string | null
           email: string
           email_verified: boolean | null
+          establishment_code: string | null
+          establishment_id: string | null
           filiere: string | null
           first_name: string | null
           id: string
@@ -866,6 +868,8 @@ export type Database = {
           ecole?: string | null
           email: string
           email_verified?: boolean | null
+          establishment_code?: string | null
+          establishment_id?: string | null
           filiere?: string | null
           first_name?: string | null
           id: string
@@ -885,6 +889,8 @@ export type Database = {
           ecole?: string | null
           email?: string
           email_verified?: boolean | null
+          establishment_code?: string | null
+          establishment_id?: string | null
           filiere?: string | null
           first_name?: string | null
           id?: string
@@ -897,7 +903,15 @@ export type Database = {
           ville?: string | null
           wilaya?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       student_scores: {
         Row: {
@@ -1360,6 +1374,7 @@ export type Database = {
         Returns: Json
       }
       generate_activation_code: { Args: never; Returns: string }
+      generate_establishment_code: { Args: never; Returns: string }
       get_student_exercises: {
         Args: { _chapter_id: string; _lesson_id?: string }
         Returns: {
@@ -1396,6 +1411,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_establishment_teacher: {
+        Args: { _est_id: string; _teacher_id: string }
         Returns: boolean
       }
       is_parent_of: {
