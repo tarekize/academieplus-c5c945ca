@@ -69,6 +69,9 @@ const EtablissementDashboard = () => {
   const [expandedTeacher, setExpandedTeacher] = useState<string | null>(null);
   const [responseText, setResponseText] = useState<Record<string, string>>({});
   const [respondingId, setRespondingId] = useState<string | null>(null);
+  const [establishmentCode, setEstablishmentCode] = useState<string | null>(null);
+  const [establishmentName, setEstablishmentName] = useState<string>("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
