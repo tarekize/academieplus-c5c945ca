@@ -80,9 +80,37 @@ const EtablissementDashboard = () => {
 
   useEffect(() => {
     if (!user) return;
+    fetchEstablishment();
     fetchTeachers();
     fetchReclamations();
   }, [user]);
+
+  const fetchEstablishment = async () => {
+    try {
+      const { data } = await (supabase as any)
+        .from("profiles")
+        .select("establishment_code, first_name")
+        .eq("id", user!.id)
+        .maybeSingle();
+      if (data) {
+        setEstablishmentCode(data.establishment_code ?? null);
+        setEstablishmentName(data.first_name ?? "");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const copyCode = async () => {
+    if (!establishmentCode) return;
+    try {
+      await navigator.clipboard.writeText(establishmentCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* ignore */
+    }
+  };
 
   const fetchTeachers = async () => {
     setLoadingTeachers(true);
