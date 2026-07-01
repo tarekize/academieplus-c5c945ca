@@ -72,6 +72,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Vérifier si l'utilisateur SSO a besoin de compléter son profil
       if (session?.user) {
         setTimeout(async () => {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('is_active')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          if (profileData && profileData.is_active === false) {
+            await supabase.auth.signOut();
+            window.location.href = '/auth?deactivated=1';
+            return;
+          }
+
           const { data: roleData } = await supabase
             .from('user_roles')
             .select('role')

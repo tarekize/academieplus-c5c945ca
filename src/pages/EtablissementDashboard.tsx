@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import QRCode from "react-qr-code";
 import {
   GraduationCap,
@@ -25,6 +28,7 @@ import {
   KeyRound,
   Copy,
   Check,
+  Search,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -42,6 +46,16 @@ interface ClassInfo {
   school_level: string | null;
   subject: string | null;
   student_count: number;
+}
+
+interface StudentRow {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  class_id: string;
+  class_name: string;
+  teacher_id: string;
+  teacher_name: string;
 }
 
 interface Reclamation {
@@ -72,6 +86,10 @@ const EtablissementDashboard = () => {
   const [establishmentCode, setEstablishmentCode] = useState<string | null>(null);
   const [establishmentName, setEstablishmentName] = useState<string>("");
   const [copied, setCopied] = useState(false);
+  const [allStudents, setAllStudents] = useState<StudentRow[]>([]);
+  const [filterTeacher, setFilterTeacher] = useState<string>("all");
+  const [filterClass, setFilterClass] = useState<string>("all");
+  const [searchStudent, setSearchStudent] = useState("");
 
   useEffect(() => {
     if (authLoading) return;
@@ -115,11 +133,25 @@ const EtablissementDashboard = () => {
   const fetchTeachers = async () => {
     setLoadingTeachers(true);
     try {
-      // Only teachers linked to THIS establishment (via the establishment code they used at sign-up)
+      // Teachers linked to THIS establishment via the teacher_establishments join table
+      // (a teacher may be linked to several establishments; only their still-valid links show up here).
+      const { data: links } = await (supabase as any)
+        .from("teacher_establishments")
+        .select("teacher_id")
+        .eq("establishment_id", user!.id);
+
+      const linkedTeacherIds = [...new Set(((links as any[]) || []).map((l) => l.teacher_id))];
+
+      if (linkedTeacherIds.length === 0) {
+        setTeachers([]);
+        setLoadingTeachers(false);
+        return;
+      }
+
       const { data: profiles } = await (supabase as any)
         .from("profiles")
         .select("id, first_name, last_name, email")
-        .eq("establishment_id", user!.id);
+        .in("id", linkedTeacherIds);
 
       if (!profiles || profiles.length === 0) {
         setTeachers([]);
@@ -163,10 +195,53 @@ const EtablissementDashboard = () => {
       }));
 
       setTeachers(teacherList);
+      await fetchAllStudents(teacherList);
     } catch (err) {
       console.error(err);
     } finally {
       setLoadingTeachers(false);
+    }
+  };
+
+  const fetchAllStudents = async (teacherList: Teacher[]) => {
+    const allClassIds = teacherList.flatMap((t) => t.classes.map((c) => c.id));
+    if (allClassIds.length === 0) {
+      setAllStudents([]);
+      return;
+    }
+    try {
+      const { data: csRows } = await (supabase as any)
+        .from("class_students")
+        .select("class_id, student_id")
+        .in("class_id", allClassIds);
+
+      const studentIds = [...new Set(((csRows as any[]) || []).map((r) => r.student_id))];
+      const { data: studentProfiles } = await (supabase as any)
+        .from("profiles")
+        .select("id, first_name, last_name")
+        .in("id", studentIds);
+
+      const profileMap = new Map(((studentProfiles as any[]) || []).map((p) => [p.id, p]));
+      const classMeta = new Map(
+        teacherList.flatMap((t) => t.classes.map((c) => [c.id, { class_name: c.name, teacher_id: t.id, teacher_name: getFullName(t) }]))
+      );
+
+      const rows: StudentRow[] = ((csRows as any[]) || []).map((r) => {
+        const meta = classMeta.get(r.class_id) as any;
+        const p = profileMap.get(r.student_id) as any;
+        return {
+          id: r.student_id,
+          first_name: p?.first_name ?? null,
+          last_name: p?.last_name ?? null,
+          class_id: r.class_id,
+          class_name: meta?.class_name ?? "",
+          teacher_id: meta?.teacher_id ?? "",
+          teacher_name: meta?.teacher_name ?? "",
+        };
+      });
+      setAllStudents(rows);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -381,6 +456,7 @@ const EtablissementDashboard = () => {
           <Tabs defaultValue="teachers">
             <TabsList className="rounded-xl">
               <TabsTrigger value="teachers" className="rounded-lg">Enseignants & Classes</TabsTrigger>
+              <TabsTrigger value="eleves" className="rounded-lg">Élèves</TabsTrigger>
               <TabsTrigger value="reclamations" className="rounded-lg gap-2">
                 Réclamations
                 {pendingCount > 0 && (
@@ -462,6 +538,95 @@ const EtablissementDashboard = () => {
                   ))}
                 </div>
               )}
+            </TabsContent>
+
+            {/* Élèves tab */}
+            <TabsContent value="eleves" className="mt-4 space-y-4">
+              <div className="flex flex-wrap gap-3">
+                <Select value={filterTeacher} onValueChange={(v) => { setFilterTeacher(v); setFilterClass("all"); }}>
+                  <SelectTrigger className="w-full sm:w-56 rounded-xl">
+                    <SelectValue placeholder="Tous les enseignants" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les enseignants</SelectItem>
+                    {teachers.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>{getFullName(t)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={filterClass} onValueChange={setFilterClass}>
+                  <SelectTrigger className="w-full sm:w-56 rounded-xl">
+                    <SelectValue placeholder="Toutes les classes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Toutes les classes</SelectItem>
+                    {teachers
+                      .filter((t) => filterTeacher === "all" || t.id === filterTeacher)
+                      .flatMap((t) => t.classes)
+                      .map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <div className="relative flex-1 min-w-[200px]">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Rechercher un élève..."
+                    value={searchStudent}
+                    onChange={(e) => setSearchStudent(e.target.value)}
+                    className="pl-9 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              {(() => {
+                const filtered = allStudents.filter((s) => {
+                  if (filterTeacher !== "all" && s.teacher_id !== filterTeacher) return false;
+                  if (filterClass !== "all" && s.class_id !== filterClass) return false;
+                  if (searchStudent.trim()) {
+                    const name = [s.first_name, s.last_name].filter(Boolean).join(" ").toLowerCase();
+                    if (!name.includes(searchStudent.trim().toLowerCase())) return false;
+                  }
+                  return true;
+                });
+
+                if (loadingTeachers) {
+                  return <div className="flex justify-center py-12"><Loader2 className="h-7 w-7 animate-spin text-primary" /></div>;
+                }
+                if (filtered.length === 0) {
+                  return (
+                    <Card className="rounded-2xl border-border/50">
+                      <CardContent className="py-12 text-center text-muted-foreground">
+                        Aucun élève trouvé.
+                      </CardContent>
+                    </Card>
+                  );
+                }
+                return (
+                  <Card className="rounded-2xl border-border/50 overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/30">
+                          <TableHead>Élève</TableHead>
+                          <TableHead>Classe</TableHead>
+                          <TableHead>Enseignant</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filtered.map((s) => (
+                          <TableRow key={`${s.id}-${s.class_id}`}>
+                            <TableCell className="font-medium">
+                              {[s.first_name, s.last_name].filter(Boolean).join(" ") || "Élève"}
+                            </TableCell>
+                            <TableCell>{s.class_name}</TableCell>
+                            <TableCell className="text-muted-foreground">{s.teacher_name}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </Card>
+                );
+              })()}
             </TabsContent>
 
             {/* Reclamations tab */}

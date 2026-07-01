@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { logTokenUsageAsync, resolveCallerRoleGroup } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -166,6 +167,12 @@ serve(async (req) => {
 ${lessonsBlock}
 
 أنشئ الآن بطاقة المراجعة التخطيطية الكاملة لهذا الفصل.`;
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, req.headers.get("Authorization")).then(({ userId, roleGroup }) => {
+      logTokenUsageAsync({ supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: "generate-chapter-revision", inputText: systemPrompt + "\n" + userPrompt });
+    });
 
     const { content, provider } = await generateWithAI(systemPrompt, userPrompt);
 

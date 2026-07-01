@@ -22,6 +22,8 @@ import Account from "./pages/Account";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import AdminAbonnements from "./pages/AdminAbonnements";
+import AdminContrats from "./pages/AdminContrats";
+import AdminTokenUsage from "./pages/AdminTokenUsage";
 import Factures from "./pages/Factures";
 import MesInformations from "./pages/MesInformations";
 import UpdateSuccess from "./pages/UpdateSuccess";
@@ -115,6 +117,16 @@ const App = () => (
               <Route path="/admin/abonnements" element={
                 <ProtectedRoute requireAdmin>
                   <AdminAbonnements />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/contrats" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminContrats />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/token-usage" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminTokenUsage />
                 </ProtectedRoute>
               } />
               <Route path="/rejoindre/:code" element={<JoinClass />} />

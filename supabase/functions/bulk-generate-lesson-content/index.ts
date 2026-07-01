@@ -1,6 +1,7 @@
 // Bulk-generate exercises (10) and quizzes (10) for a single lesson and INSERT them into DB.
 // Uses LOVABLE_API_KEY (Lovable AI Gateway, OpenAI-compatible). Caller must be admin.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { logTokenUsageAsync } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -108,6 +109,13 @@ Deno.serve(async (req) => {
     }
 
     const userPrompt = buildUserPrompt(chapter_title_ar, lesson_title_ar, lesson_title_fr || "");
+
+    logTokenUsageAsync({
+      supabaseUrl: SUPABASE_URL, serviceRoleKey: SERVICE_ROLE, userId: user.id,
+      roleGroup: roles.includes("admin") ? "admin" : "pedago",
+      functionName: "bulk-generate-lesson-content",
+      inputText: SYSTEM_PROMPT + "\n" + userPrompt,
+    });
 
     // retry up to 3 times on parse / API errors
     let parsed: any = null;

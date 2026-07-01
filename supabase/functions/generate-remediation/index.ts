@@ -1,6 +1,8 @@
 // Génère des activités de remédiation ciblées UNIQUEMENT sur les lacunes de l'élève.
 // Retourne exactement 3 exercices + 2 quiz, sans monter en compétence :
 // le but est de combler les lacunes, pas de pousser vers du plus difficile.
+import { logTokenUsageAsync, resolveCallerRoleGroup } from "../_shared/tokenLogger.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -252,6 +254,12 @@ Deno.serve(async (req) => {
           weak,
           safeSeed,
         );
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, req.headers.get("Authorization")).then(({ userId, roleGroup }) => {
+      logTokenUsageAsync({ supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: "generate-remediation", inputText: system + "\n" + user });
+    });
 
     const geminiKey1 = Deno.env.get("GEMINI_API_KEY");
     const geminiKey2 = Deno.env.get("GEMINI_API_KEY_2");

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.97.0";
+import { logTokenUsageAsync, resolveCallerRoleGroup } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -387,6 +388,12 @@ serve(async (req) => {
     }
 
     console.log(`Generating for chapter: ${chapterTitle}, lesson: ${lessonTitle}`);
+
+    const tokenSupabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const tokenServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    resolveCallerRoleGroup(tokenSupabaseUrl, tokenServiceRoleKey, req.headers.get("Authorization")).then(({ userId, roleGroup }) => {
+      logTokenUsageAsync({ supabaseUrl: tokenSupabaseUrl, serviceRoleKey: tokenServiceRoleKey, userId, roleGroup, functionName: "generate-chapter-quizzes", inputText: `${chapterTitle}\n${lessonTitle}` });
+    });
 
     // Generate sequentially to avoid provider rate limits (especially Groq/Gemini) when fallbacks are used
     const quizzes = await generateQuizzes(chapterTitle, lessonTitle);

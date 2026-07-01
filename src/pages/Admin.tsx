@@ -683,14 +683,19 @@ export default function Admin() {
                       </CardDescription>
                     </div>
                   </div>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Rechercher un établissement..."
-                      value={searchQueryEtablissements}
-                      onChange={(e) => setSearchQueryEtablissements(e.target.value)}
-                      className="pl-9 w-full sm:w-64"
-                    />
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Rechercher un établissement..."
+                        value={searchQueryEtablissements}
+                        onChange={(e) => setSearchQueryEtablissements(e.target.value)}
+                        className="pl-9 w-full sm:w-64"
+                      />
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => navigate("/admin/contrats")}>
+                      Gérer les contrats
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -710,9 +715,8 @@ export default function Admin() {
                         <UserRow
                           key={user.id}
                           user={user}
-                          onToggleStatus={() =>
-                            toggleUserStatus(user.id, !user.is_active, user.email || '')
-                          }
+                          hideToggle
+                          onToggleStatus={() => {}}
                           onDelete={() => {
                             setUserToDelete(user);
                             setDeleteDialogOpen(true);
@@ -930,11 +934,13 @@ function UserCompactRow({ user, showLevel }: { user: AdminUser; showLevel?: bool
 function UserRow({
   user,
   showLevel,
+  hideToggle,
   onToggleStatus,
   onDelete,
 }: {
   user: AdminUser;
   showLevel?: boolean;
+  hideToggle?: boolean;
   onToggleStatus: () => void;
   onDelete: () => void;
 }) {
@@ -987,19 +993,25 @@ function UserRow({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onToggleStatus}>
-              {user.is_active ? (
-                <>
-                  <UserX className="h-4 w-4 mr-2" />
-                  Désactiver
-                </>
-              ) : (
-                <>
-                  <UserCheck className="h-4 w-4 mr-2" />
-                  Activer
-                </>
-              )}
-            </DropdownMenuItem>
+            {!hideToggle ? (
+              <DropdownMenuItem onClick={onToggleStatus}>
+                {user.is_active ? (
+                  <>
+                    <UserX className="h-4 w-4 mr-2" />
+                    Désactiver
+                  </>
+                ) : (
+                  <>
+                    <UserCheck className="h-4 w-4 mr-2" />
+                    Activer
+                  </>
+                )}
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem disabled className="text-muted-foreground text-xs">
+                Statut géré via la page Contrats
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={onDelete} className="text-destructive">
               <Trash2 className="h-4 w-4 mr-2" />
               Supprimer

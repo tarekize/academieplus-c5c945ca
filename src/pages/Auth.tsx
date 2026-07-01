@@ -296,12 +296,25 @@ const Auth = () => {
       // LOGIN
       setLoading(true);
       try {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
         if (error) throw error;
+
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("is_active")
+          .eq("id", signInData.user!.id)
+          .maybeSingle();
+
+        if (profileData && profileData.is_active === false) {
+          await supabase.auth.signOut();
+          toast.error("Votre compte a été désactivé. Contactez votre établissement ou l'administration.");
+          setLoading(false);
+          return;
+        }
       } catch (error: any) {
         if (error.message.includes("Email not confirmed")) {
           toast.error("Veuillez d'abord confirmer votre email en cliquant sur le lien envoyé dans votre boîte de réception.", {

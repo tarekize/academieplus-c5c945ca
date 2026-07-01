@@ -2,6 +2,8 @@
 // The AI identifies the student's weak concepts (lacunes) and gives,
 // for each one, a short explanation + a simple example + its solution,
 // using LaTeX math ($...$ and $$...$$) and Markdown formatting.
+import { logTokenUsageAsync, resolveCallerRoleGroup } from "../_shared/tokenLogger.ts";
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -123,6 +125,12 @@ Deno.serve(async (req) => {
       const text = d.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || '').join('').trim();
       return text || null;
     }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, req.headers.get('Authorization')).then(({ userId, roleGroup }) => {
+      logTokenUsageAsync({ supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: 'generate-lesson-comment', inputText: systemPrompt + '\n' + userPrompt });
+    });
 
     let message: string | null = await tryLovable();
     if (!message && geminiKey1) message = await tryGemini(geminiKey1, 'KEY_1');

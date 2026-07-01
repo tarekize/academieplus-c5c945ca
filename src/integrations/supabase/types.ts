@@ -550,6 +550,7 @@ export type Database = {
       establishments: {
         Row: {
           created_at: string
+          establishment_profile_id: string | null
           id: string
           name: string
           teacher_id: string
@@ -559,6 +560,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          establishment_profile_id?: string | null
           id?: string
           name: string
           teacher_id: string
@@ -568,12 +570,94 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          establishment_profile_id?: string | null
           id?: string
           name?: string
           teacher_id?: string
           type?: string | null
           updated_at?: string
           ville?: string | null
+        }
+        Relationships: []
+      }
+      teacher_establishments: {
+        Row: {
+          created_at: string
+          establishment_id: string
+          id: string
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string
+          establishment_id: string
+          id?: string
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string
+          establishment_id?: string
+          id?: string
+          teacher_id?: string
+        }
+        Relationships: []
+      }
+      ai_token_usage: {
+        Row: {
+          created_at: string
+          estimated_input_tokens: number
+          estimated_output_tokens: number
+          function_name: string
+          id: string
+          role_group: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          estimated_input_tokens?: number
+          estimated_output_tokens?: number
+          function_name: string
+          id?: string
+          role_group: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          estimated_input_tokens?: number
+          estimated_output_tokens?: number
+          function_name?: string
+          id?: string
+          role_group?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      renewal_reminders_log: {
+        Row: {
+          channel: string
+          created_at: string
+          error_message: string | null
+          id: string
+          sent_by: string | null
+          success: boolean
+          target_user_id: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          sent_by?: string | null
+          success?: boolean
+          target_user_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          sent_by?: string | null
+          success?: boolean
+          target_user_id?: string
         }
         Relationships: []
       }
@@ -842,6 +926,8 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          contract_end_date: string | null
+          contract_start_date: string | null
           created_at: string | null
           date_of_birth: string | null
           ecole: string | null
@@ -857,12 +943,15 @@ export type Database = {
           linking_code: string | null
           phone: string | null
           school_level: Database["public"]["Enums"]["school_level"] | null
+          subscription_end_date: string | null
           updated_at: string | null
           ville: string | null
           wilaya: string | null
         }
         Insert: {
           avatar_url?: string | null
+          contract_end_date?: string | null
+          contract_start_date?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           ecole?: string | null
@@ -878,12 +967,15 @@ export type Database = {
           linking_code?: string | null
           phone?: string | null
           school_level?: Database["public"]["Enums"]["school_level"] | null
+          subscription_end_date?: string | null
           updated_at?: string | null
           ville?: string | null
           wilaya?: string | null
         }
         Update: {
           avatar_url?: string | null
+          contract_end_date?: string | null
+          contract_start_date?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           ecole?: string | null
@@ -899,6 +991,7 @@ export type Database = {
           linking_code?: string | null
           phone?: string | null
           school_level?: Database["public"]["Enums"]["school_level"] | null
+          subscription_end_date?: string | null
           updated_at?: string | null
           ville?: string | null
           wilaya?: string | null
@@ -1375,6 +1468,20 @@ export type Database = {
       }
       generate_activation_code: { Args: never; Returns: string }
       generate_establishment_code: { Args: never; Returns: string }
+      get_establishment_name_by_code: {
+        Args: { p_code: string }
+        Returns: string
+      }
+      get_my_primary_establishment_name: { Args: never; Returns: string }
+      get_my_primary_establishment: {
+        Args: never
+        Returns: { establishment_id: string; establishment_name: string }[]
+      }
+      join_establishment_by_code: {
+        Args: { p_code: string }
+        Returns: { establishment_id: string; establishment_name: string }[]
+      }
+      recompute_expired_contracts: { Args: never; Returns: undefined }
       get_student_exercises: {
         Args: { _chapter_id: string; _lesson_id?: string }
         Returns: {

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { logTokenUsageAsync, resolveCallerRoleGroup } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -514,6 +515,15 @@ serve(async (req) => {
 
   try {
     const { messages, subject, schoolLevel, chapterContext, allChapters, editorialMode, editorialContext, hideReformulation } = await req.json();
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const authHeader = req.headers.get("Authorization");
+    resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, authHeader).then(({ userId, roleGroup }) => {
+      const lastUserMessage = messages?.[messages.length - 1]?.content;
+      const inputText = typeof lastUserMessage === "string" ? lastUserMessage : JSON.stringify(messages ?? "");
+      logTokenUsageAsync({ supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: "lovable-chat", inputText });
+    });
 
     const systemPrompt = editorialMode
       ? `Tu es un assistant IA expert en édition de contenus pédagogiques mathématiques (français/arabe).

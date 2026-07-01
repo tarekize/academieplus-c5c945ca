@@ -22,7 +22,7 @@ import HelpDialog from "./HelpDialog";
 import ParentTeacherChat from "@/components/messaging/ParentTeacherChat";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
 
-interface Establishment { id: string; name: string; type: string | null; ville: string | null; }
+interface Establishment { id: string; name: string; type: string | null; ville: string | null; establishment_profile_id: string | null; }
 interface DetailStudent {
   id: string; first_name: string | null; last_name: string | null;
   email: string | null; school_level: string | null; filiere?: string | null; avatar_url: string | null;
@@ -51,7 +51,7 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
     setLoading(true);
     const { data } = await supabase
       .from("establishments" as any)
-      .select("id, name, type, ville")
+      .select("id, name, type, ville, establishment_profile_id")
       .eq("teacher_id", teacherId)
       .order("created_at", { ascending: true });
     let rows = (data as any as Establishment[]) || [];
@@ -59,18 +59,42 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
     // Auto-populate from the establishment linked during signup
     if (rows.length === 0) {
       try {
-        const { data: nameResult } = await supabase.rpc("get_my_primary_establishment_name" as any);
-        if (nameResult) {
+        const { data: primary } = await supabase.rpc("get_my_primary_establishment" as any);
+        const primaryRow = Array.isArray(primary) ? primary[0] : primary;
+        if (primaryRow?.establishment_name) {
+          if (primaryRow.establishment_id) {
+            await supabase.from("teacher_establishments" as any).upsert(
+              { teacher_id: teacherId, establishment_id: primaryRow.establishment_id },
+              { onConflict: "teacher_id,establishment_id" }
+            );
+          }
           const { data: created } = await supabase
             .from("establishments" as any)
-            .insert({ teacher_id: teacherId, name: nameResult })
-            .select("id, name, type, ville")
+            .insert({
+              teacher_id: teacherId,
+              name: primaryRow.establishment_name,
+              establishment_profile_id: primaryRow.establishment_id ?? null,
+            })
+            .select("id, name, type, ville, establishment_profile_id")
             .single();
           if (created) rows = [created as any as Establishment];
         }
       } catch {
         // fail silently — teacher can add via code
       }
+    }
+
+    // Hide establishments whose linked institutional account has an expired/inactive contract
+    const linkedIds = rows.map((r) => r.establishment_profile_id).filter(Boolean) as string[];
+    if (linkedIds.length > 0) {
+      const { data: linkedProfiles } = await supabase
+        .from("profiles")
+        .select("id, is_active")
+        .in("id", linkedIds);
+      const inactiveSet = new Set(
+        ((linkedProfiles as any[]) || []).filter((p) => p.is_active === false).map((p) => p.id)
+      );
+      rows = rows.filter((r) => !r.establishment_profile_id || !inactiveSet.has(r.establishment_profile_id));
     }
 
     setEstablishments(rows);
@@ -113,16 +137,17 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
     if (!code) { toast.error("Entrez un code d'établissement."); return; }
     setCreating(true);
     try {
-      const { data: nameResult, error: rpcError } = await supabase
-        .rpc("get_establishment_name_by_code" as any, { p_code: code });
-      if (rpcError || !nameResult) {
+      const { data: joinResult, error: rpcError } = await supabase
+        .rpc("join_establishment_by_code" as any, { p_code: code });
+      const result = Array.isArray(joinResult) ? joinResult[0] : joinResult;
+      if (rpcError || !result?.establishment_name) {
         toast.error("Code d'établissement invalide.");
         return;
       }
       const { data, error } = await supabase
         .from("establishments" as any)
-        .insert({ teacher_id: teacherId, name: nameResult })
-        .select("id, name, type, ville")
+        .insert({ teacher_id: teacherId, name: result.establishment_name, establishment_profile_id: result.establishment_id })
+        .select("id, name, type, ville, establishment_profile_id")
         .single();
       if (error) throw error;
       toast.success("Établissement ajouté");

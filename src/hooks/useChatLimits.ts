@@ -55,11 +55,13 @@ export function useChatLimits() {
         const now = new Date();
         const lastTick = new Date(sub.last_tick_at);
         const elapsed = (now.getTime() - lastTick.getTime()) / (1000 * 60 * 60 * 24);
-        const totalUsed = (sub.days_used || 0) + elapsed;
-        const remaining = (sub.total_days || 0) - totalUsed;
+        // days_used est une colonne numeric(10,4) : Supabase/PostgREST la renvoie en string.
+        // Number(...) évite une concaténation de chaînes silencieuse (ex: "0.0000" + elapsed).
+        const totalUsed = Number(sub.days_used || 0) + elapsed;
+        const remaining = Number(sub.total_days || 0) - totalUsed;
         setHasSubscription(remaining > 0);
       } else if (sub && sub.is_paused) {
-        const remaining = (sub.total_days || 0) - (sub.days_used || 0);
+        const remaining = Number(sub.total_days || 0) - Number(sub.days_used || 0);
         setHasSubscription(remaining > 0);
       } else {
         setHasSubscription(false);

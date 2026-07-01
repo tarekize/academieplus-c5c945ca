@@ -2,6 +2,7 @@
 // Protected by a shared secret header to allow sandbox invocation without admin JWT.
 // Streams progress as NDJSON.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { logTokenUsageAsync } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -113,6 +114,12 @@ Deno.serve(async (req) => {
 
   const slice = ordered.slice(startIdx, startIdx + limit);
   const results: any[] = [];
+
+  logTokenUsageAsync({
+    supabaseUrl: SUPABASE_URL, serviceRoleKey: SERVICE_ROLE, userId: null, roleGroup: "admin",
+    functionName: "bulk-generate-all-terminale",
+    inputText: `${SYSTEM_PROMPT}\nlessons:${slice.length}`,
+  });
 
   for (const lesson of slice) {
     const ch: any = chMap.get(lesson.chapter_id);

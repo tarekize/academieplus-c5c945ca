@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Users, GraduationCap, Search, LogOut, User as UserIcon, BarChart3, CreditCard } from "lucide-react";
+import { Users, GraduationCap, Search, LogOut, User as UserIcon, BarChart3, CreditCard, FileText, Cpu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -279,6 +279,34 @@ const Dashboard = () => {
                         <div>
                           <h3 className="font-semibold mb-1">Abonnements</h3>
                           <p className="text-sm text-muted-foreground">Configurez les tarifs et paiements</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      className="group bg-card rounded-2xl border border-border/50 p-6 cursor-pointer hover:shadow-lg hover:border-indigo-200 transition-all duration-200"
+                      onClick={() => navigate("/admin/contrats")}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 rounded-xl bg-indigo-500/10 group-hover:bg-indigo-500/20 transition-colors flex-shrink-0">
+                          <FileText className="h-6 w-6 text-indigo-500" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold mb-1">Contrats</h3>
+                          <p className="text-sm text-muted-foreground">Gérez les contrats établissements, élèves et parents</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      className="group bg-card rounded-2xl border border-border/50 p-6 cursor-pointer hover:shadow-lg hover:border-teal-200 transition-all duration-200"
+                      onClick={() => navigate("/admin/token-usage")}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 rounded-xl bg-teal-500/10 group-hover:bg-teal-500/20 transition-colors flex-shrink-0">
+                          <Cpu className="h-6 w-6 text-teal-500" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold mb-1">Consommation IA</h3>
+                          <p className="text-sm text-muted-foreground">Estimation de l'usage de tokens par groupe</p>
                         </div>
                       </div>
                     </div>

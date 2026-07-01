@@ -1,6 +1,7 @@
 // Generates 10 exercises + 10 quizzes for ONE lesson using Google Gemini API directly (GEMINI_API_KEY_2).
 // No auth required: uses a shared secret token to prevent abuse.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { logTokenUsageAsync } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -165,6 +166,9 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: req.headers.get("Authorization") || "" } },
     });
 
+    let callerUserId: string | null = null;
+    let callerRoleGroup: "admin" | "pedago" = "admin";
+
     if (shared_token !== expectedToken) {
       const { data: authData } = await publicClient.auth.getUser();
       const userId = authData?.user?.id;
@@ -176,6 +180,8 @@ Deno.serve(async (req) => {
       if (roleError || (!isAllowed && !isAdmin)) {
         return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
+      callerUserId = userId;
+      callerRoleGroup = isAdmin ? "admin" : "pedago";
     }
 
     let chapterTitle = chapter_title_ar || "الفصل";
@@ -192,6 +198,12 @@ Deno.serve(async (req) => {
     }
 
     const userPrompt = buildUserPrompt(chapterTitle, lessonTitleAr, lessonTitleFr);
+
+    logTokenUsageAsync({
+      supabaseUrl: SUPABASE_URL, serviceRoleKey: SERVICE_ROLE, userId: callerUserId, roleGroup: callerRoleGroup,
+      functionName: "bulk-gen-terminale-gemini",
+      inputText: SYSTEM_PROMPT + "\n" + userPrompt,
+    });
 
     let parsed: any = null;
     let lastErr = "";

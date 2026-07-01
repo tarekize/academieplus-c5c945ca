@@ -184,8 +184,8 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           const now = new Date();
           const lastTick = new Date(sub.last_tick_at);
           const elapsed = (now.getTime() - lastTick.getTime()) / (1000 * 60 * 60 * 24);
-          const totalUsed = (sub.days_used || 0) + elapsed;
-          const remaining = (sub.total_days || 0) - totalUsed;
+          const totalUsed = Number(sub.days_used || 0) + elapsed;
+          const remaining = Number(sub.total_days || 0) - totalUsed;
           if (remaining > 0) setHasActiveSubscription(true);
         }
       } catch (err) {
