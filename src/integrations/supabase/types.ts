@@ -198,6 +198,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_token_usage: {
+        Row: {
+          created_at: string
+          estimated_input_tokens: number
+          estimated_output_tokens: number
+          function_name: string
+          id: string
+          role_group: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          estimated_input_tokens?: number
+          estimated_output_tokens?: number
+          function_name: string
+          id?: string
+          role_group: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          estimated_input_tokens?: number
+          estimated_output_tokens?: number
+          function_name?: string
+          id?: string
+          role_group?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       chapter_exercises: {
         Row: {
           accepted_answers: Json
@@ -578,88 +608,15 @@ export type Database = {
           updated_at?: string
           ville?: string | null
         }
-        Relationships: []
-      }
-      teacher_establishments: {
-        Row: {
-          created_at: string
-          establishment_id: string
-          id: string
-          teacher_id: string
-        }
-        Insert: {
-          created_at?: string
-          establishment_id: string
-          id?: string
-          teacher_id: string
-        }
-        Update: {
-          created_at?: string
-          establishment_id?: string
-          id?: string
-          teacher_id?: string
-        }
-        Relationships: []
-      }
-      ai_token_usage: {
-        Row: {
-          created_at: string
-          estimated_input_tokens: number
-          estimated_output_tokens: number
-          function_name: string
-          id: string
-          role_group: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          estimated_input_tokens?: number
-          estimated_output_tokens?: number
-          function_name: string
-          id?: string
-          role_group: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          estimated_input_tokens?: number
-          estimated_output_tokens?: number
-          function_name?: string
-          id?: string
-          role_group?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      renewal_reminders_log: {
-        Row: {
-          channel: string
-          created_at: string
-          error_message: string | null
-          id: string
-          sent_by: string | null
-          success: boolean
-          target_user_id: string
-        }
-        Insert: {
-          channel?: string
-          created_at?: string
-          error_message?: string | null
-          id?: string
-          sent_by?: string | null
-          success?: boolean
-          target_user_id: string
-        }
-        Update: {
-          channel?: string
-          created_at?: string
-          error_message?: string | null
-          id?: string
-          sent_by?: string | null
-          success?: boolean
-          target_user_id?: string
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "establishments_establishment_profile_id_fkey"
+            columns: ["establishment_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       exams: {
         Row: {
@@ -1000,6 +957,44 @@ export type Database = {
           {
             foreignKeyName: "profiles_establishment_id_fkey"
             columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      renewal_reminders_log: {
+        Row: {
+          channel: string
+          created_at: string
+          error_message: string | null
+          id: string
+          sent_by: string | null
+          success: boolean
+          target_user_id: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          sent_by?: string | null
+          success?: boolean
+          target_user_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          sent_by?: string | null
+          success?: boolean
+          target_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "renewal_reminders_log_target_user_id_fkey"
+            columns: ["target_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1358,6 +1353,42 @@ export type Database = {
           },
         ]
       }
+      teacher_establishments: {
+        Row: {
+          created_at: string
+          establishment_id: string
+          id: string
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string
+          establishment_id: string
+          id?: string
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string
+          establishment_id?: string
+          id?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_establishments_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_establishments_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teacher_parent_messages: {
         Row: {
           content: string
@@ -1472,16 +1503,14 @@ export type Database = {
         Args: { p_code: string }
         Returns: string
       }
-      get_my_primary_establishment_name: { Args: never; Returns: string }
       get_my_primary_establishment: {
         Args: never
-        Returns: { establishment_id: string; establishment_name: string }[]
+        Returns: {
+          establishment_id: string
+          establishment_name: string
+        }[]
       }
-      join_establishment_by_code: {
-        Args: { p_code: string }
-        Returns: { establishment_id: string; establishment_name: string }[]
-      }
-      recompute_expired_contracts: { Args: never; Returns: undefined }
+      get_my_primary_establishment_name: { Args: never; Returns: string }
       get_student_exercises: {
         Args: { _chapter_id: string; _lesson_id?: string }
         Returns: {
@@ -1532,10 +1561,18 @@ export type Database = {
         Args: { _student_id: string; _teacher_id: string }
         Returns: boolean
       }
+      join_establishment_by_code: {
+        Args: { p_code: string }
+        Returns: {
+          establishment_id: string
+          establishment_name: string
+        }[]
+      }
       log_activity: {
         Args: { _action: string; _details?: Json; _user_id: string }
         Returns: string
       }
+      recompute_expired_contracts: { Args: never; Returns: undefined }
       user_has_any_role: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
