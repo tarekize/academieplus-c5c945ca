@@ -33,20 +33,9 @@ export function useChatLimits() {
   useEffect(() => {
     let cancelled = false;
 
-    const init = async () => {
-      // Wait for session to be ready
-      const { data: { session } } = await supabase.auth.getSession();
-      if (cancelled) return;
-
-      if (!session?.user) {
-        setHasSubscription(false);
-        return;
-      }
-
-      const uid = session.user.id;
-      setUserId(uid);
-
-      // Check subscription
+    // Recalcule l'état premium + l'usage du jour pour un utilisateur donné.
+    const loadForUser = async (uid: string) => {
+      // Check subscription (dernier abonnement en date)
       const { data: sub } = await supabase
         .from('student_subscriptions')
         .select('id, days_used, total_days, is_paused, last_tick_at')
@@ -94,20 +83,63 @@ export function useChatLimits() {
       }
     };
 
+    const init = async () => {
+      // Wait for session to be ready
+      const { data: { session } } = await supabase.auth.getSession();
+      if (cancelled) return;
+
+      if (!session?.user) {
+        setHasSubscription(false);
+        return;
+      }
+
+      const uid = session.user.id;
+      setUserId(uid);
+      await loadForUser(uid);
+    };
+
     init();
 
+    // Réagit aux changements d'auth : si la session arrive après coup (course au
+    // premier rendu / rafraîchissement), on (re)charge l'état premium au lieu de
+    // rester bloqué sur "gratuit".
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session?.user) {
         setUserId(null);
         setHasSubscription(false);
         setUsage({ messageCount: 0, imageCount: 0 });
+        return;
       }
+      const uid = session.user.id;
+      setUserId(uid);
+      // Chargement différé (recommandé pour éviter les deadlocks dans le callback auth).
+      setTimeout(() => {
+        if (!cancelled) loadForUser(uid);
+      }, 0);
     });
+
+    // Realtime : quand l'admin/parent crée ou modifie l'abonnement premium de
+    // l'élève, on recalcule immédiatement sans exiger de rafraîchissement.
+    const subsChannel = supabase
+      .channel('chat-limits-subscriptions')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'student_subscriptions' },
+        (payload) => {
+          const row: any = payload.new || payload.old;
+          if (row?.user_id && row.user_id === userIdRef.current && !cancelled) {
+            loadForUser(row.user_id);
+          }
+        }
+      )
+      .subscribe();
 
     return () => {
       cancelled = true;
       subscription.unsubscribe();
+      supabase.removeChannel(subsChannel);
     };
+
   }, []);
 
   const messagesRemaining = hasSubscription
