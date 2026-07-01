@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import {
-  ArrowLeft, Loader2, Users, BookOpen, Trash2, Copy, School, Plus, HeartHandshake,
+  ArrowLeft, Loader2, Users, BookOpen, Trash2, Copy, School, Plus, HeartHandshake, Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
@@ -22,7 +22,7 @@ import HelpDialog from "./HelpDialog";
 import ParentTeacherChat from "@/components/messaging/ParentTeacherChat";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
 
-interface Establishment { id: string; name: string; type: string | null; ville: string | null; establishment_profile_id: string | null; }
+interface Establishment { id: string; name: string; type: string | null; ville: string | null; establishment_profile_id: string | null; is_active: boolean; }
 interface DetailStudent {
   id: string; first_name: string | null; last_name: string | null;
   email: string | null; school_level: string | null; filiere?: string | null; avatar_url: string | null;
@@ -77,32 +77,70 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
             })
             .select("id, name, type, ville, establishment_profile_id")
             .single();
-          if (created) rows = [created as any as Establishment];
+          if (created) rows = [{ ...(created as any), is_active: true } as Establishment];
         }
       } catch {
         // fail silently — teacher can add via code
       }
     }
 
-    // Hide establishments whose linked institutional account has an expired/inactive contract
+    // Self-heal legacy rows created before establishment_profile_id existed:
+    // resolve the link by matching the establishment name against the
+    // teacher's linked accounts, so the active/inactive check below always
+    // has a profile to check against instead of silently defaulting to active.
+    const unresolved = rows.filter((r) => !r.establishment_profile_id);
+    if (unresolved.length > 0) {
+      const { data: links } = await supabase
+        .from("teacher_establishments" as any)
+        .select("establishment_id")
+        .eq("teacher_id", teacherId);
+      const estIds = ((links as any[]) || []).map((l) => l.establishment_id);
+      if (estIds.length > 0) {
+        const { data: linkedProfs } = await supabase
+          .from("profiles")
+          .select("id, first_name")
+          .in("id", estIds);
+        const byName = new Map(
+          ((linkedProfs as any[]) || []).map((p) => [String(p.first_name || "").trim().toLowerCase(), p.id as string])
+        );
+        for (const r of unresolved) {
+          const matchId = byName.get(r.name.trim().toLowerCase());
+          if (matchId) {
+            r.establishment_profile_id = matchId;
+            supabase.from("establishments" as any).update({ establishment_profile_id: matchId }).eq("id", r.id);
+          }
+        }
+      }
+    }
+
+    // Mark establishments whose linked institutional account is deactivated —
+    // they stay visible but locked, they are not hidden.
     const linkedIds = rows.map((r) => r.establishment_profile_id).filter(Boolean) as string[];
+    let inactiveSet = new Set<string>();
     if (linkedIds.length > 0) {
       const { data: linkedProfiles } = await supabase
         .from("profiles")
         .select("id, is_active")
         .in("id", linkedIds);
-      const inactiveSet = new Set(
+      inactiveSet = new Set(
         ((linkedProfiles as any[]) || []).filter((p) => p.is_active === false).map((p) => p.id)
       );
-      rows = rows.filter((r) => !r.establishment_profile_id || !inactiveSet.has(r.establishment_profile_id));
     }
+    rows = rows.map((r) => ({
+      ...r,
+      is_active: !r.establishment_profile_id || !inactiveSet.has(r.establishment_profile_id),
+    }));
 
     setEstablishments(rows);
     if (rows.length > 0 && !activeEstab) setActiveEstab(rows[0].id);
     setLoading(false);
   }, [teacherId, activeEstab]);
 
+  const activeEstablishment = establishments.find((e) => e.id === activeEstab);
+  const isActiveLocked = activeEstablishment ? activeEstablishment.is_active === false : false;
+
   const fetchClasses = useCallback(async () => {
+    if (isActiveLocked) { setClasses([]); return; }
     const { data } = await supabase
       .from("classes")
       .select("id, name, school_level, filiere, subject, join_code, establishment_id")
@@ -127,7 +165,7 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
       }
       setCounts(map);
     }
-  }, [teacherId, activeEstab]);
+  }, [teacherId, activeEstab, isActiveLocked]);
 
   useEffect(() => { fetchEstablishments(); }, [fetchEstablishments]);
   useEffect(() => { if (activeEstab) fetchClasses(); }, [activeEstab, fetchClasses]);
@@ -153,7 +191,7 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
       toast.success("Établissement ajouté");
       setEstCode("");
       setShowCreateForm(false);
-      const created = data as any as Establishment;
+      const created = { ...(data as any), is_active: true } as Establishment;
       setEstablishments((prev) => [...prev, created]);
       setActiveEstab(created.id);
     } catch (e: any) {
@@ -189,6 +227,7 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
   };
 
   const openClass = async (c: ClassRow) => {
+    if (isActiveLocked) return;
     setSelectedClass(c);
     const { data } = await supabase.from("class_students").select("student_id").eq("class_id", c.id);
     setClassMembers(((data as any[]) || []).map((m) => m.student_id));
@@ -336,8 +375,8 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
         {establishments.map((e) => (
           <div key={e.id} className="flex items-center gap-1">
             <Button size="sm" variant={e.id === activeEstab ? "default" : "outline"}
-              className="gap-2" onClick={() => setActiveEstab(e.id)}>
-              <School className="h-4 w-4" /> {e.name}
+              className={`gap-2 ${e.is_active === false ? "opacity-60" : ""}`} onClick={() => setActiveEstab(e.id)}>
+              {e.is_active === false ? <Lock className="h-4 w-4" /> : <School className="h-4 w-4" />} {e.name}
             </Button>
             <Button
               size="icon"
@@ -375,10 +414,23 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
           <h1 className="text-2xl font-bold">Mes classes{active ? ` — ${active.name}` : ""}</h1>
           <p className="text-muted-foreground">Gérez vos classes et suivez la progression de vos élèves.</p>
         </div>
-        <CreateClassDialog teacherId={teacherId} establishmentId={activeEstab} onCreated={fetchClasses} />
+        {!isActiveLocked && (
+          <CreateClassDialog teacherId={teacherId} establishmentId={activeEstab} onCreated={fetchClasses} />
+        )}
       </div>
 
-      {classes.length === 0 ? (
+      {isActiveLocked ? (
+        <Card className="border-dashed">
+          <CardContent className="py-16 text-center space-y-3">
+            <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
+            <h3 className="text-lg font-semibold">Établissement désactivé</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              L'accès aux classes de {active?.name || "cet établissement"} est verrouillé car son abonnement est inactif.
+              Contactez l'établissement ou l'administration pour le réactiver.
+            </p>
+          </CardContent>
+        </Card>
+      ) : classes.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="py-16 text-center space-y-3">
             <BookOpen className="h-12 w-12 mx-auto text-muted-foreground" />
