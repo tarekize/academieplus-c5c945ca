@@ -132,12 +132,12 @@ const Pricing = () => {
               <Button
                 onClick={() => {
                   if (plan.planData) {
-                    sessionStorage.setItem('returnTo', '/abonnements');
                     if (!user) {
+                      sessionStorage.setItem('returnTo', '/abonnements');
                       navigate("/auth");
                       return;
                     }
-                    navigate("/abonnements", {
+                    navigate("/paiement", {
                       state: {
                         planId: plan.planData.id,
                         planName: plan.name,
