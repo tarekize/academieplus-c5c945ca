@@ -18,11 +18,17 @@ export function useChatLimits() {
   const [hasSubscription, setHasSubscription] = useState<boolean | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const usageRef = useRef<UsageState>({ messageCount: 0, imageCount: 0 });
+  const userIdRef = useRef<string | null>(null);
 
-  // Keep ref in sync
+  // Keep refs in sync
   useEffect(() => {
     usageRef.current = usage;
   }, [usage]);
+
+  useEffect(() => {
+    userIdRef.current = userId;
+  }, [userId]);
+
 
   useEffect(() => {
     let cancelled = false;
