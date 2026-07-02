@@ -41,7 +41,7 @@ import {
 import { LinkedChildrenSection } from "@/components/profile/LinkedChildrenSection";
 import { LinkedParentsSection } from "@/components/profile/LinkedParentsSection";
 import { AvatarUpload } from "@/components/profile/AvatarUpload";
-import { SchoolLevelSelect } from "@/components/profile/SchoolLevelSelect";
+
 import LocationFields from "@/components/profile/LocationFields";
 import {
   Select,
