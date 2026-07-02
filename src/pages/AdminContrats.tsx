@@ -226,8 +226,21 @@ export default function AdminContrats() {
   const handleSendReminder = async (userId: string) => {
     setSendingReminder(userId);
     const { error } = await supabase.functions.invoke("send-renewal-reminder", { body: { userId } });
-    if (error) toast.error(error.message || "Échec de l'envoi du rappel");
-    else toast.success("Rappel envoyé");
+    if (error) {
+      let message = error.message || "Échec de l'envoi du rappel";
+      const context = (error as { context?: Response }).context;
+      if (context) {
+        try {
+          const body = await context.clone().json();
+          if (body?.error) message = body.error;
+        } catch {
+          // response body wasn't JSON, keep the default message
+        }
+      }
+      toast.error(message);
+    } else {
+      toast.success("Rappel envoyé");
+    }
     setSendingReminder(null);
     fetchReminderLog();
   };

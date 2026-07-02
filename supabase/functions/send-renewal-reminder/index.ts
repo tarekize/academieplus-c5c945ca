@@ -118,7 +118,13 @@ Deno.serve(async (req) => {
       });
       success = emailRes.ok;
       if (!success) {
-        errorMessage = await emailRes.text();
+        const rawError = await emailRes.text();
+        try {
+          const parsed = JSON.parse(rawError);
+          errorMessage = parsed.message || rawError;
+        } catch {
+          errorMessage = rawError;
+        }
       }
     }
 
