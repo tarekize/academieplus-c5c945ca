@@ -504,38 +504,18 @@ const MesInformations = () => {
                 {userRole === 'student' && (
                   <>
                     <div className="space-y-2">
-                      <Label htmlFor="school_level">Niveau scolaire</Label>
-                      <SchoolLevelSelect
-                        value={formData.school_level}
-                        onValueChange={(value) => {
-                          setFormData({
-                            ...formData,
-                            school_level: value,
-                            // Reset filière when changing level
-                            filiere: ["premiere", "seconde", "terminale"].includes(value) ? formData.filiere : ""
-                          });
-                        }}
-                      />
+                      <Label>Niveau scolaire</Label>
+                      <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                        {getSchoolLevelName(formData.school_level)}
+                      </div>
                     </div>
 
-                    {showFiliereSelector && (
+                    {showFiliereSelector && formData.filiere && (
                       <div className="space-y-2">
-                        <Label htmlFor="filiere">Filière</Label>
-                        <Select
-                          value={formData.filiere}
-                          onValueChange={(value) => setFormData({ ...formData, filiere: value })}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Sélectionnez votre filière" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {getFilieresForLevel(formData.school_level).map((f) => (
-                              <SelectItem key={f.value} value={f.value}>
-                                {f.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Label>Filière</Label>
+                        <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                          {getFiliereLabel(formData.filiere)}
+                        </div>
                       </div>
                     )}
                   </>
