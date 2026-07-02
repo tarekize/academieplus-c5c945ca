@@ -43,13 +43,6 @@ import { LinkedParentsSection } from "@/components/profile/LinkedParentsSection"
 import { AvatarUpload } from "@/components/profile/AvatarUpload";
 
 import LocationFields from "@/components/profile/LocationFields";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const profileSchema = z.object({
   first_name: z.string().trim().min(1, "Le prénom est requis").max(100, "Le prénom ne peut pas dépasser 100 caractères"),
