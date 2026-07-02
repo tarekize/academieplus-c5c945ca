@@ -19,7 +19,11 @@ interface CurrentClass {
   name: string;
 }
 
-export default function JoinClassDialog() {
+interface JoinClassDialogProps {
+  onClassChange?: (hasClass: boolean) => void;
+}
+
+export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps) {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [saving, setSaving] = useState(false);
@@ -34,6 +38,7 @@ export default function JoinClassDialog() {
       const uid = auth.user?.id;
       if (!uid) {
         setCurrent(null);
+        onClassChange?.(false);
         return;
       }
       const { data, error } = await supabase
@@ -50,11 +55,14 @@ export default function JoinClassDialog() {
           classId: data.class_id,
           name: (data as any).classes?.name || "Ma classe",
         });
+        onClassChange?.(true);
       } else {
         setCurrent(null);
+        onClassChange?.(false);
       }
     } catch (e: any) {
       setCurrent(null);
+      onClassChange?.(false);
     } finally {
       setLoading(false);
     }
@@ -107,6 +115,7 @@ export default function JoinClassDialog() {
       if (error) throw error;
       toast.success("Vous avez quitté la classe.");
       setCurrent(null);
+      onClassChange?.(false);
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de la suppression du lien");
     } finally {

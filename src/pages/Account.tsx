@@ -50,6 +50,7 @@ const Account = () => {
   const { hasRole } = useAuth();
   const [isParent, setIsParent] = useState(false);
   const [isStudent, setIsStudent] = useState(false);
+  const [hasClass, setHasClass] = useState(false);
 
   const [subscription, setSubscription] = useState<StudentSubscription | null>(null);
   const [activationCode, setActivationCode] = useState("");
@@ -66,6 +67,7 @@ const Account = () => {
       hasRole('parent').then(setIsParent);
       hasRole('student').then(setIsStudent);
       fetchSubscription(session.user.id);
+      checkClassMembership(session.user.id);
     });
 
     const {
@@ -80,6 +82,7 @@ const Account = () => {
       hasRole('parent').then(setIsParent);
       hasRole('student').then(setIsStudent);
       fetchSubscription(session.user.id);
+      checkClassMembership(session.user.id);
     });
 
     return () => authSub.unsubscribe();
@@ -104,6 +107,16 @@ const Account = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const checkClassMembership = async (userId: string) => {
+    const { data } = await supabase
+      .from("class_students")
+      .select("id")
+      .eq("student_id", userId)
+      .limit(1)
+      .maybeSingle();
+    setHasClass(!!data);
   };
 
   const fetchSubscription = async (userId: string) => {
@@ -370,7 +383,7 @@ const Account = () => {
 
       <main className="container mx-auto px-4 py-8 mt-20">
         {!isParent && (
-          <div className="flex gap-3 mb-8">
+          <div className="flex flex-wrap gap-3 mb-8">
             <button
               onClick={() => navigate("/liste-cours")}
               className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-primary/10 text-primary font-medium text-sm border border-primary/20 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 group"
@@ -385,8 +398,8 @@ const Account = () => {
               <BarChart3 className="h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
               Tableau de bord
             </button>
-            {isStudent && <JoinClassDialog />}
-            {isStudent && <ReclamationDialog userRole="student" />}
+            {isStudent && <JoinClassDialog onClassChange={setHasClass} />}
+            {isStudent && hasClass && <ReclamationDialog userRole="student" />}
           </div>
         )}
         {isParent && (
