@@ -301,21 +301,8 @@ const MesInformations = () => {
 
   const showFiliereSelector = ["premiere", "seconde", "terminale"].includes(formData.school_level);
 
-  const getFilieresForLevel = (level: string) => {
-    if (level === "premiere") {
-      return [
-        { value: "tronc_commun_scientifique", label: "Tronc commun scientifique" },
-        { value: "tronc_commun_lettres", label: "Tronc commun lettres" },
-      ];
-    }
-    return [
-      { value: "sciences", label: "Sciences" },
-      { value: "lettres", label: "Lettres" },
-      { value: "gestion", label: "Gestion" },
-      { value: "math_techniques", label: "Math techniques" },
-      { value: "mathematiques", label: "Mathématiques" },
-    ];
-  };
+
+
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
