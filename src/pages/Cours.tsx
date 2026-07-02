@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { motion } from "framer-motion";
 import { AdaptiveLessonContent } from "./Cours.AdaptiveLessonContent";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +10,7 @@ import { ChapterMathExercises, DBExercise } from "@/components/course/ChapterMat
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check, Search, BarChart3, FileText } from "lucide-react";
+import { ArrowLeft, GraduationCap, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check, Search, BarChart3, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 import ChatBot from "@/components/ChatBot";
@@ -26,14 +27,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 // Static subject data
 const staticSubjects: Record<string, { id: string; name: string; icon: string }> = {
@@ -354,21 +348,6 @@ const Cours = () => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      navigate("/");
-    } catch (error) {
-      console.error("Error logging out:", error);
-    }
-  };
-
-  const getFullName = (profile: Profile | null): string => {
-    if (!profile) return "Utilisateur";
-    const parts = [profile.first_name, profile.last_name].filter(Boolean);
-    return parts.length > 0 ? parts.join(" ") : "Utilisateur";
-  };
-
   const getSchoolLevelName = (level: string) => {
     const labels: Record<string, string> = {
       "6eme": "6ème",
@@ -439,78 +418,40 @@ const Cours = () => {
     );
   }
 
-  const fullName = getFullName(profile);
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div
-              className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => navigate("/liste-cours")}
-            >
-              <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
-                <GraduationCap className="h-5 w-5 text-white" />
+    <div className="min-h-screen bg-muted/30">
+      <AppHeader />
+
+      <main className={`container mx-auto px-4 py-8 transition-all duration-300 ${isChatOpen ? 'lg:pr-[420px] blur-[2px] saturate-75 opacity-80' : ''}`}>
+
+        {/* Subject hero + progress */}
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="relative mb-6"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/15 to-primary/5 rounded-3xl blur-xl" />
+          <div className="relative bg-card/80 backdrop-blur-sm rounded-3xl border border-border/50 p-5 md:p-7">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-2xl shadow-md shrink-0">
+                {subject?.icon || "📖"}
               </div>
-              <span className="text-lg font-bold hidden sm:block">AcadémiePlus</span>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl md:text-2xl font-bold text-foreground truncate">{subject?.name || "Cours"}</h1>
+                <p className="text-sm text-muted-foreground">
+                  {Object.values(progress).filter(Boolean).length}/{chapters.length} chapitres terminés
+                </p>
+              </div>
             </div>
-
-            <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="flex items-center gap-2 cursor-pointer rounded-xl px-2 py-1.5 hover:bg-muted transition-colors">
-                    <Avatar className="h-8 w-8 ring-2 ring-primary/20">
-                      <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                        {fullName.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="text-left hidden md:block">
-                      <p className="text-sm font-semibold leading-tight">{fullName}</p>
-                      <p className="text-xs text-muted-foreground leading-tight">
-                        {schoolLevel && getSchoolLevelName(schoolLevel)}
-                      </p>
-                    </div>
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg border-border/50">
-                  <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    <span>Gérer mon compte</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")} className="rounded-lg cursor-pointer">
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    <span>Tableau de bord</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Se déconnecter</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="mt-4">
+              <Progress
+                value={(Object.values(progress).filter(Boolean).length / chapters.length) * 100}
+                className="h-2.5"
+              />
             </div>
           </div>
-        </div>
-      </header>
-
-      <main className={`container mx-auto px-4 pt-24 pb-8 transition-all duration-300 ${isChatOpen ? 'lg:pr-[420px] blur-[2px] saturate-75 opacity-80' : ''}`}>
-
-        {/* Progress bar */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <h1 className="text-2xl font-bold">{subject?.name || "Cours"}</h1>
-            <span className="text-sm text-muted-foreground">
-              {Object.values(progress).filter(Boolean).length}/{chapters.length} chapitres terminés
-            </span>
-          </div>
-          <Progress
-            value={(Object.values(progress).filter(Boolean).length / chapters.length) * 100}
-            className="h-2"
-          />
-        </div>
+        </motion.div>
 
         {/* Active activity view */}
         {activeActivity === "quiz" && activeChapter && (
@@ -572,42 +513,55 @@ const Cours = () => {
 
         {/* Grid view - Chapter selection */}
         {!activeActivity && viewMode === "grid" && (
-          <div className="space-y-4">
-            {/* Back to levels button for pedago/admin */}
-            <div className="flex gap-2 flex-wrap">
-              {canManage && (
-                <Button variant="outline" className="gap-2" onClick={() => navigate("/liste-cours")}>
-                  <ArrowLeft className="h-4 w-4" />
-                  Retour aux niveaux
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                className="gap-2"
-                onClick={() => navigate(`/exams?niveau=${schoolLevel}&subject=${subjectId || "math"}${adminFiliere ? `&filiere=${adminFiliere}` : ''}`)}
-              >
-                <FileText className="h-4 w-4" />
-                الاختبارات
-              </Button>
-            </div>
-            {/* Search bar */}
-            <div className="bg-card rounded-xl p-6 border">
-              <h2 className="text-lg font-semibold mb-1">
-                Matières de {schoolLevel && getSchoolLevelName(schoolLevel)}
-              </h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Découvre tous les cours de ta classe et prépare-toi à réussir ! 🚀
-              </p>
+          <div className="space-y-5">
+            {/* Search + subject actions */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+              className="relative bg-card/80 backdrop-blur-sm rounded-2xl p-6 border border-border/50 overflow-hidden"
+            >
+              <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
+              <div className="relative flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold mb-1">
+                    Matières de {schoolLevel && getSchoolLevelName(schoolLevel)}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Découvre tous les cours de ta classe et prépare-toi à réussir ! 🚀
+                  </p>
+                </div>
+                <div className="flex gap-2 flex-wrap shrink-0">
+                  {canManage && (
+                    <Button
+                      variant="outline"
+                      className="rounded-full gap-2 active:scale-95 transition-transform"
+                      onClick={() => navigate("/liste-cours")}
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      Retour aux niveaux
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    className="rounded-full gap-2 border-accent/30 bg-accent/5 text-accent hover:bg-accent hover:text-accent-foreground hover:border-accent hover:shadow-lg hover:shadow-accent/25 active:scale-95 transition-all duration-300"
+                    onClick={() => navigate(`/exams?niveau=${schoolLevel}&subject=${subjectId || "math"}${adminFiliere ? `&filiere=${adminFiliere}` : ''}`)}
+                  >
+                    <FileText className="h-4 w-4" />
+                    الاختبارات
+                  </Button>
+                </div>
+              </div>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Rechercher un chapitre ou une leçon..."
-                  className="pl-9"
+                  className="pl-9 rounded-xl h-11"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-            </div>
+            </motion.div>
 
             <ITSRecommendations />
             {canManage && (
@@ -874,7 +828,7 @@ const Cours = () => {
                     {results.map(({ lesson, chapter, chapterIndex, matchSource, snippet }) => (
                       <Card
                         key={`${chapter.id}-${lesson.id}`}
-                        className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/50"
+                        className="rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 hover:border-primary/40 active:scale-[0.99]"
                         onClick={() => {
                           setActiveChapter(chapter);
                           setActiveChapterIndex(chapterIndex);
@@ -914,49 +868,67 @@ const Cours = () => {
               }
 
               // Default: show chapters grid
+              const badgePalette = [
+                "from-blue-500/15 to-blue-600/5 text-blue-600",
+                "from-purple-500/15 to-purple-600/5 text-purple-600",
+                "from-emerald-500/15 to-emerald-600/5 text-emerald-600",
+                "from-indigo-500/15 to-indigo-600/5 text-indigo-600",
+              ];
+
               return (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <motion.div
+                  initial="hidden"
+                  animate="show"
+                  variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                >
                   {chapters.map((chapter, index) => (
-                    <Card
+                    <motion.div
                       key={chapter.id}
-                      className={`cursor-pointer transition-all hover:shadow-lg ${progress[chapter.id] ? 'border-green-500/50 bg-green-500/5' : ''}`}
-                      onClick={() => {
-                        setActiveChapter(chapter);
-                        setActiveChapterIndex(index);
-                        setViewMode("content");
-                      }}
+                      variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
                     >
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">
-                            {index + 1}
-                          </span>
-                          <span className="flex-1">{chapter.title}</span>
-                          {progress[chapter.id] && (
-                            <Check className="h-5 w-5 text-green-500" />
-                          )}
-                          {canManage && (
-                            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                              <ChapterFormDialog
-                                schoolLevel={schoolLevel}
-                                filiereId={filiereId}
-                                subject={subjectId || "math"}
-                                onSaved={fetchCourse}
-                                chapter={{ id: chapter.id, title: chapter.title.split(' - ')[0], title_ar: chapter.title.includes(' - ') ? chapter.title.split(' - ')[1] : null, description: null, order_index: chapter.order_index }}
-                              />
-                              <DeleteChapterButton chapterId={chapter.id} onDeleted={fetchCourse} />
-                            </div>
-                          )}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {chapter.content?.replace(/<[^>]*>/g, '').substring(0, 100)}...
-                        </p>
-                      </CardContent>
-                    </Card>
+                      <Card
+                        className={`group relative overflow-hidden rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 active:scale-[0.99] ${progress[chapter.id] ? 'border-green-500/40 bg-green-500/5' : ''}`}
+                        onClick={() => {
+                          setActiveChapter(chapter);
+                          setActiveChapterIndex(index);
+                          setViewMode("content");
+                        }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <CardHeader className="relative pb-2">
+                          <CardTitle className="text-lg flex items-center gap-3">
+                            <span className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold bg-gradient-to-br shrink-0 transition-transform duration-300 group-hover:scale-110 ${badgePalette[index % badgePalette.length]}`}>
+                              {index + 1}
+                            </span>
+                            <span className="flex-1">{chapter.title}</span>
+                            {progress[chapter.id] && (
+                              <Check className="h-5 w-5 text-green-500 shrink-0" />
+                            )}
+                            {canManage && (
+                              <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                                <ChapterFormDialog
+                                  schoolLevel={schoolLevel}
+                                  filiereId={filiereId}
+                                  subject={subjectId || "math"}
+                                  onSaved={fetchCourse}
+                                  chapter={{ id: chapter.id, title: chapter.title.split(' - ')[0], title_ar: chapter.title.includes(' - ') ? chapter.title.split(' - ')[1] : null, description: null, order_index: chapter.order_index }}
+                                />
+                                <DeleteChapterButton chapterId={chapter.id} onDeleted={fetchCourse} />
+                              </div>
+                            )}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="relative">
+                          <p className="text-sm text-muted-foreground line-clamp-2 ml-[52px]">
+                            {chapter.content?.replace(/<[^>]*>/g, '').substring(0, 100)}...
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               );
             })()}
           </div>

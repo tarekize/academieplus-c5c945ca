@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2 } from "lucide-react";
+import { Camera, Loader2, Trash2 } from "lucide-react";
 
 interface AvatarUploadProps {
   url: string | null | undefined;
@@ -85,32 +85,55 @@ export function AvatarUpload({ url, onUpload, onDelete }: AvatarUploadProps) {
   }
 
   return (
-    <div className="flex flex-col items-center space-y-4">
-      <Avatar className="h-24 w-24 border-2 border-primary/20">
-        <AvatarImage src={url || undefined} />
-        <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-          {user?.email?.charAt(0).toUpperCase() || "U"}
-        </AvatarFallback>
-      </Avatar>
-      <div className="flex gap-2">
-        <div className="relative">
-          <Button variant="outline" disabled={uploading} asChild>
-            <label htmlFor="avatar-upload" className="cursor-pointer">
-              {uploading ? "Chargement..." : url ? "Modifier la photo" : "Ajouter une photo"}
-            </label>
-          </Button>
-          <input
-            type="file"
-            id="avatar-upload"
-            accept="image/*"
-            onChange={uploadAvatar}
-            disabled={uploading}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          />
-        </div>
+    <div className="flex flex-col items-center gap-4">
+      <div className="relative group">
+        <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-primary to-accent opacity-70 blur-sm transition-opacity group-hover:opacity-100" />
+        <Avatar className="relative h-28 w-28 ring-4 ring-background shadow-xl">
+          <AvatarImage src={url || undefined} />
+          <AvatarFallback className="text-3xl font-bold bg-primary/10 text-primary">
+            {user?.email?.charAt(0).toUpperCase() || "U"}
+          </AvatarFallback>
+        </Avatar>
+
+        <label
+          htmlFor="avatar-upload"
+          className="absolute inset-0 flex items-center justify-center rounded-full bg-black/0 group-hover:bg-black/40 text-transparent group-hover:text-white cursor-pointer transition-all duration-300"
+        >
+          {uploading ? (
+            <Loader2 className="h-6 w-6 animate-spin text-white" />
+          ) : (
+            <Camera className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          )}
+        </label>
+        <input
+          type="file"
+          id="avatar-upload"
+          accept="image/*"
+          onChange={uploadAvatar}
+          disabled={uploading}
+          className="sr-only"
+        />
+
+        <label
+          htmlFor="avatar-upload"
+          className="absolute -bottom-1 -right-1 h-9 w-9 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center cursor-pointer hover:scale-110 active:scale-95 transition-transform duration-200 ring-4 ring-background"
+        >
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+        </label>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <p className="text-xs text-muted-foreground">JPG, PNG, GIF ou WebP — 5 Mo max</p>
         {url && onDelete && (
-          <Button variant="outline" onClick={onDelete} className="text-destructive hover:text-destructive">
-            <Trash2 className="h-4 w-4" />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onDelete}
+            className="h-7 gap-1.5 rounded-full text-destructive hover:text-destructive hover:bg-destructive/10 active:scale-95 transition-all"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Retirer
           </Button>
         )}
       </div>

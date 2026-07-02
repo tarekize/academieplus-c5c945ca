@@ -15,10 +15,11 @@ import { Key, Eye, EyeOff, Loader2, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { cn } from "@/lib/utils";
 
 type Step = "password" | "mfa";
 
-export function ChangePasswordButton() {
+export function ChangePasswordButton({ className }: { className?: string } = {}) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("password");
   const [newPassword, setNewPassword] = useState("");
@@ -191,7 +192,7 @@ export function ChangePasswordButton() {
       if (!isOpen) resetForm();
     }}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className={cn("gap-2", className)}>
           <Key className="h-4 w-4" />
           Modifier le mot de passe
         </Button>

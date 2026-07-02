@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,30 +18,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, CalendarIcon, Copy, Check } from "lucide-react";
+import { ArrowLeft, GraduationCap, CalendarIcon, Copy, Check, Phone, Mail, MapPin, IdCard, ShieldAlert } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-} from "@/components/ui/breadcrumb";
 import { LinkedChildrenSection } from "@/components/profile/LinkedChildrenSection";
 import { LinkedParentsSection } from "@/components/profile/LinkedParentsSection";
 import { AvatarUpload } from "@/components/profile/AvatarUpload";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 import LocationFields from "@/components/profile/LocationFields";
 
@@ -297,15 +285,13 @@ const MesInformations = () => {
 
 
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/10">
+        <div className="relative h-14 w-14">
+          <div className="absolute inset-0 rounded-full border-4 border-primary/15" />
+          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin" />
+        </div>
       </div>
     );
   }
@@ -313,262 +299,309 @@ const MesInformations = () => {
   const fullName = getFullName(profile);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div
-              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => navigate("/liste-cours")}
-            >
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xl font-bold">AcadémiePlus</span>
-            </div>
+    <div className="min-h-screen bg-muted/30">
+      <AppHeader />
 
-            <div className="flex items-center gap-4">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/10 rounded-lg p-2 transition-colors">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback>
-                        {fullName.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="text-left hidden md:block">
-                      <p className="text-sm font-medium">{fullName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {profile?.school_level && getSchoolLevelName(profile.school_level)}
-                      </p>
-                    </div>
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/account")}>
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    <span>Gérer mon compte</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate(userRole === 'parent' ? "/parent-dashboard" : "/dashboard")}>
-                    <GraduationCap className="mr-2 h-4 w-4" />
-                    <span>Tableau de bord</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Se déconnecter</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8 mt-20">
-        <button
-          onClick={() => navigate("/account")}
-          className="mb-6 inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-primary/10 text-primary font-medium text-sm border border-primary/20 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 group"
+      <main className="container mx-auto px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
         >
-          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
-          Retour vers Gérer mon compte
-        </button>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/account")}
+            className="mb-6 rounded-full gap-2 border-primary/20 bg-primary/5 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-lg hover:shadow-primary/25 active:scale-95 transition-all duration-300 group"
+          >
+            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
+            Retour vers Gérer mon compte
+          </Button>
+        </motion.div>
 
-        <div className="max-w-3xl mx-auto space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-3xl">Mes Informations</CardTitle>
-              <CardDescription>Vos informations personnelles d'inscription</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+        <div className="max-w-3xl mx-auto space-y-5">
+          {/* Header + Avatar */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="relative"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/20 to-primary/5 rounded-3xl blur-xl" />
+            <div className="relative bg-card/80 backdrop-blur-sm rounded-3xl border border-border/50 p-8 flex flex-col items-center text-center">
               <AvatarUpload
                 url={formData.avatar_url}
                 onUpload={(url) => setFormData({ ...formData, avatar_url: url })}
                 onDelete={() => setFormData({ ...formData, avatar_url: null })}
               />
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="first_name">Prénom</Label>
-                  <Input
-                    id="first_name"
-                    value={formData.first_name}
-                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                    placeholder="Votre prénom"
-                  />
+              <h1 className="mt-5 text-2xl font-bold text-foreground">{fullName}</h1>
+              <p className="text-muted-foreground text-sm">{profile?.email}</p>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            animate="show"
+            variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } } }}
+            className="space-y-5"
+          >
+            {/* Informations personnelles */}
+            <motion.div variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}>
+              <Card className="rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-primary/10 to-accent/10 px-6 py-4 border-b border-border/30">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
+                      <IdCard className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-foreground">Informations personnelles</h2>
+                      <p className="text-xs text-muted-foreground">Vos informations d'inscription</p>
+                    </div>
+                  </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="last_name">Nom de famille</Label>
-                  <Input
-                    id="last_name"
-                    value={formData.last_name}
-                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                    placeholder="Votre nom de famille"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="Votre adresse email"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Un email de confirmation sera envoyé si vous modifiez votre adresse.
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Téléphone</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="Numéro de téléphone"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Date de naissance</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !formData.date_of_birth && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {formData.date_of_birth
-                          ? format(formData.date_of_birth, "dd/MM/yyyy")
-                          : "Sélectionnez votre date de naissance"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={formData.date_of_birth}
-                        onSelect={(date) => setFormData({ ...formData, date_of_birth: date })}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date("1940-01-01")
-                        }
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                        captionLayout="dropdown-buttons"
-                        fromYear={1940}
-                        toYear={new Date().getFullYear()}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                {/* Wilaya, Ville, École - pour élève et parent */}
-                {(userRole === 'student' || userRole === 'parent') && (
-                  <LocationFields
-                    wilaya={formData.wilaya}
-                    ville={formData.ville}
-                    ecole={formData.ecole}
-                    onWilayaChange={(val) => setFormData({ ...formData, wilaya: val, ville: "" })}
-                    onVilleChange={(val) => setFormData({ ...formData, ville: val })}
-                    onEcoleChange={(val) => setFormData({ ...formData, ecole: val })}
-                    hideEcole={userRole === 'parent'}
-                  />
-                )}
-
-                {userRole === 'student' && (
-                  <>
+                <CardContent className="p-6 space-y-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Niveau scolaire</Label>
-                      <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-                        {getSchoolLevelName(formData.school_level)}
-                      </div>
-                    </div>
-
-                    {showFiliereSelector && formData.filiere && (
-                      <div className="space-y-2">
-                        <Label>Filière</Label>
-                        <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-                          {getFiliereLabel(formData.filiere)}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {/* Code de liaison pour les élèves */}
-                {userRole === 'student' && profile?.linking_code && (
-                  <div className="space-y-2 p-4 bg-primary/5 rounded-lg border border-primary/20">
-                    <Label className="text-primary font-semibold">Code de liaison parent</Label>
-                    <div className="flex items-center gap-2">
+                      <Label htmlFor="first_name">Prénom</Label>
                       <Input
-                        value={profile.linking_code.toUpperCase()}
-                        readOnly
-                        className="bg-background font-mono text-lg tracking-widest"
+                        id="first_name"
+                        value={formData.first_name}
+                        onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                        placeholder="Votre prénom"
+                        className="rounded-xl"
                       />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => {
-                          navigator.clipboard.writeText(profile.linking_code!);
-                          setCodeCopied(true);
-                          toast({
-                            title: "Copié !",
-                            description: "Le code a été copié dans le presse-papiers",
-                          });
-                          setTimeout(() => setCodeCopied(false), 2000);
-                        }}
-                      >
-                        {codeCopied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
-                      </Button>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Partagez ce code avec vos parents pour qu'ils puissent lier leur compte au vôtre.
+
+                    <div className="space-y-2">
+                      <Label htmlFor="last_name">Nom de famille</Label>
+                      <Input
+                        id="last_name"
+                        value={formData.last_name}
+                        onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                        placeholder="Votre nom de famille"
+                        className="rounded-xl"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="flex items-center gap-1.5">
+                      <Mail className="h-3.5 w-3.5" /> Email
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="Votre adresse email"
+                      className="rounded-xl"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Un email de confirmation sera envoyé si vous modifiez votre adresse.
                     </p>
                   </div>
-                )}
-              </div>
 
-              <div className="flex justify-between items-center pt-4 border-t">
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" disabled={deleting}>
-                      Supprimer le compte
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Cette action est irréversible. Cela supprimera définitivement votre compte et toutes vos
-                        données associées.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Annuler</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        Supprimer définitivement
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="flex items-center gap-1.5">
+                        <Phone className="h-3.5 w-3.5" /> Téléphone
+                      </Label>
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="Numéro de téléphone"
+                        className="rounded-xl"
+                      />
+                    </div>
 
-                <Button onClick={handleUpdate} disabled={updating}>
-                  {updating ? "Mise à jour..." : "Mettre à jour"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                    <div className="space-y-2">
+                      <Label>Date de naissance</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal rounded-xl",
+                              !formData.date_of_birth && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.date_of_birth
+                              ? format(formData.date_of_birth, "dd/MM/yyyy")
+                              : "Sélectionnez une date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={formData.date_of_birth}
+                            onSelect={(date) => setFormData({ ...formData, date_of_birth: date })}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1940-01-01")
+                            }
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                            captionLayout="dropdown-buttons"
+                            fromYear={1940}
+                            toYear={new Date().getFullYear()}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-          {/* Section Parent/Enfant selon le rôle */}
-          {userRole === 'parent' && <LinkedChildrenSection />}
-          {userRole === 'student' && <LinkedParentsSection />}
+            {/* Localisation */}
+            {(userRole === 'student' || userRole === 'parent') && (
+              <motion.div variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}>
+                <Card className="rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
+                  <div className="bg-gradient-to-r from-primary/10 to-accent/10 px-6 py-4 border-b border-border/30">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
+                        <MapPin className="h-5 w-5 text-primary" />
+                      </div>
+                      <h2 className="text-lg font-bold text-foreground">Localisation</h2>
+                    </div>
+                  </div>
+                  <CardContent className="p-6">
+                    <LocationFields
+                      wilaya={formData.wilaya}
+                      ville={formData.ville}
+                      ecole={formData.ecole}
+                      onWilayaChange={(val) => setFormData({ ...formData, wilaya: val, ville: "" })}
+                      onVilleChange={(val) => setFormData({ ...formData, ville: val })}
+                      onEcoleChange={(val) => setFormData({ ...formData, ecole: val })}
+                      hideEcole={userRole === 'parent'}
+                    />
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Scolarité + code de liaison (élève) */}
+            {userRole === 'student' && (
+              <motion.div variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}>
+                <Card className="rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
+                  <div className="bg-gradient-to-r from-primary/10 to-accent/10 px-6 py-4 border-b border-border/30">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
+                        <GraduationCap className="h-5 w-5 text-primary" />
+                      </div>
+                      <h2 className="text-lg font-bold text-foreground">Scolarité</h2>
+                    </div>
+                  </div>
+                  <CardContent className="p-6 space-y-4">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Niveau scolaire</Label>
+                        <div className="flex h-10 w-full items-center rounded-xl border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                          {getSchoolLevelName(formData.school_level)}
+                        </div>
+                      </div>
+
+                      {showFiliereSelector && formData.filiere && (
+                        <div className="space-y-2">
+                          <Label>Filière</Label>
+                          <div className="flex h-10 w-full items-center rounded-xl border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                            {getFiliereLabel(formData.filiere)}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {profile?.linking_code && (
+                      <div className="space-y-2 p-4 bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl border border-primary/20">
+                        <Label className="text-primary font-semibold">Code de liaison parent</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={profile.linking_code.toUpperCase()}
+                            readOnly
+                            className="bg-background font-mono text-lg tracking-widest rounded-xl"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="rounded-xl shrink-0 active:scale-90 transition-transform"
+                            onClick={() => {
+                              navigator.clipboard.writeText(profile.linking_code!);
+                              setCodeCopied(true);
+                              toast({
+                                title: "Copié !",
+                                description: "Le code a été copié dans le presse-papiers",
+                              });
+                              setTimeout(() => setCodeCopied(false), 2000);
+                            }}
+                          >
+                            {codeCopied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Partagez ce code avec vos parents pour qu'ils puissent lier leur compte au vôtre.
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Actions */}
+            <motion.div
+              variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}
+              className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3"
+            >
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    disabled={deleting}
+                    className="rounded-full gap-1.5 text-destructive border-destructive/30 hover:bg-destructive hover:text-destructive-foreground active:scale-95 transition-all"
+                  >
+                    <ShieldAlert className="h-4 w-4" />
+                    Supprimer le compte
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="rounded-2xl">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action est irréversible. Cela supprimera définitivement votre compte et toutes vos
+                      données associées.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="rounded-xl">Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteAccount} className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Supprimer définitivement
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
+              <Button
+                onClick={handleUpdate}
+                disabled={updating}
+                className="rounded-full px-8 h-11 shadow-md hover:shadow-lg active:scale-95 transition-all"
+              >
+                {updating ? "Mise à jour..." : "Mettre à jour"}
+              </Button>
+            </motion.div>
+
+            {/* Section Parent/Enfant selon le rôle */}
+            {userRole === 'parent' && (
+              <motion.div variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}>
+                <LinkedChildrenSection />
+              </motion.div>
+            )}
+            {userRole === 'student' && (
+              <motion.div variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}>
+                <LinkedParentsSection />
+              </motion.div>
+            )}
+          </motion.div>
         </div>
       </main>
     </div>

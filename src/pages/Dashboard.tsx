@@ -4,10 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Users, GraduationCap, Search, LogOut, User as UserIcon, BarChart3, CreditCard, FileText, Cpu } from "lucide-react";
+import { Users, GraduationCap, LogOut, User as UserIcon, BarChart3, CreditCard, FileText, Cpu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -32,7 +31,6 @@ const Dashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -135,31 +133,9 @@ const Dashboard = () => {
               <span className="text-lg font-bold hidden sm:block">AcadémiePlus</span>
             </div>
 
-            {/* Search */}
-            <div className="flex-1 max-w-md mx-6 hidden md:block">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Rechercher un cours, une matière..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 bg-muted/40 border-0 rounded-xl h-9 focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-offset-0"
-                />
-              </div>
-            </div>
 
             {/* Right actions */}
             <div className="flex items-center gap-2">
-              {!isAdmin && (
-                <Button
-                  size="sm"
-                  className="bg-gradient-to-r from-accent to-orange-400 border-0 text-white font-semibold hidden sm:flex shadow-sm hover:opacity-90 transition-opacity rounded-xl h-8 px-4"
-                  onClick={() => navigate("/pricing")}
-                >
-                  Premium
-                </Button>
-              )}
               <ChangePasswordButton />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

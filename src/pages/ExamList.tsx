@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, Pencil, Trash2, Play, Clock, FileText, BookOpenCheck, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { AppHeader } from "@/components/layout/AppHeader";
 import {
   Dialog,
   DialogContent,
@@ -194,45 +195,40 @@ const ExamList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/30">
-      {/* Header */}
-      <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 max-w-4xl flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full hover:bg-secondary"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1" dir="rtl">
-            <h1 className="text-lg font-bold">{trimesterLabels[trimester]}</h1>
-            <p className="text-xs text-muted-foreground">{niveau}</p>
-          </div>
-          {canManage && (
-            <Button onClick={openCreateForm} className="gap-2 rounded-xl shadow-md">
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">إضافة اختبار</span>
-            </Button>
-          )}
-        </div>
-      </div>
+    <div className="min-h-screen bg-muted/30">
+      <AppHeader />
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Trimester Badge */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          transition={{ duration: 0.3 }}
+          className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4"
         >
-          <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-gradient-to-r ${trimesterColors[trimester] || "from-primary to-primary/70"} text-white shadow-md`}>
-            <BookOpenCheck className="h-4 w-4" />
-            <span className="text-sm font-medium">{trimesterLabels[trimester]}</span>
-            {trimesterLabelsFr[trimester] && (
-              <span className="text-white/70 text-xs">— {trimesterLabelsFr[trimester]}</span>
-            )}
+          <div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(-1)}
+              className="mb-4 rounded-full gap-2 active:scale-95 transition-transform"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Retour
+            </Button>
+            <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-gradient-to-r ${trimesterColors[trimester] || "from-primary to-primary/70"} text-white shadow-md`}>
+              <BookOpenCheck className="h-4 w-4" />
+              <span className="text-sm font-medium">{trimesterLabels[trimester]}</span>
+              {trimesterLabelsFr[trimester] && (
+                <span className="text-white/70 text-xs">— {trimesterLabelsFr[trimester]}</span>
+              )}
+            </div>
           </div>
+          {canManage && (
+            <Button onClick={openCreateForm} className="gap-2 rounded-full shadow-md active:scale-95 transition-transform self-start">
+              <Plus className="h-4 w-4" />
+              <span dir="rtl">إضافة اختبار</span>
+            </Button>
+          )}
         </motion.div>
 
         {/* Content */}

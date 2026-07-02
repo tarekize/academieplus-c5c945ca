@@ -1,25 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { UserCircle, BarChart3, ArrowLeft, GraduationCap, LogOut, User as UserIcon, Key, Pause, Play, Clock, FileText, Loader2, AlertCircle } from "lucide-react";
+import { UserCircle, BarChart3, ArrowLeft, GraduationCap, Key, Pause, Play, Clock, FileText, Loader2, AlertCircle, Sparkles, ChevronRight, MessageSquareWarning } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { ChangePasswordButton } from "@/components/ChangePasswordButton";
 import JoinClassDialog from "@/components/student/JoinClassDialog";
 import ReclamationDialog from "@/components/ReclamationDialog";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 interface Profile {
   id: string;
@@ -50,6 +45,7 @@ const Account = () => {
   const { hasRole } = useAuth();
   const [isParent, setIsParent] = useState(false);
   const [isStudent, setIsStudent] = useState(false);
+  const [hasClass, setHasClass] = useState(false);
 
   const [subscription, setSubscription] = useState<StudentSubscription | null>(null);
   const [activationCode, setActivationCode] = useState("");
@@ -66,6 +62,7 @@ const Account = () => {
       hasRole('parent').then(setIsParent);
       hasRole('student').then(setIsStudent);
       fetchSubscription(session.user.id);
+      checkClassMembership(session.user.id);
     });
 
     const {
@@ -80,6 +77,7 @@ const Account = () => {
       hasRole('parent').then(setIsParent);
       hasRole('student').then(setIsStudent);
       fetchSubscription(session.user.id);
+      checkClassMembership(session.user.id);
     });
 
     return () => authSub.unsubscribe();
@@ -104,6 +102,16 @@ const Account = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const checkClassMembership = async (userId: string) => {
+    const { data } = await supabase
+      .from("class_students")
+      .select("id")
+      .eq("student_id", userId)
+      .limit(1)
+      .maybeSingle();
+    setHasClass(!!data);
   };
 
   const fetchSubscription = async (userId: string) => {
@@ -231,15 +239,13 @@ const Account = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/10">
+        <div className="relative h-14 w-14">
+          <div className="absolute inset-0 rounded-full border-4 border-primary/15" />
+          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin" />
+        </div>
       </div>
     );
   }
@@ -315,257 +321,258 @@ const Account = () => {
   const remaining = subscription ? Math.floor(getRemainingDays(subscription)) : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/20">
-      {/* Navigation Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div
-              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => navigate(isParent ? "/dashboard" : "/liste-cours")}
-            >
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md">
-                <GraduationCap className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">AcadémiePlus</span>
-            </div>
+    <div className="min-h-screen bg-muted/30">
+      <AppHeader />
 
-            <div className="flex items-center gap-3">
-              <ChangePasswordButton />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/50 rounded-xl p-2 transition-all duration-200">
-                    <Avatar className="h-8 w-8 ring-2 ring-primary/20">
-                      <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">{fullName.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className="text-left hidden md:block">
-                      <p className="text-sm font-medium">{fullName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {profile?.school_level && getSchoolLevelName(profile.school_level)}
-                      </p>
-                    </div>
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-border/50">
-                  <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg">
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    <span>Gérer mon compte</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate(isParent ? "/parent-dashboard" : "/dashboard")} className="rounded-lg">
-                    <GraduationCap className="mr-2 h-4 w-4" />
-                    <span>Tableau de bord</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Se déconnecter</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      </header>
+      <main className="container mx-auto px-4 py-8 max-w-6xl">
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-6"
+        >
+          <h1 className="text-2xl font-bold text-foreground">Mon compte</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Gérez vos informations et votre abonnement</p>
+        </motion.div>
 
-      <main className="container mx-auto px-4 py-8 mt-20">
-        {!isParent && (
-          <div className="flex gap-3 mb-8">
-            <button
-              onClick={() => navigate("/liste-cours")}
-              className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-primary/10 text-primary font-medium text-sm border border-primary/20 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 group"
-            >
-              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
-              Retour vers liste des matières
-            </button>
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-accent/10 text-accent font-medium text-sm border border-accent/20 hover:bg-accent hover:text-white hover:border-accent hover:shadow-lg hover:shadow-accent/25 transition-all duration-300 group"
-            >
-              <BarChart3 className="h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
-              Tableau de bord
-            </button>
-            {isStudent && <JoinClassDialog />}
-            {isStudent && <ReclamationDialog userRole="student" />}
-          </div>
-        )}
-        {isParent && (
-          <button
-            onClick={() => navigate("/parent-dashboard")}
-            className="mb-8 inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-primary/10 text-primary font-medium text-sm border border-primary/20 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 group"
+        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 items-start">
+          {/* LEFT column */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="space-y-4 lg:sticky lg:top-24"
           >
-            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
-            Retour au tableau de bord parent
-          </button>
-        )}
+            {/* Profile card */}
+            <Card className="rounded-xl border-border shadow-sm">
+              <CardContent className="p-6 flex flex-col items-center text-center">
+                <Avatar className="h-20 w-20 ring-4 ring-muted">
+                  <AvatarImage src={profile?.avatar_url || undefined} />
+                  <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary">{fullName.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <h2 className="mt-4 text-lg font-semibold text-foreground">{fullName}</h2>
+                <p className="text-sm text-muted-foreground">{profile?.email}</p>
+                {profile?.school_level && (
+                  <Badge variant="secondary" className="mt-3 rounded-full px-3">
+                    <GraduationCap className="h-3.5 w-3.5 mr-1.5" />
+                    {getSchoolLevelName(profile.school_level)}
+                  </Badge>
+                )}
+                <div className="w-full border-t border-border my-5" />
+                <ChangePasswordButton className="w-full justify-center rounded-lg" />
+              </CardContent>
+            </Card>
 
-        <div className="max-w-5xl mx-auto">
-          {/* Profile Hero Section */}
-          <div className="relative mb-12">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/20 to-primary/5 rounded-3xl blur-xl" />
-            <div className="relative bg-card/80 backdrop-blur-sm rounded-3xl border border-border/50 p-8 md:p-12">
-              <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
-                <div className="relative">
-                  <div className="absolute -inset-1 bg-gradient-to-br from-primary to-primary/50 rounded-full blur-sm opacity-60" />
-                  <Avatar className="relative h-28 w-28 md:h-32 md:w-32 ring-4 ring-background shadow-2xl">
-                    <AvatarImage src={profile?.avatar_url || undefined} />
-                    <AvatarFallback className="text-4xl font-bold bg-primary/10 text-primary">{fullName.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                </div>
-                <div className="text-center md:text-left flex-1">
-                  <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-1">
-                    {fullName}
-                  </h1>
-                  <p className="text-muted-foreground">{profile?.email}</p>
-                  {profile?.school_level && (
-                    <Badge variant="secondary" className="mt-3 rounded-full px-4 py-1">
-                      <GraduationCap className="h-3.5 w-3.5 mr-1.5" />
-                      {getSchoolLevelName(profile.school_level)}
-                    </Badge>
+            {/* Quick navigation */}
+            {!isParent ? (
+              <Card className="rounded-xl border-border shadow-sm overflow-hidden">
+                <div className="divide-y divide-border">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/liste-cours")}
+                    className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50 transition-colors text-left"
+                  >
+                    <span className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-foreground/70 shrink-0">
+                      <ArrowLeft className="h-4 w-4" />
+                    </span>
+                    <span className="flex-1 text-sm font-medium">Liste des matières</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/dashboard")}
+                    className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50 transition-colors text-left"
+                  >
+                    <span className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-foreground/70 shrink-0">
+                      <BarChart3 className="h-4 w-4" />
+                    </span>
+                    <span className="flex-1 text-sm font-medium">Tableau de bord</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </button>
+                  {isStudent && <JoinClassDialog onClassChange={setHasClass} />}
+                  {isStudent && hasClass && (
+                    <ReclamationDialog
+                      userRole="student"
+                      trigger={
+                        <button
+                          type="button"
+                          className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50 transition-colors text-left"
+                        >
+                          <span className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-foreground/70 shrink-0">
+                            <MessageSquareWarning className="h-4 w-4" />
+                          </span>
+                          <span className="flex-1 text-sm font-medium">Réclamation</span>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                        </button>
+                      }
+                    />
                   )}
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Account Management Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
-            {accountCards.map((card, index) => (
-              <Card
-                key={index}
-                className="group relative overflow-hidden rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 cursor-pointer hover:-translate-y-1"
-                onClick={card.onClick}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <CardHeader className="relative pb-2">
-                  <CardTitle className="flex items-center gap-4 text-lg">
-                    <div className={`h-12 w-12 rounded-2xl flex items-center justify-center bg-gradient-to-br ${index === 0 ? 'from-blue-500/15 to-blue-600/5' :
-                      index === 1 ? 'from-purple-500/15 to-purple-600/5' :
-                        index === 2 ? 'from-emerald-500/15 to-emerald-600/5' :
-                          'from-indigo-500/15 to-indigo-600/5'
-                      }`}>
-                      <card.icon className={`h-6 w-6 ${card.color}`} />
-                    </div>
-                    <span className="font-semibold">{card.title}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="relative">
-                  <p className="text-sm text-muted-foreground ml-16">{card.description}</p>
-                </CardContent>
               </Card>
-            ))}
-          </div>
+            ) : (
+              <Card className="rounded-xl border-border shadow-sm overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => navigate("/parent-dashboard")}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50 transition-colors text-left"
+                >
+                  <span className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-foreground/70 shrink-0">
+                    <ArrowLeft className="h-4 w-4" />
+                  </span>
+                  <span className="flex-1 text-sm font-medium">Tableau de bord parent</span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                </button>
+              </Card>
+            )}
+          </motion.div>
 
-          {/* Student: Subscription Section */}
-          {isStudent && (
-            <Card className="max-w-2xl mx-auto rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-primary/10 to-accent/10 px-6 py-4 border-b border-border/30">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
-                    <Key className="h-5 w-5 text-primary" />
-                  </div>
-                  <h2 className="text-lg font-bold text-foreground">Mon Abonnement</h2>
-                </div>
+          {/* RIGHT column */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.05, ease: "easeOut" }}
+            className="space-y-6"
+          >
+            {/* Account settings list */}
+            <Card className="rounded-xl border-border shadow-sm overflow-hidden">
+              <div className="px-6 py-3.5 border-b border-border">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Réglages du compte</p>
               </div>
-
-              <div className="p-6">
-                {subscription && remaining > 0 ? (
-                  <div className="space-y-5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">Formule</p>
-                        <p className="font-semibold text-foreground">
-                          {subscription.plan_type === "annual" ? "Scolaire (1 an)" : "Mensuelle"}
-                        </p>
-                      </div>
-                      <Badge
-                        variant={subscription.is_paused ? "secondary" : "default"}
-                        className="rounded-full px-4"
-                      >
-                        {subscription.is_paused ? "En pause" : "Actif"}
-                      </Badge>
+              <div className="divide-y divide-border">
+                {accountCards.map((card, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={card.onClick}
+                    className="group w-full flex items-center gap-4 px-6 py-4 hover:bg-muted/50 transition-colors text-left"
+                  >
+                    <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                      <card.icon className={`h-5 w-5 ${card.color}`} />
                     </div>
-
-                    <div className="bg-accent/30 rounded-xl p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Clock className="h-4 w-4 text-primary" />
-                        <span className="font-semibold text-foreground">{remaining} jours restants</span>
-                        <span className="text-sm text-muted-foreground">/ {subscription.total_days}</span>
-                      </div>
-                      <div className="w-full bg-secondary/50 rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-primary to-primary/70 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${Math.min(100, (remaining / subscription.total_days) * 100)}%` }}
-                        />
-                      </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground">{card.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">{card.description}</p>
                     </div>
-
-                    {subscription.plan_type === "annual" && (
-                      <Button
-                        variant={subscription.is_paused ? "default" : "outline"}
-                        className="w-full rounded-xl h-11"
-                        onClick={subscription.is_paused ? handleResume : handlePause}
-                      >
-                        {subscription.is_paused ? (
-                          <><Play className="h-4 w-4 mr-2" /> Reprendre l'abonnement</>
-                        ) : (
-                          <><Pause className="h-4 w-4 mr-2" /> Mettre en pause</>
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {subscription && remaining <= 0 && (
-                      <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
-                        <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-                        <div>
-                          <p className="font-semibold text-red-700 text-sm">Abonnement expiré</p>
-                          <p className="text-red-600 text-xs mt-0.5">
-                            Votre abonnement {subscription.plan_type === "annual" ? "scolaire" : "mensuel"} est terminé. Activez un nouveau code pour continuer.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    {!subscription && (
-                      <div className="text-center py-2">
-                        <p className="text-muted-foreground text-sm mb-1">
-                          Vous n'avez pas encore d'abonnement actif.
-                        </p>
-                        <p className="text-muted-foreground text-sm">
-                          Entrez votre code d'activation pour commencer.
-                        </p>
-                      </div>
-                    )}
-                    <div className="flex gap-3">
-                      <Input
-                        placeholder="XXXX-XXXX-XXXX"
-                        value={activationCode}
-                        onChange={(e) => setActivationCode(e.target.value.toUpperCase())}
-                        className="text-center text-lg font-mono tracking-wider flex-1"
-                        maxLength={14}
-                        disabled={activatingCode}
-                      />
-                      <Button
-                        onClick={handleActivateCode}
-                        disabled={activatingCode || !activationCode.trim()}
-                        className="rounded-xl px-6"
-                      >
-                        {activatingCode ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          "Activer"
-                        )}
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground text-center">
-                      Format du code : XXXX-XXXX-XXXX
-                    </p>
-                  </div>
-                )}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </button>
+                ))}
               </div>
             </Card>
-          )}
+
+            {/* Student: Subscription Section */}
+            {isStudent && (
+              <Card className="rounded-xl border-border shadow-sm overflow-hidden">
+                <div className="px-6 py-3.5 border-b border-border flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Key className="h-4 w-4 text-primary" />
+                  </div>
+                  <h2 className="text-sm font-semibold text-foreground">Mon abonnement</h2>
+                </div>
+
+                <div className="p-6">
+                  {subscription && remaining > 0 ? (
+                    <div className="space-y-5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">Formule</p>
+                          <p className="font-semibold text-foreground">
+                            {subscription.plan_type === "annual" ? "Scolaire (1 an)" : "Mensuelle"}
+                          </p>
+                        </div>
+                        <Badge
+                          variant={subscription.is_paused ? "secondary" : "default"}
+                          className="rounded-full px-4"
+                        >
+                          {subscription.is_paused ? "En pause" : "Actif"}
+                        </Badge>
+                      </div>
+
+                      <div className="bg-muted/50 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Clock className="h-4 w-4 text-primary" />
+                          <span className="font-semibold text-foreground">{remaining} jours restants</span>
+                          <span className="text-sm text-muted-foreground">/ {subscription.total_days}</span>
+                        </div>
+                        <div className="w-full bg-border rounded-full h-2 overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${Math.min(100, (remaining / subscription.total_days) * 100)}%` }}
+                            transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
+                            className="bg-primary h-2 rounded-full"
+                          />
+                        </div>
+                      </div>
+
+                      {subscription.plan_type === "annual" && (
+                        <Button
+                          variant={subscription.is_paused ? "default" : "outline"}
+                          className="w-full rounded-lg h-11 active:scale-[0.98] transition-transform"
+                          onClick={subscription.is_paused ? handleResume : handlePause}
+                        >
+                          {subscription.is_paused ? (
+                            <><Play className="h-4 w-4 mr-2" /> Reprendre l'abonnement</>
+                          ) : (
+                            <><Pause className="h-4 w-4 mr-2" /> Mettre en pause</>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {subscription && remaining <= 0 && (
+                        <div className="flex items-center gap-3 bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                          <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
+                          <div>
+                            <p className="font-semibold text-destructive text-sm">Abonnement expiré</p>
+                            <p className="text-destructive/80 text-xs mt-0.5">
+                              Votre abonnement {subscription.plan_type === "annual" ? "scolaire" : "mensuel"} est terminé. Activez un nouveau code pour continuer.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {!subscription && (
+                        <div className="text-center py-3">
+                          <div className="mx-auto mb-3 h-11 w-11 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Sparkles className="h-5 w-5 text-primary" />
+                          </div>
+                          <p className="text-muted-foreground text-sm mb-1">
+                            Vous n'avez pas encore d'abonnement actif.
+                          </p>
+                          <p className="text-muted-foreground text-sm">
+                            Entrez votre code d'activation pour commencer.
+                          </p>
+                        </div>
+                      )}
+                      <div className="flex gap-3">
+                        <Input
+                          placeholder="XXXX-XXXX-XXXX"
+                          value={activationCode}
+                          onChange={(e) => setActivationCode(e.target.value.toUpperCase())}
+                          className="text-center text-lg font-mono tracking-wider flex-1 rounded-lg h-11"
+                          maxLength={14}
+                          disabled={activatingCode}
+                        />
+                        <Button
+                          onClick={handleActivateCode}
+                          disabled={activatingCode || !activationCode.trim()}
+                          className="rounded-lg px-6 h-11 active:scale-[0.98] transition-transform"
+                        >
+                          {activatingCode ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            "Activer"
+                          )}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground text-center">
+                        Format du code : XXXX-XXXX-XXXX
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )}
+          </motion.div>
         </div>
       </main>
     </div>

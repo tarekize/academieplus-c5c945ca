@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import LessonMarkdown from "@/components/course/LessonMarkdown";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
@@ -119,7 +120,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         };
 
         return (
-            <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-lg border border-primary/10 mb-6">
+            <div className="p-4 bg-gradient-to-r from-primary/10 to-transparent rounded-2xl border border-primary/10 mb-6">
                 <Breadcrumb>
                     <BreadcrumbList className="flex-wrap">
                         <BreadcrumbItem>
@@ -192,7 +193,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         <div className="mt-2 space-y-2">
             {renderBreadcrumb()}
             {chapter.content && (
-                <Card className="border-primary/10">
+                <Card className="rounded-2xl border-primary/10 bg-card/80 backdrop-blur-sm">
                     <CardContent className="p-6">
                         <HtmlWithMath
                             className="prose prose-sm dark:prose-invert max-w-none"
@@ -222,48 +223,61 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     </div>
                 )}
             </div>
-            {chapter.lessons?.map((lesson: any, idx: number) => (
-                <div
-                    key={lesson.id}
-                    className="w-full text-right p-4 border rounded-lg hover:bg-accent/10 transition-colors cursor-pointer flex items-center gap-3"
-                    onClick={() => handleLessonClick(lesson)}
+            <motion.div
+                initial="hidden"
+                animate="show"
+                variants={{ hidden: {}, show: { transition: { staggerChildren: 0.05 } } }}
+                className="space-y-2.5"
+            >
+                {chapter.lessons?.map((lesson: any, idx: number) => (
+                    <motion.div
+                        key={lesson.id}
+                        variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
+                        transition={{ duration: 0.25, ease: "easeOut" }}
+                        className="group w-full text-right p-4 border border-border/60 rounded-2xl bg-card/60 hover:bg-primary/5 hover:border-primary/30 hover:shadow-md transition-all duration-300 cursor-pointer flex items-center gap-3 active:scale-[0.99]"
+                        onClick={() => handleLessonClick(lesson)}
+                    >
+                        <span className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-sm font-bold shrink-0 transition-transform duration-300 group-hover:scale-110">
+                            {idx + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                            <p className="font-medium text-base truncate">{lesson.titleAr}</p>
+                            <p className="text-sm text-muted-foreground truncate">{lesson.title}</p>
+                        </div>
+                        <ChevronLeft className="h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-300 group-hover:-translate-x-1 rtl:group-hover:translate-x-1" />
+                        {canManage && (
+                            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                                <LessonFormDialog
+                                    chapterId={chapter.id}
+                                    onSaved={fetchCourse}
+                                    lesson={{ id: lesson.id, title: lesson.title, title_ar: lesson.titleAr !== lesson.title ? lesson.titleAr : null }}
+                                />
+                                <DeleteLessonButton lessonId={lesson.id} onDeleted={fetchCourse} />
+                            </div>
+                        )}
+                    </motion.div>
+                ))}
+
+                {/* Chapter-level revision card */}
+                <motion.div
+                    variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                    className="group w-full p-4 mt-2 border-2 border-green-500/30 rounded-2xl hover:bg-green-500/5 hover:shadow-md transition-all duration-300 cursor-pointer flex items-center gap-3 bg-gradient-to-r from-green-500/5 to-transparent active:scale-[0.99]"
+                    onClick={() => setShowRevision(true)}
                 >
-                    <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold shrink-0">
-                        {idx + 1}
+                    <span className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-600 shrink-0 transition-transform duration-300 group-hover:scale-110">
+                        <BookOpen className="h-5 w-5" />
                     </span>
                     <div className="flex-1">
-                        <p className="font-medium text-base">{lesson.titleAr}</p>
-                        <p className="text-sm text-muted-foreground">{lesson.title}</p>
+                        <p className="font-bold text-base flex items-center gap-2">
+                            Révision
+                            <Sparkles className="h-4 w-4 text-green-500" />
+                        </p>
+                        <p className="text-sm text-muted-foreground">Fiches de révision (résumé schématique du chapitre par IA)</p>
                     </div>
-                    {canManage && (
-                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                            <LessonFormDialog
-                                chapterId={chapter.id}
-                                onSaved={fetchCourse}
-                                lesson={{ id: lesson.id, title: lesson.title, title_ar: lesson.titleAr !== lesson.title ? lesson.titleAr : null }}
-                            />
-                            <DeleteLessonButton lessonId={lesson.id} onDeleted={fetchCourse} />
-                        </div>
-                    )}
-                </div>
-            ))}
-
-            {/* Chapter-level revision card */}
-            <div
-                className="w-full p-4 mt-4 border-2 border-green-500/30 rounded-lg hover:bg-green-500/5 transition-colors cursor-pointer flex items-center gap-3 bg-gradient-to-r from-green-500/5 to-transparent"
-                onClick={() => setShowRevision(true)}
-            >
-                <span className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-600 shrink-0">
-                    <BookOpen className="h-5 w-5" />
-                </span>
-                <div className="flex-1">
-                    <p className="font-bold text-base flex items-center gap-2">
-                        Révision
-                        <Sparkles className="h-4 w-4 text-green-500" />
-                    </p>
-                    <p className="text-sm text-muted-foreground">Fiches de révision (résumé schématique du chapitre par IA)</p>
-                </div>
-            </div>
+                    <ChevronLeft className="h-4 w-4 text-green-600/70 shrink-0 transition-transform duration-300 group-hover:-translate-x-1" />
+                </motion.div>
+            </motion.div>
         </div>
     );
 
@@ -306,7 +320,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                 {/* Course content should be hidden when an activity section is open. */}
                 {activeSection === null && (
                     <div className="flex flex-col lg:flex-row gap-8 mt-6">
-                        <Card className="flex-1 min-w-0">
+                        <Card className="flex-1 min-w-0 rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm">
                             <CardContent className="p-6">
                                 <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
                                 {loadingContent ? (
@@ -342,9 +356,9 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         <div className="prose prose-sm dark:prose-invert max-w-none mb-4">
             <HtmlWithMath htmlContent={chapter.content || "<p>Contenu non disponible</p>"} />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onActivitySelect?.("quiz")}>
+                <Card className="group rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 active:scale-[0.99]" onClick={() => onActivitySelect?.("quiz")}>
                     <CardContent className="p-6 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
                             <Brain className="h-6 w-6 text-primary" />
                         </div>
                         <div>
@@ -353,9 +367,9 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onActivitySelect?.("exercises")}>
+                <Card className="group rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 active:scale-[0.99]" onClick={() => onActivitySelect?.("exercises")}>
                     <CardContent className="p-6 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
                             <PenTool className="h-6 w-6 text-accent-foreground" />
                         </div>
                         <div>
@@ -364,9 +378,9 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onActivitySelect?.("revision")}>
+                <Card className="group rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 active:scale-[0.99]" onClick={() => onActivitySelect?.("revision")}>
                     <CardContent className="p-6 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
                             <BookOpen className="h-6 w-6 text-green-500" />
                         </div>
                         <div>
@@ -381,9 +395,9 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
 
     const renderActivityCards = () => (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onActivitySelect?.("quiz")}>
+            <Card className="group rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 active:scale-[0.99]" onClick={() => onActivitySelect?.("quiz")}>
                 <CardContent className="p-6 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
                         <Brain className="h-6 w-6 text-primary" />
                     </div>
                     <div>
@@ -392,9 +406,9 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     </div>
                 </CardContent>
             </Card>
-            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onActivitySelect?.("exercises")}>
+            <Card className="group rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 active:scale-[0.99]" onClick={() => onActivitySelect?.("exercises")}>
                 <CardContent className="p-6 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
                         <PenTool className="h-6 w-6 text-accent-foreground" />
                     </div>
                     <div>
@@ -403,9 +417,9 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     </div>
                 </CardContent>
             </Card>
-            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onActivitySelect?.("revision")}>
+            <Card className="group rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 active:scale-[0.99]" onClick={() => onActivitySelect?.("revision")}>
                 <CardContent className="p-6 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
                         <BookOpen className="h-6 w-6 text-primary" />
                     </div>
                     <div>
@@ -432,18 +446,19 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         // When a lesson is selected - lesson-based navigation
         if (selectedLesson && chapter.lessons && chapter.lessons.length > 0) {
             return (
-                <div className="flex justify-between items-center gap-4 mt-8">
+                <div className="flex justify-between items-center gap-4 mt-8 pt-6 border-t border-border/50">
                     {/* Previous lesson button - only show if not first lesson */}
                     {!isFirstLesson ? (
                         <Button
                             variant="outline"
+                            className="rounded-full gap-2 active:scale-95 transition-transform"
                             onClick={() => {
                                 const prevLesson = chapter.lessons[currentLessonIndex - 1];
                                 handleLessonClick(prevLesson);
                                 scrollToTop();
                             }}
                         >
-                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            <ArrowLeft className="h-4 w-4" />
                             Leçon précédente
                         </Button>
                     ) : (
@@ -453,6 +468,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     {/* Next lesson button - only show if not last lesson */}
                     {!isLastLesson ? (
                         <Button
+                            className="rounded-full gap-2 shadow-md hover:shadow-lg active:scale-95 transition-all"
                             onClick={() => {
                                 const nextLesson = chapter.lessons[currentLessonIndex + 1];
                                 handleLessonClick(nextLesson);
@@ -460,18 +476,19 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                             }}
                         >
                             Leçon suivante
-                            <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
+                            <ArrowLeft className="h-4 w-4 rotate-180" />
                         </Button>
                     ) : currentChapterIndex < chapters.length - 1 ? (
                         // When on last lesson, show "Chapter next" button
                         <Button
+                            className="rounded-full gap-2 shadow-md hover:shadow-lg active:scale-95 transition-all"
                             onClick={() => {
                                 handleChapterChange("next");
                                 scrollToTop();
                             }}
                         >
                             Chapitre suivant
-                            <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
+                            <ArrowLeft className="h-4 w-4 rotate-180" />
                         </Button>
                     ) : null}
                 </div>
@@ -480,14 +497,23 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
 
         // Chapter navigation - when no lesson is selected
         return (
-            <div className="flex justify-between mt-6">
-                <Button variant="outline" onClick={() => handleChapterChange("prev")} disabled={currentChapterIndex === 0}>
-                    <ArrowLeft className="h-4 w-4 mr-2" />
+            <div className="flex justify-between mt-8 pt-6 border-t border-border/50">
+                <Button
+                    variant="outline"
+                    className="rounded-full gap-2 active:scale-95 transition-transform disabled:opacity-40"
+                    onClick={() => handleChapterChange("prev")}
+                    disabled={currentChapterIndex === 0}
+                >
+                    <ArrowLeft className="h-4 w-4" />
                     Chapitre précédent
                 </Button>
-                <Button onClick={() => handleChapterChange("next")} disabled={currentChapterIndex === chapters.length - 1}>
+                <Button
+                    className="rounded-full gap-2 shadow-md hover:shadow-lg active:scale-95 transition-all disabled:opacity-40"
+                    onClick={() => handleChapterChange("next")}
+                    disabled={currentChapterIndex === chapters.length - 1}
+                >
                     Chapitre suivant
-                    <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
+                    <ArrowLeft className="h-4 w-4 rotate-180" />
                 </Button>
             </div>
         );
