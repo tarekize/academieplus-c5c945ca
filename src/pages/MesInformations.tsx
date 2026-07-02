@@ -41,15 +41,8 @@ import {
 import { LinkedChildrenSection } from "@/components/profile/LinkedChildrenSection";
 import { LinkedParentsSection } from "@/components/profile/LinkedParentsSection";
 import { AvatarUpload } from "@/components/profile/AvatarUpload";
-import { SchoolLevelSelect } from "@/components/profile/SchoolLevelSelect";
+
 import LocationFields from "@/components/profile/LocationFields";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const profileSchema = z.object({
   first_name: z.string().trim().min(1, "Le prénom est requis").max(100, "Le prénom ne peut pas dépasser 100 caractères"),
@@ -301,21 +294,8 @@ const MesInformations = () => {
 
   const showFiliereSelector = ["premiere", "seconde", "terminale"].includes(formData.school_level);
 
-  const getFilieresForLevel = (level: string) => {
-    if (level === "premiere") {
-      return [
-        { value: "tronc_commun_scientifique", label: "Tronc commun scientifique" },
-        { value: "tronc_commun_lettres", label: "Tronc commun lettres" },
-      ];
-    }
-    return [
-      { value: "sciences", label: "Sciences" },
-      { value: "lettres", label: "Lettres" },
-      { value: "gestion", label: "Gestion" },
-      { value: "math_techniques", label: "Math techniques" },
-      { value: "mathematiques", label: "Mathématiques" },
-    ];
-  };
+
+
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -504,38 +484,18 @@ const MesInformations = () => {
                 {userRole === 'student' && (
                   <>
                     <div className="space-y-2">
-                      <Label htmlFor="school_level">Niveau scolaire</Label>
-                      <SchoolLevelSelect
-                        value={formData.school_level}
-                        onValueChange={(value) => {
-                          setFormData({
-                            ...formData,
-                            school_level: value,
-                            // Reset filière when changing level
-                            filiere: ["premiere", "seconde", "terminale"].includes(value) ? formData.filiere : ""
-                          });
-                        }}
-                      />
+                      <Label>Niveau scolaire</Label>
+                      <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                        {getSchoolLevelName(formData.school_level)}
+                      </div>
                     </div>
 
-                    {showFiliereSelector && (
+                    {showFiliereSelector && formData.filiere && (
                       <div className="space-y-2">
-                        <Label htmlFor="filiere">Filière</Label>
-                        <Select
-                          value={formData.filiere}
-                          onValueChange={(value) => setFormData({ ...formData, filiere: value })}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Sélectionnez votre filière" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {getFilieresForLevel(formData.school_level).map((f) => (
-                              <SelectItem key={f.value} value={f.value}>
-                                {f.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Label>Filière</Label>
+                        <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                          {getFiliereLabel(formData.filiere)}
+                        </div>
                       </div>
                     )}
                   </>
