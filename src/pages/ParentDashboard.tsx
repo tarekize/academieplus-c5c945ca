@@ -759,16 +759,29 @@ const ParentDashboard = () => {
                               const isGen = generatingFor === link.child_id;
                               if (report) {
                                 return (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="gap-2 rounded-lg active:scale-95 transition-transform"
-                                    onClick={() => handleDownloadReport(link.child_id)}
-                                    title={`Télécharger le rapport du ${new Date(report.generated_at).toLocaleDateString("fr-FR")}`}
-                                  >
-                                    <FileDown className="h-4 w-4" />
-                                    {new Date(report.generated_at).toLocaleDateString("fr-FR")}
-                                  </Button>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="gap-2 rounded-lg active:scale-95 transition-transform"
+                                      onClick={() => handleDownloadReport(link.child_id)}
+                                      title={`Télécharger le rapport du ${new Date(report.generated_at).toLocaleDateString("fr-FR")}`}
+                                    >
+                                      <FileDown className="h-4 w-4" />
+                                      {new Date(report.generated_at).toLocaleDateString("fr-FR")}
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="gap-2 rounded-lg active:scale-95 transition-transform"
+                                      disabled={isGen}
+                                      onClick={() => generateReport(link.child_id)}
+                                      title="Régénérer un nouveau rapport maintenant"
+                                    >
+                                      {isGen ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                                      {isGen ? "Génération…" : "Régénérer"}
+                                    </Button>
+                                  </div>
                                 );
                               }
                               return (
