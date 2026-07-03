@@ -43,12 +43,10 @@ Deno.serve(async (req) => {
     const direction = delta > 0 ? 'up' : delta < 0 ? 'down' : 'same';
     const accuracy = session_total > 0 ? Math.round((session_correct / session_total) * 100) : 0;
 
-    const lovableKey = Deno.env.get('LOVABLE_API_KEY');
-    const geminiKey1 = Deno.env.get('GEMINI_API_KEY');
     const geminiKey2 = Deno.env.get('GEMINI_API_KEY_2');
     const fallback = fallbackMessage(lesson_title, level_before, level_after, session_correct, session_total, weak_concepts);
 
-    if (!lovableKey && !geminiKey1 && !geminiKey2) {
+    if (!geminiKey2) {
       return new Response(JSON.stringify({ message: fallback, direction, fallback: true, error: 'API_KEY_MISSING' }), {
         status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
