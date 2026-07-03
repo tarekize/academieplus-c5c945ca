@@ -110,9 +110,7 @@ Deno.serve(async (req) => {
       logTokenUsageAsync({ supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: 'generate-lesson-comment', inputText: systemPrompt + '\n' + userPrompt });
     });
 
-    let message: string | null = await tryLovable();
-    if (!message && geminiKey1) message = await tryGemini(geminiKey1, 'KEY_1');
-    if (!message && geminiKey2) message = await tryGemini(geminiKey2, 'KEY_2');
+    let message: string | null = await tryGemini(geminiKey2, 'KEY_2');
 
     if (!message) {
       return new Response(JSON.stringify({ message: fallback, direction, fallback: true, error: 'ALL_PROVIDERS_FAILED' }), {
