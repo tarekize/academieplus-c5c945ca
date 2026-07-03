@@ -85,7 +85,7 @@ export default function AdminTokenUsage() {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Card className="border-0 shadow-lg">
             <CardContent className="p-4">
               <p className="text-2xl font-bold">{grandTotal.toLocaleString("fr-FR")}</p>
