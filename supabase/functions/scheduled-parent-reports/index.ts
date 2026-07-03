@@ -136,7 +136,7 @@ async function buildPeriodicReport(supabase: any, parentId: string, childId: str
     chapters: chapterStats,
     strong_chapters: strong,
     weak_chapters: weak,
-    ai_comments: aiComments ?? [],
+    ai_comments: [],
     recommendations,
     summary,
     report_type: "periodic",
