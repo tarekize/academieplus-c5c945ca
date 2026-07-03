@@ -19,7 +19,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  GraduationCap, UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen, Key, Check, Calendar as CalendarIcon, FileDown, FileText, Users
+  GraduationCap, UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen, Key, Check, Calendar as CalendarIcon, FileDown, FileText, Users, RefreshCw
 } from "lucide-react";
 import { downloadParentReportPdf, type ParentReportData } from "@/lib/parentReportPdf";
 import { useToast } from "@/hooks/use-toast";
@@ -194,7 +194,11 @@ const ParentDashboard = () => {
       await downloadParentReportPdf(report.report_data, report.generated_at);
       return;
     }
-    // Generate a new one
+    // No report yet: generate a fresh one
+    await generateReport(childId);
+  };
+
+  const generateReport = async (childId: string) => {
     setGeneratingFor(childId);
     try {
       const { data, error } = await supabase.functions.invoke("generate-parent-report", {
@@ -755,16 +759,29 @@ const ParentDashboard = () => {
                               const isGen = generatingFor === link.child_id;
                               if (report) {
                                 return (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="gap-2 rounded-lg active:scale-95 transition-transform"
-                                    onClick={() => handleDownloadReport(link.child_id)}
-                                    title={`Télécharger le rapport du ${new Date(report.generated_at).toLocaleDateString("fr-FR")}`}
-                                  >
-                                    <FileDown className="h-4 w-4" />
-                                    {new Date(report.generated_at).toLocaleDateString("fr-FR")}
-                                  </Button>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="gap-2 rounded-lg active:scale-95 transition-transform"
+                                      onClick={() => handleDownloadReport(link.child_id)}
+                                      title={`Télécharger le rapport du ${new Date(report.generated_at).toLocaleDateString("fr-FR")}`}
+                                    >
+                                      <FileDown className="h-4 w-4" />
+                                      {new Date(report.generated_at).toLocaleDateString("fr-FR")}
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="gap-2 rounded-lg active:scale-95 transition-transform"
+                                      disabled={isGen}
+                                      onClick={() => generateReport(link.child_id)}
+                                      title="Régénérer un nouveau rapport maintenant"
+                                    >
+                                      {isGen ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                                      {isGen ? "Génération…" : "Régénérer"}
+                                    </Button>
+                                  </div>
                                 );
                               }
                               return (
