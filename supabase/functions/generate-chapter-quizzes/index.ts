@@ -175,9 +175,6 @@ async function generateWithAI(
 ): Promise<string> {
   const providers: AIProvider[] = [
     { name: "Gemini key 2", call: callGemini2 },
-    { name: "Gemini key 1", call: callGemini },
-    { name: "Lovable AI", call: callLovableAI },
-    { name: "Groq", call: callGroq },
   ];
   const errors: string[] = [];
 
