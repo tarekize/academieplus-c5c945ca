@@ -261,27 +261,15 @@ Deno.serve(async (req) => {
       logTokenUsageAsync({ supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: "generate-remediation", inputText: system + "\n" + user });
     });
 
-    const geminiKey1 = Deno.env.get("GEMINI_API_KEY");
     const geminiKey2 = Deno.env.get("GEMINI_API_KEY_2");
 
     let rawContent = "";
-    try {
-      rawContent = await callLovableAI(system, user);
-    } catch (e) {
-      console.error("Lovable AI failed, trying Gemini 1...", e);
-      try {
-        if (!geminiKey1) throw new Error("no key 1");
-        rawContent = await callGemini(system, user, geminiKey1, "KEY_1");
-      } catch (e2) {
-        console.error("Gemini 1 failed, trying Gemini 2...", e2);
-        if (!geminiKey2) {
-          return new Response(JSON.stringify({ error: "AI providers unavailable" }), {
-            status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        rawContent = await callGemini(system, user, geminiKey2, "KEY_2");
-      }
+    if (!geminiKey2) {
+      return new Response(JSON.stringify({ error: "AI providers unavailable" }), {
+        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+    rawContent = await callGemini(system, user, geminiKey2, "KEY_2");
 
     rawContent = rawContent.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
 
