@@ -58,6 +58,7 @@ export async function resolveCallerRoleGroup(
       role === "student" ? "student" :
       role === "teacher" ? "teacher" :
       role === "pedago" ? "pedago" :
+      role === "parent" ? "parent" :
       role === "admin" ? "admin" : "other";
     return { userId: user.id, roleGroup };
   } catch {
