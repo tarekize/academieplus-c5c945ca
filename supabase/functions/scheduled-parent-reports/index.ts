@@ -20,6 +20,26 @@ interface ChapterStat {
   total_answers: number;
 }
 
+// Génère l'analyse via Google Gemini (2ème clé) uniquement.
+async function callGemini2(systemPrompt: string, userPrompt: string): Promise<string> {
+  const key = Deno.env.get("GEMINI_API_KEY_2");
+  if (!key) throw new Error("GEMINI_API_KEY_2 not configured");
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${key}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      generationConfig: { temperature: 0.6, maxOutputTokens: 900 },
+    }),
+  });
+  if (!res.ok) throw new Error(`Gemini2 error ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
+  return String(text).trim();
+}
+
 async function buildPeriodicReport(supabase: any, parentId: string, childId: string) {
   const { data: child } = await supabase
     .from("profiles")
@@ -77,19 +97,33 @@ async function buildPeriodicReport(supabase: any, parentId: string, childId: str
   const strong = sorted.slice(0, 3).filter((c) => c.level >= 60);
   const weak = sorted.slice(-3).reverse().filter((c) => c.level < 60);
 
-  const { data: aiComments } = await supabase
-    .from("ai_lesson_comments")
-    .select("message, lesson_title, chapter_title, level_after, created_at")
-    .eq("user_id", childId)
-    .gte("created_at", periodStart.toISOString())
-    .order("created_at", { ascending: false })
-    .limit(5);
-
-  const recommendations = (aiComments ?? [])
-    .map((c: any) => `• ${c.chapter_title || ""} — ${c.message}`)
-    .join("\n") || "Continuer le rythme actuel et travailler les chapitres faibles ci-dessus.";
-
   const childName = `${child?.first_name || ""} ${child?.last_name || ""}`.trim() || "Élève";
+
+  // Analyse IA : rapport sur le niveau et l'évolution de l'enfant (en français, destiné aux parents)
+  const chaptersForPrompt = chapterStats
+    .map((c) => `- ${c.chapter_title}: niveau ${c.level}/100, réussite ${c.accuracy}% (${c.total_answers} réponses)`)
+    .join("\n");
+
+  const aiSystem =
+    "Tu es un conseiller pédagogique. Tu rédiges, en français clair et bienveillant, un rapport destiné aux parents décrivant le niveau et l'évolution de leur enfant en mathématiques. Adresse-toi directement aux parents. N'utilise jamais l'arabe. Ne mentionne pas de boutons, de liens ni d'actions techniques de l'application. Rédige 2 à 3 courts paragraphes : niveau actuel, points forts et points à améliorer, appréciation générale de la progression.";
+  const aiUser =
+    `Élève : ${childName}\n` +
+    `Niveau scolaire : ${child?.school_level || "—"}\n` +
+    `Taux de réussite global : ${totalCorrectPct}%\n` +
+    `Niveau moyen global : ${globalLevel}/100\n` +
+    `Nombre total de réponses : ${totalAnswers}\n\n` +
+    `Détail par chapitre :\n${chaptersForPrompt || "Aucune activité enregistrée sur la période."}`;
+
+  let recommendations = "";
+  try {
+    recommendations = await callGemini2(aiSystem, aiUser);
+  } catch (e) {
+    console.error("AI report generation failed", e);
+  }
+  if (!recommendations) {
+    recommendations = `${childName} a un taux de réussite global de ${totalCorrectPct}% et un niveau moyen de ${globalLevel}/100 sur la période.`;
+  }
+
   const summary = `Rapport automatique (tous les ${PERIODIC_DAYS} jours) : ${childName} a un taux de réussite global de ${totalCorrectPct}% et un niveau moyen de ${globalLevel}/100 sur les 30 derniers jours.`;
 
   const report_data = {
@@ -102,7 +136,7 @@ async function buildPeriodicReport(supabase: any, parentId: string, childId: str
     chapters: chapterStats,
     strong_chapters: strong,
     weak_chapters: weak,
-    ai_comments: aiComments ?? [],
+    ai_comments: [],
     recommendations,
     summary,
     report_type: "periodic",

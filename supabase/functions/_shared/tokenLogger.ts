@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-export type RoleGroup = "student" | "teacher" | "pedago" | "admin" | "other";
+export type RoleGroup = "student" | "teacher" | "pedago" | "admin" | "parent" | "other";
 
 export function estimateTokens(text: string): number {
   return Math.max(1, Math.ceil((text || "").length / 4));
@@ -58,6 +58,7 @@ export async function resolveCallerRoleGroup(
       role === "student" ? "student" :
       role === "teacher" ? "teacher" :
       role === "pedago" ? "pedago" :
+      role === "parent" ? "parent" :
       role === "admin" ? "admin" : "other";
     return { userId: user.id, roleGroup };
   } catch {

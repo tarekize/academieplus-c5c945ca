@@ -103,9 +103,6 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<st
 
 async function generateWithAI(systemPrompt: string, userPrompt: string): Promise<{ content: string; provider: string }> {
   const providers: AIProvider[] = [
-    { name: "Lovable AI", call: callLovableAI },
-    { name: "Gemini key 1", call: callGemini },
-    { name: "Groq", call: callGroq },
     { name: "Gemini key 2", call: callGemini2 },
   ];
   const errors: string[] = [];

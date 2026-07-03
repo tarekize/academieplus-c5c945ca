@@ -43,12 +43,10 @@ Deno.serve(async (req) => {
     const direction = delta > 0 ? 'up' : delta < 0 ? 'down' : 'same';
     const accuracy = session_total > 0 ? Math.round((session_correct / session_total) * 100) : 0;
 
-    const lovableKey = Deno.env.get('LOVABLE_API_KEY');
-    const geminiKey1 = Deno.env.get('GEMINI_API_KEY');
     const geminiKey2 = Deno.env.get('GEMINI_API_KEY_2');
     const fallback = fallbackMessage(lesson_title, level_before, level_after, session_correct, session_total, weak_concepts);
 
-    if (!lovableKey && !geminiKey1 && !geminiKey2) {
+    if (!geminiKey2) {
       return new Response(JSON.stringify({ message: fallback, direction, fallback: true, error: 'API_KEY_MISSING' }), {
         status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -81,28 +79,8 @@ Deno.serve(async (req) => {
 اكتب الآن **ملاحظة قصيرة فقط** (سطران أو ثلاثة) وفق التعليمات. لا تعطِ أي مثال أو حل أو شرح.`;
 
 
-    // Try providers in order: Lovable AI → Gemini key 1 → Gemini key 2
-    async function tryLovable(): Promise<string | null> {
-      if (!lovableKey) return null;
-      const r = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${lovableKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          temperature: 0.6,
-        }),
-      });
-      if (!r.ok) {
-        console.error('Lovable AI failed:', r.status, await r.text());
-        return null;
-      }
-      const d = await r.json();
-      return d.choices?.[0]?.message?.content?.trim() || null;
-    }
+    // Utilise uniquement Gemini (2ème clé)
+
 
     async function tryGemini(key: string, label: string): Promise<string | null> {
       const r = await fetch(
@@ -132,9 +110,7 @@ Deno.serve(async (req) => {
       logTokenUsageAsync({ supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: 'generate-lesson-comment', inputText: systemPrompt + '\n' + userPrompt });
     });
 
-    let message: string | null = await tryLovable();
-    if (!message && geminiKey1) message = await tryGemini(geminiKey1, 'KEY_1');
-    if (!message && geminiKey2) message = await tryGemini(geminiKey2, 'KEY_2');
+    let message: string | null = await tryGemini(geminiKey2, 'KEY_2');
 
     if (!message) {
       return new Response(JSON.stringify({ message: fallback, direction, fallback: true, error: 'ALL_PROVIDERS_FAILED' }), {
