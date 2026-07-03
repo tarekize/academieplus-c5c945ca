@@ -65,7 +65,7 @@ export function AppHeader() {
         <div className="flex items-center justify-between h-16">
           <div
             className="flex items-center gap-2.5 cursor-pointer"
-            onClick={() => navigate(isParent ? "/dashboard" : "/liste-cours")}
+            onClick={() => navigate(isParent ? "/parent-dashboard" : "/liste-cours")}
           >
             <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
               <GraduationCap className="h-5 w-5 text-primary-foreground" />

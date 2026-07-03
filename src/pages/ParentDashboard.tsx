@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,27 +16,22 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  GraduationCap, LogOut, User as UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen, Key, Check, Calendar as CalendarIcon, FileDown, FileText
+  GraduationCap, UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen, Key, Check, Calendar as CalendarIcon, FileDown, FileText, Users
 } from "lucide-react";
 import { downloadParentReportPdf, type ParentReportData } from "@/lib/parentReportPdf";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { getSchoolLevelLabel, allSchoolLevels } from "@/lib/validation";
-import { ChangePasswordButton } from "@/components/ChangePasswordButton";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
 import ParentTeacherChat from "@/components/messaging/ParentTeacherChat";
 import { format, parse, isValid } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
 import LocationFields from "@/components/profile/LocationFields";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 interface Profile {
   id: string;
@@ -236,11 +232,6 @@ const ParentDashboard = () => {
     if (!child) return "Compte élève";
     const parts = [child.first_name, child.last_name].filter(Boolean);
     return parts.length > 0 ? parts.join(" ") : "Sans nom";
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
   };
 
   const handleAddByCode = async () => {
@@ -452,26 +443,31 @@ const ParentDashboard = () => {
   // If a child is selected, show their dashboard
   if (selectedChild && selectedChild.child) {
     return (
-      <div className="min-h-screen bg-background">
-        <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+      <div className="min-h-screen bg-muted/30">
+        <header className="sticky top-0 z-50 bg-background border-b border-border">
           <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center gap-3">
-                <Button variant="ghost" size="sm" onClick={() => setSelectedChild(null)} className="gap-2">
+            <div className="flex items-center justify-between h-16 gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedChild(null)}
+                  className="gap-2 rounded-lg shrink-0 active:scale-95 transition-transform"
+                >
                   <ArrowLeft className="h-4 w-4" /> Retour
                 </Button>
-                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                  <GraduationCap className="h-6 w-6 text-primary-foreground" />
+                <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center shrink-0">
+                  <GraduationCap className="h-5 w-5 text-primary-foreground" />
                 </div>
-                <span className="text-xl font-bold">AcadémiePlus</span>
+                <span className="text-lg font-bold text-foreground hidden sm:block">AcadémiePlus</span>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground truncate">
                 Progression de {getChildFullName(selectedChild.child)}
               </p>
             </div>
           </div>
         </header>
-        <main className="container mx-auto px-4 py-8 mt-20">
+        <main className="container mx-auto px-4 py-8">
           <div className="max-w-7xl mx-auto">
             <StudentDashboardContent
               userId={selectedChild.child_id}
@@ -493,55 +489,21 @@ const ParentDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/")}>
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold">AcadémiePlus</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <ChangePasswordButton />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="flex items-center gap-2 cursor-pointer hover:bg-accent rounded-lg p-2 transition-colors">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback>{fullName.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className="text-left hidden md:block">
-                      <p className="text-sm font-medium">{fullName}</p>
-                      <p className="text-xs text-muted-foreground">Compte Parent</p>
-                    </div>
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/account")}>
-                    <UserIcon className="mr-2 h-4 w-4" /><span>Gérer mon compte</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" /><span>Se déconnecter</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-muted/30">
+      <AppHeader />
 
-      <main className="container mx-auto px-4 py-8 mt-20">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Bonjour {fullName} 👋</h1>
-              <p className="text-muted-foreground">Suivez la progression de vos enfants</p>
-            </div>
-            <div className="flex flex-wrap gap-3">
+      <main className="container mx-auto px-4 py-8 max-w-6xl">
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6"
+        >
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Bonjour {fullName} 👋</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Suivez la progression de vos enfants</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
               {/* Ajouter un élève - création de compte */}
               <Dialog open={createDialogOpen} onOpenChange={(open) => {
                 setCreateDialogOpen(open);
@@ -553,7 +515,7 @@ const ParentDashboard = () => {
                 }
               }}>
                 <DialogTrigger asChild>
-                  <Button size="lg" className="gap-2"><Plus className="h-5 w-5" />Ajouter un élève</Button>
+                  <Button className="gap-2 rounded-lg shadow-sm active:scale-95 transition-transform"><Plus className="h-4 w-4" />Ajouter un élève</Button>
                 </DialogTrigger>
                 <DialogContent className="max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
@@ -671,7 +633,7 @@ const ParentDashboard = () => {
               {/* Ajouter un lien de parenté - par code */}
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button size="lg" variant="outline" className="gap-2"><UserPlus className="h-5 w-5" />Ajouter un lien de parenté</Button>
+                  <Button variant="outline" className="gap-2 rounded-lg active:scale-95 transition-transform"><UserPlus className="h-4 w-4" />Ajouter un lien de parenté</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
@@ -719,24 +681,37 @@ const ParentDashboard = () => {
                   </div>
                 </DialogContent>
               </Dialog>
-            </div>
           </div>
+        </motion.div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><GraduationCap className="h-5 w-5" />Mes enfants</CardTitle>
-              <CardDescription>Cliquez sur "Voir" pour consulter le tableau de bord de votre enfant</CardDescription>
-            </CardHeader>
-            <CardContent>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.05, ease: "easeOut" }}
+        >
+          <Card className="rounded-xl border-border shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-border flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Users className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-foreground">Mes enfants</h2>
+                <p className="text-xs text-muted-foreground">Cliquez sur "Tableau de bord" pour consulter la progression de votre enfant</p>
+              </div>
+            </div>
+            <CardContent className="p-6">
               {childrenLoading ? (
                 <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
               ) : children.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
-                  <UserIcon className="h-16 w-16 mx-auto mb-4 opacity-30" />
-                  <p className="text-lg font-medium">Aucun enfant lié pour le moment</p>
-                  <p className="text-sm">Cliquez sur "Ajouter un enfant" pour commencer</p>
+                  <div className="mx-auto mb-4 h-14 w-14 rounded-xl bg-muted flex items-center justify-center">
+                    <Users className="h-7 w-7 opacity-50" />
+                  </div>
+                  <p className="text-base font-medium text-foreground">Aucun enfant lié pour le moment</p>
+                  <p className="text-sm mt-0.5">Cliquez sur "Ajouter un élève" pour commencer</p>
                 </div>
               ) : (
+                <div className="overflow-x-auto -mx-6 px-6">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -756,9 +731,9 @@ const ParentDashboard = () => {
                         <TableRow key={link.id}>
                           <TableCell>
                             <div className="flex items-center gap-3">
-                              <Avatar className="h-10 w-10">
+                              <Avatar className="h-10 w-10 ring-2 ring-primary/10">
                                 <AvatarImage src={link.child?.avatar_url || undefined} />
-                                <AvatarFallback className="bg-primary/10 text-primary">{initials || <UserIcon className="h-4 w-4" />}</AvatarFallback>
+                                <AvatarFallback className="bg-primary/10 text-primary font-semibold">{initials || <UserIcon className="h-4 w-4" />}</AvatarFallback>
                               </Avatar>
                               <span className="font-medium">{childName}</span>
                             </div>
@@ -766,11 +741,11 @@ const ParentDashboard = () => {
                           <TableCell className="text-muted-foreground">{link.child?.email ?? "—"}</TableCell>
                           <TableCell>
                             {link.child?.school_level ? (
-                              <Badge variant="outline">{getSchoolLevelLabel(link.child.school_level)}</Badge>
+                              <Badge variant="outline" className="rounded-full">{getSchoolLevelLabel(link.child.school_level)}</Badge>
                             ) : <span className="text-muted-foreground">—</span>}
                           </TableCell>
                           <TableCell>
-                            <Badge variant={link.status === "active" ? "default" : "secondary"}>
+                            <Badge variant={link.status === "active" ? "default" : "secondary"} className="rounded-full">
                               {link.status === "active" ? "Actif" : "En attente"}
                             </Badge>
                           </TableCell>
@@ -783,7 +758,7 @@ const ParentDashboard = () => {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="gap-2"
+                                    className="gap-2 rounded-lg active:scale-95 transition-transform"
                                     onClick={() => handleDownloadReport(link.child_id)}
                                     title={`Télécharger le rapport du ${new Date(report.generated_at).toLocaleDateString("fr-FR")}`}
                                   >
@@ -796,7 +771,7 @@ const ParentDashboard = () => {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="gap-2 text-muted-foreground"
+                                  className="gap-2 text-muted-foreground rounded-lg active:scale-95 transition-transform"
                                   disabled={isGen}
                                   onClick={() => handleDownloadReport(link.child_id)}
                                   title="Générer et télécharger un rapport maintenant"
@@ -808,7 +783,7 @@ const ParentDashboard = () => {
                             })()}
                           </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-2">
+                            <div className="flex items-center justify-end gap-2 flex-wrap">
                               {link.subscription ? (
                                 (() => {
                                   const sub = link.subscription!;
@@ -827,7 +802,7 @@ const ParentDashboard = () => {
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      className="text-emerald-700 hover:text-emerald-800 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
+                                      className="rounded-lg text-emerald-700 hover:text-emerald-800 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 active:scale-95 transition-transform"
                                       onClick={() => sonnerToast.success(`Abonnement actif : ${rem} jours restants`)}
                                       title="Voir les jours restants de l'abonnement"
                                     >
@@ -839,7 +814,7 @@ const ParentDashboard = () => {
                               ) : (
                                 <Button
                                   size="sm"
-                                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                                  className="rounded-lg active:scale-95 transition-transform"
                                   onClick={() => {
                                     setSelectedChildForActivation(link.child_id);
                                     setActivationCode("");
@@ -854,6 +829,7 @@ const ParentDashboard = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
+                                className="rounded-lg active:scale-95 transition-transform"
                                 onClick={() => setSelectedChild(link)}
                                 title="Voir le tableau de bord et la progression de cet enfant"
                               >
@@ -862,12 +838,19 @@ const ParentDashboard = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
+                                className="rounded-lg active:scale-95 transition-transform"
                                 onClick={() => navigate(`/parent-cours/${link.child_id}`)}
                                 title="Consulter les leçons et le contenu de cours"
                               >
                                 <BookOpen className="h-4 w-4 mr-2" />Contenu des cours
                               </Button>
-                              <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleRemoveChild(link.id)}>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="rounded-lg h-9 w-9 shrink-0 text-destructive hover:text-destructive active:scale-95 transition-transform"
+                                onClick={() => handleRemoveChild(link.id)}
+                                title="Supprimer le lien avec cet enfant"
+                              >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -877,10 +860,11 @@ const ParentDashboard = () => {
                     })}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
       </main>
     </div>
   );

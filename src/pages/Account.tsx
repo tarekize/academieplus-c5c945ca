@@ -335,7 +335,6 @@ const Account = () => {
           <p className="text-sm text-muted-foreground mt-0.5">Gérez vos informations et votre abonnement</p>
         </motion.div>
 
-<<<<<<< HEAD
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 items-start">
           {/* LEFT column */}
           <motion.div
@@ -343,33 +342,6 @@ const Account = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
             className="space-y-4 lg:sticky lg:top-24"
-=======
-      <main className="container mx-auto px-4 py-8 mt-20">
-        {!isParent && (
-          <div className="flex flex-wrap gap-3 mb-8">
-            <button
-              onClick={() => navigate("/liste-cours")}
-              className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-primary/10 text-primary font-medium text-sm border border-primary/20 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 group"
-            >
-              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
-              Retour vers liste des matières
-            </button>
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-accent/10 text-accent font-medium text-sm border border-accent/20 hover:bg-accent hover:text-white hover:border-accent hover:shadow-lg hover:shadow-accent/25 transition-all duration-300 group"
-            >
-              <BarChart3 className="h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
-              Tableau de bord
-            </button>
-            {isStudent && <JoinClassDialog onClassChange={setHasClass} />}
-            {isStudent && hasClass && <ReclamationDialog userRole="student" />}
-          </div>
-        )}
-        {isParent && (
-          <button
-            onClick={() => navigate("/parent-dashboard")}
-            className="mb-8 inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-primary/10 text-primary font-medium text-sm border border-primary/20 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 group"
->>>>>>> df9841324e47cbdb6890623ea34d56d4ef7a6137
           >
             {/* Profile card */}
             <Card className="rounded-xl border-border shadow-sm">
