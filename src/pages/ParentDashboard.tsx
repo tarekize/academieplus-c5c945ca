@@ -194,7 +194,11 @@ const ParentDashboard = () => {
       await downloadParentReportPdf(report.report_data, report.generated_at);
       return;
     }
-    // Generate a new one
+    // No report yet: generate a fresh one
+    await generateReport(childId);
+  };
+
+  const generateReport = async (childId: string) => {
     setGeneratingFor(childId);
     try {
       const { data, error } = await supabase.functions.invoke("generate-parent-report", {
