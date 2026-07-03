@@ -40,6 +40,7 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<st
   return String(text).trim();
 }
 
+async function buildPeriodicReport(supabase: any, parentId: string, childId: string) {
   const { data: child } = await supabase
     .from("profiles")
     .select("first_name, last_name, school_level")
