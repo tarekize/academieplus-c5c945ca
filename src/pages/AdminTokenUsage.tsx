@@ -23,6 +23,7 @@ const GROUP_LABELS: Record<string, string> = {
   student: "Élèves",
   teacher: "Enseignants",
   pedago: "Pédago",
+  parent: "Parents",
   admin: "Administrateurs",
 };
 
