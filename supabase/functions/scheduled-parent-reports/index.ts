@@ -20,7 +20,26 @@ interface ChapterStat {
   total_answers: number;
 }
 
-async function buildPeriodicReport(supabase: any, parentId: string, childId: string) {
+// Génère l'analyse via Google Gemini (2ème clé) uniquement.
+async function callGemini2(systemPrompt: string, userPrompt: string): Promise<string> {
+  const key = Deno.env.get("GEMINI_API_KEY_2");
+  if (!key) throw new Error("GEMINI_API_KEY_2 not configured");
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${key}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      generationConfig: { temperature: 0.6, maxOutputTokens: 900 },
+    }),
+  });
+  if (!res.ok) throw new Error(`Gemini2 error ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
+  return String(text).trim();
+}
+
   const { data: child } = await supabase
     .from("profiles")
     .select("first_name, last_name, school_level")
