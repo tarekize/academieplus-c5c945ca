@@ -185,7 +185,7 @@ Deno.serve(async (req) => {
       chapters: chapterStats,
       strong_chapters: strong,
       weak_chapters: weak,
-      ai_comments: aiComments ?? [],
+      ai_comments: [],
       recommendations,
       summary,
     };
