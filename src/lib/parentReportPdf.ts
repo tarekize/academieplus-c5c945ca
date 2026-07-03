@@ -110,7 +110,7 @@ function buildHtml(data: ParentReportData, generatedAt: string): string {
         : ""
     }
 
-    <div style="font-size:14px;font-weight:700;margin:22px 0 8px;">Recommandations IA</div>
+    <div style="font-size:14px;font-weight:700;margin:22px 0 8px;">Analyse et évolution</div>
     <div style="font-size:12px;line-height:1.6;color:#333;white-space:pre-wrap;">${esc(data.recommendations)}</div>
 
     <div style="margin-top:30px;text-align:center;font-size:10px;color:#999;border-top:1px solid #eee;padding-top:10px;">
