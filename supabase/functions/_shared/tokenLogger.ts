@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-export type RoleGroup = "student" | "teacher" | "pedago" | "admin" | "other";
+export type RoleGroup = "student" | "teacher" | "pedago" | "admin" | "parent" | "other";
 
 export function estimateTokens(text: string): number {
   return Math.max(1, Math.ceil((text || "").length / 4));
