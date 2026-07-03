@@ -79,28 +79,8 @@ Deno.serve(async (req) => {
 اكتب الآن **ملاحظة قصيرة فقط** (سطران أو ثلاثة) وفق التعليمات. لا تعطِ أي مثال أو حل أو شرح.`;
 
 
-    // Try providers in order: Lovable AI → Gemini key 1 → Gemini key 2
-    async function tryLovable(): Promise<string | null> {
-      if (!lovableKey) return null;
-      const r = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${lovableKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          temperature: 0.6,
-        }),
-      });
-      if (!r.ok) {
-        console.error('Lovable AI failed:', r.status, await r.text());
-        return null;
-      }
-      const d = await r.json();
-      return d.choices?.[0]?.message?.content?.trim() || null;
-    }
+    // Utilise uniquement Gemini (2ème clé)
+
 
     async function tryGemini(key: string, label: string): Promise<string | null> {
       const r = await fetch(
