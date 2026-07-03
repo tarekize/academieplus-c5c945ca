@@ -174,6 +174,17 @@ Deno.serve(async (req) => {
       recommendations = `${childName} a un taux de réussite global de ${totalCorrectPct}% et un niveau moyen de ${globalLevel}/100 sur la période.`;
     }
 
+    // Log de consommation IA pour le groupe "parent"
+    logTokenUsageAsync({
+      supabaseUrl,
+      serviceRoleKey: serviceKey,
+      userId: parentId,
+      roleGroup: "parent",
+      functionName: "generate-parent-report",
+      inputText: aiSystem + aiUser,
+      estimatedOutputTokens: Math.ceil(recommendations.length / 4),
+    });
+
     const summary = `Au cours des 30 derniers jours, ${childName} a un taux de réussite global de ${totalCorrectPct}% et un niveau moyen de ${globalLevel}/100.`;
 
     const report_data = {
