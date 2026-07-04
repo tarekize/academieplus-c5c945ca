@@ -102,7 +102,7 @@ export default function CreateClassDialog({ teacherId, establishmentId, onCreate
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
+        <Button className="gap-2 rounded-xl">
           <Plus className="h-4 w-4" /> Ajouter une classe
         </Button>
       </DialogTrigger>

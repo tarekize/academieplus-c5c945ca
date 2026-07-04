@@ -13,7 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AlertCircle, ArrowLeft, Clock, CheckCircle, Loader2, Send } from "lucide-react";
+import { AlertCircle, Clock, CheckCircle, Loader2, Send, XCircle, Inbox } from "lucide-react";
+import TeacherPageHeader from "./TeacherPageHeader";
 
 interface Reclamation {
   id: string;
@@ -96,25 +97,34 @@ export default function TeacherReclamationPanel({ onBack }: Props) {
   };
 
   const statusBadge = (status: string) => {
-    if (status === "resolved") return <Badge className="bg-green-100 text-green-700 border-green-200"><CheckCircle className="h-3 w-3 mr-1" />Résolu</Badge>;
-    if (status === "rejected") return <Badge variant="destructive">Rejeté</Badge>;
-    return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />En attente</Badge>;
+    if (status === "resolved")
+      return (
+        <Badge className="gap-1 rounded-full border-emerald-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+          <CheckCircle className="h-3 w-3" />Résolu
+        </Badge>
+      );
+    if (status === "rejected")
+      return (
+        <Badge className="gap-1 rounded-full border-red-200 bg-red-100 text-red-700 hover:bg-red-100">
+          <XCircle className="h-3 w-3" />Rejeté
+        </Badge>
+      );
+    return (
+      <Badge variant="secondary" className="gap-1 rounded-full">
+        <Clock className="h-3 w-3" />En attente
+      </Badge>
+    );
   };
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={onBack} className="gap-2 rounded-xl">
-          <ArrowLeft className="h-4 w-4" />
-          Retour
-        </Button>
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center">
-            <AlertCircle className="h-5 w-5 text-red-600" />
-          </div>
-          <h1 className="text-xl font-bold">Réclamations</h1>
-        </div>
-      </div>
+      <TeacherPageHeader
+        icon={AlertCircle}
+        iconClassName="bg-rose-500/10 text-rose-600"
+        title="Réclamations"
+        description="Signalez un problème à l'établissement ou à l'administration."
+        onBack={onBack}
+      />
 
       {/* New reclamation form */}
       <Card className="rounded-2xl border-border/50">
@@ -146,11 +156,11 @@ export default function TeacherReclamationPanel({ onBack }: Props) {
             />
           </div>
           <Button
-            className="w-full rounded-xl"
+            className="w-full rounded-xl gap-2"
             onClick={handleSubmit}
             disabled={submitting || !subject || !message.trim()}
           >
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             Envoyer la réclamation
           </Button>
         </CardContent>
@@ -162,7 +172,12 @@ export default function TeacherReclamationPanel({ onBack }: Props) {
         {loadingList ? (
           <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
         ) : reclamations.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8 text-sm">Aucune réclamation soumise.</p>
+          <Card className="rounded-2xl border-dashed border-border/50">
+            <CardContent className="py-12 text-center space-y-2">
+              <Inbox className="h-10 w-10 mx-auto text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">Aucune réclamation soumise.</p>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-3">
             {reclamations.map((r) => (
@@ -174,9 +189,9 @@ export default function TeacherReclamationPanel({ onBack }: Props) {
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">{r.message}</p>
                   {r.response && (
-                    <div className="bg-green-50 border border-green-200 rounded-xl p-3 mt-2">
-                      <p className="text-xs font-medium text-green-700 mb-1">Réponse de l'établissement :</p>
-                      <p className="text-sm text-green-800">{r.response}</p>
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mt-2">
+                      <p className="text-xs font-medium text-emerald-700 mb-1">Réponse de l'établissement :</p>
+                      <p className="text-sm text-emerald-800">{r.response}</p>
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground mt-2">

@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, LogOut, Loader2 } from "lucide-react";
 
-import TeacherHome, { TeacherSection } from "@/components/teacher/TeacherHome";
+import TeacherHome, { TeacherSection, TEACHER_SECTIONS } from "@/components/teacher/TeacherHome";
 import EstablishmentManager from "@/components/teacher/EstablishmentManager";
 import TeacherContentSpace from "@/components/teacher/TeacherContentSpace";
 import TeacherReclamationPanel from "@/components/teacher/TeacherReclamationPanel";
@@ -39,19 +39,29 @@ const TeacherDashboard = () => {
     );
   }
 
+  const activeMeta = TEACHER_SECTIONS.find((s) => s.key === section);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <button
-              className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2.5 hover:opacity-80 transition-opacity min-w-0"
               onClick={() => setSection(null)}
             >
               <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
                 <GraduationCap className="h-5 w-5 text-white" />
               </div>
-              <span className="font-semibold hidden sm:block">Espace Enseignant</span>
+              <span className="font-semibold hidden sm:flex items-center gap-1.5 min-w-0">
+                <span>Espace Enseignant</span>
+                {activeMeta && (
+                  <>
+                    <span className="text-muted-foreground/50">/</span>
+                    <span className="text-muted-foreground truncate">{activeMeta.label}</span>
+                  </>
+                )}
+              </span>
             </button>
             <Button
               variant="ghost"
@@ -68,11 +78,15 @@ const TeacherDashboard = () => {
 
       <main className="container mx-auto px-4 pt-20 pb-12">
         {section === null && (
-          <div className="space-y-6 max-w-4xl mx-auto">
-            <div className="rounded-2xl bg-[image:var(--gradient-primary)] px-6 py-5 text-primary-foreground shadow-[var(--shadow-elegant)]">
-              <p className="text-primary-foreground/70 text-sm font-medium">Espace Enseignant</p>
-              <h1 className="text-2xl font-bold mt-0.5">Bienvenue dans votre espace</h1>
-              <p className="text-primary-foreground/70 text-sm mt-1">Que souhaitez-vous faire aujourd'hui ?</p>
+          <div className="space-y-8 max-w-4xl mx-auto">
+            <div className="relative overflow-hidden rounded-3xl bg-[image:var(--gradient-primary)] px-6 py-7 sm:px-8 sm:py-8 text-primary-foreground shadow-[var(--shadow-elegant)]">
+              <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" aria-hidden />
+              <div className="absolute right-6 bottom-0 h-20 w-20 rounded-full bg-white/10" aria-hidden />
+              <div className="relative">
+                <p className="text-primary-foreground/75 text-sm font-medium uppercase tracking-wide">Espace Enseignant</p>
+                <h1 className="text-2xl sm:text-3xl font-bold mt-1">Bienvenue dans votre espace</h1>
+                <p className="text-primary-foreground/80 text-sm mt-1.5">Que souhaitez-vous faire aujourd'hui ?</p>
+              </div>
             </div>
             <TeacherHome onSelect={setSection} />
           </div>

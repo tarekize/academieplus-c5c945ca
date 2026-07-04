@@ -9,8 +9,9 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Loader2, User, Mail, Phone, MapPin, School, Trash2 } from "lucide-react";
+import { Loader2, User, Mail, Phone, MapPin, School, Trash2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
+import TeacherPageHeader from "./TeacherPageHeader";
 
 interface Profile {
   id: string;
@@ -31,8 +32,10 @@ interface InfoRowProps {
 
 function InfoRow({ icon, label, value }: InfoRowProps) {
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-border/50 last:border-0">
-      <div className="mt-0.5 text-muted-foreground shrink-0">{icon}</div>
+    <div className="flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-muted/40">
+      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+        {icon}
+      </div>
       <div className="min-w-0">
         <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
         <p className="font-medium truncate">{value || <span className="text-muted-foreground italic text-sm">Non renseigné</span>}</p>
@@ -85,23 +88,30 @@ export default function TeacherProfile({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
-      <Button variant="ghost" size="sm" onClick={onBack} className="gap-2 -ml-2">
-        <ArrowLeft className="h-4 w-4" /> Accueil
-      </Button>
+      <TeacherPageHeader
+        icon={User}
+        iconClassName="bg-indigo-500/10 text-indigo-600"
+        title="Mon profil"
+        description="Informations & compte"
+        onBack={onBack}
+      />
 
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl bg-indigo-600/10 flex items-center justify-center shrink-0">
-              <User className="h-6 w-6 text-indigo-600" />
+      <Card className="rounded-2xl border-border/50 overflow-hidden">
+        <div className="h-16 bg-[image:var(--gradient-primary)]" />
+        <CardHeader className="-mt-8 pb-2">
+          <div className="flex items-end gap-3">
+            <div className="h-16 w-16 rounded-2xl bg-card border-4 border-card shadow-sm flex items-center justify-center shrink-0">
+              <div className="h-full w-full rounded-xl bg-indigo-500/10 flex items-center justify-center">
+                <User className="h-7 w-7 text-indigo-600" />
+              </div>
             </div>
-            <div>
+            <div className="pb-1">
               <CardTitle className="text-xl">{fullName}</CardTitle>
-              <p className="text-sm text-muted-foreground">Informations personnelles</p>
+              <p className="text-sm text-muted-foreground">Enseignant</p>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-2">
+        <CardContent className="pt-3 grid grid-cols-1 sm:grid-cols-2 gap-1">
           <InfoRow icon={<User className="h-4 w-4" />} label="Prénom" value={profile?.first_name} />
           <InfoRow icon={<User className="h-4 w-4" />} label="Nom" value={profile?.last_name} />
           <InfoRow icon={<Mail className="h-4 w-4" />} label="Email" value={profile?.email} />
@@ -112,12 +122,14 @@ export default function TeacherProfile({ onBack }: { onBack: () => void }) {
         </CardContent>
       </Card>
 
-      <Card className="border-destructive/30">
-        <CardContent className="p-5 space-y-3">
+      <Card className="rounded-2xl border-destructive/30 bg-destructive/[0.03]">
+        <CardContent className="p-5 space-y-4">
           <div className="flex items-start gap-3">
-            <Trash2 className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-destructive/10">
+              <ShieldAlert className="h-5 w-5 text-destructive" />
+            </div>
             <div>
-              <p className="font-semibold text-destructive">Supprimer le compte</p>
+              <p className="font-semibold text-destructive">Zone de danger</p>
               <p className="text-sm text-muted-foreground mt-0.5">
                 Cette action est irréversible. Toutes vos données (classes, exercices, quiz, examens) seront définitivement supprimées.
               </p>
@@ -125,7 +137,7 @@ export default function TeacherProfile({ onBack }: { onBack: () => void }) {
           </div>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="w-full gap-2" disabled={deleting}>
+              <Button variant="destructive" className="w-full gap-2 rounded-xl" disabled={deleting}>
                 {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                 Supprimer définitivement mon compte
               </Button>
