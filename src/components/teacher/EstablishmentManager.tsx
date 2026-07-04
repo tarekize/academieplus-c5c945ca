@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import {
   ArrowLeft, Loader2, Users, BookOpen, Trash2, Copy, School, Plus, HeartHandshake, Lock,
 } from "lucide-react";
+import TeacherPageHeader from "./TeacherPageHeader";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
 import { getSchoolLevelLabel } from "@/lib/validation";
@@ -243,10 +245,10 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <Button variant="ghost" size="sm" onClick={() => setDetailStudent(null)} className="gap-2 -ml-2">
+          <Button variant="ghost" size="sm" onClick={() => setDetailStudent(null)} className="gap-2 -ml-2 rounded-xl text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Retour à la classe
           </Button>
-          <Button className="gap-2" onClick={() => setHelpOpen(true)}>
+          <Button className="gap-2 rounded-xl" onClick={() => setHelpOpen(true)}>
             <HeartHandshake className="h-4 w-4" /> Aider l'élève
           </Button>
         </div>
@@ -277,32 +279,35 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <Button variant="ghost" size="sm" onClick={() => setSelectedClass(null)} className="gap-2 -ml-2">
+          <Button variant="ghost" size="sm" onClick={() => setSelectedClass(null)} className="gap-2 -ml-2 rounded-xl text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Mes classes
           </Button>
-          <Button className="gap-2" onClick={() => setHelpOpen(true)}>
+          <Button className="gap-2 rounded-xl" onClick={() => setHelpOpen(true)}>
             <HeartHandshake className="h-4 w-4" /> Aider les élèves
           </Button>
         </div>
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-primary" /> {selectedClass.name}
-            </h1>
-            <p className="text-muted-foreground">
-              {getSchoolLevelLabel(selectedClass.school_level || "")}
-              {selectedClass.filiere ? ` · ${selectedClass.filiere}` : ""}
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-500/10">
+              <BookOpen className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">{selectedClass.name}</h1>
+              <p className="text-muted-foreground">
+                {getSchoolLevelLabel(selectedClass.school_level || "")}
+                {selectedClass.filiere ? ` · ${selectedClass.filiere}` : ""}
+              </p>
+            </div>
           </div>
           {selectedClass.join_code && (
-            <div className="rounded-xl border bg-muted/40 px-4 py-3">
+            <div className="rounded-2xl border border-border/60 bg-muted/40 px-4 py-3">
               <p className="text-xs text-muted-foreground mb-2">Code de la classe</p>
               <div className="flex items-start gap-6 flex-wrap">
                 {/* Text code */}
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-lg font-bold tracking-widest">{selectedClass.join_code}</span>
-                    <Button variant="ghost" size="icon" className="h-8 w-8"
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg"
                       onClick={() => { navigator.clipboard.writeText(selectedClass.join_code || ""); toast.success("Code copié"); }}>
                       <Copy className="h-4 w-4" />
                     </Button>
@@ -311,7 +316,7 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
                   <Button
                     variant="outline"
                     size="sm"
-                    className="mt-1 w-fit text-xs"
+                    className="mt-1 w-fit text-xs rounded-xl"
                     onClick={async () => {
                       const url = `${window.location.origin}/rejoindre/${selectedClass.join_code}`;
                       try {
@@ -367,62 +372,76 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
   return (
     <>
     <div className="space-y-6">
-      <Button variant="ghost" size="sm" onClick={onBack} className="gap-2 -ml-2">
-        <ArrowLeft className="h-4 w-4" /> Accueil
-      </Button>
+      <TeacherPageHeader
+        icon={School}
+        iconClassName="bg-blue-500/10 text-blue-600"
+        title={`Mes classes${active ? ` — ${active.name}` : ""}`}
+        description="Gérez vos classes et suivez la progression de vos élèves."
+        onBack={onBack}
+        action={!isActiveLocked && (
+          <CreateClassDialog teacherId={teacherId} establishmentId={activeEstab} onCreated={fetchClasses} />
+        )}
+      />
 
       <div className="flex flex-wrap items-center gap-2">
         {establishments.map((e) => (
-          <div key={e.id} className="flex items-center gap-1">
-            <Button size="sm" variant={e.id === activeEstab ? "default" : "outline"}
-              className={`gap-2 ${e.is_active === false ? "opacity-60" : ""}`} onClick={() => setActiveEstab(e.id)}>
-              {e.is_active === false ? <Lock className="h-4 w-4" /> : <School className="h-4 w-4" />} {e.name}
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={() => setEstabToDelete(e.id)}
+          <div
+            key={e.id}
+            className={cn(
+              "group flex items-center gap-1 rounded-xl pr-1 transition-colors",
+              e.id === activeEstab ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted hover:bg-muted/70",
+            )}
+          >
+            <button
+              onClick={() => setActiveEstab(e.id)}
+              className={cn(
+                "flex items-center gap-2 rounded-xl py-2 pl-3.5 pr-2 text-sm font-medium",
+                e.is_active === false && "opacity-70",
+              )}
             >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+              {e.is_active === false ? <Lock className="h-3.5 w-3.5" /> : <School className="h-3.5 w-3.5" />}
+              {e.name}
+            </button>
+            <button
+              onClick={() => setEstabToDelete(e.id)}
+              className={cn(
+                "flex h-7 w-7 items-center justify-center rounded-lg transition-colors",
+                e.id === activeEstab
+                  ? "text-primary-foreground/70 hover:bg-white/15 hover:text-primary-foreground"
+                  : "text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
+              )}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
           </div>
         ))}
-        <Button size="sm" variant="ghost" className="gap-1" onClick={() => setShowCreateForm((s) => !s)}>
+        <Button size="sm" variant="ghost" className="gap-1.5 rounded-xl text-muted-foreground hover:text-foreground" onClick={() => setShowCreateForm((s) => !s)}>
           <Plus className="h-4 w-4" /> Établissement
         </Button>
       </div>
 
       {showCreateForm && (
-        <Card>
+        <Card className="rounded-2xl border-border/50">
           <CardContent className="p-4 flex gap-3 items-center">
             <Input
               value={estCode}
               onChange={(e) => setEstCode(e.target.value.toUpperCase())}
               placeholder="Code d'établissement"
-              className="font-mono tracking-widest uppercase flex-1"
+              className="font-mono tracking-widest uppercase flex-1 rounded-xl"
             />
-            <Button onClick={addByCode} disabled={creating} className="gap-2 shrink-0">
+            <Button onClick={addByCode} disabled={creating} className="gap-2 shrink-0 rounded-xl">
               {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Ajouter
             </Button>
           </CardContent>
         </Card>
       )}
 
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">Mes classes{active ? ` — ${active.name}` : ""}</h1>
-          <p className="text-muted-foreground">Gérez vos classes et suivez la progression de vos élèves.</p>
-        </div>
-        {!isActiveLocked && (
-          <CreateClassDialog teacherId={teacherId} establishmentId={activeEstab} onCreated={fetchClasses} />
-        )}
-      </div>
-
       {isActiveLocked ? (
-        <Card className="border-dashed">
+        <Card className="rounded-2xl border-dashed">
           <CardContent className="py-16 text-center space-y-3">
-            <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
+              <Lock className="h-8 w-8 text-muted-foreground" />
+            </div>
             <h3 className="text-lg font-semibold">Établissement désactivé</h3>
             <p className="text-muted-foreground max-w-md mx-auto">
               L'accès aux classes de {active?.name || "cet établissement"} est verrouillé car son abonnement est inactif.
@@ -431,9 +450,11 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
           </CardContent>
         </Card>
       ) : classes.length === 0 ? (
-        <Card className="border-dashed">
+        <Card className="rounded-2xl border-dashed">
           <CardContent className="py-16 text-center space-y-3">
-            <BookOpen className="h-12 w-12 mx-auto text-muted-foreground" />
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/10">
+              <BookOpen className="h-8 w-8 text-blue-600" />
+            </div>
             <h3 className="text-lg font-semibold">Aucune classe pour le moment</h3>
             <p className="text-muted-foreground">Créez votre première classe pour commencer.</p>
           </CardContent>
@@ -441,24 +462,24 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {classes.map((c) => (
-            <Card key={c.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
+            <Card key={c.id} className="rounded-2xl border-border/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-card)]">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
                   <CardTitle className="text-lg">{c.name}</CardTitle>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setClassToDelete(c.id)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => setClassToDelete(c.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">{getSchoolLevelLabel(c.school_level || "")}</Badge>
-                  {c.filiere && <Badge variant="outline">{c.filiere}</Badge>}
+                  <Badge variant="secondary" className="rounded-full">{getSchoolLevelLabel(c.school_level || "")}</Badge>
+                  {c.filiere && <Badge variant="outline" className="rounded-full">{c.filiere}</Badge>}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Users className="h-4 w-4" /> {counts[c.id] || 0} élève(s)
                 </div>
-                <Button className="w-full" onClick={() => openClass(c)}>Voir la progression</Button>
+                <Button className="w-full rounded-xl" onClick={() => openClass(c)}>Voir la progression</Button>
               </CardContent>
             </Card>
           ))}

@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { School, FileText, Target, ClipboardList, AlertCircle, User } from "lucide-react";
+import { School, FileText, Target, ClipboardList, AlertCircle, User, ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export type TeacherSection = "establishment" | "exercise" | "quiz" | "exam" | "reclamation" | "profil";
 
@@ -7,33 +8,56 @@ interface Props {
   onSelect: (section: TeacherSection) => void;
 }
 
-const TILES: { key: TeacherSection; label: string; desc: string; icon: any; color: string }[] = [
-  { key: "establishment", label: "Établissement", desc: "Établissements & classes", icon: School, color: "text-blue-600 bg-blue-600/10" },
-  { key: "exercise", label: "Exercices", desc: "Créer & envoyer des exercices", icon: FileText, color: "text-emerald-600 bg-emerald-600/10" },
-  { key: "quiz", label: "Quiz", desc: "Créer & envoyer des quiz", icon: Target, color: "text-amber-600 bg-amber-600/10" },
-  { key: "exam", label: "Examens", desc: "Créer & envoyer des examens", icon: ClipboardList, color: "text-purple-600 bg-purple-600/10" },
-  { key: "reclamation", label: "Réclamation", desc: "Soumettre une réclamation", icon: AlertCircle, color: "text-red-600 bg-red-600/10" },
-  { key: "profil", label: "Mon profil", desc: "Informations & compte", icon: User, color: "text-indigo-600 bg-indigo-600/10" },
+export const TEACHER_SECTIONS: {
+  key: TeacherSection;
+  label: string;
+  desc: string;
+  icon: any;
+  iconBg: string;
+  iconText: string;
+}[] = [
+  { key: "establishment", label: "Établissement", desc: "Établissements & classes", icon: School, iconBg: "bg-blue-500/10", iconText: "text-blue-600" },
+  { key: "exercise", label: "Exercices", desc: "Créer & envoyer des exercices", icon: FileText, iconBg: "bg-emerald-500/10", iconText: "text-emerald-600" },
+  { key: "quiz", label: "Quiz", desc: "Créer & envoyer des quiz", icon: Target, iconBg: "bg-amber-500/10", iconText: "text-amber-600" },
+  { key: "exam", label: "Examens", desc: "Créer & envoyer des examens", icon: ClipboardList, iconBg: "bg-purple-500/10", iconText: "text-purple-600" },
+  { key: "reclamation", label: "Réclamation", desc: "Soumettre une réclamation", icon: AlertCircle, iconBg: "bg-rose-500/10", iconText: "text-rose-600" },
+  { key: "profil", label: "Mon profil", desc: "Informations & compte", icon: User, iconBg: "bg-indigo-500/10", iconText: "text-indigo-600" },
 ];
 
 export default function TeacherHome({ onSelect }: Props) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-      {TILES.map((t) => {
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {TEACHER_SECTIONS.map((t) => {
         const Icon = t.icon;
         return (
           <Card
             key={t.key}
             onClick={() => onSelect(t.key)}
-            className="cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onSelect(t.key); }}
+            className={cn(
+              "group cursor-pointer rounded-2xl border-border/60 transition-all duration-300",
+              "hover:-translate-y-1 hover:border-transparent hover:shadow-[var(--shadow-card)]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            )}
           >
-            <CardContent className="p-6 flex flex-col items-center text-center gap-3">
-              <div className={`h-16 w-16 rounded-2xl flex items-center justify-center ${t.color}`}>
-                <Icon className="h-8 w-8" />
+            <CardContent className="flex flex-col gap-4 p-6">
+              <div
+                className={cn(
+                  "flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110",
+                  t.iconBg,
+                  t.iconText,
+                )}
+              >
+                <Icon className="h-7 w-7" />
               </div>
-              <div>
-                <h3 className="font-semibold text-lg">{t.label}</h3>
-                <p className="text-sm text-muted-foreground">{t.desc}</p>
+              <div className="space-y-1">
+                <h3 className="flex items-center gap-1 text-lg font-semibold">
+                  {t.label}
+                  <ArrowRight className="h-4 w-4 -translate-x-1 text-muted-foreground opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+                </h3>
+                <p className="text-sm leading-snug text-muted-foreground">{t.desc}</p>
               </div>
             </CardContent>
           </Card>
