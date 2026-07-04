@@ -205,6 +205,7 @@ export type Database = {
           estimated_output_tokens: number
           function_name: string
           id: string
+          is_estimated: boolean
           role_group: string
           user_id: string | null
         }
@@ -214,6 +215,7 @@ export type Database = {
           estimated_output_tokens?: number
           function_name: string
           id?: string
+          is_estimated?: boolean
           role_group: string
           user_id?: string | null
         }
@@ -223,6 +225,7 @@ export type Database = {
           estimated_output_tokens?: number
           function_name?: string
           id?: string
+          is_estimated?: boolean
           role_group?: string
           user_id?: string | null
         }

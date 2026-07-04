@@ -12,6 +12,61 @@ function truncateText(text: string, maxChars: number): string {
   return text.slice(0, maxChars) + "\n... (contenu tronqué)";
 }
 
+// --- Optimisation des tokens (nettoyage du "bruit") ---
+// Renvoie le texte du DERNIER message de l'élève.
+function getLastUserText(messages: any[]): string {
+  const lastUser = [...(messages || [])].reverse().find((m) => m?.role === "user");
+  if (!lastUser) return "";
+  const c = lastUser.content;
+  if (typeof c === "string") return c;
+  if (Array.isArray(c)) return c.map((p: any) => (p?.type === "text" ? p.text : "")).join(" ");
+  return String(c ?? "");
+}
+
+// Détermine si le message nécessite VRAIMENT tout le contenu des cours.
+// Les salutations / messages courts / méta-questions n'ont pas besoin du corpus
+// complet : on économise ainsi des milliers de tokens inutiles.
+function needsFullCourseContext(messages: any[]): boolean {
+  const lastUser = [...(messages || [])].reverse().find((m) => m?.role === "user");
+  // Une image / un PDF → contexte complet obligatoire.
+  if (Array.isArray(lastUser?.content) && lastUser.content.some((p: any) => p?.type === "image_url")) {
+    return true;
+  }
+  const text = getLastUserText(messages).trim();
+  if (text.length === 0) return false;
+
+  // Indices mathématiques ou pédagogiques → contexte complet.
+  const mathIndicators =
+    /[0-9=+\-*/^√∫∑π]|lim|d[ée]riv|int[ée]gr|[ée]quation|exercice|calcul|r[ée]sou|fonction|limite|th[ée]or[èe]me|d[ée]finition|chapitre|le[çc]on|تمرين|احسب|نهاية|مشتق|معادلة|حل|دالة|درس|مبرهنة|تعريف|اشتقاق|تكامل/i;
+  if (mathIndicators.test(text)) return true;
+
+  // Salutations / remerciements / acquiescements courts → prompt léger.
+  const smallTalk =
+    /^(salut|bonjour|bonsoir|coucou|hello|hi|hey|cc|yo|merci|ok|okay|d'accord|daccord|[çc]a va|comment (tu )?vas|qui es[- ]tu|tu es qui|au revoir|bye|سلام|السلام|مرحبا|شكرا|أهلا|صباح|مساء|كيف حالك|من انت|مع السلامة|وداعا)/i;
+  if (text.length <= 60 && smallTalk.test(text)) return false;
+
+  // Message très court sans indice math → léger.
+  if (text.length <= 25) return false;
+
+  // Par défaut : contexte complet (question probablement de fond).
+  return true;
+}
+
+// Prompt allégé pour les échanges qui n'exigent pas le corpus complet.
+function buildLeanSystemPrompt(
+  subject: string,
+  schoolLevel: string | null,
+  chapterContext: { title: string; lessonsContent: string } | null,
+): string {
+  return `Tu es un professeur de ${subject} bienveillant et pédagogue sur la plateforme éducative AcadémiePlus.
+Niveau scolaire de l'élève : ${schoolLevel || "non spécifié"}.${chapterContext ? `\nL'élève se trouve actuellement dans le chapitre "${chapterContext.title}".` : ""}
+
+- Ce chatbot est dédié UNIQUEMENT aux mathématiques.
+- **Langue** : réponds EXACTEMENT dans la langue de la dernière question de l'élève (arabe → 100% arabe, français → 100% français). Ne mélange jamais les deux.
+- Pour une salutation ou un message court, réponds brièvement et chaleureusement, puis invite l'élève à poser sa question de maths (sans réciter tout le cours).
+- Sois clair, encourageant, et termine par une question ouverte.`;
+}
+
 function buildSystemPrompt(
   subject: string,
   schoolLevel: string | null,
@@ -897,13 +952,22 @@ Tableau : 1/x, 1/x², xⁿ, √x مع النهايات
 ⚠️ RÈGLE FINALE ABSOLUE POUR LA GÉNÉRATION COMPLÈTE: 
 Tu retournes UNIQUEMENT le code HTML, de <!DOCTYPE html> à </html>. 
 Aucun blabla, pas de texte "Voici le cours...", AUCUNE balise de code \`\`\`html. JUSTE LE HTML BRUT.`
-      : buildSystemPrompt(
-        subject || "mathématiques",
-        schoolLevel,
-        chapterContext,
-        allChapters,
-        !!hideReformulation
-      );
+      : (needsFullCourseContext(messages)
+        ? buildSystemPrompt(
+          subject || "mathématiques",
+          schoolLevel,
+          chapterContext,
+          allChapters,
+          !!hideReformulation
+        )
+        // Message léger (salutation, message court, méta-question) : on n'envoie
+        // PAS tout le corpus de cours → économie massive de tokens.
+        : buildLeanSystemPrompt(
+          subject || "mathématiques",
+          schoolLevel,
+          chapterContext
+        ));
+
 
     // Version compacte du prompt pour les providers à petit contexte (Groq ~12k TPM, Cloudflare ~8k tokens)
     // On tronque agressivement le contenu de la leçon embarqué dans le prompt éditorial.
