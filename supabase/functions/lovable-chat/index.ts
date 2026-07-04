@@ -952,13 +952,22 @@ Tableau : 1/x, 1/x², xⁿ, √x مع النهايات
 ⚠️ RÈGLE FINALE ABSOLUE POUR LA GÉNÉRATION COMPLÈTE: 
 Tu retournes UNIQUEMENT le code HTML, de <!DOCTYPE html> à </html>. 
 Aucun blabla, pas de texte "Voici le cours...", AUCUNE balise de code \`\`\`html. JUSTE LE HTML BRUT.`
-      : buildSystemPrompt(
-        subject || "mathématiques",
-        schoolLevel,
-        chapterContext,
-        allChapters,
-        !!hideReformulation
-      );
+      : (needsFullCourseContext(messages)
+        ? buildSystemPrompt(
+          subject || "mathématiques",
+          schoolLevel,
+          chapterContext,
+          allChapters,
+          !!hideReformulation
+        )
+        // Message léger (salutation, message court, méta-question) : on n'envoie
+        // PAS tout le corpus de cours → économie massive de tokens.
+        : buildLeanSystemPrompt(
+          subject || "mathématiques",
+          schoolLevel,
+          chapterContext
+        ));
+
 
     // Version compacte du prompt pour les providers à petit contexte (Groq ~12k TPM, Cloudflare ~8k tokens)
     // On tronque agressivement le contenu de la leçon embarqué dans le prompt éditorial.
