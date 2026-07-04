@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { logTokenUsageAsync, resolveCallerRoleGroup } from "../_shared/tokenLogger.ts";
+import { logTokenUsageAsync, resolveCallerRoleGroup, extractGeminiUsage, type AiUsage, type RoleGroup } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -343,7 +343,11 @@ async function callGroq(systemPrompt: string, messages: any[]): Promise<Response
 }
 
 // ============ Provider 4: Google Gemini (clé secondaire / fallback) ============
-async function callGemini2(systemPrompt: string, messages: any[]): Promise<Response> {
+async function callGemini2(
+  systemPrompt: string,
+  messages: any[],
+  tokenLogCtx?: { supabaseUrl: string; serviceRoleKey: string; userId: string | null; roleGroup: RoleGroup }
+): Promise<Response> {
   const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
   if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
 
@@ -382,6 +386,13 @@ async function callGemini2(systemPrompt: string, messages: any[]): Promise<Respo
     const decoder = new TextDecoder();
     const encoder = new TextEncoder();
     let buffer = "";
+    // Each SSE chunk from Gemini carries its own usageMetadata; the last one
+    // received before the stream ends holds the final, complete token counts.
+    let latestUsage: AiUsage | null = null;
+    const captureUsage = (parsed: any) => {
+      const u = extractGeminiUsage(parsed);
+      if (u) latestUsage = u;
+    };
 
     try {
       while (true) {
@@ -398,6 +409,7 @@ async function callGemini2(systemPrompt: string, messages: any[]): Promise<Respo
           if (!jsonStr || jsonStr === "[DONE]") continue;
           try {
             const parsed = JSON.parse(jsonStr);
+            captureUsage(parsed);
             const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (text) {
               const openAiChunk = { choices: [{ delta: { content: text }, index: 0 }] };
@@ -411,6 +423,7 @@ async function callGemini2(systemPrompt: string, messages: any[]): Promise<Respo
         if (jsonStr && jsonStr !== "[DONE]") {
           try {
             const parsed = JSON.parse(jsonStr);
+            captureUsage(parsed);
             const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (text) {
               const openAiChunk = { choices: [{ delta: { content: text }, index: 0 }] };
@@ -420,6 +433,20 @@ async function callGemini2(systemPrompt: string, messages: any[]): Promise<Respo
         }
       }
       await writer.write(encoder.encode("data: [DONE]\n\n"));
+
+      // Log de consommation IA réelle une fois le flux terminé, seulement si Gemini a
+      // effectivement renvoyé des métadonnées d'usage.
+      if (latestUsage && tokenLogCtx) {
+        logTokenUsageAsync({
+          supabaseUrl: tokenLogCtx.supabaseUrl,
+          serviceRoleKey: tokenLogCtx.serviceRoleKey,
+          userId: tokenLogCtx.userId,
+          roleGroup: tokenLogCtx.roleGroup,
+          functionName: "lovable-chat",
+          inputTokens: (latestUsage as AiUsage).inputTokens,
+          outputTokens: (latestUsage as AiUsage).outputTokens,
+        });
+      }
     } catch (err) {
       console.error("Gemini2 stream transform error:", err);
     } finally {
@@ -519,11 +546,7 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const authHeader = req.headers.get("Authorization");
-    resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, authHeader).then(({ userId, roleGroup }) => {
-      const lastUserMessage = messages?.[messages.length - 1]?.content;
-      const inputText = typeof lastUserMessage === "string" ? lastUserMessage : JSON.stringify(messages ?? "");
-      logTokenUsageAsync({ supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: "lovable-chat", inputText });
-    });
+    const { userId: callerUserId, roleGroup: callerRoleGroup } = await resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, authHeader);
 
     const systemPrompt = editorialMode
       ? `Tu es un assistant IA expert en édition de contenus pédagogiques mathématiques (français/arabe).
@@ -895,7 +918,9 @@ Aucun blabla, pas de texte "Voici le cours...", AUCUNE balise de code \`\`\`html
     // Utilise uniquement Gemini (2ème clé)
     try {
       console.log("Trying Gemini secondary key...");
-      return await callGemini2(systemPrompt, messages);
+      return await callGemini2(systemPrompt, messages, {
+        supabaseUrl, serviceRoleKey, userId: callerUserId, roleGroup: callerRoleGroup,
+      });
     } catch (e) {
       console.error("Gemini secondary key failed:", e);
     }

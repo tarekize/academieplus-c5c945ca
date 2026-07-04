@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { logTokenUsageAsync, resolveCallerRoleGroup } from "../_shared/tokenLogger.ts";
+import { logTokenUsageAsync, resolveCallerRoleGroup, extractGeminiUsage, type AiUsage } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,7 +30,7 @@ const SYSTEM_PROMPT = `أنت معلم رياضيات جزائري خبير وم
 - ابدأ مباشرة بـ <div dir="rtl"> ... </div>.`;
 
 // ===== Provider helpers =====
-async function callGeminiKey(systemPrompt: string, userPrompt: string, model: string, key: string, label: string): Promise<string> {
+async function callGeminiKey(systemPrompt: string, userPrompt: string, model: string, key: string, label: string): Promise<{ text: string; usage: AiUsage | null }> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
   const response = await fetch(url, {
     method: "POST",
@@ -50,7 +50,7 @@ async function callGeminiKey(systemPrompt: string, userPrompt: string, model: st
   const data = await response.json();
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
   if (!text.trim()) throw new Error(`${label} empty response`);
-  return text;
+  return { text, usage: extractGeminiUsage(data) };
 }
 
 async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<string> {
@@ -108,13 +108,13 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<strin
 }
 
 // Gemini fallback chain (preferred: Gemini Key 2 only, as requested)
-async function generateEnrichedHtml(systemPrompt: string, userPrompt: string): Promise<string> {
+async function generateEnrichedHtml(systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
   const GEMINI_2 = Deno.env.get("GEMINI_API_KEY_2");
   const errors: string[] = [];
 
   if (!GEMINI_2) throw new Error("GEMINI_API_KEY_2 غير موجودة في إعدادات المشروع");
 
-  type Step = () => Promise<string>;
+  type Step = () => Promise<{ text: string; usage: AiUsage | null }>;
   const steps: Array<{ name: string; run: Step }> = [];
 
   steps.push({ name: "Gemini2/2.5-flash-lite", run: () => callGeminiKey(systemPrompt, userPrompt, "gemini-2.5-flash-lite", GEMINI_2, "Gemini2") });
@@ -224,13 +224,9 @@ serve(async (req) => {
       );
     }
 
-    resolveCallerRoleGroup(supabaseUrl, serviceKey, req.headers.get("Authorization")).then(({ userId, roleGroup }) => {
-      logTokenUsageAsync({
-        supabaseUrl, serviceRoleKey: serviceKey, userId: userId ?? auth.userId ?? null, roleGroup,
-        functionName: "enrich-chapter-lessons",
-        inputText: `${SYSTEM_PROMPT}\n${chapter.title_ar || chapter.title}\nlessons:${lessons.length}`,
-      });
-    });
+    const { userId: callerUserId, roleGroup: callerRoleGroup } = await resolveCallerRoleGroup(
+      supabaseUrl, serviceKey, req.headers.get("Authorization")
+    );
 
     const results: Array<{ id: string; title: string; status: "ok" | "error"; error?: string }> = [];
 
@@ -247,8 +243,18 @@ ${existing || "(لا يوجد محتوى حالي - أنشئ درساً كامل
 أنشئ الآن المحتوى المُثرى الكامل لهذا الدرس على شكل HTML جميل ومنظم حسب التعليمات.`;
 
       try {
-        const raw = await generateEnrichedHtml(SYSTEM_PROMPT, userPrompt);
+        const { text: raw, usage } = await generateEnrichedHtml(SYSTEM_PROMPT, userPrompt);
         const html = cleanGeneratedHtml(raw);
+
+        // Log de consommation IA par leçon, seulement si l'appel a réellement abouti.
+        if (usage) {
+          logTokenUsageAsync({
+            supabaseUrl, serviceRoleKey: serviceKey, userId: callerUserId ?? auth.userId ?? null, roleGroup: callerRoleGroup,
+            functionName: "enrich-chapter-lessons",
+            inputTokens: usage.inputTokens,
+            outputTokens: usage.outputTokens,
+          });
+        }
 
         const { error: upErr } = await supabase
           .from("lessons")

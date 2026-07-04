@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { logTokenUsageAsync, resolveCallerRoleGroup } from "../_shared/tokenLogger.ts";
+import { logTokenUsageAsync, resolveCallerRoleGroup, extractGeminiUsage, type AiUsage } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,7 +8,7 @@ const corsHeaders = {
 
 type AIProvider = {
   name: string;
-  call: (systemPrompt: string, userPrompt: string) => Promise<string>;
+  call: (systemPrompt: string, userPrompt: string) => Promise<{ text: string; usage: AiUsage | null }>;
 };
 
 async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<string> {
@@ -80,7 +80,7 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<strin
   return data?.choices?.[0]?.message?.content || "";
 }
 
-async function callGemini2(systemPrompt: string, userPrompt: string): Promise<string> {
+async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
   const KEY = Deno.env.get("GEMINI_API_KEY_2");
   if (!KEY) throw new Error("GEMINI_API_KEY_2 not configured");
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${KEY}`;
@@ -98,10 +98,10 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<st
     throw new Error(`Gemini2 failed: ${response.status} ${t}`);
   }
   const data = await response.json();
-  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  return { text: data?.candidates?.[0]?.content?.parts?.[0]?.text || "", usage: extractGeminiUsage(data) };
 }
 
-async function generateWithAI(systemPrompt: string, userPrompt: string): Promise<{ content: string; provider: string }> {
+async function generateWithAI(systemPrompt: string, userPrompt: string): Promise<{ content: string; provider: string; usage: AiUsage | null }> {
   const providers: AIProvider[] = [
     { name: "Gemini key 2", call: callGemini2 },
   ];
@@ -109,10 +109,10 @@ async function generateWithAI(systemPrompt: string, userPrompt: string): Promise
   for (const p of providers) {
     try {
       console.log(`Trying ${p.name}...`);
-      const content = await p.call(systemPrompt, userPrompt);
+      const { text: content, usage } = await p.call(systemPrompt, userPrompt);
       if (!content.trim()) throw new Error("Empty response");
       console.log(`${p.name} succeeded.`);
-      return { content, provider: p.name };
+      return { content, provider: p.name, usage };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       errors.push(`${p.name}: ${msg}`);
@@ -167,11 +167,18 @@ ${lessonsBlock}
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, req.headers.get("Authorization")).then(({ userId, roleGroup }) => {
-      logTokenUsageAsync({ supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: "generate-chapter-revision", inputText: systemPrompt + "\n" + userPrompt });
-    });
 
-    const { content, provider } = await generateWithAI(systemPrompt, userPrompt);
+    const { content, provider, usage } = await generateWithAI(systemPrompt, userPrompt);
+
+    // Log de consommation IA seulement si l'appel a réellement abouti.
+    if (usage) {
+      resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, req.headers.get("Authorization")).then(({ userId, roleGroup }) => {
+        logTokenUsageAsync({
+          supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: "generate-chapter-revision",
+          inputTokens: usage.inputTokens, outputTokens: usage.outputTokens,
+        });
+      });
+    }
 
     return new Response(
       JSON.stringify({ success: true, content, provider }),

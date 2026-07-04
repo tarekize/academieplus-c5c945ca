@@ -7,6 +7,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { ArrowLeft, Cpu, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -16,6 +17,7 @@ interface UsageRow {
   function_name: string;
   estimated_input_tokens: number;
   estimated_output_tokens: number;
+  is_estimated: boolean;
   created_at: string;
 }
 
@@ -40,7 +42,7 @@ export default function AdminTokenUsage() {
     setLoading(true);
     const { data } = await supabase
       .from("ai_token_usage" as any)
-      .select("role_group, function_name, estimated_input_tokens, estimated_output_tokens, created_at")
+      .select("role_group, function_name, estimated_input_tokens, estimated_output_tokens, is_estimated, created_at")
       .order("created_at", { ascending: false })
       .limit(5000);
     setRows((data as any as UsageRow[]) || []);
@@ -54,6 +56,8 @@ export default function AdminTokenUsage() {
   });
 
   const grandTotal = rows.reduce((sum, r) => sum + r.estimated_input_tokens + r.estimated_output_tokens, 0);
+  const exactRowsCount = rows.filter((r) => r.is_estimated === false).length;
+  const exactPct = rows.length > 0 ? Math.round((exactRowsCount / rows.length) * 100) : 0;
 
   if (loading) {
     return (
@@ -77,7 +81,11 @@ export default function AdminTokenUsage() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold">Consommation IA (tokens)</h1>
-                <p className="text-sm text-muted-foreground">Estimation de l'usage de tokens par groupe (approximation)</p>
+                <p className="text-sm text-muted-foreground">
+                  {rows.length > 0
+                    ? `${exactPct}% des entrées sont un comptage exact (fourni par l'IA), le reste est estimé`
+                    : "Usage de tokens par groupe"}
+                </p>
               </div>
             </div>
           </div>
@@ -110,7 +118,9 @@ export default function AdminTokenUsage() {
         <Card className="border-0 shadow-lg">
           <CardHeader className="border-b bg-muted/30">
             <CardTitle>Répartition par groupe</CardTitle>
-            <CardDescription>Estimation approximative (caractères / 4), pas un comptage exact des fournisseurs IA</CardDescription>
+            <CardDescription>
+              Les entrées marquées "Exact" viennent du comptage réel renvoyé par l'IA ; les autres sont estimées (caractères / 4)
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-6">
             <ResponsiveContainer width="100%" height={320}>
@@ -137,13 +147,14 @@ export default function AdminTokenUsage() {
                   <TableHead>Date</TableHead>
                   <TableHead>Groupe</TableHead>
                   <TableHead>Fonction</TableHead>
-                  <TableHead className="text-right">Tokens estimés</TableHead>
+                  <TableHead>Précision</TableHead>
+                  <TableHead className="text-right">Tokens</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {rows.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       Aucune consommation enregistrée pour le moment.
                     </TableCell>
                   </TableRow>
@@ -153,6 +164,13 @@ export default function AdminTokenUsage() {
                       <TableCell>{format(new Date(r.created_at), "dd MMM yyyy à HH:mm", { locale: fr })}</TableCell>
                       <TableCell>{GROUP_LABELS[r.role_group] || r.role_group}</TableCell>
                       <TableCell className="text-muted-foreground">{r.function_name}</TableCell>
+                      <TableCell>
+                        {r.is_estimated === false ? (
+                          <Badge variant="default" className="rounded-full">Exact</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="rounded-full">Estimé</Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right font-medium">
                         {(r.estimated_input_tokens + r.estimated_output_tokens).toLocaleString("fr-FR")}
                       </TableCell>

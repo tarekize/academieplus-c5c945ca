@@ -1,7 +1,7 @@
 // Génère des activités de remédiation ciblées UNIQUEMENT sur les lacunes de l'élève.
 // Retourne exactement 3 exercices + 2 quiz, sans monter en compétence :
 // le but est de combler les lacunes, pas de pousser vers du plus difficile.
-import { logTokenUsageAsync, resolveCallerRoleGroup } from "../_shared/tokenLogger.ts";
+import { logTokenUsageAsync, resolveCallerRoleGroup, extractGeminiUsage, type AiUsage } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -185,7 +185,7 @@ async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<
   return data?.choices?.[0]?.message?.content || "";
 }
 
-async function callGemini(systemPrompt: string, userPrompt: string, key: string, label: string): Promise<string> {
+async function callGemini(systemPrompt: string, userPrompt: string, key: string, label: string): Promise<{ text: string; usage: AiUsage | null }> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
   const response = await fetch(url, {
     method: "POST",
@@ -202,7 +202,7 @@ async function callGemini(systemPrompt: string, userPrompt: string, key: string,
     throw new Error(`Gemini ${label} failed: ${response.status}`);
   }
   const data = await response.json();
-  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  return { text: data?.candidates?.[0]?.content?.parts?.[0]?.text || "", usage: extractGeminiUsage(data) };
 }
 
 Deno.serve(async (req) => {
@@ -257,9 +257,6 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, req.headers.get("Authorization")).then(({ userId, roleGroup }) => {
-      logTokenUsageAsync({ supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: "generate-remediation", inputText: system + "\n" + user });
-    });
 
     const geminiKey2 = Deno.env.get("GEMINI_API_KEY_2");
 
@@ -269,7 +266,18 @@ Deno.serve(async (req) => {
         status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    rawContent = await callGemini(system, user, geminiKey2, "KEY_2");
+    const geminiResult = await callGemini(system, user, geminiKey2, "KEY_2");
+    rawContent = geminiResult.text;
+
+    // Log de consommation IA seulement si l'appel a réellement abouti.
+    if (geminiResult.usage) {
+      resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, req.headers.get("Authorization")).then(({ userId, roleGroup }) => {
+        logTokenUsageAsync({
+          supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: "generate-remediation",
+          inputTokens: geminiResult.usage!.inputTokens, outputTokens: geminiResult.usage!.outputTokens,
+        });
+      });
+    }
 
     rawContent = rawContent.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
 

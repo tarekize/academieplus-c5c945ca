@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { logTokenUsageAsync, resolveCallerRoleGroup } from "../_shared/tokenLogger.ts";
+import { logTokenUsageAsync, resolveCallerRoleGroup, extractOpenAiCompatUsage, type AiUsage } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -59,7 +59,7 @@ Réponds UNIQUEMENT en JSON valide de la forme :
   };
 }
 
-async function callGateway(system: string, user: string): Promise<any> {
+async function callGateway(system: string, user: string): Promise<{ parsed: any; usage: AiUsage | null }> {
   const key = Deno.env.get("LOVABLE_API_KEY");
   if (!key) throw new Error("LOVABLE_API_KEY manquante");
   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -80,11 +80,12 @@ async function callGateway(system: string, user: string): Promise<any> {
   }
   const data = await res.json();
   const content = data?.choices?.[0]?.message?.content || "{}";
+  const usage = extractOpenAiCompatUsage(data);
   try {
-    return JSON.parse(content);
+    return { parsed: JSON.parse(content), usage };
   } catch {
     const m = content.match(/\{[\s\S]*\}/);
-    return m ? JSON.parse(m[0]) : { items: [] };
+    return { parsed: m ? JSON.parse(m[0]) : { items: [] }, usage };
   }
 }
 
@@ -102,12 +103,19 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, req.headers.get("Authorization")).then(({ userId, roleGroup }) => {
-      logTokenUsageAsync({ supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: "generate-teacher-content", inputText: system + "\n" + user });
-    });
 
-    const parsed = await callGateway(system, user);
+    const { parsed, usage } = await callGateway(system, user);
     const items = Array.isArray(parsed?.items) ? parsed.items : [];
+
+    // Log de consommation IA seulement si l'appel a réellement abouti.
+    if (usage) {
+      resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, req.headers.get("Authorization")).then(({ userId, roleGroup }) => {
+        logTokenUsageAsync({
+          supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: "generate-teacher-content",
+          inputTokens: usage.inputTokens, outputTokens: usage.outputTokens,
+        });
+      });
+    }
     return new Response(JSON.stringify({ items }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

@@ -1,7 +1,7 @@
 // Generates 10 exercises + 10 quizzes for ONE lesson using Google Gemini API directly (GEMINI_API_KEY_2).
 // No auth required: uses a shared secret token to prevent abuse.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { logTokenUsageAsync } from "../_shared/tokenLogger.ts";
+import { logTokenUsageAsync, extractGeminiUsage, type GeminiUsage } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -93,7 +93,7 @@ function parseGeneratedObject(rawContent: string): any {
   }
 }
 
-async function callGemini(systemPrompt: string, userPrompt: string): Promise<any> {
+async function callGemini(systemPrompt: string, userPrompt: string): Promise<{ parsed: any; usage: GeminiUsage | null }> {
   if (!GEMINI_KEYS.length) throw new Error("GEMINI_API_KEY_2 not configured");
 
   let lastError = "Gemini unavailable";
@@ -137,7 +137,7 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<any
             console.error("[gemini]", lastError);
             continue;
           }
-          return parseGeneratedObject(text);
+          return { parsed: parseGeneratedObject(text), usage: extractGeminiUsage(data) };
         } catch (e: any) {
           lastError = `${model}: ${e?.message || String(e)}`;
           await sleep(1200 * (attempt + 1));
@@ -199,17 +199,14 @@ Deno.serve(async (req) => {
 
     const userPrompt = buildUserPrompt(chapterTitle, lessonTitleAr, lessonTitleFr);
 
-    logTokenUsageAsync({
-      supabaseUrl: SUPABASE_URL, serviceRoleKey: SERVICE_ROLE, userId: callerUserId, roleGroup: callerRoleGroup,
-      functionName: "bulk-gen-terminale-gemini",
-      inputText: SYSTEM_PROMPT + "\n" + userPrompt,
-    });
-
     let parsed: any = null;
+    let usage: GeminiUsage | null = null;
     let lastErr = "";
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        parsed = await callGemini(SYSTEM_PROMPT, userPrompt);
+        const result = await callGemini(SYSTEM_PROMPT, userPrompt);
+        parsed = result.parsed;
+        usage = result.usage;
         if (parsed?.exercises?.length && parsed?.quizzes?.length) break;
         lastErr = "missing fields";
       } catch (e: any) {
@@ -217,6 +214,17 @@ Deno.serve(async (req) => {
         await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
       }
     }
+
+    // Log de consommation IA seulement si l'appel Gemini a réellement abouti.
+    if (usage) {
+      logTokenUsageAsync({
+        supabaseUrl: SUPABASE_URL, serviceRoleKey: SERVICE_ROLE, userId: callerUserId, roleGroup: callerRoleGroup,
+        functionName: "bulk-gen-terminale-gemini",
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+      });
+    }
+
     if (!parsed?.exercises || !parsed?.quizzes) {
       return new Response(JSON.stringify({ error: `generation failed: ${lastErr}` }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }

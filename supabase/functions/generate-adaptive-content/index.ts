@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { logTokenUsageAsync, resolveCallerRoleGroup } from "../_shared/tokenLogger.ts";
+import { logTokenUsageAsync, resolveCallerRoleGroup, extractGeminiUsage, type AiUsage } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -242,7 +242,7 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<str
 }
 
 // ============ Provider 3: Google Gemini (Key 2) ============
-async function callGemini2(systemPrompt: string, userPrompt: string): Promise<string> {
+async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
   const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
   if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
 
@@ -264,7 +264,7 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<st
   }
 
   const data = await response.json();
-  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  return { text: data?.candidates?.[0]?.content?.parts?.[0]?.text || "", usage: extractGeminiUsage(data) };
 }
 
 serve(async (req) => {
@@ -318,15 +318,22 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, req.headers.get("Authorization")).then(({ userId, roleGroup }) => {
-      logTokenUsageAsync({ supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: "generate-adaptive-content", inputText: system + "\n" + user });
-    });
 
     let rawContent = "";
 
     try {
       console.log("Trying Gemini (Key 2)...");
-      rawContent = await callGemini2(system, user);
+      const result = await callGemini2(system, user);
+      rawContent = result.text;
+      // Log de consommation IA seulement si l'appel Gemini a réellement abouti.
+      if (result.usage) {
+        resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, req.headers.get("Authorization")).then(({ userId, roleGroup }) => {
+          logTokenUsageAsync({
+            supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: "generate-adaptive-content",
+            inputTokens: result.usage!.inputTokens, outputTokens: result.usage!.outputTokens,
+          });
+        });
+      }
     } catch (e3) {
       console.error("Gemini (Key 2) failed:", e3);
       return new Response(

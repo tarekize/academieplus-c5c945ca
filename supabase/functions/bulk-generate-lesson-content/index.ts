@@ -1,7 +1,7 @@
 // Bulk-generate exercises (10) and quizzes (10) for a single lesson and INSERT them into DB.
 // Uses LOVABLE_API_KEY (Lovable AI Gateway, OpenAI-compatible). Caller must be admin.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { logTokenUsageAsync } from "../_shared/tokenLogger.ts";
+import { logTokenUsageAsync, extractOpenAiCompatUsage, type AiUsage } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -53,7 +53,7 @@ function buildUserPrompt(chapterAr: string, lessonAr: string, lessonFr: string) 
 {"exercises":[...10 عناصر...],"quizzes":[...10 عناصر...]}`;
 }
 
-async function callGemini(systemPrompt: string, userPrompt: string): Promise<any> {
+async function callGemini(systemPrompt: string, userPrompt: string): Promise<{ parsed: any; usage: AiUsage | null }> {
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -78,7 +78,7 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<any
   if (!content) throw new Error("AI returned empty content");
   // strip code fences if any
   const cleaned = content.replace(/^```json\s*|\s*```$/g, "").trim();
-  return JSON.parse(cleaned);
+  return { parsed: JSON.parse(cleaned), usage: extractOpenAiCompatUsage(data) };
 }
 
 Deno.serve(async (req) => {
@@ -110,19 +110,15 @@ Deno.serve(async (req) => {
 
     const userPrompt = buildUserPrompt(chapter_title_ar, lesson_title_ar, lesson_title_fr || "");
 
-    logTokenUsageAsync({
-      supabaseUrl: SUPABASE_URL, serviceRoleKey: SERVICE_ROLE, userId: user.id,
-      roleGroup: roles.includes("admin") ? "admin" : "pedago",
-      functionName: "bulk-generate-lesson-content",
-      inputText: SYSTEM_PROMPT + "\n" + userPrompt,
-    });
-
     // retry up to 3 times on parse / API errors
     let parsed: any = null;
+    let usage: AiUsage | null = null;
     let lastErr = "";
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        parsed = await callGemini(SYSTEM_PROMPT, userPrompt);
+        const result = await callGemini(SYSTEM_PROMPT, userPrompt);
+        parsed = result.parsed;
+        usage = result.usage;
         if (parsed?.exercises?.length && parsed?.quizzes?.length) break;
         lastErr = "parsed but missing fields";
       } catch (e: any) {
@@ -130,6 +126,18 @@ Deno.serve(async (req) => {
         await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
       }
     }
+
+    // Log de consommation IA seulement si l'appel a réellement abouti.
+    if (usage) {
+      logTokenUsageAsync({
+        supabaseUrl: SUPABASE_URL, serviceRoleKey: SERVICE_ROLE, userId: user.id,
+        roleGroup: roles.includes("admin") ? "admin" : "pedago",
+        functionName: "bulk-generate-lesson-content",
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+      });
+    }
+
     if (!parsed?.exercises || !parsed?.quizzes) {
       return new Response(JSON.stringify({ error: `generation failed: ${lastErr}` }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }

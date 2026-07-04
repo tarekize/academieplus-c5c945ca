@@ -3,6 +3,7 @@
 // - Generates an "inactivity" alert if the child hasn't used the app in >= 5 days
 //   AND no inactivity alert was already sent in the last 5 days.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { logTokenUsageAsync, extractGeminiUsage, type GeminiUsage } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,7 +22,7 @@ interface ChapterStat {
 }
 
 // Génère l'analyse via Google Gemini (2ème clé) uniquement.
-async function callGemini2(systemPrompt: string, userPrompt: string): Promise<string> {
+async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: GeminiUsage | null }> {
   const key = Deno.env.get("GEMINI_API_KEY_2");
   if (!key) throw new Error("GEMINI_API_KEY_2 not configured");
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${key}`;
@@ -37,7 +38,7 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<st
   if (!res.ok) throw new Error(`Gemini2 error ${res.status}: ${await res.text()}`);
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
-  return String(text).trim();
+  return { text: String(text).trim(), usage: extractGeminiUsage(data) };
 }
 
 async function buildPeriodicReport(supabase: any, parentId: string, childId: string) {
@@ -115,13 +116,30 @@ async function buildPeriodicReport(supabase: any, parentId: string, childId: str
     `Détail par chapitre :\n${chaptersForPrompt || "Aucune activité enregistrée sur la période."}`;
 
   let recommendations = "";
+  let aiUsage: GeminiUsage | null = null;
   try {
-    recommendations = await callGemini2(aiSystem, aiUser);
+    const result = await callGemini2(aiSystem, aiUser);
+    recommendations = result.text;
+    aiUsage = result.usage;
   } catch (e) {
     console.error("AI report generation failed", e);
   }
   if (!recommendations) {
     recommendations = `${childName} a un taux de réussite global de ${totalCorrectPct}% et un niveau moyen de ${globalLevel}/100 sur la période.`;
+  }
+
+  // Log de consommation IA pour le groupe "parent" (rapport périodique automatique) —
+  // seulement si l'appel Gemini a réellement eu lieu.
+  if (aiUsage) {
+    logTokenUsageAsync({
+      supabaseUrl: Deno.env.get("SUPABASE_URL")!,
+      serviceRoleKey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      userId: parentId,
+      roleGroup: "parent",
+      functionName: "scheduled-parent-reports",
+      inputTokens: aiUsage.inputTokens,
+      outputTokens: aiUsage.outputTokens,
+    });
   }
 
   const summary = `Rapport automatique (tous les ${PERIODIC_DAYS} jours) : ${childName} a un taux de réussite global de ${totalCorrectPct}% et un niveau moyen de ${globalLevel}/100 sur les 30 derniers jours.`;

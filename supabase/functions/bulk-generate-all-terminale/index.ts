@@ -2,7 +2,7 @@
 // Protected by a shared secret header to allow sandbox invocation without admin JWT.
 // Streams progress as NDJSON.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { logTokenUsageAsync } from "../_shared/tokenLogger.ts";
+import { logTokenUsageAsync, extractOpenAiCompatUsage, type AiUsage } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,7 +50,7 @@ function buildUserPrompt(chapterTitle: string, lessonTitle: string) {
 {"exercises":[...10...],"quizzes":[...10...]}`;
 }
 
-async function callAI(systemPrompt: string, userPrompt: string): Promise<any> {
+async function callAI(systemPrompt: string, userPrompt: string): Promise<{ parsed: any; usage: AiUsage | null }> {
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: { "Authorization": `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
@@ -70,7 +70,7 @@ async function callAI(systemPrompt: string, userPrompt: string): Promise<any> {
   const data = await resp.json();
   const content = data?.choices?.[0]?.message?.content || "";
   const cleaned = content.replace(/^```json\s*|\s*```$/g, "").trim();
-  return JSON.parse(cleaned);
+  return { parsed: JSON.parse(cleaned), usage: extractOpenAiCompatUsage(data) };
 }
 
 Deno.serve(async (req) => {
@@ -115,22 +115,19 @@ Deno.serve(async (req) => {
   const slice = ordered.slice(startIdx, startIdx + limit);
   const results: any[] = [];
 
-  logTokenUsageAsync({
-    supabaseUrl: SUPABASE_URL, serviceRoleKey: SERVICE_ROLE, userId: null, roleGroup: "admin",
-    functionName: "bulk-generate-all-terminale",
-    inputText: `${SYSTEM_PROMPT}\nlessons:${slice.length}`,
-  });
-
   for (const lesson of slice) {
     const ch: any = chMap.get(lesson.chapter_id);
     const chapterTitle = ch?.title_ar || ch?.title || "";
     const lessonTitle = `${lesson.title_ar || ""} (${lesson.title || ""})`.trim();
 
     let parsed: any = null;
+    let usage: AiUsage | null = null;
     let lastErr = "";
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        parsed = await callAI(SYSTEM_PROMPT, buildUserPrompt(chapterTitle, lessonTitle));
+        const result = await callAI(SYSTEM_PROMPT, buildUserPrompt(chapterTitle, lessonTitle));
+        parsed = result.parsed;
+        usage = result.usage;
         if (parsed?.exercises?.length >= 5 && parsed?.quizzes?.length >= 5) break;
         lastErr = "missing items";
       } catch (e: any) {
@@ -138,6 +135,17 @@ Deno.serve(async (req) => {
         await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
       }
     }
+
+    // Log de consommation IA par leçon, seulement si l'appel a réellement abouti.
+    if (usage) {
+      logTokenUsageAsync({
+        supabaseUrl: SUPABASE_URL, serviceRoleKey: SERVICE_ROLE, userId: null, roleGroup: "admin",
+        functionName: "bulk-generate-all-terminale",
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+      });
+    }
+
     if (!parsed?.exercises || !parsed?.quizzes) {
       results.push({ lesson_id: lesson.id, ok: false, error: lastErr });
       continue;

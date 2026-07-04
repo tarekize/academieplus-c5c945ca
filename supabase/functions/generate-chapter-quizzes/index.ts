@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.97.0";
-import { logTokenUsageAsync, resolveCallerRoleGroup } from "../_shared/tokenLogger.ts";
+import { logTokenUsageAsync, resolveCallerRoleGroup, extractGeminiUsage, type AiUsage } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,7 +27,7 @@ interface GeneratedExercise {
 
 type AIProvider = {
   name: string;
-  call: (systemPrompt: string, userPrompt: string) => Promise<string>;
+  call: (systemPrompt: string, userPrompt: string) => Promise<{ text: string; usage: AiUsage | null }>;
 };
 
 function cleanGeneratedJson(rawContent: string): string {
@@ -91,9 +91,9 @@ async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<
 }
 
 // ============ Provider 1: Google Gemini (1ère clé) ============
-async function callGemini(systemPrompt: string, userPrompt: string): Promise<string> {
+async function callGemini(systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-  
+
   if (!GEMINI_API_KEY) {
     throw new Error("GEMINI_API_KEY not configured");
   }
@@ -134,14 +134,14 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<strin
 }
 
 // ============ Provider 3: Google Gemini (2e clé / fallback) ============
-async function callGemini2(systemPrompt: string, userPrompt: string): Promise<string> {
+async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
   const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
   if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
 
   return callGeminiWithKey(GEMINI_API_KEY_2, "Gemini2", systemPrompt, userPrompt);
 }
 
-async function callGeminiWithKey(apiKey: string, label: string, systemPrompt: string, userPrompt: string): Promise<string> {
+async function callGeminiWithKey(apiKey: string, label: string, systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
   const models = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash"];
   let lastError = `${label} unavailable`;
   for (const model of models) {
@@ -158,7 +158,8 @@ async function callGeminiWithKey(apiKey: string, label: string, systemPrompt: st
 
     if (response.ok) {
       const data = await response.json();
-      return data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("\n") || "";
+      const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("\n") || "";
+      return { text, usage: extractGeminiUsage(data) };
     }
     const errText = await response.text();
     console.error(`${label} ${model} error:`, response.status, errText);
@@ -172,7 +173,7 @@ async function generateWithAI(
   systemPrompt: string,
   userPrompt: string,
   validateJson?: (content: string) => void
-): Promise<string> {
+): Promise<{ content: string; usage: AiUsage | null }> {
   const providers: AIProvider[] = [
     { name: "Gemini key 2", call: callGemini2 },
   ];
@@ -181,11 +182,11 @@ async function generateWithAI(
   for (const provider of providers) {
     try {
       console.log(`Trying ${provider.name} for content generation...`);
-      const content = await provider.call(systemPrompt, userPrompt);
+      const { text: content, usage } = await provider.call(systemPrompt, userPrompt);
       if (!content.trim()) throw new Error("Empty AI response");
       if (validateJson) validateJson(content);
       console.log(`${provider.name} succeeded.`);
-      return content;
+      return { content, usage };
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       errors.push(`${provider.name}: ${message}`);
@@ -199,7 +200,7 @@ async function generateWithAI(
 async function generateQuizzes(
   chapterTitle: string,
   lessonTitle: string
-): Promise<GeneratedQuiz[]> {
+): Promise<{ quizzes: GeneratedQuiz[]; usage: AiUsage | null }> {
   const systemPrompt = `أنت معلم رياضيات جزائري خبير لشعبة العلوم في الثانوية. مهمتك توليد أسئلة اختبار ذكية (QCM) باللغة العربية مع تلميحات (hints) مفيدة. الرد فقط بمصفوفة JSON صحيحة، بدون أي نص خارج JSON.`;
 
   const userPrompt = `
@@ -230,21 +231,24 @@ async function generateQuizzes(
     if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Invalid quizzes array");
   };
 
-  const rawContent = await generateWithAI(systemPrompt, userPrompt, validateQuizzes);
+  const { content: rawContent, usage } = await generateWithAI(systemPrompt, userPrompt, validateQuizzes);
 
   try {
     const quizzes = parseGeneratedArray<GeneratedQuiz>(rawContent);
-    return quizzes.filter(q => 
-      q.question && q.options && Array.isArray(q.options) && 
-      q.correct_answer && q.explanation && typeof q.difficulty === 'number'
-    ).slice(0, 5).map(q => ({
-      ...q,
-      question: normalizeText(q.question),
-      options: q.options.map(option => normalizeText(option)),
-      correct_answer: normalizeText(q.correct_answer),
-      explanation: normalizeText(q.explanation),
-      hint: normalizeText(q.hint),
-    }));
+    return {
+      quizzes: quizzes.filter(q =>
+        q.question && q.options && Array.isArray(q.options) &&
+        q.correct_answer && q.explanation && typeof q.difficulty === 'number'
+      ).slice(0, 5).map(q => ({
+        ...q,
+        question: normalizeText(q.question),
+        options: q.options.map(option => normalizeText(option)),
+        correct_answer: normalizeText(q.correct_answer),
+        explanation: normalizeText(q.explanation),
+        hint: normalizeText(q.hint),
+      })),
+      usage,
+    };
   } catch (parseError) {
     console.error("Failed to parse quizzes JSON after all providers:", parseError, "Raw:", rawContent.substring(0, 500));
     throw new Error(`Failed to parse generated quizzes: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
@@ -254,7 +258,7 @@ async function generateQuizzes(
 async function generateExercises(
   chapterTitle: string,
   lessonTitle: string
-): Promise<GeneratedExercise[]> {
+): Promise<{ exercises: GeneratedExercise[]; usage: AiUsage | null }> {
   const systemPrompt = `أنت معلم رياضيات جزائري خبير لشعبة العلوم في الثانوية. مهمتك توليد تمارين رياضية باللغة العربية مع حلول مفصلة جداً وتلميحات. الرد فقط بمصفوفة JSON صحيحة، بدون أي نص خارج JSON.`;
 
   const userPrompt = `
@@ -309,23 +313,26 @@ $$\\\\boxed{\\\\text{النتيجة}}$$
     if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Invalid exercises array");
   };
 
-  const rawContent = await generateWithAI(systemPrompt, userPrompt, validateExercises);
+  const { content: rawContent, usage } = await generateWithAI(systemPrompt, userPrompt, validateExercises);
 
   try {
     const exercises = parseGeneratedArray<GeneratedExercise>(rawContent);
-    
+
     // Validate exercises have required fields
-    return exercises.filter(e => 
-      e.title && e.statement && e.expected_answer && 
-      e.hint && e.solution && typeof e.difficulty === 'number'
-    ).slice(0, 5).map(e => ({
-      ...e,
-      title: normalizeText(e.title),
-      statement: normalizeText(e.statement),
-      expected_answer: normalizeText(e.expected_answer),
-      hint: normalizeText(e.hint),
-      solution: normalizeText(e.solution),
-    }));
+    return {
+      exercises: exercises.filter(e =>
+        e.title && e.statement && e.expected_answer &&
+        e.hint && e.solution && typeof e.difficulty === 'number'
+      ).slice(0, 5).map(e => ({
+        ...e,
+        title: normalizeText(e.title),
+        statement: normalizeText(e.statement),
+        expected_answer: normalizeText(e.expected_answer),
+        hint: normalizeText(e.hint),
+        solution: normalizeText(e.solution),
+      })),
+      usage,
+    };
   } catch (parseError) {
     console.error("Failed to parse exercises JSON after all providers:", parseError);
     throw new Error(`Failed to parse generated exercises: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
@@ -388,13 +395,24 @@ serve(async (req) => {
 
     const tokenSupabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const tokenServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    resolveCallerRoleGroup(tokenSupabaseUrl, tokenServiceRoleKey, req.headers.get("Authorization")).then(({ userId, roleGroup }) => {
-      logTokenUsageAsync({ supabaseUrl: tokenSupabaseUrl, serviceRoleKey: tokenServiceRoleKey, userId, roleGroup, functionName: "generate-chapter-quizzes", inputText: `${chapterTitle}\n${lessonTitle}` });
-    });
+    const { userId: callerUserId, roleGroup: callerRoleGroup } = await resolveCallerRoleGroup(
+      tokenSupabaseUrl, tokenServiceRoleKey, req.headers.get("Authorization")
+    );
 
     // Generate sequentially to avoid provider rate limits (especially Groq/Gemini) when fallbacks are used
-    const quizzes = await generateQuizzes(chapterTitle, lessonTitle);
-    const exercises = await generateExercises(chapterTitle, lessonTitle);
+    const { quizzes, usage: quizzesUsage } = await generateQuizzes(chapterTitle, lessonTitle);
+    const { exercises, usage: exercisesUsage } = await generateExercises(chapterTitle, lessonTitle);
+
+    // Log de consommation IA réelle, seulement pour les appels ayant réellement abouti.
+    for (const usage of [quizzesUsage, exercisesUsage]) {
+      if (usage) {
+        logTokenUsageAsync({
+          supabaseUrl: tokenSupabaseUrl, serviceRoleKey: tokenServiceRoleKey, userId: callerUserId, roleGroup: callerRoleGroup,
+          functionName: "generate-chapter-quizzes",
+          inputTokens: usage.inputTokens, outputTokens: usage.outputTokens,
+        });
+      }
+    }
 
     // Calculate current max order_index for quizzes
     let startQuizOrder = 1;
