@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Lightbulb, CheckCircle2, BookOpen } from "lucide-react";
 import { HtmlWithMath } from "./HtmlWithMath";
-import { cleanMathStatement } from "@/lib/mathStatement";
+import { cleanMathStatement, splitStatementIntoQuestions } from "@/lib/mathStatement";
 import { recordTeacherContentAttempt, normalizeAnswer } from "@/lib/teacherContentAttempt";
 
 interface Props {
@@ -17,7 +17,11 @@ interface Props {
 
 /** Self-contained answer/correction block for a single teacher-authored exercise. */
 export default function ExerciseAnswerBlock({ contentId, userId, statement, expectedAnswer, solution, hint }: Props) {
+  const { intro, questions } = splitStatementIntoQuestions(statement || "");
+  const hasSubQuestions = questions.length >= 2;
+
   const [answer, setAnswer] = useState("");
+  const [subAnswers, setSubAnswers] = useState<string[]>(() => questions.map(() => ""));
   const [revealed, setRevealed] = useState(false);
   const [showHint, setShowHint] = useState(false);
 
@@ -29,32 +33,55 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
 
   const handleCheck = () => {
     if (revealed) { setRevealed(false); return; }
-    const correct = !!expectedAnswer && normalizeAnswer(answer) === normalizeAnswer(expectedAnswer);
+    const combinedAnswer = hasSubQuestions
+      ? subAnswers.map((a, i) => `${i + 1}. ${a}`).join(" — ")
+      : answer;
+    const correct = !!expectedAnswer && normalizeAnswer(combinedAnswer) === normalizeAnswer(expectedAnswer);
     setRevealed(true);
     recordTeacherContentAttempt(contentId, userId, {
       attemptDelta: 1,
       errorDelta: correct ? 0 : 1,
       completed: true,
       isCorrect: correct,
-      answer: answer || null,
+      answer: combinedAnswer || null,
     });
   };
 
   return (
     <div className="space-y-3">
-      {statement && (
-        <HtmlWithMath htmlContent={cleanMathStatement(statement)} className="text-sm text-right" dir="rtl" />
+      {hasSubQuestions ? (
+        <div className="space-y-4" dir="rtl">
+          {intro && <HtmlWithMath htmlContent={cleanMathStatement(intro)} className="text-sm text-right" dir="rtl" />}
+          {questions.map((q, i) => (
+            <div key={i} className="space-y-1.5">
+              <HtmlWithMath htmlContent={cleanMathStatement(q)} className="text-sm text-right" dir="rtl" />
+              <input
+                className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
+                placeholder={`إجابة السؤال ${i + 1}...`}
+                value={subAnswers[i] || ""}
+                onChange={(e) => setSubAnswers((prev) => prev.map((v, j) => (j === i ? e.target.value : v)))}
+                dir="rtl" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        statement && (
+          <HtmlWithMath htmlContent={cleanMathStatement(statement)} className="text-sm text-right" dir="rtl" />
+        )
       )}
+
       {hint && showHint && (
         <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {hint}</div>
       )}
       <div className="flex gap-2 items-center" dir="rtl">
-        <input
-          className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
-          placeholder="أدخل إجابتك..."
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          dir="rtl" />
+        {!hasSubQuestions && (
+          <input
+            className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
+            placeholder="أدخل إجابتك..."
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            dir="rtl" />
+        )}
         {hint && !showHint && (
           <Button size="sm" variant="ghost" onClick={handleHint}>
             <Lightbulb className="h-4 w-4 mr-1" /> تلميح

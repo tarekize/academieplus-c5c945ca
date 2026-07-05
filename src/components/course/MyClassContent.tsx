@@ -7,8 +7,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { cleanMathStatement } from "@/lib/mathStatement";
 import { cn } from "@/lib/utils";
-import { Users, BookOpen, CheckCircle2, Pencil, Eye, Lightbulb } from "lucide-react";
-import { recordTeacherContentAttempt, normalizeAnswer } from "@/lib/teacherContentAttempt";
+import { Users, BookOpen, Pencil, Eye, Lightbulb } from "lucide-react";
+import { recordTeacherContentAttempt } from "@/lib/teacherContentAttempt";
+import ExerciseAnswerBlock from "./ExerciseAnswerBlock";
 
 interface TeacherContentRow {
   id: string;
@@ -30,7 +31,6 @@ export function MyClassContent({ userId, contentType }: Props) {
   const [items, setItems] = useState<TeacherContentRow[]>([]);
   const [directIds, setDirectIds] = useState<Set<string>>(new Set());
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
-  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<Record<string, string>>({});
   const [showHint, setShowHint] = useState<Record<string, boolean>>({});
 
@@ -52,72 +52,6 @@ export function MyClassContent({ userId, contentType }: Props) {
       isCorrect: correct,
       answer: sel || null,
     });
-  };
-
-  const handleExerciseCheck = (key: string, contentId: string, answerValue: string, expectedAnswer?: string) => {
-    if (revealed[key]) { setRevealed((r) => ({ ...r, [key]: false })); return; }
-    const correct = !!expectedAnswer && normalizeAnswer(answerValue) === normalizeAnswer(expectedAnswer);
-    setRevealed((r) => ({ ...r, [key]: true }));
-    recordTeacherContentAttempt(contentId, userId, {
-      attemptDelta: 1,
-      errorDelta: correct ? 0 : 1,
-      completed: true,
-      isCorrect: correct,
-      answer: answerValue || null,
-    });
-  };
-
-  const renderExerciseBlock = (params: {
-    exKey: string;
-    contentId: string;
-    statement?: string;
-    expectedAnswer?: string;
-    solution?: string;
-    hint?: string;
-  }) => {
-    const { exKey, contentId, statement, expectedAnswer, solution, hint } = params;
-    const isRevealed = revealed[exKey];
-    return (
-      <div className="space-y-3">
-        {statement && (
-          <HtmlWithMath htmlContent={cleanMathStatement(statement)} className="text-sm text-right" dir="rtl" />
-        )}
-        {hint && showHint[exKey] && (
-          <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {hint}</div>
-        )}
-        <div className="flex gap-2 items-center" dir="rtl">
-          <input
-            className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
-            placeholder="أدخل إجابتك..."
-            value={answers[exKey] || ""}
-            onChange={(e) => setAnswers((a) => ({ ...a, [exKey]: e.target.value }))}
-            dir="rtl" />
-          {hint && !showHint[exKey] && (
-            <Button size="sm" variant="ghost" onClick={() => handleHint(exKey, contentId)}>
-              <Lightbulb className="h-4 w-4 mr-1" /> تلميح
-            </Button>
-          )}
-          <Button size="sm" variant="outline"
-            onClick={() => handleExerciseCheck(exKey, contentId, answers[exKey] || "", expectedAnswer)}>
-            <CheckCircle2 className="h-4 w-4 mr-1" /> {isRevealed ? "إخفاء" : "التصحيح"}
-          </Button>
-        </div>
-        {isRevealed && (
-          <div className="bg-muted/50 p-3 rounded text-sm space-y-1" dir="rtl">
-            {expectedAnswer && (
-              <p><span className="font-semibold">الإجابة:</span>{" "}
-                <HtmlWithMath htmlContent={cleanMathStatement(expectedAnswer)} className="inline" /></p>
-            )}
-            {solution && (
-              <div>
-                <p className="font-semibold flex items-center gap-2 mb-1"><BookOpen className="h-4 w-4" /> الحل:</p>
-                <HtmlWithMath htmlContent={cleanMathStatement(solution)} />
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
   };
 
   useEffect(() => {
@@ -266,14 +200,14 @@ export function MyClassContent({ userId, contentType }: Props) {
                       </div>
                     </div>
 
-                    {renderExerciseBlock({
-                      exKey: it.id,
-                      contentId: it.id,
-                      statement: p.statement,
-                      expectedAnswer: p.expected_answer,
-                      solution: p.solution,
-                      hint: p.hint,
-                    })}
+                    <ExerciseAnswerBlock
+                      contentId={it.id}
+                      userId={userId}
+                      statement={p.statement}
+                      expectedAnswer={p.expected_answer}
+                      solution={p.solution}
+                      hint={p.hint}
+                    />
                   </CardContent>
                 </Card>
               );

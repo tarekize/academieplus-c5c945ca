@@ -13,12 +13,34 @@ export function cleanMathStatement(raw: string): string {
   // Trim multiple spaces created by replacements
   s = s.replace(/[ \t]{2,}/g, " ").trim();
 
-  // If statement contains LaTeX commands but no $ delimiters, wrap LaTeX runs in $...$
-  if (!s.includes("$") && LATEX_HINT.test(s)) {
-    s = wrapLatexRuns(s);
+  // Wrap any LaTeX-looking runs that aren't already inside a $...$/$$...$$ span.
+  // AI-generated content sometimes wraps most inline formulas but leaves multi-line
+  // blocks (e.g. \begin{cases}...\end{cases} for piecewise functions) undelimited,
+  // which KaTeX then silently ignores — those must still be picked up here even
+  // though the string already contains other, properly-delimited math.
+  if (LATEX_HINT.test(s)) {
+    s = wrapUndelimitedLatexRuns(s);
   }
 
   return s;
+}
+
+// Splits on existing $...$/$$...$$ spans (left untouched) and only processes the gaps.
+function wrapUndelimitedLatexRuns(s: string): string {
+  return s
+    .split(/(\$\$[\s\S]*?\$\$|\$[^$\n]*?\$)/g)
+    .map((part) => {
+      if (part.startsWith("$")) return part;
+      if (!LATEX_HINT.test(part)) return part;
+      // Wrap complete \begin{env}...\end{env} blocks (cases, array, matrix...) as display math first.
+      const withEnvs = part.replace(/\\begin\{(\w+)\}[\s\S]*?\\end\{\1\}/g, (m) => `$$${m}$$`);
+      // Then wrap any remaining bare LaTeX runs, without touching the blocks just wrapped.
+      return withEnvs
+        .split(/(\$\$[\s\S]*?\$\$)/g)
+        .map((seg) => (seg.startsWith("$") ? seg : wrapLatexRuns(seg)))
+        .join("");
+    })
+    .join("");
 }
 
 // Find contiguous LaTeX-looking spans and wrap them with $...$
@@ -44,13 +66,13 @@ function wrapLatexRuns(s: string): string {
       if (c === "{") { depth++; end++; continue; }
       if (c === "}") { if (depth === 0) break; depth--; end++; continue; }
       // Allow common math characters
-      if (/[A-Za-z0-9+\-*/=().,<>!|^_\\]/.test(c)) { end++; continue; }
+      if (/[A-Za-z0-9+\-*/=().,<>!|^_\\&]/.test(c)) { end++; continue; }
       // Allow spaces only if we're inside braces or followed by more math
       if (c === " ") {
         // Look ahead: keep space if next non-space is math-ish or backslash
         let j = end + 1;
         while (j < s.length && s[j] === " ") j++;
-        if (j < s.length && /[A-Za-z0-9+\-*/=().,<>!|^_\\{}]/.test(s[j]) && depth >= 0) {
+        if (j < s.length && /[A-Za-z0-9+\-*/=().,<>!|^_\\{}&]/.test(s[j]) && depth >= 0) {
           // Only continue if next chunk also looks mathy (has another \ or ^ or _ or digit/op)
           const lookahead = s.slice(j, Math.min(j + 20, s.length));
           if (/[\\^_]|^\\s*[A-Za-z0-9]+\\s*[=+\-*/^_<>(){}]/.test(lookahead) || depth > 0) {
@@ -75,4 +97,36 @@ function wrapLatexRuns(s: string): string {
 
 export function statementHasMath(s: string): boolean {
   return /[$\\<]|\\\(|\\\[/.test(s || "");
+}
+
+/**
+ * Splits an exercise statement into an intro (context before the first numbered
+ * question) and a list of individual questions, so the UI can give each one its
+ * own answer field instead of a single box for the whole exercise. Returns an
+ * empty `questions` array when fewer than 2 numbered questions are detected
+ * (callers should then fall back to rendering the statement as a single block).
+ */
+export function splitStatementIntoQuestions(statement: string): { intro: string; questions: string[] } {
+  const raw = (statement || "").trim();
+  if (!raw) return { intro: "", questions: [] };
+
+  // Matches a marker like "1. " / "2) " at the start of a line, or right after
+  // whitespace/colon, so inline numbering without real line breaks still works.
+  // Requires whitespace right after the digit+punctuation so decimals like "3.14" don't match.
+  const markerRegex = /(?:^|\n|(?<=[:\s]))(\d{1,2})[.\)]\s+/g;
+  const matches = [...raw.matchAll(markerRegex)];
+
+  if (matches.length < 2) {
+    return { intro: "", questions: [] };
+  }
+
+  const firstIndex = matches[0].index ?? 0;
+  const intro = raw.slice(0, firstIndex).trim();
+  const questions: string[] = [];
+  for (let i = 0; i < matches.length; i++) {
+    const start = (matches[i].index ?? 0) + matches[i][0].length;
+    const end = i + 1 < matches.length ? (matches[i + 1].index ?? raw.length) : raw.length;
+    questions.push(raw.slice(start, end).trim());
+  }
+  return { intro, questions };
 }
