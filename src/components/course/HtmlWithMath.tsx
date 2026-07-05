@@ -22,6 +22,12 @@ function preprocessMathContent(raw: string) {
   content = content.replace(/\\boxed\{([^{}]+)\}/g, "$1");
   content = content.replace(/\x08oxed\{([^{}]+)\}/g, "$1");
 
+  // A raw newline inside a math span becomes a literal <br/> below, which splits
+  // the span across DOM nodes and stops KaTeX's auto-render from ever matching
+  // its closing delimiter (it then shows the raw $...$ text instead of the
+  // formula). Collapse any newline found inside $$...$$ or $...$ to a space first.
+  content = content.replace(/\$\$[\s\S]*?\$\$|\$[^$]*?\$/g, (span) => span.replace(/\s*\n\s*/g, " "));
+
   const normalized = content
     .replace(/([^\n])\$\$/g, "$1\n$$")
     .replace(/\$\$([^\n])/g, "$$\n$1");

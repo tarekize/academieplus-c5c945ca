@@ -26,9 +26,12 @@ export function cleanMathStatement(raw: string): string {
 }
 
 // Splits on existing $...$/$$...$$ spans (left untouched) and only processes the gaps.
+// Spans may legitimately contain newlines (e.g. a multi-line \begin{cases}), so this
+// must not stop at the first \n or it will mistake an existing span for a gap and
+// wrap it a second time, leaving stray unmatched $ characters behind.
 function wrapUndelimitedLatexRuns(s: string): string {
   return s
-    .split(/(\$\$[\s\S]*?\$\$|\$[^$\n]*?\$)/g)
+    .split(/(\$\$[\s\S]*?\$\$|\$[^$]*?\$)/g)
     .map((part) => {
       if (part.startsWith("$")) return part;
       if (!LATEX_HINT.test(part)) return part;
