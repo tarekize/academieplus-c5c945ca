@@ -135,11 +135,14 @@ serve(async (req) => {
       const { userId: callerUserId, roleGroup: callerRoleGroup } = await resolveCallerRoleGroup(
         supabaseUrl, supabaseKey, req.headers.get("Authorization")
       );
-      logTokenUsageAsync(supabaseUrl, supabaseKey, {
+      logTokenUsageAsync({
+        supabaseUrl,
+        serviceRoleKey: supabaseKey,
         userId: callerUserId,
         roleGroup: callerRoleGroup,
-        feature: "generate-exam-exercise",
-        usage,
+        functionName: "generate-exam-exercise",
+        inputTokens: usage?.inputTokens,
+        outputTokens: usage?.outputTokens,
       });
     } catch (_) {
       // token logging is best-effort
