@@ -35,11 +35,16 @@ function wrapUndelimitedLatexRuns(s: string): string {
     .map((part) => {
       if (part.startsWith("$")) return part;
       if (!LATEX_HINT.test(part)) return part;
-      // Wrap complete \begin{env}...\end{env} blocks (cases, array, matrix...) as display math first.
-      const withEnvs = part.replace(/\\begin\{(\w+)\}[\s\S]*?\\end\{\1\}/g, (m) => `$$${m}$$`);
+      // Wrap complete \begin{env}...\end{env} blocks (cases, array, matrix...) with a
+      // single $...$ (not $$...$$): HtmlWithMath's own "put $$ on its own line"
+      // normalization inserts a newline right after an opening $$ that isn't already
+      // followed by one, which — for a $$ we just inserted immediately before
+      // \begin{...} — splits the delimiter from its content and breaks rendering.
+      // A single $ isn't touched by that normalization, so it renders correctly.
+      const withEnvs = part.replace(/\\begin\{(\w+)\}[\s\S]*?\\end\{\1\}/g, (m) => "$" + m + "$");
       // Then wrap any remaining bare LaTeX runs, without touching the blocks just wrapped.
       return withEnvs
-        .split(/(\$\$[\s\S]*?\$\$)/g)
+        .split(/(\$[^$]*?\$)/g)
         .map((seg) => (seg.startsWith("$") ? seg : wrapLatexRuns(seg)))
         .join("");
     })
