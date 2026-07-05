@@ -87,8 +87,15 @@ export default function ManualContentForm({
   useEffect(() => {
     if (!level) { setChapters([]); return; }
     (async () => {
-      const { data } = await supabase.from("chapters").select("id, title").eq("school_level", level as any).order("order_index");
-      setChapters((data as Row[]) || []);
+      const { data } = await supabase
+        .from("chapters").select("id, title")
+        .eq("school_level", level as any).eq("subject", "math")
+        .order("order_index");
+      // Chapters exist once per filière, so the same title can come back several
+      // times for a level with multiple filières — keep only the first of each.
+      const seen = new Set<string>();
+      const deduped = ((data as Row[]) || []).filter((c) => (seen.has(c.title) ? false : (seen.add(c.title), true)));
+      setChapters(deduped);
       setChapterId(""); setLessonId("");
     })();
     // Bac Blanc/Finale only make sense for terminale — clear an invalid selection.

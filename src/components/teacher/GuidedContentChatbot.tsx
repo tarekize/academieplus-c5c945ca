@@ -70,8 +70,14 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
     setLevel(lv);
     setLoadingList(true);
     const { data } = await supabase
-      .from("chapters").select("id, title").eq("school_level", lv as any).order("order_index");
-    setChapters((data as ChapterRow[]) || []);
+      .from("chapters").select("id, title")
+      .eq("school_level", lv as any).eq("subject", "math")
+      .order("order_index");
+    // Chapters exist once per filière, so the same title can come back several
+    // times for a level with multiple filières — keep only the first of each.
+    const seen = new Set<string>();
+    const deduped = ((data as ChapterRow[]) || []).filter((c) => (seen.has(c.title) ? false : (seen.add(c.title), true)));
+    setChapters(deduped);
     setLoadingList(false);
     setStep("chapter");
   };
