@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Users, GraduationCap, LogOut, User as UserIcon, BarChart3, CreditCard, FileText, Cpu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChangePasswordButton } from "@/components/ChangePasswordButton";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
+import DashboardTile from "@/components/dashboard/DashboardTile";
 
 interface Profile {
   id: string;
@@ -190,118 +190,80 @@ const Dashboard = () => {
           {!isStudent && (
             <>
               {/* Welcome banner */}
-              <div className="mb-8 rounded-2xl bg-[image:var(--gradient-primary)] px-6 py-5 text-primary-foreground shadow-[var(--shadow-elegant)]">
-                <p className="text-primary-foreground/70 text-sm font-medium">
-                  {isAdmin ? "Espace Administration" : "Tableau de bord"}
-                </p>
-                <h1 className="text-2xl font-bold mt-0.5">Bonjour, {fullName} 👋</h1>
+              <div className="relative overflow-hidden mb-8 rounded-3xl bg-[image:var(--gradient-primary)] px-6 py-7 sm:px-8 sm:py-8 text-primary-foreground shadow-[var(--shadow-elegant)]">
+                <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" aria-hidden />
+                <div className="absolute right-6 bottom-0 h-20 w-20 rounded-full bg-white/10" aria-hidden />
+                <div className="relative">
+                  <p className="text-primary-foreground/75 text-sm font-medium uppercase tracking-wide">
+                    {isAdmin ? "Espace Administration" : "Tableau de bord"}
+                  </p>
+                  <h1 className="text-2xl sm:text-3xl font-bold mt-1">Bonjour, {fullName} 👋</h1>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {userRole === 'parent' && (
-                  <div
-                    className="group bg-card rounded-2xl border border-border/50 p-6 cursor-pointer hover:shadow-lg hover:border-blue-200 transition-all duration-200"
+                  <DashboardTile
+                    icon={Users}
+                    iconBg="bg-blue-500/10"
+                    iconText="text-blue-600"
+                    title="Mes Enfants"
+                    description="Suivez la progression de vos enfants"
                     onClick={() => navigate("/mes-informations")}
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 rounded-xl bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors flex-shrink-0">
-                        <Users className="h-6 w-6 text-blue-500" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold mb-1">Mes Enfants</h3>
-                        <p className="text-sm text-muted-foreground">Suivez la progression de vos enfants</p>
-                      </div>
-                    </div>
-                  </div>
+                  />
                 )}
                 {isAdmin && (
                   <>
-                    <div
-                      className="group bg-card rounded-2xl border border-border/50 p-6 cursor-pointer hover:shadow-lg hover:border-primary/30 transition-all duration-200"
+                    <DashboardTile
+                      icon={Users}
+                      iconBg="bg-primary/10"
+                      iconText="text-primary"
+                      title="Gestion Utilisateurs"
+                      description="Gérez les utilisateurs de la plateforme"
                       onClick={() => navigate("/admin")}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors flex-shrink-0">
-                          <Users className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold mb-1">Gestion Utilisateurs</h3>
-                          <p className="text-sm text-muted-foreground">Gérez les utilisateurs de la plateforme</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className="group bg-card rounded-2xl border border-border/50 p-6 cursor-pointer hover:shadow-lg hover:border-orange-200 transition-all duration-200"
+                    />
+                    <DashboardTile
+                      icon={BarChart3}
+                      iconBg="bg-orange-500/10"
+                      iconText="text-orange-600"
+                      title="Analytics"
+                      description="Consultez les statistiques d'utilisation"
                       onClick={() => navigate("/analytics")}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-xl bg-orange-500/10 group-hover:bg-orange-500/20 transition-colors flex-shrink-0">
-                          <BarChart3 className="h-6 w-6 text-orange-500" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold mb-1">Analytics</h3>
-                          <p className="text-sm text-muted-foreground">Consultez les statistiques d'utilisation</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className="group bg-card rounded-2xl border border-border/50 p-6 cursor-pointer hover:shadow-lg hover:border-green-200 transition-all duration-200"
+                    />
+                    <DashboardTile
+                      icon={CreditCard}
+                      iconBg="bg-emerald-500/10"
+                      iconText="text-emerald-600"
+                      title="Abonnements"
+                      description="Configurez les tarifs et paiements"
                       onClick={() => navigate("/admin/abonnements")}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-xl bg-green-500/10 group-hover:bg-green-500/20 transition-colors flex-shrink-0">
-                          <CreditCard className="h-6 w-6 text-green-500" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold mb-1">Abonnements</h3>
-                          <p className="text-sm text-muted-foreground">Configurez les tarifs et paiements</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className="group bg-card rounded-2xl border border-border/50 p-6 cursor-pointer hover:shadow-lg hover:border-indigo-200 transition-all duration-200"
+                    />
+                    <DashboardTile
+                      icon={FileText}
+                      iconBg="bg-indigo-500/10"
+                      iconText="text-indigo-600"
+                      title="Contrats"
+                      description="Gérez les contrats établissements, élèves et parents"
                       onClick={() => navigate("/admin/contrats")}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-xl bg-indigo-500/10 group-hover:bg-indigo-500/20 transition-colors flex-shrink-0">
-                          <FileText className="h-6 w-6 text-indigo-500" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold mb-1">Contrats</h3>
-                          <p className="text-sm text-muted-foreground">Gérez les contrats établissements, élèves et parents</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className="group bg-card rounded-2xl border border-border/50 p-6 cursor-pointer hover:shadow-lg hover:border-teal-200 transition-all duration-200"
+                    />
+                    <DashboardTile
+                      icon={Cpu}
+                      iconBg="bg-teal-500/10"
+                      iconText="text-teal-600"
+                      title="Consommation IA"
+                      description="Estimation de l'usage de tokens par groupe"
                       onClick={() => navigate("/admin/token-usage")}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-xl bg-teal-500/10 group-hover:bg-teal-500/20 transition-colors flex-shrink-0">
-                          <Cpu className="h-6 w-6 text-teal-500" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold mb-1">Consommation IA</h3>
-                          <p className="text-sm text-muted-foreground">Estimation de l'usage de tokens par groupe</p>
-                        </div>
-                      </div>
-                    </div>
+                    />
                   </>
                 )}
-                <div
-                  className="group bg-card rounded-2xl border border-border/50 p-6 cursor-pointer hover:shadow-lg hover:border-purple-200 transition-all duration-200"
+                <DashboardTile
+                  icon={GraduationCap}
+                  iconBg="bg-purple-500/10"
+                  iconText="text-purple-600"
+                  title={isAdmin ? "Voir les Cours" : "Mes Cours"}
+                  description={isAdmin ? "Consultez les cours par niveau" : "Accédez à vos cours et leçons"}
                   onClick={() => navigate("/liste-cours")}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-xl bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors flex-shrink-0">
-                      <GraduationCap className="h-6 w-6 text-purple-500" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">{isAdmin ? "Voir les Cours" : "Mes Cours"}</h3>
-                      <p className="text-sm text-muted-foreground">{isAdmin ? "Consultez les cours par niveau" : "Accédez à vos cours et leçons"}</p>
-                    </div>
-                  </div>
-                </div>
+                />
               </div>
             </>
           )}

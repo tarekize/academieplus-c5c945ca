@@ -448,20 +448,20 @@ const ParentDashboard = () => {
   if (selectedChild && selectedChild.child) {
     return (
       <div className="min-h-screen bg-muted/30">
-        <header className="sticky top-0 z-50 bg-background border-b border-border">
+        <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between h-16 gap-4">
               <div className="flex items-center gap-3 min-w-0">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => setSelectedChild(null)}
-                  className="gap-2 rounded-lg shrink-0 active:scale-95 transition-transform"
+                  className="gap-2 rounded-xl shrink-0 text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
                 >
                   <ArrowLeft className="h-4 w-4" /> Retour
                 </Button>
-                <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center shrink-0">
-                  <GraduationCap className="h-5 w-5 text-primary-foreground" />
+                <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm shrink-0">
+                  <GraduationCap className="h-5 w-5 text-white" />
                 </div>
                 <span className="text-lg font-bold text-foreground hidden sm:block">AcadémiePlus</span>
               </div>
@@ -519,7 +519,7 @@ const ParentDashboard = () => {
                 }
               }}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2 rounded-lg shadow-sm active:scale-95 transition-transform"><Plus className="h-4 w-4" />Ajouter un élève</Button>
+                  <Button className="gap-2 rounded-xl shadow-sm active:scale-95 transition-transform"><Plus className="h-4 w-4" />Ajouter un élève</Button>
                 </DialogTrigger>
                 <DialogContent className="max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
@@ -637,7 +637,7 @@ const ParentDashboard = () => {
               {/* Ajouter un lien de parenté - par code */}
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="gap-2 rounded-lg active:scale-95 transition-transform"><UserPlus className="h-4 w-4" />Ajouter un lien de parenté</Button>
+                  <Button variant="outline" className="gap-2 rounded-xl active:scale-95 transition-transform"><UserPlus className="h-4 w-4" />Ajouter un lien de parenté</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
@@ -695,7 +695,7 @@ const ParentDashboard = () => {
         >
           <Card className="rounded-xl border-border shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-border flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+              <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Users className="h-4 w-4 text-primary" />
               </div>
               <div>
@@ -763,7 +763,7 @@ const ParentDashboard = () => {
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      className="gap-2 rounded-lg active:scale-95 transition-transform"
+                                      className="gap-2 rounded-xl active:scale-95 transition-transform"
                                       onClick={() => handleDownloadReport(link.child_id)}
                                       title={`Télécharger le rapport du ${new Date(report.generated_at).toLocaleDateString("fr-FR")}`}
                                     >
@@ -773,7 +773,7 @@ const ParentDashboard = () => {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="gap-2 rounded-lg active:scale-95 transition-transform"
+                                      className="gap-2 rounded-xl active:scale-95 transition-transform"
                                       disabled={isGen}
                                       onClick={() => generateReport(link.child_id)}
                                       title="Régénérer un nouveau rapport maintenant"
@@ -788,7 +788,7 @@ const ParentDashboard = () => {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="gap-2 text-muted-foreground rounded-lg active:scale-95 transition-transform"
+                                  className="gap-2 text-muted-foreground rounded-xl active:scale-95 transition-transform"
                                   disabled={isGen}
                                   onClick={() => handleDownloadReport(link.child_id)}
                                   title="Générer et télécharger un rapport maintenant"
@@ -819,7 +819,7 @@ const ParentDashboard = () => {
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      className="rounded-lg text-emerald-700 hover:text-emerald-800 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 active:scale-95 transition-transform"
+                                      className="rounded-xl text-emerald-700 hover:text-emerald-800 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 active:scale-95 transition-transform"
                                       onClick={() => sonnerToast.success(`Abonnement actif : ${rem} jours restants`)}
                                       title="Voir les jours restants de l'abonnement"
                                     >
@@ -831,7 +831,7 @@ const ParentDashboard = () => {
                               ) : (
                                 <Button
                                   size="sm"
-                                  className="rounded-lg active:scale-95 transition-transform"
+                                  className="rounded-xl active:scale-95 transition-transform"
                                   onClick={() => {
                                     setSelectedChildForActivation(link.child_id);
                                     setActivationCode("");
@@ -846,7 +846,7 @@ const ParentDashboard = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="rounded-lg active:scale-95 transition-transform"
+                                className="rounded-xl active:scale-95 transition-transform"
                                 onClick={() => setSelectedChild(link)}
                                 title="Voir le tableau de bord et la progression de cet enfant"
                               >
@@ -855,7 +855,7 @@ const ParentDashboard = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="rounded-lg active:scale-95 transition-transform"
+                                className="rounded-xl active:scale-95 transition-transform"
                                 onClick={() => navigate(`/parent-cours/${link.child_id}`)}
                                 title="Consulter les leçons et le contenu de cours"
                               >
@@ -864,7 +864,7 @@ const ParentDashboard = () => {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="rounded-lg h-9 w-9 shrink-0 text-destructive hover:text-destructive active:scale-95 transition-transform"
+                                className="rounded-xl h-9 w-9 shrink-0 text-destructive hover:text-destructive active:scale-95 transition-transform"
                                 onClick={() => handleRemoveChild(link.id)}
                                 title="Supprimer le lien avec cet enfant"
                               >

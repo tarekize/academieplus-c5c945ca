@@ -259,7 +259,7 @@ export default function Admin() {
           <TabsContent value="dashboard" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Parents */}
-              <Card className="border-0 shadow-lg">
+              <Card className="rounded-2xl border-border/50">
                 <CardHeader className="border-b bg-muted/30">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -289,7 +289,7 @@ export default function Admin() {
               </Card>
 
               {/* Recent Students */}
-              <Card className="border-0 shadow-lg">
+              <Card className="rounded-2xl border-border/50">
                 <CardHeader className="border-b bg-muted/30">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -320,7 +320,7 @@ export default function Admin() {
             </div>
 
             {/* Recent Activity */}
-            <Card className="border-0 shadow-lg">
+            <Card className="rounded-2xl border-border/50">
               <CardHeader className="border-b bg-muted/30">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
@@ -403,7 +403,7 @@ export default function Admin() {
 
           {/* Pedagos Tab */}
           <TabsContent value="pedagos">
-            <Card className="border-0 shadow-lg">
+            <Card className="rounded-2xl border-border/50">
               <CardHeader className="border-b bg-muted/30">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -469,7 +469,7 @@ export default function Admin() {
 
           {/* Parents Tab */}
           <TabsContent value="parents">
-            <Card className="border-0 shadow-lg">
+            <Card className="rounded-2xl border-border/50">
               <CardHeader className="border-b bg-muted/30">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -535,7 +535,7 @@ export default function Admin() {
 
           {/* Students Tab */}
           <TabsContent value="students">
-            <Card className="border-0 shadow-lg">
+            <Card className="rounded-2xl border-border/50">
               <CardHeader className="border-b bg-muted/30">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -603,7 +603,7 @@ export default function Admin() {
 
           {/* Teachers Tab */}
           <TabsContent value="teachers">
-            <Card className="border-0 shadow-lg">
+            <Card className="rounded-2xl border-border/50">
               <CardHeader className="border-b bg-muted/30">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -669,7 +669,7 @@ export default function Admin() {
 
           {/* Etablissements Tab */}
           <TabsContent value="etablissements">
-            <Card className="border-0 shadow-lg">
+            <Card className="rounded-2xl border-border/50">
               <CardHeader className="border-b bg-muted/30">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -741,7 +741,7 @@ export default function Admin() {
 
           {/* Activity Logs Tab */}
           <TabsContent value="logs">
-            <Card className="border-0 shadow-lg">
+            <Card className="rounded-2xl border-border/50">
               <CardHeader className="border-b bg-muted/30">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
@@ -988,13 +988,13 @@ function UserRow({
       <TableCell className="text-right">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="rounded-xl">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="rounded-xl shadow-lg border-border/50">
             {!hideToggle ? (
-              <DropdownMenuItem onClick={onToggleStatus}>
+              <DropdownMenuItem onClick={onToggleStatus} className="rounded-lg cursor-pointer">
                 {user.is_active ? (
                   <>
                     <UserX className="h-4 w-4 mr-2" />
@@ -1008,11 +1008,11 @@ function UserRow({
                 )}
               </DropdownMenuItem>
             ) : (
-              <DropdownMenuItem disabled className="text-muted-foreground text-xs">
+              <DropdownMenuItem disabled className="text-muted-foreground text-xs rounded-lg">
                 Statut géré via la page Contrats
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={onDelete} className="text-destructive">
+            <DropdownMenuItem onClick={onDelete} className="text-destructive rounded-lg cursor-pointer">
               <Trash2 className="h-4 w-4 mr-2" />
               Supprimer
             </DropdownMenuItem>
