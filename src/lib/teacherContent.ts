@@ -2,6 +2,12 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type ContentType = "exercise" | "quiz" | "exam";
 
+export interface ExamExerciseItem {
+  statement: string;
+  solution?: string;
+  answer?: string;
+}
+
 export interface GeneratedItem {
   // exercise / exam
   title?: string;
@@ -13,6 +19,8 @@ export interface GeneratedItem {
   options?: string[];
   correct_answer?: string;
   explanation?: string;
+  // exam bundle: a single exam made of several exercises, shared to a class as one whole.
+  exercises?: ExamExerciseItem[];
   // shared
   hint?: string;
   difficulty?: number;

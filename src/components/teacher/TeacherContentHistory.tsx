@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import { cleanMathStatement } from "@/lib/mathStatement";
 import { ContentType } from "@/lib/teacherContent";
-import { History, Pencil, Users, AlertCircle, Lightbulb, Repeat, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
+import { History, Pencil, Users, AlertCircle, Lightbulb, Repeat, CheckCircle2, XCircle, ChevronRight, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ContentRow {
@@ -139,13 +139,19 @@ export default function TeacherContentHistory({ teacherId, contentType }: Props)
         const att = attempts.filter((a) => a.content_id === it.id);
         const done = att.filter((a) => a.completed).length;
         const total = recipients[it.id] || 0;
-        const title = p.question || p.title || it.title || "Sans titre";
+        const isExamBundle = Array.isArray(p.exercises);
+        const title = p.question || p.title || it.title || (isExamBundle ? "Examen" : "Sans titre");
         return (
           <Card key={it.id} className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => setOpen(it)}>
             <CardContent className="p-4 flex items-center gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <Badge variant="secondary" className="text-xs">{new Date(it.created_at).toLocaleDateString("fr-FR")}</Badge>
+                  {isExamBundle && (
+                    <Badge variant="outline" className="text-xs gap-1">
+                      <ClipboardList className="h-3 w-3" /> {p.exercises.length} exercice{p.exercises.length > 1 ? "s" : ""}
+                    </Badge>
+                  )}
                   <div className="flex items-center gap-0.5">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Pencil key={i} className={cn("h-3 w-3", i < (it.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />
@@ -172,9 +178,20 @@ export default function TeacherContentHistory({ teacherId, contentType }: Props)
           </DialogHeader>
           {open && (
             <div className="space-y-4">
-              <div dir="rtl" className="bg-muted/50 rounded-lg p-3">
-                <HtmlWithMath htmlContent={cleanMathStatement(open.payload?.question || open.payload?.title || open.payload?.statement || open.title || "")} className="font-medium" />
-              </div>
+              {Array.isArray(open.payload?.exercises) ? (
+                <div className="space-y-2">
+                  {(open.payload.exercises as { statement: string; solution?: string; answer?: string }[]).map((ex, idx) => (
+                    <div key={idx} className="bg-muted/50 rounded-lg p-3 space-y-1">
+                      <p className="text-xs font-semibold text-muted-foreground">Exercice {idx + 1}</p>
+                      <HtmlWithMath htmlContent={cleanMathStatement(ex.statement)} className="font-medium text-sm" dir="rtl" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div dir="rtl" className="bg-muted/50 rounded-lg p-3">
+                  <HtmlWithMath htmlContent={cleanMathStatement(open.payload?.question || open.payload?.title || open.payload?.statement || open.title || "")} className="font-medium" />
+                </div>
+              )}
 
               {dialogAttempts.length === 0 ? (
                 <p className="text-center text-muted-foreground py-6 text-sm">Aucun élève n'a encore travaillé sur ce contenu.</p>

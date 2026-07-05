@@ -34,10 +34,10 @@ export function MyClassContent({ userId, contentType }: Props) {
   const [selected, setSelected] = useState<Record<string, string>>({});
   const [showHint, setShowHint] = useState<Record<string, boolean>>({});
 
-  const handleHint = (id: string) => {
-    if (showHint[id]) return;
-    setShowHint((h) => ({ ...h, [id]: true }));
-    recordTeacherContentAttempt(id, userId, { hintDelta: 1 });
+  const handleHint = (key: string, contentId: string) => {
+    if (showHint[key]) return;
+    setShowHint((h) => ({ ...h, [key]: true }));
+    recordTeacherContentAttempt(contentId, userId, { hintDelta: 1 });
   };
 
   const handleQuizCheck = (it: TeacherContentRow, p: any) => {
@@ -54,18 +54,70 @@ export function MyClassContent({ userId, contentType }: Props) {
     });
   };
 
-  const handleExerciseCheck = (it: TeacherContentRow, p: any) => {
-    if (revealed[it.id]) { setRevealed((r) => ({ ...r, [it.id]: false })); return; }
-    const ans = answers[it.id] || "";
-    const correct = !!p.expected_answer && normalizeAnswer(ans) === normalizeAnswer(p.expected_answer);
-    setRevealed((r) => ({ ...r, [it.id]: true }));
-    recordTeacherContentAttempt(it.id, userId, {
+  const handleExerciseCheck = (key: string, contentId: string, answerValue: string, expectedAnswer?: string) => {
+    if (revealed[key]) { setRevealed((r) => ({ ...r, [key]: false })); return; }
+    const correct = !!expectedAnswer && normalizeAnswer(answerValue) === normalizeAnswer(expectedAnswer);
+    setRevealed((r) => ({ ...r, [key]: true }));
+    recordTeacherContentAttempt(contentId, userId, {
       attemptDelta: 1,
       errorDelta: correct ? 0 : 1,
       completed: true,
       isCorrect: correct,
-      answer: ans || null,
+      answer: answerValue || null,
     });
+  };
+
+  const renderExerciseBlock = (params: {
+    exKey: string;
+    contentId: string;
+    statement?: string;
+    expectedAnswer?: string;
+    solution?: string;
+    hint?: string;
+  }) => {
+    const { exKey, contentId, statement, expectedAnswer, solution, hint } = params;
+    const isRevealed = revealed[exKey];
+    return (
+      <div className="space-y-3">
+        {statement && (
+          <HtmlWithMath htmlContent={cleanMathStatement(statement)} className="text-sm text-right" dir="rtl" />
+        )}
+        {hint && showHint[exKey] && (
+          <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {hint}</div>
+        )}
+        <div className="flex gap-2 items-center" dir="rtl">
+          <input
+            className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
+            placeholder="أدخل إجابتك..."
+            value={answers[exKey] || ""}
+            onChange={(e) => setAnswers((a) => ({ ...a, [exKey]: e.target.value }))}
+            dir="rtl" />
+          {hint && !showHint[exKey] && (
+            <Button size="sm" variant="ghost" onClick={() => handleHint(exKey, contentId)}>
+              <Lightbulb className="h-4 w-4 mr-1" /> تلميح
+            </Button>
+          )}
+          <Button size="sm" variant="outline"
+            onClick={() => handleExerciseCheck(exKey, contentId, answers[exKey] || "", expectedAnswer)}>
+            <CheckCircle2 className="h-4 w-4 mr-1" /> {isRevealed ? "إخفاء" : "التصحيح"}
+          </Button>
+        </div>
+        {isRevealed && (
+          <div className="bg-muted/50 p-3 rounded text-sm space-y-1" dir="rtl">
+            {expectedAnswer && (
+              <p><span className="font-semibold">الإجابة:</span>{" "}
+                <HtmlWithMath htmlContent={cleanMathStatement(expectedAnswer)} className="inline" /></p>
+            )}
+            {solution && (
+              <div>
+                <p className="font-semibold flex items-center gap-2 mb-1"><BookOpen className="h-4 w-4" /> الحل:</p>
+                <HtmlWithMath htmlContent={cleanMathStatement(solution)} />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
 
   useEffect(() => {
@@ -172,7 +224,7 @@ export function MyClassContent({ userId, contentType }: Props) {
                     )}
                     <div className="flex justify-end gap-2" dir="rtl">
                       {p.hint && !showHint[it.id] && (
-                        <Button size="sm" variant="ghost" onClick={() => handleHint(it.id)}>
+                        <Button size="sm" variant="ghost" onClick={() => handleHint(it.id, it.id)}>
                           <Lightbulb className="h-4 w-4 mr-1" /> تلميح
                         </Button>
                       )}
@@ -197,7 +249,8 @@ export function MyClassContent({ userId, contentType }: Props) {
             {items.map((it) => {
               const p = it.payload || {};
               const direct = directIds.has(it.id);
-              const isRevealed = revealed[it.id];
+              const examExercises: { statement: string; solution?: string; answer?: string }[] | null =
+                Array.isArray(p.exercises) ? p.exercises : null;
               return (
                 <Card key={it.id} className={cn(direct && "border-2 border-red-500 bg-red-500/5")}>
                   <CardContent className="p-4 space-y-3">
@@ -205,49 +258,38 @@ export function MyClassContent({ userId, contentType }: Props) {
                       <Badge className="bg-red-600 hover:bg-red-600 text-white">⚠️ تمرين خاص بك</Badge>
                     )}
                     <div className="flex items-center gap-3" dir="rtl">
-                      <HtmlWithMath htmlContent={cleanMathStatement(p.title || it.title || "")} className="flex-1 font-semibold" />
+                      <HtmlWithMath htmlContent={cleanMathStatement(p.title || it.title || (examExercises ? "امتحان" : ""))} className="flex-1 font-semibold" />
                       <div className="flex items-center gap-0.5 shrink-0">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Pencil key={i} className={cn("h-3.5 w-3.5", i < (it.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />
                         ))}
                       </div>
                     </div>
-                    {p.statement && (
-                      <HtmlWithMath htmlContent={cleanMathStatement(p.statement)} className="text-sm text-right" dir="rtl" />
-                    )}
-                    {p.hint && showHint[it.id] && (
-                      <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {p.hint}</div>
-                    )}
-                    <div className="flex gap-2 items-center" dir="rtl">
-                      <input
-                        className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background"
-                        placeholder="أدخل إجابتك..."
-                        value={answers[it.id] || ""}
-                        onChange={(e) => setAnswers((a) => ({ ...a, [it.id]: e.target.value }))}
-                        dir="rtl" />
-                      {p.hint && !showHint[it.id] && (
-                        <Button size="sm" variant="ghost" onClick={() => handleHint(it.id)}>
-                          <Lightbulb className="h-4 w-4 mr-1" /> تلميح
-                        </Button>
-                      )}
-                      <Button size="sm" variant="outline"
-                        onClick={() => handleExerciseCheck(it, p)}>
-                        <CheckCircle2 className="h-4 w-4 mr-1" /> {isRevealed ? "إخفاء" : "التصحيح"}
-                      </Button>
-                    </div>
-                    {isRevealed && (
-                      <div className="bg-muted/50 p-3 rounded text-sm space-y-1" dir="rtl">
-                        {p.expected_answer && (
-                          <p><span className="font-semibold">الإجابة:</span>{" "}
-                            <HtmlWithMath htmlContent={cleanMathStatement(p.expected_answer)} className="inline" /></p>
-                        )}
-                        {p.solution && (
-                          <div>
-                            <p className="font-semibold flex items-center gap-2 mb-1"><BookOpen className="h-4 w-4" /> الحل:</p>
-                            <HtmlWithMath htmlContent={cleanMathStatement(p.solution)} />
+
+                    {examExercises ? (
+                      <div className="space-y-4 divide-y divide-border">
+                        {examExercises.map((ex, idx) => (
+                          <div key={idx} className={idx > 0 ? "pt-4" : ""} dir="rtl">
+                            <p className="text-xs font-semibold text-muted-foreground mb-2">تمرين {idx + 1}</p>
+                            {renderExerciseBlock({
+                              exKey: `${it.id}::${idx}`,
+                              contentId: it.id,
+                              statement: ex.statement,
+                              expectedAnswer: ex.answer,
+                              solution: ex.solution,
+                            })}
                           </div>
-                        )}
+                        ))}
                       </div>
+                    ) : (
+                      renderExerciseBlock({
+                        exKey: it.id,
+                        contentId: it.id,
+                        statement: p.statement,
+                        expectedAnswer: p.expected_answer,
+                        solution: p.solution,
+                        hint: p.hint,
+                      })
                     )}
                   </CardContent>
                 </Card>

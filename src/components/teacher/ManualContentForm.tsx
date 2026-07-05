@@ -8,11 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Save, Send } from "lucide-react";
+import { Loader2, Save, Send, Plus, Trash2, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import {
-  ContentType, CONTENT_TYPE_LABELS, GeneratedItem, saveTeacherContent, assignContent,
+  ContentType, CONTENT_TYPE_LABELS, GeneratedItem, ExamExerciseItem, saveTeacherContent, assignContent,
 } from "@/lib/teacherContent";
 import SendContentDialog from "./SendContentDialog";
 
@@ -52,11 +52,26 @@ export default function ManualContentForm({
   const [correct, setCorrect] = useState("");
   const [explanation, setExplanation] = useState("");
 
+  const [examExercises, setExamExercises] = useState<ExamExerciseItem[]>([
+    { statement: "", solution: "", answer: "" },
+  ]);
+
   const [sendOpen, setSendOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const isQuiz = contentType === "quiz";
+  const isExam = contentType === "exam";
   const typeLabel = CONTENT_TYPE_LABELS[contentType];
+
+  const updateExamExercise = (index: number, field: keyof ExamExerciseItem, value: string) => {
+    setExamExercises((prev) => prev.map((ex, i) => (i === index ? { ...ex, [field]: value } : ex)));
+  };
+  const addExamExercise = () => {
+    setExamExercises((prev) => [...prev, { statement: "", solution: "", answer: "" }]);
+  };
+  const removeExamExercise = (index: number) => {
+    setExamExercises((prev) => prev.filter((_, i) => i !== index));
+  };
 
   useEffect(() => {
     if (fixedLevel) { setLevel(fixedLevel); return; }
@@ -91,6 +106,8 @@ export default function ManualContentForm({
       if (!statement.trim()) { toast.error("Saisissez la question."); return false; }
       if (options.filter((o) => o.trim()).length < 2) { toast.error("Au moins 2 options."); return false; }
       if (!correct.trim()) { toast.error("Indiquez la bonne réponse."); return false; }
+    } else if (isExam) {
+      if (!examExercises.some((e) => e.statement.trim())) { toast.error("Ajoutez au moins un exercice avec un énoncé."); return false; }
     } else {
       if (!statement.trim()) { toast.error("Saisissez l'énoncé."); return false; }
     }
@@ -108,6 +125,16 @@ export default function ManualContentForm({
         difficulty: Number(difficulty),
       };
     }
+    if (isExam) {
+      const validExercises = examExercises
+        .filter((e) => e.statement.trim())
+        .map((e) => ({ statement: e.statement.trim(), solution: e.solution.trim() || undefined, answer: e.answer.trim() || undefined }));
+      return {
+        title: title.trim() || undefined,
+        exercises: validExercises,
+        difficulty: Number(difficulty),
+      };
+    }
     return {
       title: title.trim() || undefined,
       statement: statement.trim(),
@@ -121,16 +148,23 @@ export default function ManualContentForm({
   const doSave = async (classIds: string[], studentIds: string[]) => {
     setSaving(true);
     try {
+      const payload = buildPayload();
+      const fallbackTitle = isExam
+        ? (examExercises.find((e) => e.statement.trim())?.statement.slice(0, 60) || "Examen")
+        : statement.slice(0, 60);
       const id = await saveTeacherContent({
         teacherId, contentType,
         chapterId: chapterId || null, lessonId: lessonId || null,
-        schoolLevel: level, title: title || statement.slice(0, 60),
-        payload: buildPayload(), difficulty: Number(difficulty), source: "manual",
+        schoolLevel: level, title: title || fallbackTitle,
+        payload, difficulty: Number(difficulty), source: "manual",
       });
       await assignContent({ contentId: id, assignedBy: teacherId, classIds, studentIds });
-      toast.success(`${typeLabel} envoyé${targetLabel ? ` à ${targetLabel}` : " aux classes sélectionnées"}`);
+      toast.success(isExam
+        ? `Examen partagé${targetLabel ? ` à ${targetLabel}` : ""}`
+        : `${typeLabel} envoyé${targetLabel ? ` à ${targetLabel}` : " aux classes sélectionnées"}`);
       setTitle(""); setStatement(""); setExpected(""); setSolution(""); setHint("");
       setOptions(["", "", "", ""]); setCorrect(""); setExplanation("");
+      setExamExercises([{ statement: "", solution: "", answer: "" }]);
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de l'enregistrement");
     } finally {
@@ -185,53 +219,118 @@ export default function ManualContentForm({
         {!isQuiz && (
           <div className="space-y-1.5">
             <Label>Titre</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titre court (optionnel)" />
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={isExam ? "Titre de l'examen (optionnel)" : "Titre court (optionnel)"}
+            />
           </div>
         )}
 
-        <div className="space-y-1.5">
-          <Label>{isQuiz ? "Question *" : "Énoncé *"}</Label>
-          <Textarea value={statement} onChange={(e) => setStatement(e.target.value)} rows={3}
-            placeholder={isQuiz ? "Saisissez la question…" : "Saisissez l'énoncé de l'exercice…"} />
-        </div>
-
-        {isQuiz ? (
-          <>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {options.map((o, i) => (
-                <div key={i} className="space-y-1.5">
-                  <Label>Option {i + 1}</Label>
-                  <Input value={o} onChange={(e) => setOptions((prev) => prev.map((x, j) => j === i ? e.target.value : x))} />
+        {isExam ? (
+          <div className="space-y-3">
+            {examExercises.map((ex, idx) => (
+              <div key={idx} className="rounded-xl border bg-muted/30 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-2 text-sm font-semibold">
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                      {idx + 1}
+                    </span>
+                    Exercice {idx + 1}
+                  </span>
+                  {examExercises.length > 1 && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 rounded-lg hover:bg-destructive/10"
+                      onClick={() => removeExamExercise(idx)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  )}
                 </div>
-              ))}
-            </div>
-            <div className="space-y-1.5">
-              <Label>Bonne réponse * (texte identique à une option)</Label>
-              <Input value={correct} onChange={(e) => setCorrect(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Explication</Label>
-              <Textarea value={explanation} onChange={(e) => setExplanation(e.target.value)} rows={2} />
-            </div>
-          </>
+                <div className="space-y-1.5">
+                  <Label>Énoncé *</Label>
+                  <Textarea
+                    value={ex.statement}
+                    onChange={(e) => updateExamExercise(idx, "statement", e.target.value)}
+                    rows={3}
+                    placeholder="Saisissez l'énoncé de l'exercice…"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Solution</Label>
+                  <Textarea
+                    value={ex.solution}
+                    onChange={(e) => updateExamExercise(idx, "solution", e.target.value)}
+                    rows={3}
+                    placeholder="Correction détaillée de l'exercice…"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Réponse finale</Label>
+                  <Input
+                    value={ex.answer}
+                    onChange={(e) => updateExamExercise(idx, "answer", e.target.value)}
+                  />
+                </div>
+              </div>
+            ))}
+
+            <Button variant="outline" onClick={addExamExercise} className="w-full gap-2 border-dashed">
+              <Plus className="h-4 w-4" />
+              Ajouter un autre exercice
+            </Button>
+          </div>
         ) : (
           <>
             <div className="space-y-1.5">
-              <Label>Réponse attendue</Label>
-              <Input value={expected} onChange={(e) => setExpected(e.target.value)} />
+              <Label>{isQuiz ? "Question *" : "Énoncé *"}</Label>
+              <Textarea value={statement} onChange={(e) => setStatement(e.target.value)} rows={3}
+                placeholder={isQuiz ? "Saisissez la question…" : "Saisissez l'énoncé de l'exercice…"} />
             </div>
-            <div className="space-y-1.5">
-              <Label>Correction / solution</Label>
-              <Textarea value={solution} onChange={(e) => setSolution(e.target.value)} rows={3} />
-            </div>
+
+            {isQuiz ? (
+              <>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {options.map((o, i) => (
+                    <div key={i} className="space-y-1.5">
+                      <Label>Option {i + 1}</Label>
+                      <Input value={o} onChange={(e) => setOptions((prev) => prev.map((x, j) => j === i ? e.target.value : x))} />
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Bonne réponse * (texte identique à une option)</Label>
+                  <Input value={correct} onChange={(e) => setCorrect(e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Explication</Label>
+                  <Textarea value={explanation} onChange={(e) => setExplanation(e.target.value)} rows={2} />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-1.5">
+                  <Label>Réponse attendue</Label>
+                  <Input value={expected} onChange={(e) => setExpected(e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Correction / solution</Label>
+                  <Textarea value={solution} onChange={(e) => setSolution(e.target.value)} rows={3} />
+                </div>
+              </>
+            )}
           </>
         )}
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label>Indice</Label>
-            <Input value={hint} onChange={(e) => setHint(e.target.value)} placeholder="Indice (optionnel)" />
-          </div>
+          {!isExam && (
+            <div className="space-y-1.5">
+              <Label>Indice</Label>
+              <Input value={hint} onChange={(e) => setHint(e.target.value)} placeholder="Indice (optionnel)" />
+            </div>
+          )}
           <div className="space-y-1.5">
             <Label>Difficulté</Label>
             <Select value={difficulty} onValueChange={setDifficulty}>
@@ -244,8 +343,12 @@ export default function ManualContentForm({
         </div>
 
         <Button className="gap-2" disabled={saving} onClick={handlePrimary}>
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : hasFixedTarget ? <Send className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-          {hasFixedTarget ? `Envoyer${targetLabel ? ` à ${targetLabel}` : ""}` : "Enregistrer et envoyer"}
+          {saving
+            ? <Loader2 className="h-4 w-4 animate-spin" />
+            : isExam ? <Share2 className="h-4 w-4" /> : hasFixedTarget ? <Send className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+          {isExam
+            ? (hasFixedTarget ? `Envoyer l'examen${targetLabel ? ` à ${targetLabel}` : ""}` : "Partager l'examen")
+            : (hasFixedTarget ? `Envoyer${targetLabel ? ` à ${targetLabel}` : ""}` : "Enregistrer et envoyer")}
         </Button>
       </CardContent>
 

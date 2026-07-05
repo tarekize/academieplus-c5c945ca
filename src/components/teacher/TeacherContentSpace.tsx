@@ -5,6 +5,7 @@ import { ContentType, CONTENT_TYPE_LABELS } from "@/lib/teacherContent";
 import TeacherPageHeader from "./TeacherPageHeader";
 import ManualContentForm from "./ManualContentForm";
 import GuidedContentChatbot from "./GuidedContentChatbot";
+import ExamAIBuilder from "./ExamAIBuilder";
 import TeacherContentHistory from "./TeacherContentHistory";
 
 interface Props {
@@ -67,7 +68,9 @@ export default function TeacherContentSpace({ teacherId, contentType, onBack }: 
       />
 
       {mode === "ai"
-        ? <GuidedContentChatbot key={contentType} teacherId={teacherId} contentType={contentType} />
+        ? (contentType === "exam"
+          ? <ExamAIBuilder key={contentType} teacherId={teacherId} />
+          : <GuidedContentChatbot key={contentType} teacherId={teacherId} contentType={contentType} />)
         : mode === "manual"
         ? <ManualContentForm key={contentType} teacherId={teacherId} contentType={contentType} />
         : <TeacherContentHistory key={contentType} teacherId={teacherId} contentType={contentType} />}

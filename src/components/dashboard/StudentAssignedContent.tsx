@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Target } from "lucide-react";
+import { FileText, Target, ClipboardList } from "lucide-react";
 
 interface ContentRow {
   id: string;
@@ -43,24 +43,33 @@ export default function StudentAssignedContent({ userId }: { userId: string }) {
         <div className="grid gap-3 sm:grid-cols-2">
           {items.map((it) => {
             const p = it.payload || {};
+            const isExamBundle = Array.isArray(p.exercises);
             return (
               <div key={it.id} className="rounded-lg bg-card/70 border p-3 space-y-1.5">
                 <div className="flex items-center gap-2">
                   {it.content_type === "quiz"
                     ? <Target className="h-4 w-4 text-amber-600" />
+                    : isExamBundle
+                    ? <ClipboardList className="h-4 w-4 text-purple-600" />
                     : <FileText className="h-4 w-4 text-emerald-600" />}
                   <span className="text-xs font-medium">{TYPE_LABEL[it.content_type]}</span>
                   {it.difficulty ? <Badge variant="outline" className="ml-auto">Diff. {it.difficulty}/5</Badge> : null}
                 </div>
                 {(it.title || p.title) && <p className="font-medium text-sm">{it.title || p.title}</p>}
-                {p.statement && <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">{p.statement}</p>}
-                {p.question && <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">{p.question}</p>}
-                {Array.isArray(p.options) && (
-                  <ul className="text-sm list-disc list-inside text-muted-foreground">
-                    {p.options.map((o: string, i: number) => <li key={i}>{o}</li>)}
-                  </ul>
+                {isExamBundle ? (
+                  <p className="text-sm text-muted-foreground">{p.exercises.length} exercice{p.exercises.length > 1 ? "s" : ""}</p>
+                ) : (
+                  <>
+                    {p.statement && <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">{p.statement}</p>}
+                    {p.question && <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">{p.question}</p>}
+                    {Array.isArray(p.options) && (
+                      <ul className="text-sm list-disc list-inside text-muted-foreground">
+                        {p.options.map((o: string, i: number) => <li key={i}>{o}</li>)}
+                      </ul>
+                    )}
+                    {p.hint && <p className="text-xs text-amber-700 dark:text-amber-400">💡 {p.hint}</p>}
+                  </>
                 )}
-                {p.hint && <p className="text-xs text-amber-700 dark:text-amber-400">💡 {p.hint}</p>}
               </div>
             );
           })}
