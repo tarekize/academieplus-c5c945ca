@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, Pencil, Trash2, Play, Clock, FileText, BookOpenCheck, Search } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Play, Clock, FileText, BookOpenCheck, Search, Sparkles, Loader2, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -18,6 +18,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -29,6 +36,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+interface ExamExercise {
+  statement: string;
+  solution: string;
+  answer: string;
+}
+
 interface Exam {
   id: string;
   title: string;
@@ -37,6 +50,19 @@ interface Exam {
   content: any;
   duration_minutes: number;
   created_at: string;
+}
+
+interface ChapterOption {
+  id: string;
+  title: string;
+}
+
+interface AIExerciseRow {
+  chapter_id: string;
+  statement: string;
+  solution: string;
+  answer: string;
+  generating: boolean;
 }
 
 const ExamList = () => {
@@ -53,12 +79,23 @@ const ExamList = () => {
   const [editExam, setEditExam] = useState<Exam | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [viewExam, setViewExam] = useState<Exam | null>(null);
+  const [chapters, setChapters] = useState<ChapterOption[]>([]);
 
+  // Manual form state
   const [formTitle, setFormTitle] = useState("");
-  const [formTitleAr, setFormTitleAr] = useState("");
-  const [formDescription, setFormDescription] = useState("");
-  const [formContent, setFormContent] = useState("");
   const [formDuration, setFormDuration] = useState(60);
+  const [formExercises, setFormExercises] = useState<ExamExercise[]>([
+    { statement: "", solution: "", answer: "" },
+  ]);
+  const [saving, setSaving] = useState(false);
+
+  // AI form state
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiTitle, setAiTitle] = useState("");
+  const [aiDuration, setAiDuration] = useState(60);
+  const [aiCount, setAiCount] = useState(3);
+  const [aiRows, setAiRows] = useState<AIExerciseRow[]>([]);
+  const [aiSaving, setAiSaving] = useState(false);
 
   const trimesterLabels: Record<number, string> = {
     1: "اختبارات الفصل الأول",
@@ -100,6 +137,21 @@ const ExamList = () => {
     setLoading(false);
   };
 
+  const fetchChapters = async () => {
+    const { data, error } = await supabase
+      .from("chapters")
+      .select("id, title, title_ar")
+      .eq("school_level", niveau as any)
+      .eq("subject", subject)
+      .order("order_index", { ascending: true });
+
+    if (!error && data) {
+      setChapters(
+        (data as any[]).map((c) => ({ id: c.id, title: c.title_ar || c.title }))
+      );
+    }
+  };
+
   const checkRole = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -114,70 +166,91 @@ const ExamList = () => {
   useEffect(() => {
     checkRole();
     fetchExams();
+    fetchChapters();
   }, [niveau, trimester, subject]);
+
+  const normalizeExercises = (content: any): ExamExercise[] => {
+    if (Array.isArray(content)) {
+      return content.map((item: any) => ({
+        statement: item.statement || item.question || "",
+        solution: item.solution || item.explanation || "",
+        answer: item.answer || item.correct_answer || item.expected_answer || "",
+      }));
+    }
+    return [{ statement: "", solution: "", answer: "" }];
+  };
 
   const openCreateForm = () => {
     setEditExam(null);
     setFormTitle("");
-    setFormTitleAr("");
-    setFormDescription("");
-    setFormContent("");
     setFormDuration(60);
+    setFormExercises([{ statement: "", solution: "", answer: "" }]);
     setFormOpen(true);
   };
 
   const openEditForm = (exam: Exam) => {
     setEditExam(exam);
-    setFormTitle(exam.title);
-    setFormTitleAr(exam.title_ar || "");
-    setFormDescription(exam.description || "");
-    setFormContent(typeof exam.content === "string" ? exam.content : JSON.stringify(exam.content, null, 2));
+    setFormTitle(exam.title_ar || exam.title || "");
     setFormDuration(exam.duration_minutes);
+    setFormExercises(normalizeExercises(exam.content));
     setFormOpen(true);
   };
+
+  const updateExercise = (index: number, field: keyof ExamExercise, value: string) => {
+    setFormExercises((prev) =>
+      prev.map((ex, i) => (i === index ? { ...ex, [field]: value } : ex))
+    );
+  };
+
+  const addExercise = () => {
+    setFormExercises((prev) => [...prev, { statement: "", solution: "", answer: "" }]);
+  };
+
+  const removeExercise = (index: number) => {
+    setFormExercises((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const buildPayload = (title: string, duration: number, exercises: ExamExercise[], userId: string) => ({
+    title: title || "اختبار",
+    title_ar: title || null,
+    description: null,
+    content: exercises.filter((e) => e.statement.trim()),
+    duration_minutes: duration,
+    school_level: niveau,
+    trimester,
+    subject,
+    created_by: userId,
+  });
 
   const handleSave = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    let contentJson: any;
-    try {
-      contentJson = JSON.parse(formContent || "[]");
-    } catch {
-      contentJson = formContent;
+    const validExercises = formExercises.filter((e) => e.statement.trim());
+    if (validExercises.length === 0) {
+      toast({ title: "خطأ", description: "أضف تمريناً واحداً على الأقل مع الإنشاء", variant: "destructive" });
+      return;
     }
 
-    const payload = {
-      title: formTitle,
-      title_ar: formTitleAr || null,
-      description: formDescription || null,
-      content: contentJson,
-      duration_minutes: formDuration,
-      school_level: niveau,
-      trimester,
-      subject,
-      created_by: user.id,
-    };
+    setSaving(true);
+    const payload = buildPayload(formTitle, formDuration, validExercises, user.id);
 
     if (editExam) {
-      const { error } = await supabase
-        .from("exams" as any)
-        .update(payload as any)
-        .eq("id", editExam.id);
+      const { error } = await supabase.from("exams" as any).update(payload as any).eq("id", editExam.id);
+      setSaving(false);
       if (error) {
         toast({ title: "Erreur", description: error.message, variant: "destructive" });
         return;
       }
-      toast({ title: "تم التعديل بنجاح" });
+      toast({ title: "تم مشاركة الاختبار بنجاح" });
     } else {
-      const { error } = await supabase
-        .from("exams" as any)
-        .insert(payload as any);
+      const { error } = await supabase.from("exams" as any).insert(payload as any);
+      setSaving(false);
       if (error) {
         toast({ title: "Erreur", description: error.message, variant: "destructive" });
         return;
       }
-      toast({ title: "تمت الإضافة بنجاح" });
+      toast({ title: "تم مشاركة الاختبار بنجاح" });
     }
 
     setFormOpen(false);
@@ -191,6 +264,89 @@ const ExamList = () => {
       return;
     }
     toast({ title: "تم الحذف بنجاح" });
+    fetchExams();
+  };
+
+  // ============ AI Dialog ============
+  const openAIForm = () => {
+    setAiTitle("");
+    setAiDuration(60);
+    setAiCount(3);
+    setAiRows(
+      Array.from({ length: 3 }, () => ({ chapter_id: "", statement: "", solution: "", answer: "", generating: false }))
+    );
+    setAiOpen(true);
+  };
+
+  const changeAiCount = (count: number) => {
+    setAiCount(count);
+    setAiRows((prev) => {
+      const next = [...prev];
+      if (count > prev.length) {
+        for (let i = prev.length; i < count; i++) {
+          next.push({ chapter_id: "", statement: "", solution: "", answer: "", generating: false });
+        }
+      } else {
+        next.length = count;
+      }
+      return next;
+    });
+  };
+
+  const updateAiRow = (index: number, field: keyof AIExerciseRow, value: any) => {
+    setAiRows((prev) => prev.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
+  };
+
+  const generateAiExercise = async (index: number) => {
+    const row = aiRows[index];
+    if (!row.chapter_id) {
+      toast({ title: "خطأ", description: "اختر الفصل أولاً", variant: "destructive" });
+      return;
+    }
+    updateAiRow(index, "generating", true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-exam-exercise", {
+        body: { chapter_id: row.chapter_id },
+      });
+      if (error) throw error;
+      const ex = data?.exercise;
+      if (!ex?.statement) throw new Error("لم يتم توليد التمرين");
+      setAiRows((prev) =>
+        prev.map((r, i) =>
+          i === index
+            ? { ...r, statement: ex.statement, solution: ex.solution || "", answer: ex.answer || "", generating: false }
+            : r
+        )
+      );
+    } catch (e: any) {
+      updateAiRow(index, "generating", false);
+      toast({ title: "Erreur", description: e.message || "فشل التوليد", variant: "destructive" });
+    }
+  };
+
+  const shareAiExam = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const validExercises = aiRows
+      .filter((r) => r.statement.trim())
+      .map((r) => ({ statement: r.statement, solution: r.solution, answer: r.answer }));
+
+    if (validExercises.length === 0) {
+      toast({ title: "خطأ", description: "ولّد تمريناً واحداً على الأقل", variant: "destructive" });
+      return;
+    }
+
+    setAiSaving(true);
+    const payload = buildPayload(aiTitle, aiDuration, validExercises, user.id);
+    const { error } = await supabase.from("exams" as any).insert(payload as any);
+    setAiSaving(false);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "تم مشاركة الاختبار بنجاح" });
+    setAiOpen(false);
     fetchExams();
   };
 
@@ -224,10 +380,20 @@ const ExamList = () => {
             </div>
           </div>
           {canManage && (
-            <Button onClick={openCreateForm} className="gap-2 rounded-full shadow-md active:scale-95 transition-transform self-start">
-              <Plus className="h-4 w-4" />
-              <span dir="rtl">إضافة اختبار</span>
-            </Button>
+            <div className="flex flex-wrap items-center gap-2 self-start">
+              <Button onClick={openCreateForm} className="gap-2 rounded-full shadow-md active:scale-95 transition-transform">
+                <Plus className="h-4 w-4" />
+                <span dir="rtl">إضافة اختبار</span>
+              </Button>
+              <Button
+                onClick={openAIForm}
+                variant="hero"
+                className="gap-2 rounded-full shadow-md active:scale-95 transition-transform"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span dir="rtl">إضافة اختبار عبر الذكاء الاصطناعي</span>
+              </Button>
+            </div>
           )}
         </motion.div>
 
@@ -280,7 +446,7 @@ const ExamList = () => {
                       <h3 className="font-semibold text-foreground truncate">
                         {exam.title_ar || exam.title}
                       </h3>
-                      {exam.title_ar && (
+                      {exam.title_ar && exam.title !== exam.title_ar && (
                         <p className="text-xs text-muted-foreground mt-0.5 truncate">{exam.title}</p>
                       )}
                       <div className="flex items-center gap-3 mt-2">
@@ -288,6 +454,12 @@ const ExamList = () => {
                           <Clock className="h-3 w-3" />
                           {exam.duration_minutes} دقيقة
                         </span>
+                        {Array.isArray(exam.content) && (
+                          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                            <FileText className="h-3 w-3" />
+                            {exam.content.length} تمرين
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -351,45 +523,173 @@ const ExamList = () => {
         )}
       </div>
 
-      {/* Create/Edit Dialog */}
+      {/* Create/Edit Dialog (Manual) */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent className="max-w-lg rounded-2xl">
+        <DialogContent className="max-w-2xl max-h-[88vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
             <DialogTitle dir="rtl">{editExam ? "تعديل الاختبار" : "إضافة اختبار جديد"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label className="text-xs text-muted-foreground">Titre (FR)</Label>
-              <Input className="rounded-xl mt-1" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs text-muted-foreground" dir="rtl">عنوان الاختبار</Label>
+                <Input className="rounded-xl mt-1" dir="rtl" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="مثال: اختبار الفصل الأول" />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground" dir="rtl">المدة (دقيقة)</Label>
+                <Input className="rounded-xl mt-1" type="number" value={formDuration} onChange={(e) => setFormDuration(Number(e.target.value))} />
+              </div>
             </div>
-            <div>
-              <Label className="text-xs text-muted-foreground" dir="rtl">العنوان (عربي)</Label>
-              <Input className="rounded-xl mt-1" dir="rtl" value={formTitleAr} onChange={(e) => setFormTitleAr(e.target.value)} />
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Description</Label>
-              <Textarea className="rounded-xl mt-1" value={formDescription} onChange={(e) => setFormDescription(e.target.value)} />
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Contenu (JSON)</Label>
-              <Textarea
-                className="rounded-xl mt-1 font-mono text-xs"
-                rows={6}
-                value={formContent}
-                onChange={(e) => setFormContent(e.target.value)}
-                placeholder='[{"question": "...", "options": ["A","B","C","D"], "answer": "A"}]'
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground" dir="rtl">المدة (دقيقة)</Label>
-              <Input className="rounded-xl mt-1" type="number" value={formDuration} onChange={(e) => setFormDuration(Number(e.target.value))} />
+
+            <div className="space-y-4">
+              {formExercises.map((ex, idx) => (
+                <div key={idx} className="rounded-2xl border bg-secondary/30 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-2 text-sm font-semibold" dir="rtl">
+                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                        {idx + 1}
+                      </span>
+                      التمرين {idx + 1}
+                    </span>
+                    {formExercises.length > 1 && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 rounded-lg hover:bg-destructive/10"
+                        onClick={() => removeExercise(idx)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground" dir="rtl">الإنشاء (نص التمرين)</Label>
+                    <Textarea className="rounded-xl mt-1" dir="rtl" rows={3} value={ex.statement} onChange={(e) => updateExercise(idx, "statement", e.target.value)} />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground" dir="rtl">الحل</Label>
+                    <Textarea className="rounded-xl mt-1" dir="rtl" rows={3} value={ex.solution} onChange={(e) => updateExercise(idx, "solution", e.target.value)} />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground" dir="rtl">الإجابة النهائية</Label>
+                    <Input className="rounded-xl mt-1" dir="rtl" value={ex.answer} onChange={(e) => updateExercise(idx, "answer", e.target.value)} />
+                  </div>
+                </div>
+              ))}
+
+              <Button variant="outline" onClick={addExercise} className="w-full gap-2 rounded-xl border-dashed">
+                <Plus className="h-4 w-4" />
+                <span dir="rtl">إضافة تمرين آخر</span>
+              </Button>
             </div>
           </div>
           <DialogFooter className="gap-2">
             <DialogClose asChild>
               <Button variant="outline" className="rounded-xl">إلغاء</Button>
             </DialogClose>
-            <Button onClick={handleSave} className="rounded-xl">{editExam ? "حفظ التعديلات" : "إضافة"}</Button>
+            <Button onClick={handleSave} disabled={saving} className="rounded-xl gap-2">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+              <span dir="rtl">مشاركة الاختبار</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Generation Dialog */}
+      <Dialog open={aiOpen} onOpenChange={setAiOpen}>
+        <DialogContent className="max-w-2xl max-h-[88vh] overflow-y-auto rounded-2xl">
+          <DialogHeader>
+            <DialogTitle dir="rtl" className="flex items-center gap-2 justify-end">
+              إنشاء اختبار عبر الذكاء الاصطناعي
+              <Sparkles className="h-5 w-5 text-primary" />
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="sm:col-span-1">
+                <Label className="text-xs text-muted-foreground" dir="rtl">عنوان الاختبار</Label>
+                <Input className="rounded-xl mt-1" dir="rtl" value={aiTitle} onChange={(e) => setAiTitle(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground" dir="rtl">المدة (دقيقة)</Label>
+                <Input className="rounded-xl mt-1" type="number" value={aiDuration} onChange={(e) => setAiDuration(Number(e.target.value))} />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground" dir="rtl">عدد التمارين</Label>
+                <Select value={String(aiCount)} onValueChange={(v) => changeAiCount(Number(v))}>
+                  <SelectTrigger className="rounded-xl mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                      <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {aiRows.map((row, idx) => (
+                <div key={idx} className="rounded-2xl border bg-secondary/30 p-4 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+                    <span className="inline-flex items-center gap-2 text-sm font-semibold" dir="rtl">
+                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                        {idx + 1}
+                      </span>
+                      التمرين {idx + 1}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Select value={row.chapter_id} onValueChange={(v) => updateAiRow(idx, "chapter_id", v)}>
+                        <SelectTrigger className="rounded-xl min-w-[180px]" dir="rtl">
+                          <SelectValue placeholder="اختر الفصل" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {chapters.map((ch) => (
+                            <SelectItem key={ch.id} value={ch.id}>{ch.title}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        size="sm"
+                        onClick={() => generateAiExercise(idx)}
+                        disabled={row.generating || !row.chapter_id}
+                        className="rounded-xl gap-1.5 whitespace-nowrap"
+                      >
+                        {row.generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                        توليد
+                      </Button>
+                    </div>
+                  </div>
+
+                  {(row.statement || row.solution || row.answer) && (
+                    <div className="space-y-3 pt-1">
+                      <div>
+                        <Label className="text-xs text-muted-foreground" dir="rtl">الإنشاء (نص التمرين)</Label>
+                        <Textarea className="rounded-xl mt-1" dir="rtl" rows={3} value={row.statement} onChange={(e) => updateAiRow(idx, "statement", e.target.value)} />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground" dir="rtl">الحل</Label>
+                        <Textarea className="rounded-xl mt-1" dir="rtl" rows={3} value={row.solution} onChange={(e) => updateAiRow(idx, "solution", e.target.value)} />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground" dir="rtl">الإجابة النهائية</Label>
+                        <Input className="rounded-xl mt-1" dir="rtl" value={row.answer} onChange={(e) => updateAiRow(idx, "answer", e.target.value)} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <DialogClose asChild>
+              <Button variant="outline" className="rounded-xl">إلغاء</Button>
+            </DialogClose>
+            <Button onClick={shareAiExam} disabled={aiSaving} className="rounded-xl gap-2">
+              {aiSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+              <span dir="rtl">مشاركة الاختبار</span>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -424,7 +724,7 @@ const ExamList = () => {
                         <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold ml-2">
                           {idx + 1}
                         </span>
-                        {item.question || item.statement || JSON.stringify(item)}
+                        {item.statement || item.question || JSON.stringify(item)}
                       </p>
                       {item.options && Array.isArray(item.options) && (
                         <div className="space-y-1.5 mt-3 mr-8" dir="rtl">
