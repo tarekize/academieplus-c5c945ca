@@ -10,7 +10,7 @@ import { ChapterMathExercises, DBExercise } from "@/components/course/ChapterMat
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, GraduationCap, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check, Search, BarChart3, FileText } from "lucide-react";
+import { ArrowLeft, GraduationCap, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check, Search, BarChart3, FileText, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 import ChatBot from "@/components/ChatBot";
@@ -981,17 +981,35 @@ const Cours = () => {
       {/* Floating Chat Button - Only show when a chapter is active and user is not admin/pedago */}
       {viewMode === "content" && !canManage && (
         <>
-          <button
-            onClick={() => { setIsChatOpen(!isChatOpen); setIsChatExpanded(false); }}
-            className={`fixed bottom-6 z-[60] w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 ${isChatOpen
-              ? isChatExpanded
-                ? 'right-6 bg-white text-[#0A2551] border border-slate-200 hover:bg-slate-50'
-                : 'right-6 lg:right-[430px] bg-white text-[#0A2551] border border-slate-200 hover:bg-slate-50'
-              : 'right-6 bg-[#0A2551] text-white hover:bg-[#0A2551]/90'
+          <div
+            className={`fixed bottom-6 z-[60] transition-all duration-300 ${isChatOpen
+              ? isChatExpanded ? 'right-6' : 'right-6 lg:right-[430px]'
+              : 'right-6'
               }`}
           >
-            {isChatOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-          </button>
+            {!isChatOpen && (
+              <span className="absolute inset-0 rounded-full bg-primary/50 animate-ping" aria-hidden />
+            )}
+            <button
+              onClick={() => { setIsChatOpen(!isChatOpen); setIsChatExpanded(false); }}
+              className={`relative w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 ${isChatOpen
+                ? 'bg-card text-primary border border-border shadow-lg'
+                : 'bg-[image:var(--gradient-primary)] text-white shadow-[var(--shadow-elegant)]'
+                }`}
+            >
+              <MessageCircle
+                className={`h-6 w-6 absolute transition-all duration-300 ${isChatOpen ? 'opacity-0 scale-50 -rotate-45' : 'opacity-100 scale-100 rotate-0'}`}
+              />
+              <X
+                className={`h-6 w-6 absolute transition-all duration-300 ${isChatOpen ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-50 rotate-45'}`}
+              />
+            </button>
+            {!isChatOpen && (
+              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-white shadow-sm ring-2 ring-background">
+                <Sparkles className="h-3 w-3" />
+              </span>
+            )}
+          </div>
 
           {/* Chat Panel */}
           {isChatOpen && (() => {
@@ -1042,7 +1060,7 @@ const Cours = () => {
             );
 
             return isMobile ? (
-              <div className="fixed top-16 bottom-0 right-0 z-50 w-full transition-all duration-300">
+              <div className="fixed top-16 bottom-0 right-0 z-50 w-full animate-in fade-in slide-in-from-bottom-4 duration-300">
                 {chatBotNode}
               </div>
             ) : (
@@ -1064,7 +1082,7 @@ const Cours = () => {
                   dragHandleClassName="chatbot-drag-handle"
                   className="pointer-events-auto"
                 >
-                  <div className="w-full h-full shadow-2xl rounded-2xl overflow-hidden bg-background">
+                  <div className="w-full h-full shadow-[var(--shadow-elegant)] rounded-2xl overflow-hidden bg-background animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-300">
                     {chatBotNode}
                   </div>
                 </Rnd>

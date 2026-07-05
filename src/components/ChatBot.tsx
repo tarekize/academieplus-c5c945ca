@@ -418,7 +418,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
   const isBlocked = !canSendMessage && !hasSubscription;
 
   return (
-    <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-950 border-[3px] border-[#0A2551] rounded-2xl overflow-hidden shadow-[0_20px_60px_-15px_rgba(10,37,81,0.4)] backdrop-blur-sm relative z-50">
+    <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-950 rounded-2xl overflow-hidden shadow-[var(--shadow-elegant)] border border-border/60 relative z-50">
       {/* History Panel */}
       {showHistory && (
         <ChatHistory
@@ -442,22 +442,26 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
       {!showHistory && (
         <>
           {/* Header */}
-          <div className="chatbot-drag-handle border-b border-[#0A2551]/10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-5 py-4 shrink-0 shadow-sm cursor-grab active:cursor-grabbing">
+          <div className="chatbot-drag-handle border-b border-border/60 bg-card/95 backdrop-blur-md px-5 py-4 shrink-0 shadow-sm cursor-grab active:cursor-grabbing">
             <div className="flex items-center justify-between">
-              <div className="flex flex-col min-w-0 flex-1">
-                <h2 className="text-xl font-bold text-[#0A2551] dark:text-blue-400 truncate flex items-center gap-2">
-                  <Bot className="h-6 w-6 text-[#0A2551] dark:text-blue-400" />
-                  Professeur de {subject}
-                </h2>
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mt-1 truncate">Assistant IA Interactif</p>
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm shrink-0">
+                  <Bot className="h-5 w-5 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-base font-bold text-foreground truncate">
+                    Professeur de {subject}
+                  </h2>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">Assistant IA Interactif</p>
+                </div>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 shrink-0">
                 {/* History button */}
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowHistory(true)}
-                  className="h-9 w-9 rounded-xl text-[#0A2551]/60 hover:text-[#0A2551] hover:bg-[#0A2551]/5"
+                  className="h-9 w-9 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5"
                   title="Historique des conversations"
                 >
                   <History className="h-5 w-5" />
@@ -468,7 +472,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                     variant="ghost"
                     size="icon"
                     onClick={onToggleExpand}
-                    className="h-9 w-9 rounded-xl text-[#0A2551]/60 hover:text-[#0A2551] hover:bg-[#0A2551]/5"
+                    className="h-9 w-9 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5"
                     title={isExpanded ? "Réduire" : "Agrandir"}
                   >
                     {isExpanded ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
@@ -522,15 +526,15 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
           <ScrollArea className="flex-1 p-5">
             <div className={`space-y-6 mx-auto ${isExpanded ? 'max-w-4xl' : 'max-w-xl'}`}>
               {messages.length === 0 ? (
-                <div className="text-center py-14 flex flex-col items-center justify-center">
-                  <div className="flex items-center justify-center w-20 h-20 rounded-[1.25rem] bg-gradient-to-br from-[#0A2551] to-blue-600 text-white shadow-[0_10px_25px_rgba(10,37,81,0.25)] mb-6 ring-4 ring-white dark:ring-slate-900 border border-[#0A2551]/20">
+                <div className="text-center py-14 flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-500">
+                  <div className="flex items-center justify-center w-20 h-20 rounded-[1.25rem] bg-[image:var(--gradient-primary)] text-white shadow-[var(--shadow-elegant)] mb-6 ring-4 ring-background border border-primary/20">
                     <Bot strokeWidth={1.5} className="w-10 h-10 drop-shadow-md" />
                   </div>
-                  <h3 className="text-[1.35rem] font-bold text-[#0A2551] dark:text-blue-300 leading-tight mb-3">
+                  <h3 className="text-[1.35rem] font-bold text-primary leading-tight mb-3">
                     Bienvenue dans votre classe virtuelle&nbsp;!
                   </h3>
                   <p className="text-[0.95rem] text-slate-600 dark:text-slate-400 font-medium leading-relaxed max-w-[320px]">
-                    Je suis votre professeur personnel de mathématiques, encadré par votre programme. Posez votre question{chapterContext?.title ? <> sur le chapitre <span className="font-semibold text-[#0A2551] dark:text-blue-300">«&nbsp;{chapterContext.title}&nbsp;»</span></> : ""} en français ou en arabe.
+                    Je suis votre professeur personnel de mathématiques, encadré par votre programme. Posez votre question{chapterContext?.title ? <> sur le chapitre <span className="font-semibold text-primary">«&nbsp;{chapterContext.title}&nbsp;»</span></> : ""} en français ou en arabe.
                   </p>
                   <div className="mt-5 grid grid-cols-2 gap-2 max-w-[320px] text-[0.7rem] text-slate-500 dark:text-slate-400">
                     <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5">📖 <span>Définition</span></div>
@@ -591,12 +595,12 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
 
           {/* Input area - hidden when blocked */}
           {!isBlocked && (
-            <div className="border-t border-[#0A2551]/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl p-4 shrink-0 shadow-[0_-10px_40px_-20px_rgba(10,37,81,0.15)] relative z-10 rounded-b-[1.05rem]">
+            <div className="border-t border-border/60 bg-card/95 backdrop-blur-xl p-4 shrink-0 shadow-[0_-10px_30px_-20px_hsl(var(--primary)/0.25)] relative z-10 rounded-b-[1.05rem]">
               <div className={`mx-auto space-y-3 ${isExpanded ? 'max-w-4xl' : 'max-w-xl'}`}>
                 {uploadedFiles.length > 0 && (
                   <div className="flex flex-wrap gap-2 px-1">
                     {uploadedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center gap-2 bg-[#0A2551]/5 border border-[#0A2551]/10 px-3 py-1.5 rounded-[0.85rem] text-[0.8rem] font-medium text-[#0A2551] dark:text-blue-200">
+                      <div key={index} className="flex items-center gap-2 bg-primary/5 border border-primary/10 px-3 py-1.5 rounded-[0.85rem] text-[0.8rem] font-medium text-primary">
                         <span className="truncate max-w-[160px]">{file.name}</span>
                         <button
                           onClick={() => removeFile(index)}
@@ -610,7 +614,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                   </div>
                 )}
                 <form onSubmit={handleSubmit} className="flex gap-2.5 items-end relative">
-                  <div className="flex flex-1 flex-col justify-end bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl transition-all focus-within:ring-2 focus-within:ring-[#0A2551]/20 focus-within:border-[#0A2551]/40 shadow-sm relative pt-1">
+                  <div className="flex flex-1 flex-col justify-end bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/40 shadow-sm relative pt-1">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -638,7 +642,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                           onClick={() => fileInputRef.current?.click()}
                           disabled={isLoading || isRecording || (!canSendImage && !hasSubscription)}
                           title={!canSendImage && !hasSubscription ? "Limite d'images atteinte" : "Joindre un fichier"}
-                          className="w-10 h-10 rounded-xl text-slate-500 hover:text-[#0A2551] hover:bg-slate-200/50"
+                          className="w-10 h-10 rounded-xl text-slate-500 hover:text-primary hover:bg-primary/5"
                         >
                           <Paperclip strokeWidth={1.5} className="h-5 w-5" />
                         </Button>
@@ -648,7 +652,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                           size="icon"
                           onClick={() => setVoiceLang(voiceLang === 'fr-FR' ? 'ar-SA' : 'fr-FR')}
                           disabled={isLoading || isRecording}
-                          className="w-10 h-10 rounded-xl text-slate-500 hover:text-[#0A2551] hover:bg-slate-200/50 text-xs font-bold font-mono tracking-tight"
+                          className="w-10 h-10 rounded-xl text-slate-500 hover:text-primary hover:bg-primary/5 text-xs font-bold font-mono tracking-tight"
                           title={voiceLang === 'fr-FR' ? 'Français' : 'العربية'}
                         >
                           {voiceLang === 'fr-FR' ? 'FR' : 'AR'}
@@ -659,7 +663,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                           size="icon"
                           onClick={isRecording ? stopRecording : startRecording}
                           disabled={isLoading}
-                          className={`w-10 h-10 rounded-xl relative hover:bg-slate-200/50 ${isRecording ? 'text-red-500 hover:text-red-600 bg-red-50' : 'text-slate-500 hover:text-[#0A2551]'}`}
+                          className={`w-10 h-10 rounded-xl relative hover:bg-primary/5 ${isRecording ? 'text-red-500 hover:text-red-600 bg-red-50' : 'text-slate-500 hover:text-primary'}`}
                         >
                           {isRecording ? <MicOff strokeWidth={1.5} className="h-5 w-5" /> : <Mic strokeWidth={1.5} className="h-5 w-5" />}
 
@@ -686,7 +690,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                   <Button
                     type="submit"
                     disabled={isLoading || isRecording || (!inputValue.trim() && uploadedFiles.length === 0)}
-                    className="w-12 h-12 flex-shrink-0 rounded-[0.9rem] bg-[#0A2551] hover:bg-[#0A2551]/90 text-white shadow-[0_5px_15px_rgba(10,37,81,0.25)] flex items-center justify-center p-0 transition-transform active:scale-95 disabled:hover:scale-100 disabled:opacity-50"
+                    className="w-12 h-12 flex-shrink-0 rounded-[0.9rem] bg-[image:var(--gradient-primary)] hover:opacity-90 text-white shadow-[var(--shadow-card)] flex items-center justify-center p-0 transition-transform active:scale-95 disabled:hover:scale-100 disabled:opacity-50"
                   >
                     <Send strokeWidth={2} className="h-5 w-5 -ml-0.5" />
                   </Button>

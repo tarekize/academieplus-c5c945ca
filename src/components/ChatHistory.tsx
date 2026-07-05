@@ -99,20 +99,20 @@ export default function ChatHistory({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-950">
+    <div className="flex flex-col h-full bg-card">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
-        <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border/60 shrink-0">
+        <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 rounded-xl">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h3 className="text-sm font-bold text-[#0A2551] dark:text-blue-400 flex-1">
+        <h3 className="text-sm font-bold text-primary flex-1">
           Historique des conversations
         </h3>
         <Button
           variant="ghost"
           size="sm"
           onClick={onNewConversation}
-          className="text-xs gap-1 text-[#0A2551]"
+          className="text-xs gap-1 text-primary rounded-xl"
         >
           <Plus className="h-3.5 w-3.5" />
           Nouveau
@@ -142,7 +142,7 @@ export default function ChatHistory({
                 className={cn(
                   "w-full text-left p-3 rounded-xl transition-all group hover:bg-slate-50 dark:hover:bg-slate-900",
                   activeConversationId === conv.id &&
-                    "bg-[#0A2551]/5 border border-[#0A2551]/10"
+                    "bg-primary/5 border border-primary/10"
                 )}
               >
                 <div className="flex items-start justify-between gap-2">
