@@ -11,7 +11,7 @@ import {
 import { Loader2, Sparkles, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { getSchoolLevelLabel } from "@/lib/validation";
-import { saveTeacherContent, assignContent } from "@/lib/teacherContent";
+import { saveTeacherContent, assignContent, getTrimesterOptions } from "@/lib/teacherContent";
 import SendContentDialog from "./SendContentDialog";
 
 interface ChapterRow { id: string; title: string; }
@@ -36,6 +36,7 @@ export default function ExamAIBuilder({ teacherId }: Props) {
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
 
   const [title, setTitle] = useState("");
+  const [trimester, setTrimester] = useState("");
   const [count, setCount] = useState(3);
   const [rows, setRows] = useState<AIExerciseRow[]>(Array.from({ length: 3 }, emptyRow));
 
@@ -56,6 +57,10 @@ export default function ExamAIBuilder({ teacherId }: Props) {
       const { data } = await supabase.from("chapters").select("id, title").eq("school_level", level as any).order("order_index");
       setChapters((data as ChapterRow[]) || []);
     })();
+    // Bac Blanc/Finale only make sense for terminale — clear an invalid selection.
+    if (level !== "terminale" && (trimester === "4" || trimester === "5")) {
+      setTrimester("");
+    }
   }, [level]);
 
   const changeCount = (n: number) => {
@@ -97,6 +102,7 @@ export default function ExamAIBuilder({ teacherId }: Props) {
 
   const resetForm = () => {
     setTitle("");
+    setTrimester("");
     setCount(3);
     setRows(Array.from({ length: 3 }, emptyRow));
   };
@@ -113,7 +119,7 @@ export default function ExamAIBuilder({ teacherId }: Props) {
         teacherId, contentType: "exam",
         schoolLevel: level,
         title: title || validExercises[0].statement.slice(0, 60),
-        payload: { title: title || undefined, exercises: validExercises },
+        payload: { title: title || undefined, exercises: validExercises, trimester: Number(trimester) },
         source: "ai",
       });
       await assignContent({ contentId: id, assignedBy: teacherId, classIds });
@@ -128,6 +134,7 @@ export default function ExamAIBuilder({ teacherId }: Props) {
 
   const handleShareClick = () => {
     if (!level) { toast.error("Choisissez un niveau."); return; }
+    if (!trimester) { toast.error("Choisissez le trimestre (ou le bac blanc/final)."); return; }
     if (!rows.some((r) => r.statement.trim())) { toast.error("Générez au moins un exercice."); return; }
     setSendOpen(true);
   };
@@ -139,7 +146,7 @@ export default function ExamAIBuilder({ teacherId }: Props) {
           <Sparkles className="h-4 w-4" /> Générateur d'examen par IA
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>Niveau *</Label>
             <Select value={level} onValueChange={setLevel}>
@@ -147,6 +154,17 @@ export default function ExamAIBuilder({ teacherId }: Props) {
               <SelectContent>
                 {levels.map((lv) => (
                   <SelectItem key={lv} value={lv}>{getSchoolLevelLabel(lv)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Trimestre *</Label>
+            <Select value={trimester} onValueChange={setTrimester} disabled={!level}>
+              <SelectTrigger><SelectValue placeholder="Choisir le trimestre ou le bac" /></SelectTrigger>
+              <SelectContent>
+                {getTrimesterOptions(level).map((t) => (
+                  <SelectItem key={t.value} value={String(t.value)}>{t.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

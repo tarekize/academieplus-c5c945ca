@@ -203,7 +203,9 @@ const ExamList = () => {
       .eq("school_level", niveau)
       .order("created_at", { ascending: false });
 
-    const rows = (data as TeacherExam[]) || [];
+    // Each exam is scoped to a trimester (or Bac Blanc/Finale) chosen by the teacher
+    // when creating it, so it only shows up on that specific trimester's page.
+    const rows = ((data as TeacherExam[]) || []).filter((r) => Number(r.payload?.trimester) === trimester);
     setTeacherExams(rows);
     setLoadingTeacherExams(false);
 

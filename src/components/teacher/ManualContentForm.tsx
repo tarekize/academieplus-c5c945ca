@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import {
   ContentType, CONTENT_TYPE_LABELS, GeneratedItem, ExamExerciseItem, saveTeacherContent, assignContent,
+  getTrimesterOptions,
 } from "@/lib/teacherContent";
 import SendContentDialog from "./SendContentDialog";
 
@@ -55,6 +56,7 @@ export default function ManualContentForm({
   const [examExercises, setExamExercises] = useState<ExamExerciseItem[]>([
     { statement: "", solution: "", answer: "" },
   ]);
+  const [trimester, setTrimester] = useState("");
 
   const [sendOpen, setSendOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -89,6 +91,10 @@ export default function ManualContentForm({
       setChapters((data as Row[]) || []);
       setChapterId(""); setLessonId("");
     })();
+    // Bac Blanc/Finale only make sense for terminale — clear an invalid selection.
+    if (level !== "terminale" && (trimester === "4" || trimester === "5")) {
+      setTrimester("");
+    }
   }, [level]);
 
   useEffect(() => {
@@ -107,6 +113,7 @@ export default function ManualContentForm({
       if (options.filter((o) => o.trim()).length < 2) { toast.error("Au moins 2 options."); return false; }
       if (!correct.trim()) { toast.error("Indiquez la bonne réponse."); return false; }
     } else if (isExam) {
+      if (!trimester) { toast.error("Choisissez le trimestre (ou le bac blanc/final)."); return false; }
       if (!examExercises.some((e) => e.statement.trim())) { toast.error("Ajoutez au moins un exercice avec un énoncé."); return false; }
     } else {
       if (!statement.trim()) { toast.error("Saisissez l'énoncé."); return false; }
@@ -132,6 +139,7 @@ export default function ManualContentForm({
       return {
         title: title.trim() || undefined,
         exercises: validExercises,
+        trimester: Number(trimester),
         difficulty: Number(difficulty),
       };
     }
@@ -164,7 +172,7 @@ export default function ManualContentForm({
         : `${typeLabel} envoyé${targetLabel ? ` à ${targetLabel}` : " aux classes sélectionnées"}`);
       setTitle(""); setStatement(""); setExpected(""); setSolution(""); setHint("");
       setOptions(["", "", "", ""]); setCorrect(""); setExplanation("");
-      setExamExercises([{ statement: "", solution: "", answer: "" }]);
+      setExamExercises([{ statement: "", solution: "", answer: "" }]); setTrimester("");
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de l'enregistrement");
     } finally {
@@ -224,6 +232,20 @@ export default function ManualContentForm({
               onChange={(e) => setTitle(e.target.value)}
               placeholder={isExam ? "Titre de l'examen (optionnel)" : "Titre court (optionnel)"}
             />
+          </div>
+        )}
+
+        {isExam && (
+          <div className="space-y-1.5">
+            <Label>Trimestre *</Label>
+            <Select value={trimester} onValueChange={setTrimester} disabled={!level}>
+              <SelectTrigger><SelectValue placeholder="Choisir le trimestre ou le bac" /></SelectTrigger>
+              <SelectContent>
+                {getTrimesterOptions(level).map((t) => (
+                  <SelectItem key={t.value} value={String(t.value)}>{t.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
 

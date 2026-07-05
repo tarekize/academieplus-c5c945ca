@@ -4,12 +4,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import { cleanMathStatement } from "@/lib/mathStatement";
 import { ContentType } from "@/lib/teacherContent";
-import { History, Pencil, Users, AlertCircle, Lightbulb, Repeat, CheckCircle2, XCircle, ChevronRight, ClipboardList } from "lucide-react";
+import { History, Pencil, Users, AlertCircle, Lightbulb, Repeat, CheckCircle2, XCircle, ChevronRight, ClipboardList, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface ContentRow {
   id: string;
@@ -44,6 +49,8 @@ export default function TeacherContentHistory({ teacherId, contentType }: Props)
   const [names, setNames] = useState<Record<string, string>>({});
   const [recipients, setRecipients] = useState<Record<string, number>>({});
   const [open, setOpen] = useState<ContentRow | null>(null);
+  const [toDelete, setToDelete] = useState<ContentRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -111,6 +118,22 @@ export default function TeacherContentHistory({ teacherId, contentType }: Props)
     return () => { active = false; };
   }, [teacherId, contentType]);
 
+  const handleDelete = async (id: string) => {
+    setDeleting(true);
+    try {
+      const { error } = await (supabase as any).from("teacher_content").delete().eq("id", id);
+      if (error) throw error;
+      setItems((prev) => prev.filter((it) => it.id !== id));
+      if (open?.id === id) setOpen(null);
+      toast.success("Supprimé");
+    } catch (e: any) {
+      toast.error(e.message || "Erreur lors de la suppression");
+    } finally {
+      setDeleting(false);
+      setToDelete(null);
+    }
+  };
+
   if (loading) {
     return <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-lg" />)}</div>;
   }
@@ -164,6 +187,14 @@ export default function TeacherContentHistory({ teacherId, contentType }: Props)
               </div>
               <div className="flex items-center gap-3 shrink-0 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {done}/{total || "—"}</span>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  onClick={(e) => { e.stopPropagation(); setToDelete(it); }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
                 <ChevronRight className="h-4 w-4" />
               </div>
             </CardContent>
@@ -222,6 +253,27 @@ export default function TeacherContentHistory({ teacherId, contentType }: Props)
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce contenu ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Les élèves qui l'ont reçu n'y auront plus accès.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              onClick={() => toDelete && handleDelete(toDelete.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

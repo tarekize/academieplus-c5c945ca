@@ -21,6 +21,8 @@ export interface GeneratedItem {
   explanation?: string;
   // exam bundle: a single exam made of several exercises, shared to a class as one whole.
   exercises?: ExamExerciseItem[];
+  // exam: which trimester/session this exam belongs to (1-3, or 4/5 for Bac Blanc/Finale).
+  trimester?: number;
   // shared
   hint?: string;
   difficulty?: number;
@@ -42,6 +44,23 @@ export const SCHOOL_LEVELS = [
   { value: "premiere", label: "Première" },
   { value: "terminale", label: "Terminale" },
 ];
+
+export const TRIMESTER_LABELS: Record<number, string> = {
+  1: "1er Trimestre",
+  2: "2ème Trimestre",
+  3: "3ème Trimestre",
+  4: "Bac Blanc",
+  5: "Bac Finale",
+};
+
+/** Trimesters (and, for terminale, the Bac Blanc/Finale sessions) an exam can be scoped to. */
+export function getTrimesterOptions(schoolLevel?: string | null): { value: number; label: string }[] {
+  const base = [1, 2, 3].map((value) => ({ value, label: TRIMESTER_LABELS[value] }));
+  if (schoolLevel === "terminale") {
+    return [...base, ...[4, 5].map((value) => ({ value, label: TRIMESTER_LABELS[value] }))];
+  }
+  return base;
+}
 
 /** Save a single piece of teacher content and return its id. */
 export async function saveTeacherContent(params: {
