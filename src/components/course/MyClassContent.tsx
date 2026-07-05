@@ -136,7 +136,9 @@ export function MyClassContent({ userId, contentType }: Props) {
         if (active) { setItems([]); setDirectIds(direct); setLoading(false); }
         return;
       }
-      const wanted = contentType === "exercise" ? ["exercise", "exam"] : ["quiz"];
+      // Exams are excluded here: teacher-created exams live on the dedicated
+      // exams page (/exams/list), not mixed into the lesson's exercise feed.
+      const wanted = contentType === "exercise" ? ["exercise"] : ["quiz"];
       const { data } = await (supabase as any)
         .from("teacher_content")
         .select("id, content_type, title, payload, difficulty, created_at")
@@ -249,8 +251,6 @@ export function MyClassContent({ userId, contentType }: Props) {
             {items.map((it) => {
               const p = it.payload || {};
               const direct = directIds.has(it.id);
-              const examExercises: { statement: string; solution?: string; answer?: string }[] | null =
-                Array.isArray(p.exercises) ? p.exercises : null;
               return (
                 <Card key={it.id} className={cn(direct && "border-2 border-red-500 bg-red-500/5")}>
                   <CardContent className="p-4 space-y-3">
@@ -258,7 +258,7 @@ export function MyClassContent({ userId, contentType }: Props) {
                       <Badge className="bg-red-600 hover:bg-red-600 text-white">⚠️ تمرين خاص بك</Badge>
                     )}
                     <div className="flex items-center gap-3" dir="rtl">
-                      <HtmlWithMath htmlContent={cleanMathStatement(p.title || it.title || (examExercises ? "امتحان" : ""))} className="flex-1 font-semibold" />
+                      <HtmlWithMath htmlContent={cleanMathStatement(p.title || it.title || "")} className="flex-1 font-semibold" />
                       <div className="flex items-center gap-0.5 shrink-0">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Pencil key={i} className={cn("h-3.5 w-3.5", i < (it.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />
@@ -266,31 +266,14 @@ export function MyClassContent({ userId, contentType }: Props) {
                       </div>
                     </div>
 
-                    {examExercises ? (
-                      <div className="space-y-4 divide-y divide-border">
-                        {examExercises.map((ex, idx) => (
-                          <div key={idx} className={idx > 0 ? "pt-4" : ""} dir="rtl">
-                            <p className="text-xs font-semibold text-muted-foreground mb-2">تمرين {idx + 1}</p>
-                            {renderExerciseBlock({
-                              exKey: `${it.id}::${idx}`,
-                              contentId: it.id,
-                              statement: ex.statement,
-                              expectedAnswer: ex.answer,
-                              solution: ex.solution,
-                            })}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      renderExerciseBlock({
-                        exKey: it.id,
-                        contentId: it.id,
-                        statement: p.statement,
-                        expectedAnswer: p.expected_answer,
-                        solution: p.solution,
-                        hint: p.hint,
-                      })
-                    )}
+                    {renderExerciseBlock({
+                      exKey: it.id,
+                      contentId: it.id,
+                      statement: p.statement,
+                      expectedAnswer: p.expected_answer,
+                      solution: p.solution,
+                      hint: p.hint,
+                    })}
                   </CardContent>
                 </Card>
               );

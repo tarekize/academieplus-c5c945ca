@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, Pencil, Trash2, Play, Clock, FileText, BookOpenCheck, Search, Sparkles, Loader2, Share2 } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Play, Clock, FileText, BookOpenCheck, Search, Sparkles, Loader2, Share2, GraduationCap, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { cn } from "@/lib/utils";
+import ExerciseAnswerBlock from "@/components/course/ExerciseAnswerBlock";
 import {
   Dialog,
   DialogContent,
@@ -65,6 +68,15 @@ interface AIExerciseRow {
   generating: boolean;
 }
 
+interface TeacherExam {
+  id: string;
+  title: string | null;
+  payload: any;
+  difficulty: number | null;
+  created_at: string;
+  teacher_id: string;
+}
+
 const ExamList = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -72,6 +84,7 @@ const ExamList = () => {
   const subject = searchParams.get("subject") || "math";
   const trimester = parseInt(searchParams.get("trimester") || "1");
   const { toast } = useToast();
+  const { user: authUser } = useAuth();
 
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,6 +93,13 @@ const ExamList = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [viewExam, setViewExam] = useState<Exam | null>(null);
   const [chapters, setChapters] = useState<ChapterOption[]>([]);
+
+  // Source tab: official (pédago/admin) exams vs exams sent by a teacher
+  const [source, setSource] = useState<"official" | "teacher">("official");
+  const [teacherExams, setTeacherExams] = useState<TeacherExam[]>([]);
+  const [loadingTeacherExams, setLoadingTeacherExams] = useState(true);
+  const [teacherNames, setTeacherNames] = useState<Record<string, string>>({});
+  const [viewTeacherExam, setViewTeacherExam] = useState<TeacherExam | null>(null);
 
   // Manual form state
   const [formTitle, setFormTitle] = useState("");
@@ -163,10 +183,46 @@ const ExamList = () => {
     setCanManage(r.includes("admin") || r.includes("pedago"));
   };
 
+  const fetchTeacherExams = async () => {
+    setLoadingTeacherExams(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setTeacherExams([]); setLoadingTeacherExams(false); return; }
+
+    // Same pattern as MyClassContent: assignments are RLS-scoped to what this user can see.
+    const { data: assignments } = await (supabase as any)
+      .from("teacher_content_assignments")
+      .select("content_id");
+    const ids = Array.from(new Set(((assignments as any[]) || []).map((a) => a.content_id)));
+    if (ids.length === 0) { setTeacherExams([]); setLoadingTeacherExams(false); return; }
+
+    const { data } = await (supabase as any)
+      .from("teacher_content")
+      .select("id, title, payload, difficulty, created_at, teacher_id")
+      .in("id", ids)
+      .eq("content_type", "exam")
+      .eq("school_level", niveau)
+      .order("created_at", { ascending: false });
+
+    const rows = (data as TeacherExam[]) || [];
+    setTeacherExams(rows);
+    setLoadingTeacherExams(false);
+
+    const teacherIds = Array.from(new Set(rows.map((r) => r.teacher_id)));
+    if (teacherIds.length > 0) {
+      const { data: profs } = await supabase.from("profiles").select("id, first_name, last_name").in("id", teacherIds);
+      const map: Record<string, string> = {};
+      (profs || []).forEach((p: any) => {
+        map[p.id] = `${p.first_name || ""} ${p.last_name || ""}`.trim() || "Enseignant";
+      });
+      setTeacherNames(map);
+    }
+  };
+
   useEffect(() => {
     checkRole();
     fetchExams();
     fetchChapters();
+    fetchTeacherExams();
   }, [niveau, trimester, subject]);
 
   const normalizeExercises = (content: any): ExamExercise[] => {
@@ -397,127 +453,231 @@ const ExamList = () => {
           )}
         </motion.div>
 
+        {/* Source tabs: official (pédago/admin) vs teacher-sent exams */}
+        <div className="mb-6 space-y-2">
+          <div className="inline-flex items-center gap-1 rounded-full bg-muted p-1">
+            <button
+              onClick={() => setSource("official")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all",
+                source === "official" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <BookOpenCheck className="h-4 w-4" />
+              <span dir="rtl">رسمي</span>
+              <span className="text-xs opacity-60">({exams.length})</span>
+            </button>
+            <button
+              onClick={() => setSource("teacher")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all",
+                source === "teacher" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <GraduationCap className="h-4 w-4" />
+              <span dir="rtl">من الأستاذ</span>
+              <span className="text-xs opacity-60">({teacherExams.length})</span>
+            </button>
+          </div>
+          {source === "teacher" && (
+            <p className="text-xs text-muted-foreground" dir="rtl">امتحانات أرسلها أساتذتك لهذا المستوى (كل الفصول).</p>
+          )}
+        </div>
+
         {/* Content */}
-        {loading ? (
+        {source === "official" ? (
+          loading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent" />
+              <p className="text-sm text-muted-foreground">جاري التحميل...</p>
+            </div>
+          ) : exams.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center justify-center py-20 text-center"
+            >
+              <div className="w-20 h-20 rounded-2xl bg-secondary flex items-center justify-center mb-5">
+                <Search className="h-9 w-9 text-muted-foreground/50" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-1" dir="rtl">لا توجد اختبارات حالياً</h3>
+              <p className="text-sm text-muted-foreground max-w-sm">
+                {canManage ? "ابدأ بإضافة اختبار جديد لهذا الفصل" : "لم يتم إضافة اختبارات لهذا الفصل بعد"}
+              </p>
+              {canManage && (
+                <Button onClick={openCreateForm} className="mt-6 gap-2 rounded-xl">
+                  <Plus className="h-4 w-4" />
+                  إضافة اختبار
+                </Button>
+              )}
+            </motion.div>
+          ) : (
+            <div className="grid gap-4">
+              <AnimatePresence>
+                {exams.map((exam, index) => (
+                  <motion.div
+                    key={exam.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className="group relative rounded-2xl border bg-card hover:shadow-lg transition-all duration-300 overflow-hidden"
+                  >
+                    <div className="flex items-center gap-4 p-5 md:p-6">
+                      {/* Exam Icon */}
+                      <div className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${trimesterColors[trimester]} flex items-center justify-center shadow-sm`}>
+                        <FileText className="h-5 w-5 text-white" />
+                      </div>
+
+                      {/* Exam Info */}
+                      <div className="flex-1 min-w-0" dir="rtl">
+                        <h3 className="font-semibold text-foreground truncate">
+                          {exam.title_ar || exam.title}
+                        </h3>
+                        {exam.title_ar && exam.title !== exam.title_ar && (
+                          <p className="text-xs text-muted-foreground mt-0.5 truncate">{exam.title}</p>
+                        )}
+                        <div className="flex items-center gap-3 mt-2">
+                          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                            <Clock className="h-3 w-3" />
+                            {exam.duration_minutes} دقيقة
+                          </span>
+                          {Array.isArray(exam.content) && (
+                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                              <FileText className="h-3 w-3" />
+                              {exam.content.length} تمرين
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {canManage ? (
+                          <>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="rounded-xl h-9 w-9 hover:bg-secondary"
+                              onClick={() => openEditForm(exam)}
+                            >
+                              <Pencil className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="rounded-xl h-9 w-9 hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle dir="rtl">تأكيد الحذف</AlertDialogTitle>
+                                  <AlertDialogDescription dir="rtl">
+                                    هل أنت متأكد من حذف هذا الاختبار؟ لا يمكن التراجع عن هذا الإجراء.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(exam.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    حذف
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </>
+                        ) : (
+                          <Button
+                            onClick={() => setViewExam(exam)}
+                            className="gap-2 rounded-xl shadow-sm"
+                            size="sm"
+                          >
+                            <Play className="h-3.5 w-3.5" />
+                            اجتياز
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          )
+        ) : loadingTeacherExams ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent" />
             <p className="text-sm text-muted-foreground">جاري التحميل...</p>
           </div>
-        ) : exams.length === 0 ? (
+        ) : teacherExams.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center justify-center py-20 text-center"
           >
             <div className="w-20 h-20 rounded-2xl bg-secondary flex items-center justify-center mb-5">
-              <Search className="h-9 w-9 text-muted-foreground/50" />
+              <GraduationCap className="h-9 w-9 text-muted-foreground/50" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-1" dir="rtl">لا توجد اختبارات حالياً</h3>
-            <p className="text-sm text-muted-foreground max-w-sm">
-              {canManage ? "ابدأ بإضافة اختبار جديد لهذا الفصل" : "لم يتم إضافة اختبارات لهذا الفصل بعد"}
+            <h3 className="text-lg font-semibold text-foreground mb-1" dir="rtl">لا توجد امتحانات من الأستاذ</h3>
+            <p className="text-sm text-muted-foreground max-w-sm" dir="rtl">
+              لم يرسل أي أستاذ امتحاناً لهذا المستوى بعد.
             </p>
-            {canManage && (
-              <Button onClick={openCreateForm} className="mt-6 gap-2 rounded-xl">
-                <Plus className="h-4 w-4" />
-                إضافة اختبار
-              </Button>
-            )}
           </motion.div>
         ) : (
           <div className="grid gap-4">
             <AnimatePresence>
-              {exams.map((exam, index) => (
-                <motion.div
-                  key={exam.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  className="group relative rounded-2xl border bg-card hover:shadow-lg transition-all duration-300 overflow-hidden"
-                >
-                  <div className="flex items-center gap-4 p-5 md:p-6">
-                    {/* Exam Icon */}
-                    <div className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${trimesterColors[trimester]} flex items-center justify-center shadow-sm`}>
-                      <FileText className="h-5 w-5 text-white" />
-                    </div>
+              {teacherExams.map((exam, index) => {
+                const p = exam.payload || {};
+                const exercises: { statement: string; solution?: string; answer?: string }[] = Array.isArray(p.exercises) ? p.exercises : [];
+                return (
+                  <motion.div
+                    key={exam.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className="group relative rounded-2xl border bg-card hover:shadow-lg transition-all duration-300 overflow-hidden"
+                  >
+                    <div className="flex items-center gap-4 p-5 md:p-6">
+                      <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-sm">
+                        <GraduationCap className="h-5 w-5 text-white" />
+                      </div>
 
-                    {/* Exam Info */}
-                    <div className="flex-1 min-w-0" dir="rtl">
-                      <h3 className="font-semibold text-foreground truncate">
-                        {exam.title_ar || exam.title}
-                      </h3>
-                      {exam.title_ar && exam.title !== exam.title_ar && (
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">{exam.title}</p>
-                      )}
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
-                          <Clock className="h-3 w-3" />
-                          {exam.duration_minutes} دقيقة
-                        </span>
-                        {Array.isArray(exam.content) && (
+                      <div className="flex-1 min-w-0" dir="rtl">
+                        <h3 className="font-semibold text-foreground truncate">
+                          {p.title || exam.title || "امتحان"}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                          {teacherNames[exam.teacher_id] || "أستاذ"}
+                        </p>
+                        <div className="flex items-center gap-3 mt-2">
                           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
                             <FileText className="h-3 w-3" />
-                            {exam.content.length} تمرين
+                            {exercises.length} تمرين
                           </span>
-                        )}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {canManage ? (
-                        <>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="rounded-xl h-9 w-9 hover:bg-secondary"
-                            onClick={() => openEditForm(exam)}
-                          >
-                            <Pencil className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="rounded-xl h-9 w-9 hover:bg-destructive/10"
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle dir="rtl">تأكيد الحذف</AlertDialogTitle>
-                                <AlertDialogDescription dir="rtl">
-                                  هل أنت متأكد من حذف هذا الاختبار؟ لا يمكن التراجع عن هذا الإجراء.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(exam.id)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  حذف
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </>
-                      ) : (
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         <Button
-                          onClick={() => setViewExam(exam)}
-                          className="gap-2 rounded-xl shadow-sm"
+                          onClick={() => setViewTeacherExam(exam)}
+                          variant="outline"
+                          className="gap-2 rounded-xl"
                           size="sm"
                         >
-                          <Play className="h-3.5 w-3.5" />
-                          اجتياز
+                          <Eye className="h-3.5 w-3.5" />
+                          عرض
                         </Button>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
         )}
@@ -750,6 +910,46 @@ const ExamList = () => {
           )}
           <DialogFooter>
             <Button variant="outline" className="rounded-xl" onClick={() => setViewExam(null)}>إغلاق</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Teacher Exam Dialog (Student) */}
+      <Dialog open={!!viewTeacherExam} onOpenChange={(open) => !open && setViewTeacherExam(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl">
+          <DialogHeader>
+            <div className="flex items-center gap-3" dir="rtl">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center">
+                <GraduationCap className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <DialogTitle dir="rtl">{viewTeacherExam?.payload?.title || viewTeacherExam?.title || "امتحان"}</DialogTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {viewTeacherExam ? (teacherNames[viewTeacherExam.teacher_id] || "أستاذ") : ""}
+                </p>
+              </div>
+            </div>
+          </DialogHeader>
+          {viewTeacherExam && authUser && (
+            <div className="space-y-4 mt-2 divide-y divide-border">
+              {(Array.isArray(viewTeacherExam.payload?.exercises) ? viewTeacherExam.payload.exercises : []).map(
+                (ex: { statement: string; solution?: string; answer?: string }, idx: number) => (
+                  <div key={idx} className={idx > 0 ? "pt-4" : ""} dir="rtl">
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">تمرين {idx + 1}</p>
+                    <ExerciseAnswerBlock
+                      contentId={viewTeacherExam.id}
+                      userId={authUser.id}
+                      statement={ex.statement}
+                      expectedAnswer={ex.answer}
+                      solution={ex.solution}
+                    />
+                  </div>
+                )
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" className="rounded-xl" onClick={() => setViewTeacherExam(null)}>إغلاق</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
