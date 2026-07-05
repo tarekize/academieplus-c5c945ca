@@ -55,7 +55,13 @@ export default function ExamAIBuilder({ teacherId }: Props) {
     if (!level) { setChapters([]); return; }
     (async () => {
       const { data } = await supabase.from("chapters").select("id, title").eq("school_level", level as any).order("order_index");
-      setChapters((data as ChapterRow[]) || []);
+      const seen = new Set<string>();
+      const unique = ((data as ChapterRow[]) || []).filter((c) => {
+        if (seen.has(c.title)) return false;
+        seen.add(c.title);
+        return true;
+      });
+      setChapters(unique);
     })();
     // Bac Blanc/Finale only make sense for terminale — clear an invalid selection.
     if (level !== "terminale" && (trimester === "4" || trimester === "5")) {

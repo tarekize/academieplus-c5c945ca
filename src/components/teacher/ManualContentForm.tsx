@@ -88,7 +88,13 @@ export default function ManualContentForm({
     if (!level) { setChapters([]); return; }
     (async () => {
       const { data } = await supabase.from("chapters").select("id, title").eq("school_level", level as any).order("order_index");
-      setChapters((data as Row[]) || []);
+      const seen = new Set<string>();
+      const unique = ((data as Row[]) || []).filter((c) => {
+        if (seen.has(c.title)) return false;
+        seen.add(c.title);
+        return true;
+      });
+      setChapters(unique);
       setChapterId(""); setLessonId("");
     })();
     // Bac Blanc/Finale only make sense for terminale — clear an invalid selection.
