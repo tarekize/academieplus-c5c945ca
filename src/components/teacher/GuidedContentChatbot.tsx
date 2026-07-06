@@ -13,10 +13,11 @@ import {
 } from "@/lib/teacherContent";
 import SendContentDialog from "./SendContentDialog";
 
-type Step = "greeting" | "level" | "chapter" | "lesson" | "count" | "difficulty" | "generating" | "results";
+type Step = "greeting" | "level" | "filiere" | "chapter" | "lesson" | "count" | "difficulty" | "generating" | "results";
 
 interface ChapterRow { id: string; title: string; }
 interface LessonRow { id: string; title: string; }
+interface FiliereRow { id: string; code: string; name: string; name_ar: string | null; }
 
 interface Props {
   teacherId: string;
@@ -42,6 +43,8 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
   const [loadingList, setLoadingList] = useState(false);
 
   const [level, setLevel] = useState<string>("");
+  const [filieres, setFilieres] = useState<FiliereRow[]>([]);
+  const [filiere, setFiliere] = useState<FiliereRow | null>(null);
   const [chapter, setChapter] = useState<ChapterRow | null>(null);
   const [lesson, setLesson] = useState<LessonRow | null>(null);
   const [count, setCount] = useState(3);
@@ -66,20 +69,41 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
     })();
   }, [teacherId]);
 
-  const chooseLevel = async (lv: string) => {
-    setLevel(lv);
+  const fetchChaptersFor = async (lv: string, filiereRow: FiliereRow | null) => {
     setLoadingList(true);
-    const { data } = await supabase
+    let query = supabase
       .from("chapters").select("id, title")
       .eq("school_level", lv as any).eq("subject", "math")
       .order("order_index");
-    // Chapters exist once per filière, so the same title can come back several
-    // times for a level with multiple filières — keep only the first of each.
-    const seen = new Set<string>();
-    const deduped = ((data as ChapterRow[]) || []).filter((c) => (seen.has(c.title) ? false : (seen.add(c.title), true)));
-    setChapters(deduped);
+    query = filiereRow ? query.eq("filiere_id", filiereRow.id) : query.is("filiere_id", null);
+    const { data } = await query;
+    setChapters((data as ChapterRow[]) || []);
     setLoadingList(false);
     setStep("chapter");
+  };
+
+  const chooseLevel = async (lv: string) => {
+    setLevel(lv);
+    setFiliere(null);
+    setLoadingList(true);
+    // Chapters are tied to a specific filière — a level with several (terminale,
+    // premiere, seconde) needs one picked first, otherwise their chapters mix together.
+    const { data: filiereRows } = await supabase
+      .from("filieres").select("id, code, name, name_ar")
+      .eq("school_level", lv as any).order("name");
+    const fRows = (filiereRows as FiliereRow[]) || [];
+    setFilieres(fRows);
+    if (fRows.length > 0) {
+      setLoadingList(false);
+      setStep("filiere");
+      return;
+    }
+    await fetchChaptersFor(lv, null);
+  };
+
+  const chooseFiliere = async (f: FiliereRow) => {
+    setFiliere(f);
+    await fetchChaptersFor(level, f);
   };
 
   const chooseChapter = async (ch: ChapterRow) => {
@@ -126,7 +150,7 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
       const id = await saveTeacherContent({
         teacherId, contentType,
         chapterId: chapter?.id, lessonId: lesson?.id,
-        schoolLevel: level, title: item.title || item.question?.slice(0, 60),
+        schoolLevel: level, filiere: filiere?.code || null, title: item.title || item.question?.slice(0, 60),
         payload: item, difficulty: item.difficulty, source: "ai",
       });
       await assignContent({ contentId: id, assignedBy: teacherId, classIds });
@@ -160,6 +184,31 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
 
           {level && step !== "level" && (
             <div className="flex justify-end"><Badge variant="secondary">{getSchoolLevelLabel(level)}</Badge></div>
+          )}
+
+          {/* Step: filiere */}
+          {step === "filiere" && (
+            <>
+              <Bubble>Quelle filière ?</Bubble>
+              {loadingList ? <Loader2 className="h-5 w-5 animate-spin text-primary ml-10" /> : (
+                <div className="flex flex-wrap gap-2 pl-10">
+                  {filieres.map((f, i) => (
+                    <Button
+                      key={f.id} size="sm" variant="outline"
+                      onClick={() => chooseFiliere(f)}
+                      className="animate-fade-in"
+                      style={{ animationDelay: `${i * 60}ms` }}
+                    >
+                      {f.name_ar || f.name}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {filiere && (step === "chapter" || step === "lesson" || step === "count" || step === "difficulty" || step === "generating" || step === "results") && (
+            <div className="flex justify-end"><Badge variant="secondary">{filiere.name_ar || filiere.name}</Badge></div>
           )}
 
           {/* Step: chapter */}

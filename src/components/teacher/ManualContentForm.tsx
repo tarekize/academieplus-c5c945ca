@@ -29,6 +29,7 @@ interface Props {
 }
 
 interface Row { id: string; title: string; }
+interface FiliereRow { id: string; code: string; name: string; name_ar: string | null; }
 
 export default function ManualContentForm({
   teacherId, contentType, fixedClassIds, fixedStudentIds, fixedLevel, targetLabel,
@@ -36,10 +37,12 @@ export default function ManualContentForm({
   const hasFixedTarget = !!((fixedClassIds && fixedClassIds.length) || (fixedStudentIds && fixedStudentIds.length));
 
   const [levels, setLevels] = useState<string[]>([]);
+  const [filieres, setFilieres] = useState<FiliereRow[]>([]);
   const [chapters, setChapters] = useState<Row[]>([]);
   const [lessons, setLessons] = useState<Row[]>([]);
 
   const [level, setLevel] = useState(fixedLevel || "");
+  const [filiere, setFiliere] = useState("");
   const [chapterId, setChapterId] = useState("");
   const [lessonId, setLessonId] = useState("");
 
@@ -84,25 +87,40 @@ export default function ManualContentForm({
     })();
   }, [teacherId, fixedLevel]);
 
+  // Load the filières available for this level (premiere/seconde/terminale have several;
+  // collège levels have none), so chapters can be scoped to the right one below.
   useEffect(() => {
-    if (!level) { setChapters([]); return; }
+    setFiliere("");
+    if (!level) { setFilieres([]); return; }
     (async () => {
       const { data } = await supabase
-        .from("chapters").select("id, title")
-        .eq("school_level", level as any).eq("subject", "math")
-        .order("order_index");
-      // Chapters exist once per filière, so the same title can come back several
-      // times for a level with multiple filières — keep only the first of each.
-      const seen = new Set<string>();
-      const deduped = ((data as Row[]) || []).filter((c) => (seen.has(c.title) ? false : (seen.add(c.title), true)));
-      setChapters(deduped);
-      setChapterId(""); setLessonId("");
+        .from("filieres").select("id, code, name, name_ar")
+        .eq("school_level", level as any).order("name");
+      setFilieres((data as FiliereRow[]) || []);
     })();
     // Bac Blanc/Finale only make sense for terminale — clear an invalid selection.
     if (level !== "terminale" && (trimester === "4" || trimester === "5")) {
       setTrimester("");
     }
   }, [level]);
+
+  useEffect(() => {
+    if (!level) { setChapters([]); return; }
+    // A level with filières needs one picked first — chapters are tied to a
+    // specific filière, so "terminale" alone would mix sciences/lettres/gestion... together.
+    if (filieres.length > 0 && !filiere) { setChapters([]); return; }
+    (async () => {
+      let query = supabase
+        .from("chapters").select("id, title")
+        .eq("school_level", level as any).eq("subject", "math")
+        .order("order_index");
+      const filiereRow = filieres.find((f) => f.code === filiere);
+      query = filiereRow ? query.eq("filiere_id", filiereRow.id) : query.is("filiere_id", null);
+      const { data } = await query;
+      setChapters((data as Row[]) || []);
+      setChapterId(""); setLessonId("");
+    })();
+  }, [level, filiere, filieres]);
 
   useEffect(() => {
     if (!chapterId) { setLessons([]); return; }
@@ -170,7 +188,7 @@ export default function ManualContentForm({
       const id = await saveTeacherContent({
         teacherId, contentType,
         chapterId: chapterId || null, lessonId: lessonId || null,
-        schoolLevel: level, title: title || fallbackTitle,
+        schoolLevel: level, filiere: filiere || null, title: title || fallbackTitle,
         payload, difficulty: Number(difficulty), source: "manual",
       });
       await assignContent({ contentId: id, assignedBy: teacherId, classIds, studentIds });
@@ -199,7 +217,7 @@ export default function ManualContentForm({
   return (
     <Card>
       <CardContent className="p-4 space-y-4">
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>Niveau *</Label>
             <Select value={level} onValueChange={setLevel} disabled={!!fixedLevel}>
@@ -211,9 +229,25 @@ export default function ManualContentForm({
               </SelectContent>
             </Select>
           </div>
+          {filieres.length > 0 && (
+            <div className="space-y-1.5">
+              <Label>Filière *</Label>
+              <Select value={filiere} onValueChange={setFiliere}>
+                <SelectTrigger><SelectValue placeholder="Filière" /></SelectTrigger>
+                <SelectContent>
+                  {filieres.map((f) => (
+                    <SelectItem key={f.id} value={f.code}>{f.name_ar || f.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>Chapitre</Label>
-            <Select value={chapterId} onValueChange={setChapterId} disabled={!level}>
+            <Select value={chapterId} onValueChange={setChapterId} disabled={!level || (filieres.length > 0 && !filiere)}>
               <SelectTrigger><SelectValue placeholder="Chapitre" /></SelectTrigger>
               <SelectContent>
                 {chapters.map((c) => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}

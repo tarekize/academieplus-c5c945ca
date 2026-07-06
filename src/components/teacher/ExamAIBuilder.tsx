@@ -15,6 +15,7 @@ import { saveTeacherContent, assignContent, getTrimesterOptions } from "@/lib/te
 import SendContentDialog from "./SendContentDialog";
 
 interface ChapterRow { id: string; title: string; }
+interface FiliereRow { id: string; code: string; name: string; name_ar: string | null; }
 
 interface AIExerciseRow {
   chapter_id: string;
@@ -33,6 +34,8 @@ interface Props {
 export default function ExamAIBuilder({ teacherId }: Props) {
   const [levels, setLevels] = useState<string[]>([]);
   const [level, setLevel] = useState("");
+  const [filieres, setFilieres] = useState<FiliereRow[]>([]);
+  const [filiere, setFiliere] = useState("");
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
 
   const [title, setTitle] = useState("");
@@ -51,24 +54,39 @@ export default function ExamAIBuilder({ teacherId }: Props) {
     })();
   }, [teacherId]);
 
+  // Load the filières available for this level (premiere/seconde/terminale have several;
+  // collège levels have none), so chapters can be scoped to the right one below.
   useEffect(() => {
-    if (!level) { setChapters([]); return; }
+    setFiliere("");
+    if (!level) { setFilieres([]); return; }
     (async () => {
       const { data } = await supabase
-        .from("chapters").select("id, title")
-        .eq("school_level", level as any).eq("subject", "math")
-        .order("order_index");
-      // Chapters exist once per filière, so the same title can come back several
-      // times for a level with multiple filières — keep only the first of each.
-      const seen = new Set<string>();
-      const deduped = ((data as ChapterRow[]) || []).filter((c) => (seen.has(c.title) ? false : (seen.add(c.title), true)));
-      setChapters(deduped);
+        .from("filieres").select("id, code, name, name_ar")
+        .eq("school_level", level as any).order("name");
+      setFilieres((data as FiliereRow[]) || []);
     })();
     // Bac Blanc/Finale only make sense for terminale — clear an invalid selection.
     if (level !== "terminale" && (trimester === "4" || trimester === "5")) {
       setTrimester("");
     }
   }, [level]);
+
+  useEffect(() => {
+    if (!level) { setChapters([]); return; }
+    // A level with filières needs one picked first — chapters are tied to a
+    // specific filière, so "terminale" alone would mix sciences/lettres/gestion... together.
+    if (filieres.length > 0 && !filiere) { setChapters([]); return; }
+    (async () => {
+      let query = supabase
+        .from("chapters").select("id, title")
+        .eq("school_level", level as any).eq("subject", "math")
+        .order("order_index");
+      const filiereRow = filieres.find((f) => f.code === filiere);
+      query = filiereRow ? query.eq("filiere_id", filiereRow.id) : query.is("filiere_id", null);
+      const { data } = await query;
+      setChapters((data as ChapterRow[]) || []);
+    })();
+  }, [level, filiere, filieres]);
 
   const changeCount = (n: number) => {
     setCount(n);
@@ -124,7 +142,7 @@ export default function ExamAIBuilder({ teacherId }: Props) {
     try {
       const id = await saveTeacherContent({
         teacherId, contentType: "exam",
-        schoolLevel: level,
+        schoolLevel: level, filiere: filiere || null,
         title: title || validExercises[0].statement.slice(0, 60),
         payload: { title: title || undefined, exercises: validExercises, trimester: Number(trimester) },
         source: "ai",
@@ -141,6 +159,7 @@ export default function ExamAIBuilder({ teacherId }: Props) {
 
   const handleShareClick = () => {
     if (!level) { toast.error("Choisissez un niveau."); return; }
+    if (filieres.length > 0 && !filiere) { toast.error("Choisissez une filière."); return; }
     if (!trimester) { toast.error("Choisissez le trimestre (ou le bac blanc/final)."); return; }
     if (!rows.some((r) => r.statement.trim())) { toast.error("Générez au moins un exercice."); return; }
     setSendOpen(true);
@@ -176,6 +195,19 @@ export default function ExamAIBuilder({ teacherId }: Props) {
               </SelectContent>
             </Select>
           </div>
+          {filieres.length > 0 && (
+            <div className="space-y-1.5">
+              <Label>Filière *</Label>
+              <Select value={filiere} onValueChange={setFiliere}>
+                <SelectTrigger><SelectValue placeholder="Filière" /></SelectTrigger>
+                <SelectContent>
+                  {filieres.map((f) => (
+                    <SelectItem key={f.id} value={f.code}>{f.name_ar || f.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-1.5">
             <Label>Titre</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titre de l'examen (optionnel)" />
@@ -202,7 +234,11 @@ export default function ExamAIBuilder({ teacherId }: Props) {
                   Exercice {idx + 1}
                 </span>
                 <div className="flex items-center gap-2">
-                  <Select value={row.chapter_id} onValueChange={(v) => updateRow(idx, "chapter_id", v)} disabled={!level}>
+                  <Select
+                    value={row.chapter_id}
+                    onValueChange={(v) => updateRow(idx, "chapter_id", v)}
+                    disabled={!level || (filieres.length > 0 && !filiere)}
+                  >
                     <SelectTrigger className="min-w-[180px]"><SelectValue placeholder="Choisir un chapitre" /></SelectTrigger>
                     <SelectContent>
                       {chapters.map((ch) => <SelectItem key={ch.id} value={ch.id}>{ch.title}</SelectItem>)}
