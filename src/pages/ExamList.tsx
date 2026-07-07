@@ -409,7 +409,7 @@ const ExamList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen student-shell">
       <AppHeader />
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -457,12 +457,12 @@ const ExamList = () => {
 
         {/* Source tabs: official (pédago/admin) vs teacher-sent exams */}
         <div className="mb-6 space-y-2">
-          <div className="inline-flex items-center gap-1 rounded-full bg-muted p-1">
+          <div className="inline-flex items-center gap-1 rounded-full glass-card p-1">
             <button
               onClick={() => setSource("official")}
               className={cn(
-                "flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all",
-                source === "official" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                "flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition-all",
+                source === "official" ? "bg-[image:var(--gradient-primary)] text-white shadow-sm" : "text-muted-foreground hover:text-foreground",
               )}
             >
               <BookOpenCheck className="h-4 w-4" />
@@ -472,8 +472,8 @@ const ExamList = () => {
             <button
               onClick={() => setSource("teacher")}
               className={cn(
-                "flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all",
-                source === "teacher" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                "flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition-all",
+                source === "teacher" ? "bg-[image:var(--gradient-primary)] text-white shadow-sm" : "text-muted-foreground hover:text-foreground",
               )}
             >
               <GraduationCap className="h-4 w-4" />

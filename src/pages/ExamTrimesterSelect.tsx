@@ -29,13 +29,13 @@ function ExamRow({ t, niveau, subject, filiere }: {
       onClick={() =>
         navigate(`/exams/list?niveau=${niveau}&subject=${subject}&trimester=${t.id}${filiere ? `&filiere=${filiere}` : ''}`)
       }
-      className="group w-full flex items-center gap-4 px-6 py-4 hover:bg-muted/50 transition-colors text-left"
+      className="group w-full flex items-center gap-4 px-6 py-4 hover:bg-white/40 transition-colors text-left"
     >
-      <div className={`h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0 ${t.color}`}>
-        {Icon ? <Icon className="h-5 w-5" /> : <span className="font-bold text-sm">{t.icon}</span>}
+      <div className="h-11 w-11 rounded-xl bg-[image:var(--gradient-violet)] flex items-center justify-center shrink-0 text-white shadow-md">
+        {Icon ? <Icon className="h-5 w-5" /> : <span className="font-display font-extrabold text-sm">{t.icon}</span>}
       </div>
       <div className="flex-1 min-w-0 text-right" dir="rtl">
-        <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+        <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
           {t.label}
         </p>
         <p className="text-xs text-muted-foreground mt-0.5">{t.labelFr}</p>
@@ -65,7 +65,7 @@ const ExamTrimesterSelect = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen student-shell">
       <AppHeader />
 
       <main className="container mx-auto px-4 py-8 max-w-3xl">
@@ -85,7 +85,7 @@ const ExamTrimesterSelect = () => {
             Retour
           </Button>
           <div dir="rtl">
-            <h1 className="text-xl font-bold text-foreground">
+            <h1 className="font-display text-xl font-extrabold text-foreground">
               الاختبارات — اختر نوع الاختبار
             </h1>
           </div>
@@ -100,7 +100,7 @@ const ExamTrimesterSelect = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: "easeOut" }}
         >
-          <Card className="rounded-xl border-border shadow-sm overflow-hidden mb-6">
+          <Card className="glass-card border-0 overflow-hidden mb-6">
             <div className="px-6 py-3.5 border-b border-border">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" dir="rtl">
                 فصول دراسية
@@ -121,7 +121,7 @@ const ExamTrimesterSelect = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.1, ease: "easeOut" }}
           >
-            <Card className="rounded-xl border-border shadow-sm overflow-hidden">
+            <Card className="glass-card border-0 overflow-hidden">
               <div className="px-6 py-3.5 border-b border-border">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" dir="rtl">
                   بكالوريا
