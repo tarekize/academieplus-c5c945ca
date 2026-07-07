@@ -70,7 +70,7 @@ export function AppHeader() {
             <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
               <GraduationCap className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-bold text-foreground hidden sm:block">AcadémiePlus</span>
+            <span className="font-display text-lg font-extrabold text-foreground hidden sm:block">AcadémiePlus</span>
           </div>
 
           <DropdownMenu>
