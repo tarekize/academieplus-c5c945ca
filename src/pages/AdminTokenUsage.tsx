@@ -68,7 +68,7 @@ export default function AdminTokenUsage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
@@ -80,7 +80,7 @@ export default function AdminTokenUsage() {
                 <Cpu className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">Consommation IA (tokens)</h1>
+                <h1 className="font-display text-2xl font-extrabold">Consommation IA (tokens)</h1>
                 <p className="text-sm text-muted-foreground">
                   {rows.length > 0
                     ? `${exactPct}% des entrées sont un comptage exact (fourni par l'IA), le reste est estimé`
@@ -96,7 +96,7 @@ export default function AdminTokenUsage() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Card className="border-0 shadow-lg">
             <CardContent className="p-4">
-              <p className="text-2xl font-bold">{grandTotal.toLocaleString("fr-FR")}</p>
+              <p className="font-display text-2xl font-extrabold">{grandTotal.toLocaleString("fr-FR")}</p>
               <p className="text-xs text-muted-foreground">Total estimé</p>
             </CardContent>
           </Card>
@@ -107,7 +107,7 @@ export default function AdminTokenUsage() {
             return (
               <Card key={group} className="border-0 shadow-lg">
                 <CardContent className="p-4">
-                  <p className="text-2xl font-bold">{total.toLocaleString("fr-FR")}</p>
+                  <p className="font-display text-2xl font-extrabold">{total.toLocaleString("fr-FR")}</p>
                   <p className="text-xs text-muted-foreground">{GROUP_LABELS[group]}</p>
                 </CardContent>
               </Card>

@@ -189,7 +189,7 @@ export default function AdminAbonnements() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b shadow-sm">
         <div className="container mx-auto px-4 py-4">
@@ -202,7 +202,7 @@ export default function AdminAbonnements() {
                 <CreditCard className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">Gestion des Abonnements</h1>
+                <h1 className="font-display text-2xl font-extrabold">Gestion des Abonnements</h1>
                 <p className="text-sm text-muted-foreground">Configurez les tarifs, périodes et consultez les paiements</p>
               </div>
             </div>
@@ -276,7 +276,7 @@ export default function AdminAbonnements() {
           <CardHeader className="border-b bg-muted/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-orange-500/10">
+                <div className="p-2 rounded-lg bg-amber/10">
                   <Calendar className="h-5 w-5 text-orange-500" />
                 </div>
                 <div>

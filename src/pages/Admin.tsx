@@ -157,7 +157,7 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
         <div className="container mx-auto px-4">
@@ -888,7 +888,7 @@ function StatCard({
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs text-muted-foreground font-medium truncate">{title}</p>
-          <p className="text-3xl font-bold mt-0.5">{value}</p>
+          <p className="font-display text-3xl font-extrabold mt-0.5">{value}</p>
         </div>
         <div className="p-2.5 rounded-xl bg-background/80 shadow-sm flex-shrink-0">
           <Icon className={`h-6 w-6 ${iconColor}`} />

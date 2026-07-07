@@ -106,8 +106,8 @@ const FAQAdmin = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Gestion des FAQ</h1>
+    <div className="min-h-screen pro-shell container mx-auto p-6 space-y-6">
+      <h1 className="font-display text-3xl font-extrabold">Gestion des FAQ</h1>
 
       <Card>
         <CardHeader>
