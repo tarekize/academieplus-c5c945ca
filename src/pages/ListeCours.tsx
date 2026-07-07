@@ -506,9 +506,9 @@ const ListeCours = () => {
 
   // Student/Parent view - Original behavior
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
+    <div className="min-h-screen student-shell">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/60 backdrop-blur-xl border-b border-white/50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div
@@ -563,8 +563,8 @@ const ListeCours = () => {
       <main className="container mx-auto px-4 py-8 mt-20">
         <div className="max-w-7xl mx-auto">
           {/* Hero Section */}
-          <div className="text-center mb-12 animate-fade-in">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <div className="text-center mb-12 animate-fade-up">
+            <h1 className="font-display text-4xl md:text-5xl font-black mb-4 bg-[image:var(--gradient-violet)] bg-clip-text text-transparent">
               Matières de {profile?.school_level ? getSchoolLevelName(profile.school_level) : "ta classe"}
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
@@ -580,7 +580,7 @@ const ListeCours = () => {
                   placeholder="Rechercher une matière..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-14 text-lg rounded-full shadow-lg border-2 focus:border-primary"
+                  className="glass-card pl-12 h-14 text-lg border-0 focus-visible:ring-primary"
                 />
               </div>
             </div>
@@ -609,11 +609,11 @@ const ListeCours = () => {
                       type="button"
                       disabled={!subject.available}
                       onClick={() => subject.available && navigate(`/cours/${subject.id}`)}
-                      className={`group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 animate-fade-in ${subject.available
-                        ? "cursor-pointer hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40"
+                      className={`group relative overflow-hidden glass-card text-left transition-all duration-300 animate-pop-in ${subject.available
+                        ? "cursor-pointer hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)]"
                         : "opacity-60 cursor-not-allowed"
                         }`}
-                      style={{ animationDelay: `${index * 50}ms` }}
+                      style={{ animationDelay: `${index * 60}ms` }}
                     >
                       <div className="h-1.5 w-full" style={{ backgroundColor: subject.color }} />
                       <div className="flex flex-col items-center text-center gap-3 p-6">
