@@ -177,7 +177,7 @@ export default function TeacherContentHistory({ teacherId, contentType }: Props)
                   )}
                   <div className="flex items-center gap-0.5">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <Pencil key={i} className={cn("h-3 w-3", i < (it.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />
+                      <Pencil key={i} className={cn("h-3 w-3", i < (it.difficulty || 3) ? "text-amber fill-orange-500/20" : "text-muted-foreground/20")} />
                     ))}
                   </div>
                 </div>

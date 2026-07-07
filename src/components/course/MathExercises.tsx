@@ -41,8 +41,8 @@ export const MathExercises = ({ onClose }: MathExercisesProps) => {
             </span>
           </div>
           <CardTitle className="text-xl mt-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center">
-              <PenTool className="h-5 w-5 text-orange-500" />
+            <div className="w-10 h-10 rounded-full bg-amber/10 flex items-center justify-center">
+              <PenTool className="h-5 w-5 text-amber" />
             </div>
             Exercice {currentExercise + 1} : {exercise.title}
           </CardTitle>
@@ -158,7 +158,7 @@ export const MathExercises = ({ onClose }: MathExercisesProps) => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-amber flex items-center justify-center">
               <PenTool className="h-5 w-5 text-white" />
             </div>
             Exercices de Mathématiques

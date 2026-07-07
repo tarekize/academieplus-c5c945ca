@@ -228,8 +228,8 @@ const Dashboard = () => {
                     />
                     <DashboardTile
                       icon={BarChart3}
-                      iconBg="bg-orange-500/10"
-                      iconText="text-orange-600"
+                      iconBg="bg-amber/10"
+                      iconText="text-amber"
                       title="Analytics"
                       description="Consultez les statistiques d'utilisation"
                       onClick={() => navigate("/analytics")}

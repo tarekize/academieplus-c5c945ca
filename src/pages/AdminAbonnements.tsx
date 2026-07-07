@@ -277,7 +277,7 @@ export default function AdminAbonnements() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-amber/10">
-                  <Calendar className="h-5 w-5 text-orange-500" />
+                  <Calendar className="h-5 w-5 text-amber" />
                 </div>
                 <div>
                   <CardTitle>Périodes Scolaires</CardTitle>

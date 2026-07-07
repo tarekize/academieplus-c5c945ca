@@ -174,11 +174,11 @@ export default function Profile() {
             <Card className="relative overflow-hidden border-sky-100/60 dark:border-slate-800/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-xl shadow-sky-100/20 dark:shadow-none rounded-3xl group">
               {/* Artistic Background Accent Glows */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-sky-200/50 dark:bg-sky-900/20 rounded-full blur-2xl -mr-6 -mt-6 transition-all duration-500 group-hover:scale-110" />
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-peach-200/40 dark:bg-peach-900/10 rounded-full blur-2xl -ml-6 -mb-6 transition-all duration-500 group-hover:scale-110" />
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-amber/15 dark:bg-amber/10 rounded-full blur-2xl -ml-6 -mb-6 transition-all duration-500 group-hover:scale-110" />
               
               <CardContent className="pt-8 pb-6 text-center relative z-10">
                 <div className="relative inline-block mb-4">
-                  <div className="absolute -inset-1 bg-gradient-to-tr from-sky-400 to-peach-400 rounded-full blur-sm opacity-65 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute -inset-1 bg-gradient-to-tr from-sky-400 to-amber rounded-full blur-sm opacity-65 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative bg-white dark:bg-slate-900 p-1 rounded-full">
                     <ProfilePhotoUpload
                       currentUrl={profile.avatar_url}
@@ -190,7 +190,7 @@ export default function Profile() {
 
                 <h2 className="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight flex items-center justify-center gap-1.5">
                   {getFullName()}
-                  <Sparkles className="h-5 w-5 text-peach-500 animate-pulse" />
+                  <Sparkles className="h-5 w-5 text-amber animate-pulse" />
                 </h2>
                 
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -198,7 +198,7 @@ export default function Profile() {
                 </p>
 
                 {isStudent && schoolLevel && (
-                  <div className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-sky-50 to-peach-50 dark:from-sky-950/30 dark:to-peach-950/20 text-sky-800 dark:text-sky-300 rounded-full text-xs font-semibold border border-sky-100/30">
+                  <div className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-sky-50 to-amber/10 dark:from-sky-950/30 dark:to-amber/10 text-sky-800 dark:text-sky-300 rounded-full text-xs font-semibold border border-sky-100/30">
                     <GraduationCap className="h-4 w-4" />
                     <span>{getSchoolLevelLabel(schoolLevel)} • {getSchoolCategory(schoolLevel)}</span>
                   </div>
@@ -225,9 +225,9 @@ export default function Profile() {
                     </span>
                     <p className="text-xs font-bold text-slate-700 dark:text-slate-300 mt-1">{memberSince || "Récemment"}</p>
                   </div>
-                  <div className="text-left p-3 rounded-2xl bg-peach-50/30 dark:bg-slate-800/20">
+                  <div className="text-left p-3 rounded-2xl bg-amber/10 dark:bg-slate-800/20">
                     <span className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1">
-                      <Trophy className="h-3 w-3 text-peach-500" /> Rang élève
+                      <Trophy className="h-3 w-3 text-amber" /> Rang élève
                     </span>
                     <p className="text-xs font-bold text-slate-700 dark:text-slate-300 mt-1">Bronze Élite</p>
                   </div>
@@ -237,7 +237,7 @@ export default function Profile() {
 
             {/* Quick Learning Style Feature Hint */}
             {isStudent && (
-              <Card className="border-sky-100/40 bg-gradient-to-br from-sky-500/10 to-peach-500/10 p-5 rounded-3xl flex items-start gap-4">
+              <Card className="border-sky-100/40 bg-gradient-to-br from-sky-500/10 to-amber/10 p-5 rounded-3xl flex items-start gap-4">
                 <div className="h-10 w-10 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center shadow-md">
                   <BookOpen className="h-5 w-5 text-sky-600" />
                 </div>
@@ -284,7 +284,7 @@ export default function Profile() {
 
               <TabsContent value="info" className="outline-none">
                 <Card className="border-sky-100/60 dark:border-slate-800/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-xl shadow-sky-100/10 dark:shadow-none rounded-3xl overflow-hidden">
-                  <CardHeader className="bg-gradient-to-r from-sky-500/5 to-peach-500/5 border-b border-sky-100/30 dark:border-slate-800/30 px-6 py-5">
+                  <CardHeader className="bg-gradient-to-r from-sky-500/5 to-amber/5 border-b border-sky-100/30 dark:border-slate-800/30 px-6 py-5">
                     <CardTitle className="text-xl font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                       <User className="h-5 w-5 text-sky-600" />
                       Informations personnelles
@@ -417,7 +417,7 @@ export default function Profile() {
               {isParent && (
                 <TabsContent value="children" className="outline-none">
                   <Card className="border-sky-100/60 dark:border-slate-800/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-xl rounded-3xl overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-sky-500/5 to-peach-500/5 border-b border-sky-100/30 dark:border-slate-800/30 px-6 py-5">
+                    <CardHeader className="bg-gradient-to-r from-sky-500/5 to-amber/5 border-b border-sky-100/30 dark:border-slate-800/30 px-6 py-5">
                       <CardTitle className="text-xl font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                         <GraduationCap className="h-5 w-5 text-sky-600" />
                         Mes enfants rattachés
@@ -436,7 +436,7 @@ export default function Profile() {
               {isStudent && (
                 <TabsContent value="parents" className="outline-none">
                   <Card className="border-sky-100/60 dark:border-slate-800/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-xl rounded-3xl overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-sky-500/5 to-peach-500/5 border-b border-sky-100/30 dark:border-slate-800/30 px-6 py-5">
+                    <CardHeader className="bg-gradient-to-r from-sky-500/5 to-amber/5 border-b border-sky-100/30 dark:border-slate-800/30 px-6 py-5">
                       <CardTitle className="text-xl font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                         <User className="h-5 w-5 text-sky-600" />
                         Mes parents rattachés

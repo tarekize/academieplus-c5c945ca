@@ -26,7 +26,7 @@ export const ResultsSummary = ({
     if (percentage >= 90) return { text: "Excellent !", color: "text-green-500", icon: "🏆" };
     if (percentage >= 75) return { text: "Très bien", color: "text-blue-500", icon: "⭐" };
     if (percentage >= 60) return { text: "Bien", color: "text-yellow-500", icon: "👍" };
-    if (percentage >= 50) return { text: "Passable", color: "text-orange-500", icon: "📚" };
+    if (percentage >= 50) return { text: "Passable", color: "text-amber", icon: "📚" };
     return { text: "À revoir", color: "text-red-500", icon: "💪" };
   };
 

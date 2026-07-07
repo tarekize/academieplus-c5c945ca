@@ -214,7 +214,7 @@ export default function Admin() {
             value={stats.newUsersThisWeek}
             icon={TrendingUp}
             gradient="from-orange-500/20 to-orange-500/5"
-            iconColor="text-orange-500"
+            iconColor="text-amber"
           />
         </div>
 

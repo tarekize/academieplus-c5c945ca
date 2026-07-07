@@ -472,7 +472,7 @@ export default function LessonRemediation() {
             {/* Exercises */}
             <div className="space-y-3">
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <PenTool className="h-5 w-5 text-orange-500" />
+                <PenTool className="h-5 w-5 text-amber" />
                 تمارين ({exercises.length})
               </h2>
               {exercises.map((ex, idx) => {
@@ -483,7 +483,7 @@ export default function LessonRemediation() {
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between gap-2">
                         <CardTitle className="text-sm flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full bg-orange-500/10 text-orange-600 flex items-center justify-center text-xs font-bold shrink-0">
+                          <span className="w-6 h-6 rounded-full bg-amber/10 text-amber flex items-center justify-center text-xs font-bold shrink-0">
                             {idx + 1}
                           </span>
                           {ex.title}

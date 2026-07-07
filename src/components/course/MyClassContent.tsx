@@ -133,7 +133,7 @@ export function MyClassContent({ userId, contentType }: Props) {
                       <HtmlWithMath htmlContent={cleanMathStatement(p.question || it.title || "")} className="flex-1 font-medium" />
                       <div className="flex items-center gap-0.5 shrink-0">
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <Pencil key={i} className={cn("h-3.5 w-3.5", i < (it.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />
+                          <Pencil key={i} className={cn("h-3.5 w-3.5", i < (it.difficulty || 3) ? "text-amber fill-orange-500/20" : "text-muted-foreground/20")} />
                         ))}
                       </div>
                     </div>
@@ -195,7 +195,7 @@ export function MyClassContent({ userId, contentType }: Props) {
                       <HtmlWithMath htmlContent={cleanMathStatement(p.title || it.title || "")} className="flex-1 font-semibold" />
                       <div className="flex items-center gap-0.5 shrink-0">
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <Pencil key={i} className={cn("h-3.5 w-3.5", i < (it.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />
+                          <Pencil key={i} className={cn("h-3.5 w-3.5", i < (it.difficulty || 3) ? "text-amber fill-orange-500/20" : "text-muted-foreground/20")} />
                         ))}
                       </div>
                     </div>
