@@ -10,7 +10,7 @@ export default function PreviewCours() {
   // This feature requires the 'cours' table which is not in the database
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       <div className="max-w-4xl mx-auto p-6">
         <Button variant="ghost" onClick={() => navigate('/editorial')} className="mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />

@@ -97,14 +97,14 @@ export default function ContentGeneration() {
   const pct = stats.total > 0 ? Math.round((stats.withContent / stats.total) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <Button variant="ghost" onClick={() => navigate(-1 as any)} className="mb-6">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour
         </Button>
 
-        <h1 className="text-3xl font-bold mb-6">Génération de contenu pédagogique</h1>
+        <h1 className="font-display text-3xl font-extrabold mb-6">Génération de contenu pédagogique</h1>
 
         <Card className="mb-6">
           <CardHeader>

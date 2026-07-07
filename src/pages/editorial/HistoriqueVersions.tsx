@@ -11,14 +11,14 @@ export default function HistoriqueVersions() {
   // which are not yet in the database
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="min-h-screen pro-shell container mx-auto p-6">
       {/* Header */}
       <div className="mb-6">
         <Button variant="ghost" onClick={() => navigate('/editorial')} className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour au tableau de bord
         </Button>
-        <h1 className="text-3xl font-bold">Historique des versions</h1>
+        <h1 className="font-display text-3xl font-extrabold">Historique des versions</h1>
       </div>
 
       <Card className="p-12 text-center">

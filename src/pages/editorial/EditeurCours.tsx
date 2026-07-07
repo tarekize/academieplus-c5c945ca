@@ -11,7 +11,7 @@ export default function EditeurCours() {
   // which are not yet in the database
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       <div className="container mx-auto p-6">
         <Button variant="ghost" onClick={() => navigate('/editorial')} className="mb-6">
           <ArrowLeft className="h-4 w-4 mr-2" />

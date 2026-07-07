@@ -9,14 +9,14 @@ export default function Mediatheque() {
   // This feature requires the 'medias' table which is not in the database
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="min-h-screen pro-shell container mx-auto p-6">
       {/* Header */}
       <div className="mb-6">
         <Button variant="ghost" onClick={() => navigate('/editorial')} className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour au tableau de bord
         </Button>
-        <h1 className="text-3xl font-bold">Médiathèque</h1>
+        <h1 className="font-display text-3xl font-extrabold">Médiathèque</h1>
         <p className="text-muted-foreground mt-1">
           Gérez vos images et médias
         </p>
