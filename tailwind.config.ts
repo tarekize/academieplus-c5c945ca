@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Figtree", "ui-sans-serif", "system-ui", "sans-serif"],
-        display: ["Outfit", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["Tajawal", "Figtree", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["Cairo", "Outfit", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -61,6 +61,14 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        violet: {
+          DEFAULT: "hsl(var(--violet))",
+          foreground: "hsl(var(--violet-foreground))",
+        },
+        mint: "hsl(var(--mint))",
+        coral: "hsl(var(--coral))",
+        amber: "hsl(var(--amber))",
+        ink: "hsl(var(--ink))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -88,11 +96,45 @@ export default {
           from: { opacity: "0", transform: "translateY(6px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        "fade-up": {
+          from: { opacity: "0", transform: "translateY(16px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "pop-in": {
+          from: { opacity: "0", transform: "scale(.88)" },
+          to: { opacity: "1", transform: "scale(1)" },
+        },
+        floaty: {
+          "0%, 100%": { transform: "translate(0,0)" },
+          "50%": { transform: "translate(0,-22px)" },
+        },
+        "floaty-2": {
+          "0%, 100%": { transform: "translate(0,0)" },
+          "50%": { transform: "translate(14px,16px)" },
+        },
+        flame: {
+          "0%, 100%": { transform: "scale(1) rotate(-4deg)" },
+          "50%": { transform: "scale(1.14) rotate(4deg)" },
+        },
+        "pulse-soft": {
+          "0%, 100%": { boxShadow: "0 0 0 0 hsl(var(--violet) / .35)" },
+          "50%": { boxShadow: "0 0 0 10px hsl(var(--violet) / 0)" },
+        },
+        "bar-fill": {
+          from: { width: "0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.35s ease-out both",
+        "fade-up": "fade-up 0.5s ease both",
+        "pop-in": "pop-in 0.5s ease both",
+        floaty: "floaty 7s ease-in-out infinite",
+        "floaty-2": "floaty-2 9s ease-in-out infinite",
+        flame: "flame 1.6s ease-in-out infinite",
+        "pulse-soft": "pulse-soft 2.5s ease-in-out infinite",
+        "bar-fill": "bar-fill 1.1s cubic-bezier(.4,0,.2,1) both",
       },
     },
   },

@@ -17,35 +17,49 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 215 35% 22%;
 
-    --primary: 199 89% 52%;
+    --primary: 205 68% 50%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 199 95% 74%;
+    --primary-glow: 198 93% 60%;
 
     --secondary: 6 90% 96%;
     --secondary-foreground: 215 35% 22%;
 
-    --muted: 200 40% 96%;
-    --muted-foreground: 215 16% 50%;
+    --muted: 210 45% 97%;
+    --muted-foreground: 213 20% 45%;
 
-    --accent: 2 84% 72%;
+    --accent: 351 95% 71%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 35% 90%;
-    --input: 200 35% 90%;
-    --ring: 199 89% 52%;
+    --border: 210 30% 91%;
+    --input: 210 30% 91%;
+    --ring: 205 68% 50%;
 
-    --radius: 1rem;
+    --radius: 1.1rem;
 
-    --gradient-primary: linear-gradient(135deg, hsl(199 89% 56%), hsl(199 95% 74%));
-    --gradient-accent: linear-gradient(135deg, hsl(2 84% 74%), hsl(14 90% 78%));
-    --gradient-hero: linear-gradient(135deg, hsl(199 90% 58% / 0.92), hsl(2 84% 74% / 0.85));
-    --gradient-soft: linear-gradient(160deg, hsl(200 70% 97%), hsl(6 80% 97%));
+    /* Brand accents (see PALETTE in design brief) */
+    --violet: 247 81% 68%;
+    --violet-foreground: 0 0% 100%;
+    --mint: 165 70% 45%;
+    --coral: 351 95% 71%;
+    --amber: 37 92% 55%;
+    --ink: 213 56% 16%;
+    --ink-soft: 213 20% 45%;
 
-    --shadow-elegant: 0 18px 40px -16px hsl(199 89% 52% / 0.35);
-    --shadow-card: 0 8px 30px -12px hsl(199 60% 40% / 0.15);
+    --gradient-primary: linear-gradient(135deg, hsl(198 93% 60%), hsl(205 68% 50%));
+    --gradient-accent: linear-gradient(135deg, hsl(351 95% 71%), hsl(37 92% 60%));
+    --gradient-hero: linear-gradient(135deg, hsl(212 82% 62% / .95), hsl(247 81% 68% / .9) 60%, hsl(280 75% 70% / .85));
+    --gradient-soft: linear-gradient(160deg, hsl(210 60% 97%), hsl(255 55% 97%));
+    --gradient-mesh: linear-gradient(165deg, hsl(212 85% 95%) 0%, hsl(250 60% 95%) 55%, hsl(340 75% 96%) 100%);
+    --gradient-violet: linear-gradient(135deg, hsl(212 82% 63%), hsl(247 81% 68%) 60%, hsl(268 75% 66%));
+    --gradient-mint: linear-gradient(135deg, hsl(165 70% 45%), hsl(178 70% 40%));
+
+    --shadow-elegant: 0 18px 40px -16px hsl(205 68% 50% / 0.35);
+    --shadow-card: 0 8px 30px -12px hsl(205 60% 40% / 0.15);
+    --shadow-glass: 0 10px 30px -14px hsl(213 56% 30% / 0.28);
+    --shadow-pro: 0 40px 90px -40px hsl(213 56% 16% / 0.4);
 
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -69,9 +83,9 @@ All colors MUST be HSL.
     --popover: 215 32% 13%;
     --popover-foreground: 200 40% 96%;
 
-    --primary: 199 89% 58%;
+    --primary: 198 93% 60%;
     --primary-foreground: 215 40% 10%;
-    --primary-glow: 199 95% 74%;
+    --primary-glow: 198 95% 70%;
 
     --secondary: 215 28% 20%;
     --secondary-foreground: 200 40% 96%;
@@ -79,7 +93,7 @@ All colors MUST be HSL.
     --muted: 215 28% 20%;
     --muted-foreground: 210 16% 66%;
 
-    --accent: 2 80% 70%;
+    --accent: 351 85% 68%;
     --accent-foreground: 215 40% 10%;
 
     --destructive: 0 63% 45%;
@@ -87,15 +101,28 @@ All colors MUST be HSL.
 
     --border: 215 28% 22%;
     --input: 215 28% 22%;
-    --ring: 199 89% 58%;
+    --ring: 198 93% 60%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(199 89% 56%), hsl(199 95% 70%));
-    --gradient-accent: linear-gradient(135deg, hsl(2 80% 68%), hsl(14 85% 70%));
-    --gradient-hero: linear-gradient(135deg, hsl(199 80% 30% / 0.95), hsl(2 60% 40% / 0.9));
+    --violet: 247 75% 70%;
+    --violet-foreground: 215 40% 10%;
+    --mint: 165 60% 48%;
+    --coral: 351 85% 68%;
+    --amber: 37 85% 58%;
+    --ink: 213 40% 92%;
+    --ink-soft: 213 16% 66%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(198 93% 56%), hsl(198 95% 70%));
+    --gradient-accent: linear-gradient(135deg, hsl(351 80% 65%), hsl(37 80% 65%));
+    --gradient-hero: linear-gradient(135deg, hsl(212 70% 30% / 0.95), hsl(247 60% 35% / 0.9));
     --gradient-soft: linear-gradient(160deg, hsl(215 32% 13%), hsl(215 30% 16%));
+    --gradient-mesh: linear-gradient(165deg, hsl(215 32% 13%) 0%, hsl(220 30% 14%) 55%, hsl(230 28% 15%) 100%);
+    --gradient-violet: linear-gradient(135deg, hsl(212 70% 40%), hsl(247 65% 48%) 60%, hsl(268 60% 45%));
+    --gradient-mint: linear-gradient(135deg, hsl(165 55% 32%), hsl(178 55% 28%));
 
-    --shadow-elegant: 0 18px 40px -16px hsl(199 89% 30% / 0.5);
+    --shadow-elegant: 0 18px 40px -16px hsl(198 93% 30% / 0.5);
     --shadow-card: 0 8px 30px -12px hsl(0 0% 0% / 0.4);
+    --shadow-glass: 0 10px 30px -14px hsl(0 0% 0% / 0.5);
+    --shadow-pro: 0 40px 90px -40px hsl(0 0% 0% / 0.6);
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -115,12 +142,13 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    font-family: "Figtree", ui-sans-serif, system-ui, sans-serif;
+    font-family: "Tajawal", "Figtree", ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+    font-family: "Cairo", "Outfit", ui-sans-serif, system-ui, sans-serif;
+    font-weight: 800;
     letter-spacing: -0.01em;
   }
 
@@ -439,6 +467,120 @@ All colors MUST be HSL.
 .dark .lesson-application { background: hsl(150 30% 12%); border-color: hsl(150 30% 25%); }
 .dark .lesson-method { background: hsl(25 40% 13%); border-color: hsl(25 40% 26%); }
 .dark .lesson-summary { background: hsl(330 35% 14%); border-color: hsl(330 35% 26%); }
+
+/* =========================================================
+   Registre "élève" — glassmorphism, mesh de fond, gamification
+   ========================================================= */
+.student-shell {
+  background: var(--gradient-mesh);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.student-shell::before,
+.student-shell::after,
+.student-shell .mesh-blob {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  filter: blur(2px);
+}
+
+.student-shell::before {
+  top: -10%;
+  inset-inline-end: -8%;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, hsl(var(--primary-glow) / 0.55), transparent 70%);
+  animation: floaty 7s ease-in-out infinite;
+}
+
+.student-shell::after {
+  bottom: 8%;
+  inset-inline-start: -10%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, hsl(var(--violet) / 0.45), transparent 70%);
+  animation: floaty-2 9s ease-in-out infinite;
+}
+
+.glass-card {
+  background: hsl(0 0% 100% / 0.62);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid hsl(0 0% 100% / 0.8);
+  box-shadow: var(--shadow-glass);
+  border-radius: 1.375rem;
+}
+
+.dark .glass-card {
+  background: hsl(215 32% 18% / 0.6);
+  border-color: hsl(0 0% 100% / 0.08);
+}
+
+.gamify-hero {
+  background: var(--gradient-violet);
+  color: #fff;
+  border-radius: 1.625rem;
+  box-shadow: 0 20px 40px -18px hsl(var(--violet) / 0.7);
+}
+
+.streak-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: hsl(0 0% 100% / 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid hsl(0 0% 100% / 0.8);
+  color: hsl(var(--amber));
+  border-radius: 9999px;
+  padding: 0.4rem 0.75rem;
+  font-weight: 800;
+}
+
+.streak-flame {
+  display: inline-block;
+  animation: flame 1.6s ease-in-out infinite;
+}
+
+/* Progress ring/bar fill helpers */
+.progress-ring-fg {
+  animation: ring-grow 1.2s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: 0.2s;
+}
+@keyframes ring-grow {
+  from { stroke-dashoffset: var(--circ); }
+  to { stroke-dashoffset: var(--off); }
+}
+
+.bottom-nav-glass {
+  background: hsl(0 0% 100% / 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid hsl(0 0% 100% / 0.85);
+  box-shadow: 0 12px 30px -12px hsl(213 56% 30% / 0.3);
+  border-radius: 1.625rem;
+}
+
+/* =========================================================
+   Registre "pro" — sobre, aéré (parent, pédago, enseignant, admin)
+   ========================================================= */
+.pro-shell {
+  background: hsl(216 45% 98%);
+}
+
+.pro-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(216 30% 93%);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px hsl(213 56% 16% / 0.03);
+}
+
+.pro-sidebar {
+  background: hsl(213 56% 16%);
+  color: hsl(0 0% 100% / 0.85);
+}
 
 /* === Chatbot: force LTR rendering for math formulas inside RTL (Arabic) messages === */
 [dir="rtl"] .katex,
