@@ -129,7 +129,7 @@ const MesDonneesPersonnelles = () => {
             transition={{ duration: 0.4 }}
             className="mb-10 text-center md:text-left"
           >
-            <h1 className="text-4xl font-bold text-foreground mb-2">
+            <h1 className="font-display text-4xl font-extrabold text-foreground mb-2">
               Mes Données Personnelles
             </h1>
             <p className="text-muted-foreground">

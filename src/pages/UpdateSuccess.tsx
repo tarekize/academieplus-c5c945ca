@@ -14,10 +14,10 @@ const UpdateSuccess = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen pro-shell flex items-center justify-center p-4">
       <div className="text-center space-y-6 animate-in fade-in zoom-in duration-500">
-        <CheckCircle className="h-24 w-24 text-green-500 mx-auto" />
-        <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+        <CheckCircle className="h-24 w-24 text-mint mx-auto" />
+        <h1 className="font-display text-4xl md:text-5xl font-extrabold text-foreground">
           Vos données ont été mises à jour avec succès !
         </h1>
       </div>

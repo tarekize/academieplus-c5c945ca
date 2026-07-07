@@ -112,7 +112,7 @@ const Parrainage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       <header className="bg-background border-b sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/liste-cours")}>
@@ -187,10 +187,10 @@ const Parrainage = () => {
 
           <Card className="p-6 bg-green-500/5 border-green-500/20">
             <div className="flex items-center gap-3 mb-2">
-              <Wallet className="h-8 w-8 text-green-600" />
+              <Wallet className="h-8 w-8 text-mint" />
               <h3 className="text-sm font-semibold">Crédit</h3>
             </div>
-            <p className="text-3xl font-bold text-green-600">0 €</p>
+            <p className="text-3xl font-bold text-mint">0 €</p>
             <p className="text-sm text-muted-foreground">Solde disponible</p>
           </Card>
 
@@ -206,7 +206,7 @@ const Parrainage = () => {
 
         <Card className="p-8 mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold">Votre Code de Parrainage</h2>
+            <h2 className="font-display text-2xl font-extrabold">Votre Code de Parrainage</h2>
           </div>
           <p className="text-muted-foreground mb-6">
             Partagez ce code avec vos amis. Chaque fois qu'un ami s'inscrit avec votre code,

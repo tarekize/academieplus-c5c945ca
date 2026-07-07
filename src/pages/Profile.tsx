@@ -115,7 +115,7 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-white to-peach-50/30">
+      <div className="min-h-screen flex items-center justify-center bg-[image:var(--gradient-soft)]">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
@@ -127,7 +127,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50/60 via-white to-peach-100/40 pb-16 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900">
+    <div className="min-h-screen bg-[image:var(--gradient-soft)] pb-16">
       {/* Premium Translucent Header */}
       <header className="sticky top-0 z-50 bg-white/70 dark:bg-slate-950/70 backdrop-blur-md border-b border-sky-100/50 dark:border-slate-800/50">
         <div className="container mx-auto px-4 py-4 max-w-6xl">
