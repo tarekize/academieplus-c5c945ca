@@ -256,7 +256,7 @@ const Factures = () => {
   const totalPaid = payments.filter(p => p.status === "completed").reduce((sum, p) => sum + p.amount, 0);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4">
@@ -265,7 +265,7 @@ const Factures = () => {
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                 <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">AcadémiePlus</span>
+              <span className="font-display text-xl font-extrabold">AcadémiePlus</span>
             </div>
             <div className="flex items-center gap-4">
               <DropdownMenu>
@@ -308,25 +308,25 @@ const Factures = () => {
 
           {/* Page Title */}
           <div className="flex items-center gap-4 mb-8">
-            <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <Receipt className="h-7 w-7 text-primary" />
+            <div className="h-14 w-14 rounded-2xl bg-[image:var(--gradient-violet)] flex items-center justify-center shadow-md">
+              <Receipt className="h-7 w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Facturation</h1>
+              <h1 className="font-display text-3xl font-extrabold">Facturation</h1>
               <p className="text-muted-foreground">Historique de vos paiements et factures</p>
             </div>
           </div>
 
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <Card className="border-0 bg-gradient-to-br from-primary/5 to-primary/10">
+            <Card className="border-0 text-white" style={{ background: "linear-gradient(135deg, hsl(213 56% 16%), hsl(212 55% 28%))" }}>
               <CardContent className="p-5">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
-                    <CreditCard className="h-5 w-5 text-primary" />
+                  <div className="h-10 w-10 rounded-xl bg-white/15 flex items-center justify-center">
+                    <CreditCard className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Total payé</p>
+                    <p className="text-sm text-white/70">Total payé</p>
                     <p className="text-xl font-bold">{formatCurrency(totalPaid)}</p>
                   </div>
                 </div>
@@ -364,7 +364,7 @@ const Factures = () => {
 
           {/* Invoices Table */}
           {payments.length > 0 ? (
-            <Card className="overflow-hidden">
+            <Card className="pro-card overflow-hidden">
               <CardHeader className="border-b bg-muted/30 py-4">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <FileText className="h-5 w-5 text-primary" />
