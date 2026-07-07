@@ -10,33 +10,33 @@ const WhyChooseUs = () => {
       icon: User,
       titleKey: "whyChooseUs.personalizedSupport.title",
       descriptionKey: "whyChooseUs.personalizedSupport.description",
-      color: "bg-blue-500"
+      color: "bg-primary"
     },
     {
       icon: Brain,
       titleKey: "whyChooseUs.aiPedagogy.title",
       descriptionKey: "whyChooseUs.aiPedagogy.description",
-      color: "bg-orange-500"
+      color: "bg-amber"
     },
     {
       icon: TrendingUp,
       titleKey: "whyChooseUs.rapidProgress.title",
       descriptionKey: "whyChooseUs.rapidProgress.description",
-      color: "bg-blue-500"
+      color: "bg-primary"
     },
     {
       icon: GraduationCap,
       titleKey: "whyChooseUs.certifiedTeachers.title",
       descriptionKey: "whyChooseUs.certifiedTeachers.description",
-      color: "bg-orange-500"
+      color: "bg-amber"
     }
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-gray-50">
+    <section className="py-20 bg-gradient-to-b from-background to-muted/40">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="font-display text-4xl md:text-5xl font-extrabold text-foreground mb-6">
             {t("whyChooseUs.title")}
           </h2>
           <p className="text-gray-600 text-xl max-w-2xl mx-auto">
@@ -58,7 +58,7 @@ const WhyChooseUs = () => {
                     <Icon className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg text-gray-900 mb-1">{t(feature.titleKey)}</h3>
+                    <h3 className="font-bold text-lg text-foreground mb-1">{t(feature.titleKey)}</h3>
                     <p className="text-gray-600 text-sm leading-relaxed">
                       {t(feature.descriptionKey)}
                     </p>
@@ -78,8 +78,8 @@ const WhyChooseUs = () => {
               />
             </div>
             {/* Decorative element */}
-            <div className="absolute -bottom-6 -right-6 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl -z-10"></div>
-            <div className="absolute -top-6 -left-6 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl -z-10"></div>
+            <div className="absolute -bottom-6 -right-6 w-48 h-48 bg-primary/10 rounded-full blur-3xl -z-10"></div>
+            <div className="absolute -top-6 -left-6 w-48 h-48 bg-amber/10 rounded-full blur-3xl -z-10"></div>
           </div>
         </div>
       </div>

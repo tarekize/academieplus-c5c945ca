@@ -44,7 +44,7 @@ const FAQ = () => {
     <section id="faq" className="py-20 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h2 className="font-display text-4xl md:text-5xl font-extrabold text-foreground mb-4">
             {t("faq.title")}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -58,9 +58,9 @@ const FAQ = () => {
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
-                className="border border-gray-200 rounded-lg px-6 bg-gray-50"
+                className="border border-border rounded-lg px-6 bg-muted/40"
               >
-                <AccordionTrigger className="text-left font-semibold text-gray-900 hover:text-blue-600 py-4">
+                <AccordionTrigger className="text-left font-semibold text-foreground hover:text-primary py-4">
                   {faq.question}
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-700 pb-4">

@@ -11,19 +11,19 @@ const Excellence = () => {
       icon: GraduationCap,
       titleKey: "excellence.certifiedExpertise.title",
       descriptionKey: "excellence.certifiedExpertise.description",
-      color: "bg-blue-500"
+      color: "bg-primary"
     },
     {
       icon: Calendar,
       titleKey: "excellence.experience.title",
       descriptionKey: "excellence.experience.description",
-      color: "bg-blue-500"
+      color: "bg-primary"
     },
     {
       icon: Shield,
       titleKey: "excellence.validatedContent.title",
       descriptionKey: "excellence.validatedContent.description",
-      color: "bg-blue-500"
+      color: "bg-primary"
     }
   ];
 
@@ -32,7 +32,7 @@ const Excellence = () => {
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h2 className="font-display text-4xl md:text-5xl font-extrabold text-foreground mb-4">
             {t("excellence.title")}
           </h2>
           <p className="text-gray-600 text-lg">
@@ -69,12 +69,12 @@ const Excellence = () => {
             return (
               <div
                 key={index}
-                className="bg-white border border-gray-200 rounded-xl p-6 text-center hover:shadow-lg transition-all duration-300 hover:scale-105"
+                className="bg-white border border-border rounded-xl p-6 text-center hover:shadow-lg transition-all duration-300 hover:scale-105"
               >
                 <div className={`w-16 h-16 ${feature.color} rounded-full flex items-center justify-center mx-auto mb-4`}>
                   <Icon className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="font-bold text-lg text-gray-900 mb-2">
+                <h3 className="font-bold text-lg text-foreground mb-2">
                   {t(feature.titleKey)}
                 </h3>
                 <p className="text-gray-600 text-sm">
