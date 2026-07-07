@@ -474,7 +474,12 @@ All colors MUST be HSL.
 .student-shell {
   background: var(--gradient-mesh);
   position: relative;
-  overflow-x: hidden;
+  /* overflow-x: hidden would clip the decorative blobs correctly, but any
+     overflow value other than visible/clip on an ancestor breaks position:
+     sticky for descendants (e.g. the lesson page's table of contents sidebar
+     would stop following the scroll). overflow: clip clips the same way
+     without establishing that scroll container. */
+  overflow-x: clip;
 }
 
 .student-shell::before,
