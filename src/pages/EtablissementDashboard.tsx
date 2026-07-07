@@ -333,7 +333,7 @@ const EtablissementDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
         <div className="container mx-auto px-4">
@@ -362,7 +362,7 @@ const EtablissementDashboard = () => {
           {/* Welcome banner */}
           <div className="rounded-2xl bg-[image:var(--gradient-primary)] px-6 py-5 text-primary-foreground shadow-[var(--shadow-elegant)]">
             <p className="text-primary-foreground/70 text-sm font-medium">Espace Établissement</p>
-            <h1 className="text-2xl font-bold mt-0.5">Tableau de bord</h1>
+            <h1 className="font-display text-2xl font-extrabold mt-0.5">Tableau de bord</h1>
             <p className="text-primary-foreground/70 text-sm mt-1">Suivi des enseignants, classes et réclamations</p>
           </div>
 
