@@ -34,6 +34,7 @@ const getSchoolLevelName = (level: string) => {
 
 /** Shared top navigation bar: logo on the left, avatar/name/menu on the right. Used across all student-facing pages. */
 export function AppHeader() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, hasRole } = useAuth();
   const [profile, setProfile] = useState<HeaderProfile | null>(null);
