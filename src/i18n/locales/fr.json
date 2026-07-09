@@ -15,7 +15,11 @@
     "search": "Rechercher",
     "close": "Fermer",
     "administration": "Administration",
+    "manageUsers": "Gestion Utilisateurs",
+    "administrator": "Administrateur",
+    "pedagogue": "Pédagogue",
     "myLessons": "Mes cours",
+    "noResultsFor": "Aucun résultat trouvé pour « {{query}} »",
     "schoolLevels": {
       "5eme_primaire": "5ème Primaire",
       "1ere_cem": "1ère CEM",
@@ -67,6 +71,23 @@
       "notStarted": "Non commencée"
     },
     "lessonFallback": "Leçon"
+  },
+  "listeCours": {
+    "pedagogicalContentByLevel": "Contenu Pédagogique par Niveau",
+    "selectLevelToSeeCourses": "Sélectionnez un niveau pour voir les cours disponibles",
+    "searchLevel": "Rechercher un niveau...",
+    "schoolLevelsTitle": "Niveaux Scolaires",
+    "backToLevels": "Retour aux niveaux",
+    "chooseAFiliere": "{{level}} — Choisir une filière",
+    "selectFiliereToSeeCourses": "Sélectionnez une filière pour voir les cours disponibles",
+    "noFiliereForLevel": "Aucune filière disponible pour ce niveau",
+    "subjectsOf": "Matières de {{level}}",
+    "yourClass": "ta classe",
+    "discoverSubjects": "Découvre tous les cours de ta classe et prépare-toi à réussir ! 🚀",
+    "searchSubject": "Rechercher une matière...",
+    "allSubjects": "Toutes les matières",
+    "comingSoon": "Bientôt disponible",
+    "math": "Mathématiques"
   },
   "header": {
     "logo": "AcadémiePlus",

@@ -15,7 +15,11 @@
     "search": "بحث",
     "close": "إغلاق",
     "administration": "الإدارة",
+    "manageUsers": "إدارة المستخدمين",
+    "administrator": "مدير",
+    "pedagogue": "بيداغوجي",
     "myLessons": "دروسي",
+    "noResultsFor": "لا توجد نتائج لـ « {{query}} »",
     "schoolLevels": {
       "5eme_primaire": "الخامسة ابتدائي",
       "1ere_cem": "الأولى متوسط",
@@ -67,6 +71,23 @@
       "notStarted": "غير مبدوءة"
     },
     "lessonFallback": "درس"
+  },
+  "listeCours": {
+    "pedagogicalContentByLevel": "المحتوى التربوي حسب المستوى",
+    "selectLevelToSeeCourses": "اختر مستوى لعرض الدروس المتاحة",
+    "searchLevel": "ابحث عن مستوى...",
+    "schoolLevelsTitle": "المستويات الدراسية",
+    "backToLevels": "العودة إلى المستويات",
+    "chooseAFiliere": "{{level}} — اختر شعبة",
+    "selectFiliereToSeeCourses": "اختر شعبة لعرض الدروس المتاحة",
+    "noFiliereForLevel": "لا توجد شعبة متاحة لهذا المستوى",
+    "subjectsOf": "مواد {{level}}",
+    "yourClass": "قسمك",
+    "discoverSubjects": "اكتشف جميع دروس قسمك واستعد للنجاح! 🚀",
+    "searchSubject": "ابحث عن مادة...",
+    "allSubjects": "جميع المواد",
+    "comingSoon": "قريباً",
+    "math": "الرياضيات"
   },
   "header": {
     "logo": "أكاديمي بلوس",
