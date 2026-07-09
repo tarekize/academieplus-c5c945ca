@@ -82,9 +82,9 @@ const Dashboard = () => {
   };
 
   const getFullName = (p: Profile | null): string => {
-    if (!p) return "Utilisateur";
+    if (!p) return t("dashboard.user");
     const parts = [p.first_name, p.last_name].filter(Boolean);
-    return parts.length > 0 ? parts.join(" ") : "Utilisateur";
+    return parts.length > 0 ? parts.join(" ") : t("dashboard.user");
   };
 
   const getSchoolLevelName = (level: string) => {
@@ -210,8 +210,8 @@ const Dashboard = () => {
                     icon={Users}
                     iconBg="bg-blue-500/10"
                     iconText="text-blue-600"
-                    title="Mes Enfants"
-                    description="Suivez la progression de vos enfants"
+                    title={t("dashboard.myChildren")}
+                    description={t("dashboard.myChildrenDesc")}
                     onClick={() => navigate("/mes-informations")}
                   />
                 )}
@@ -221,40 +221,40 @@ const Dashboard = () => {
                       icon={Users}
                       iconBg="bg-primary/10"
                       iconText="text-primary"
-                      title="Gestion Utilisateurs"
-                      description="Gérez les utilisateurs de la plateforme"
+                      title={t("dashboard.userManagement")}
+                      description={t("dashboard.userManagementDesc")}
                       onClick={() => navigate("/admin")}
                     />
                     <DashboardTile
                       icon={BarChart3}
                       iconBg="bg-orange-500/10"
                       iconText="text-orange-600"
-                      title="Analytics"
-                      description="Consultez les statistiques d'utilisation"
+                      title={t("dashboard.analytics")}
+                      description={t("dashboard.analyticsDesc")}
                       onClick={() => navigate("/analytics")}
                     />
                     <DashboardTile
                       icon={CreditCard}
                       iconBg="bg-emerald-500/10"
                       iconText="text-emerald-600"
-                      title="Abonnements"
-                      description="Configurez les tarifs et paiements"
+                      title={t("dashboard.subscriptions")}
+                      description={t("dashboard.subscriptionsDesc")}
                       onClick={() => navigate("/admin/abonnements")}
                     />
                     <DashboardTile
                       icon={FileText}
                       iconBg="bg-indigo-500/10"
                       iconText="text-indigo-600"
-                      title="Contrats"
-                      description="Gérez les contrats établissements, élèves et parents"
+                      title={t("dashboard.contracts")}
+                      description={t("dashboard.contractsDesc")}
                       onClick={() => navigate("/admin/contrats")}
                     />
                     <DashboardTile
                       icon={Cpu}
                       iconBg="bg-teal-500/10"
                       iconText="text-teal-600"
-                      title="Consommation IA"
-                      description="Estimation de l'usage de tokens par groupe"
+                      title={t("dashboard.aiUsage")}
+                      description={t("dashboard.aiUsageDesc")}
                       onClick={() => navigate("/admin/token-usage")}
                     />
                   </>
@@ -263,8 +263,8 @@ const Dashboard = () => {
                   icon={GraduationCap}
                   iconBg="bg-purple-500/10"
                   iconText="text-purple-600"
-                  title={isAdmin ? "Voir les Cours" : "Mes Cours"}
-                  description={isAdmin ? "Consultez les cours par niveau" : "Accédez à vos cours et leçons"}
+                  title={isAdmin ? t("dashboard.viewCourses") : t("dashboard.myCourses")}
+                  description={isAdmin ? t("dashboard.viewCoursesDesc") : t("dashboard.myCoursesDesc")}
                   onClick={() => navigate("/liste-cours")}
                 />
               </div>
