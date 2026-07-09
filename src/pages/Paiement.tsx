@@ -1,3 +1,4 @@
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, CreditCard, GraduationCap, LogOut, User as UserIcon, Shield, Lock, CheckCircle, Copy } from "lucide-react";
@@ -261,6 +262,7 @@ const Paiement = () => {
               <span className="text-xl font-bold text-foreground">AcadémiePlus</span>
             </div>
             <div className="flex items-center gap-4">
+              <LanguageToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/10 rounded-lg p-2 transition-colors">

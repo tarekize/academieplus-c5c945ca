@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 
 interface HeaderProfile {
   first_name: string | null;
@@ -34,6 +36,7 @@ const getSchoolLevelName = (level: string) => {
 /** Shared top navigation bar: logo on the left, avatar/name/menu on the right. Used across all student-facing pages. */
 export function AppHeader() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, hasRole } = useAuth();
   const [profile, setProfile] = useState<HeaderProfile | null>(null);
   const [isParent, setIsParent] = useState(false);
@@ -70,42 +73,45 @@ export function AppHeader() {
             <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
               <GraduationCap className="h-5 w-5 text-white" />
             </div>
-            <span className="font-display text-lg font-extrabold text-foreground hidden sm:block">AcadémiePlus</span>
+            <span className="font-display text-lg font-extrabold text-foreground hidden sm:block">{t("app.brand")}</span>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div className="flex items-center gap-2.5 cursor-pointer hover:bg-muted rounded-xl px-2 py-1.5 transition-colors">
-                <Avatar className="h-8 w-8 ring-2 ring-primary/20">
-                  <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                    {fullName.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-left hidden md:block">
-                  <p className="text-sm font-semibold leading-tight">{fullName}</p>
-                  <p className="text-xs text-muted-foreground leading-tight">
-                    {profile?.school_level && getSchoolLevelName(profile.school_level)}
-                  </p>
+          <div className="flex items-center gap-3">
+            <LanguageToggle />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="flex items-center gap-2.5 cursor-pointer hover:bg-muted rounded-xl px-2 py-1.5 transition-colors">
+                  <Avatar className="h-8 w-8 ring-2 ring-primary/20">
+                    <AvatarImage src={profile?.avatar_url || undefined} />
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                      {fullName.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-left hidden md:block">
+                    <p className="text-sm font-semibold leading-tight">{fullName}</p>
+                    <p className="text-xs text-muted-foreground leading-tight">
+                      {profile?.school_level && getSchoolLevelName(profile.school_level)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg border-border/50">
-              <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
-                <UserIcon className="mr-2 h-4 w-4" />
-                <span>Gérer mon compte</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate(isParent ? "/parent-dashboard" : "/dashboard")} className="rounded-lg cursor-pointer">
-                <BarChart3 className="mr-2 h-4 w-4" />
-                <span>Tableau de bord</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Se déconnecter</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg border-border/50">
+                <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
+                  <UserIcon className="mr-2 h-4 w-4" />
+                  <span>{t("app.manageAccount")}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate(isParent ? "/parent-dashboard" : "/dashboard")} className="rounded-lg cursor-pointer">
+                  <BarChart3 className="mr-2 h-4 w-4" />
+                  <span>{t("app.dashboard")}</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>{t("app.logout")}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </header>

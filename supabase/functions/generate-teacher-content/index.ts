@@ -40,7 +40,8 @@ Chapitre : ${b.chapterTitle || "—"}
 Leçon ciblée : ${b.lessonTitle || "—"}
 Difficulté demandée : entre ${dMin}/5 et ${dMax}/5 (varie les difficultés dans cet intervalle).
 ${b.focusNote ? `Contexte pédagogique : ${b.focusNote}` : ""}
-Reste STRICTEMENT sur la leçon "${b.lessonTitle || ""}". Rédige en français. Utilise la notation mathématique standard.`;
+Reste STRICTEMENT sur la leçon "${b.lessonTitle || ""}".
+IMPORTANT — Langue : rédige la totalité du contenu (énoncés, options, réponses, indices, explications) EXCLUSIVEMENT en arabe (اللغة العربية). N'utilise JAMAIS le français, sauf pour la notation mathématique standard qui reste universelle (chiffres, symboles, formules).`;
 
   if (b.contentType === "quiz") {
     return {

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useAdminUsers, useActivityLogs, AdminUser } from "@/hooks/useAdmin";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -181,6 +182,7 @@ export default function Admin() {
                 <p className="text-xs text-muted-foreground leading-tight">Tableau de bord administrateur</p>
               </div>
             </div>
+            <LanguageToggle className="ms-auto" />
           </div>
         </div>
       </header>

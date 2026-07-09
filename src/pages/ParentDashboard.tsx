@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -465,9 +466,10 @@ const ParentDashboard = () => {
                 </div>
                 <span className="text-lg font-bold text-foreground hidden sm:block">AcadémiePlus</span>
               </div>
-              <p className="text-sm text-muted-foreground truncate">
+              <p className="text-sm text-muted-foreground truncate flex-1">
                 Progression de {getChildFullName(selectedChild.child)}
               </p>
+              <LanguageToggle />
             </div>
           </div>
         </header>

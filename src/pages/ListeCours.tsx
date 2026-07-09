@@ -1,3 +1,4 @@
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -522,6 +523,7 @@ const ListeCours = () => {
             </div>
 
             <div className="flex items-center gap-3">
+              <LanguageToggle />
               <ChangePasswordButton />
 
               <DropdownMenu>

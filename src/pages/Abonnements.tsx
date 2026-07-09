@@ -1,3 +1,4 @@
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -174,6 +175,7 @@ const Abonnements = () => {
               <span className="font-display text-xl font-extrabold">AcadémiePlus</span>
             </div>
             <div className="flex items-center gap-4">
+              <LanguageToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/10 rounded-lg p-2 transition-colors">

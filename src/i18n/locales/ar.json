@@ -1,4 +1,22 @@
 {
+  "app": {
+    "brand": "أكاديمي بلوس",
+    "back": "رجوع",
+    "manageAccount": "إدارة حسابي",
+    "dashboard": "لوحة القيادة",
+    "logout": "تسجيل الخروج",
+    "loading": "جارٍ التحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "add": "إضافة",
+    "search": "بحث",
+    "close": "إغلاق",
+    "administration": "الإدارة",
+    "myLessons": "دروسي"
+  },
   "header": {
     "logo": "أكاديمي بلوس",
     "discoverPlans": "اكتشف الصيغ",

@@ -1,6 +1,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import {
   BookOpen,
   FileEdit,
@@ -32,7 +33,8 @@ export default function DashboardEditorial() {
               Gérez vos cours et contenus pédagogiques
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <LanguageToggle />
             <Link to="/editorial/equipe">
               <Button variant="outline">
                 <Users className="h-4 w-4 mr-2" />

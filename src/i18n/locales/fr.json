@@ -1,4 +1,22 @@
 {
+  "app": {
+    "brand": "AcadémiePlus",
+    "back": "Retour",
+    "manageAccount": "Gérer mon compte",
+    "dashboard": "Tableau de bord",
+    "logout": "Se déconnecter",
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "add": "Ajouter",
+    "search": "Rechercher",
+    "close": "Fermer",
+    "administration": "Administration",
+    "myLessons": "Mes cours"
+  },
   "header": {
     "logo": "AcadémiePlus",
     "discoverPlans": "Découvrir les formules",

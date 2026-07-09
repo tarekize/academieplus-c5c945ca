@@ -190,11 +190,6 @@ All colors MUST be HSL.
     @apply border-l-4 border-purple-500 bg-purple-50/50;
   }
 
-  html[lang="ar"],
-  html[lang="ar"] body {
-    direction: ltr !important;
-  }
-
   .text-center,
   .text-center h1,
   .text-center h2,

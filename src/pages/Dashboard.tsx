@@ -14,6 +14,8 @@ import { ChangePasswordButton } from "@/components/ChangePasswordButton";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
 import DashboardTile from "@/components/dashboard/DashboardTile";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 
 interface Profile {
   id: string;
@@ -27,6 +29,7 @@ interface Profile {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -134,12 +137,13 @@ const Dashboard = () => {
               <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
                 <GraduationCap className="h-5 w-5 text-white" />
               </div>
-              <span className="font-display text-lg font-bold hidden sm:block">AcadémiePlus</span>
+              <span className="font-display text-lg font-bold hidden sm:block">{t("app.brand")}</span>
             </div>
 
 
             {/* Right actions */}
             <div className="flex items-center gap-2">
+              <LanguageToggle />
               <ChangePasswordButton />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -162,7 +166,7 @@ const Dashboard = () => {
                   {!isAdmin && (
                     <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
                       <UserIcon className="mr-2 h-4 w-4" />
-                      <span>Gérer mon compte</span>
+                      <span>{t("app.manageAccount")}</span>
                     </DropdownMenuItem>
                   )}
                   {isAdmin && (
@@ -174,7 +178,7 @@ const Dashboard = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Se déconnecter</span>
+                    <span>{t("app.logout")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
