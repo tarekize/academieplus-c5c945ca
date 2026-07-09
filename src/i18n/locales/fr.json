@@ -206,6 +206,12 @@
     "location": "Alger, Algérie",
     "rights": "Tous droits réservés.",
     "conformity": "Conforme aux programmes officiels de l'éducation nationale algérienne 🇩🇿"
+  },
+  "nav": {
+    "account": "Gérer mon compte",
+    "dashboard": "Tableau de bord",
+    "logout": "Se déconnecter",
+    "courses": "Les cours"
   }
 }
 
