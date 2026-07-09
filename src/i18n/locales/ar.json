@@ -15,7 +15,58 @@
     "search": "بحث",
     "close": "إغلاق",
     "administration": "الإدارة",
-    "myLessons": "دروسي"
+    "myLessons": "دروسي",
+    "schoolLevels": {
+      "5eme_primaire": "الخامسة ابتدائي",
+      "1ere_cem": "الأولى متوسط",
+      "2eme_cem": "الثانية متوسط",
+      "3eme_cem": "الثالثة متوسط",
+      "4eme_cem": "الرابعة متوسط",
+      "premiere": "الأولى ثانوي",
+      "seconde": "الثانية ثانوي",
+      "terminale": "الثالثة ثانوي"
+    }
+  },
+  "studentDashboard": {
+    "welcomeBack": "مرحباً بعودتك",
+    "streak": "سلسلة {{count}}",
+    "currentLevel": "المستوى الحالي",
+    "lastUpdated": "آخر تحديث",
+    "successRate": "نسبة النجاح",
+    "correctAnswers": "{{count}} إجابة صحيحة",
+    "errorRate": "نسبة الخطأ",
+    "wrongAnswers": "{{count}} إجابة خاطئة",
+    "studyTime": "وقت الدراسة",
+    "totalAnswers": "{{count}} إجابة إجمالية",
+    "overallPerformance": "أداؤك الإجمالي",
+    "noChaptersYet": "لا توجد فصول لعرضها بعد",
+    "progressSeries": "التقدم",
+    "quickActions": "إجراءات سريعة",
+    "openMyLessons": "فتح دروسي",
+    "takeExam": "إجراء اختبار",
+    "chooseAChapter": "اختر فصلاً",
+    "noChaptersAvailable": "لا توجد فصول متاحة بعد.",
+    "chapterLessons": "دروس الفصل (التقدم حسب مستواك)",
+    "noLessonsInChapter": "لا توجد دروس في هذا الفصل.",
+    "fixGaps": "معالجة الثغرات بتمارين موجّهة",
+    "aiSuggestion": "اقتراح الذكاء الاصطناعي",
+    "aiComment": "تعليق الذكاء الاصطناعي",
+    "goToLesson": "اذهب إلى الدرس",
+    "timeLabel": "الوقت",
+    "levelLabel": "المستوى",
+    "lessonsLabel": "الدروس",
+    "levelInfo": {
+      "advanced": "متقدم",
+      "good": "جيد",
+      "average": "متوسط",
+      "needsImprovement": "يحتاج تحسين"
+    },
+    "lessonStatus": {
+      "completed": "منتهية",
+      "inProgress": "قيد التقدم",
+      "notStarted": "غير مبدوءة"
+    },
+    "lessonFallback": "درس"
   },
   "header": {
     "logo": "أكاديمي بلوس",

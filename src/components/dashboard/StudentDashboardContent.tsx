@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
@@ -87,32 +88,31 @@ interface LessonCommentDialog {
   createdAt: string;
 }
 
-const SCHOOL_LEVELS: Record<string, string> = {
-  "5eme_primaire": "5ème Primaire",
-  "1ere_cem": "1ère CEM",
-  "2eme_cem": "2ème CEM",
-  "3eme_cem": "3ème CEM",
-  "4eme_cem": "4ème CEM",
-  premiere: "Première",
-  seconde: "Seconde",
-  terminale: "Terminale",
-};
-
-function formatTime(seconds: number) {
+function formatTime(lang: "ar" | "fr", seconds: number) {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}س ${m}د`;
-  return `${m}د`;
+  if (lang === "fr") return h > 0 ? `${h}h ${m}min` : `${m}min`;
+  return h > 0 ? `${h}س ${m}د` : `${m}د`;
 }
 
-function getLevelInfo(accuracy: number) {
-  if (accuracy >= 80) return { label: "متقدم", color: "text-emerald-600", bg: "bg-emerald-500/10", border: "border-emerald-500/20", ring: "hsl(152, 60%, 45%)" };
-  if (accuracy >= 60) return { label: "جيد", color: "text-blue-600", bg: "bg-blue-500/10", border: "border-blue-500/20", ring: "hsl(217, 70%, 55%)" };
-  if (accuracy >= 35) return { label: "متوسط", color: "text-amber-600", bg: "bg-amber-500/10", border: "border-amber-500/20", ring: "hsl(38, 80%, 55%)" };
-  return { label: "يحتاج تحسين", color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/20", ring: "hsl(0, 70%, 55%)" };
+function getLevelInfo(t: (key: string) => string, accuracy: number) {
+  if (accuracy >= 80) return { label: t("studentDashboard.levelInfo.advanced"), color: "text-emerald-600", bg: "bg-emerald-500/10", border: "border-emerald-500/20", ring: "hsl(152, 60%, 45%)" };
+  if (accuracy >= 60) return { label: t("studentDashboard.levelInfo.good"), color: "text-blue-600", bg: "bg-blue-500/10", border: "border-blue-500/20", ring: "hsl(217, 70%, 55%)" };
+  if (accuracy >= 35) return { label: t("studentDashboard.levelInfo.average"), color: "text-amber-600", bg: "bg-amber-500/10", border: "border-amber-500/20", ring: "hsl(38, 80%, 55%)" };
+  return { label: t("studentDashboard.levelInfo.needsImprovement"), color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/20", ring: "hsl(0, 70%, 55%)" };
 }
 
-function buildLessonLacunaMessage(lessonTitle: string, level: number) {
+function buildLessonLacunaMessage(lang: "ar" | "fr", lessonTitle: string, level: number) {
+  if (lang === "fr") {
+    return `📌 Il semble que tu aies des lacunes sur la leçon **"${lessonTitle}"** (niveau actuel ${level}/100).
+
+### 🎯 Conseil rapide
+- Revois la règle de base de la leçon avant de faire les exercices.
+- Concentre-toi sur la compréhension de la méthode étape par étape, pas sur la mémorisation de la réponse.
+- Refais un exercice simple puis passe à un exercice plus difficile.
+
+Clique sur **"Aller à la leçon"** pour réviser maintenant.`;
+  }
   return `📌 يبدو أن لديك بعض النقص في درس **"${lessonTitle}"** (المستوى الحالي ${level}/100).
 
 ### 🎯 نصيحة سريعة
@@ -123,7 +123,26 @@ function buildLessonLacunaMessage(lessonTitle: string, level: number) {
 اضغط على **"اذهب إلى الدرس"** للمراجعة الآن.`;
 }
 
-function buildChapterSuggestion(chapterTitle: string, lessons: LessonProgress[]) {
+function buildChapterSuggestion(lang: "ar" | "fr", chapterTitle: string, lessons: LessonProgress[]) {
+  if (lang === "fr") {
+    if (lessons.length === 0) {
+      return `Pas encore assez de données sur le chapitre "${chapterTitle}". Commence à étudier les leçons pour obtenir une analyse.`;
+    }
+    const leveled = lessons.filter((l) => l.level !== null);
+    if (leveled.length === 0) {
+      return `Tu n'as pas encore commencé les exercices du chapitre "${chapterTitle}". Commence maintenant pour évaluer ton niveau.`;
+    }
+    const avg = Math.round(leveled.reduce((s, l) => s + (l.level || 0), 0) / leveled.length);
+    const weak = lessons.filter((l) => l.level !== null && (l.level as number) < 50);
+    if (weak.length > 0) {
+      const names = weak.slice(0, 3).map((l) => l.lessonTitleAr || l.lessonTitle).join(", ");
+      return `Ton niveau dans le chapitre "${chapterTitle}" est de ${avg}/100. Concentre-toi sur les leçons qui ont besoin de soutien : ${names}. Revois les règles et refais les exercices étape par étape.`;
+    }
+    if (avg >= 80) {
+      return `Excellente performance dans le chapitre "${chapterTitle}" avec un niveau de ${avg}/100 ! 🎉 Tu es prêt à passer à des activités plus difficiles ou à un nouveau chapitre.`;
+    }
+    return `Bonne performance dans le chapitre "${chapterTitle}" avec un niveau de ${avg}/100. Continue à t'entraîner pour atteindre un niveau avancé.`;
+  }
   if (lessons.length === 0) {
     return `لا توجد بيانات كافية بعد عن فصل "${chapterTitle}". ابدأ بدراسة الدروس للحصول على تحليل.`;
   }
@@ -150,6 +169,9 @@ const makeUniqueChapterKey = (chapter: { title?: string | null; title_ar?: strin
 
 export default function StudentDashboardContent({ userId, profile, hideActions, parentView }: StudentDashboardContentProps) {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const lang: "ar" | "fr" = i18n.language?.startsWith("fr") ? "fr" : "ar";
+  const getSchoolLevelLabel = (level: string | null) => (level ? t(`app.schoolLevels.${level}`) : "—");
   const [chapterStats, setChapterStats] = useState<ChapterStat[]>([]);
   const [totalTime, setTotalTime] = useState(0);
   const [totalCorrect, setTotalCorrect] = useState(0);
@@ -454,12 +476,12 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
 
   const getLessonStatusBadge = (status: LessonProgress["status"]) => {
     if (status === "completed") {
-      return <Badge className="bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">منتهية</Badge>;
+      return <Badge className="bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">{t("studentDashboard.lessonStatus.completed")}</Badge>;
     }
     if (status === "in_progress") {
-      return <Badge className="bg-amber-500/10 text-amber-700 border border-amber-500/20">قيد التقدم</Badge>;
+      return <Badge className="bg-amber-500/10 text-amber-700 border border-amber-500/20">{t("studentDashboard.lessonStatus.inProgress")}</Badge>;
     }
-    return <Badge className="bg-muted text-muted-foreground border border-border">غير مبدوءة</Badge>;
+    return <Badge className="bg-muted text-muted-foreground border border-border">{t("studentDashboard.lessonStatus.notStarted")}</Badge>;
   };
 
   useEffect(() => { fetchScores(); }, [fetchScores]);
@@ -509,7 +531,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
         map.set(c.lesson_id, {
           lessonId: c.lesson_id,
           chapterId: c.chapter_id,
-          lessonTitle: c.lesson_title || "درس",
+          lessonTitle: c.lesson_title || t("studentDashboard.lessonFallback"),
           chapterTitle: c.chapter_title,
           message: c.message,
           levelBefore: c.level_before ?? 0,
@@ -549,7 +571,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
   const successRate = totalAnswers > 0 ? Math.round((totalCorrect / totalAnswers) * 100) : 0;
   const errorRate = totalAnswers > 0 ? 100 - successRate : 0;
   const totalErrors = totalAnswers - totalCorrect;
-  const levelInfo = getLevelInfo(avgLevel);
+  const levelInfo = getLevelInfo(t, avgLevel);
 
   const totalActivity = activityBreakdown.reading + activityBreakdown.quiz + activityBreakdown.exercise || 1;
   const readPct = Math.round((activityBreakdown.reading / totalActivity) * 100);
@@ -600,7 +622,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
       chapterId,
       lessonTitle: lesson.lessonTitleAr || lesson.lessonTitle,
       chapterTitle,
-      message: buildLessonLacunaMessage(lesson.lessonTitleAr || lesson.lessonTitle, lesson.level ?? 0),
+      message: buildLessonLacunaMessage(lang, lesson.lessonTitleAr || lesson.lessonTitle, lesson.level ?? 0),
       levelBefore: lesson.level ?? 0,
       levelAfter: lesson.level ?? 0,
       createdAt: new Date().toISOString(),
@@ -608,7 +630,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
   };
 
   const chapterSuggestion = selectedChapter
-    ? buildChapterSuggestion(selectedChapter.chapterTitle, selectedChapterLessons?.lessons || [])
+    ? buildChapterSuggestion(lang, selectedChapter.chapterTitle, selectedChapterLessons?.lessons || [])
     : "";
 
   return (
@@ -629,17 +651,17 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
             <div className="text-white">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4" />
-                <span className="text-xs opacity-90">مرحباً بعودتك</span>
+                <span className="text-xs opacity-90">{t("studentDashboard.welcomeBack")}</span>
               </div>
               <h2 className="font-display text-xl md:text-2xl font-extrabold mt-0.5">{fullName}</h2>
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
                   <GraduationCap className="h-3 w-3 ml-1" />
-                  {SCHOOL_LEVELS[profile.school_level || ""] || "—"}
+                  {getSchoolLevelLabel(profile.school_level)}
                 </Badge>
                 {streak > 0 && (
                   <span className="streak-chip">
-                    <span className="streak-flame">🔥</span> سلسلة {streak}
+                    <span className="streak-flame">🔥</span> {t("studentDashboard.streak", { count: streak })}
                   </span>
                 )}
               </div>
@@ -647,13 +669,13 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
           </div>
           <div className="flex items-center gap-4">
             <div className="text-white text-left">
-              <p className="text-[11px] opacity-75">المستوى الحالي</p>
+              <p className="text-[11px] opacity-75">{t("studentDashboard.currentLevel")}</p>
               <p className="font-display text-3xl font-black leading-none mt-1">
                 {avgLevel}<span className="text-sm font-semibold opacity-80">/100</span>
               </p>
             </div>
             <div className="text-white/90 text-left hidden sm:block">
-              <p className="text-[10px] opacity-75">آخر تحديث</p>
+              <p className="text-[10px] opacity-75">{t("studentDashboard.lastUpdated")}</p>
               <p className="text-xs font-medium">
                 {lastUpdated.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}
               </p>
@@ -694,12 +716,12 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
               </div>
               <TrendingUp className="h-4 w-4 text-emerald-500/60" />
             </div>
-            <p className="text-xs text-muted-foreground mb-1">نسبة النجاح</p>
+            <p className="text-xs text-muted-foreground mb-1">{t("studentDashboard.successRate")}</p>
             <p className="text-3xl font-bold text-emerald-600">{successRate}%</p>
             <div className="mt-3 h-1.5 rounded-full bg-secondary overflow-hidden">
               <div className="h-full rounded-full bg-emerald-500 transition-all duration-700" style={{ width: `${successRate}%` }} />
             </div>
-            <p className="text-[10px] text-muted-foreground mt-2">{totalCorrect} إجابة صحيحة</p>
+            <p className="text-[10px] text-muted-foreground mt-2">{t("studentDashboard.correctAnswers", { count: totalCorrect })}</p>
           </CardContent>
         </Card>
 
@@ -712,12 +734,12 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
               </div>
               <TrendingDown className="h-4 w-4 text-red-500/60" />
             </div>
-            <p className="text-xs text-muted-foreground mb-1">نسبة الخطأ</p>
+            <p className="text-xs text-muted-foreground mb-1">{t("studentDashboard.errorRate")}</p>
             <p className="text-3xl font-bold text-red-500">{errorRate}%</p>
             <div className="mt-3 h-1.5 rounded-full bg-secondary overflow-hidden">
               <div className="h-full rounded-full bg-red-500 transition-all duration-700" style={{ width: `${errorRate}%` }} />
             </div>
-            <p className="text-[10px] text-muted-foreground mt-2">{totalErrors} إجابة خاطئة</p>
+            <p className="text-[10px] text-muted-foreground mt-2">{t("studentDashboard.wrongAnswers", { count: totalErrors })}</p>
           </CardContent>
         </Card>
 
@@ -730,7 +752,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
               </div>
               <Zap className={`h-4 w-4 ${levelInfo.color} opacity-60`} />
             </div>
-            <p className="text-xs text-muted-foreground mb-1">المستوى الحالي</p>
+            <p className="text-xs text-muted-foreground mb-1">{t("studentDashboard.currentLevel")}</p>
             <p className={`text-3xl font-bold ${levelInfo.color}`}>{avgLevel}%</p>
             <div className="mt-3 h-1.5 rounded-full bg-secondary overflow-hidden">
               <div className="h-full rounded-full transition-all duration-700" style={{ width: `${avgLevel}%`, backgroundColor: levelInfo.ring }} />
@@ -748,20 +770,20 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
               </div>
               <Activity className="h-4 w-4 text-blue-500/60" />
             </div>
-            <p className="text-xs text-muted-foreground mb-1">وقت الدراسة</p>
-            <p className="text-3xl font-bold text-blue-600">{formatTime(totalTime)}</p>
-            <p className="text-[10px] text-muted-foreground mt-3">{totalAnswers} إجابة إجمالية</p>
+            <p className="text-xs text-muted-foreground mb-1">{t("studentDashboard.studyTime")}</p>
+            <p className="text-3xl font-bold text-blue-600">{formatTime(lang, totalTime)}</p>
+            <p className="text-[10px] text-muted-foreground mt-3">{t("studentDashboard.totalAnswers", { count: totalAnswers })}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* أداؤك الإجمالي (الشبكة) + الذكاء الاصطناعي */}
+      {/* Overall performance (radar) + AI suggestion */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Target className="h-4 w-4 text-primary" />
-              أداؤك الإجمالي
+              {t("studentDashboard.overallPerformance")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -770,7 +792,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
                 {chapterRadarData.length === 0 ? (
                   <div className="flex h-[360px] flex-col items-center justify-center text-center text-muted-foreground">
                     <Target className="mb-3 h-10 w-10 opacity-30" />
-                    <p className="text-sm">لا توجد فصول لعرضها بعد</p>
+                    <p className="text-sm">{t("studentDashboard.noChaptersYet")}</p>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height={360}>
@@ -778,7 +800,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
                       <PolarGrid stroke="hsl(var(--border))" radialLines />
                       <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
                       <PolarAngleAxis dataKey="chapter" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11, fontWeight: 600 }} />
-                      <Radar name="التقدم" dataKey="score" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.22} strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--background))", stroke: "hsl(var(--primary))", strokeWidth: 2 }} />
+                      <Radar name={t("studentDashboard.progressSeries")} dataKey="score" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.22} strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--background))", stroke: "hsl(var(--primary))", strokeWidth: 2 }} />
                     </RadarChart>
                   </ResponsiveContainer>
                 )}
@@ -793,16 +815,16 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
-                  إجراءات سريعة
+                  {t("studentDashboard.quickActions")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button className="w-full justify-between gap-2 group" onClick={() => navigate("/liste-cours")}>
-                  <span className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> فتح دروسي</span>
+                  <span className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> {t("studentDashboard.openMyLessons")}</span>
                   <ChevronRight className="h-4 w-4 group-hover:-translate-x-1 transition-transform rtl:rotate-180" />
                 </Button>
                 <Button variant="outline" className="w-full justify-between gap-2 group" onClick={() => navigate("/exams?niveau=terminale&subject=math")}>
-                  <span className="flex items-center gap-2"><Brain className="h-4 w-4" /> إجراء اختبار</span>
+                  <span className="flex items-center gap-2"><Brain className="h-4 w-4" /> {t("studentDashboard.takeExam")}</span>
                   <ChevronRight className="h-4 w-4 group-hover:-translate-x-1 transition-transform rtl:rotate-180" />
                 </Button>
               </CardContent>
@@ -819,14 +841,14 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
             <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-violet shadow-md shadow-primary/30">
               <BookOpen className="h-4 w-4 text-white" />
             </div>
-            اختر فصلاً
+            {t("studentDashboard.chooseAChapter")}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 md:p-6">
           {chapterStats.length === 0 ? (
             <div className="text-center py-10">
               <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
-              <p className="text-muted-foreground">لا توجد فصول متاحة بعد.</p>
+              <p className="text-muted-foreground">{t("studentDashboard.noChaptersAvailable")}</p>
             </div>
           ) : (
             <div className="flex flex-wrap gap-2">
@@ -868,39 +890,39 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
               <div>
                 <h3 className="text-lg font-bold">{selectedChapter.chapterTitle}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {SCHOOL_LEVELS[profile.school_level || ""] || ""}
+                  {getSchoolLevelLabel(profile.school_level)}
                 </p>
               </div>
-              <Badge className={`${getLevelInfo(selectedChapter.level).bg} ${getLevelInfo(selectedChapter.level).color} border-0`}>
+              <Badge className={`${getLevelInfo(t, selectedChapter.level).bg} ${getLevelInfo(t, selectedChapter.level).color} border-0`}>
                 <Award className="h-3 w-3 ml-1" />
-                {getLevelInfo(selectedChapter.level).label}
+                {getLevelInfo(t, selectedChapter.level).label}
               </Badge>
             </div>
 
             <div className="flex flex-wrap gap-2">
               <div className="rounded-full bg-secondary/70 px-3 py-1.5 text-xs font-medium flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 text-blue-600" /> الوقت: {formatTime(selectedChapter.totalTime)}
+                <Clock className="h-3.5 w-3.5 text-blue-600" /> {t("studentDashboard.timeLabel")}: {formatTime(lang, selectedChapter.totalTime)}
               </div>
               <div className="rounded-full bg-secondary/70 px-3 py-1.5 text-xs font-medium flex items-center gap-1.5">
-                <Target className="h-3.5 w-3.5 text-primary" /> المستوى: {selectedChapter.level}/100
+                <Target className="h-3.5 w-3.5 text-primary" /> {t("studentDashboard.levelLabel")}: {selectedChapter.level}/100
               </div>
               <div className="rounded-full bg-secondary/70 px-3 py-1.5 text-xs font-medium flex items-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> الدروس: {selectedChapterLessons?.completedLessons || 0}/{selectedChapterLessons?.totalLessons || 0}
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> {t("studentDashboard.lessonsLabel")}: {selectedChapterLessons?.completedLessons || 0}/{selectedChapterLessons?.totalLessons || 0}
               </div>
             </div>
 
             <div>
               <h4 className="text-sm font-bold mb-3 flex items-center gap-2">
                 <GraduationCap className="h-4 w-4 text-violet-600" />
-                دروس الفصل (التقدم حسب مستواك)
+                {t("studentDashboard.chapterLessons")}
               </h4>
               {(!selectedChapterLessons || selectedChapterLessons.lessons.length === 0) ? (
-                <p className="text-xs text-muted-foreground py-2">لا توجد دروس في هذا الفصل.</p>
+                <p className="text-xs text-muted-foreground py-2">{t("studentDashboard.noLessonsInChapter")}</p>
               ) : (
                 <div className="space-y-3">
                   {selectedChapterLessons.lessons.map((lesson) => {
                     const level = lesson.level ?? 0;
-                    const info = getLevelInfo(level);
+                    const info = getLevelInfo(t, level);
                     const hasNotif = lessonHasNotification(lesson.lessonId, lesson.level);
                     return (
                       <div key={lesson.lessonId} className="flex items-center gap-3">
@@ -918,7 +940,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
                                     }
                                   }}
                                   className="relative flex h-2.5 w-2.5 shrink-0"
-                                  title="معالجة الثغرات بتمارين موجّهة"
+                                  title={t("studentDashboard.fixGaps")}
                                 >
                                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
                                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
@@ -949,7 +971,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
                               }
                             }}
                             className="shrink-0 h-8 w-8 rounded-full bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center transition-colors relative"
-                            title="معالجة الثغرات بتمارين موجّهة"
+                            title={t("studentDashboard.fixGaps")}
                           >
                             <Bell className="h-4 w-4 text-red-500" />
                             <span className="absolute -top-0.5 -left-0.5 flex h-2.5 w-2.5">
@@ -969,7 +991,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
               <div className="flex items-start gap-2">
                 <Bot className="h-4 w-4 text-mint mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-bold text-mint mb-1">اقتراح الذكاء الاصطناعي</p>
+                  <p className="text-sm font-bold text-mint mb-1">{t("studentDashboard.aiSuggestion")}</p>
                   <p className="text-sm leading-relaxed text-foreground/90">{chapterSuggestion}</p>
                 </div>
               </div>
@@ -978,13 +1000,13 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
         </Card>
       )}
 
-      {/* نافذة تعليق الذكاء الاصطناعي للدرس */}
+      {/* AI lesson comment dialog */}
       <Dialog open={!!selectedLessonComment} onOpenChange={(o) => !o && setSelectedLessonComment(null)}>
         <DialogContent dir="rtl" className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
-              تعليق الذكاء الاصطناعي
+              {t("studentDashboard.aiComment")}
             </DialogTitle>
             <DialogDescription className="text-right">
               {selectedLessonComment?.lessonTitle} {selectedLessonComment?.chapterTitle ? `— ${selectedLessonComment.chapterTitle}` : ""}
@@ -1015,7 +1037,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
                   }}
                 >
                   <BookOpen className="h-3.5 w-3.5 ml-1" />
-                  اذهب إلى الدرس
+                  {t("studentDashboard.goToLesson")}
                 </Button>
               </div>
             </div>
