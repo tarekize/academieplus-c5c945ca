@@ -139,7 +139,7 @@ const Dashboard = () => {
 
             {/* Right actions */}
             <div className="flex items-center gap-2">
-              <ChangePasswordButton />
+              <LanguageToggle /><ChangePasswordButton />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center gap-2 cursor-pointer rounded-xl px-2 py-1.5 hover:bg-muted transition-colors">
@@ -152,7 +152,7 @@ const Dashboard = () => {
                     <div className="text-left hidden md:block">
                       <p className="text-sm font-semibold leading-tight">{fullName}</p>
                       <p className="text-xs text-muted-foreground leading-tight">
-                        {isAdmin ? 'Administrateur' : profile?.school_level && getSchoolLevelName(profile.school_level)}
+                        {isAdmin ? t("dashboard.admin") : profile?.school_level && getSchoolLevelName(profile.school_level)}
                       </p>
                     </div>
                   </div>
@@ -161,19 +161,19 @@ const Dashboard = () => {
                   {!isAdmin && (
                     <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
                       <UserIcon className="mr-2 h-4 w-4" />
-                      <span>Gérer mon compte</span>
+                      <span>{t("nav.account")}</span>
                     </DropdownMenuItem>
                   )}
                   {isAdmin && (
                     <DropdownMenuItem onClick={() => navigate("/admin")} className="rounded-lg cursor-pointer">
                       <Users className="mr-2 h-4 w-4" />
-                      <span>Gestion Utilisateurs</span>
+                      <span>{t("dashboard.userManagement")}</span>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Se déconnecter</span>
+                    <span>{t("nav.logout")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -198,9 +198,9 @@ const Dashboard = () => {
                 <div className="absolute right-6 bottom-0 h-20 w-20 rounded-full bg-white/10" aria-hidden />
                 <div className="relative">
                   <p className="text-primary-foreground/75 text-sm font-medium uppercase tracking-wide">
-                    {isAdmin ? "Espace Administration" : "Tableau de bord"}
+                    {isAdmin ? t("dashboard.adminSpace") : t("nav.dashboard")}
                   </p>
-                  <h1 className="text-2xl sm:text-3xl font-bold mt-1">Bonjour, {fullName} 👋</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold mt-1">{t("dashboard.hello", { name: fullName })}</h1>
                 </div>
               </div>
 
