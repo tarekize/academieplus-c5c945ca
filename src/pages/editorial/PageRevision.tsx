@@ -9,13 +9,13 @@ export default function PageRevision() {
   // This feature requires the 'cours' table which is not in the database
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="min-h-screen pro-shell container mx-auto p-6">
       <div className="mb-8">
         <Button variant="ghost" onClick={() => navigate('/editorial')} className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour au tableau de bord
         </Button>
-        <h1 className="text-3xl font-bold">Révision des cours</h1>
+        <h1 className="font-display text-3xl font-extrabold">Révision des cours</h1>
         <p className="text-muted-foreground mt-2">
           Examinez et approuvez les cours soumis par les éditeurs
         </p>

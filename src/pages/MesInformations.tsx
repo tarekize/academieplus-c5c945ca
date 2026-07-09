@@ -299,7 +299,7 @@ const MesInformations = () => {
   const fullName = getFullName(profile);
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen pro-shell">
       <AppHeader />
 
       <main className="container mx-auto px-4 py-8">
@@ -333,7 +333,7 @@ const MesInformations = () => {
                 onUpload={(url) => setFormData({ ...formData, avatar_url: url })}
                 onDelete={() => setFormData({ ...formData, avatar_url: null })}
               />
-              <h1 className="mt-5 text-2xl font-bold text-foreground">{fullName}</h1>
+              <h1 className="mt-5 font-display text-2xl font-extrabold text-foreground">{fullName}</h1>
               <p className="text-muted-foreground text-sm">{profile?.email}</p>
             </div>
           </motion.div>

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -447,7 +448,7 @@ const ParentDashboard = () => {
   // If a child is selected, show their dashboard
   if (selectedChild && selectedChild.child) {
     return (
-      <div className="min-h-screen bg-muted/30">
+      <div className="min-h-screen pro-shell">
         <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between h-16 gap-4">
@@ -465,9 +466,10 @@ const ParentDashboard = () => {
                 </div>
                 <span className="text-lg font-bold text-foreground hidden sm:block">AcadémiePlus</span>
               </div>
-              <p className="text-sm text-muted-foreground truncate">
+              <p className="text-sm text-muted-foreground truncate flex-1">
                 Progression de {getChildFullName(selectedChild.child)}
               </p>
+              <LanguageToggle />
             </div>
           </div>
         </header>
@@ -493,7 +495,7 @@ const ParentDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen pro-shell">
       <AppHeader />
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
@@ -504,7 +506,7 @@ const ParentDashboard = () => {
           className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6"
         >
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Bonjour {fullName} 👋</h1>
+            <h1 className="font-display text-2xl font-extrabold text-foreground">Bonjour {fullName} 👋</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Suivez la progression de vos enfants</p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -693,7 +695,7 @@ const ParentDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: 0.05, ease: "easeOut" }}
         >
-          <Card className="rounded-xl border-border shadow-sm overflow-hidden">
+          <Card className="pro-card overflow-hidden">
             <div className="px-6 py-4 border-b border-border flex items-center gap-3">
               <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Users className="h-4 w-4 text-primary" />

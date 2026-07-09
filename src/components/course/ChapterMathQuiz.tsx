@@ -155,12 +155,12 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
   if (showResults) {
     const percentage = Math.round((score / questions.length) * 100);
     return (
-      <Card className="max-w-2xl mx-auto">
+      <Card className="max-w-2xl mx-auto glass-card border-0 animate-pop-in">
         <CardHeader className="text-center pb-2">
-          <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-            <Trophy className="h-8 w-8 text-primary" />
+          <div className="mx-auto w-16 h-16 rounded-full bg-[image:var(--gradient-violet)] flex items-center justify-center mb-4 shadow-lg">
+            <Trophy className="h-8 w-8 text-white" />
           </div>
-          <CardTitle className="text-2xl">!انتهى الاختبار</CardTitle>
+          <CardTitle className="font-display text-2xl">!انتهى الاختبار</CardTitle>
           <p className="text-sm text-muted-foreground mt-1">{chapterTitle}</p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -207,27 +207,27 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
-      <div className="sticky top-20 z-40 bg-background/95 backdrop-blur-sm border rounded-lg p-3 shadow-sm">
+      <div className="sticky top-20 z-40 glass-card p-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-lg font-semibold bg-muted px-3 py-1.5 rounded-lg">
-              <Clock className="h-5 w-5 text-primary" />
+            <div className="flex items-center gap-2 text-lg font-bold streak-chip !text-coral">
+              <Clock className="h-5 w-5" />
               <span className="font-mono">{formattedTime}</span>
-              {isPaused && <span className="text-xs text-muted-foreground">(إيقاف)</span>}
+              {isPaused && <span className="text-xs opacity-80">(إيقاف)</span>}
             </div>
             <Button variant="ghost" size="sm" onClick={isPaused ? resume : pause} className="gap-1">
               {isPaused ? <><Play className="h-4 w-4" />استئناف</> : <><Pause className="h-4 w-4" />إيقاف</>}
             </Button>
           </div>
-          <div className="text-sm text-muted-foreground">سؤال {currentIndex + 1} / {questions.length}</div>
+          <div className="text-sm font-semibold text-muted-foreground">سؤال {currentIndex + 1} / {questions.length}</div>
         </div>
         <Progress value={progress} className="h-2 mt-2" />
       </div>
 
-      <Card>
+      <Card className="glass-card border-0 animate-pop-in">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm px-2 py-1 rounded-full bg-primary/10 text-primary">{chapterTitle}</span>
+            <span className="text-sm font-bold px-3 py-1 rounded-full bg-[image:var(--gradient-violet)] text-white">{chapterTitle}</span>
             {canManage && onRefresh && (
               <div className="flex gap-1">
                 <QuizFormDialog chapterId={chapterId} onSaved={onRefresh} />
@@ -276,10 +276,10 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
               const isThisTheCorrectOne = hasAnswered && !isCorrect && option === correctAnswer;
               return (
                 <div key={index} className={cn(
-                  "flex items-center space-x-3 p-4 rounded-lg border-2 transition-all",
-                  (isThisCorrect || isThisTheCorrectOne) && "bg-green-500/10 border-green-500",
-                  isThisWrong && "bg-red-500/10 border-red-500",
-                  isThisSelected && !hasAnswered && "bg-primary/10 border-primary",
+                  "flex items-center space-x-3 p-4 rounded-2xl border-2 transition-all",
+                  (isThisCorrect || isThisTheCorrectOne) && "bg-mint/10 border-mint",
+                  isThisWrong && "bg-coral/10 border-coral",
+                  isThisSelected && !hasAnswered && "bg-violet/10 border-violet",
                   !isThisSelected && !isThisCorrect && !isThisWrong && !isThisTheCorrectOne && "border-border hover:bg-accent"
                 )}>
                   <RadioGroupItem value={option} id={`option-${index}`} />
@@ -326,12 +326,12 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           <div className="flex gap-3">
             <Button variant="outline" onClick={onClose} className="flex-1">خروج</Button>
             {!hasAnswered ? (
-              <Button onClick={handleSubmit} disabled={!selectedAnswer || isSubmitting} className="flex-1">
+              <Button onClick={handleSubmit} disabled={!selectedAnswer || isSubmitting} className="flex-1 bg-[image:var(--gradient-primary)] border-0 text-white hover:opacity-90">
                 {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 تأكيد
               </Button>
             ) : (
-              <Button onClick={handleNext} className="flex-1">
+              <Button onClick={handleNext} className="flex-1 bg-[image:var(--gradient-mint)] border-0 text-white hover:opacity-90">
                 {currentIndex < questions.length - 1 ? <>التالي <ArrowRight className="h-4 w-4 ml-2" /></> : "عرض النتائج"}
               </Button>
             )}

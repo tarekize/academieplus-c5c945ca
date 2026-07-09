@@ -13,8 +13,9 @@ import {
 import { ChangePasswordButton } from "@/components/ChangePasswordButton";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
 import DashboardTile from "@/components/dashboard/DashboardTile";
-import { LanguageToggle } from "@/components/LanguageToggle";
+import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 
 interface Profile {
   id: string;
@@ -123,9 +124,12 @@ const Dashboard = () => {
   const isStudent = userRole === 'student';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={cn("min-h-screen", isStudent ? "student-shell" : "bg-background")}>
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
+      <header className={cn(
+        "fixed top-0 left-0 right-0 z-50 border-b shadow-sm",
+        isStudent ? "bg-white/60 backdrop-blur-xl border-white/50" : "bg-card/95 backdrop-blur-md border-border/60"
+      )}>
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -133,13 +137,14 @@ const Dashboard = () => {
               <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
                 <GraduationCap className="h-5 w-5 text-white" />
               </div>
-              <span className="text-lg font-bold hidden sm:block">AcadémiePlus</span>
+              <span className="font-display text-lg font-bold hidden sm:block">{t("app.brand")}</span>
             </div>
 
 
             {/* Right actions */}
             <div className="flex items-center gap-2">
-              <LanguageToggle /><ChangePasswordButton />
+              <LanguageToggle />
+              <ChangePasswordButton />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center gap-2 cursor-pointer rounded-xl px-2 py-1.5 hover:bg-muted transition-colors">
@@ -161,7 +166,7 @@ const Dashboard = () => {
                   {!isAdmin && (
                     <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
                       <UserIcon className="mr-2 h-4 w-4" />
-                      <span>{t("nav.account")}</span>
+                      <span>{t("app.manageAccount")}</span>
                     </DropdownMenuItem>
                   )}
                   {isAdmin && (
@@ -173,7 +178,7 @@ const Dashboard = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>{t("nav.logout")}</span>
+                    <span>{t("app.logout")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -227,8 +232,8 @@ const Dashboard = () => {
                     />
                     <DashboardTile
                       icon={BarChart3}
-                      iconBg="bg-orange-500/10"
-                      iconText="text-orange-600"
+                      iconBg="bg-amber/10"
+                      iconText="text-amber"
                       title={t("dashboard.analytics")}
                       description={t("dashboard.analyticsDesc")}
                       onClick={() => navigate("/analytics")}

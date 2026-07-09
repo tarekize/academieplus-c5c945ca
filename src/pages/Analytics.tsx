@@ -77,7 +77,7 @@ const Analytics = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="min-h-screen pro-shell container mx-auto p-6 space-y-6">
         <Skeleton className="h-12 w-64" />
         <div className="grid gap-6 md:grid-cols-3">
           <Skeleton className="h-32" />
@@ -90,8 +90,8 @@ const Analytics = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Tableau de bord Analytics</h1>
+    <div className="min-h-screen pro-shell container mx-auto p-6 space-y-6">
+      <h1 className="font-display text-3xl font-extrabold">Tableau de bord Analytics</h1>
 
       {stats && (
         <div className="grid gap-6 md:grid-cols-3">

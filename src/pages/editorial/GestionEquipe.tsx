@@ -222,7 +222,7 @@ export default function GestionEquipe() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       <div className="container mx-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -232,7 +232,7 @@ export default function GestionEquipe() {
               Retour
             </Button>
             <div>
-              <h1 className="text-3xl font-bold flex items-center gap-2">
+              <h1 className="font-display text-3xl font-extrabold flex items-center gap-2">
                 <Shield className="w-8 h-8" />
                 Gestion de l'équipe
               </h1>

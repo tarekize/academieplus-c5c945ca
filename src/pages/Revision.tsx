@@ -212,7 +212,7 @@ const Revision = () => {
                 <Button
                   variant="outline"
                   onClick={() => handleMarkReviewed(false)}
-                  className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                  className="text-amber border-orange-200 hover:bg-orange-50"
                 >
                   <X className="h-4 w-4 mr-2" />
                   À revoir

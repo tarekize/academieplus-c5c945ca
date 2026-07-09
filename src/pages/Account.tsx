@@ -321,7 +321,7 @@ const Account = () => {
   const remaining = subscription ? Math.floor(getRemainingDays(subscription)) : 0;
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen pro-shell">
       <AppHeader />
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
@@ -331,7 +331,7 @@ const Account = () => {
           transition={{ duration: 0.3 }}
           className="mb-6"
         >
-          <h1 className="text-2xl font-bold text-foreground">Mon compte</h1>
+          <h1 className="font-display text-2xl font-extrabold text-foreground">Mon compte</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Gérez vos informations et votre abonnement</p>
         </motion.div>
 
@@ -344,7 +344,7 @@ const Account = () => {
             className="space-y-4 lg:sticky lg:top-24"
           >
             {/* Profile card */}
-            <Card className="rounded-xl border-border shadow-sm">
+            <Card className="pro-card">
               <CardContent className="p-6 flex flex-col items-center text-center">
                 <Avatar className="h-20 w-20 ring-4 ring-muted">
                   <AvatarImage src={profile?.avatar_url || undefined} />
@@ -365,7 +365,7 @@ const Account = () => {
 
             {/* Quick navigation */}
             {!isParent ? (
-              <Card className="rounded-xl border-border shadow-sm overflow-hidden">
+              <Card className="pro-card overflow-hidden">
                 <div className="divide-y divide-border">
                   <button
                     type="button"
@@ -410,7 +410,7 @@ const Account = () => {
                 </div>
               </Card>
             ) : (
-              <Card className="rounded-xl border-border shadow-sm overflow-hidden">
+              <Card className="pro-card overflow-hidden">
                 <button
                   type="button"
                   onClick={() => navigate("/parent-dashboard")}
@@ -434,7 +434,7 @@ const Account = () => {
             className="space-y-6"
           >
             {/* Account settings list */}
-            <Card className="rounded-xl border-border shadow-sm overflow-hidden">
+            <Card className="pro-card overflow-hidden">
               <div className="px-6 py-3.5 border-b border-border">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Réglages du compte</p>
               </div>
@@ -461,7 +461,7 @@ const Account = () => {
 
             {/* Student: Subscription Section */}
             {isStudent && (
-              <Card className="rounded-xl border-border shadow-sm overflow-hidden">
+              <Card className="pro-card overflow-hidden">
                 <div className="px-6 py-3.5 border-b border-border flex items-center gap-3">
                   <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
                     <Key className="h-4 w-4 text-primary" />

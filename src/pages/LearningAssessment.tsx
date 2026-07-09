@@ -433,7 +433,7 @@ const LearningAssessment = () => {
   const progressValue = phase === "quiz" ? ((currentIndex + 1) / questions.length) * 100 : phase === "result" ? 100 : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background" dir="rtl">
+    <div className="min-h-screen student-shell" dir="rtl">
       {phase === "quiz" && (
         <div className="fixed top-0 left-0 right-0 z-50 px-6 py-4 backdrop-blur-xl bg-background/80 border-b">
           <div className="max-w-2xl mx-auto flex items-center gap-4">
@@ -463,7 +463,7 @@ const LearningAssessment = () => {
                     <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                       <Target className="h-10 w-10 text-primary" />
                     </div>
-                    <h1 className="text-2xl font-bold">اختبار تحديد المستوى</h1>
+                    <h1 className="font-display text-2xl font-extrabold">اختبار تحديد المستوى</h1>
                     <p className="text-muted-foreground leading-relaxed">
                       سيتم طرح {questions.length} أسئلة لتقييم مستواك الحالي في الرياضيات.
                       أجب بصدق للحصول على تقييم دقيق.
@@ -520,7 +520,7 @@ const LearningAssessment = () => {
                               </span>
                               <span className="flex-1">{option}</span>
                               {showExplanation && idx === questions[currentIndex].correct_index && (
-                                <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
+                                <CheckCircle className="h-5 w-5 text-mint shrink-0" />
                               )}
                               {showExplanation && idx === selectedAnswer && idx !== questions[currentIndex].correct_index && (
                                 <XCircle className="h-5 w-5 text-red-500 shrink-0" />
@@ -569,7 +569,7 @@ const LearningAssessment = () => {
                     <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                       <Trophy className="h-10 w-10 text-primary" />
                     </div>
-                    <h1 className="text-2xl font-bold">نتائج التقييم</h1>
+                    <h1 className="font-display text-2xl font-extrabold">نتائج التقييم</h1>
                     <div className="text-4xl font-bold text-primary">
                       {score.score}/{score.total}
                     </div>
@@ -592,14 +592,14 @@ const LearningAssessment = () => {
 
                       {report.strengths?.length > 0 && (
                         <div>
-                          <h3 className="font-semibold text-green-600 flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-mint flex items-center gap-2 mb-2">
                             <CheckCircle className="h-4 w-4" />
                             نقاط القوة
                           </h3>
                           <ul className="space-y-1">
                             {report.strengths.map((s, i) => (
                               <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                                <span className="text-green-500 mt-1">•</span>{s}
+                                <span className="text-mint mt-1">•</span>{s}
                               </li>
                             ))}
                           </ul>

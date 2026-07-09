@@ -16,20 +16,20 @@ const CTA = () => {
           alt="Élèves réussissant leurs examens"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-indigo-900/90" />
+        <div className="absolute inset-0 bg-[image:var(--gradient-hero)]" />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+          <h2 className="font-display text-4xl md:text-5xl font-extrabold text-white mb-6">
             {t("cta.title")}
           </h2>
           <p className="text-xl text-white/90 mb-8">
             {t("cta.subtitle")}
           </p>
-          <Button 
+          <Button
             onClick={() => navigate('/auth')}
-            className="bg-white text-blue-700 hover:bg-gray-100 font-bold text-lg px-8 py-6 rounded-lg"
+            className="bg-white text-primary hover:bg-white/90 font-bold text-lg px-8 py-6 rounded-2xl shadow-lg"
           >
             {t("cta.button")}
             <ArrowRight className="ml-2" />

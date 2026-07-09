@@ -1,3 +1,4 @@
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -163,7 +164,7 @@ const Abonnements = () => {
   const fullName = getFullName(profile);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
@@ -171,9 +172,10 @@ const Abonnements = () => {
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                 <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">AcadémiePlus</span>
+              <span className="font-display text-xl font-extrabold">AcadémiePlus</span>
             </div>
             <div className="flex items-center gap-4">
+              <LanguageToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/10 rounded-lg p-2 transition-colors">

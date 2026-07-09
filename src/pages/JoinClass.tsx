@@ -77,7 +77,7 @@ export default function JoinClass() {
 
         {status === "success" && (
           <>
-            <CheckCircle2 className="h-14 w-14 text-green-500" />
+            <CheckCircle2 className="h-14 w-14 text-mint" />
             <div>
               <p className="text-xl font-bold">Classe rejointe !</p>
               <p className="text-muted-foreground mt-1">Vous avez rejoint <strong>{className}</strong>.</p>

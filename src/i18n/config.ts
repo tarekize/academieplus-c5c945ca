@@ -29,6 +29,9 @@ i18n
       escapeValue: false
     },
     detection: {
+      // Only respect an explicit prior user choice (the FR/AR toggle). Never
+      // guess from the browser's language — the app defaults to Arabic and
+      // only switches to French when the user clicks the FR button.
       order: ['localStorage'],
       caches: ['localStorage']
     }

@@ -400,7 +400,7 @@ export default function LessonRemediation() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background" dir="rtl">
+    <div className="min-h-screen student-shell" dir="rtl">
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
         {/* Top bar */}
         <div className="flex items-center justify-between gap-2">
@@ -412,7 +412,7 @@ export default function LessonRemediation() {
 
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold">{lessonTitle}</h1>
+          <h1 className="font-display text-2xl font-extrabold">{lessonTitle}</h1>
           {chapterTitle && <p className="text-sm text-muted-foreground mt-1">{chapterTitle}</p>}
         </div>
 
@@ -472,7 +472,7 @@ export default function LessonRemediation() {
             {/* Exercises */}
             <div className="space-y-3">
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <PenTool className="h-5 w-5 text-orange-500" />
+                <PenTool className="h-5 w-5 text-amber" />
                 تمارين ({exercises.length})
               </h2>
               {exercises.map((ex, idx) => {
@@ -483,7 +483,7 @@ export default function LessonRemediation() {
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between gap-2">
                         <CardTitle className="text-sm flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full bg-orange-500/10 text-orange-600 flex items-center justify-center text-xs font-bold shrink-0">
+                          <span className="w-6 h-6 rounded-full bg-amber/10 text-amber flex items-center justify-center text-xs font-bold shrink-0">
                             {idx + 1}
                           </span>
                           {ex.title}

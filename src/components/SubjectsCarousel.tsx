@@ -5,7 +5,7 @@ const SubjectsCarousel = () => {
   const { t } = useTranslation();
 
   const subjects = [
-    { nameKey: "subjects.algebra", icon: Calculator, color: "bg-blue-500" },
+    { nameKey: "subjects.algebra", icon: Calculator, color: "bg-primary" },
     { nameKey: "subjects.geometry", icon: Beaker, color: "bg-purple-500" },
     { nameKey: "subjects.trigonometry", icon: Languages, color: "bg-pink-500" },
     { nameKey: "subjects.calculus", icon: BookOpen, color: "bg-green-500" },
@@ -19,17 +19,17 @@ const SubjectsCarousel = () => {
   ];
 
   return (
-    <section className="py-16 bg-gray-50 overflow-hidden">
+    <section className="py-16 bg-muted/40 overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+          <h2 className="font-display text-3xl md:text-4xl font-extrabold text-foreground mb-8">
             {t("subjects.title")}
           </h2>
           
           <div className="flex flex-wrap justify-center gap-8 mb-12">
             {features.map((featureKey, index) => (
               <div key={index} className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                   <Check className="w-4 h-4 text-white" />
                 </div>
                 <span className="text-gray-700 font-medium">{t(featureKey)}</span>

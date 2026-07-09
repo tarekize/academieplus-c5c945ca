@@ -632,8 +632,8 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
         <Card className="cursor-pointer group hover:shadow-lg hover:border-primary/50 transition-all" onClick={() => handleSectionChange("exercises")}>
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <PenTool className="h-7 w-7 text-orange-500" />
+            <div className="w-14 h-14 rounded-2xl bg-amber/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <PenTool className="h-7 w-7 text-amber" />
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-base" dir="rtl">تمارين</h3>
@@ -666,7 +666,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       <div className="flex items-center gap-3">
         {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>← العودة</Button>}
         <div className="flex items-center gap-2">
-          <SectionIcon className={cn("h-5 w-5", isQuiz ? "text-primary" : "text-orange-500")} />
+          <SectionIcon className={cn("h-5 w-5", isQuiz ? "text-primary" : "text-amber")} />
           <h2 className="text-lg font-bold" dir="rtl">{isQuiz ? "اسئله متعدده الاختيارات" : "تمارين"}</h2>
         </div>
       </div>
@@ -902,7 +902,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                           <HtmlWithMath htmlContent={cleanMathStatement(q.question)} className="flex-1" />
                         </div>
                         <div className="flex items-center gap-0.5 shrink-0">
-                          {Array.from({ length: 5 }).map((_, i) => <Pencil key={i} className={cn("h-4 w-4", i < (q.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />)}
+                          {Array.from({ length: 5 }).map((_, i) => <Pencil key={i} className={cn("h-4 w-4", i < (q.difficulty || 3) ? "text-amber fill-orange-500/20" : "text-muted-foreground/20")} />)}
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -984,7 +984,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                           <HtmlWithMath htmlContent={cleanMathStatement(ex.title)} className="flex-1" />
                         </div>
                         <div className="flex items-center gap-0.5 shrink-0">
-                          {Array.from({ length: 5 }).map((_, i) => <Pencil key={i} className={cn("h-4 w-4", i < (ex.difficulty || 3) ? "text-orange-500 fill-orange-500/20" : "text-muted-foreground/20")} />)}
+                          {Array.from({ length: 5 }).map((_, i) => <Pencil key={i} className={cn("h-4 w-4", i < (ex.difficulty || 3) ? "text-amber fill-orange-500/20" : "text-muted-foreground/20")} />)}
                         </div>
                       </div>
                       <HtmlWithMath htmlContent={cleanMathStatement(ex.statement)} className="text-sm text-right" dir="rtl" />

@@ -1,4 +1,94 @@
 {
+  "app": {
+    "brand": "AcadémiePlus",
+    "back": "Retour",
+    "manageAccount": "Gérer mon compte",
+    "dashboard": "Tableau de bord",
+    "logout": "Se déconnecter",
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "add": "Ajouter",
+    "search": "Rechercher",
+    "close": "Fermer",
+    "administration": "Administration",
+    "manageUsers": "Gestion Utilisateurs",
+    "administrator": "Administrateur",
+    "pedagogue": "Pédagogue",
+    "myLessons": "Mes cours",
+    "noResultsFor": "Aucun résultat trouvé pour « {{query}} »",
+    "schoolLevels": {
+      "5eme_primaire": "5ème Primaire",
+      "1ere_cem": "1ère CEM",
+      "2eme_cem": "2ème CEM",
+      "3eme_cem": "3ème CEM",
+      "4eme_cem": "4ème CEM",
+      "premiere": "Première",
+      "seconde": "Seconde",
+      "terminale": "Terminale"
+    }
+  },
+  "studentDashboard": {
+    "welcomeBack": "Ravi de te revoir",
+    "streak": "Série de {{count}}",
+    "currentLevel": "Niveau actuel",
+    "lastUpdated": "Dernière mise à jour",
+    "successRate": "Taux de réussite",
+    "correctAnswers": "{{count}} bonne(s) réponse(s)",
+    "errorRate": "Taux d'erreur",
+    "wrongAnswers": "{{count}} mauvaise(s) réponse(s)",
+    "studyTime": "Temps d'étude",
+    "totalAnswers": "{{count}} réponses au total",
+    "overallPerformance": "Ta performance globale",
+    "noChaptersYet": "Aucun chapitre à afficher pour l'instant",
+    "progressSeries": "Progression",
+    "quickActions": "Actions rapides",
+    "openMyLessons": "Ouvrir mes cours",
+    "takeExam": "Passer un examen",
+    "chooseAChapter": "Choisis un chapitre",
+    "noChaptersAvailable": "Aucun chapitre disponible pour l'instant.",
+    "chapterLessons": "Leçons du chapitre (progression selon ton niveau)",
+    "noLessonsInChapter": "Aucune leçon dans ce chapitre.",
+    "fixGaps": "Corriger les lacunes avec des exercices ciblés",
+    "aiSuggestion": "Suggestion de l'IA",
+    "aiComment": "Commentaire de l'IA",
+    "goToLesson": "Aller à la leçon",
+    "timeLabel": "Temps",
+    "levelLabel": "Niveau",
+    "lessonsLabel": "Leçons",
+    "levelInfo": {
+      "advanced": "Avancé",
+      "good": "Bien",
+      "average": "Moyen",
+      "needsImprovement": "À améliorer"
+    },
+    "lessonStatus": {
+      "completed": "Terminée",
+      "inProgress": "En cours",
+      "notStarted": "Non commencée"
+    },
+    "lessonFallback": "Leçon"
+  },
+  "listeCours": {
+    "pedagogicalContentByLevel": "Contenu Pédagogique par Niveau",
+    "selectLevelToSeeCourses": "Sélectionnez un niveau pour voir les cours disponibles",
+    "searchLevel": "Rechercher un niveau...",
+    "schoolLevelsTitle": "Niveaux Scolaires",
+    "backToLevels": "Retour aux niveaux",
+    "chooseAFiliere": "{{level}} — Choisir une filière",
+    "selectFiliereToSeeCourses": "Sélectionnez une filière pour voir les cours disponibles",
+    "noFiliereForLevel": "Aucune filière disponible pour ce niveau",
+    "subjectsOf": "Matières de {{level}}",
+    "yourClass": "ta classe",
+    "discoverSubjects": "Découvre tous les cours de ta classe et prépare-toi à réussir ! 🚀",
+    "searchSubject": "Rechercher une matière...",
+    "allSubjects": "Toutes les matières",
+    "comingSoon": "Bientôt disponible",
+    "math": "Mathématiques"
+  },
   "header": {
     "logo": "AcadémiePlus",
     "discoverPlans": "Découvrir les formules",
@@ -236,4 +326,3 @@
     "myCoursesDesc": "Accédez à vos cours et leçons"
   }
 }
-

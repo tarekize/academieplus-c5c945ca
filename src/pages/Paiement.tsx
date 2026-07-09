@@ -1,3 +1,4 @@
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, CreditCard, GraduationCap, LogOut, User as UserIcon, Shield, Lock, CheckCircle, Copy } from "lucide-react";
@@ -166,7 +167,7 @@ const Paiement = () => {
 
   if (!paymentInfo) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen pro-shell">
         <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between h-16">
@@ -181,7 +182,7 @@ const Paiement = () => {
         </header>
         <main className="pt-24 pb-12">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-3xl font-bold mb-4 text-foreground">Aucune formule sélectionnée</h1>
+            <h1 className="font-display text-3xl font-extrabold mb-4 text-foreground">Aucune formule sélectionnée</h1>
             <p className="text-muted-foreground mb-8">Veuillez d'abord choisir une formule d'abonnement.</p>
             <Button onClick={() => navigate("/abonnements")}>Voir les formules</Button>
           </div>
@@ -195,7 +196,7 @@ const Paiement = () => {
   // Payment success view with codes
   if (paymentDone && generatedCodes.length > 0) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen pro-shell">
         <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between h-16">
@@ -212,7 +213,7 @@ const Paiement = () => {
         <main className="pt-24 pb-12">
           <div className="container mx-auto px-4 max-w-lg">
             <Card className="p-8 text-center">
-              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+              <CheckCircle className="h-16 w-16 text-mint mx-auto mb-4" />
               <h1 className="text-2xl font-bold text-foreground mb-2">Paiement réussi !</h1>
               <p className="text-muted-foreground mb-6">
                 Voici {generatedCodes.length > 1 ? "vos codes" : "votre code"} d'activation à transmettre à {generatedCodes.length > 1 ? "vos enfants" : "votre enfant"} :
@@ -249,7 +250,7 @@ const Paiement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       {/* Navigation Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4">
@@ -261,6 +262,7 @@ const Paiement = () => {
               <span className="text-xl font-bold text-foreground">AcadémiePlus</span>
             </div>
             <div className="flex items-center gap-4">
+              <LanguageToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/10 rounded-lg p-2 transition-colors">
@@ -303,7 +305,7 @@ const Paiement = () => {
             {/* Left Column */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-foreground">Formule sélectionnée</h1>
+                <h1 className="font-display text-2xl font-extrabold text-foreground">Formule sélectionnée</h1>
                 <span className="text-muted-foreground underline underline-offset-4">
                   Contenus - {billing?.isAnnual ? '1 année scolaire' : 'mensuel'}
                 </span>

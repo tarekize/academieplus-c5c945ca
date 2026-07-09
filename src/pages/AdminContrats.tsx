@@ -270,7 +270,7 @@ export default function AdminContrats() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
@@ -282,7 +282,7 @@ export default function AdminContrats() {
                 <FileText className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">Gestion des Contrats</h1>
+                <h1 className="font-display text-2xl font-extrabold">Gestion des Contrats</h1>
                 <p className="text-sm text-muted-foreground">Établissements et élèves</p>
               </div>
             </div>

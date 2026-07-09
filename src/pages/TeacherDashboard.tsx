@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -42,7 +43,7 @@ const TeacherDashboard = () => {
   const activeMeta = TEACHER_SECTIONS.find((s) => s.key === section);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
@@ -63,15 +64,18 @@ const TeacherDashboard = () => {
                 )}
               </span>
             </button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="gap-2 rounded-xl text-muted-foreground hover:text-foreground"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Déconnexion</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <LanguageToggle />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="gap-2 rounded-xl text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Déconnexion</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -84,7 +88,7 @@ const TeacherDashboard = () => {
               <div className="absolute right-6 bottom-0 h-20 w-20 rounded-full bg-white/10" aria-hidden />
               <div className="relative">
                 <p className="text-primary-foreground/75 text-sm font-medium uppercase tracking-wide">Espace Enseignant</p>
-                <h1 className="text-2xl sm:text-3xl font-bold mt-1">Bienvenue dans votre espace</h1>
+                <h1 className="font-display text-2xl sm:text-3xl font-extrabold mt-1">Bienvenue dans votre espace</h1>
                 <p className="text-primary-foreground/80 text-sm mt-1.5">Que souhaitez-vous faire aujourd'hui ?</p>
               </div>
             </div>

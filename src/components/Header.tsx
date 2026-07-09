@@ -42,8 +42,6 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
 
   const changeLanguage = (lang: "fr" | "ar") => {
     i18n.changeLanguage(lang);
-    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
-    document.documentElement.lang = lang;
   };
 
   return (

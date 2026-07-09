@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useAdminUsers, useActivityLogs, AdminUser } from "@/hooks/useAdmin";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -157,7 +158,7 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
         <div className="container mx-auto px-4">
@@ -181,6 +182,7 @@ export default function Admin() {
                 <p className="text-xs text-muted-foreground leading-tight">Tableau de bord administrateur</p>
               </div>
             </div>
+            <LanguageToggle className="ms-auto" />
           </div>
         </div>
       </header>
@@ -214,7 +216,7 @@ export default function Admin() {
             value={stats.newUsersThisWeek}
             icon={TrendingUp}
             gradient="from-orange-500/20 to-orange-500/5"
-            iconColor="text-orange-500"
+            iconColor="text-amber"
           />
         </div>
 
@@ -888,7 +890,7 @@ function StatCard({
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs text-muted-foreground font-medium truncate">{title}</p>
-          <p className="text-3xl font-bold mt-0.5">{value}</p>
+          <p className="font-display text-3xl font-extrabold mt-0.5">{value}</p>
         </div>
         <div className="p-2.5 rounded-xl bg-background/80 shadow-sm flex-shrink-0">
           <Icon className={`h-6 w-6 ${iconColor}`} />

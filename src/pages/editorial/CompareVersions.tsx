@@ -24,7 +24,7 @@ export default function CompareVersions() {
   // which are not yet in the database
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pro-shell">
       <div className="container mx-auto p-6">
         {/* Header */}
         <div className="mb-6">
@@ -32,7 +32,7 @@ export default function CompareVersions() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour au tableau de bord
           </Button>
-          <h1 className="text-3xl font-bold mt-4">Comparaison de versions</h1>
+          <h1 className="font-display text-3xl font-extrabold mt-4">Comparaison de versions</h1>
         </div>
 
         <Card className="p-12 text-center">

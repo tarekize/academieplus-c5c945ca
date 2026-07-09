@@ -1,4 +1,6 @@
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -73,6 +75,9 @@ const levelsWithFilieres = ["premiere", "seconde", "terminale"];
 
 const ListeCours = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const subjectsList: Subject[] = staticSubjects.map((s) => (s.id === "math" ? { ...s, name: t("listeCours.math") } : s));
+  const levelsList: SchoolLevel[] = schoolLevels.map((l) => ({ ...l, name: t(`app.schoolLevels.${l.id}`) }));
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
@@ -154,16 +159,10 @@ const ListeCours = () => {
   };
 
   const getSchoolLevelName = (level: string) => {
-    const levels: Record<string, string> = {
-      "6eme": "6ème",
-      "5eme": "5ème",
-      "4eme": "4ème",
-      "3eme": "3ème",
-      seconde: "Seconde",
-      premiere: "Première",
-      terminale: "Terminale",
-    };
-    return levels[level] || level || "Votre classe";
+    if (!level) return t("listeCours.yourClass");
+    const key = `app.schoolLevels.${level}`;
+    const translated = t(key);
+    return translated === key ? level : translated;
   };
 
   const handleLogout = async () => {
@@ -210,11 +209,11 @@ const ListeCours = () => {
     setSearchParams({});
   };
 
-  const filteredSubjects = staticSubjects.filter((subject) =>
+  const filteredSubjects = subjectsList.filter((subject) =>
     subject.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredLevels = schoolLevels.filter((level) =>
+  const filteredLevels = levelsList.filter((level) =>
     level.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -259,7 +258,7 @@ const ListeCours = () => {
                 <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
                   <GraduationCap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-lg font-bold hidden sm:block">AcadémiePlus</span>
+                <span className="text-lg font-bold hidden sm:block">{t("app.brand")}</span>
               </div>
 
               <div className="flex items-center gap-2">
@@ -274,7 +273,7 @@ const ListeCours = () => {
                       </Avatar>
                       <div className="text-left hidden md:block">
                         <p className="text-sm font-semibold leading-tight">{fullName}</p>
-                        <p className="text-xs text-muted-foreground leading-tight">{isAdmin ? 'Administrateur' : 'Pédagogue'}</p>
+                        <p className="text-xs text-muted-foreground leading-tight">{isAdmin ? t("app.administrator") : t("app.pedagogue")}</p>
                       </div>
                     </div>
                   </DropdownMenuTrigger>
@@ -282,21 +281,21 @@ const ListeCours = () => {
                     {isAdmin && (
                       <DropdownMenuItem onClick={() => navigate("/admin")} className="rounded-lg cursor-pointer">
                         <Users className="mr-2 h-4 w-4" />
-                        <span>Gestion Utilisateurs</span>
+                        <span>{t("app.manageUsers")}</span>
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
                       <UserIcon className="mr-2 h-4 w-4" />
-                      <span>Gérer mon compte</span>
+                      <span>{t("app.manageAccount")}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard")} className="rounded-lg cursor-pointer">
                       <GraduationCap className="mr-2 h-4 w-4" />
-                      <span>Tableau de bord</span>
+                      <span>{t("app.dashboard")}</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
-                      <span>Se déconnecter</span>
+                      <span>{t("app.logout")}</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -311,10 +310,10 @@ const ListeCours = () => {
             <div className="mb-10 animate-fade-in">
               <div className="rounded-2xl bg-[image:var(--gradient-primary)] px-6 py-8 text-center text-primary-foreground shadow-[var(--shadow-elegant)] mb-7">
                 <h1 className="text-3xl md:text-4xl font-extrabold mb-2">
-                  Contenu Pédagogique par Niveau
+                  {t("listeCours.pedagogicalContentByLevel")}
                 </h1>
                 <p className="text-primary-foreground/75 text-base">
-                  Sélectionnez un niveau pour voir les cours disponibles
+                  {t("listeCours.selectLevelToSeeCourses")}
                 </p>
               </div>
 
@@ -324,7 +323,7 @@ const ListeCours = () => {
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder="Rechercher un niveau..."
+                    placeholder={t("listeCours.searchLevel")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-11 h-11 rounded-xl bg-card border-border/50 shadow-sm focus-visible:ring-1 focus-visible:ring-primary/50"
@@ -338,7 +337,7 @@ const ListeCours = () => {
               <section className="mb-12">
                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                   <BookOpen className="h-6 w-6 text-primary" />
-                  Niveaux Scolaires
+                  {t("listeCours.schoolLevelsTitle")}
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
                   {filteredLevels.map((level, index) => (
@@ -369,7 +368,7 @@ const ListeCours = () => {
             {/* No Results */}
             {filteredLevels.length === 0 && (
               <div className="text-center py-16">
-                <p className="text-xl text-muted-foreground">Aucun niveau trouvé pour "{searchQuery}"</p>
+                <p className="text-xl text-muted-foreground">{t("app.noResultsFor", { query: searchQuery })}</p>
               </div>
             )}
           </div>
@@ -380,7 +379,7 @@ const ListeCours = () => {
 
   // Admin/Pédago view - Filiere selection for selected level
   if ((isAdmin || isPedago) && selectedLevel) {
-    const levelName = schoolLevels.find(l => l.id === selectedLevel)?.name || selectedLevel;
+    const levelName = levelsList.find(l => l.id === selectedLevel)?.name || selectedLevel;
     const levelColor = schoolLevels.find(l => l.id === selectedLevel)?.color || "#8B5CF6";
 
     return (
@@ -395,7 +394,7 @@ const ListeCours = () => {
                 <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
                   <GraduationCap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-lg font-bold hidden sm:block">AcadémiePlus</span>
+                <span className="text-lg font-bold hidden sm:block">{t("app.brand")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <DropdownMenu>
@@ -409,7 +408,7 @@ const ListeCours = () => {
                       </Avatar>
                       <div className="text-left hidden md:block">
                         <p className="text-sm font-semibold leading-tight">{fullName}</p>
-                        <p className="text-xs text-muted-foreground leading-tight">{isAdmin ? 'Administrateur' : 'Pédagogue'}</p>
+                        <p className="text-xs text-muted-foreground leading-tight">{isAdmin ? t("app.administrator") : t("app.pedagogue")}</p>
                       </div>
                     </div>
                   </DropdownMenuTrigger>
@@ -417,21 +416,21 @@ const ListeCours = () => {
                     {isAdmin && (
                       <DropdownMenuItem onClick={() => navigate("/admin")} className="rounded-lg cursor-pointer">
                         <Users className="mr-2 h-4 w-4" />
-                        <span>Gestion Utilisateurs</span>
+                        <span>{t("app.manageUsers")}</span>
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
                       <UserIcon className="mr-2 h-4 w-4" />
-                      <span>Gérer mon compte</span>
+                      <span>{t("app.manageAccount")}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard")} className="rounded-lg cursor-pointer">
                       <GraduationCap className="mr-2 h-4 w-4" />
-                      <span>Tableau de bord</span>
+                      <span>{t("app.dashboard")}</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
-                      <span>Se déconnecter</span>
+                      <span>{t("app.logout")}</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -444,15 +443,15 @@ const ListeCours = () => {
           <div className="max-w-5xl mx-auto">
             <Button variant="ghost" size="sm" className="mb-5 gap-2 rounded-xl" onClick={handleBackToLevels}>
               <ArrowLeft className="h-4 w-4" />
-              Retour aux niveaux
+              {t("listeCours.backToLevels")}
             </Button>
 
             <div className="rounded-2xl bg-[image:var(--gradient-primary)] px-6 py-7 text-center text-primary-foreground shadow-[var(--shadow-elegant)] mb-8 animate-fade-in">
               <h1 className="text-2xl md:text-3xl font-extrabold mb-1">
-                {levelName} — Choisir une filière
+                {t("listeCours.chooseAFiliere", { level: levelName })}
               </h1>
               <p className="text-primary-foreground/75 text-sm">
-                Sélectionnez une filière pour voir les cours disponibles
+                {t("listeCours.selectFiliereToSeeCourses")}
               </p>
             </div>
 
@@ -495,7 +494,7 @@ const ListeCours = () => {
 
             {!loadingFilieres && filieres.length === 0 && (
               <div className="text-center py-16">
-                <p className="text-muted-foreground">Aucune filière disponible pour ce niveau</p>
+                <p className="text-muted-foreground">{t("listeCours.noFiliereForLevel")}</p>
               </div>
             )}
           </div>
@@ -506,9 +505,9 @@ const ListeCours = () => {
 
   // Student/Parent view - Original behavior
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
+    <div className="min-h-screen student-shell">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/60 backdrop-blur-xl border-b border-white/50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div
@@ -518,10 +517,11 @@ const ListeCours = () => {
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                 <GraduationCap className="h-6 w-6 text-white" />
               </div>
-              <span className="text-xl font-bold">AcadémiePlus</span>
+              <span className="text-xl font-bold">{t("app.brand")}</span>
             </div>
 
             <div className="flex items-center gap-3">
+              <LanguageToggle />
               <ChangePasswordButton />
 
               <DropdownMenu>
@@ -542,16 +542,16 @@ const ListeCours = () => {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem onClick={() => navigate("/account")}>
                     <UserIcon className="mr-2 h-4 w-4" />
-                    <span>Gérer mon compte</span>
+                    <span>{t("app.manageAccount")}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                     <GraduationCap className="mr-2 h-4 w-4" />
-                    <span>Tableau de bord</span>
+                    <span>{t("app.dashboard")}</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Se déconnecter</span>
+                    <span>{t("app.logout")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -563,12 +563,12 @@ const ListeCours = () => {
       <main className="container mx-auto px-4 py-8 mt-20">
         <div className="max-w-7xl mx-auto">
           {/* Hero Section */}
-          <div className="text-center mb-12 animate-fade-in">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Matières de {profile?.school_level ? getSchoolLevelName(profile.school_level) : "ta classe"}
+          <div className="text-center mb-12 animate-fade-up">
+            <h1 className="font-display text-4xl md:text-5xl font-black mb-4 bg-[image:var(--gradient-violet)] bg-clip-text text-transparent">
+              {t("listeCours.subjectsOf", { level: profile?.school_level ? getSchoolLevelName(profile.school_level) : t("listeCours.yourClass") })}
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
-              Découvre tous les cours de ta classe et prépare-toi à réussir ! 🚀
+              {t("listeCours.discoverSubjects")}
             </p>
 
             {/* Search Bar */}
@@ -577,10 +577,10 @@ const ListeCours = () => {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Rechercher une matière..."
+                  placeholder={t("listeCours.searchSubject")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-14 text-lg rounded-full shadow-lg border-2 focus:border-primary"
+                  className="glass-card pl-12 h-14 text-lg border-0 focus-visible:ring-primary"
                 />
               </div>
             </div>
@@ -598,7 +598,7 @@ const ListeCours = () => {
             <section className="mb-12">
               <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                 <BookOpen className="h-6 w-6 text-primary" />
-                Toutes les matières
+                {t("listeCours.allSubjects")}
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {filteredSubjects.map((subject, index) => {
@@ -609,11 +609,11 @@ const ListeCours = () => {
                       type="button"
                       disabled={!subject.available}
                       onClick={() => subject.available && navigate(`/cours/${subject.id}`)}
-                      className={`group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 animate-fade-in ${subject.available
-                        ? "cursor-pointer hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40"
+                      className={`group relative overflow-hidden glass-card text-left transition-all duration-300 animate-pop-in ${subject.available
+                        ? "cursor-pointer hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)]"
                         : "opacity-60 cursor-not-allowed"
                         }`}
-                      style={{ animationDelay: `${index * 50}ms` }}
+                      style={{ animationDelay: `${index * 60}ms` }}
                     >
                       <div className="h-1.5 w-full" style={{ backgroundColor: subject.color }} />
                       <div className="flex flex-col items-center text-center gap-3 p-6">
@@ -626,7 +626,7 @@ const ListeCours = () => {
                         <div>
                           <h3 className="font-display font-bold text-lg leading-tight">{subject.name}</h3>
                           {!subject.available && (
-                            <span className="text-xs text-muted-foreground">Bientôt disponible</span>
+                            <span className="text-xs text-muted-foreground">{t("listeCours.comingSoon")}</span>
                           )}
                         </div>
                       </div>
@@ -641,7 +641,7 @@ const ListeCours = () => {
           {/* No Results */}
           {filteredSubjects.length === 0 && (
             <div className="text-center py-16">
-              <p className="text-xl text-muted-foreground">Aucune matière trouvée pour "{searchQuery}"</p>
+              <p className="text-xl text-muted-foreground">{t("app.noResultsFor", { query: searchQuery })}</p>
             </div>
           )}
         </div>

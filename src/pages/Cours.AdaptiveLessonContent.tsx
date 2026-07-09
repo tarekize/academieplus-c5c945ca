@@ -193,7 +193,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         <div className="mt-2 space-y-2">
             {renderBreadcrumb()}
             {chapter.content && (
-                <Card className="rounded-2xl border-primary/10 bg-card/80 backdrop-blur-sm">
+                <Card className="glass-card border-0">
                     <CardContent className="p-6">
                         <HtmlWithMath
                             className="prose prose-sm dark:prose-invert max-w-none"
@@ -203,7 +203,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                 </Card>
             )}
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <h3 className="text-lg font-semibold">الدروس - Leçons</h3>
+                <h3 className="font-display text-lg font-extrabold">الدروس - Leçons</h3>
                 {canManage && (
                     <div className="flex items-center gap-2 flex-wrap">
                         <EnrichChapterButton
@@ -234,10 +234,10 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                         key={lesson.id}
                         variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
                         transition={{ duration: 0.25, ease: "easeOut" }}
-                        className="group w-full text-right p-4 border border-border/60 rounded-2xl bg-card/60 hover:bg-primary/5 hover:border-primary/30 hover:shadow-md transition-all duration-300 cursor-pointer flex items-center gap-3 active:scale-[0.99]"
+                        className="group w-full text-right p-4 border border-border/60 rounded-2xl bg-card/60 hover:bg-violet/5 hover:border-violet/30 hover:shadow-md transition-all duration-300 cursor-pointer flex items-center gap-3 active:scale-[0.99]"
                         onClick={() => handleLessonClick(lesson)}
                     >
-                        <span className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-sm font-bold shrink-0 transition-transform duration-300 group-hover:scale-110">
+                        <span className="w-9 h-9 rounded-xl bg-[image:var(--gradient-violet)] flex items-center justify-center text-white text-sm font-bold shrink-0 transition-transform duration-300 group-hover:scale-110">
                             {idx + 1}
                         </span>
                         <div className="flex-1 min-w-0">
@@ -262,20 +262,20 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                 <motion.div
                     variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
                     transition={{ duration: 0.25, ease: "easeOut" }}
-                    className="group w-full p-4 mt-2 border-2 border-green-500/30 rounded-2xl hover:bg-green-500/5 hover:shadow-md transition-all duration-300 cursor-pointer flex items-center gap-3 bg-gradient-to-r from-green-500/5 to-transparent active:scale-[0.99]"
+                    className="group w-full p-4 mt-2 border-2 border-mint/30 rounded-2xl hover:bg-mint/5 hover:shadow-md transition-all duration-300 cursor-pointer flex items-center gap-3 bg-gradient-to-r from-mint/5 to-transparent active:scale-[0.99]"
                     onClick={() => setShowRevision(true)}
                 >
-                    <span className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-600 shrink-0 transition-transform duration-300 group-hover:scale-110">
+                    <span className="w-10 h-10 rounded-xl bg-[image:var(--gradient-mint)] flex items-center justify-center text-white shrink-0 transition-transform duration-300 group-hover:scale-110">
                         <BookOpen className="h-5 w-5" />
                     </span>
                     <div className="flex-1">
                         <p className="font-bold text-base flex items-center gap-2">
                             Révision
-                            <Sparkles className="h-4 w-4 text-green-500" />
+                            <Sparkles className="h-4 w-4 text-mint" />
                         </p>
                         <p className="text-sm text-muted-foreground">Fiches de révision (résumé schématique du chapitre par IA)</p>
                     </div>
-                    <ChevronLeft className="h-4 w-4 text-green-600/70 shrink-0 transition-transform duration-300 group-hover:-translate-x-1" />
+                    <ChevronLeft className="h-4 w-4 text-mint/70 shrink-0 transition-transform duration-300 group-hover:-translate-x-1" />
                 </motion.div>
             </motion.div>
         </div>
@@ -320,9 +320,9 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                 {/* Course content should be hidden when an activity section is open. */}
                 {activeSection === null && (
                     <div className="flex flex-col lg:flex-row gap-8 mt-6">
-                        <Card className="flex-1 min-w-0 rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm">
+                        <Card className="flex-1 min-w-0 glass-card border-0">
                             <CardContent className="p-6">
-                                <h2 className="text-xl font-bold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
+                                <h2 className="font-display text-xl font-extrabold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
                                 {loadingContent ? (
                                     <div className="flex justify-center py-12">
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />

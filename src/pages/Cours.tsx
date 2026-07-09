@@ -419,7 +419,7 @@ const Cours = () => {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen student-shell">
       <AppHeader />
 
       <main className={`container mx-auto px-4 py-8 transition-all duration-300 ${isChatOpen ? 'lg:pr-[420px] blur-[2px] saturate-75 opacity-80' : ''}`}>
@@ -431,14 +431,13 @@ const Cours = () => {
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="relative mb-6"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/15 to-primary/5 rounded-3xl blur-xl" />
-          <div className="relative bg-card/80 backdrop-blur-sm rounded-3xl border border-border/50 p-5 md:p-7">
+          <div className="glass-card p-5 md:p-7">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-2xl shadow-md shrink-0">
+              <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-[image:var(--gradient-violet)] flex items-center justify-center text-2xl shadow-md shrink-0">
                 {subject?.icon || "📖"}
               </div>
               <div className="flex-1 min-w-0">
-                <h1 className="text-xl md:text-2xl font-bold text-foreground truncate">{subject?.name || "Cours"}</h1>
+                <h1 className="font-display text-xl md:text-2xl font-extrabold text-foreground truncate">{subject?.name || "Cours"}</h1>
                 <p className="text-sm text-muted-foreground">
                   {Object.values(progress).filter(Boolean).length}/{chapters.length} chapitres terminés
                 </p>
@@ -479,7 +478,7 @@ const Cours = () => {
         {activeActivity === "revision" && activeChapter && (
           <div className="max-w-2xl mx-auto space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold" dir="rtl">مراجعة - {activeChapter.title}</h2>
+              <h2 className="font-display text-xl font-extrabold" dir="rtl">مراجعة - {activeChapter.title}</h2>
               <Button variant="outline" onClick={() => setActiveActivity(null)}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 العودة للدرس
@@ -488,13 +487,13 @@ const Cours = () => {
             {dbQuizzes.length > 0 ? (
               <div className="space-y-4">
                 {dbQuizzes.map((q, idx) => (
-                  <Card key={q.id}>
+                  <Card key={q.id} className="glass-card border-0 animate-pop-in">
                     <CardContent className="p-6">
-                      <p className="text-sm text-muted-foreground mb-1" dir="rtl">بطاقة {idx + 1}</p>
+                      <p className="text-sm font-semibold text-violet mb-1" dir="rtl">بطاقة {idx + 1}</p>
                       <p className="text-lg font-medium mb-3" dir="rtl">{q.question}</p>
                       <details className="cursor-pointer">
-                        <summary className="text-primary text-sm" dir="rtl">عرض الإجابة</summary>
-                        <p className="mt-2 p-3 bg-muted/50 rounded-lg" dir="rtl">{q.correct_answer}</p>
+                        <summary className="text-primary text-sm font-semibold" dir="rtl">عرض الإجابة</summary>
+                        <p className="mt-2 p-3 bg-mint/10 rounded-lg" dir="rtl">{q.correct_answer}</p>
                         {q.explanation && <p className="mt-1 text-sm text-muted-foreground" dir="rtl">{q.explanation}</p>}
                       </details>
                     </CardContent>
@@ -502,7 +501,7 @@ const Cours = () => {
                 ))}
               </div>
             ) : (
-              <Card>
+              <Card className="glass-card border-0">
                 <CardContent className="p-8 text-center">
                   <p className="text-muted-foreground" dir="rtl">لا توجد بطاقات مراجعة. قم بإضافة أسئلة أولاً.</p>
                 </CardContent>
