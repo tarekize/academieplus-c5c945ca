@@ -13,6 +13,8 @@ import {
 import { ChangePasswordButton } from "@/components/ChangePasswordButton";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
 import DashboardTile from "@/components/dashboard/DashboardTile";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { useTranslation } from "react-i18next";
 
 interface Profile {
   id: string;
@@ -26,6 +28,7 @@ interface Profile {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -79,9 +82,9 @@ const Dashboard = () => {
   };
 
   const getFullName = (p: Profile | null): string => {
-    if (!p) return "Utilisateur";
+    if (!p) return t("dashboard.user");
     const parts = [p.first_name, p.last_name].filter(Boolean);
-    return parts.length > 0 ? parts.join(" ") : "Utilisateur";
+    return parts.length > 0 ? parts.join(" ") : t("dashboard.user");
   };
 
   const getSchoolLevelName = (level: string) => {
@@ -136,7 +139,7 @@ const Dashboard = () => {
 
             {/* Right actions */}
             <div className="flex items-center gap-2">
-              <ChangePasswordButton />
+              <LanguageToggle /><ChangePasswordButton />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center gap-2 cursor-pointer rounded-xl px-2 py-1.5 hover:bg-muted transition-colors">
@@ -149,7 +152,7 @@ const Dashboard = () => {
                     <div className="text-left hidden md:block">
                       <p className="text-sm font-semibold leading-tight">{fullName}</p>
                       <p className="text-xs text-muted-foreground leading-tight">
-                        {isAdmin ? 'Administrateur' : profile?.school_level && getSchoolLevelName(profile.school_level)}
+                        {isAdmin ? t("dashboard.admin") : profile?.school_level && getSchoolLevelName(profile.school_level)}
                       </p>
                     </div>
                   </div>
@@ -158,19 +161,19 @@ const Dashboard = () => {
                   {!isAdmin && (
                     <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
                       <UserIcon className="mr-2 h-4 w-4" />
-                      <span>Gérer mon compte</span>
+                      <span>{t("nav.account")}</span>
                     </DropdownMenuItem>
                   )}
                   {isAdmin && (
                     <DropdownMenuItem onClick={() => navigate("/admin")} className="rounded-lg cursor-pointer">
                       <Users className="mr-2 h-4 w-4" />
-                      <span>Gestion Utilisateurs</span>
+                      <span>{t("dashboard.userManagement")}</span>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Se déconnecter</span>
+                    <span>{t("nav.logout")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -195,9 +198,9 @@ const Dashboard = () => {
                 <div className="absolute right-6 bottom-0 h-20 w-20 rounded-full bg-white/10" aria-hidden />
                 <div className="relative">
                   <p className="text-primary-foreground/75 text-sm font-medium uppercase tracking-wide">
-                    {isAdmin ? "Espace Administration" : "Tableau de bord"}
+                    {isAdmin ? t("dashboard.adminSpace") : t("nav.dashboard")}
                   </p>
-                  <h1 className="text-2xl sm:text-3xl font-bold mt-1">Bonjour, {fullName} 👋</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold mt-1">{t("dashboard.hello", { name: fullName })}</h1>
                 </div>
               </div>
 
@@ -207,8 +210,8 @@ const Dashboard = () => {
                     icon={Users}
                     iconBg="bg-blue-500/10"
                     iconText="text-blue-600"
-                    title="Mes Enfants"
-                    description="Suivez la progression de vos enfants"
+                    title={t("dashboard.myChildren")}
+                    description={t("dashboard.myChildrenDesc")}
                     onClick={() => navigate("/mes-informations")}
                   />
                 )}
@@ -218,40 +221,40 @@ const Dashboard = () => {
                       icon={Users}
                       iconBg="bg-primary/10"
                       iconText="text-primary"
-                      title="Gestion Utilisateurs"
-                      description="Gérez les utilisateurs de la plateforme"
+                      title={t("dashboard.userManagement")}
+                      description={t("dashboard.userManagementDesc")}
                       onClick={() => navigate("/admin")}
                     />
                     <DashboardTile
                       icon={BarChart3}
                       iconBg="bg-orange-500/10"
                       iconText="text-orange-600"
-                      title="Analytics"
-                      description="Consultez les statistiques d'utilisation"
+                      title={t("dashboard.analytics")}
+                      description={t("dashboard.analyticsDesc")}
                       onClick={() => navigate("/analytics")}
                     />
                     <DashboardTile
                       icon={CreditCard}
                       iconBg="bg-emerald-500/10"
                       iconText="text-emerald-600"
-                      title="Abonnements"
-                      description="Configurez les tarifs et paiements"
+                      title={t("dashboard.subscriptions")}
+                      description={t("dashboard.subscriptionsDesc")}
                       onClick={() => navigate("/admin/abonnements")}
                     />
                     <DashboardTile
                       icon={FileText}
                       iconBg="bg-indigo-500/10"
                       iconText="text-indigo-600"
-                      title="Contrats"
-                      description="Gérez les contrats établissements, élèves et parents"
+                      title={t("dashboard.contracts")}
+                      description={t("dashboard.contractsDesc")}
                       onClick={() => navigate("/admin/contrats")}
                     />
                     <DashboardTile
                       icon={Cpu}
                       iconBg="bg-teal-500/10"
                       iconText="text-teal-600"
-                      title="Consommation IA"
-                      description="Estimation de l'usage de tokens par groupe"
+                      title={t("dashboard.aiUsage")}
+                      description={t("dashboard.aiUsageDesc")}
                       onClick={() => navigate("/admin/token-usage")}
                     />
                   </>
@@ -260,8 +263,8 @@ const Dashboard = () => {
                   icon={GraduationCap}
                   iconBg="bg-purple-500/10"
                   iconText="text-purple-600"
-                  title={isAdmin ? "Voir les Cours" : "Mes Cours"}
-                  description={isAdmin ? "Consultez les cours par niveau" : "Accédez à vos cours et leçons"}
+                  title={isAdmin ? t("dashboard.viewCourses") : t("dashboard.myCourses")}
+                  description={isAdmin ? t("dashboard.viewCoursesDesc") : t("dashboard.myCoursesDesc")}
                   onClick={() => navigate("/liste-cours")}
                 />
               </div>

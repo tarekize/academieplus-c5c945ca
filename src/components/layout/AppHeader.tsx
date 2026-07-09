@@ -11,6 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { useTranslation } from "react-i18next";
 
 interface HeaderProfile {
   first_name: string | null;
@@ -33,6 +35,7 @@ const getSchoolLevelName = (level: string) => {
 
 /** Shared top navigation bar: logo on the left, avatar/name/menu on the right. Used across all student-facing pages. */
 export function AppHeader() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, hasRole } = useAuth();
   const [profile, setProfile] = useState<HeaderProfile | null>(null);
@@ -73,6 +76,8 @@ export function AppHeader() {
             <span className="text-lg font-bold text-foreground hidden sm:block">AcadémiePlus</span>
           </div>
 
+          <div className="flex items-center gap-2">
+          <LanguageToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-2.5 cursor-pointer hover:bg-muted rounded-xl px-2 py-1.5 transition-colors">
@@ -93,19 +98,20 @@ export function AppHeader() {
             <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg border-border/50">
               <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
                 <UserIcon className="mr-2 h-4 w-4" />
-                <span>Gérer mon compte</span>
+                <span>{t("nav.account")}</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate(isParent ? "/parent-dashboard" : "/dashboard")} className="rounded-lg cursor-pointer">
                 <BarChart3 className="mr-2 h-4 w-4" />
-                <span>Tableau de bord</span>
+                <span>{t("nav.dashboard")}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Se déconnecter</span>
+                <span>{t("nav.logout")}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
       </div>
     </header>
