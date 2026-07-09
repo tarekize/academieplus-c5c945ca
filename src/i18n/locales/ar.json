@@ -218,5 +218,27 @@
     "dashboard": "لوحة التحكم",
     "logout": "تسجيل الخروج",
     "courses": "الدروس"
+  },
+  "dashboard": {
+    "userManagement": "إدارة المستخدمين",
+    "admin": "مدير",
+    "adminSpace": "فضاء الإدارة",
+    "hello": "مرحباً، {{name}} 👋",
+    "user": "مستخدم",
+    "myChildren": "أبنائي",
+    "myChildrenDesc": "تابع تقدم أبنائك",
+    "userManagementDesc": "إدارة مستخدمي المنصة",
+    "analytics": "الإحصائيات",
+    "analyticsDesc": "اطّلع على إحصائيات الاستخدام",
+    "subscriptions": "الاشتراكات",
+    "subscriptionsDesc": "إعداد الأسعار والمدفوعات",
+    "contracts": "العقود",
+    "contractsDesc": "إدارة عقود المؤسسات والتلاميذ وأولياء الأمور",
+    "aiUsage": "استهلاك الذكاء الاصطناعي",
+    "aiUsageDesc": "تقدير استخدام الرموز حسب المجموعة",
+    "viewCourses": "عرض الدروس",
+    "viewCoursesDesc": "اطّلع على الدروس حسب المستوى",
+    "myCourses": "دروسي",
+    "myCoursesDesc": "ادخل إلى دروسك وحصصك"
   }
 }
