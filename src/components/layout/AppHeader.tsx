@@ -74,6 +74,8 @@ export function AppHeader() {
             <span className="text-lg font-bold text-foreground hidden sm:block">AcadémiePlus</span>
           </div>
 
+          <div className="flex items-center gap-2">
+          <LanguageToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-2.5 cursor-pointer hover:bg-muted rounded-xl px-2 py-1.5 transition-colors">
