@@ -212,6 +212,28 @@
     "dashboard": "Tableau de bord",
     "logout": "Se déconnecter",
     "courses": "Les cours"
+  },
+  "dashboard": {
+    "userManagement": "Gestion Utilisateurs",
+    "admin": "Administrateur",
+    "adminSpace": "Espace Administration",
+    "hello": "Bonjour, {{name}} 👋",
+    "user": "Utilisateur",
+    "myChildren": "Mes Enfants",
+    "myChildrenDesc": "Suivez la progression de vos enfants",
+    "userManagementDesc": "Gérez les utilisateurs de la plateforme",
+    "analytics": "Analytics",
+    "analyticsDesc": "Consultez les statistiques d'utilisation",
+    "subscriptions": "Abonnements",
+    "subscriptionsDesc": "Configurez les tarifs et paiements",
+    "contracts": "Contrats",
+    "contractsDesc": "Gérez les contrats établissements, élèves et parents",
+    "aiUsage": "Consommation IA",
+    "aiUsageDesc": "Estimation de l'usage de tokens par groupe",
+    "viewCourses": "Voir les Cours",
+    "viewCoursesDesc": "Consultez les cours par niveau",
+    "myCourses": "Mes Cours",
+    "myCoursesDesc": "Accédez à vos cours et leçons"
   }
 }
 
