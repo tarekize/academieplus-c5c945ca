@@ -13,6 +13,8 @@ import {
 import { ChangePasswordButton } from "@/components/ChangePasswordButton";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
 import DashboardTile from "@/components/dashboard/DashboardTile";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { useTranslation } from "react-i18next";
 
 interface Profile {
   id: string;
