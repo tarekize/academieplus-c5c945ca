@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { useTranslation } from "react-i18next";
 
 interface HeaderProfile {
   first_name: string | null;
