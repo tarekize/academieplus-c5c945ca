@@ -98,16 +98,16 @@ export function AppHeader() {
             <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg border-border/50">
               <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
                 <UserIcon className="mr-2 h-4 w-4" />
-                <span>Gérer mon compte</span>
+                <span>{t("nav.account")}</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate(isParent ? "/parent-dashboard" : "/dashboard")} className="rounded-lg cursor-pointer">
                 <BarChart3 className="mr-2 h-4 w-4" />
-                <span>Tableau de bord</span>
+                <span>{t("nav.dashboard")}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Se déconnecter</span>
+                <span>{t("nav.logout")}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
