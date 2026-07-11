@@ -17,6 +17,8 @@ import Header from "@/components/Header";
 import iconStudent from "@/assets/icon-student.png";
 import iconParent from "@/assets/icon-parent.png";
 import LocationFields from "@/components/profile/LocationFields";
+import { Capacitor } from "@capacitor/core";
+import { signInWithGoogleNative } from "@/lib/nativeGoogleAuth";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -442,6 +444,14 @@ const Auth = () => {
   const handleGoogleAuth = async () => {
     setLoading(true);
     try {
+      if (Capacitor.isNativePlatform()) {
+        // Native app: sign in through the system browser and come back via
+        // a deep link — a WebView redirect would otherwise land on a dead
+        // "localhost" page instead of returning to the app.
+        await signInWithGoogleNative();
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
