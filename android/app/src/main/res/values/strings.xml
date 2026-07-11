@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">AcademiePlus</string>
+    <string name="title_activity_main">AcademiePlus</string>
+    <string name="package_name">com.academieplus.app</string>
+    <string name="custom_url_scheme">com.academieplus.app</string>
+</resources>

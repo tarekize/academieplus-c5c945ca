@@ -103,6 +103,11 @@
     "cta": "Découvrir les cours",
     "programs": "Bientôt, toutes les autres matières seront disponibles."
   },
+  "mobileHome": {
+    "tagline": "Le soutien scolaire nouvelle génération, propulsé par l'IA.",
+    "signup": "Créer un compte",
+    "login": "Se connecter"
+  },
   "whyChooseUs": {
     "title": "Pourquoi nous choisir ?",
     "subtitle": "Une approche unique qui transforme les difficultés en réussites",

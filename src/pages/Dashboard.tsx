@@ -16,6 +16,7 @@ import DashboardTile from "@/components/dashboard/DashboardTile";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import { BottomNav } from "@/components/layout/BottomNav";
 
 interface Profile {
   id: string;
@@ -187,7 +188,7 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 pt-20 pb-12">
+      <main className={cn("container mx-auto px-4 pt-20", isStudent ? "pb-28" : "pb-12")}>
         <div className="max-w-7xl mx-auto">
           {/* Student Dashboard */}
           {isStudent && user && profile && (
@@ -277,6 +278,7 @@ const Dashboard = () => {
           )}
         </div>
       </main>
+      {isStudent && <BottomNav />}
     </div>
   );
 };

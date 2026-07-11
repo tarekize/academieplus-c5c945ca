@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Capacitor mobile app (application_mobile/) — native build caches only;
+# the android/ and ios/ native projects themselves are intentionally
+# NOT ignored here (see application_mobile/README.md for the tradeoff).
+application_mobile/android/app/build
+application_mobile/android/.gradle
+application_mobile/android/local.properties
+application_mobile/android/**/build
+application_mobile/ios/App/Pods
+application_mobile/ios/App/build
+application_mobile/ios/App/DerivedData

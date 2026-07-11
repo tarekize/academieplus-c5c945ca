@@ -140,6 +140,13 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html, body {
+    /* Native-app feel inside the Capacitor WebView: no rubber-band scroll,
+       no blue tap flash, no accidental text selection on buttons/cards. */
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: "Tajawal", "Figtree", ui-sans-serif, system-ui, sans-serif;
@@ -462,6 +469,14 @@ All colors MUST be HSL.
 .dark .lesson-application { background: hsl(150 30% 12%); border-color: hsl(150 30% 25%); }
 .dark .lesson-method { background: hsl(25 40% 13%); border-color: hsl(25 40% 26%); }
 .dark .lesson-summary { background: hsl(330 35% 14%); border-color: hsl(330 35% 26%); }
+
+/* =========================================================
+   Safe-area insets (notch / home indicator) for the native app shell.
+   Falls back to 0 on regular web, so these are safe to use everywhere.
+   ========================================================= */
+.pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.h-safe-top { height: env(safe-area-inset-top, 0px); }
 
 /* =========================================================
    Registre "élève" — glassmorphism, mesh de fond, gamification

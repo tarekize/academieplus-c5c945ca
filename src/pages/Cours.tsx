@@ -28,6 +28,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { BottomNav } from "@/components/layout/BottomNav";
 
 // Static subject data
 const staticSubjects: Record<string, { id: string; name: string; icon: string }> = {
@@ -422,7 +423,7 @@ const Cours = () => {
     <div className="min-h-screen student-shell">
       <AppHeader />
 
-      <main className={`container mx-auto px-4 py-8 transition-all duration-300 ${isChatOpen ? 'lg:pr-[420px] blur-[2px] saturate-75 opacity-80' : ''}`}>
+      <main className={`container mx-auto px-4 py-8 transition-all duration-300 ${!canManage ? 'pb-28' : ''} ${isChatOpen ? 'lg:pr-[420px] blur-[2px] saturate-75 opacity-80' : ''}`}>
 
         {/* Subject hero + progress */}
         <motion.div
@@ -981,7 +982,7 @@ const Cours = () => {
       {viewMode === "content" && !canManage && (
         <>
           <div
-            className={`fixed bottom-6 z-[60] transition-all duration-300 ${isChatOpen
+            className={`fixed z-[60] transition-all duration-300 ${canManage ? 'bottom-6' : 'bottom-24'} ${isChatOpen
               ? isChatExpanded ? 'right-6' : 'right-6 lg:right-[430px]'
               : 'right-6'
               }`}
@@ -1090,6 +1091,7 @@ const Cours = () => {
           })()}
         </>
       )}
+      {!canManage && <BottomNav />}
     </div>
   );
 };
