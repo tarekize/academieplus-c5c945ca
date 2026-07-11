@@ -21,7 +21,11 @@
     },
     "dependencies": {
         "@capacitor/android": "^7.0.0",
+<<<<<<< HEAD
         "@capacitor/app": "^7.1.2",
+=======
+        "@capacitor/app": "^7.0.0",
+>>>>>>> b3b74f94479632bc5ac6d5ffc6d6cea62169001a
         "@capacitor/browser": "^7.0.0",
         "@capacitor/core": "^7.0.0",
         "@capacitor/ios": "^7.0.0",
