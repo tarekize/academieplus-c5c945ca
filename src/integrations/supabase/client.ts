@@ -13,5 +13,11 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+    // PKCE delivers the OAuth callback as a `?code=` query param instead of a
+    // `#access_token=` URL fragment. The native Google sign-in flow relies on
+    // this: the system browser (Chrome Custom Tabs) hands the redirect off to
+    // the app via an Android intent, which can drop URL fragments — so with
+    // the default implicit flow the app opens but the tokens never arrive.
+    flowType: 'pkce',
   }
 });
