@@ -106,89 +106,22 @@ const Auth = () => {
       setIsLogin(true);
     }
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
+    // Détermine où envoyer l'utilisateur une fois la session confirmée.
+    // Toute erreur (requête role/assessment en échec juste après l'OAuth,
+    // réseau, etc.) tombe dans le catch pour éviter de rester bloqué sur une
+    // page blanche : on redirige alors vers une destination par défaut.
+    const redirectAfterLogin = async (session: Session) => {
+      if (hasNavigated.current) return;
 
-        if (session) {
-          const returnTo = sessionStorage.getItem('returnTo');
-          if (returnTo === '/abonnements') {
-            if (hasNavigated.current) return;
-            hasNavigated.current = true;
-            sessionStorage.removeItem('returnTo');
-            navigate('/abonnements');
-            return;
-          }
-
-          // Check user role to redirect appropriately
-          const { data: roleData } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .limit(1)
-            .maybeSingle();
-
-          // Nouveaux utilisateurs sans rôle → compléter le profil (school_level, etc.)
-          if (!roleData?.role) {
-            if (hasNavigated.current) return;
-            hasNavigated.current = true;
-            navigate('/complete-profile');
-            return;
-          }
-
-          // Élèves sans assessment → évaluation de placement
-          if (roleData?.role === 'student') {
-            const hasAssessment = await hasCompletedPlacementAssessment(session.user.id);
-            if (!hasAssessment) {
-              if (hasNavigated.current) return;
-              hasNavigated.current = true;
-              navigate('/learning-assessment');
-              return;
-            }
-          }
-
-          setTimeout(() => {
-            if (hasNavigated.current) return;
-            hasNavigated.current = true;
-
-            const returnTo = sessionStorage.getItem('returnTo');
-            if (returnTo) {
-              sessionStorage.removeItem('returnTo');
-              navigate(returnTo);
-              return;
-            }
-
-            if (roleData?.role === 'parent') {
-              navigate("/parent-dashboard");
-            } else if (roleData?.role === 'teacher') {
-              navigate("/teacher-dashboard");
-            } else if (roleData?.role === 'admin') {
-              navigate("/dashboard");
-            } else if (roleData?.role === 'etablissement') {
-              navigate("/etablissement-dashboard");
-            } else {
-              navigate("/cours/math");
-            }
-          }, 0);
-        }
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      if (session) {
+      try {
         const returnTo = sessionStorage.getItem('returnTo');
         if (returnTo === '/abonnements') {
-          if (hasNavigated.current) return;
           hasNavigated.current = true;
           sessionStorage.removeItem('returnTo');
           navigate('/abonnements');
           return;
         }
 
-        // Check user role
         const { data: roleData } = await supabase
           .from('user_roles')
           .select('role')
@@ -196,19 +129,20 @@ const Auth = () => {
           .limit(1)
           .maybeSingle();
 
-        // Nouveaux utilisateurs sans rôle → compléter le profil
+        if (hasNavigated.current) return;
+
+        // Nouveaux utilisateurs sans rôle → compléter le profil (school_level, etc.)
         if (!roleData?.role) {
-          if (hasNavigated.current) return;
           hasNavigated.current = true;
           navigate('/complete-profile');
           return;
         }
 
-        // Si élève, vérifier s'il a déjà un style d'apprentissage
-        if (roleData?.role === 'student') {
+        // Élèves sans assessment → évaluation de placement
+        if (roleData.role === 'student') {
           const hasAssessment = await hasCompletedPlacementAssessment(session.user.id);
+          if (hasNavigated.current) return;
           if (!hasAssessment) {
-            if (hasNavigated.current) return;
             hasNavigated.current = true;
             navigate('/learning-assessment');
             return;
@@ -218,18 +152,47 @@ const Auth = () => {
         if (hasNavigated.current) return;
         hasNavigated.current = true;
 
-        if (roleData?.role === 'parent') {
+        if (returnTo) {
+          sessionStorage.removeItem('returnTo');
+          navigate(returnTo);
+        } else if (roleData.role === 'parent') {
           navigate("/parent-dashboard");
-        } else if (roleData?.role === 'teacher') {
+        } else if (roleData.role === 'teacher') {
           navigate("/teacher-dashboard");
-        } else if (roleData?.role === 'admin') {
+        } else if (roleData.role === 'admin') {
           navigate("/dashboard");
-        } else if (roleData?.role === 'etablissement') {
+        } else if (roleData.role === 'etablissement') {
           navigate("/etablissement-dashboard");
         } else {
           navigate("/cours/math");
         }
+      } catch (error) {
+        console.error('Erreur lors de la redirection après connexion:', error);
+        if (!hasNavigated.current) {
+          hasNavigated.current = true;
+          navigate('/dashboard');
+        }
       }
+    };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        if (session) {
+          redirectAfterLogin(session);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        redirectAfterLogin(session);
+      }
+    }).catch((error) => {
+      console.error('Erreur lors de la récupération de la session:', error);
     });
 
     return () => subscription.unsubscribe();
@@ -495,8 +458,24 @@ const Auth = () => {
   // ⚠️ IMPORTANT: Ne PAS retourner null pendant l'inscription (isRegistering)
   // car la session Supabase est créée AVANT la navigation vers /learning-assessment
   // ce qui causait une page blanche entre les deux
+  // On affiche un spinner plutôt que null le temps que redirectAfterLogin()
+  // détermine la destination : un retour null direct laissait une page
+  // blanche si la redirection tardait ou échouait silencieusement.
   if (session && !isOnboardingOrAssessment && !isRegistering) {
-    return null;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background via-secondary to-background gap-6">
+        <div className="relative">
+          <div className="w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-primary/10" />
+          </div>
+        </div>
+        <div className="text-center space-y-2">
+          <h2 className="text-xl font-semibold text-foreground">Connexion en cours...</h2>
+          <p className="text-muted-foreground text-sm">Redirection vers votre espace</p>
+        </div>
+      </div>
+    );
   }
 
   // Écran de chargement pendant l'inscription en cours
