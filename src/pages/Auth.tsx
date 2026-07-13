@@ -444,7 +444,9 @@ const Auth = () => {
   const handleGoogleAuth = async () => {
     setLoading(true);
     try {
-      if (Capacitor.isNativePlatform()) {
+      const isEmbeddedMobileApp = Capacitor.getPlatform() !== "web";
+
+      if (isEmbeddedMobileApp) {
         // Native app: sign in through the system browser and come back via
         // a deep link — a WebView redirect would otherwise land on a dead
         // "localhost" page instead of returning to the app.

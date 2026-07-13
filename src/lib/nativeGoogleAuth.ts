@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 // Google/Supabase redirect the system browser here once sign-in completes,
 // which Android routes back into the app instead of a dead "localhost" page.
 export const NATIVE_AUTH_CALLBACK_URL = "com.academieplus.app://auth/callback";
+const NATIVE_AUTH_CALLBACK_PREFIX = "com.academieplus.app://auth";
 
 /**
  * Starts the Google OAuth flow in the system browser (Chrome Custom Tabs /
@@ -71,7 +72,7 @@ export async function initNativeGoogleAuthListener() {
   ]);
 
   App.addListener("appUrlOpen", async ({ url }) => {
-    if (!url.startsWith(NATIVE_AUTH_CALLBACK_URL)) return;
+    if (!url.startsWith(NATIVE_AUTH_CALLBACK_PREFIX)) return;
 
     try {
       await Browser.close();
