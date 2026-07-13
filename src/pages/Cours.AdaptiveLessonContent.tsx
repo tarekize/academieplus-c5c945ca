@@ -373,7 +373,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                                     </div>
                                 ) : lessonContent ? (
-                                    <div className="lesson-content-scroll overflow-x-auto overscroll-x-contain touch-pan-x pb-2">
+                                    <div className="lesson-content-scroll overflow-x-auto overscroll-x-contain pb-2">
                                         {lessonContentNode}
                                     </div>
                                 ) : (
