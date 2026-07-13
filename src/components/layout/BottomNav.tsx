@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Home, BookOpen, PenTool, Target, User } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -22,6 +23,12 @@ const ITEMS: NavItem[] = [
 export function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Barre de navigation réservée à l'application mobile native (Android/iOS).
+  // Sur le web, elle ne doit pas s'afficher.
+  if (!Capacitor.isNativePlatform()) {
+    return null;
+  }
 
   return (
     <nav
