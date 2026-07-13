@@ -68,3 +68,25 @@
 .read-the-docs {
   color: #888;
 }
+
+.lesson-content-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+.lesson-content-scroll table {
+  display: table;
+  width: max-content;
+  min-width: 100%;
+  max-width: none;
+  table-layout: auto;
+}
+
+.lesson-content-scroll th,
+.lesson-content-scroll td,
+.lesson-markdown th,
+.lesson-markdown td,
+.html-with-math th,
+.html-with-math td {
+  white-space: nowrap;
+}

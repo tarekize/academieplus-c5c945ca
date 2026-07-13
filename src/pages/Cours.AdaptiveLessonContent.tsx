@@ -17,6 +17,13 @@ import { LessonActivityTabs } from "@/components/course/LessonActivityTabs";
 import { ChapterRevision } from "@/components/course/ChapterRevision";
 import { Sparkles } from "lucide-react";
 import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet";
+import {
     Breadcrumb,
     BreadcrumbItem,
     BreadcrumbLink,
@@ -36,6 +43,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const [activeSection, setActiveSection] = useState<"exercises" | "quiz" | "revision" | null>(null);
     const [activityResetKey, setActivityResetKey] = useState(0);
     const [showRevision, setShowRevision] = useState(false);
+    const [tocOpen, setTocOpen] = useState(false);
 
     // Reset when chapter changes
     useEffect(() => {
@@ -44,6 +52,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         setActiveSectionLabel(null);
         setActiveSection(null);
         setShowRevision(false);
+        setTocOpen(false);
     }, [chapter.id]);
 
     useEffect(() => {
@@ -283,6 +292,14 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
 
     // Student lesson content view
     const renderLessonContent = () => {
+        const lessonContentNode = /<\s*(html|body|head|!doctype)/i.test(lessonContent) ? (
+            <HtmlWithMath
+                className="lesson-markdown html-with-math prose prose-sm dark:prose-invert max-w-none"
+                htmlContent={injectHeaderIds(lessonContent)} />
+        ) : (
+            <LessonMarkdown content={lessonContent} dir="rtl" />
+        );
+
         return (
             <div>
                 {renderBreadcrumb()}
@@ -322,19 +339,43 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                     <div className="flex flex-col lg:flex-row gap-8 mt-6">
                         <Card className="flex-1 min-w-0 glass-card border-0">
                             <CardContent className="p-6">
-                                <h2 className="font-display text-xl font-extrabold mb-4">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
+                                <div className="mb-4 flex items-start justify-between gap-3">
+                                    <h2 className="font-display text-xl font-extrabold min-w-0 flex-1">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
+                                    {lessonContent && (
+                                        <Sheet open={tocOpen} onOpenChange={setTocOpen}>
+                                            <SheetTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="fixed right-4 top-20 z-50 lg:hidden shrink-0 gap-2 rounded-full border-primary/20 bg-primary/5 px-4 py-3 text-primary shadow-xl shadow-primary/10 backdrop-blur-md hover:bg-primary hover:text-primary-foreground"
+                                                    aria-label="فهرس المحتويات"
+                                                >
+                                                    <span>فهرس المحتويات</span>
+                                                </Button>
+                                            </SheetTrigger>
+                                            <SheetContent side="bottom" className="h-[82vh] rounded-t-3xl border-t p-0">
+                                                <div className="flex h-full flex-col p-5">
+                                                    <SheetHeader className="text-right sm:text-right">
+                                                        <SheetTitle className="flex items-center gap-2 justify-end text-right">
+                                                            <span>فهرس المحتويات</span>
+                                                        </SheetTitle>
+                                                    </SheetHeader>
+                                                    <div className="mt-4 min-h-0 flex-1 overflow-hidden">
+                                                        <TableOfContents htmlContent={lessonContent} compact className="h-full overflow-y-auto pr-1" />
+                                                    </div>
+                                                </div>
+                                            </SheetContent>
+                                        </Sheet>
+                                    )}
+                                </div>
                                 {loadingContent ? (
                                     <div className="flex justify-center py-12">
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                                     </div>
                                 ) : lessonContent ? (
-                                    /<\s*(html|body|head|!doctype)/i.test(lessonContent) ? (
-                                        <HtmlWithMath
-                                            className="lesson-markdown prose prose-sm dark:prose-invert max-w-none"
-                                            htmlContent={injectHeaderIds(lessonContent)} />
-                                    ) : (
-                                        <LessonMarkdown content={lessonContent} dir="rtl" />
-                                    )
+                                    <div className="lesson-content-scroll overflow-x-auto overscroll-x-contain touch-pan-x pb-2">
+                                        {lessonContentNode}
+                                    </div>
                                 ) : (
                                     <p className="text-center text-muted-foreground py-12">
                                         Aucun contenu disponible pour cette leçon.
@@ -342,7 +383,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                                 )}
                             </CardContent>
                         </Card>
-                        <div className="w-full lg:w-72 shrink-0">
+                        <div className="hidden lg:block w-full lg:w-72 shrink-0">
                             <TableOfContents htmlContent={lessonContent} />
                         </div>
                     </div>

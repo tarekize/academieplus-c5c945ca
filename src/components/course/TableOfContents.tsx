@@ -13,6 +13,7 @@ interface TableOfContentsProps {
     className?: string;
     title?: string;
     dir?: "rtl" | "ltr";
+    compact?: boolean;
 }
 
 const SUPERSCRIPT_MAP: Record<string, string> = {
@@ -83,9 +84,13 @@ function latexToSymbols(input: string): string {
     return out.replace(/\s+/g, " ").trim();
 }
 
-export function TableOfContents({ htmlContent, className, title = "Table des matières", dir = "rtl" }: TableOfContentsProps) {
+export function TableOfContents({ htmlContent, className, title = "Table des matières", dir = "rtl", compact = false }: TableOfContentsProps) {
     const [items, setItems] = useState<TocItem[]>([]);
     const [activeId, setActiveId] = useState<string>("");
+
+    const wrapperClassName = compact
+        ? "h-full bg-transparent border-0 shadow-none p-0"
+        : "bg-card/50 backdrop-blur-sm border rounded-xl p-5 sticky top-24 max-h-[80vh] overflow-y-auto shadow-sm transition-all animate-in fade-in slide-in-from-right-2";
 
     useEffect(() => {
         if (!htmlContent) {
@@ -205,12 +210,12 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
 
     return (
         <div className={cn(
-            "bg-card/50 backdrop-blur-sm border rounded-xl p-5 sticky top-24 max-h-[80vh] overflow-y-auto shadow-sm transition-all animate-in fade-in slide-in-from-right-2",
+            wrapperClassName,
             className
         )}>
             <div className={cn("flex items-center gap-2 mb-4 border-b pb-3", dir === "rtl" ? "flex-row-reverse" : "")}>
                 <List className="h-4 w-4 text-primary" />
-                <h3 className="font-bold text-sm uppercase tracking-widest text-primary">
+                <h3 className={cn("font-bold text-sm uppercase tracking-widest text-primary", compact && "text-base")}>
                     {dir === "rtl" ? "فهرس المحتويات" : title}
                 </h3>
             </div>
