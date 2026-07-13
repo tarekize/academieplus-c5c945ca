@@ -145,13 +145,6 @@ All colors MUST be HSL.
        no blue tap flash, no accidental text selection on buttons/cards. */
     overscroll-behavior-y: none;
     -webkit-tap-highlight-color: transparent;
-    /* Without this, any element that overflows the viewport width (a wide
-       table, an unwrapped KaTeX formula, a long code line in lesson
-       content) makes the whole document horizontally scrollable. On touch
-       devices the browser then locks the scroll gesture to that axis,
-       which reads as "only left/right swipe works, vertical scroll is
-       stuck" inside the lesson reader. */
-    overflow-x: hidden;
   }
 
   body {
