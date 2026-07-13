@@ -140,21 +140,12 @@ const Account = () => {
 
   const handlePause = async () => {
     if (!subscription || !user) return;
-    // Update days_used with elapsed time since last_tick
-    const now = new Date();
-    const lastTick = new Date(subscription.last_tick_at);
-    const elapsed = (now.getTime() - lastTick.getTime()) / (1000 * 60 * 60 * 24);
-    const newDaysUsed = Number(subscription.days_used) + elapsed;
 
-    await supabase
-      .from("student_subscriptions")
-      .update({
-        is_paused: true,
-        paused_at: now.toISOString(),
-        days_used: newDaysUsed,
-        last_tick_at: now.toISOString(),
-      })
-      .eq("id", subscription.id);
+    const { error } = await supabase.rpc("pause_my_subscription" as any);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
 
     toast({ title: "Abonnement mis en pause", description: "Le décompte de vos jours est suspendu." });
     fetchSubscription(user.id);
@@ -163,14 +154,11 @@ const Account = () => {
   const handleResume = async () => {
     if (!subscription || !user) return;
 
-    await supabase
-      .from("student_subscriptions")
-      .update({
-        is_paused: false,
-        paused_at: null,
-        last_tick_at: new Date().toISOString(),
-      })
-      .eq("id", subscription.id);
+    const { error } = await supabase.rpc("resume_my_subscription" as any);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
 
     toast({ title: "Abonnement réactivé", description: "Le décompte de vos jours reprend." });
     fetchSubscription(user.id);
@@ -195,39 +183,14 @@ const Account = () => {
     if (!activationCode.trim() || !user) return;
     setActivatingCode(true);
     try {
-      // Find the code
-      const { data: codeData, error: codeError } = await supabase
-        .from("activation_codes")
-        .select("*")
-        .eq("code", activationCode.trim())
-        .eq("status", "free")
-        .maybeSingle();
-
-      if (codeError) throw codeError;
-      if (!codeData) {
-        toast({ title: "Code invalide", description: "Ce code n'existe pas ou a déjà été utilisé.", variant: "destructive" });
-        return;
-      }
-
-      const now = new Date().toISOString();
-      const totalDays = codeData.plan_type === "annual" ? 360 : 30;
-
-      // Mark code as used
-      await supabase
-        .from("activation_codes")
-        .update({ status: "used", used_by: user.id, used_at: now })
-        .eq("id", codeData.id);
-
-      // Create subscription
-      await supabase.from("student_subscriptions").insert({
-        user_id: user.id,
-        plan_type: codeData.plan_type,
-        total_days: totalDays,
-        activation_code_id: codeData.id,
+      const { error } = await supabase.rpc("redeem_activation_code" as any, {
+        p_code: activationCode.trim(),
       });
 
-      // Activate profile
-      await supabase.from("profiles").update({ is_active: true }).eq("id", user.id);
+      if (error) {
+        toast({ title: "Code invalide", description: error.message || "Ce code n'existe pas ou a déjà été utilisé.", variant: "destructive" });
+        return;
+      }
 
       toast({ title: "Code activé !", description: "Votre abonnement a été activé avec succès." });
       setActivationCode("");

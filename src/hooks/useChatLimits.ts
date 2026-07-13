@@ -153,50 +153,23 @@ export function useChatLimits() {
   const canSendMessage = hasSubscription || usage.messageCount < FREE_MESSAGE_LIMIT;
   const canSendImage = hasSubscription || usage.imageCount < FREE_IMAGE_LIMIT;
 
-  const upsertUsage = useCallback(async (newMessageCount: number, newImageCount: number) => {
-    if (!userId) return;
-    const today = getTodayKey();
-
-    // Try update first, then insert if no row exists
-    const { data: existing } = await supabase
-      .from('chat_usage')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('usage_date', today)
-      .maybeSingle();
-
-    if (existing) {
-      await supabase
-        .from('chat_usage')
-        .update({ message_count: newMessageCount, image_count: newImageCount })
-        .eq('user_id', userId)
-        .eq('usage_date', today);
-    } else {
-      await supabase
-        .from('chat_usage')
-        .insert({ user_id: userId, usage_date: today, message_count: newMessageCount, image_count: newImageCount });
-    }
-  }, [userId]);
-
   const recordMessage = useCallback(async () => {
     if (hasSubscription || !userId) return;
     const current = usageRef.current;
-    const newCount = current.messageCount + 1;
-    const newUsage = { ...current, messageCount: newCount };
+    const newUsage = { ...current, messageCount: current.messageCount + 1 };
     setUsage(newUsage);
     usageRef.current = newUsage;
-    await upsertUsage(newCount, current.imageCount);
-  }, [hasSubscription, userId, upsertUsage]);
+    await supabase.rpc('increment_chat_usage' as any, { p_messages: 1, p_images: 0 });
+  }, [hasSubscription, userId]);
 
   const recordImage = useCallback(async (count: number = 1) => {
     if (hasSubscription || !userId) return;
     const current = usageRef.current;
-    const newCount = current.imageCount + count;
-    const newUsage = { ...current, imageCount: newCount };
+    const newUsage = { ...current, imageCount: current.imageCount + count };
     setUsage(newUsage);
     usageRef.current = newUsage;
-    await upsertUsage(current.messageCount, newCount);
-  }, [hasSubscription, userId, upsertUsage]);
+    await supabase.rpc('increment_chat_usage' as any, { p_messages: 0, p_images: count });
+  }, [hasSubscription, userId]);
 
   return {
     hasSubscription,

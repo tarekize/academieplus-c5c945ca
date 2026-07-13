@@ -280,59 +280,15 @@ const ParentDashboard = () => {
     setActivating(true);
 
     try {
-      const { data: anyCode } = await supabase
-        .from("activation_codes")
-        .select("status")
-        .eq("code", activationCode.trim().toUpperCase())
-        .maybeSingle();
-
-      if (!anyCode) {
-        sonnerToast.error("Ce code n'existe pas");
-        setActivating(false);
-        return;
-      }
-
-      if (anyCode.status === "used") {
-        sonnerToast.error("Ce code a déjà été activé");
-        setActivating(false);
-        return;
-      }
-
-      const { data: codeData, error: codeErr } = await supabase
-        .from("activation_codes")
-        .select("*")
-        .eq("code", activationCode.trim().toUpperCase())
-        .eq("status", "free")
-        .single();
-
-      if (codeErr || !codeData) {
-        sonnerToast.error("Impossible d'activer ce code");
-        setActivating(false);
-        return;
-      }
-
-      const { error: updateError } = await supabase
-        .from("activation_codes")
-        .update({ status: "used", used_by: user.id, used_at: new Date().toISOString() })
-        .eq("id", codeData.id);
-
-      if (updateError) throw updateError;
-
-      const totalDays = codeData.plan_type === "annual" ? 360 : 30;
-      const { error: insertError } = await supabase.from("student_subscriptions").insert({
-        user_id: selectedChildForActivation,
-        activation_code_id: codeData.id,
-        plan_type: codeData.plan_type,
-        total_days: totalDays,
-        days_used: 0,
-        is_paused: false,
-        started_at: new Date().toISOString(),
-        last_tick_at: new Date().toISOString(),
+      const { data: sub, error } = await supabase.rpc("redeem_activation_code" as any, {
+        p_code: activationCode.trim().toUpperCase(),
+        p_target_user_id: selectedChildForActivation,
       });
 
-      if (insertError) throw insertError;
+      if (error) throw error;
 
-      sonnerToast.success(`Abonnement activé (${totalDays} jours)`);
+      const totalDays = (sub as any)?.total_days;
+      sonnerToast.success(totalDays ? `Abonnement activé (${totalDays} jours)` : "Abonnement activé");
       setActivationCode("");
       setActivationDialogOpen(false);
       setSelectedChildForActivation(null);
