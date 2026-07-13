@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { Capacitor } from "@capacitor/core";
 
 // Static subject data
 const staticSubjects: Record<string, { id: string; name: string; icon: string }> = {
@@ -94,6 +95,7 @@ const Cours = () => {
   }, [isChatExpanded]);
 
   const isMobile = useIsMobile();
+  const isNativeApp = Capacitor.isNativePlatform();
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; content: string; }[]>([]);
   const [chatChapterId, setChatChapterId] = useState<string | null>(null);
   const [activeActivity, setActiveActivity] = useState<string | null>(null);
@@ -982,7 +984,7 @@ const Cours = () => {
       {viewMode === "content" && !canManage && (
         <>
           <div
-            className={`fixed z-[60] transition-all duration-300 ${canManage ? 'bottom-6' : 'bottom-24'} ${isChatOpen
+            className={`fixed z-[60] transition-all duration-300 ${isNativeApp ? 'bottom-24' : 'bottom-6'} ${isChatOpen
               ? isChatExpanded ? 'right-6' : 'right-6 lg:right-[430px]'
               : 'right-6'
               }`}
