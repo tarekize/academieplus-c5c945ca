@@ -31,6 +31,16 @@
                 <data android:scheme="com.academieplus.app" android:host="auth" />
             </intent-filter>
 
+            <!-- Fallback for Supabase/Google redirects that still resolve to localhost
+                 on Android. Route them back into the app instead of leaving the
+                 user on a browser page. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" android:host="localhost" android:port="3000" />
+            </intent-filter>
+
         </activity>
 
         <provider
