@@ -1,3 +1,5 @@
+import { createPortal } from "react-dom";
+import { Capacitor } from "@capacitor/core";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import LessonMarkdown from "@/components/course/LessonMarkdown";
@@ -16,6 +18,7 @@ import { injectHeaderIds } from "@/lib/toc-utils";
 import { LessonActivityTabs } from "@/components/course/LessonActivityTabs";
 import { ChapterRevision } from "@/components/course/ChapterRevision";
 import { Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
     Sheet,
     SheetContent,
@@ -44,6 +47,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const [activityResetKey, setActivityResetKey] = useState(0);
     const [showRevision, setShowRevision] = useState(false);
     const [tocOpen, setTocOpen] = useState(false);
+    const isNativeApp = Capacitor.isNativePlatform();
 
     // Reset when chapter changes
     useEffect(() => {
@@ -341,7 +345,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                             <CardContent className="p-6">
                                 <div className="mb-4 flex items-start justify-between gap-3">
                                     <h2 className="font-display text-xl font-extrabold min-w-0 flex-1">{selectedLesson?.titleAr || selectedLesson?.title}</h2>
-                                    {lessonContent && (
+                                    {lessonContent && !isNativeApp && (
                                         <Sheet open={tocOpen} onOpenChange={setTocOpen}>
                                             <SheetTrigger asChild>
                                                 <Button
@@ -368,12 +372,47 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                                         </Sheet>
                                     )}
                                 </div>
+                                {/* Native app only: the trigger is portaled straight to <body> because
+                                    this Card has backdrop-filter (glass-card), and a `filter`/`backdrop-filter`
+                                    ancestor creates a new containing block for `position: fixed` descendants —
+                                    so a fixed button nested here would actually be pinned to the Card's own
+                                    box (and scroll away with it) instead of staying put on screen. */}
+                                {lessonContent && isNativeApp && createPortal(
+                                    <Sheet open={tocOpen} onOpenChange={setTocOpen}>
+                                        <SheetTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="fixed right-4 top-20 z-50 shrink-0 gap-2 rounded-full border-primary/20 bg-primary/5 px-4 py-3 text-primary shadow-xl shadow-primary/10 backdrop-blur-md hover:bg-primary hover:text-primary-foreground"
+                                                aria-label="فهرس المحتويات"
+                                            >
+                                                <span>فهرس المحتويات</span>
+                                            </Button>
+                                        </SheetTrigger>
+                                        <SheetContent side="bottom" className="h-[82vh] rounded-t-3xl border-t p-0">
+                                            <div className="flex h-full flex-col p-5">
+                                                <SheetHeader className="text-right sm:text-right">
+                                                    <SheetTitle className="flex items-center gap-2 justify-end text-right">
+                                                        <span>فهرس المحتويات</span>
+                                                    </SheetTitle>
+                                                </SheetHeader>
+                                                <div className="mt-4 min-h-0 flex-1 overflow-hidden">
+                                                    <TableOfContents htmlContent={lessonContent} compact className="h-full overflow-y-auto pr-1" />
+                                                </div>
+                                            </div>
+                                        </SheetContent>
+                                    </Sheet>,
+                                    document.body
+                                )}
                                 {loadingContent ? (
                                     <div className="flex justify-center py-12">
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                                     </div>
                                 ) : lessonContent ? (
-                                    <div className="lesson-content-scroll overflow-x-auto overscroll-x-contain pb-2">
+                                    <div className={cn(
+                                        "lesson-content-scroll overflow-x-auto overscroll-x-contain pb-2",
+                                        isNativeApp && "touch-pan-x touch-pan-y"
+                                    )}>
                                         {lessonContentNode}
                                     </div>
                                 ) : (
