@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, GraduationCap, LogOut, User as UserIcon, FileText, Receipt, Calendar, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useTranslation } from "react-i18next";
 
 import {
   DropdownMenu,
@@ -49,6 +50,7 @@ interface Payment {
 const Factures = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -82,7 +84,7 @@ const Factures = () => {
       if (error) throw error;
       setProfile(data);
     } catch (error: any) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast({ title: t("factures.errorTitle"), description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -141,9 +143,9 @@ const Factures = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-        return <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20">Payé</Badge>;
+        return <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20">{t("factures.statusPaid")}</Badge>;
       case "pending":
-        return <Badge variant="outline" className="text-amber-600 border-amber-500/30 bg-amber-500/10">En attente</Badge>;
+        return <Badge variant="outline" className="text-amber-600 border-amber-500/30 bg-amber-500/10">{t("factures.statusPending")}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -166,7 +168,7 @@ const Factures = () => {
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      toast({ title: "Erreur", description: "Veuillez autoriser les pop-ups pour télécharger la facture", variant: "destructive" });
+      toast({ title: t("factures.errorTitle"), description: t("factures.popupBlocked"), variant: "destructive" });
       return;
     }
 
@@ -242,7 +244,7 @@ const Factures = () => {
       <script>window.onload=function(){window.print()}<\/script>
     </body></html>`);
     printWindow.document.close();
-    toast({ title: "Facture prête", description: `${invoiceNum} - utilisez Ctrl+P pour enregistrer en PDF` });
+    toast({ title: t("factures.invoiceReady"), description: t("factures.invoiceReadyDesc", { invoiceNum }) });
   };
 
   if (loading) {
@@ -284,10 +286,10 @@ const Factures = () => {
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/account")}><UserIcon className="mr-2 h-4 w-4" /><span>Gérer mon compte</span></DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")}><GraduationCap className="mr-2 h-4 w-4" /><span>Tableau de bord</span></DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/account")}><UserIcon className="mr-2 h-4 w-4" /><span>{t("nav.account")}</span></DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/dashboard")}><GraduationCap className="mr-2 h-4 w-4" /><span>{t("nav.dashboard")}</span></DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" /><span>Se déconnecter</span></DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" /><span>{t("nav.logout")}</span></DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -302,7 +304,7 @@ const Factures = () => {
               <BreadcrumbItem>
                 <BreadcrumbLink onClick={() => navigate("/account")} className="cursor-pointer flex items-center gap-2">
                   <ArrowLeft className="h-4 w-4" />
-                  Retour vers Gérer mon compte
+                  {t("factures.backToAccount")}
                 </BreadcrumbLink>
               </BreadcrumbItem>
             </BreadcrumbList>
@@ -314,8 +316,8 @@ const Factures = () => {
               <Receipt className="h-7 w-7 text-white" />
             </div>
             <div>
-              <h1 className="font-display text-3xl font-extrabold">Facturation</h1>
-              <p className="text-muted-foreground">Historique de vos paiements et factures</p>
+              <h1 className="font-display text-3xl font-extrabold">{t("factures.pageTitle")}</h1>
+              <p className="text-muted-foreground">{t("factures.pageSubtitle")}</p>
             </div>
           </div>
 
@@ -328,7 +330,7 @@ const Factures = () => {
                     <CreditCard className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-sm text-white/70">Total payé</p>
+                    <p className="text-sm text-white/70">{t("factures.totalPaid")}</p>
                     <p className="text-xl font-bold">{formatCurrency(totalPaid)}</p>
                   </div>
                 </div>
@@ -341,7 +343,7 @@ const Factures = () => {
                     <FileText className="h-5 w-5 text-emerald-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Factures</p>
+                    <p className="text-sm text-muted-foreground">{t("factures.invoicesCount")}</p>
                     <p className="text-xl font-bold">{payments.length}</p>
                   </div>
                 </div>
@@ -354,7 +356,7 @@ const Factures = () => {
                     <Calendar className="h-5 w-5 text-amber-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Dernier paiement</p>
+                    <p className="text-sm text-muted-foreground">{t("factures.lastPayment")}</p>
                     <p className="text-xl font-bold">
                       {payments.length > 0 ? formatDate(payments[0].payment_date) : "—"}
                     </p>
@@ -370,20 +372,20 @@ const Factures = () => {
               <CardHeader className="border-b bg-muted/30 py-4">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <FileText className="h-5 w-5 text-primary" />
-                  Historique des factures
+                  {t("factures.invoiceHistory")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/20 hover:bg-muted/20">
-                      <TableHead className="font-semibold">N° Facture</TableHead>
-                      <TableHead className="font-semibold">Date</TableHead>
-                      <TableHead className="font-semibold">Formule</TableHead>
-                      <TableHead className="font-semibold">Type</TableHead>
-                      <TableHead className="font-semibold text-right">Montant</TableHead>
-                      <TableHead className="font-semibold text-center">Statut</TableHead>
-                      <TableHead className="font-semibold text-center">Action</TableHead>
+                      <TableHead className="font-semibold">{t("factures.invoiceNumber")}</TableHead>
+                      <TableHead className="font-semibold">{t("factures.date")}</TableHead>
+                      <TableHead className="font-semibold">{t("factures.plan")}</TableHead>
+                      <TableHead className="font-semibold">{t("factures.type")}</TableHead>
+                      <TableHead className="font-semibold text-right">{t("factures.amount")}</TableHead>
+                      <TableHead className="font-semibold text-center">{t("factures.status")}</TableHead>
+                      <TableHead className="font-semibold text-center">{t("factures.action")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -400,9 +402,9 @@ const Factures = () => {
                         </TableCell>
                         <TableCell>
                           {payment.is_family ? (
-                            <span className="text-sm">Famille ({payment.children_count} enfant{payment.children_count > 1 ? "s" : ""})</span>
+                            <span className="text-sm">{t("factures.family", { count: payment.children_count, plural: payment.children_count > 1 ? "s" : "" })}</span>
                           ) : (
-                            <span className="text-sm">Individuel</span>
+                            <span className="text-sm">{t("factures.individual")}</span>
                           )}
                         </TableCell>
                         <TableCell className="text-right font-bold">
@@ -419,7 +421,7 @@ const Factures = () => {
                             className="opacity-60 group-hover:opacity-100 transition-opacity hover:bg-primary/10 hover:text-primary"
                           >
                             <Download className="h-4 w-4 mr-1" />
-                            <span className="hidden sm:inline">Télécharger</span>
+                            <span className="hidden sm:inline">{t("factures.download")}</span>
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -434,12 +436,12 @@ const Factures = () => {
                 <div className="h-20 w-20 mx-auto mb-6 rounded-full bg-muted/50 flex items-center justify-center">
                   <Receipt className="h-10 w-10 text-muted-foreground/50" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Aucune facture</h3>
+                <h3 className="text-xl font-semibold mb-2">{t("factures.noInvoices")}</h3>
                 <p className="text-muted-foreground max-w-md mx-auto">
-                  Vos factures apparaîtront ici après votre premier paiement. Rendez-vous sur la page des abonnements pour commencer.
+                  {t("factures.noInvoicesDesc")}
                 </p>
                 <Button variant="outline" className="mt-6" onClick={() => navigate("/abonnements")}>
-                  Voir les abonnements
+                  {t("factures.viewSubscriptions")}
                 </Button>
               </CardContent>
             </Card>

@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Check, X, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 interface ExamQuestion extends ChapterQuizQuestion {
   chapterTitle: string;
@@ -16,6 +17,7 @@ const Simulation = () => {
   const { subjectId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -82,8 +84,8 @@ const Simulation = () => {
     } catch (error: any) {
       console.error("Error:", error);
       toast({
-        title: "Erreur",
-        description: "Impossible de charger l'examen",
+        title: t("simulation.loadError"),
+        description: t("simulation.loadErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -135,12 +137,12 @@ const Simulation = () => {
   if (questions.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <h2 className="text-2xl font-bold mb-4">Aucune question disponible</h2>
+        <h2 className="text-2xl font-bold mb-4">{t("simulation.noQuestionsTitle")}</h2>
         <p className="text-muted-foreground mb-6">
-          Les simulations d'examen ne sont pas encore disponibles pour cette matière et ce niveau.
+          {t("simulation.noQuestionsDesc")}
         </p>
         <Button onClick={() => navigate("/liste-cours")}>
-          Retour au catalogue
+          {t("simulation.backToCatalog")}
         </Button>
       </div>
     );
@@ -156,31 +158,31 @@ const Simulation = () => {
         <div className="container mx-auto px-4 py-8 max-w-2xl">
           <Card className="text-center p-8">
             <CardHeader>
-              <CardTitle className="text-3xl">Résultats de l'examen</CardTitle>
+              <CardTitle className="text-3xl">{t("simulation.resultsTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className={`text-6xl font-bold ${percentage >= 50 ? 'text-green-600' : 'text-red-600'}`}>
                 {percentage}%
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div className="p-4 bg-green-500/10 rounded-lg">
                   <p className="text-2xl font-bold text-green-600">{score}</p>
-                  <p className="text-sm text-muted-foreground">Bonnes réponses</p>
+                  <p className="text-sm text-muted-foreground">{t("simulation.correctAnswers")}</p>
                 </div>
                 <div className="p-4 bg-red-500/10 rounded-lg">
                   <p className="text-2xl font-bold text-red-600">{questions.length - score}</p>
-                  <p className="text-sm text-muted-foreground">Mauvaises réponses</p>
+                  <p className="text-sm text-muted-foreground">{t("simulation.wrongAnswers")}</p>
                 </div>
               </div>
 
               <p className="text-muted-foreground">
-                Temps: {Math.floor(duration / 60)} min {duration % 60} sec
+                {t("simulation.duration", { minutes: Math.floor(duration / 60), seconds: duration % 60 })}
               </p>
 
               <div className="flex gap-4 justify-center pt-4">
                 <Button variant="outline" onClick={() => navigate("/liste-cours")}>
-                  Retour au catalogue
+                  {t("simulation.backToCatalog")}
                 </Button>
                 <Button onClick={() => {
                   setCurrentIndex(0);
@@ -189,7 +191,7 @@ const Simulation = () => {
                   setTimeRemaining(30 * 60);
                   fetchQuestions();
                 }}>
-                  Recommencer
+                  {t("simulation.restart")}
                 </Button>
               </div>
             </CardContent>
@@ -209,13 +211,13 @@ const Simulation = () => {
           <Button
             variant="ghost"
             onClick={() => {
-              if (confirm("Êtes-vous sûr de vouloir quitter l'examen ?")) {
+              if (confirm(t("simulation.confirmLeave"))) {
                 navigate("/liste-cours");
               }
             }}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Quitter
+            {t("simulation.leave")}
           </Button>
 
           <div className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-lg ${
@@ -230,10 +232,10 @@ const Simulation = () => {
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-muted-foreground">
-                Question {currentIndex + 1} sur {questions.length}
+                {t("simulation.questionOf", { current: currentIndex + 1, total: questions.length })}
               </span>
               <span className="text-sm font-medium">
-                {answers.filter(a => a.correct).length} correctes
+                {t("simulation.correctCount", { count: answers.filter(a => a.correct).length })}
               </span>
             </div>
             <Progress value={progress} className="h-2" />
@@ -287,7 +289,7 @@ const Simulation = () => {
           {showResult && (
             <Card className="p-4 bg-muted/50">
               <p className="text-sm">
-                <strong>Explication:</strong> {currentQuestion.explanation}
+                <strong>{t("simulation.explanation")}</strong> {currentQuestion.explanation}
               </p>
             </Card>
           )}

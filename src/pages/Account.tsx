@@ -15,6 +15,7 @@ import { ChangePasswordButton } from "@/components/ChangePasswordButton";
 import JoinClassDialog from "@/components/student/JoinClassDialog";
 import ReclamationDialog from "@/components/ReclamationDialog";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { useTranslation } from "react-i18next";
 
 interface Profile {
   id: string;
@@ -39,6 +40,7 @@ interface StudentSubscription {
 const Account = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -95,7 +97,7 @@ const Account = () => {
       setProfile(data);
     } catch (error: any) {
       toast({
-        title: "Erreur",
+        title: t("account.errorTitle"),
         description: error.message,
         variant: "destructive",
       });
@@ -143,11 +145,11 @@ const Account = () => {
 
     const { error } = await supabase.rpc("pause_my_subscription" as any);
     if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast({ title: t("account.errorTitle"), description: error.message, variant: "destructive" });
       return;
     }
 
-    toast({ title: "Abonnement mis en pause", description: "Le décompte de vos jours est suspendu." });
+    toast({ title: t("account.subscriptionPaused"), description: t("account.subscriptionPausedDesc") });
     fetchSubscription(user.id);
   };
 
@@ -156,11 +158,11 @@ const Account = () => {
 
     const { error } = await supabase.rpc("resume_my_subscription" as any);
     if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast({ title: t("account.errorTitle"), description: error.message, variant: "destructive" });
       return;
     }
 
-    toast({ title: "Abonnement réactivé", description: "Le décompte de vos jours reprend." });
+    toast({ title: t("account.subscriptionResumed"), description: t("account.subscriptionResumedDesc") });
     fetchSubscription(user.id);
   };
 
@@ -188,15 +190,15 @@ const Account = () => {
       });
 
       if (error) {
-        toast({ title: "Code invalide", description: error.message || "Ce code n'existe pas ou a déjà été utilisé.", variant: "destructive" });
+        toast({ title: t("account.invalidCode"), description: error.message || t("account.invalidCodeDesc"), variant: "destructive" });
         return;
       }
 
-      toast({ title: "Code activé !", description: "Votre abonnement a été activé avec succès." });
+      toast({ title: t("account.codeActivated"), description: t("account.codeActivatedDesc") });
       setActivationCode("");
       fetchSubscription(user.id);
     } catch (error: any) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast({ title: t("account.errorTitle"), description: error.message, variant: "destructive" });
     } finally {
       setActivatingCode(false);
     }
@@ -218,64 +220,64 @@ const Account = () => {
   // Student cards: only personal info + stats + activate
   const studentCards = [
     {
-      title: "Mes Informations",
-      description: "Gérer mes informations personnelles",
+      title: t("account.myInfo"),
+      description: t("account.myInfoDesc"),
       icon: UserCircle,
       color: "text-blue-600",
       onClick: () => navigate("/mes-informations"),
     },
     {
-      title: "Les abonnements",
-      description: "Gérer mes abonnements et plans",
+      title: t("account.subscriptions"),
+      description: t("account.subscriptionsDesc"),
       icon: Key,
       color: "text-purple-600",
       onClick: () => navigate("/abonnements"),
     },
     {
-      title: "Facturation",
-      description: "Consulter et télécharger mes factures",
+      title: t("account.billing"),
+      description: t("account.billingDesc"),
       icon: FileText,
       color: "text-emerald-600",
       onClick: () => navigate("/factures"),
     },
     {
-      title: "Mes statistiques",
-      description: "Voir mes statistiques d'apprentissage",
+      title: t("account.myStats"),
+      description: t("account.myStatsDesc"),
       icon: BarChart3,
       color: "text-indigo-600",
-      onClick: () => toast({ title: "Mes statistiques", description: "Section en cours de développement" }),
+      onClick: () => toast({ title: t("account.myStats"), description: t("account.inDevelopment") }),
     },
   ];
 
   // Parent cards: full set
   const parentCards = [
     {
-      title: "Mes Informations",
-      description: "Gérer mes informations personnelles",
+      title: t("account.myInfo"),
+      description: t("account.myInfoDesc"),
       icon: UserCircle,
       color: "text-blue-600",
       onClick: () => navigate("/mes-informations"),
     },
     {
-      title: "Les abonnements",
-      description: "Gérer mes abonnements et plans",
+      title: t("account.subscriptions"),
+      description: t("account.subscriptionsDesc"),
       icon: Key,
       color: "text-purple-600",
       onClick: () => navigate("/abonnements"),
     },
     {
-      title: "Facturation",
-      description: "Consulter et télécharger mes factures",
+      title: t("account.billing"),
+      description: t("account.billingDesc"),
       icon: FileText,
       color: "text-emerald-600",
       onClick: () => navigate("/factures"),
     },
     {
-      title: "Mes statistiques",
-      description: "Voir mes statistiques d'apprentissage",
+      title: t("account.myStats"),
+      description: t("account.myStatsDesc"),
       icon: BarChart3,
       color: "text-indigo-600",
-      onClick: () => toast({ title: "Mes statistiques", description: "Section en cours de développement" }),
+      onClick: () => toast({ title: t("account.myStats"), description: t("account.inDevelopment") }),
     },
   ];
 
@@ -294,8 +296,8 @@ const Account = () => {
           transition={{ duration: 0.3 }}
           className="mb-6"
         >
-          <h1 className="font-display text-2xl font-extrabold text-foreground">Mon compte</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Gérez vos informations et votre abonnement</p>
+          <h1 className="font-display text-2xl font-extrabold text-foreground">{t("account.pageTitle")}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{t("account.pageSubtitle")}</p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 items-start">
@@ -338,7 +340,7 @@ const Account = () => {
                     <span className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-foreground/70 shrink-0">
                       <ArrowLeft className="h-4 w-4" />
                     </span>
-                    <span className="flex-1 text-sm font-medium">Liste des matières</span>
+                    <span className="flex-1 text-sm font-medium">{t("account.subjectsList")}</span>
                     <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                   </button>
                   <button
@@ -349,7 +351,7 @@ const Account = () => {
                     <span className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-foreground/70 shrink-0">
                       <BarChart3 className="h-4 w-4" />
                     </span>
-                    <span className="flex-1 text-sm font-medium">Tableau de bord</span>
+                    <span className="flex-1 text-sm font-medium">{t("account.dashboardLink")}</span>
                     <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                   </button>
                   {isStudent && <JoinClassDialog onClassChange={setHasClass} />}
@@ -364,7 +366,7 @@ const Account = () => {
                           <span className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-foreground/70 shrink-0">
                             <MessageSquareWarning className="h-4 w-4" />
                           </span>
-                          <span className="flex-1 text-sm font-medium">Réclamation</span>
+                          <span className="flex-1 text-sm font-medium">{t("account.complaint")}</span>
                           <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                         </button>
                       }
@@ -382,7 +384,7 @@ const Account = () => {
                   <span className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-foreground/70 shrink-0">
                     <ArrowLeft className="h-4 w-4" />
                   </span>
-                  <span className="flex-1 text-sm font-medium">Tableau de bord parent</span>
+                  <span className="flex-1 text-sm font-medium">{t("account.parentDashboardLink")}</span>
                   <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                 </button>
               </Card>
@@ -399,7 +401,7 @@ const Account = () => {
             {/* Account settings list */}
             <Card className="pro-card overflow-hidden">
               <div className="px-6 py-3.5 border-b border-border">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Réglages du compte</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("account.accountSettings")}</p>
               </div>
               <div className="divide-y divide-border">
                 {accountCards.map((card, index) => (
@@ -429,7 +431,7 @@ const Account = () => {
                   <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
                     <Key className="h-4 w-4 text-primary" />
                   </div>
-                  <h2 className="text-sm font-semibold text-foreground">Mon abonnement</h2>
+                  <h2 className="text-sm font-semibold text-foreground">{t("account.mySubscription")}</h2>
                 </div>
 
                 <div className="p-6">
@@ -437,23 +439,23 @@ const Account = () => {
                     <div className="space-y-5">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">Formule</p>
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">{t("account.plan")}</p>
                           <p className="font-semibold text-foreground">
-                            {subscription.plan_type === "annual" ? "Scolaire (1 an)" : "Mensuelle"}
+                            {subscription.plan_type === "annual" ? t("account.planAnnual") : t("account.planMonthly")}
                           </p>
                         </div>
                         <Badge
                           variant={subscription.is_paused ? "secondary" : "default"}
                           className="rounded-full px-4"
                         >
-                          {subscription.is_paused ? "En pause" : "Actif"}
+                          {subscription.is_paused ? t("account.paused") : t("account.active")}
                         </Badge>
                       </div>
 
                       <div className="bg-muted/50 rounded-lg p-4">
                         <div className="flex items-center gap-2 mb-3">
                           <Clock className="h-4 w-4 text-primary" />
-                          <span className="font-semibold text-foreground">{remaining} jours restants</span>
+                          <span className="font-semibold text-foreground">{t("account.daysRemaining", { count: remaining })}</span>
                           <span className="text-sm text-muted-foreground">/ {subscription.total_days}</span>
                         </div>
                         <div className="w-full bg-border rounded-full h-2 overflow-hidden">
@@ -473,9 +475,9 @@ const Account = () => {
                           onClick={subscription.is_paused ? handleResume : handlePause}
                         >
                           {subscription.is_paused ? (
-                            <><Play className="h-4 w-4 mr-2" /> Reprendre l'abonnement</>
+                            <><Play className="h-4 w-4 mr-2" /> {t("account.resumeSubscription")}</>
                           ) : (
-                            <><Pause className="h-4 w-4 mr-2" /> Mettre en pause</>
+                            <><Pause className="h-4 w-4 mr-2" /> {t("account.pauseSubscription")}</>
                           )}
                         </Button>
                       )}
@@ -486,9 +488,9 @@ const Account = () => {
                         <div className="flex items-center gap-3 bg-destructive/10 border border-destructive/20 rounded-lg p-4">
                           <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
                           <div>
-                            <p className="font-semibold text-destructive text-sm">Abonnement expiré</p>
+                            <p className="font-semibold text-destructive text-sm">{t("account.subscriptionExpired")}</p>
                             <p className="text-destructive/80 text-xs mt-0.5">
-                              Votre abonnement {subscription.plan_type === "annual" ? "scolaire" : "mensuel"} est terminé. Activez un nouveau code pour continuer.
+                              {t("account.subscriptionExpiredDesc", { type: subscription.plan_type === "annual" ? t("account.planAnnualLower") : t("account.planMonthlyLower") })}
                             </p>
                           </div>
                         </div>
@@ -499,10 +501,10 @@ const Account = () => {
                             <Sparkles className="h-5 w-5 text-primary" />
                           </div>
                           <p className="text-muted-foreground text-sm mb-1">
-                            Vous n'avez pas encore d'abonnement actif.
+                            {t("account.noActiveSubscription")}
                           </p>
                           <p className="text-muted-foreground text-sm">
-                            Entrez votre code d'activation pour commencer.
+                            {t("account.enterActivationCode")}
                           </p>
                         </div>
                       )}
@@ -523,12 +525,12 @@ const Account = () => {
                           {activatingCode ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
-                            "Activer"
+                            t("account.activate")
                           )}
                         </Button>
                       </div>
                       <p className="text-xs text-muted-foreground text-center">
-                        Format du code : XXXX-XXXX-XXXX
+                        {t("account.activationCodeFormat")}
                       </p>
                     </div>
                   )}

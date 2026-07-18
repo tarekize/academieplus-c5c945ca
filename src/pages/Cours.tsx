@@ -17,6 +17,7 @@ import ChatBot from "@/components/ChatBot";
 import ITSRecommendations from "@/components/its/ITSRecommendations";
 import { ChapterFormDialog, DeleteChapterButton, LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 import { Rnd } from 'react-rnd';
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -70,6 +71,7 @@ const Cours = () => {
   const leconParam = searchParams.get("lecon");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [needsProfileCompletion, setNeedsProfileCompletion] = useState(false);
   const [schoolLevel, setSchoolLevel] = useState<string>("");
@@ -209,8 +211,8 @@ const Cours = () => {
     } catch (error: any) {
       console.error("Error:", error);
       toast({
-        title: "Erreur",
-        description: "Impossible de charger le cours",
+        title: t("cours.errorTitle"),
+        description: t("cours.loadError"),
         variant: "destructive",
       });
     } finally {
@@ -331,8 +333,8 @@ const Cours = () => {
     }));
 
     toast({
-      title: progress[activeChapter.id] ? "Marqué comme non complété" : "Chapitre complété !",
-      description: progress[activeChapter.id] ? "" : "Continuez comme ça ! 🎉",
+      title: progress[activeChapter.id] ? t("cours.chapterUncompleted") : t("cours.chapterCompleted"),
+      description: progress[activeChapter.id] ? "" : t("cours.chapterCompletedDesc"),
     });
   };
 
@@ -371,21 +373,21 @@ const Cours = () => {
       const content = activeChapter.content?.replace(/<[^>]*>/g, '') || 'Contenu non disponible';
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
-        toast({ title: "Erreur", description: "Veuillez autoriser les pop-ups", variant: "destructive" });
+        toast({ title: t("cours.errorTitle"), description: t("cours.popupBlocked"), variant: "destructive" });
         return;
       }
       printWindow.document.write(`<!DOCTYPE html><html><head><title>${activeChapter.title}</title><style>body{font-family:Arial,sans-serif;padding:40px;color:#333}h1{font-size:24px;border-bottom:2px solid #333;padding-bottom:10px}</style></head><body><h1>${activeChapter.title}</h1><p style="line-height:1.6;white-space:pre-wrap">${content}</p><script>window.onload=function(){window.print()}<\/script></body></html>`);
       printWindow.document.close();
 
       toast({
-        title: "PDF téléchargé",
-        description: "Le chapitre a été téléchargé avec succès",
+        title: t("cours.pdfDownloaded"),
+        description: t("cours.pdfDownloadedDesc"),
       });
     } catch (error) {
       console.error("Error generating PDF:", error);
       toast({
-        title: "Erreur",
-        description: "Impossible de générer le PDF",
+        title: t("cours.errorTitle"),
+        description: t("cours.pdfError"),
         variant: "destructive",
       });
     }
@@ -412,11 +414,11 @@ const Cours = () => {
   if (chapters.length === 0 && !canManage) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <h2 className="text-2xl font-bold mb-4">Cours non disponible</h2>
+        <h2 className="text-2xl font-bold mb-4">{t("cours.courseUnavailable")}</h2>
         <p className="text-muted-foreground mb-6">
-          Aucun cours n'est disponible pour cette matière et ce niveau.
+          {t("cours.courseUnavailableDesc")}
         </p>
-        <Button onClick={() => navigate("/liste-cours")}>Retour à la liste des cours</Button>
+        <Button onClick={() => navigate("/liste-cours")}>{t("cours.backToCourseList")}</Button>
       </div>
     );
   }
@@ -442,7 +444,7 @@ const Cours = () => {
               <div className="flex-1 min-w-0">
                 <h1 className="font-display text-xl md:text-2xl font-extrabold text-foreground truncate">{subject?.name || "Cours"}</h1>
                 <p className="text-sm text-muted-foreground">
-                  {Object.values(progress).filter(Boolean).length}/{chapters.length} chapitres terminés
+                  {t("cours.chaptersCompleted", { completed: Object.values(progress).filter(Boolean).length, total: chapters.length })}
                 </p>
               </div>
             </div>
@@ -541,7 +543,7 @@ const Cours = () => {
                       onClick={() => navigate("/liste-cours")}
                     >
                       <ArrowLeft className="h-4 w-4" />
-                      Retour aux niveaux
+                      {t("cours.backToLevels")}
                     </Button>
                   )}
                   <Button
@@ -557,7 +559,7 @@ const Cours = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Rechercher un chapitre ou une leçon..."
+                  placeholder={t("cours.searchPlaceholder")}
                   className="pl-9 rounded-xl h-11"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -766,7 +768,7 @@ const Cours = () => {
                 if (keywords.length === 0) {
                   return (
                     <div className="text-center py-12">
-                      <p className="text-lg text-muted-foreground">Tapez un mot-clé pour rechercher</p>
+                      <p className="text-lg text-muted-foreground">{t("cours.typeKeywordToSearch")}</p>
                     </div>
                   );
                 }
@@ -820,7 +822,7 @@ const Cours = () => {
                 if (results.length === 0) {
                   return (
                     <div className="text-center py-12">
-                      <p className="text-lg text-muted-foreground">Aucun cours trouvé pour "{searchQuery}"</p>
+                      <p className="text-lg text-muted-foreground">{t("cours.noCourseFoundFor", { query: searchQuery })}</p>
                     </div>
                   );
                 }
@@ -860,7 +862,7 @@ const Cours = () => {
                             : matchSource === 'lesson-title' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
                               : 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300'
                             }`}>
-                            {matchSource === 'chapter-title' ? 'Chapitre' : matchSource === 'lesson-title' ? 'Titre leçon' : 'Contenu'}
+                            {matchSource === 'chapter-title' ? t("cours.matchChapter") : matchSource === 'lesson-title' ? t("cours.matchLessonTitle") : t("cours.matchContent")}
                           </span>
                         </CardContent>
                       </Card>
