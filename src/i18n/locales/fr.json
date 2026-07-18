@@ -324,7 +324,9 @@
     "leave": "Quitter",
     "questionOf": "Question {{current}} sur {{total}}",
     "correctCount": "{{count}} correctes",
-    "explanation": "Explication :"
+    "explanation": "Explication :",
+    "vsLastAttempt": "{{delta}} points vs ton dernier essai",
+    "vsLastAttemptEqual": "Même score que ton dernier essai"
   },
   "account": {
     "errorTitle": "Erreur",

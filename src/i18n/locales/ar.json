@@ -330,7 +330,9 @@
     "leave": "مغادرة",
     "questionOf": "السؤال {{current}} من {{total}}",
     "correctCount": "{{count}} إجابة صحيحة",
-    "explanation": "الشرح:"
+    "explanation": "الشرح:",
+    "vsLastAttempt": "{{delta}} نقطة مقارنة بمحاولتك الأخيرة",
+    "vsLastAttemptEqual": "نفس نتيجة محاولتك الأخيرة"
   },
   "account": {
     "errorTitle": "خطأ",

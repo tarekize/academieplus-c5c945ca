@@ -621,6 +621,36 @@ export type Database = {
           },
         ]
       }
+      exam_attempts: {
+        Row: {
+          created_at: string
+          duration_seconds: number
+          id: string
+          score: number
+          student_id: string
+          subject_id: string
+          total_questions: number
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds: number
+          id?: string
+          score: number
+          student_id: string
+          subject_id: string
+          total_questions: number
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          score?: number
+          student_id?: string
+          subject_id?: string
+          total_questions?: number
+        }
+        Relationships: []
+      }
       exams: {
         Row: {
           content: Json

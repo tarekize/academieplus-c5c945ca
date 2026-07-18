@@ -38,6 +38,9 @@ const Simulation = () => {
   const [showResults, setShowResults] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(30 * 60); // 30 minutes in seconds
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [previousAttempt, setPreviousAttempt] = useState<{ score: number; total_questions: number } | null>(null);
+  const [attemptSaved, setAttemptSaved] = useState(false);
 
   useEffect(() => {
     if (subjectId) {
@@ -66,6 +69,19 @@ const Simulation = () => {
       if (!user) {
         navigate("/auth");
         return;
+      }
+      setUserId(user.id);
+
+      if (subjectId) {
+        const { data: lastAttempt } = await supabase
+          .from("exam_attempts")
+          .select("score, total_questions")
+          .eq("student_id", user.id)
+          .eq("subject_id", subjectId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        setPreviousAttempt(lastAttempt);
       }
 
       const { data: profile } = await supabase
@@ -131,6 +147,23 @@ const Simulation = () => {
     setShowResults(true);
   };
 
+  // Persiste la tentative une fois les résultats affichés (score final connu).
+  useEffect(() => {
+    if (!showResults || attemptSaved || !userId || !subjectId || questions.length === 0) return;
+    setAttemptSaved(true);
+    const score = answers.filter(a => a.correct).length;
+    const duration = Math.floor((Date.now() - startTime) / 1000);
+    supabase.from("exam_attempts").insert({
+      student_id: userId,
+      subject_id: subjectId,
+      score,
+      total_questions: questions.length,
+      duration_seconds: duration,
+    }).then(({ error }) => {
+      if (error) console.error("Error saving exam attempt:", error);
+    });
+  }, [showResults, attemptSaved, userId, subjectId, questions.length, answers, startTime]);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -176,6 +209,18 @@ const Simulation = () => {
                 {percentage}%
               </div>
 
+              {previousAttempt && previousAttempt.total_questions > 0 && (() => {
+                const previousPercentage = Math.round((previousAttempt.score / previousAttempt.total_questions) * 100);
+                const delta = percentage - previousPercentage;
+                return (
+                  <p className={`text-sm font-medium ${delta > 0 ? 'text-green-600' : delta < 0 ? 'text-red-600' : 'text-muted-foreground'}`}>
+                    {delta === 0
+                      ? t("simulation.vsLastAttemptEqual")
+                      : t("simulation.vsLastAttempt", { delta: delta > 0 ? `+${delta}` : delta })}
+                  </p>
+                );
+              })()}
+
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div className="p-4 bg-green-500/10 rounded-lg">
                   <p className="text-2xl font-bold text-green-600">{score}</p>
@@ -200,6 +245,7 @@ const Simulation = () => {
                   setAnswers([]);
                   setShowResults(false);
                   setTimeRemaining(30 * 60);
+                  setAttemptSaved(false);
                   fetchQuestions();
                 }}>
                   {t("simulation.restart")}
