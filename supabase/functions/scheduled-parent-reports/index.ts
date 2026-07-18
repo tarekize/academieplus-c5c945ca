@@ -7,7 +7,7 @@ import { logTokenUsageAsync, extractGeminiUsage, type GeminiUsage } from "../_sh
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
 };
 
 const PERIODIC_DAYS = 20;
@@ -239,6 +239,17 @@ async function buildInactivityReport(
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  // --- Cette fonction utilise le service role et lit les données scolaires
+  // de tous les enfants liés à un parent. Elle ne doit être appelable QUE par
+  // le planificateur (pg_cron), jamais par un client public. ---
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  const providedSecret = req.headers.get("x-cron-secret");
+  if (!cronSecret || providedSecret !== cronSecret) {
+    return new Response(JSON.stringify({ error: "Non autorisé." }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;

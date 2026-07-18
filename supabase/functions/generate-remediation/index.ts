@@ -1,6 +1,7 @@
 // Génère des activités de remédiation ciblées UNIQUEMENT sur les lacunes de l'élève.
 // Retourne exactement 3 exercices + 2 quiz, sans monter en compétence :
 // le but est de combler les lacunes, pas de pousser vers du plus difficile.
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { logTokenUsageAsync, resolveCallerRoleGroup, extractGeminiUsage, type AiUsage } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
@@ -209,6 +210,27 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // --- Authentification obligatoire : cette fonction consomme un quota IA
+    // à chaque appel. resolveCallerRoleGroup() plus bas ne fait que
+    // catégoriser l'appelant pour les logs, il ne rejette rien. ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Non autorisé" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const supabaseUrlAuth = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const userClient = createClient(supabaseUrlAuth, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user: caller }, error: callerError } = await userClient.auth.getUser();
+    if (callerError || !caller) {
+      return new Response(JSON.stringify({ error: "Non autorisé" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const {
       school_level,

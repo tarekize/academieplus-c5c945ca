@@ -364,6 +364,37 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // --- Authentification + autorisation obligatoires : cette fonction écrit
+    // directement dans chapter_quizzes/chapter_exercises avec la service_role
+    // key. resolveCallerRoleGroup() (utilisé plus bas) ne fait que catégoriser
+    // l'appelant pour les logs, il ne bloque rien — il faut un vrai contrôle ici. ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Non autorisé" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user: caller }, error: callerError } = await userClient.auth.getUser();
+    if (callerError || !caller) {
+      return new Response(
+        JSON.stringify({ error: "Non autorisé" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const { data: callerRoles } = await supabase.from("user_roles").select("role").eq("user_id", caller.id);
+    const roleNames = (callerRoles ?? []).map((r: any) => r.role);
+    if (!roleNames.includes("admin") && !roleNames.includes("pedago")) {
+      return new Response(
+        JSON.stringify({ error: "Accès réservé aux administrateurs et pédagogues" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Fetch chapter and lesson information
     const { data: chapterData, error: chapterError } = await supabase
       .from("chapters")

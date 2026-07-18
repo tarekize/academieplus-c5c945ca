@@ -13,9 +13,9 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
-// Shared bulk token = SHA-like fixed value; reuse SUPABASE_JWKS env presence as gate or just compare to a constant injected by build.
-// We'll use the project ref so caller proves they know it; combined with service-role-only DB writes below.
-const BULK_TOKEN = Deno.env.get("SUPABASE_URL") || ""; // any caller must send the project URL string
+// Dedicated secret, distinct from the (public) project URL: BULK_TOKEN must be set for
+// this endpoint to accept any request at all — no value here means the route is closed.
+const BULK_TOKEN = Deno.env.get("BULK_TOKEN") || "";
 
 const FILIERE_ID = "9f9cea26-5b2c-4bb3-ab00-206abb7f43c5";
 
@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const token = req.headers.get("x-bulk-token");
-  if (!token || token !== BULK_TOKEN) {
+  if (!BULK_TOKEN || !token || token !== BULK_TOKEN) {
     return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
