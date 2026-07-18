@@ -43,7 +43,7 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ 
   const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
   if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
 
-  const models = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash"];
+  const models = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-1.5-flash"];
   let lastError = "Gemini2 unavailable";
   for (const model of models) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY_2}`;

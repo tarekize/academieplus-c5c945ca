@@ -243,29 +243,39 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<str
 }
 
 // ============ Provider 3: Google Gemini (Key 2) ============
+// gemini-2.0-flash was retired by Google (404 "no longer available"); try current
+// models in order instead of a single hardcoded one so a single retirement doesn't
+// take the whole feature down again.
+const GEMINI2_MODELS = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite"];
+
 async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
   const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
   if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY_2}`;
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: { temperature: 0.95, topP: 0.95, maxOutputTokens: 4096 },
-    }),
-  });
+  let lastError = "Gemini 2 unavailable";
+  for (const model of GEMINI2_MODELS) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY_2}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: { temperature: 0.95, topP: 0.95, maxOutputTokens: 4096 },
+      }),
+    });
 
-  if (!response.ok) {
+    if (response.ok) {
+      const data = await response.json();
+      return { text: data?.candidates?.[0]?.content?.parts?.[0]?.text || "", usage: extractGeminiUsage(data) };
+    }
+
     const errText = await response.text();
-    console.error("Gemini 2 error:", response.status, errText);
-    throw new Error(`Gemini 2 failed: ${response.status}`);
+    console.error(`Gemini 2 (${model}) error:`, response.status, errText);
+    lastError = `Gemini 2 (${model}) failed: ${response.status}`;
   }
 
-  const data = await response.json();
-  return { text: data?.candidates?.[0]?.content?.parts?.[0]?.text || "", usage: extractGeminiUsage(data) };
+  throw new Error(lastError);
 }
 
 serve(async (req) => {

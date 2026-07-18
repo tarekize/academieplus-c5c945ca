@@ -61,7 +61,7 @@ async function callAIWithFallback(messages: any[]): Promise<string> {
         role: m.role === "system" ? "user" : m.role === "assistant" ? "model" : "user",
         parts: [{ text: m.content }],
       }));
-      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contents }),

@@ -186,24 +186,32 @@ async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<
   return data?.choices?.[0]?.message?.content || "";
 }
 
+// gemini-2.0-flash was retired by Google (404 "no longer available"); try current
+// models in order instead of a single hardcoded one.
+const GEMINI_FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite"];
+
 async function callGemini(systemPrompt: string, userPrompt: string, key: string, label: string): Promise<{ text: string; usage: AiUsage | null }> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: { temperature: 0.85, topP: 0.95, maxOutputTokens: 4096 },
-    }),
-  });
-  if (!response.ok) {
+  let lastError = `Gemini ${label} unavailable`;
+  for (const model of GEMINI_FALLBACK_MODELS) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: { temperature: 0.85, topP: 0.95, maxOutputTokens: 4096 },
+      }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      return { text: data?.candidates?.[0]?.content?.parts?.[0]?.text || "", usage: extractGeminiUsage(data) };
+    }
     const errText = await response.text();
-    console.error(`Gemini ${label} error:`, response.status, errText);
-    throw new Error(`Gemini ${label} failed: ${response.status}`);
+    console.error(`Gemini ${label} (${model}) error:`, response.status, errText);
+    lastError = `Gemini ${label} (${model}) failed: ${response.status}`;
   }
-  const data = await response.json();
-  return { text: data?.candidates?.[0]?.content?.parts?.[0]?.text || "", usage: extractGeminiUsage(data) };
+  throw new Error(lastError);
 }
 
 Deno.serve(async (req) => {
