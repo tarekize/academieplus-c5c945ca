@@ -162,7 +162,8 @@ const MesInformations = () => {
 
       if (!profile?.id || !user) return;
 
-      // Update email if it has changed - using edge function for immediate update
+      // Update email if it has changed - edge function sends a confirmation
+      // link to the new address; the change only takes effect once clicked.
       if (validatedData.email !== profile.email) {
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
@@ -185,12 +186,12 @@ const MesInformations = () => {
         }
 
         toast({
-          title: "Email mis à jour",
-          description: "Votre email a été modifié avec succès. Vous pouvez maintenant vous connecter avec votre nouvelle adresse.",
+          title: "Confirmez votre nouvel email",
+          description: "Un email de confirmation a été envoyé à votre nouvelle adresse. Le changement ne sera effectif qu'après avoir cliqué sur le lien reçu.",
         });
       }
 
-      // Update other profile fields (email is already updated by edge function)
+      // Update other profile fields (email change is confirmed separately, see above)
       const { error } = await supabase
         .from("profiles")
         .update({
