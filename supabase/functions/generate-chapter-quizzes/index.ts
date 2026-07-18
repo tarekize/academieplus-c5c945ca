@@ -27,7 +27,41 @@ interface GeneratedExercise {
 
 type AIProvider = {
   name: string;
-  call: (systemPrompt: string, userPrompt: string) => Promise<{ text: string; usage: AiUsage | null }>;
+  call: (systemPrompt: string, userPrompt: string, responseSchema: Record<string, unknown>) => Promise<{ text: string; usage: AiUsage | null }>;
+};
+
+// Gemini "structured output" : force le modèle à ne produire que ces champs,
+// sans texte ni markdown autour — moins de tokens de sortie, JSON toujours valide.
+const QUIZ_RESPONSE_SCHEMA = {
+  type: "ARRAY",
+  items: {
+    type: "OBJECT",
+    properties: {
+      question: { type: "STRING" },
+      options: { type: "ARRAY", items: { type: "STRING" } },
+      correct_answer: { type: "STRING" },
+      explanation: { type: "STRING" },
+      hint: { type: "STRING" },
+      difficulty: { type: "INTEGER" },
+    },
+    required: ["question", "options", "correct_answer", "explanation", "hint", "difficulty"],
+  },
+};
+
+const EXERCISE_RESPONSE_SCHEMA = {
+  type: "ARRAY",
+  items: {
+    type: "OBJECT",
+    properties: {
+      title: { type: "STRING" },
+      statement: { type: "STRING" },
+      expected_answer: { type: "STRING" },
+      hint: { type: "STRING" },
+      solution: { type: "STRING" },
+      difficulty: { type: "INTEGER" },
+    },
+    required: ["title", "statement", "expected_answer", "hint", "solution", "difficulty"],
+  },
 };
 
 function cleanGeneratedJson(rawContent: string): string {
@@ -91,14 +125,14 @@ async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<
 }
 
 // ============ Provider 1: Google Gemini (1ère clé) ============
-async function callGemini(systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
+async function callGemini(systemPrompt: string, userPrompt: string, responseSchema: Record<string, unknown>): Promise<{ text: string; usage: AiUsage | null }> {
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
   if (!GEMINI_API_KEY) {
     throw new Error("GEMINI_API_KEY not configured");
   }
 
-  return callGeminiWithKey(GEMINI_API_KEY, "Gemini", systemPrompt, userPrompt);
+  return callGeminiWithKey(GEMINI_API_KEY, "Gemini", systemPrompt, userPrompt, responseSchema);
 }
 
 // ============ Provider 2: Groq ============
@@ -134,20 +168,20 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<strin
 }
 
 // ============ Provider 3: Google Gemini (2e clé / fallback) ============
-async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
+async function callGemini2(systemPrompt: string, userPrompt: string, responseSchema: Record<string, unknown>): Promise<{ text: string; usage: AiUsage | null }> {
   const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
   if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
 
-  return callGeminiWithKey(GEMINI_API_KEY_2, "Gemini2", systemPrompt, userPrompt);
+  return callGeminiWithKey(GEMINI_API_KEY_2, "Gemini2", systemPrompt, userPrompt, responseSchema);
 }
 
-async function callGeminiWithKey(apiKey: string, label: string, systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
+async function callGeminiWithKey(apiKey: string, label: string, systemPrompt: string, userPrompt: string, responseSchema: Record<string, unknown>): Promise<{ text: string; usage: AiUsage | null }> {
   const models = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-1.5-flash"];
   let lastError = `${label} unavailable`;
   for (const model of models) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     // gemini-2.5 models "think" before answering by default, eating into maxOutputTokens.
-    const generationConfig: Record<string, unknown> = { responseMimeType: "application/json", temperature: 0.55, maxOutputTokens: 12000 };
+    const generationConfig: Record<string, unknown> = { responseMimeType: "application/json", temperature: 0.55, maxOutputTokens: 12000, responseSchema };
     if (model.startsWith("gemini-2.5") || model.includes("flash-latest")) {
       generationConfig.thinkingConfig = { thinkingBudget: 0 };
     }
@@ -183,6 +217,7 @@ async function callGeminiWithKey(apiKey: string, label: string, systemPrompt: st
 async function generateWithAI(
   systemPrompt: string,
   userPrompt: string,
+  responseSchema: Record<string, unknown>,
   validateJson?: (content: string) => void
 ): Promise<{ content: string; usage: AiUsage | null }> {
   const providers: AIProvider[] = [
@@ -193,7 +228,7 @@ async function generateWithAI(
   for (const provider of providers) {
     try {
       console.log(`Trying ${provider.name} for content generation...`);
-      const { text: content, usage } = await provider.call(systemPrompt, userPrompt);
+      const { text: content, usage } = await provider.call(systemPrompt, userPrompt, responseSchema);
       if (!content.trim()) throw new Error("Empty AI response");
       if (validateJson) validateJson(content);
       console.log(`${provider.name} succeeded.`);
@@ -242,7 +277,7 @@ async function generateQuizzes(
     if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Invalid quizzes array");
   };
 
-  const { content: rawContent, usage } = await generateWithAI(systemPrompt, userPrompt, validateQuizzes);
+  const { content: rawContent, usage } = await generateWithAI(systemPrompt, userPrompt, QUIZ_RESPONSE_SCHEMA, validateQuizzes);
 
   try {
     const quizzes = parseGeneratedArray<GeneratedQuiz>(rawContent);
@@ -324,7 +359,7 @@ $$\\\\boxed{\\\\text{النتيجة}}$$
     if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Invalid exercises array");
   };
 
-  const { content: rawContent, usage } = await generateWithAI(systemPrompt, userPrompt, validateExercises);
+  const { content: rawContent, usage } = await generateWithAI(systemPrompt, userPrompt, EXERCISE_RESPONSE_SCHEMA, validateExercises);
 
   try {
     const exercises = parseGeneratedArray<GeneratedExercise>(rawContent);

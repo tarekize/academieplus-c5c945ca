@@ -39,6 +39,18 @@ function parseGeneratedObject(content: string): GeneratedExamExercise {
   }
 }
 
+// Gemini "structured output" : force le modèle à ne produire que ces champs,
+// sans texte ni markdown autour — moins de tokens de sortie, JSON toujours valide.
+const EXAM_EXERCISE_RESPONSE_SCHEMA = {
+  type: "OBJECT",
+  properties: {
+    statement: { type: "STRING" },
+    solution: { type: "STRING" },
+    answer: { type: "STRING" },
+  },
+  required: ["statement", "solution", "answer"],
+};
+
 async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
   const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
   if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
@@ -48,7 +60,7 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ 
   for (const model of models) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY_2}`;
     // gemini-2.5 models "think" before answering by default, eating into maxOutputTokens.
-    const generationConfig: Record<string, unknown> = { responseMimeType: "application/json", temperature: 0.6, maxOutputTokens: 12000 };
+    const generationConfig: Record<string, unknown> = { responseMimeType: "application/json", temperature: 0.6, maxOutputTokens: 12000, responseSchema: EXAM_EXERCISE_RESPONSE_SCHEMA };
     if (model.startsWith("gemini-2.5") || model.includes("flash-latest")) {
       generationConfig.thinkingConfig = { thinkingBudget: 0 };
     }

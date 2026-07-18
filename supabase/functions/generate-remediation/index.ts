@@ -161,6 +161,47 @@ function buildSinglePrompt(
   return { system, user };
 }
 
+// Gemini "structured output" : force le modèle à ne produire que ces champs,
+// sans texte ni markdown autour — moins de tokens de sortie, JSON toujours valide.
+const REMEDIATION_RESPONSE_SCHEMA = {
+  type: "OBJECT",
+  properties: {
+    exercises: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          title: { type: "STRING" },
+          statement: { type: "STRING" },
+          expected_answer: { type: "STRING" },
+          accepted_answers: { type: "ARRAY", items: { type: "STRING" } },
+          hint: { type: "STRING" },
+          solution: { type: "STRING" },
+          concept: { type: "STRING" },
+          difficulty: { type: "INTEGER" },
+        },
+        required: ["title", "statement", "expected_answer", "hint", "solution", "concept", "difficulty"],
+      },
+    },
+    quizzes: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          question: { type: "STRING" },
+          options: { type: "ARRAY", items: { type: "STRING" } },
+          correct_answer: { type: "STRING" },
+          explanation: { type: "STRING" },
+          concept: { type: "STRING" },
+          difficulty: { type: "INTEGER" },
+        },
+        required: ["question", "options", "correct_answer", "explanation", "concept", "difficulty"],
+      },
+    },
+  },
+  required: ["exercises", "quizzes"],
+};
+
 async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<string> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -202,6 +243,7 @@ async function callGemini(systemPrompt: string, userPrompt: string, key: string,
       topP: 0.95,
       maxOutputTokens: 16384,
       responseMimeType: "application/json",
+      responseSchema: REMEDIATION_RESPONSE_SCHEMA,
     };
     if (model.startsWith("gemini-2.5") || model.includes("flash-latest")) {
       generationConfig.thinkingConfig = { thinkingBudget: 0 };
