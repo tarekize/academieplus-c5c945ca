@@ -48,7 +48,7 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ 
   for (const model of models) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY_2}`;
     // gemini-2.5 models "think" before answering by default, eating into maxOutputTokens.
-    const generationConfig: Record<string, unknown> = { responseMimeType: "application/json", temperature: 0.6, maxOutputTokens: 8000 };
+    const generationConfig: Record<string, unknown> = { responseMimeType: "application/json", temperature: 0.6, maxOutputTokens: 12000 };
     if (model.startsWith("gemini-2.5") || model.includes("flash-latest")) {
       generationConfig.thinkingConfig = { thinkingBudget: 0 };
     }
@@ -64,7 +64,13 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ 
 
     if (response.ok) {
       const data = await response.json();
+      const finishReason = data?.candidates?.[0]?.finishReason;
       const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("\n") || "";
+      if (finishReason && finishReason !== "STOP") {
+        console.error(`Gemini2 ${model} incomplete response: finishReason=${finishReason}, length=${text.length}`);
+        lastError = `Gemini2 ${model} incomplete: ${finishReason}`;
+        continue;
+      }
       return { text, usage: extractGeminiUsage(data) };
     }
     const errText = await response.text();

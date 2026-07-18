@@ -200,7 +200,7 @@ async function callGemini(systemPrompt: string, userPrompt: string, key: string,
     const generationConfig: Record<string, unknown> = {
       temperature: 0.85,
       topP: 0.95,
-      maxOutputTokens: 8192,
+      maxOutputTokens: 16384,
       responseMimeType: "application/json",
     };
     if (model.startsWith("gemini-2.5") || model.includes("flash-latest")) {
@@ -217,7 +217,14 @@ async function callGemini(systemPrompt: string, userPrompt: string, key: string,
     });
     if (response.ok) {
       const data = await response.json();
-      return { text: data?.candidates?.[0]?.content?.parts?.[0]?.text || "", usage: extractGeminiUsage(data) };
+      const finishReason = data?.candidates?.[0]?.finishReason;
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      if (finishReason && finishReason !== "STOP") {
+        console.error(`Gemini ${label} (${model}) incomplete response: finishReason=${finishReason}, length=${text.length}`);
+        lastError = `Gemini ${label} (${model}) incomplete: ${finishReason}`;
+        continue;
+      }
+      return { text, usage: extractGeminiUsage(data) };
     }
     const errText = await response.text();
     console.error(`Gemini ${label} (${model}) error:`, response.status, errText);

@@ -261,7 +261,7 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ 
     const generationConfig: Record<string, unknown> = {
       temperature: 0.95,
       topP: 0.95,
-      maxOutputTokens: 8192,
+      maxOutputTokens: 16384,
       responseMimeType: "application/json",
     };
     if (model.startsWith("gemini-2.5") || model.includes("flash-latest")) {
@@ -279,7 +279,16 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ 
 
     if (response.ok) {
       const data = await response.json();
-      return { text: data?.candidates?.[0]?.content?.parts?.[0]?.text || "", usage: extractGeminiUsage(data) };
+      const finishReason = data?.candidates?.[0]?.finishReason;
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      if (finishReason && finishReason !== "STOP") {
+        // MAX_TOKENS means the JSON was cut off mid-response — retry the next
+        // model instead of returning an unparsable half-response.
+        console.error(`Gemini 2 (${model}) incomplete response: finishReason=${finishReason}, length=${text.length}`);
+        lastError = `Gemini 2 (${model}) incomplete: ${finishReason}`;
+        continue;
+      }
+      return { text, usage: extractGeminiUsage(data) };
     }
 
     const errText = await response.text();
@@ -400,7 +409,10 @@ serve(async (req) => {
       try {
         content = JSON.parse(sanitizeJsonEscapes(rawContent));
       } catch {
-        console.error("Failed to parse AI response:", rawContent.substring(0, 500));
+        console.error(
+          `Failed to parse AI response (length=${rawContent.length}). Start:`, rawContent.substring(0, 300),
+          "End:", rawContent.substring(Math.max(0, rawContent.length - 300)),
+        );
         throw new Error("L'IA a retourné un format invalide. Réessayez.");
       }
     }

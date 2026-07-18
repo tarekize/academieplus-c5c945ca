@@ -163,7 +163,13 @@ async function callGeminiWithKey(apiKey: string, label: string, systemPrompt: st
 
     if (response.ok) {
       const data = await response.json();
+      const finishReason = data?.candidates?.[0]?.finishReason;
       const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("\n") || "";
+      if (finishReason && finishReason !== "STOP") {
+        console.error(`${label} ${model} incomplete response: finishReason=${finishReason}, length=${text.length}`);
+        lastError = `${label} ${model} incomplete: ${finishReason}`;
+        continue;
+      }
       return { text, usage: extractGeminiUsage(data) };
     }
     const errText = await response.text();
