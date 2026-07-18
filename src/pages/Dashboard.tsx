@@ -2,21 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Users, GraduationCap, LogOut, User as UserIcon, BarChart3, CreditCard, FileText, Cpu } from "lucide-react";
+import { Users, GraduationCap, BarChart3, CreditCard, FileText, Cpu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ChangePasswordButton } from "@/components/ChangePasswordButton";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
 import DashboardTile from "@/components/dashboard/DashboardTile";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 interface Profile {
   id: string;
@@ -89,20 +82,6 @@ const Dashboard = () => {
     return parts.length > 0 ? parts.join(" ") : t("dashboard.user");
   };
 
-  const getSchoolLevelName = (level: string) => {
-    const levels: Record<string, string> = {
-      "5eme_primaire": "5ème Primaire", "1ere_cem": "1ère CEM", "2eme_cem": "2ème CEM",
-      "3eme_cem": "3ème CEM", "4eme_cem": "4ème CEM", premiere: "Première",
-      seconde: "Seconde", terminale: "Terminale",
-    };
-    return levels[level] || level;
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -126,69 +105,9 @@ const Dashboard = () => {
 
   return (
     <div className={cn("min-h-screen", isStudent ? "student-shell" : "bg-background")}>
-      {/* Header */}
-      <header className={cn(
-        "fixed top-0 left-0 right-0 z-50 border-b shadow-sm",
-        isStudent ? "bg-white/60 backdrop-blur-xl border-white/50" : "bg-card/95 backdrop-blur-md border-border/60"
-      )}>
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/liste-cours")}>
-              <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
-                <GraduationCap className="h-5 w-5 text-white" />
-              </div>
-              <span className="font-display text-lg font-bold hidden sm:block">{t("app.brand")}</span>
-            </div>
+      <AppHeader />
 
-
-            {/* Right actions */}
-            <div className="flex items-center gap-2">
-              <LanguageToggle />
-              <ChangePasswordButton />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="flex items-center gap-2 cursor-pointer rounded-xl px-2 py-1.5 hover:bg-muted transition-colors">
-                    <Avatar className="h-8 w-8 ring-2 ring-primary/20">
-                      <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                        {fullName.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="text-left hidden md:block">
-                      <p className="text-sm font-semibold leading-tight">{fullName}</p>
-                      <p className="text-xs text-muted-foreground leading-tight">
-                        {isAdmin ? t("dashboard.admin") : profile?.school_level && getSchoolLevelName(profile.school_level)}
-                      </p>
-                    </div>
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg border-border/50">
-                  {!isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
-                      <UserIcon className="mr-2 h-4 w-4" />
-                      <span>{t("app.manageAccount")}</span>
-                    </DropdownMenuItem>
-                  )}
-                  {isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate("/admin")} className="rounded-lg cursor-pointer">
-                      <Users className="mr-2 h-4 w-4" />
-                      <span>{t("dashboard.userManagement")}</span>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>{t("app.logout")}</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className={cn("container mx-auto px-4 pt-20", isStudent ? "pb-28" : "pb-12")}>
+      <main className={cn("container mx-auto px-4 pt-6", isStudent ? "pb-28" : "pb-12")}>
         <div className="max-w-7xl mx-auto">
           {/* Student Dashboard */}
           {isStudent && user && profile && (

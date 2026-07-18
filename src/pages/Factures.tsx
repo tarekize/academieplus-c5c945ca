@@ -1,4 +1,3 @@
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,18 +5,10 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, GraduationCap, LogOut, User as UserIcon, FileText, Receipt, Calendar, CreditCard } from "lucide-react";
+import { ArrowLeft, Download, FileText, Receipt, Calendar, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTranslation } from "react-i18next";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { AppHeader } from "@/components/layout/AppHeader";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -103,20 +94,6 @@ const Factures = () => {
     if (!p) return "Utilisateur";
     const parts = [p.first_name, p.last_name].filter(Boolean);
     return parts.length > 0 ? parts.join(" ") : "Utilisateur";
-  };
-
-  const getSchoolLevelName = (level: string) => {
-    const levels: Record<string, string> = {
-      cp: 'CP', ce1: 'CE1', ce2: 'CE2', cm1: 'CM1', cm2: 'CM2',
-      sixieme: '6ème', cinquieme: '5ème', quatrieme: '4ème', troisieme: '3ème',
-      seconde: 'Seconde', premiere: 'Première', terminale: 'Terminale'
-    };
-    return levels[level] || 'Votre classe';
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
   };
 
   const formatDate = (dateStr: string) => {
@@ -255,49 +232,13 @@ const Factures = () => {
     );
   }
 
-  const fullName = getFullName(profile);
   const totalPaid = payments.filter(p => p.status === "completed").reduce((sum, p) => sum + p.amount, 0);
 
   return (
     <div className="min-h-screen pro-shell">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/liste-cours")}>
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <span className="font-display text-xl font-extrabold">AcadémiePlus</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <LanguageToggle />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/10 rounded-lg p-2 transition-colors">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback>{fullName.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className="text-left hidden md:block">
-                      <p className="text-sm font-medium">{fullName}</p>
-                      <p className="text-xs text-muted-foreground">{profile?.school_level && getSchoolLevelName(profile.school_level)}</p>
-                    </div>
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/account")}><UserIcon className="mr-2 h-4 w-4" /><span>{t("nav.account")}</span></DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")}><GraduationCap className="mr-2 h-4 w-4" /><span>{t("nav.dashboard")}</span></DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" /><span>{t("nav.logout")}</span></DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
-      <main className="container mx-auto px-4 py-8 mt-20">
+      <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <Breadcrumb className="mb-6">
             <BreadcrumbList>

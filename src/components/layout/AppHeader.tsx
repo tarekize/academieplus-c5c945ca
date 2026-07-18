@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { GraduationCap, LogOut, User as UserIcon, BarChart3 } from "lucide-react";
+import { GraduationCap, LogOut, User as UserIcon, BarChart3, Users } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +40,8 @@ export function AppHeader() {
   const { user, hasRole } = useAuth();
   const [profile, setProfile] = useState<HeaderProfile | null>(null);
   const [isParent, setIsParent] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isPedago, setIsPedago] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -50,6 +52,8 @@ export function AppHeader() {
       .single()
       .then(({ data }) => setProfile(data));
     hasRole("parent").then(setIsParent);
+    hasRole("admin").then(setIsAdmin);
+    hasRole("pedago").then(setIsPedago);
   }, [user, hasRole]);
 
   const fullName = (() => {
@@ -68,7 +72,7 @@ export function AppHeader() {
         <div className="flex items-center justify-between h-16">
           <div
             className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => navigate(isParent ? "/parent-dashboard" : "/liste-cours")}
+            onClick={() => navigate(isAdmin || isPedago ? "/dashboard" : isParent ? "/parent-dashboard" : "/liste-cours")}
           >
             <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
               <GraduationCap className="h-5 w-5 text-white" />
@@ -90,16 +94,23 @@ export function AppHeader() {
                   <div className="text-left hidden md:block">
                     <p className="text-sm font-semibold leading-tight">{fullName}</p>
                     <p className="text-xs text-muted-foreground leading-tight">
-                      {profile?.school_level && getSchoolLevelName(profile.school_level)}
+                      {isAdmin ? t("app.administrator") : isPedago ? t("app.pedagogue") : profile?.school_level && getSchoolLevelName(profile.school_level)}
                     </p>
                   </div>
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg border-border/50">
-                <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
-                  <UserIcon className="mr-2 h-4 w-4" />
-                  <span>{t("app.manageAccount")}</span>
-                </DropdownMenuItem>
+                {isAdmin ? (
+                  <DropdownMenuItem onClick={() => navigate("/admin")} className="rounded-lg cursor-pointer">
+                    <Users className="mr-2 h-4 w-4" />
+                    <span>{t("dashboard.userManagement")}</span>
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    <span>{t("app.manageAccount")}</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => navigate(isParent ? "/parent-dashboard" : "/dashboard")} className="rounded-lg cursor-pointer">
                   <BarChart3 className="mr-2 h-4 w-4" />
                   <span>{t("app.dashboard")}</span>

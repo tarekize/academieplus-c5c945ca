@@ -1,32 +1,20 @@
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   GraduationCap,
   Search,
-  LogOut,
-  User as UserIcon,
   BookOpen,
   Calculator,
   ArrowLeft,
-  Users,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ChangePasswordButton } from "@/components/ChangePasswordButton";
+import { AppHeader } from "@/components/layout/AppHeader";
 import StudentAnnouncementsBanner from "@/components/dashboard/StudentAnnouncementsBanner";
 import StudentAssignedContent from "@/components/dashboard/StudentAssignedContent";
 
@@ -152,22 +140,11 @@ const ListeCours = () => {
     }
   };
 
-  const getFullName = (profile: Profile | null): string => {
-    if (!profile) return "Utilisateur";
-    const parts = [profile.first_name, profile.last_name].filter(Boolean);
-    return parts.length > 0 ? parts.join(" ") : "Utilisateur";
-  };
-
   const getSchoolLevelName = (level: string) => {
     if (!level) return t("listeCours.yourClass");
     const key = `app.schoolLevels.${level}`;
     const translated = t(key);
     return translated === key ? level : translated;
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
   };
 
   const handleLevelSelect = async (levelId: string) => {
@@ -241,70 +218,13 @@ const ListeCours = () => {
     );
   }
 
-  const fullName = getFullName(profile);
-
   // Admin/Pédago view - Level Selection
   if ((isAdmin || isPedago) && !selectedLevel) {
     return (
       <div className="min-h-screen bg-background">
-        {/* Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between h-16">
-              <div
-                className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => navigate("/dashboard")}
-              >
-                <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
-                  <GraduationCap className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-lg font-bold hidden sm:block">{t("app.brand")}</span>
-              </div>
+        <AppHeader />
 
-              <div className="flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <div className="flex items-center gap-2 cursor-pointer rounded-xl px-2 py-1.5 hover:bg-muted transition-colors">
-                      <Avatar className="h-8 w-8 ring-2 ring-primary/20">
-                        <AvatarImage src={profile?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                          {fullName.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="text-left hidden md:block">
-                        <p className="text-sm font-semibold leading-tight">{fullName}</p>
-                        <p className="text-xs text-muted-foreground leading-tight">{isAdmin ? t("app.administrator") : t("app.pedagogue")}</p>
-                      </div>
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg border-border/50">
-                    {isAdmin && (
-                      <DropdownMenuItem onClick={() => navigate("/admin")} className="rounded-lg cursor-pointer">
-                        <Users className="mr-2 h-4 w-4" />
-                        <span>{t("app.manageUsers")}</span>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
-                      <UserIcon className="mr-2 h-4 w-4" />
-                      <span>{t("app.manageAccount")}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard")} className="rounded-lg cursor-pointer">
-                      <GraduationCap className="mr-2 h-4 w-4" />
-                      <span>{t("app.dashboard")}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>{t("app.logout")}</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <main className="container mx-auto px-4 py-8 mt-16">
+        <main className="container mx-auto px-4 py-8">
           <div className="max-w-7xl mx-auto">
             {/* Hero Section */}
             <div className="mb-10 animate-fade-in">
@@ -384,62 +304,9 @@ const ListeCours = () => {
 
     return (
       <div className="min-h-screen bg-background">
-        <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between h-16">
-              <div
-                className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => navigate("/dashboard")}
-              >
-                <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
-                  <GraduationCap className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-lg font-bold hidden sm:block">{t("app.brand")}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <div className="flex items-center gap-2 cursor-pointer rounded-xl px-2 py-1.5 hover:bg-muted transition-colors">
-                      <Avatar className="h-8 w-8 ring-2 ring-primary/20">
-                        <AvatarImage src={profile?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                          {fullName.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="text-left hidden md:block">
-                        <p className="text-sm font-semibold leading-tight">{fullName}</p>
-                        <p className="text-xs text-muted-foreground leading-tight">{isAdmin ? t("app.administrator") : t("app.pedagogue")}</p>
-                      </div>
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg border-border/50">
-                    {isAdmin && (
-                      <DropdownMenuItem onClick={() => navigate("/admin")} className="rounded-lg cursor-pointer">
-                        <Users className="mr-2 h-4 w-4" />
-                        <span>{t("app.manageUsers")}</span>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
-                      <UserIcon className="mr-2 h-4 w-4" />
-                      <span>{t("app.manageAccount")}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard")} className="rounded-lg cursor-pointer">
-                      <GraduationCap className="mr-2 h-4 w-4" />
-                      <span>{t("app.dashboard")}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout} className="text-destructive rounded-lg cursor-pointer">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>{t("app.logout")}</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          </div>
-        </header>
+        <AppHeader />
 
-        <main className="container mx-auto px-4 py-8 mt-16">
+        <main className="container mx-auto px-4 py-8">
           <div className="max-w-5xl mx-auto">
             <Button variant="ghost" size="sm" className="mb-5 gap-2 rounded-xl" onClick={handleBackToLevels}>
               <ArrowLeft className="h-4 w-4" />
@@ -506,61 +373,9 @@ const ListeCours = () => {
   // Student/Parent view - Original behavior
   return (
     <div className="min-h-screen student-shell">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/60 backdrop-blur-xl border-b border-white/50">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div
-              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => navigate("/dashboard")}
-            >
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xl font-bold">{t("app.brand")}</span>
-            </div>
+      <AppHeader />
 
-            <div className="flex items-center gap-3">
-              <LanguageToggle />
-              <ChangePasswordButton />
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/10 rounded-lg p-2 transition-colors">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback>{fullName.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className="text-left hidden md:block">
-                      <p className="text-sm font-medium">{fullName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {profile?.school_level && getSchoolLevelName(profile.school_level)}
-                      </p>
-                    </div>
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/account")}>
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    <span>{t("app.manageAccount")}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")}>
-                    <GraduationCap className="mr-2 h-4 w-4" />
-                    <span>{t("app.dashboard")}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>{t("app.logout")}</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8 mt-20">
+      <main className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-12 animate-fade-up">
