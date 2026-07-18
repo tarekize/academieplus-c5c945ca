@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,55 +9,61 @@ import i18n from "./i18n/config";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
-import Contact from "./pages/Contact";
-import MentionsLegales from "./pages/MentionsLegales";
-import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
-import NotFound from "./pages/NotFound";
-import Auth from "./pages/Auth";
-
-import Dashboard from "./pages/Dashboard";
-import ListeCours from "./pages/ListeCours";
-import Cours from "./pages/Cours";
-import Revision from "./pages/Revision";
-import Simulation from "./pages/Simulation";
-import Account from "./pages/Account";
-import Profile from "./pages/Profile";
-import Admin from "./pages/Admin";
-import AdminAbonnements from "./pages/AdminAbonnements";
-import AdminContrats from "./pages/AdminContrats";
-import AdminTokenUsage from "./pages/AdminTokenUsage";
-import Factures from "./pages/Factures";
-import MesInformations from "./pages/MesInformations";
-import UpdateSuccess from "./pages/UpdateSuccess";
-import Abonnements from "./pages/Abonnements";
-import Paiement from "./pages/Paiement";
-import Parrainage from "./pages/Parrainage";
-import MesDonneesPersonnelles from "./pages/MesDonneesPersonnelles";
-import ParentDashboard from "./pages/ParentDashboard";
-import ParentCoursView from "./pages/ParentCoursView";
-import TeacherDashboard from "./pages/TeacherDashboard";
-import EtablissementDashboard from "./pages/EtablissementDashboard";
-import DashboardEditorial from "./pages/editorial/DashboardEditorial";
-import EditeurCours from "./pages/editorial/EditeurCours";
-import PageRevision from "./pages/editorial/PageRevision";
-import Mediatheque from "./pages/editorial/Mediatheque";
-import HistoriqueVersions from "./pages/editorial/HistoriqueVersions";
-import PreviewCours from "./pages/editorial/PreviewCours";
-import GestionEquipe from "./pages/editorial/GestionEquipe";
-import CompareVersions from "./pages/editorial/CompareVersions";
-import Analytics from "./pages/Analytics";
-import FAQAdmin from "./pages/FAQAdmin";
-import CompleteProfile from "./pages/CompleteProfile";
-import LearningAssessment from "./pages/LearningAssessment";
-import LessonEditor from "./pages/LessonEditor";
-import ContentGeneration from "./pages/ContentGeneration";
-import ExamTrimesterSelect from "./pages/ExamTrimesterSelect";
-import ExamList from "./pages/ExamList";
-import LessonRemediation from "./pages/LessonRemediation";
-import JoinClass from "./pages/JoinClass";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+const Contact = lazy(() => import("./pages/Contact"));
+const MentionsLegales = lazy(() => import("./pages/MentionsLegales"));
+const PolitiqueConfidentialite = lazy(() => import("./pages/PolitiqueConfidentialite"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Auth = lazy(() => import("./pages/Auth"));
+
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const ListeCours = lazy(() => import("./pages/ListeCours"));
+const Cours = lazy(() => import("./pages/Cours"));
+const Revision = lazy(() => import("./pages/Revision"));
+const Simulation = lazy(() => import("./pages/Simulation"));
+const Account = lazy(() => import("./pages/Account"));
+const Admin = lazy(() => import("./pages/Admin"));
+const AdminAbonnements = lazy(() => import("./pages/AdminAbonnements"));
+const AdminContrats = lazy(() => import("./pages/AdminContrats"));
+const AdminTokenUsage = lazy(() => import("./pages/AdminTokenUsage"));
+const Factures = lazy(() => import("./pages/Factures"));
+const MesInformations = lazy(() => import("./pages/MesInformations"));
+const UpdateSuccess = lazy(() => import("./pages/UpdateSuccess"));
+const Abonnements = lazy(() => import("./pages/Abonnements"));
+const Paiement = lazy(() => import("./pages/Paiement"));
+const Parrainage = lazy(() => import("./pages/Parrainage"));
+const MesDonneesPersonnelles = lazy(() => import("./pages/MesDonneesPersonnelles"));
+const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
+const ParentCoursView = lazy(() => import("./pages/ParentCoursView"));
+const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
+const EtablissementDashboard = lazy(() => import("./pages/EtablissementDashboard"));
+const DashboardEditorial = lazy(() => import("./pages/editorial/DashboardEditorial"));
+const EditeurCours = lazy(() => import("./pages/editorial/EditeurCours"));
+const PageRevision = lazy(() => import("./pages/editorial/PageRevision"));
+const Mediatheque = lazy(() => import("./pages/editorial/Mediatheque"));
+const HistoriqueVersions = lazy(() => import("./pages/editorial/HistoriqueVersions"));
+const PreviewCours = lazy(() => import("./pages/editorial/PreviewCours"));
+const GestionEquipe = lazy(() => import("./pages/editorial/GestionEquipe"));
+const CompareVersions = lazy(() => import("./pages/editorial/CompareVersions"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const FAQAdmin = lazy(() => import("./pages/FAQAdmin"));
+const CompleteProfile = lazy(() => import("./pages/CompleteProfile"));
+const LearningAssessment = lazy(() => import("./pages/LearningAssessment"));
+const LessonEditor = lazy(() => import("./pages/LessonEditor"));
+const ContentGeneration = lazy(() => import("./pages/ContentGeneration"));
+const ExamTrimesterSelect = lazy(() => import("./pages/ExamTrimesterSelect"));
+const ExamList = lazy(() => import("./pages/ExamList"));
+const LessonRemediation = lazy(() => import("./pages/LessonRemediation"));
+const JoinClass = lazy(() => import("./pages/JoinClass"));
+
 const queryClient = new QueryClient();
+
+const RouteFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="w-10 h-10 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -67,6 +74,7 @@ const App = () => (
         <ErrorBoundary>
         <BrowserRouter>
           <AuthProvider>
+            <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/editorial" element={<ProtectedRoute allowedRoles={['pedago', 'admin']}><DashboardEditorial /></ProtectedRoute>} />
@@ -137,6 +145,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
           </AuthProvider>
         </BrowserRouter>
         </ErrorBoundary>
