@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, BookmarkIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, BookmarkIcon, List } from "lucide-react";
 import { DocumentList } from "./DocumentList";
 import { VideoPlayer } from "./VideoPlayer";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Capacitor } from "@capacitor/core";
 
 interface Material {
   id: string;
@@ -46,6 +48,7 @@ export const CourseContent = ({
   const [sections, setSections] = useState<Section[]>([]);
   const [activeSection, setActiveSection] = useState<string>("");
   const [processedContent, setProcessedContent] = useState<string>("");
+  const [mobileTocOpen, setMobileTocOpen] = useState(false);
 
   useEffect(() => {
     // Parse content to extract sections and add IDs to headings
@@ -95,6 +98,29 @@ export const CourseContent = ({
   }>;
 
   const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+
+  const tocNav = (onNavigate?: () => void) => (
+    <nav className="space-y-3">
+      {sections.map((section) => (
+        <a
+          key={section.id}
+          href={`#${section.id}`}
+          className={`flex items-start gap-3 text-base font-bold transition-colors hover:text-primary cursor-pointer ${activeSection === section.id ? 'text-primary font-bold' : 'text-foreground'
+            }`}
+          onClick={(e) => {
+            e.preventDefault();
+            scrollToSection(section.id);
+            onNavigate?.();
+          }}
+        >
+          <Badge variant="secondary" className="flex-shrink-0 font-bold text-foreground text-base">
+            {romanNumerals[section.number - 1] || section.number}
+          </Badge>
+          <span className="leading-tight">{section.title}</span>
+        </a>
+      ))}
+    </nav>
+  );
 
   return (
     <div className="space-y-6">
@@ -161,30 +187,39 @@ export const CourseContent = ({
                   <BookmarkIcon className="h-5 w-5" />
                   Sommaire
                 </h3>
-                <nav className="space-y-3">
-                  {sections.map((section) => (
-                    <a
-                      key={section.id}
-                      href={`#${section.id}`}
-                      className={`flex items-start gap-3 text-base font-bold transition-colors hover:text-primary cursor-pointer ${activeSection === section.id ? 'text-primary font-bold' : 'text-foreground'
-                        }`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        scrollToSection(section.id);
-                      }}
-                    >
-                      <Badge variant="secondary" className="flex-shrink-0 font-bold text-foreground text-base">
-                        {romanNumerals[section.number - 1] || section.number}
-                      </Badge>
-                      <span className="leading-tight">{section.title}</span>
-                    </a>
-                  ))}
-                </nav>
+                {tocNav()}
               </div>
             </div>
           </aside>
         )}
       </div>
+
+      {/* Mobile: floating button opening the table of contents as a bottom sheet */}
+      {sections.length > 0 && (
+        <>
+          <Button
+            onClick={() => setMobileTocOpen(true)}
+            size="icon"
+            className={`lg:hidden fixed left-4 z-40 h-12 w-12 rounded-full shadow-lg ${Capacitor.isNativePlatform() ? "bottom-24" : "bottom-6"}`}
+            aria-label="Sommaire"
+          >
+            <List className="h-5 w-5" />
+          </Button>
+          <Sheet open={mobileTocOpen} onOpenChange={setMobileTocOpen}>
+            <SheetContent side="bottom" className="lg:hidden max-h-[75vh] overflow-y-auto rounded-t-2xl">
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <BookmarkIcon className="h-5 w-5" />
+                  Sommaire
+                </SheetTitle>
+              </SheetHeader>
+              <div className="mt-4">
+                {tocNav(() => setMobileTocOpen(false))}
+              </div>
+            </SheetContent>
+          </Sheet>
+        </>
+      )}
 
       {/* Documents Section */}
       {documents.length > 0 && (

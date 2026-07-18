@@ -159,23 +159,6 @@ All colors MUST be HSL.
     letter-spacing: -0.01em;
   }
 
-  /* Status badges */
-  .status-brouillon {
-    @apply bg-gray-100 text-gray-800 border-gray-300;
-  }
-
-  .status-en_revision {
-    @apply bg-orange-100 text-orange-800 border-orange-300;
-  }
-
-  .status-publié {
-    @apply bg-green-100 text-green-800 border-green-300;
-  }
-
-  .status-archivé {
-    @apply bg-slate-100 text-slate-800 border-slate-300;
-  }
-
   /* Section type styles */
   .section-definition {
     @apply border-l-4 border-blue-500 bg-blue-50/50;
