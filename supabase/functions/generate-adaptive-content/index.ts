@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { logTokenUsageAsync, resolveCallerRoleGroup, extractGeminiUsage, type AiUsage } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
@@ -107,7 +108,7 @@ Format JSON attendu (tableau de 5 objets) :
   }
 ]
 
-IMPORTANT: 
+IMPORTANT:
 - "difficulty" est un entier de 1 à 5 (1=très facile, 2=facile, 3=moyen, 4=difficile, 5=très difficile). Varie la difficulté des 5 questions autour du niveau ${diffScale}/5 de l'élève.
 - Les questions et réponses doivent être en ARABE. NE GÉNÈRE AUCUNE question en dehors du sujet "${lessonTitle}".
 - FORMAT MATHÉMATIQUE OBLIGATOIRE : TOUTES les expressions mathématiques (variables, fonctions, fractions, puissances, indices, limites, racines, symboles ∞, ≤, ≥, ≠, ±, →, etc.) DOIVENT être écrites en LaTeX entre délimiteurs $...$ pour le rendu KaTeX.
@@ -136,7 +137,7 @@ Format JSON attendu (tableau de 5 objets) :
   }
 ]
 
-IMPORTANT: 
+IMPORTANT:
 - "difficulty" est un entier de 1 à 5 (1=très facile, 2=facile, 3=moyen, 4=difficile, 5=très difficile). Varie la difficulté des 5 exercices autour du niveau ${diffScale}/5 de l'élève.
 - Tout le contenu doit être en ARABE. NE GÉNÈRE AUCUN exercice en dehors du sujet "${lessonTitle}".
 - FORMAT MATHÉMATIQUE OBLIGATOIRE : TOUTES les expressions mathématiques DOIVENT être en LaTeX entre $...$ pour le rendu KaTeX.
@@ -273,6 +274,31 @@ serve(async (req) => {
   }
 
   try {
+    // --- Authentification obligatoire : cette fonction consomme un quota
+    // Gemini payant à chaque appel. resolveCallerRoleGroup() (utilisé plus
+    // bas pour le logging) ne rejette PAS les appels anonymes, elle les
+    // classe juste comme "other" — ce n'est pas un garde-fou d'accès. ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Non autorisé" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Non autorisé" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const {
       content_type,
@@ -302,7 +328,7 @@ serve(async (req) => {
       });
     }
 
-    const { system, user } = buildPrompt(
+    const { system, user: userPrompt } = buildPrompt(
       content_type,
       school_level,
       difficulty_level || 50,
@@ -316,18 +342,15 @@ serve(async (req) => {
       exercise_accuracy ?? 0,
     );
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
     let rawContent = "";
 
     try {
       console.log("Trying Gemini (Key 2)...");
-      const result = await callGemini2(system, user);
+      const result = await callGemini2(system, userPrompt);
       rawContent = result.text;
       // Log de consommation IA seulement si l'appel Gemini a réellement abouti.
       if (result.usage) {
-        resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, req.headers.get("Authorization")).then(({ userId, roleGroup }) => {
+        resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, authHeader).then(({ userId, roleGroup }) => {
           logTokenUsageAsync({
             supabaseUrl, serviceRoleKey, userId, roleGroup, functionName: "generate-adaptive-content",
             inputTokens: result.usage!.inputTokens, outputTokens: result.usage!.outputTokens,
@@ -345,11 +368,6 @@ serve(async (req) => {
     // Strip markdown code fences if present
     rawContent = rawContent.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
 
-    // Fix invalid JSON escapes: LaTeX \lim, \frac, \infty etc. need double backslash inside JSON strings.
-    // Replace any \X where X is not a valid JSON escape char ("/bfnrtu\) with \\X.
-    // Only treat \", \\, \/, and \uXXXX as real JSON escapes. Double every other backslash
-    // so LaTeX commands like \to, \frac, \infty, \neq, \beta survive (they would otherwise
-    // be parsed as tab, form-feed, etc. and corrupt the math).
     const sanitizeJsonEscapes = (s: string) =>
       s.replace(/\\(?!["\\/]|u[0-9a-fA-F]{4})/g, "\\\\");
 
