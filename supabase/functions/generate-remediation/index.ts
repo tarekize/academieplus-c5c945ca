@@ -194,13 +194,25 @@ async function callGemini(systemPrompt: string, userPrompt: string, key: string,
   let lastError = `Gemini ${label} unavailable`;
   for (const model of GEMINI_FALLBACK_MODELS) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+    // gemini-2.5 models "think" before answering by default, which eats into
+    // maxOutputTokens and truncates the JSON mid-response — disable it and
+    // give enough budget for 3 exercices + 2 quiz avec solutions détaillées.
+    const generationConfig: Record<string, unknown> = {
+      temperature: 0.85,
+      topP: 0.95,
+      maxOutputTokens: 8192,
+      responseMimeType: "application/json",
+    };
+    if (model.startsWith("gemini-2.5") || model.includes("flash-latest")) {
+      generationConfig.thinkingConfig = { thinkingBudget: 0 };
+    }
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemPrompt }] },
         contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        generationConfig: { temperature: 0.85, topP: 0.95, maxOutputTokens: 4096 },
+        generationConfig,
       }),
     });
     if (response.ok) {

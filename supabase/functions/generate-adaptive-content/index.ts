@@ -255,13 +255,25 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ 
   let lastError = "Gemini 2 unavailable";
   for (const model of GEMINI2_MODELS) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY_2}`;
+    // gemini-2.5 models "think" before answering by default, which eats into
+    // maxOutputTokens and was truncating the JSON mid-response — disable it and
+    // give enough budget for 5 detailed Arabic/LaTeX items.
+    const generationConfig: Record<string, unknown> = {
+      temperature: 0.95,
+      topP: 0.95,
+      maxOutputTokens: 8192,
+      responseMimeType: "application/json",
+    };
+    if (model.startsWith("gemini-2.5") || model.includes("flash-latest")) {
+      generationConfig.thinkingConfig = { thinkingBudget: 0 };
+    }
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemPrompt }] },
         contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        generationConfig: { temperature: 0.95, topP: 0.95, maxOutputTokens: 4096 },
+        generationConfig,
       }),
     });
 
