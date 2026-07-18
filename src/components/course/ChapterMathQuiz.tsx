@@ -8,6 +8,7 @@ import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Trophy, BookOpen, Clock, 
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { recordActivityAnswer } from "@/lib/recordActivityAnswer";
+import { useNavigate } from "react-router-dom";
 
 function DifficultyPencils({ level }: { level: number }) {
   return (
@@ -53,7 +54,8 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
-  const [answers, setAnswers] = useState<{ question: string; userAnswer: string; correct: boolean }[]>([]);
+  const [answers, setAnswers] = useState<{ question: string; userAnswer: string; correct: boolean; lessonId: string | null }[]>([]);
+  const navigate = useNavigate();
   const [showHint, setShowHint] = useState(false);
   const [hintUsed, setHintUsed] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -89,7 +91,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
       setHasAnswered(true);
 
       if (result.is_correct) setScore(prev => prev + 1);
-      setAnswers(prev => [...prev, { question: currentQuestion.question, userAnswer: selectedAnswer, correct: result.is_correct }]);
+      setAnswers(prev => [...prev, { question: currentQuestion.question, userAnswer: selectedAnswer, correct: result.is_correct, lessonId: currentQuestion.lesson_id ?? null }]);
 
       // Alimente le moteur de niveau (niveau-leçon si dispo, sinon niveau-chapitre).
       if (userId) {
@@ -113,7 +115,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
         setExplanation(currentQuestion.explanation || "");
         setHasAnswered(true);
         if (correct) setScore(prev => prev + 1);
-        setAnswers(prev => [...prev, { question: currentQuestion.question, userAnswer: selectedAnswer, correct }]);
+        setAnswers(prev => [...prev, { question: currentQuestion.question, userAnswer: selectedAnswer, correct, lessonId: currentQuestion.lesson_id ?? null }]);
         if (userId) {
           recordActivityAnswer({
             userId,
@@ -154,6 +156,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
 
   if (showResults) {
     const percentage = Math.round((score / questions.length) * 100);
+    const firstWrongLessonId = answers.find(a => !a.correct)?.lessonId;
     return (
       <Card className="max-w-2xl mx-auto glass-card border-0 animate-pop-in">
         <CardHeader className="text-center pb-2">
@@ -186,6 +189,16 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
             <Button variant="outline" onClick={handleRestart} className="flex-1"><RotateCcw className="h-4 w-4 mr-2" />إعادة</Button>
             <Button onClick={onClose} className="flex-1"><BookOpen className="h-4 w-4 mr-2" />العودة للدرس</Button>
           </div>
+          {firstWrongLessonId && (
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={() => navigate(`/remediation?chapitre=${chapterId}&lecon=${firstWrongLessonId}`)}
+            >
+              <Lightbulb className="h-4 w-4 mr-2" />
+              مراجعة النقاط الضعيفة
+            </Button>
+          )}
         </CardContent>
       </Card>
     );
