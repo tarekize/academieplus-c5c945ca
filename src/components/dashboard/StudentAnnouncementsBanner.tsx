@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Megaphone, StickyNote } from "lucide-react";
+import { formatLocaleDate } from "@/lib/formatLocale";
 
 interface Announcement {
   id: string;
@@ -70,7 +71,7 @@ export default function StudentAnnouncementsBanner({ userId }: StudentAnnounceme
                 <p className="font-medium text-sm">{a.title}</p>
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">{a.content}</p>
                 <span className="text-[10px] text-muted-foreground">
-                  {new Date(a.created_at).toLocaleDateString("fr-FR", { dateStyle: "long" } as any)}
+                  {formatLocaleDate(a.created_at, { dateStyle: "long" } as any)}
                 </span>
               </div>
             ))}
@@ -88,7 +89,7 @@ export default function StudentAnnouncementsBanner({ userId }: StudentAnnounceme
               <div key={n.id} className="rounded-lg border p-3">
                 <p className="text-sm whitespace-pre-wrap break-words">{n.content}</p>
                 <span className="text-[10px] text-muted-foreground">
-                  {new Date(n.created_at).toLocaleDateString("fr-FR", { dateStyle: "long" } as any)}
+                  {formatLocaleDate(n.created_at, { dateStyle: "long" } as any)}
                 </span>
               </div>
             ))}

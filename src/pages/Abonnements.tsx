@@ -25,6 +25,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { formatLocaleDate } from "@/lib/formatLocale";
 
 interface Profile {
   id: string;
@@ -150,7 +151,7 @@ const Abonnements = () => {
     const days = code.plan_type === "annual" ? 360 : 30;
     const end = new Date(start);
     end.setDate(end.getDate() + days);
-    return end.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+    return formatLocaleDate(end, { day: "numeric", month: "long", year: "numeric" });
   };
 
   if (loading) {
@@ -304,8 +305,8 @@ const Abonnements = () => {
                             </TableCell>
                             <TableCell className="text-muted-foreground">
                               {code.used_at
-                                ? new Date(code.used_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
-                                : new Date(code.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                                ? formatLocaleDate(code.used_at, { day: "numeric", month: "long", year: "numeric" })
+                                : formatLocaleDate(code.created_at, { day: "numeric", month: "long", year: "numeric" })}
                             </TableCell>
                             <TableCell className="text-muted-foreground">
                               {getEndDate(code)}

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { formatLocaleDate } from "@/lib/formatLocale";
 
 interface Profile {
   id: string;
@@ -142,7 +143,7 @@ const Paiement = () => {
     const monthlyPrice = Math.round(paymentInfo.price / months);
     const endDate = new Date(now);
     endDate.setMonth(endDate.getMonth() + months);
-    const formatDate = (d: Date) => d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const formatDate = (d: Date) => formatLocaleDate(d, { day: 'numeric', month: 'long', year: 'numeric' });
     return {
       monthlyPrice,
       totalPrice: paymentInfo.price,

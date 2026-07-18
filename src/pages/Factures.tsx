@@ -9,6 +9,7 @@ import { ArrowLeft, Download, FileText, Receipt, Calendar, CreditCard } from "lu
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { formatLocaleDate } from "@/lib/formatLocale";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -97,7 +98,7 @@ const Factures = () => {
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("fr-FR", {
+    return formatLocaleDate(dateStr, {
       day: "numeric", month: "long", year: "numeric"
     });
   };
