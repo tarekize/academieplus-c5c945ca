@@ -184,6 +184,58 @@ IMPORTANT: Tout le contenu doit être en ARABE sauf les formules mathématiques.
   return { system, user };
 }
 
+// Gemini "structured output" : force le modèle à ne produire que ces champs,
+// sans texte ni markdown autour — moins de tokens de sortie, JSON toujours
+// valide (le modèle n'a plus à "deviner" le format demandé dans le prompt).
+function buildResponseSchema(contentType: string): Record<string, unknown> {
+  if (contentType === "quiz") {
+    return {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          question: { type: "STRING" },
+          options: { type: "ARRAY", items: { type: "STRING" } },
+          correct_answer: { type: "STRING" },
+          explanation: { type: "STRING" },
+          difficulty: { type: "INTEGER" },
+        },
+        required: ["question", "options", "correct_answer", "explanation", "difficulty"],
+      },
+    };
+  }
+  if (contentType === "exercise") {
+    return {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          title: { type: "STRING" },
+          statement: { type: "STRING" },
+          expected_answer: { type: "STRING" },
+          hints: { type: "ARRAY", items: { type: "STRING" } },
+          solution: { type: "STRING" },
+          difficulty: { type: "INTEGER" },
+        },
+        required: ["title", "statement", "expected_answer", "hints", "solution", "difficulty"],
+      },
+    };
+  }
+  return {
+    type: "ARRAY",
+    items: {
+      type: "OBJECT",
+      properties: {
+        concept: { type: "STRING" },
+        explanation: { type: "STRING" },
+        example: { type: "STRING" },
+        key_formula: { type: "STRING" },
+      },
+      required: ["concept", "explanation", "example"],
+    },
+  };
+}
+
 // ============ Provider 1: Lovable AI ============
 async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<string> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -248,7 +300,7 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<str
 // take the whole feature down again.
 const GEMINI2_MODELS = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite"];
 
-async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
+async function callGemini2(systemPrompt: string, userPrompt: string, responseSchema: Record<string, unknown>): Promise<{ text: string; usage: AiUsage | null }> {
   const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
   if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
 
@@ -257,12 +309,15 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY_2}`;
     // gemini-2.5 models "think" before answering by default, which eats into
     // maxOutputTokens and was truncating the JSON mid-response — disable it and
-    // give enough budget for 5 detailed Arabic/LaTeX items.
+    // give enough budget for 5 detailed Arabic/LaTeX items. responseSchema forces
+    // the model to only emit the requested fields (no filler text), which also
+    // cuts down on output tokens.
     const generationConfig: Record<string, unknown> = {
       temperature: 0.95,
       topP: 0.95,
       maxOutputTokens: 16384,
       responseMimeType: "application/json",
+      responseSchema,
     };
     if (model.startsWith("gemini-2.5") || model.includes("flash-latest")) {
       generationConfig.thinkingConfig = { thinkingBudget: 0 };
@@ -373,11 +428,12 @@ serve(async (req) => {
       exercise_accuracy ?? 0,
     );
 
+    const responseSchema = buildResponseSchema(content_type);
     let rawContent = "";
 
     try {
       console.log("Trying Gemini (Key 2)...");
-      const result = await callGemini2(system, userPrompt);
+      const result = await callGemini2(system, userPrompt, responseSchema);
       rawContent = result.text;
       // Log de consommation IA seulement si l'appel Gemini a réellement abouti.
       if (result.usage) {
