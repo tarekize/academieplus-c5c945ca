@@ -233,14 +233,14 @@ const Auth = () => {
       }
 
       if (missingFields.length > 0) {
-        toast.error(`Veuillez remplir les champs obligatoires suivants : ${missingFields.join(", ")}`);
+        toast.error(`Remplis les champs obligatoires suivants : ${missingFields.join(", ")}`);
         return;
       }
 
       const passwordError = validatePassword(password);
 
       if (!consentDataProcessing || !consentTermsPrivacy) {
-        toast.error("Vous devez accepter le traitement des données et la politique de confidentialité pour vous inscrire.");
+        toast.error("Tu dois accepter le traitement des données et la politique de confidentialité pour t'inscrire.");
         return;
       }
 
@@ -276,13 +276,13 @@ const Auth = () => {
 
         if (profileData && profileData.is_active === false) {
           await supabase.auth.signOut();
-          toast.error("Votre compte a été désactivé. Contactez votre établissement ou l'administration.");
+          toast.error("Ton compte a été désactivé. Contacte ton établissement ou l'administration.");
           setLoading(false);
           return;
         }
       } catch (error: any) {
         if (error.message.includes("Email not confirmed")) {
-          toast.error("Veuillez d'abord confirmer votre email en cliquant sur le lien envoyé dans votre boîte de réception.", {
+          toast.error("Confirme d'abord ton email en cliquant sur le lien envoyé dans ta boîte de réception.", {
             duration: 6000,
           });
         } else if (error.message.includes("Invalid login credentials")) {
@@ -386,13 +386,13 @@ const Auth = () => {
       }
     } catch (error: any) {
       if (error.message.includes("Email not confirmed")) {
-        toast.error("Veuillez d'abord confirmer votre email en cliquant sur le lien envoyé dans votre boîte de réception.", {
+        toast.error("Confirme d'abord ton email en cliquant sur le lien envoyé dans ta boîte de réception.", {
           duration: 6000,
         });
       } else if (error.message.includes("Invalid login credentials")) {
         toast.error("Email ou mot de passe incorrect.");
       } else if (error.message.includes("User already registered") || error.message.includes("already registered")) {
-        toast.error("Cette adresse email existe déjà. Utilisez la connexion ou la réinitialisation du mot de passe.");
+        toast.error("Cette adresse email existe déjà. Utilise la connexion ou la réinitialisation du mot de passe.");
       } else if (error.message.includes("établissement")) {
         toast.error(error.message);
       } else {
@@ -472,7 +472,7 @@ const Auth = () => {
         </div>
         <div className="text-center space-y-2">
           <h2 className="text-xl font-semibold text-foreground">Connexion en cours...</h2>
-          <p className="text-muted-foreground text-sm">Redirection vers votre espace</p>
+          <p className="text-muted-foreground text-sm">Redirection vers ton espace</p>
         </div>
       </div>
     );
@@ -489,8 +489,8 @@ const Auth = () => {
           </div>
         </div>
         <div className="text-center space-y-2">
-          <h2 className="text-xl font-semibold text-foreground">Création de votre compte...</h2>
-          <p className="text-muted-foreground text-sm">Préparation de votre test de niveau</p>
+          <h2 className="text-xl font-semibold text-foreground">Création de ton compte...</h2>
+          <p className="text-muted-foreground text-sm">Préparation de ton test de niveau</p>
         </div>
       </div>
     );
@@ -540,7 +540,7 @@ const Auth = () => {
                       required
                     />
                     <p className="text-sm text-muted-foreground mt-2">
-                      Entrez l'adresse e-mail avec laquelle vous vous êtes inscrit. Nous allons vous envoyer un e-mail avec votre nom d'utilisateur et un lien pour réinitialiser votre mot de passe.
+                      Entre l'adresse e-mail avec laquelle tu t'es inscrit. Nous allons t'envoyer un e-mail avec ton nom d'utilisateur et un lien pour réinitialiser ton mot de passe.
                     </p>
                     <p className="text-sm font-medium text-warning mt-2">
                       ⚠️ Ce lien expirera dans 1 heure.

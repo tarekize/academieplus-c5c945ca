@@ -4,10 +4,22 @@ import heroImage from "@/assets/hero-students.jpg";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 const Hero = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  // The image card is only ever shown at the `lg` breakpoint (see className below):
+  // skip fetching the large hero asset entirely on mobile/tablet.
+  const [showImage, setShowImage] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 1024px)");
+    setShowImage(mql.matches);
+    const onChange = (e: MediaQueryListEvent) => setShowImage(e.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
 
   const stats = [
     { icon: Users, value: "+10 000", label: t("hero.programs") },
@@ -106,12 +118,18 @@ const Hero = () => {
             className="relative hidden lg:block"
           >
             <div className="relative rounded-[2rem] overflow-hidden border border-border shadow-[var(--shadow-elegant)]">
-              <img
-                src={heroImage}
-                alt="Élèves souriants travaillant ensemble"
-                className="w-full h-[34rem] object-cover"
-                loading="eager"
-              />
+              {showImage && (
+                <img
+                  src={heroImage}
+                  alt="Élèves souriants travaillant ensemble"
+                  className="w-full h-[34rem] object-cover"
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                  width={800}
+                  height={544}
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-primary/30 via-transparent to-transparent" />
             </div>
 
