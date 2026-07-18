@@ -19,11 +19,11 @@ const buttonVariants = cva(
         cta: "bg-accent text-accent-foreground hover:bg-accent/90 shadow-md hover:shadow-lg transition-all",
       },
       size: {
-        default: "h-10 px-4 py-2",
+        default: "h-11 px-4 py-2 sm:h-10",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
         xl: "h-14 rounded-lg px-10 text-base",
-        icon: "h-10 w-10",
+        icon: "h-11 w-11 sm:h-10 sm:w-10",
       },
     },
     defaultVariants: {

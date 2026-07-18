@@ -256,10 +256,6 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
         }
       }
 
-      if (buffer.includes("[DONE]")) {
-        console.log("Stream completed");
-      }
-
       // Comptabilise l'affichage de la "Reformulation simplifiée" pour ce chapitre.
       if (hasReformMarker(assistantMessage)) {
         incrementReformShown(chapterId);

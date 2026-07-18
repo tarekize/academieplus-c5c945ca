@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n/config";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Contact from "./pages/Contact";
 import MentionsLegales from "./pages/MentionsLegales";
@@ -63,6 +64,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <ErrorBoundary>
         <BrowserRouter>
           <AuthProvider>
             <Routes>
@@ -137,6 +139,7 @@ const App = () => (
             </Routes>
           </AuthProvider>
         </BrowserRouter>
+        </ErrorBoundary>
       </TooltipProvider>
     </I18nextProvider>
   </QueryClientProvider >

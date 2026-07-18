@@ -5,6 +5,16 @@ import { mathSecondeChapters, ChapterQuizQuestion } from "@/data/mathSecondeChap
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ArrowLeft, Check, X, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
@@ -27,6 +37,7 @@ const Simulation = () => {
   const [startTime] = useState(Date.now());
   const [showResults, setShowResults] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(30 * 60); // 30 minutes in seconds
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   useEffect(() => {
     if (subjectId) {
@@ -210,11 +221,7 @@ const Simulation = () => {
         <div className="flex items-center justify-between mb-8">
           <Button
             variant="ghost"
-            onClick={() => {
-              if (confirm(t("simulation.confirmLeave"))) {
-                navigate("/liste-cours");
-              }
-            }}
+            onClick={() => setShowLeaveConfirm(true)}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             {t("simulation.leave")}
@@ -295,6 +302,21 @@ const Simulation = () => {
           )}
         </div>
       </div>
+
+      <AlertDialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("simulation.confirmLeave")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("simulation.confirmLeaveDesc")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("app.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate("/liste-cours")}>
+              {t("simulation.leave")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

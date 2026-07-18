@@ -320,6 +320,7 @@
     "duration": "Temps : {{minutes}} min {{seconds}} sec",
     "restart": "Recommencer",
     "confirmLeave": "Êtes-vous sûr de vouloir quitter l'examen ?",
+    "confirmLeaveDesc": "Votre progression sur cette simulation sera perdue.",
     "leave": "Quitter",
     "questionOf": "Question {{current}} sur {{total}}",
     "correctCount": "{{count}} correctes",
@@ -418,6 +419,15 @@
     "matchLessonTitle": "Titre leçon",
     "matchContent": "Contenu",
     "searchPlaceholder": "Rechercher un chapitre ou une leçon..."
+  },
+  "notFound": {
+    "description": "Cette page n'existe pas ou plus.",
+    "backToCourses": "Retour à mes cours"
+  },
+  "errorBoundary": {
+    "title": "Une erreur est survenue",
+    "description": "Quelque chose s'est mal passé. Essayez de recharger la page ; si le problème persiste, contactez le support.",
+    "reload": "Recharger la page"
   },
   "dashboard": {
     "userManagement": "Gestion Utilisateurs",

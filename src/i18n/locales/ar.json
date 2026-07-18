@@ -326,6 +326,7 @@
     "duration": "الوقت: {{minutes}} د {{seconds}} ث",
     "restart": "إعادة المحاولة",
     "confirmLeave": "هل أنت متأكد من رغبتك في مغادرة الامتحان؟",
+    "confirmLeaveDesc": "سيتم فقدان تقدمك في هذا الامتحان التجريبي.",
     "leave": "مغادرة",
     "questionOf": "السؤال {{current}} من {{total}}",
     "correctCount": "{{count}} إجابة صحيحة",
@@ -424,6 +425,15 @@
     "matchLessonTitle": "عنوان الدرس",
     "matchContent": "المحتوى",
     "searchPlaceholder": "ابحث عن فصل أو درس..."
+  },
+  "notFound": {
+    "description": "هذه الصفحة غير موجودة.",
+    "backToCourses": "العودة إلى دروسي"
+  },
+  "errorBoundary": {
+    "title": "حدث خطأ ما",
+    "description": "حدث خطأ غير متوقع. حاول إعادة تحميل الصفحة؛ إذا استمرت المشكلة، تواصل مع الدعم.",
+    "reload": "إعادة تحميل الصفحة"
   },
   "dashboard": {
     "userManagement": "إدارة المستخدمين",

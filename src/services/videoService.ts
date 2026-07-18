@@ -52,7 +52,6 @@ export const videoService = {
             );
 
             if (!matchingKey) {
-                console.log(`Aucune vidéo trouvée pour: ${lessonTitle}`);
                 return [];
             }
 
