@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,29 +11,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Key, Eye, EyeOff, Loader2, Shield, Mail } from "lucide-react";
+import { Key, Eye, EyeOff, Loader2, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { cn } from "@/lib/utils";
 
-type Step = "password" | "mfa" | "email-code";
-
-// supabase.functions.invoke() rejette avec un message générique
-// ("Edge Function returned a non-2xx status code") — le vrai message
-// renvoyé par la fonction est dans error.context (la Response brute).
-async function edgeFunctionErrorMessage(error: unknown, fallback: string): Promise<string> {
-  const context = (error as { context?: Response })?.context;
-  if (context) {
-    try {
-      const body = await context.clone().json();
-      if (body?.error) return body.error;
-    } catch {
-      // response body wasn't JSON, keep the fallback
-    }
-  }
-  return (error as { message?: string })?.message || fallback;
-}
+type Step = "password" | "mfa";
 
 export function ChangePasswordButton({ className }: { className?: string } = {}) {
   const [open, setOpen] = useState(false);
@@ -45,8 +29,6 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
   const [loading, setLoading] = useState(false);
   const [mfaCode, setMfaCode] = useState("");
   const [factorId, setFactorId] = useState<string | null>(null);
-  const [emailCode, setEmailCode] = useState("");
-  const [resendCooldown, setResendCooldown] = useState(0);
 
   const validatePassword = (password: string): string | null => {
     if (password.length < 8) {
@@ -91,52 +73,6 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
     } catch (error) {
       console.error("Error in MFA check:", error);
       return false;
-    }
-  };
-
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const timer = setInterval(() => setResendCooldown((s) => Math.max(0, s - 1)), 1000);
-    return () => clearInterval(timer);
-  }, [resendCooldown]);
-
-  const sendEmailCode = async (): Promise<boolean> => {
-    const { error } = await supabase.functions.invoke("request-password-change");
-    if (error) {
-      toast.error(await edgeFunctionErrorMessage(error, "Impossible d'envoyer le code de vérification."));
-      return false;
-    }
-    setResendCooldown(30);
-    return true;
-  };
-
-  const verifyEmailCodeAndUpdate = async () => {
-    if (emailCode.length !== 6) {
-      toast.error("Veuillez entrer le code à 6 chiffres reçu par email.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke("confirm-password-change", {
-        body: { code: emailCode, newPassword },
-      });
-
-      if (error) {
-        toast.error(await edgeFunctionErrorMessage(error, "Code invalide ou expiré. Vérifiez le code ou demandez-en un nouveau."));
-        setEmailCode("");
-        return;
-      }
-
-      toast.success("Mot de passe modifié avec succès !");
-      setOpen(false);
-      resetForm();
-    } catch (error: any) {
-      console.error("Error verifying email code:", error);
-      toast.error(error.message || "Erreur lors de la vérification du code.");
-      setEmailCode("");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -213,12 +149,27 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
         return;
       }
 
-      // Pas de MFA TOTP configuré : un code de vérification envoyé par email
-      // est requis avant que le mot de passe ne soit réellement modifié.
-      const sent = await sendEmailCode();
-      if (sent) {
-        setStep("email-code");
+      // No MFA required, update directly
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        // Check if error is about AAL2 requirement
+        if (error.message?.includes("AAL2")) {
+          const mfaNeeded = await checkMfaRequired();
+          if (mfaNeeded) {
+            setLoading(false);
+            setStep("mfa");
+            return;
+          }
+        }
+        throw error;
       }
+
+      toast.success("Mot de passe modifié avec succès !");
+      setOpen(false);
+      resetForm();
     } catch (error: any) {
       console.error("Error changing password:", error);
       toast.error(error.message || "Erreur lors du changement de mot de passe.");
@@ -231,8 +182,6 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
     setNewPassword("");
     setConfirmPassword("");
     setMfaCode("");
-    setEmailCode("");
-    setResendCooldown(0);
     setStep("password");
     setFactorId(null);
   };
@@ -249,58 +198,7 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
-        {step === "email-code" ? (
-          <>
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Mail className="h-5 w-5 text-primary" />
-                Vérifiez votre email
-              </DialogTitle>
-              <DialogDescription>
-                Un code à 6 chiffres a été envoyé par email. Entrez-le pour confirmer le changement de mot de passe.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-6 flex flex-col items-center gap-4">
-              <InputOTP
-                maxLength={6}
-                value={emailCode}
-                onChange={(value) => setEmailCode(value)}
-              >
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
-                </InputOTPGroup>
-              </InputOTP>
-              <button
-                type="button"
-                onClick={sendEmailCode}
-                disabled={resendCooldown > 0}
-                className="text-sm text-primary hover:underline disabled:text-muted-foreground disabled:no-underline disabled:cursor-not-allowed"
-              >
-                {resendCooldown > 0 ? `Renvoyer le code (${resendCooldown}s)` : "Renvoyer le code"}
-              </button>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setStep("password")}>
-                Retour
-              </Button>
-              <Button onClick={verifyEmailCodeAndUpdate} disabled={loading || emailCode.length !== 6}>
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Vérification...
-                  </>
-                ) : (
-                  "Vérifier et modifier"
-                )}
-              </Button>
-            </DialogFooter>
-          </>
-        ) : step === "password" ? (
+        {step === "password" ? (
           <>
             <DialogHeader>
               <DialogTitle>Modifier le mot de passe</DialogTitle>
