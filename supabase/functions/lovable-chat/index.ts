@@ -1,5 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
 import { logTokenUsageAsync, resolveCallerRoleGroup, extractGeminiUsage, type AiUsage, type RoleGroup } from "../_shared/tokenLogger.ts";
+
+const RATE_LIMIT_WINDOW_SECONDS = 60;
+const RATE_LIMIT_MAX_REQUESTS = 20;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -387,6 +391,34 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // --- Rate limiting : évite l'épuisement du quota IA payant (script/bot,
+    // ou compte compromis) en bornant le nombre d'appels par utilisateur.
+    // Même pattern que link-child-by-code : compteur sur activity_logs. ---
+    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const rateLimitWindowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_SECONDS * 1000).toISOString();
+    const { count: recentRequests } = await adminClient
+      .from("activity_logs")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", callerUserId)
+      .eq("action", "lovable_chat_request")
+      .gte("created_at", rateLimitWindowStart);
+
+    if ((recentRequests ?? 0) >= RATE_LIMIT_MAX_REQUESTS) {
+      return new Response(
+        JSON.stringify({ error: "Trop de requêtes. Merci de patienter quelques instants." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    adminClient
+      .from("activity_logs")
+      .insert({ user_id: callerUserId, action: "lovable_chat_request" })
+      .then(({ error }: any) => {
+        if (error) console.error("Failed to log lovable_chat_request:", error);
+      });
 
     const systemPrompt = editorialMode
       ? `Tu es un assistant IA expert en édition de contenus pédagogiques mathématiques (français/arabe).
