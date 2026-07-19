@@ -7,6 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Loader2, Megaphone, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,6 +39,7 @@ export default function ClassAnnouncementsManager({ classId }: ClassAnnouncement
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [teacherId, setTeacherId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -72,8 +84,11 @@ export default function ClassAnnouncementsManager({ classId }: ClassAnnouncement
   };
 
   const handleDelete = async (id: string) => {
+    setDeletingId(id);
     const { error } = await (supabase as any).from("class_announcements").delete().eq("id", id);
+    setDeletingId(null);
     if (error) { toast.error("Suppression impossible"); return; }
+    toast.success("Annonce supprimée");
     setItems((prev) => prev.filter((a) => a.id !== id));
   };
 
@@ -118,9 +133,36 @@ export default function ClassAnnouncementsManager({ classId }: ClassAnnouncement
                     {new Date(a.created_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
                   </span>
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive shrink-0" onClick={() => handleDelete(a.id)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive shrink-0"
+                      disabled={deletingId === a.id}
+                      aria-label="Supprimer l'annonce"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Supprimer cette annonce ?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Elle ne sera plus visible par les élèves de la classe. Cette action est irréversible.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDelete(a.id)}
+                        className="bg-destructive hover:bg-destructive/90"
+                      >
+                        Supprimer
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             ))}
           </div>

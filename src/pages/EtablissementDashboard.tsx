@@ -271,6 +271,11 @@ const EtablissementDashboard = () => {
       }
     } catch (err) {
       console.error(err);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les réclamations. Réessayez.",
+        variant: "destructive",
+      });
     } finally {
       setLoadingRec(false);
     }

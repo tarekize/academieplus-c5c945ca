@@ -2,6 +2,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +31,7 @@ export const VideoLibraryManager = () => {
         reelsJson: "",
     });
     const [loading, setLoading] = useState(false);
+    const [deletingTitle, setDeletingTitle] = useState<string | null>(null);
     const { toast } = useToast();
 
     const handleAddMapping = async () => {
@@ -57,9 +69,14 @@ export const VideoLibraryManager = () => {
     };
 
     const handleDelete = async (title: string) => {
-        if (await videoService.deleteVideoMapping(title)) {
-            setMappings(JSON.parse(localStorage.getItem("video_mappings") || "{}"));
-            toast({ description: "Mapping supprimé" });
+        setDeletingTitle(title);
+        try {
+            if (await videoService.deleteVideoMapping(title)) {
+                setMappings(JSON.parse(localStorage.getItem("video_mappings") || "{}"));
+                toast({ description: "Mapping supprimé" });
+            }
+        } finally {
+            setDeletingTitle(null);
         }
     };
 
@@ -146,13 +163,35 @@ export const VideoLibraryManager = () => {
                         <CardHeader>
                             <CardTitle className="flex items-center justify-between">
                                 <span>{mapping.lesson_title}</span>
-                                <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() => handleDelete(title)}
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            disabled={deletingTitle === title}
+                                            aria-label="Supprimer le mapping vidéo"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Supprimer ce mapping vidéo ?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Le lien entre « {mapping.lesson_title} » et ses vidéos sera retiré. Cette action est irréversible.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                            <AlertDialogAction
+                                                onClick={() => handleDelete(title)}
+                                                className="bg-destructive hover:bg-destructive/90"
+                                            >
+                                                Supprimer
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2 text-sm">

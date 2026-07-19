@@ -990,7 +990,7 @@ function UserRow({
       <TableCell className="text-right">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-xl">
+            <Button variant="ghost" size="icon" className="rounded-xl" aria-label="Actions sur l'utilisateur">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

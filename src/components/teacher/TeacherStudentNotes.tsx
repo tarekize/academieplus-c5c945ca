@@ -8,6 +8,17 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, StickyNote, Trash2, Lock, Eye } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Note {
   id: string;
@@ -27,6 +38,7 @@ export default function TeacherStudentNotes({ studentId, classId }: TeacherStude
   const [isPrivate, setIsPrivate] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [teacherId, setTeacherId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -70,7 +82,9 @@ export default function TeacherStudentNotes({ studentId, classId }: TeacherStude
   };
 
   const handleDelete = async (id: string) => {
+    setDeletingId(id);
     const { error } = await (supabase as any).from("teacher_student_notes").delete().eq("id", id);
+    setDeletingId(null);
     if (error) { toast.error("Suppression impossible"); return; }
     toast.success("Remarque supprimée");
     setNotes((prev) => prev.filter((n) => n.id !== id));
@@ -124,9 +138,34 @@ export default function TeacherStudentNotes({ studentId, classId }: TeacherStude
                     </span>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive shrink-0" onClick={() => handleDelete(n.id)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive shrink-0"
+                      disabled={deletingId === n.id}
+                      aria-label="Supprimer la remarque"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Supprimer cette remarque ?</AlertDialogTitle>
+                      <AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDelete(n.id)}
+                        className="bg-destructive hover:bg-destructive/90"
+                      >
+                        Supprimer
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             ))}
           </div>

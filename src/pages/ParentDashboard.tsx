@@ -31,6 +31,17 @@ import ParentTeacherChat from "@/components/messaging/ParentTeacherChat";
 import { format, parse, isValid } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import LocationFields from "@/components/profile/LocationFields";
 import { AppHeader } from "@/components/layout/AppHeader";
 
@@ -80,6 +91,7 @@ const ParentDashboard = () => {
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [selectedChild, setSelectedChild] = useState<LinkedChild | null>(null);
+  const [removingChildId, setRemovingChildId] = useState<string | null>(null);
 
   // Create child account state
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -265,6 +277,7 @@ const ParentDashboard = () => {
   };
 
   const handleRemoveChild = async (linkId: string) => {
+    setRemovingChildId(linkId);
     try {
       const { error } = await supabase.from("parent_child_links").delete().eq("id", linkId);
       if (error) throw error;
@@ -272,6 +285,8 @@ const ParentDashboard = () => {
       sonnerToast.success("Lien supprimé avec succès");
     } catch (error: any) {
       sonnerToast.error("Erreur lors de la suppression du lien");
+    } finally {
+      setRemovingChildId(null);
     }
   };
 
@@ -819,15 +834,37 @@ const ParentDashboard = () => {
                               >
                                 <BookOpen className="h-4 w-4 mr-2" />Contenu des cours
                               </Button>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="rounded-xl h-9 w-9 shrink-0 text-destructive hover:text-destructive active:scale-95 transition-transform"
-                                onClick={() => handleRemoveChild(link.id)}
-                                title="Supprimer le lien avec cet enfant"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    disabled={removingChildId === link.id}
+                                    className="rounded-xl h-9 w-9 shrink-0 text-destructive hover:text-destructive active:scale-95 transition-transform"
+                                    title="Supprimer le lien avec cet enfant"
+                                    aria-label="Supprimer le lien avec cet enfant"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="rounded-2xl">
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Retirer ce lien ?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Vous n'aurez plus accès au tableau de bord ni au suivi de cet enfant. Cette action est irréversible.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel className="rounded-xl">Annuler</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleRemoveChild(link.id)}
+                                      className="rounded-xl bg-destructive hover:bg-destructive/90"
+                                    >
+                                      Confirmer
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </TableCell>
                         </TableRow>

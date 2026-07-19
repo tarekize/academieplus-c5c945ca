@@ -564,6 +564,7 @@ const ExamList = () => {
                               variant="ghost"
                               className="rounded-xl h-9 w-9 hover:bg-secondary"
                               onClick={() => openEditForm(exam)}
+                              aria-label="Modifier l'examen"
                             >
                               <Pencil className="h-4 w-4 text-muted-foreground" />
                             </Button>
@@ -573,6 +574,7 @@ const ExamList = () => {
                                   size="icon"
                                   variant="ghost"
                                   className="rounded-xl h-9 w-9 hover:bg-destructive/10"
+                                  aria-label="Supprimer l'examen"
                                 >
                                   <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>

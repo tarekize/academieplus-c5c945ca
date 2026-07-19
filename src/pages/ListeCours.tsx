@@ -162,6 +162,11 @@ const ListeCours = () => {
         setFilieres(data || []);
       } catch (error) {
         console.error("Error fetching filieres:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les filières. Réessayez.",
+          variant: "destructive",
+        });
       } finally {
         setLoadingFilieres(false);
       }
