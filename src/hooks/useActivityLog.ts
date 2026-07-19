@@ -6,13 +6,11 @@ export const useActivityLog = () => {
 
   const logActivity = async (
     action: string,
-    details?: Record<string, any>,
-    entityType?: string,
-    entityId?: string
+    details?: Record<string, any>
   ) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) return;
 
       const { error } = await supabase
@@ -21,8 +19,6 @@ export const useActivityLog = () => {
           user_id: user.id,
           action,
           details: details || {},
-          entity_type: entityType,
-          entity_id: entityId,
         });
 
       if (error) throw error;
