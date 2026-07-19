@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import renderMathInElement from "katex/dist/contrib/auto-render.js";
 import "katex/dist/katex.min.css";
+import { sanitizeLessonHtml } from "@/lib/sanitizeHtml";
 
 interface HtmlWithMathProps extends React.HTMLAttributes<HTMLDivElement> {
   htmlContent: string;
@@ -62,10 +63,12 @@ export const HtmlWithMath: React.FC<HtmlWithMathProps> = ({ htmlContent, ...prop
     }
   }, [processedContent]);
 
+  const safeContent = useMemo(() => sanitizeLessonHtml(processedContent), [processedContent]);
+
   return (
     <div
       ref={containerRef}
-      dangerouslySetInnerHTML={{ __html: processedContent }}
+      dangerouslySetInnerHTML={{ __html: safeContent }}
       {...props}
     />
   );

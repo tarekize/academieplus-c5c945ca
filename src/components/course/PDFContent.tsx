@@ -1,3 +1,5 @@
+import { sanitizeLessonHtml } from "@/lib/sanitizeHtml";
+
 interface PDFContentProps {
   chapterTitle: string;
   content: string;
@@ -30,7 +32,7 @@ export const PDFContent = ({ chapterTitle, content }: PDFContentProps) => {
           [&_blockquote_p]:mb-0 [&_blockquote_p]:text-black
           [&_strong]:font-bold [&_strong]:text-black
           [&_em]:italic [&_em]:text-black"
-        dangerouslySetInnerHTML={{ __html: content }}
+        dangerouslySetInnerHTML={{ __html: sanitizeLessonHtml(content) }}
       />
     </div>
   );

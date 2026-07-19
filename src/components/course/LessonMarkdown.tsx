@@ -2,8 +2,36 @@ import React, { useEffect, useMemo, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import renderMathInElement from "katex/dist/contrib/auto-render.js";
 import "katex/dist/katex.min.css";
+import { sanitizeLessonHtml } from "@/lib/sanitizeHtml";
+
+// defaultSchema (GitHub-flavored) est déjà sans script/iframe/event handlers ;
+// on l'étend seulement pour les classes utilisées par nos blocs pédagogiques
+// (::: definition, ::: example...) et pour les schémas SVG générés par l'IA.
+// Volontairement PAS de <use>/<image>/<a> dans les tags SVG ajoutés : ce sont
+// les seuls vecteurs XSS classiques du SVG (href/xlink:href → javascript:).
+const lessonSchema = {
+  ...defaultSchema,
+  attributes: {
+    ...defaultSchema.attributes,
+    div: [...(defaultSchema.attributes?.div || []), "className", "dir"],
+    span: [...(defaultSchema.attributes?.span || []), "className"],
+    "*": [
+      ...(defaultSchema.attributes?.["*"] || []),
+      "className",
+      "viewBox", "width", "height", "d", "cx", "cy", "r", "rx", "ry",
+      "x", "y", "x1", "y1", "x2", "y2", "points", "fill", "stroke",
+      "strokeWidth", "strokeDasharray", "transform", "fontSize", "textAnchor",
+    ],
+  },
+  tagNames: [
+    ...(defaultSchema.tagNames || []),
+    "svg", "path", "circle", "line", "rect", "text", "polygon", "polyline",
+    "g", "defs", "marker", "ellipse", "tspan",
+  ],
+};
 
 interface LessonMarkdownProps {
   content: string;
@@ -71,7 +99,9 @@ function stripCodeFences(s: string): string {
 const LessonMarkdown: React.FC<LessonMarkdownProps> = ({ content, dir = "rtl" }) => {
   const isHtml = useMemo(() => isHtmlContent(content || ""), [content]);
   const processed = useMemo(
-    () => (isHtml ? stripCodeFences(content || "") : preprocessContent(content || "")),
+    () => (isHtml
+      ? sanitizeLessonHtml(stripCodeFences(content || ""))
+      : preprocessContent(content || "")),
     [content, isHtml]
   );
   const containerRef = useRef<HTMLDivElement>(null);
@@ -115,7 +145,7 @@ const LessonMarkdown: React.FC<LessonMarkdownProps> = ({ content, dir = "rtl" })
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw]}
+        rehypePlugins={[rehypeRaw, [rehypeSanitize, lessonSchema]]}
       >
         {processed}
       </ReactMarkdown>
