@@ -47,17 +47,38 @@ async function hasCompletedPlacementAssessment(userId: string): Promise<boolean>
   return (legacyRows?.length || 0) > 0;
 }
 
+// Toutes les routes protégées et l'en-tête appelaient hasRole()/isAdmin() (une
+// requête RPC par appel) à chaque montage — jusqu'à 4-7 allers-retours réseau
+// par navigation. Sous charge (10 VUs concurrents), ça faisait exploser le TTFB.
+// On récupère les rôles une seule fois par session et hasRole()/isAdmin() lisent
+// ce cache en mémoire au lieu de refaire une requête à chaque appel.
+async function fetchRoles(userId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error fetching roles:', error);
+    return [];
+  }
+
+  return (data ?? []).map((r) => r.role);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      setRoles(session?.user ? await fetchRoles(session.user.id) : []);
       setLoading(false);
     });
 
@@ -67,7 +88,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+
+      // Only re-fetch roles on an actual sign-in/out, not on every event this
+      // listener sees (e.g. TOKEN_REFRESHED fires roughly hourly for the same
+      // user) — refetching there would just repeat the same query for nothing.
+      // `loading` stays true until roles resolve so hasRole()/isAdmin() never
+      // read a stale empty cache right after a fresh sign-in.
+      if (_event === 'SIGNED_OUT') {
+        setRoles([]);
+        setLoading(false);
+      } else if (session?.user && (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION' || _event === 'USER_UPDATED')) {
+        fetchRoles(session.user.id).then((r) => {
+          setRoles(r);
+          setLoading(false);
+        });
+      } else {
+        setLoading(false);
+      }
 
       // Vérifier si l'utilisateur SSO a besoin de compléter son profil
       if (session?.user) {
@@ -155,18 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hasRole = async (role: 'admin' | 'parent' | 'student' | 'pedago' | 'teacher' | 'etablissement'): Promise<boolean> => {
     if (!user) return false;
-
-    const { data, error } = await supabase.rpc('has_role', {
-      _user_id: user.id,
-      _role: role,
-    });
-
-    if (error) {
-      console.error('Error checking role:', error);
-      return false;
-    }
-
-    return Boolean(data);
+    return roles.includes(role);
   };
 
   const isAdmin = async (): Promise<boolean> => {
