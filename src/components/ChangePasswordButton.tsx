@@ -19,6 +19,22 @@ import { cn } from "@/lib/utils";
 
 type Step = "password" | "mfa" | "email-code";
 
+// supabase.functions.invoke() rejette avec un message générique
+// ("Edge Function returned a non-2xx status code") — le vrai message
+// renvoyé par la fonction est dans error.context (la Response brute).
+async function edgeFunctionErrorMessage(error: unknown, fallback: string): Promise<string> {
+  const context = (error as { context?: Response })?.context;
+  if (context) {
+    try {
+      const body = await context.clone().json();
+      if (body?.error) return body.error;
+    } catch {
+      // response body wasn't JSON, keep the fallback
+    }
+  }
+  return (error as { message?: string })?.message || fallback;
+}
+
 export function ChangePasswordButton({ className }: { className?: string } = {}) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("password");
@@ -85,9 +101,9 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
   }, [resendCooldown]);
 
   const sendEmailCode = async (): Promise<boolean> => {
-    const { error } = await supabase.auth.reauthenticate();
+    const { error } = await supabase.functions.invoke("request-password-change");
     if (error) {
-      toast.error(error.message || "Impossible d'envoyer le code de vérification.");
+      toast.error(await edgeFunctionErrorMessage(error, "Impossible d'envoyer le code de vérification."));
       return false;
     }
     setResendCooldown(30);
@@ -102,23 +118,22 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-        nonce: emailCode,
+      const { error } = await supabase.functions.invoke("confirm-password-change", {
+        body: { code: emailCode, newPassword },
       });
 
-      if (error) throw error;
+      if (error) {
+        toast.error(await edgeFunctionErrorMessage(error, "Code invalide ou expiré. Vérifiez le code ou demandez-en un nouveau."));
+        setEmailCode("");
+        return;
+      }
 
       toast.success("Mot de passe modifié avec succès !");
       setOpen(false);
       resetForm();
     } catch (error: any) {
       console.error("Error verifying email code:", error);
-      if (error.message?.includes("nonce") || error.message?.includes("expired") || error.message?.includes("invalid")) {
-        toast.error("Code invalide ou expiré. Vérifiez le code ou demandez-en un nouveau.");
-      } else {
-        toast.error(error.message || "Erreur lors de la vérification du code.");
-      }
+      toast.error(error.message || "Erreur lors de la vérification du code.");
       setEmailCode("");
     } finally {
       setLoading(false);
