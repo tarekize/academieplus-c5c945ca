@@ -19,22 +19,6 @@ import { cn } from "@/lib/utils";
 
 type Step = "password" | "mfa" | "email-code";
 
-// supabase.functions.invoke() rejette avec un message générique
-// ("Edge Function returned a non-2xx status code") — le vrai message
-// renvoyé par la fonction est dans error.context (la Response brute).
-async function edgeFunctionErrorMessage(error: unknown, fallback: string): Promise<string> {
-  const context = (error as { context?: Response })?.context;
-  if (context) {
-    try {
-      const body = await context.clone().json();
-      if (body?.error) return body.error;
-    } catch {
-      // response body wasn't JSON, keep the fallback
-    }
-  }
-  return (error as { message?: string })?.message || fallback;
-}
-
 export function ChangePasswordButton({ className }: { className?: string } = {}) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("password");
@@ -101,9 +85,9 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
   }, [resendCooldown]);
 
   const sendEmailCode = async (): Promise<boolean> => {
-    const { error } = await supabase.functions.invoke("request-password-change");
+    const { error } = await supabase.auth.reauthenticate();
     if (error) {
-      toast.error(await edgeFunctionErrorMessage(error, "Impossible d'envoyer le code de vérification."));
+      toast.error(error.message || "Impossible d'envoyer le code de vérification.");
       return false;
     }
     setResendCooldown(30);
@@ -111,29 +95,26 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
   };
 
   const verifyEmailCodeAndUpdate = async () => {
-    if (emailCode.length !== 6) {
-      toast.error("Veuillez entrer le code à 6 chiffres reçu par email.");
+    if (emailCode.trim().length < 6) {
+      toast.error("Veuillez entrer le code reçu par email.");
       return;
     }
 
     setLoading(true);
     try {
-      const { error } = await supabase.functions.invoke("confirm-password-change", {
-        body: { code: emailCode, newPassword },
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+        nonce: emailCode.trim(),
       });
 
-      if (error) {
-        toast.error(await edgeFunctionErrorMessage(error, "Code invalide ou expiré. Vérifiez le code ou demandez-en un nouveau."));
-        setEmailCode("");
-        return;
-      }
+      if (error) throw error;
 
       toast.success("Mot de passe modifié avec succès !");
       setOpen(false);
       resetForm();
     } catch (error: any) {
       console.error("Error verifying email code:", error);
-      toast.error(error.message || "Erreur lors de la vérification du code.");
+      toast.error(error.message || "Code invalide ou expiré. Vérifiez le code ou demandez-en un nouveau.");
       setEmailCode("");
     } finally {
       setLoading(false);
@@ -257,24 +238,18 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
                 Vérifiez votre email
               </DialogTitle>
               <DialogDescription>
-                Un code à 6 chiffres a été envoyé par email. Entrez-le pour confirmer le changement de mot de passe.
+                Un code de vérification a été envoyé par email. Entrez-le pour confirmer le changement de mot de passe.
               </DialogDescription>
             </DialogHeader>
             <div className="py-6 flex flex-col items-center gap-4">
-              <InputOTP
-                maxLength={6}
+              <Input
                 value={emailCode}
-                onChange={(value) => setEmailCode(value)}
-              >
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
-                </InputOTPGroup>
-              </InputOTP>
+                onChange={(e) => setEmailCode(e.target.value)}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                placeholder="Code reçu par email"
+                className="text-center text-lg tracking-widest max-w-[220px]"
+              />
               <button
                 type="button"
                 onClick={sendEmailCode}
@@ -288,7 +263,7 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
               <Button type="button" variant="outline" onClick={() => setStep("password")}>
                 Retour
               </Button>
-              <Button onClick={verifyEmailCodeAndUpdate} disabled={loading || emailCode.length !== 6}>
+              <Button onClick={verifyEmailCodeAndUpdate} disabled={loading || emailCode.trim().length < 6}>
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
