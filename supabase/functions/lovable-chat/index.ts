@@ -211,37 +211,6 @@ Si tu veux pointer vers un chapitre sans leçon spécifique, utilise la premièr
 IMPORTANT: Utilise les vrais IDs des chapitres et leçons de la liste ci-dessus. Ne génère JAMAIS de faux IDs.`;
 }
 
-// ============ Provider 0: Lovable AI Gateway ============
-async function callLovableAI(systemPrompt: string, messages: any[]): Promise<Response> {
-  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
-
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
-      messages: [{ role: "system", content: systemPrompt }, ...messages],
-      stream: true,
-    }),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("Lovable AI error:", response.status, errText);
-    // 402 (no credits) and 429 (rate limit) → fallback to next provider
-    throw new Error(`Lovable AI failed: ${response.status}`);
-  }
-
-  // OpenAI-compatible SSE, pass through directly
-  return new Response(response.body, {
-    headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-  });
-}
-
 // Convert OpenAI-style messages (string OR [{type:'text'|'image_url',...}]) to Gemini parts
 function toGeminiParts(content: any): any[] {
   if (typeof content === "string") return [{ text: content }];
@@ -266,139 +235,8 @@ function toGeminiParts(content: any): any[] {
   return parts;
 }
 
-function messagesHaveMedia(messages: any[]): boolean {
-  return messages.some((m) => Array.isArray(m?.content) && m.content.some((p: any) => p?.type === "image_url"));
-}
-
-// ============ Provider 1: Google Gemini ============
-async function callGemini(systemPrompt: string, messages: any[]): Promise<Response> {
-  const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
-
-  const geminiMessages = messages.map((m: any) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: toGeminiParts(m.content),
-  }));
-
-
-  const body = {
-    system_instruction: { parts: [{ text: systemPrompt }] },
-    contents: geminiMessages,
-    generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
-  };
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("Gemini error:", response.status, errText);
-    throw new Error(`Gemini failed: ${response.status}`);
-  }
-
-  // Transform Gemini SSE to OpenAI-compatible SSE format
-  const geminiStream = response.body!;
-  const { readable, writable } = new TransformStream();
-
-  (async () => {
-    const writer = writable.getWriter();
-    const reader = geminiStream.getReader();
-    const decoder = new TextDecoder();
-    const encoder = new TextEncoder();
-    let buffer = "";
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const jsonStr = line.slice(6).trim();
-          if (!jsonStr || jsonStr === "[DONE]") continue;
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (text) {
-              const openAiChunk = {
-                choices: [{ delta: { content: text }, index: 0 }],
-              };
-              await writer.write(encoder.encode(`data: ${JSON.stringify(openAiChunk)}\n\n`));
-            }
-          } catch { /* skip malformed */ }
-        }
-      }
-      // Process remaining buffer
-      if (buffer.startsWith("data: ")) {
-        const jsonStr = buffer.slice(6).trim();
-        if (jsonStr && jsonStr !== "[DONE]") {
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (text) {
-              const openAiChunk = { choices: [{ delta: { content: text }, index: 0 }] };
-              await writer.write(encoder.encode(`data: ${JSON.stringify(openAiChunk)}\n\n`));
-            }
-          } catch { /* skip */ }
-        }
-      }
-      await writer.write(encoder.encode("data: [DONE]\n\n"));
-    } catch (err) {
-      console.error("Gemini stream transform error:", err);
-    } finally {
-      writer.close();
-    }
-  })();
-
-  return new Response(readable, {
-    headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-  });
-}
-
-// ============ Provider 2: Groq ============
-async function callGroq(systemPrompt: string, messages: any[]): Promise<Response> {
-  const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
-  if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY not configured");
-
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${GROQ_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      messages: [{ role: "system", content: systemPrompt }, ...messages],
-      stream: true,
-      temperature: 0.7,
-      max_tokens: 2048,
-    }),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("Groq error:", response.status, errText);
-    throw new Error(`Groq failed: ${response.status}`);
-  }
-
-  // Groq uses OpenAI-compatible SSE format, pass through directly
-  return new Response(response.body, {
-    headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-  });
-}
-
-// ============ Provider 4: Google Gemini (clé secondaire / fallback) ============
-async function callGemini2(
+// ============ Google Gemini ============
+async function callGemini(
   systemPrompt: string,
   messages: any[],
   tokenLogCtx?: { supabaseUrl: string; serviceRoleKey: string; userId: string | null; roleGroup: RoleGroup }
@@ -428,8 +266,8 @@ async function callGemini2(
 
   if (!response.ok) {
     const errText = await response.text();
-    console.error("Gemini2 error:", response.status, errText);
-    throw new Error(`Gemini2 failed: ${response.status}`);
+    console.error("Gemini error:", response.status, errText);
+    throw new Error(`Gemini failed: ${response.status}`);
   }
 
   const geminiStream = response.body!;
@@ -503,7 +341,7 @@ async function callGemini2(
         });
       }
     } catch (err) {
-      console.error("Gemini2 stream transform error:", err);
+      console.error("Gemini stream transform error:", err);
     } finally {
       writer.close();
     }
@@ -514,82 +352,7 @@ async function callGemini2(
   });
 }
 
-// ============ Provider 3: Cloudflare Workers AI ============
-async function callCloudflare(systemPrompt: string, messages: any[]): Promise<Response> {
-  const CF_API_KEY = Deno.env.get("CLOUDFLARE_AI_API_KEY");
-  const CF_ACCOUNT_ID = Deno.env.get("CLOUDFLARE_ACCOUNT_ID");
-  if (!CF_API_KEY) throw new Error("CLOUDFLARE_AI_API_KEY not configured");
-  if (!CF_ACCOUNT_ID) throw new Error("CLOUDFLARE_ACCOUNT_ID not configured");
-
-  const url = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.1-8b-instruct`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${CF_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      messages: [{ role: "system", content: systemPrompt }, ...messages],
-      stream: true,
-    }),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("Cloudflare error:", response.status, errText);
-    throw new Error(`Cloudflare failed: ${response.status}`);
-  }
-
-  // Transform Cloudflare SSE to OpenAI-compatible format
-  const cfStream = response.body!;
-  const { readable, writable } = new TransformStream();
-
-  (async () => {
-    const writer = writable.getWriter();
-    const reader = cfStream.getReader();
-    const decoder = new TextDecoder();
-    const encoder = new TextEncoder();
-    let buffer = "";
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const jsonStr = line.slice(6).trim();
-          if (!jsonStr || jsonStr === "[DONE]") continue;
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const text = parsed?.response;
-            if (text) {
-              const openAiChunk = { choices: [{ delta: { content: text }, index: 0 }] };
-              await writer.write(encoder.encode(`data: ${JSON.stringify(openAiChunk)}\n\n`));
-            }
-          } catch { /* skip */ }
-        }
-      }
-      await writer.write(encoder.encode("data: [DONE]\n\n"));
-    } catch (err) {
-      console.error("Cloudflare stream transform error:", err);
-    } finally {
-      writer.close();
-    }
-  })();
-
-  return new Response(readable, {
-    headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-  });
-}
-
-// ============ Main handler with fallback ============
+// ============ Main handler ============
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -991,32 +754,17 @@ Aucun blabla, pas de texte "Voici le cours...", AUCUNE balise de code \`\`\`html
         ));
 
 
-    // Version compacte du prompt pour les providers à petit contexte (Groq ~12k TPM, Cloudflare ~8k tokens)
-    // On tronque agressivement le contenu de la leçon embarqué dans le prompt éditorial.
-    const compactSystemPrompt = systemPrompt.length > 6000
-      ? systemPrompt.slice(0, 6000) + "\n\n... (prompt tronqué pour respecter la limite de tokens du provider)"
-      : systemPrompt;
-
-    const hasMedia = messagesHaveMedia(messages);
-    void compactSystemPrompt;
-    void hasMedia;
-
-    // Utilise uniquement Gemini (2ème clé)
     try {
-      console.log("Trying Gemini secondary key...");
-      return await callGemini2(systemPrompt, messages, {
+      return await callGemini(systemPrompt, messages, {
         supabaseUrl, serviceRoleKey, userId: callerUserId, roleGroup: callerRoleGroup,
       });
     } catch (e) {
-      console.error("Gemini secondary key failed:", e);
+      console.error("Gemini call failed:", e);
+      return new Response(
+        JSON.stringify({ error: "Le service IA est actuellement indisponible. Veuillez réessayer plus tard." }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
-
-
-    // All providers failed
-    return new Response(
-      JSON.stringify({ error: "Tous les services IA sont actuellement indisponibles. Veuillez réessayer plus tard." }),
-      { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
   } catch (e) {
     console.error("chat error:", e);
     return new Response(
