@@ -23,31 +23,23 @@ const MentionsLegales = () => {
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-4">1. Éditeur du site</h2>
                 <p className="text-muted-foreground">
-                  Le site EduSuccess est édité par :<br />
-                  <strong>EduSuccess SAS</strong><br />
-                  Capital social : 50 000 €<br />
-                  RCS Paris : 123 456 789<br />
-                  Siège social : 123 Avenue des Champs-Élysées, 75008 Paris, France<br />
-                  Téléphone : 01 23 45 67 89<br />
-                  Email : contact@edusuccess.fr
+                  Le site AcadémiePlus est édité par : informations d'identification de l'éditeur en cours de
+                  mise à jour (raison sociale, adresse du siège, numéro de registre du commerce, contact).
                 </p>
               </div>
 
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-4">2. Directeur de la publication</h2>
                 <p className="text-muted-foreground">
-                  Le directeur de la publication est M. Jean Dupont, en sa qualité de Président de la société EduSuccess SAS.
+                  Information en cours de mise à jour.
                 </p>
               </div>
 
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-4">3. Hébergement</h2>
                 <p className="text-muted-foreground">
-                  Le site est hébergé par :<br />
-                  <strong>OVH</strong><br />
-                  2 rue Kellermann<br />
-                  59100 Roubaix, France<br />
-                  Téléphone : 1007
+                  Le site et la base de données sont hébergés par Supabase. Coordonnées complètes de
+                  l'hébergeur en cours de mise à jour.
                 </p>
               </div>
 
@@ -72,7 +64,10 @@ const MentionsLegales = () => {
                   </a>.
                 </p>
                 <p className="text-muted-foreground mt-2">
-                  Pour exercer vos droits, vous pouvez nous contacter à l'adresse : <a href="mailto:contact@edusuccess.fr" className="text-primary hover:underline">contact@edusuccess.fr</a>
+                  Pour exercer vos droits, vous pouvez nous contacter via notre{" "}
+                  <a href="/contact" className="text-primary hover:underline font-medium">
+                    formulaire de contact
+                  </a>.
                 </p>
               </div>
 
@@ -87,7 +82,7 @@ const MentionsLegales = () => {
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-4">7. Limitations de responsabilité</h2>
                 <p className="text-muted-foreground">
-                  EduSuccess ne pourra être tenu responsable des dommages directs et indirects causés au matériel de l'utilisateur, 
+                  L'éditeur ne pourra être tenu responsable des dommages directs et indirects causés au matériel de l'utilisateur,
                   lors de l'accès au site, et résultant soit de l'utilisation d'un matériel ne répondant pas aux spécifications indiquées, 
                   soit de l'apparition d'un bug ou d'une incompatibilité.
                 </p>

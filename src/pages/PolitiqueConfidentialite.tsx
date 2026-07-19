@@ -30,18 +30,16 @@ const PolitiqueConfidentialite = () => {
                   Dernière mise à jour : Janvier 2025
                 </p>
                 <p className="text-muted-foreground text-sm">
-                  EduSuccess s'engage à protéger la vie privée de ses utilisateurs conformément au Règlement Général sur la Protection des Données (RGPD) et à la loi Informatique et Libertés.
+                  AcadémiePlus s'engage à protéger la vie privée de ses utilisateurs conformément au Règlement Général sur la Protection des Données (RGPD) et à la loi Informatique et Libertés.
                 </p>
               </div>
 
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-4">1. Responsable du traitement</h2>
                 <p className="text-muted-foreground">
-                  Le responsable du traitement des données personnelles est :<br />
-                  <strong>EduSuccess SAS</strong><br />
-                  123 Avenue des Champs-Élysées, 75008 Paris, France<br />
-                  Email : <a href="mailto:contact@edusuccess.fr" className="text-primary hover:underline">contact@edusuccess.fr</a><br />
-                  Téléphone : 01 23 45 67 89
+                  L'identité complète et les coordonnées du responsable du traitement des données personnelles
+                  sont en cours de mise à jour. Vous pouvez nous contacter via notre{" "}
+                  <a href="/contact" className="text-primary hover:underline font-medium">formulaire de contact</a>.
                 </p>
               </div>
 
@@ -278,8 +276,7 @@ const PolitiqueConfidentialite = () => {
                   </p>
                   <ul className="list-disc list-inside text-muted-foreground space-y-2">
                     <li><strong>Depuis votre compte</strong> : accéder à la section "Mes Données Personnelles"</li>
-                    <li><strong>Par email</strong> : <a href="mailto:contact@edusuccess.fr" className="text-primary hover:underline">contact@edusuccess.fr</a></li>
-                    <li><strong>Par courrier</strong> : EduSuccess SAS, 123 Avenue des Champs-Élysées, 75008 Paris</li>
+                    <li><strong>Via notre formulaire</strong> : <a href="/contact" className="text-primary hover:underline">page Contact</a></li>
                   </ul>
                   <p className="text-muted-foreground mt-4">
                     Nous nous engageons à répondre à votre demande dans un délai maximum de <strong>1 mois</strong>.
@@ -357,11 +354,10 @@ const PolitiqueConfidentialite = () => {
                   Pour toute question concernant cette politique de confidentialité ou le traitement de vos données :
                 </p>
                 <div className="bg-primary/10 p-6 rounded-lg">
-                  <p className="text-foreground font-semibold mb-3">EduSuccess - Service Protection des Données</p>
+                  <p className="text-foreground font-semibold mb-3">AcadémiePlus - Protection des données</p>
                   <p className="text-muted-foreground">
-                    📧 Email : <a href="mailto:dpo@edusuccess.fr" className="text-primary hover:underline">dpo@edusuccess.fr</a><br />
-                    📞 Téléphone : 01 23 45 67 89<br />
-                    📮 Courrier : 123 Avenue des Champs-Élysées, 75008 Paris, France
+                    Coordonnées directes en cours de mise à jour — en attendant, utilisez notre{" "}
+                    <a href="/contact" className="text-primary hover:underline">formulaire de contact</a>.
                   </p>
                 </div>
               </div>

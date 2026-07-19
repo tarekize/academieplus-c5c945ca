@@ -86,10 +86,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground mb-2">Téléphone</h3>
-                      <p className="text-muted-foreground text-sm mb-1">Lun - Sam: 9h-19h</p>
-                      <a href="tel:0123456789" className="text-primary font-semibold hover:underline">
-                        01 23 45 67 89
-                      </a>
+                      <p className="text-muted-foreground text-sm">Coordonnées en cours de mise à jour</p>
                     </div>
                   </div>
                 </Card>
@@ -101,10 +98,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground mb-2">Email</h3>
-                      <p className="text-muted-foreground text-sm mb-1">Réponse sous 24h</p>
-                      <a href="mailto:contact@edusuccess.fr" className="text-primary font-semibold hover:underline">
-                        contact@edusuccess.fr
-                      </a>
+                      <p className="text-muted-foreground text-sm">Utilisez le formulaire ci-contre, réponse sous 24h</p>
                     </div>
                   </div>
                 </Card>
@@ -116,10 +110,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground mb-2">Adresse</h3>
-                      <p className="text-muted-foreground text-sm">
-                        123 Avenue des Champs-Élysées<br />
-                        75008 Paris, France
-                      </p>
+                      <p className="text-muted-foreground text-sm">Coordonnées en cours de mise à jour</p>
                     </div>
                   </div>
                 </Card>
