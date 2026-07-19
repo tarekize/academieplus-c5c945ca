@@ -12,6 +12,7 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || "";
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 // Dedicated secret, distinct from the (public) project URL: BULK_TOKEN must be set for
 // this endpoint to accept any request at all — no value here means the route is closed.
@@ -77,16 +78,29 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const token = req.headers.get("x-bulk-token");
+  const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+
+  // shared-token gate for batch scripts, otherwise require a logged-in admin/pedago user.
   if (!BULK_TOKEN || !token || token !== BULK_TOKEN) {
-    return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const publicClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY || SERVICE_ROLE, {
+      global: { headers: { Authorization: req.headers.get("Authorization") || "" } },
+    });
+    const { data: authData } = await publicClient.auth.getUser();
+    const userId = authData?.user?.id;
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
+    const { data: isPedago } = await admin.rpc("has_role", { _user_id: userId, _role: "pedago" });
+    if (!isAdmin && !isPedago) {
+      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
   }
 
   const url = new URL(req.url);
   const startIdx = Number(url.searchParams.get("start") || "0");
   const limit = Number(url.searchParams.get("limit") || "5");
   const replace = url.searchParams.get("replace") === "1";
-
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
   // fetch all target lessons ordered
   const { data: chapters, error: chErr } = await admin

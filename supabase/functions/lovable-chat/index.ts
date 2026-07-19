@@ -601,7 +601,29 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const authHeader = req.headers.get("Authorization");
+
+    // --- Authentification obligatoire : cette fonction consomme un quota IA
+    // payant à chaque appel. resolveCallerRoleGroup() ne fait que catégoriser
+    // l'appelant pour les logs, elle ne rejette rien par elle-même. ---
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Non autorisé" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const { userId: callerUserId, roleGroup: callerRoleGroup } = await resolveCallerRoleGroup(supabaseUrl, serviceRoleKey, authHeader);
+    if (!callerUserId) {
+      return new Response(JSON.stringify({ error: "Non autorisé" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (editorialMode && !["teacher", "pedago", "admin"].includes(callerRoleGroup)) {
+      return new Response(JSON.stringify({ error: "Accès réservé aux enseignants et à l'équipe pédagogique" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const systemPrompt = editorialMode
       ? `Tu es un assistant IA expert en édition de contenus pédagogiques mathématiques (français/arabe).
