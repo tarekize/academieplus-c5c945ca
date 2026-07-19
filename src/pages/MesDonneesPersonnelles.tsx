@@ -23,10 +23,17 @@ interface Profile {
   is_active: boolean | null;
 }
 
+interface ActivityLogEntry {
+  id: string;
+  action: string;
+  created_at: string | null;
+}
+
 const MesDonneesPersonnelles = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [activityLogs, setActivityLogs] = useState<ActivityLogEntry[]>([]);
 
   useEffect(() => {
     loadUserData();
@@ -52,8 +59,17 @@ const MesDonneesPersonnelles = () => {
         .select('id, first_name, last_name, email, school_level, is_active')
         .eq('id', user.id)
         .single();
-      
+
       setProfile(profileData);
+
+      const { data: logsData } = await supabase
+        .from('activity_logs')
+        .select('id, action, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      setActivityLogs(logsData || []);
 
     } catch (error) {
       console.error('Error loading data:', error);
@@ -98,21 +114,23 @@ const MesDonneesPersonnelles = () => {
     }
   };
 
-  const handleRequestDeletion = async () => {
+  const handleDeleteAccount = async () => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      toast.success(
-        "Demande de suppression enregistrée. Votre compte sera supprimé dans 30 jours.",
-        { duration: 8000 }
-      );
+      const { error } = await supabase.functions.invoke('delete-user-account', {
+        body: { userId: user.id },
+      });
 
+      if (error) throw error;
+
+      await supabase.auth.signOut();
+      navigate('/');
     } catch (error: any) {
-      console.error('Deletion request error:', error);
-      toast.error(error.message || "Erreur lors de la demande de suppression");
-    } finally {
+      console.error('Deletion error:', error);
+      toast.error(error.message || "Erreur lors de la suppression du compte");
       setLoading(false);
     }
   };
@@ -213,7 +231,7 @@ const MesDonneesPersonnelles = () => {
                   <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
                     <li>Vos informations de profil</li>
                     <li>Vos liens parent-enfant</li>
-                    <li>Vos logs d'activité</li>
+                    <li>Votre historique d'activité, résultats et contenus générés</li>
                   </ul>
                   <Button
                     onClick={handleExportData}
@@ -258,7 +276,20 @@ const MesDonneesPersonnelles = () => {
                   </div>
                 </div>
                 <CardContent className="p-6">
-                  <p className="text-sm text-muted-foreground">Aucun accès enregistré récemment</p>
+                  {activityLogs.length > 0 ? (
+                    <ul className="space-y-2 text-sm">
+                      {activityLogs.map((log) => (
+                        <li key={log.id} className="flex justify-between gap-3">
+                          <span className="text-foreground">{log.action}</span>
+                          <span className="text-muted-foreground shrink-0">
+                            {log.created_at ? new Date(log.created_at).toLocaleString('fr-FR') : ''}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Aucun accès enregistré récemment</p>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
@@ -278,7 +309,7 @@ const MesDonneesPersonnelles = () => {
                   </div>
                   <div>
                     <h2 className="font-bold text-destructive">Supprimer mon compte</h2>
-                    <p className="text-xs text-destructive/80">Action irréversible — période de grâce de 30 jours</p>
+                    <p className="text-xs text-destructive/80">Action immédiate et irréversible</p>
                   </div>
                 </div>
               </div>
@@ -289,10 +320,10 @@ const MesDonneesPersonnelles = () => {
                     Avant de supprimer votre compte :
                   </p>
                   <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                    <li>Toutes vos données personnelles seront supprimées</li>
+                    <li>Toutes vos données personnelles seront supprimées définitivement</li>
                     <li>Vos abonnements seront annulés</li>
-                    <li>Vous disposerez d'une période de grâce de 30 jours pour annuler</li>
-                    <li>Cette action est définitive après 30 jours</li>
+                    <li>La suppression est immédiate, sans période de grâce</li>
+                    <li>Cette action ne peut pas être annulée</li>
                   </ul>
                 </div>
 
@@ -307,13 +338,13 @@ const MesDonneesPersonnelles = () => {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Cette action planifiera la suppression de votre compte dans 30 jours.
-                        Vous recevrez un email de confirmation et pourrez annuler à tout moment pendant cette période.
+                        Cette action est irréversible. Cela supprimera immédiatement et définitivement votre compte
+                        et toutes vos données associées.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel className="rounded-xl">Annuler</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleRequestDeletion} className="rounded-xl bg-destructive hover:bg-destructive/90">
+                      <AlertDialogAction onClick={handleDeleteAccount} className="rounded-xl bg-destructive hover:bg-destructive/90">
                         Confirmer la suppression
                       </AlertDialogAction>
                     </AlertDialogFooter>

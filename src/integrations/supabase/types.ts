@@ -580,6 +580,39 @@ export type Database = {
           },
         ]
       }
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string
+          handled: boolean
+          id: string
+          message: string
+          name: string
+          phone: string | null
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          handled?: boolean
+          id?: string
+          message: string
+          name: string
+          phone?: string | null
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          handled?: boolean
+          id?: string
+          message?: string
+          name?: string
+          phone?: string | null
+          subject?: string
+        }
+        Relationships: []
+      }
       establishments: {
         Row: {
           created_at: string
@@ -916,6 +949,9 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          consent_data_processing_at: string | null
+          consent_parental_at: string | null
+          consent_terms_privacy_at: string | null
           contract_end_date: string | null
           contract_start_date: string | null
           created_at: string | null
@@ -940,6 +976,9 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          consent_data_processing_at?: string | null
+          consent_parental_at?: string | null
+          consent_terms_privacy_at?: string | null
           contract_end_date?: string | null
           contract_start_date?: string | null
           created_at?: string | null
@@ -964,6 +1003,9 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          consent_data_processing_at?: string | null
+          consent_parental_at?: string | null
+          consent_terms_privacy_at?: string | null
           contract_end_date?: string | null
           contract_start_date?: string | null
           created_at?: string | null

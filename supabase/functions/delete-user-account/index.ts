@@ -78,18 +78,18 @@ serve(async (req) => {
       });
     }
 
-    // Fetch readable info BEFORE deletion
-    const [{ data: targetProfile }, { data: adminProfile }, { data: targetAuth }] = await Promise.all([
-      adminClient.from("profiles").select("email, first_name, last_name").eq("id", targetUserId).maybeSingle(),
-      adminClient.from("profiles").select("email, first_name, last_name").eq("id", userData.user.id).maybeSingle(),
-      adminClient.auth.admin.getUserById(targetUserId),
-    ]);
+    // Fetch readable info BEFORE deletion (admin/actor only — the target's
+    // own PII is intentionally not read here, since the deletion log below
+    // must not retain it once the account is erased).
+    const { data: adminProfile } = await adminClient
+      .from("profiles")
+      .select("first_name, last_name")
+      .eq("id", userData.user.id)
+      .maybeSingle();
 
     const fullName = (p: any) =>
       p ? [p.first_name, p.last_name].filter(Boolean).join(" ").trim() || null : null;
 
-    const targetEmail = targetProfile?.email ?? targetAuth?.user?.email ?? null;
-    const targetName = fullName(targetProfile);
     const adminName = fullName(adminProfile) ?? (userData.user.email ?? "Admin");
 
     const { error: deleteAuthError } = await adminClient.auth.admin.deleteUser(targetUserId);
@@ -106,6 +106,11 @@ serve(async (req) => {
       () => adminClient.from("chat_usage").delete().eq("user_id", targetUserId),
       () => adminClient.from("chat_conversations").delete().eq("user_id", targetUserId),
       () => adminClient.from("ai_generated_content").delete().eq("user_id", targetUserId),
+      () => adminClient.from("ai_lesson_comments").delete().eq("user_id", targetUserId),
+      () => adminClient.from("class_students").delete().eq("student_id", targetUserId),
+      () => adminClient.from("teacher_content_attempts").delete().eq("student_id", targetUserId),
+      () => adminClient.from("parent_reports").delete().eq("child_id", targetUserId),
+      () => adminClient.from("parent_reports").delete().eq("parent_id", targetUserId),
       () => adminClient.from("activity_logs").delete().eq("user_id", targetUserId),
       () => adminClient.from("user_roles").delete().eq("user_id", targetUserId),
       () => adminClient.from("profiles").delete().eq("id", targetUserId),
@@ -125,8 +130,7 @@ serve(async (req) => {
       details: {
         admin_name: adminName,
         admin_email: userData.user.email ?? null,
-        target_user_email: targetEmail,
-        target_user_name: targetName,
+        target_user_id: targetUserId,
         self_delete: userData.user.id === targetUserId,
       },
     });

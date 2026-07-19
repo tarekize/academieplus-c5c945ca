@@ -256,7 +256,11 @@ const Auth = () => {
       setLoading(true);
 
       // Envoyer l'inscription en arrière-plan
-      performSignUp(firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth, wilaya, ville, ecole, phone, establishmentCode);
+      performSignUp(
+        firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth,
+        wilaya, ville, ecole, phone, establishmentCode,
+        { consentDataProcessing, consentTermsPrivacy, consentParental }
+      );
     } else {
       // LOGIN
       setLoading(true);
@@ -311,7 +315,8 @@ const Auth = () => {
     ville: string,
     ecole: string,
     phone: string,
-    establishmentCode: string = ""
+    establishmentCode: string = "",
+    consents: { consentDataProcessing: boolean; consentTermsPrivacy: boolean; consentParental: boolean }
   ) => {
     try {
       const schoolLevelMapping: Record<string, string> = {
@@ -330,6 +335,9 @@ const Auth = () => {
         last_name: lastName,
         full_name: `${firstName} ${lastName}`,
         role: profileType === 'enfant' ? 'student' : profileType === 'enseignant' ? 'teacher' : 'parent',
+        consent_data_processing: consents.consentDataProcessing,
+        consent_terms_privacy: consents.consentTermsPrivacy,
+        consent_parental: consents.consentParental,
       };
 
       if (dateOfBirth) {

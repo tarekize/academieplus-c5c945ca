@@ -57,9 +57,11 @@ const PolitiqueConfidentialite = () => {
                     <ul className="list-disc list-inside text-muted-foreground space-y-1">
                       <li>Prénom et nom</li>
                       <li>Adresse email</li>
+                      <li>Numéro de téléphone</li>
                       <li>Date de naissance</li>
-                      <li>Type de profil (élève ou parent)</li>
-                      <li>Niveau de classe (pour les élèves)</li>
+                      <li>Type de profil (élève, parent ou enseignant)</li>
+                      <li>Niveau de classe et filière (pour les élèves)</li>
+                      <li>Wilaya, ville et établissement scolaire</li>
                     </ul>
                   </div>
 
@@ -192,8 +194,9 @@ const PolitiqueConfidentialite = () => {
                   Vos données personnelles sont accessibles uniquement par :
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                  <li><strong>Le personnel autorisé d'EduSuccess</strong> : pour la gestion et le support</li>
-                  <li><strong>Prestataires techniques</strong> : hébergement (OVH), authentification (Supabase)</li>
+                  <li><strong>Le personnel autorisé de la plateforme</strong> : pour la gestion et le support</li>
+                  <li><strong>Prestataires techniques</strong> : hébergement et base de données (Supabase)</li>
+                  <li><strong>Fournisseurs d'intelligence artificielle</strong> : Google (Gemini), OpenRouter et Lovable AI Gateway, utilisés pour générer et corriger du contenu pédagogique (exercices, remédiation, rapports, assistant de révision). Ces prestataires reçoivent les données strictement nécessaires à la génération demandée (ex. prénom de l'élève, niveau, résultats d'exercices) et ne sont pas autorisés à les réutiliser à d'autres fins.</li>
                   <li><strong>Processeurs de paiement</strong> : pour la gestion des transactions (données bancaires sécurisées)</li>
                   <li><strong>Autorités légales</strong> : uniquement sur réquisition judiciaire</li>
                 </ul>
@@ -206,8 +209,13 @@ const PolitiqueConfidentialite = () => {
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-4">8. Transfert de données hors UE</h2>
                 <p className="text-muted-foreground">
-                  Vos données sont stockées dans l'Union Européenne (France). Aucun transfert hors UE n'est effectué, 
-                  garantissant le plus haut niveau de protection RGPD.
+                  Vos données sont hébergées dans l'Union Européenne. Toutefois, certaines fonctionnalités
+                  d'intelligence artificielle (génération d'exercices, de remédiations et de rapports pédagogiques)
+                  impliquent l'envoi de données limitées (ex. prénom, niveau scolaire, résultats) à des fournisseurs
+                  d'IA situés hors UE (Google Gemini, OpenRouter — États-Unis), dans le cadre strict de la génération
+                  du contenu demandé. Ces transferts sont encadrés par les garanties contractuelles de ces
+                  prestataires. Vous pouvez nous contacter pour en savoir plus sur ces garanties ou vous opposer à
+                  l'usage de l'IA générative sur votre compte.
                 </p>
               </div>
 
