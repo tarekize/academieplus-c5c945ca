@@ -12,10 +12,23 @@
     <title>AcadémiePlus - Soutien Scolaire Personnalisé | Réussite Garantie</title>
     <meta name="description" content="Soutien scolaire personnalisé avec 98% de réussite. Professeurs certifiés, méthodes innovantes. Cours d&#39;essai gratuit. Progression rapide garantie.">
     <meta name="author" content="AcadémiePlus" />
+    <!--
+      X-Content-Type-Options / X-Frame-Options / Permissions-Policy ci-dessous sont
+      IGNORÉS par tous les navigateurs modernes quand posés en balise <meta> — ces
+      en-têtes doivent être délivrés par le serveur/CDN pour être réellement
+      appliqués (voir _headers à la racine de public/, à activer côté hébergement).
+      Ils restent ici en best-effort / documentation, mais ne pas s'y fier seuls.
+    -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta http-equiv="X-Frame-Options" content="SAMEORIGIN" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()" />
+    <!--
+      Content-Security-Policy EST respecté via <meta>, sauf frame-ancestors
+      (qui exige un vrai en-tête HTTP — voir public/_headers). Objectif : limiter
+      l'impact d'un XSS résiduel (aucun script/style/frame tiers non listé ici).
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://lfothlxoixayjiytwwqa.supabase.co wss://lfothlxoixayjiytwwqa.supabase.co; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'" />
 
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary" />
