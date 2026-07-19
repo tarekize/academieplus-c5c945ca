@@ -121,12 +121,18 @@ Deno.serve(async (req) => {
     });
 
     if (!emailRes.ok) {
-      const errText = await emailRes.text();
-      console.error("Resend error:", emailRes.status, errText);
-      return new Response(JSON.stringify({ error: "Échec de l'envoi de l'email" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const rawError = await emailRes.text();
+      console.error("Resend error:", emailRes.status, rawError);
+      let resendMessage = rawError;
+      try {
+        resendMessage = JSON.parse(rawError)?.message || rawError;
+      } catch {
+        // rawError wasn't JSON, keep it as-is
+      }
+      return new Response(
+        JSON.stringify({ error: `Échec de l'envoi de l'email : ${resendMessage}` }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     return new Response(JSON.stringify({ success: true }), {
