@@ -125,9 +125,7 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
             {isEdit ? "Modifiez les informations du chapitre." : "Ajoutez un nouveau chapitre au programme."}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex justify-end">
-          <ArabicKeyboardButton targetRef={keyboardTarget} />
-        </div>
+        <ArabicKeyboardButton targetRef={keyboardTarget} />
         <div className="space-y-4 py-4">
           <div>
             <label className="text-sm font-medium mb-1 block">العنوان *</label>
@@ -283,9 +281,7 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
         <DialogHeader>
           <DialogTitle>{isEdit ? "Modifier la leçon" : "Nouvelle leçon"}</DialogTitle>
         </DialogHeader>
-        <div className="flex justify-end">
-          <ArabicKeyboardButton targetRef={keyboardTarget} />
-        </div>
+        <ArabicKeyboardButton targetRef={keyboardTarget} />
         <div className="space-y-4 py-4">
           <div>
             <label className="text-sm font-medium mb-1 block">العنوان *</label>
