@@ -4,9 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { courseService } from '@/services/courseService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Trash2, Sparkles, Loader2, Send, Undo2 } from 'lucide-react';
+import { ArrowLeft, Trash2, Sparkles, Loader2, Send, Undo2, FileCode, PenLine } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import InlineLessonEditor from '@/components/course/InlineLessonEditor';
+import LessonSourceEditor from '@/components/course/LessonSourceEditor';
 import { ArabicKeyboardButton, useArabicKeyboardTarget } from '@/components/course/ArabicKeyboard';
 import { TableOfContents } from '@/components/course/TableOfContents';
 import { injectHeaderIds } from '@/lib/toc-utils';
@@ -40,6 +41,7 @@ export default function LessonEditor() {
   const [content, setContent] = useState('');
   // Incrémenté pour forcer une réinitialisation de l'éditeur (chargement, sync distante, annulation)
   const [contentVersion, setContentVersion] = useState(0);
+  const [latexMode, setLatexMode] = useState(false);
   const [canManage, setCanManage] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [isActivityActive, setActivityActive] = useState(false);
@@ -158,6 +160,13 @@ export default function LessonEditor() {
     setIsAIPanelOpen(true);
   };
 
+  const toggleLatexMode = () => {
+    // En quittant le mode LaTeX, force InlineLessonEditor à repartir du
+    // contenu le plus récent (il ne relit jamais `content` en cours d'édition).
+    if (latexMode) setContentVersion(v => v + 1);
+    setLatexMode(v => !v);
+  };
+
   const handleDelete = async () => {
     // Marquer pour suppression locale - pas encore publié
     setContent('');
@@ -235,6 +244,10 @@ export default function LessonEditor() {
                 <>
                   <div className="flex items-center gap-2 mb-6 flex-wrap">
                     <ArabicKeyboardButton targetRef={keyboardTarget} />
+                    <Button variant="outline" onClick={toggleLatexMode}>
+                      {latexMode ? <PenLine className="h-4 w-4 mr-2" /> : <FileCode className="h-4 w-4 mr-2" />}
+                      {latexMode ? 'Retour à l\'édition directe' : 'Modifier en LaTeX'}
+                    </Button>
                     <Button variant="secondary" onClick={handleGenerateAI} disabled={generating}>
                       {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
                       {generating ? 'Génération...' : 'Généré avec IA'}
@@ -297,12 +310,19 @@ export default function LessonEditor() {
                 </CardHeader>
                 <CardContent>
                   {canManage ? (
-                    <InlineLessonEditor
-                      content={content}
-                      onChange={(html) => { setContent(html); setIsDirty(true); }}
-                      resetKey={`${lesson.id}-${contentVersion}`}
-                      onFocusTarget={bindTarget}
-                    />
+                    latexMode ? (
+                      <LessonSourceEditor
+                        content={content}
+                        onChange={(value) => { setContent(value); setIsDirty(true); }}
+                      />
+                    ) : (
+                      <InlineLessonEditor
+                        content={content}
+                        onChange={(html) => { setContent(html); setIsDirty(true); }}
+                        resetKey={`${lesson.id}-${contentVersion}`}
+                        onFocusTarget={bindTarget}
+                      />
+                    )
                   ) : content ? (
                     /<\s*(html|body|head|!doctype)/i.test(content) ? (
                       <HtmlWithMath
