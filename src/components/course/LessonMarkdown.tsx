@@ -49,8 +49,11 @@ function preprocessContent(raw: string): string {
   // Normaliser $$...$$ sur leur propre ligne pour le mode display
   s = s.replace(/([^\n])\$\$/g, "$1\n$$").replace(/\$\$([^\n])/g, "$$\n$1");
 
-  // Remplacer les blocs pédagogiques ::: type \n content \n ::: par du HTML
-  s = s.replace(/^:::\s*([a-zA-Z0-9_-]+)(.*?)\n([\s\S]*?)\n:::/gm, (match, type, titleRaw, content) => {
+  // Remplacer les blocs pédagogiques ::: type \n content ::: par du HTML.
+  // Le ::: de fermeture n'est pas toujours sur sa propre ligne (le contenu
+  // généré par IA le colle parfois à la fin de la dernière phrase), donc on
+  // ne l'exige pas précédé d'un saut de ligne.
+  s = s.replace(/^:::\s*([a-zA-Z0-9_-]+)(.*?)\n([\s\S]*?):::/gm, (match, type, titleRaw, content) => {
     let blockClass = "lesson-block";
     const typeLower = type.toLowerCase();
     if (typeLower === "definition") blockClass += " block-definition";
