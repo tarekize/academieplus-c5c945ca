@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Trash2, Sparkles, Loader2, Send, Undo2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import InlineLessonEditor from '@/components/course/InlineLessonEditor';
+import { ArabicKeyboardButton, useArabicKeyboardTarget } from '@/components/course/ArabicKeyboard';
 import { TableOfContents } from '@/components/course/TableOfContents';
 import { injectHeaderIds } from '@/lib/toc-utils';
 import { LessonEditorActivities } from '@/components/course/LessonEditorActivities';
@@ -43,6 +44,7 @@ export default function LessonEditor() {
   const [generating, setGenerating] = useState(false);
   const [isActivityActive, setActivityActive] = useState(false);
   const [isAIPanelOpen, setIsAIPanelOpen] = useState(false);
+  const { targetRef: keyboardTarget, bindTarget } = useArabicKeyboardTarget();
 
   const fetchLesson = useCallback(async () => {
     if (!lessonId) return;
@@ -232,6 +234,7 @@ export default function LessonEditor() {
               {canManage && (
                 <>
                   <div className="flex items-center gap-2 mb-6 flex-wrap">
+                    <ArabicKeyboardButton targetRef={keyboardTarget} />
                     <Button variant="secondary" onClick={handleGenerateAI} disabled={generating}>
                       {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
                       {generating ? 'Génération...' : 'Généré avec IA'}
@@ -298,6 +301,7 @@ export default function LessonEditor() {
                       content={content}
                       onChange={(html) => { setContent(html); setIsDirty(true); }}
                       resetKey={`${lesson.id}-${contentVersion}`}
+                      onFocusTarget={bindTarget}
                     />
                   ) : content ? (
                     /<\s*(html|body|head|!doctype)/i.test(content) ? (

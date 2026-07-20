@@ -14,6 +14,8 @@ interface InlineLessonEditorProps {
    * zone éditable ignore les changements de `content` pour ne pas écraser
    * la frappe en cours. */
   resetKey: string | number;
+  /** Appelé quand la zone éditable reçoit le focus (ex: pour cibler le clavier arabe virtuel). */
+  onFocusTarget?: (el: HTMLDivElement) => void;
 }
 
 const isHtmlContent = (s: string) => /<\s*(html|body|head|!doctype|div|section|article|main|h[1-6]|p)\b/i.test((s || '').trim());
@@ -28,11 +30,13 @@ function InlineLessonEditorInner({
   onChange,
   placeholder,
   className,
+  onFocusTarget,
 }: {
   initialContent: string;
   onChange: (html: string) => void;
   placeholder?: string;
   className?: string;
+  onFocusTarget?: (el: HTMLDivElement) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [isEmpty, setIsEmpty] = useState(!initialContent?.trim());
@@ -69,6 +73,7 @@ function InlineLessonEditorInner({
           suppressContentEditableWarning
           dir="rtl"
           lang="ar"
+          onFocus={(e) => onFocusTarget?.(e.currentTarget)}
           onBlur={commit}
           onInput={handleInput}
           className={cn(EDITABLE_CLASSES, className)}
@@ -81,6 +86,7 @@ function InlineLessonEditorInner({
           suppressContentEditableWarning
           dir="rtl"
           lang="ar"
+          onFocus={(e) => onFocusTarget?.(e.currentTarget)}
           onBlur={commit}
           onInput={handleInput}
           className={cn(EDITABLE_CLASSES, className)}
@@ -100,7 +106,7 @@ function InlineLessonEditorInner({
  * trop fragile à modifier en place) ; elles s'affichent en LaTeX rendu
  * uniquement côté élève.
  */
-export default function InlineLessonEditor({ content, onChange, placeholder, className, resetKey }: InlineLessonEditorProps) {
+export default function InlineLessonEditor({ content, onChange, placeholder, className, resetKey, onFocusTarget }: InlineLessonEditorProps) {
   return (
     <InlineLessonEditorInner
       key={resetKey}
@@ -108,6 +114,7 @@ export default function InlineLessonEditor({ content, onChange, placeholder, cla
       onChange={onChange}
       placeholder={placeholder}
       className={className}
+      onFocusTarget={onFocusTarget}
     />
   );
 }
