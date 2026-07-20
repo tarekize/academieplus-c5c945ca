@@ -23,11 +23,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Capacitor } from "@capacitor/core";
+import { SUBJECTS } from "@/lib/subjects";
 
-// Static subject data
-const staticSubjects: Record<string, { id: string; name: string; icon: string }> = {
-  "math": { id: "math", name: "Mathématiques", icon: "📐" },
-};
+// Static subject data dérivée du catalogue partagé (src/lib/subjects.ts)
+const staticSubjects: Record<string, { id: string; name: string; icon: string }> =
+  Object.fromEntries(SUBJECTS.map((s) => [s.id, { id: s.id, name: s.name, icon: s.icon }]));
 
 interface Profile {
   id: string;

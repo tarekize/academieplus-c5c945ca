@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
     }
 
     // Parse body
-    const { email, password, firstName, lastName, role, schoolLevel } = await req.json();
+    const { email, password, firstName, lastName, role, schoolLevel, subjects } = await req.json();
 
     if (!email || !password || !role) {
       return new Response(JSON.stringify({ error: "email, password et role sont obligatoires" }), {
@@ -71,6 +71,39 @@ Deno.serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Un pédago doit enseigner au moins une matière, et une matière ne peut
+    // être assignée qu'à un seul pédago à la fois (contrainte métier).
+    let pedagoSubjects: string[] = [];
+    if (role === "pedago") {
+      pedagoSubjects = Array.isArray(subjects) ? subjects.filter((s: unknown) => typeof s === "string") : [];
+      if (pedagoSubjects.length === 0) {
+        return new Response(JSON.stringify({ error: "Sélectionnez au moins une matière enseignée par ce pédago." }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: alreadyTaken, error: takenError } = await adminClient
+        .from("pedago_subjects")
+        .select("subject_id, profiles:user_id(first_name, last_name, email)")
+        .in("subject_id", pedagoSubjects);
+      if (takenError) throw takenError;
+
+      if (alreadyTaken && alreadyTaken.length > 0) {
+        const details = alreadyTaken
+          .map((row: any) => {
+            const p = row.profiles;
+            const name = p ? `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email : "un autre pédago";
+            return `${row.subject_id} (déjà assignée à ${name})`;
+          })
+          .join(", ");
+        return new Response(
+          JSON.stringify({ error: `Matière(s) déjà assignée(s) à un autre pédago : ${details}` }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // Create the user in Supabase Auth
@@ -121,6 +154,24 @@ Deno.serve(async (req) => {
       },
       { onConflict: "id" }
     );
+
+    // Assigne les matières au pédago. subject_id est la clé primaire de
+    // pedago_subjects : un conflit ici signifie qu'une autre requête vient
+    // d'assigner la même matière entre-temps (course rare) — dans ce cas on
+    // annule la création du compte plutôt que de laisser un pédago sans
+    // matière cohérente.
+    if (role === "pedago" && pedagoSubjects.length > 0) {
+      const { error: subjectsError } = await adminClient.from("pedago_subjects").insert(
+        pedagoSubjects.map((subjectId) => ({ subject_id: subjectId, user_id: newUserId }))
+      );
+      if (subjectsError) {
+        await adminClient.auth.admin.deleteUser(newUserId);
+        return new Response(
+          JSON.stringify({ error: "Une des matières sélectionnées vient d'être assignée à un autre pédago. Réessayez avec d'autres matières." }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
 
     return new Response(JSON.stringify({ success: true, userId: newUserId, establishmentCode }), {
       status: 200,

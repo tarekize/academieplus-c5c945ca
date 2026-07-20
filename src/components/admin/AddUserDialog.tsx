@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -21,6 +22,7 @@ import {
 import { UserPlus, Eye, EyeOff, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { SUBJECTS } from "@/lib/subjects";
 
 const SCHOOL_LEVELS = [
   { value: "6eme", label: "6ème" },
@@ -45,10 +47,43 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
   const [establishmentName, setEstablishmentName] = useState("");
   const [role, setRole] = useState<string>("");
   const [schoolLevel, setSchoolLevel] = useState<string>("");
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+  const [takenSubjects, setTakenSubjects] = useState<Record<string, string>>({});
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const isEstablishment = role === "etablissement";
+  const isPedago = role === "pedago";
+
+  // Charge quelles matières sont déjà assignées à un autre pédago, pour les
+  // désactiver dans la sélection (une matière = un seul pédago).
+  useEffect(() => {
+    if (!isPedago || !open) return;
+    setLoadingSubjects(true);
+    supabase
+      .from("pedago_subjects" as any)
+      .select("subject_id, profiles:user_id(first_name, last_name, email)")
+      .then(({ data, error }: any) => {
+        if (error) {
+          console.error("Error loading taken subjects:", error);
+          return;
+        }
+        const taken: Record<string, string> = {};
+        for (const row of data || []) {
+          const p = row.profiles;
+          taken[row.subject_id] = p ? (`${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email) : "un autre pédago";
+        }
+        setTakenSubjects(taken);
+      })
+      .finally(() => setLoadingSubjects(false));
+  }, [isPedago, open]);
+
+  const toggleSubject = (subjectId: string) => {
+    setSelectedSubjects((prev) =>
+      prev.includes(subjectId) ? prev.filter((s) => s !== subjectId) : [...prev, subjectId]
+    );
+  };
 
   const validatePassword = (password: string): string | null => {
     if (password.length < 8) {
@@ -92,6 +127,11 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
       return;
     }
 
+    if (isPedago && selectedSubjects.length === 0) {
+      toast.error("Veuillez sélectionner au moins une matière enseignée par ce pédago.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -110,6 +150,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
           lastName: isEstablishment ? "" : lastName,
           role,
           schoolLevel: role === "student" ? schoolLevel : null,
+          subjects: isPedago ? selectedSubjects : undefined,
         },
       });
 
@@ -142,6 +183,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
     setEstablishmentName("");
     setRole("");
     setSchoolLevel("");
+    setSelectedSubjects([]);
   };
 
   return (
@@ -271,6 +313,34 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                )}
+
+                {isPedago && (
+                  <div className="space-y-2">
+                    <Label>Matières enseignées *</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Une matière ne peut être enseignée que par un seul pédago à la fois.
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 max-h-52 overflow-y-auto rounded-md border p-3">
+                      {SUBJECTS.map((subject) => {
+                        const takenBy = takenSubjects[subject.id];
+                        return (
+                          <label
+                            key={subject.id}
+                            className={`flex items-center gap-2 text-sm ${takenBy ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                            title={takenBy ? `Déjà assignée à ${takenBy}` : undefined}
+                          >
+                            <Checkbox
+                              checked={selectedSubjects.includes(subject.id)}
+                              disabled={!!takenBy || loadingSubjects}
+                              onCheckedChange={() => toggleSubject(subject.id)}
+                            />
+                            <span>{subject.icon} {subject.name}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </>
