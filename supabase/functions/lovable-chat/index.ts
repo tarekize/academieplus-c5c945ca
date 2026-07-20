@@ -354,6 +354,12 @@ function toGeminiParts(content: any): any[] {
   return parts;
 }
 
+// Modèles essayés dans l'ordre : gemini-flash-latest est le modèle habituel,
+// les suivants ne servent que de repli quand Google renvoie une indispo
+// temporaire (503 "high demand") ou un dépassement de quota (429) — jamais
+// pour une erreur de requête (400 etc.) qui échouerait pareil ailleurs.
+const GEMINI_MODEL_FALLBACKS = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
+
 // ============ Google Gemini ============
 async function callGemini(
   systemPrompt: string,
@@ -375,18 +381,33 @@ async function callGemini(
     generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
   };
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY_2}`;
+  let response: Response | null = null;
+  let lastStatus = 0;
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  for (const model of GEMINI_MODEL_FALLBACKS) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY_2}`;
+    const attempt = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
 
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("Gemini error:", response.status, errText);
-    throw new Error(`Gemini failed: ${response.status}`);
+    if (attempt.ok) {
+      response = attempt;
+      break;
+    }
+
+    lastStatus = attempt.status;
+    const errText = await attempt.text();
+    console.error(`Gemini error (${model}):`, attempt.status, errText);
+
+    // Erreur de requête (mauvais prompt, clé invalide...) : réessayer avec un
+    // autre modèle échouerait exactement pareil, inutile d'insister.
+    if (attempt.status !== 503 && attempt.status !== 429) break;
+  }
+
+  if (!response) {
+    throw new Error(`Gemini failed: ${lastStatus}`);
   }
 
   const geminiStream = response.body!;
