@@ -601,9 +601,18 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
 
     // No lessons in chapter
     if (!chapter.lessons || chapter.lessons.length === 0) {
+        if (canManage) {
+            // Pédagogue → afficher la liste des leçons (vide) avec le bouton d'ajout
+            return (
+                <>
+                    {renderLessonsList()}
+                    {renderNavigation()}
+                </>
+            );
+        }
         return (
             <>
-                {showActivityCards && !canManage && renderActivityCards()}
+                {showActivityCards && renderActivityCards()}
                 {renderNoLesson()}
                 {renderNavigation()}
             </>

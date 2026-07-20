@@ -216,13 +216,16 @@ const Cours = () => {
     if (!chapters.length) return;
 
     if (!chapitreParam) {
-      const activeChapterStillExists = activeChapter
-        ? chapters.some((chapter) => chapter.id === activeChapter.id)
-        : false;
+      const freshActiveChapter = activeChapter
+        ? chapters.find((chapter) => chapter.id === activeChapter.id)
+        : undefined;
 
-      if (!activeChapterStillExists) {
+      if (!freshActiveChapter) {
         setActiveChapter(chapters[0]);
         setActiveChapterIndex(0);
+      } else if (freshActiveChapter !== activeChapter) {
+        // Rafraîchit la référence (ex: nouvelle leçon ajoutée) même si l'id n'a pas changé
+        setActiveChapter(freshActiveChapter);
       }
       return;
     }
@@ -232,7 +235,7 @@ const Cours = () => {
 
     const targetChapter = chapters[targetChapterIndex];
 
-    if (activeChapter?.id !== targetChapter.id) {
+    if (activeChapter !== targetChapter) {
       setActiveChapter(targetChapter);
     }
 
