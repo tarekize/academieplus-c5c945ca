@@ -1,7 +1,10 @@
 import { useRef, useState, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
+import rehypeSanitize from 'rehype-sanitize';
 import { sanitizeLessonHtml } from '@/lib/sanitizeHtml';
+import { lessonSchema, convertPedagoBlocks } from '@/lib/lessonBlocks';
 import { cn } from '@/lib/utils';
 
 interface InlineLessonEditorProps {
@@ -45,9 +48,9 @@ function InlineLessonEditorInner({
   // on ne relit jamais `content` depuis les props ensuite, pour laisser le
   // navigateur gérer nativement l'édition sans que React n'écrase le DOM en frappe.
   const [frozenHtml] = useState<string | null>(() =>
-    isHtmlContent(initialContent) ? sanitizeLessonHtml(initialContent) : null
+    isHtmlContent(initialContent) ? sanitizeLessonHtml(convertPedagoBlocks(initialContent)) : null
   );
-  const [frozenMarkdown] = useState(() => initialContent);
+  const [frozenMarkdown] = useState(() => convertPedagoBlocks(initialContent));
 
   const commit = useCallback(() => {
     const raw = ref.current?.innerHTML || '';
@@ -91,7 +94,9 @@ function InlineLessonEditorInner({
           onInput={handleInput}
           className={cn(EDITABLE_CLASSES, className)}
         >
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{frozenMarkdown}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, [rehypeSanitize, lessonSchema]]}>
+            {frozenMarkdown}
+          </ReactMarkdown>
         </div>
       )}
     </div>

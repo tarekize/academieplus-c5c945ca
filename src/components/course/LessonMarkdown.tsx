@@ -2,86 +2,15 @@ import React, { useEffect, useMemo, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
-import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
+import rehypeSanitize from "rehype-sanitize";
 import renderMathInElement from "katex/dist/contrib/auto-render.js";
 import "katex/dist/katex.min.css";
 import { sanitizeLessonHtml } from "@/lib/sanitizeHtml";
-
-// defaultSchema (GitHub-flavored) est déjà sans script/iframe/event handlers ;
-// on l'étend seulement pour les classes utilisées par nos blocs pédagogiques
-// (::: definition, ::: example...) et pour les schémas SVG générés par l'IA.
-// Volontairement PAS de <use>/<image>/<a> dans les tags SVG ajoutés : ce sont
-// les seuls vecteurs XSS classiques du SVG (href/xlink:href → javascript:).
-const lessonSchema = {
-  ...defaultSchema,
-  attributes: {
-    ...defaultSchema.attributes,
-    div: [...(defaultSchema.attributes?.div || []), "className", "dir"],
-    span: [...(defaultSchema.attributes?.span || []), "className"],
-    "*": [
-      ...(defaultSchema.attributes?.["*"] || []),
-      "className",
-      "viewBox", "width", "height", "d", "cx", "cy", "r", "rx", "ry",
-      "x", "y", "x1", "y1", "x2", "y2", "points", "fill", "stroke",
-      "strokeWidth", "strokeDasharray", "transform", "fontSize", "textAnchor",
-    ],
-  },
-  tagNames: [
-    ...(defaultSchema.tagNames || []),
-    "svg", "path", "circle", "line", "rect", "text", "polygon", "polyline",
-    "g", "defs", "marker", "ellipse", "tspan",
-  ],
-};
+import { lessonSchema, convertPedagoBlocks } from "@/lib/lessonBlocks";
 
 interface LessonMarkdownProps {
   content: string;
   dir?: "rtl" | "ltr";
-}
-
-/**
- * Remplace les blocs pédagogiques ::: type \n content ::: par du HTML
- * (définition / théorème / remarque / exemple / schéma). Appelée à la fois
- * pour le contenu Markdown pur et pour le contenu détecté comme HTML : une
- * leçon enrichie par IA est souvent une enveloppe HTML (<div dir="rtl">...)
- * qui contient malgré tout ces blocs ::: à l'intérieur, donc la conversion
- * ne doit pas dépendre du format global détecté.
- * Le ::: de fermeture n'est pas toujours sur sa propre ligne (le contenu
- * généré par IA le colle parfois à la fin de la dernière phrase), donc on
- * ne l'exige pas précédé d'un saut de ligne.
- * Le titre est émis en HTML (<strong>) plutôt qu'en **gras** Markdown : ce
- * dernier ne serait jamais converti côté branche HTML (rendu directement
- * via dangerouslySetInnerHTML, sans passage par ReactMarkdown).
- */
-function convertPedagoBlocks(raw: string): string {
-  return (raw || "").replace(/^:::\s*([a-zA-Z0-9_-]+)(.*?)\n([\s\S]*?):::/gm, (match, type, titleRaw, content) => {
-    let blockClass = "lesson-block";
-    const typeLower = type.toLowerCase();
-    if (typeLower === "definition") blockClass += " block-definition";
-    else if (["theorem", "proposition", "property"].includes(typeLower)) blockClass += " block-property";
-    else if (typeLower === "remark") blockClass += " block-remark";
-    else if (["example", "exercise", "solution"].includes(typeLower)) blockClass += " block-example";
-    else blockClass += " block-graphic";
-
-    let innerContent = content.trim();
-    let titleHtml = "";
-
-    // Si un titre est spécifié juste après ::: type (rare, mais possible)
-    let titleText = titleRaw.trim();
-
-    // Si la première ligne est en gras it identifies the title (ex: **تعريف X.Y**)
-    const titleMatch = innerContent.match(/^\*\*(.*?)\*\*(?:\n|$)/);
-    if (titleMatch) {
-      titleText = titleMatch[1];
-      innerContent = innerContent.slice(titleMatch[0].length).trim();
-    }
-
-    if (titleText) {
-      titleHtml = `<div class="lesson-block-title"><strong>${titleText}</strong></div>`;
-    }
-
-    // On doit ajouter un saut de ligne \n\n après les balises div pour que le Markdown à l'intérieur soit bien rendu par ReactMarkdown
-    return `\n<div class="${blockClass}">\n${titleHtml}\n<div class="lesson-block-content">\n\n${innerContent}\n\n</div>\n</div>\n`;
-  });
 }
 
 /**
