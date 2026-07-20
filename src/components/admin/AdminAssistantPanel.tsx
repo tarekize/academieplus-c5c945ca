@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Component, type ReactNode } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -59,6 +59,32 @@ const CONCEPT_LABELS: Record<string, string> = {
     methodology: 'Méthodologie (changement de variable, etc.)',
     exercises: "Exercices d'application progressifs",
 };
+
+/** Confine un éventuel crash de rendu (contenu IA imprévisible : formule ou
+ * bloc mal formé) à ce panneau au lieu de faire tomber toute la page — le
+ * contenu reste généré et peut toujours être validé même si l'aperçu échoue. */
+class LessonPreviewBoundary extends Component<{ children: ReactNode; resetKey: string }, { hasError: boolean }> {
+    state = { hasError: false };
+    static getDerivedStateFromError() { return { hasError: true }; }
+    componentDidCatch(error: Error) {
+        console.error("Erreur de rendu de l'aperçu de leçon:", error);
+    }
+    componentDidUpdate(prevProps: { resetKey: string }) {
+        if (prevProps.resetKey !== this.props.resetKey && this.state.hasError) {
+            this.setState({ hasError: false });
+        }
+    }
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-lg">
+                    ⚠️ L'aperçu n'a pas pu s'afficher (mise en forme inattendue), mais le contenu a bien été généré. Vous pouvez tout de même le valider, ou demander une correction dans le champ ci-contre.
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
 
 function extractDisplayContent(content: string): { isPartial: boolean; originalText: string; newText: string; displayContent: string } {
     const updateRegex = /<update>[\s\S]*?<original>([\s\S]*?)<\/original>[\s\S]*?<new>([\s\S]*?)<\/new>[\s\S]*?<\/update>/i;
@@ -163,6 +189,11 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
     const [previewMessages, setPreviewMessages] = useState<Message[]>([]);
     const [previewInput, setPreviewInput] = useState('');
     const [previewLoading, setPreviewLoading] = useState(false);
+    // Aperçu texte brut pendant le streaming (pas de rendu Markdown/KaTeX en
+    // direct : LessonMarkdown manipule le DOM pour les formules, et le
+    // re-rendre à chaque jeton sur du contenu potentiellement mal formé
+    // provoque des conflits de réconciliation React qui font planter la page).
+    const [streamingProgress, setStreamingProgress] = useState('');
     const previewScrollRef = useRef<HTMLDivElement>(null);
 
     const isEmpty = !currentContent || !currentContent.trim();
@@ -320,6 +351,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
         setStep('preview');
         setPreviewLoading(true);
         setPreviewContent('');
+        setStreamingProgress('');
 
         const structureLabel = structureChoice === 'custom'
             ? (customSections.trim() || 'Structure personnalisée')
@@ -348,7 +380,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                 [{ role: 'user', content: summary }],
                 isEmpty ? '' : currentContent,
                 wizard,
-                (partial) => setPreviewContent(partial),
+                (partial) => setStreamingProgress(partial),
             );
             const { finalContent } = resolveAiContent(full, '');
             setPreviewContent(finalContent || full);
@@ -362,6 +394,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             setStep('guided-style');
         } finally {
             setPreviewLoading(false);
+            setStreamingProgress('');
         }
     };
 
@@ -605,12 +638,24 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             {step === 'preview' && (
                 <div className="flex-1 flex flex-col lg:flex-row min-h-0">
                     <div className="flex-1 min-h-[240px] lg:min-h-0 overflow-y-auto border-b lg:border-b-0 lg:border-l p-4 bg-card">
-                        {previewLoading && !previewContent ? (
-                            <div className="flex items-center justify-center h-full text-muted-foreground gap-2 text-sm">
-                                <Loader2 className="h-4 w-4 animate-spin" /> Génération en cours...
+                        {previewLoading ? (
+                            <div className="flex flex-col h-full">
+                                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-6">
+                                    <Loader2 className="h-4 w-4 animate-spin" /> Génération en cours...
+                                </div>
+                                {/* Texte brut uniquement pendant le streaming : pas de rendu Markdown/KaTeX
+                                    en direct sur du contenu potentiellement incomplet (cf. commentaire sur
+                                    streamingProgress plus haut). */}
+                                {streamingProgress && (
+                                    <pre className="flex-1 whitespace-pre-wrap text-xs text-muted-foreground/70 font-mono overflow-hidden" dir="rtl">
+                                        {streamingProgress.slice(-1500)}
+                                    </pre>
+                                )}
                             </div>
                         ) : previewContent ? (
-                            <LessonMarkdown content={previewContent} dir="rtl" />
+                            <LessonPreviewBoundary resetKey={previewContent}>
+                                <LessonMarkdown content={previewContent} dir="rtl" />
+                            </LessonPreviewBoundary>
                         ) : (
                             <p className="text-sm text-muted-foreground text-center mt-8">L'aperçu s'affichera ici...</p>
                         )}
