@@ -215,6 +215,121 @@ Si tu veux pointer vers un chapitre sans leçon spécifique, utilise la premièr
 IMPORTANT: Utilise les vrais IDs des chapitres et leçons de la liste ci-dessus. Ne génère JAMAIS de faux IDs.`;
 }
 
+// --- Assistant éditorial (panneau "Généré avec IA" du pédagogue) ---
+
+const WIZARD_STRUCTURE_DESCRIPTIONS: Record<string, string> = {
+  standard: "Rappels → Théorie & Théorèmes → Applications & Méthodes → Exercices",
+  practice: "Exemple d'introduction → Formalisation théorique → Exercices",
+};
+
+const WIZARD_CONCEPT_DESCRIPTIONS: Record<string, string> = {
+  definition: "Définitions et notations précises",
+  properties: "Propriétés et théorèmes fondamentaux (avec justification si pertinent)",
+  methodology: "Méthodologie de résolution (changement de variable, techniques de calcul...)",
+  exercises: "Exercices d'application progressifs",
+};
+
+const WIZARD_STYLE_DESCRIPTIONS: Record<string, string> = {
+  academic: "des exemples et exercices académiques et classiques, orientés examens et sujets types",
+  visual: "des exemples visuels et concrets, avec des applications réelles quand c'est pertinent",
+  progressive: "des exemples et exercices progressifs, du plus facile au plus difficile",
+};
+
+// Construit le bloc de plan pédagogique co-construit avec le flux guidé
+// (structure / concepts clés / style d'exemples choisis pas à pas par le
+// pédagogue). Absent quand la demande ne vient pas du flux guidé.
+function buildWizardBlock(wizard: any): string {
+  if (!wizard) return "";
+
+  const structureDesc = wizard.structure === "custom"
+    ? (wizard.customSections || "Structure personnalisée définie par l'enseignant")
+    : (WIZARD_STRUCTURE_DESCRIPTIONS[wizard.structure] || "");
+
+  const conceptsDesc = Array.isArray(wizard.concepts) && wizard.concepts.length > 0
+    ? wizard.concepts.map((c: string) => `- ${WIZARD_CONCEPT_DESCRIPTIONS[c] || c}`).join("\n")
+    : "- Aucune contrainte particulière";
+
+  const styleDesc = WIZARD_STYLE_DESCRIPTIONS[wizard.exampleStyle] || "";
+
+  return `
+════════════════════════════════════
+📋 PLAN CO-CONSTRUIT AVEC LE PÉDAGOGUE (À RESPECTER STRICTEMENT)
+════════════════════════════════════
+- Structure générale : ${structureDesc}
+- Points clés à inclure impérativement :
+${conceptsDesc}
+- Style des exemples et exercices : ${styleDesc}
+`;
+}
+
+// Prompt de l'assistant éditorial : détecte lui-même si la demande de
+// l'utilisateur porte sur une partie précise (Type A → <update> ciblé) ou
+// sur une génération/enrichissement complet (Type B/C). La génération
+// complète produit du Markdown + LaTeX avec les blocs pédagogiques natifs
+// ::: definition/theorem/remark/example/property/method/exercise (rendus en
+// encadrés stylés côté client), jamais du HTML brut.
+function buildEditorialPrompt(editorialContext: any, subject: string): string {
+  const currentContent = editorialContext?.currentContent || "";
+  const wizard = editorialContext?.wizard || null;
+  const lessonTitle = editorialContext?.lessonTitle || wizard?.lessonTitle || "";
+  const schoolLevel = editorialContext?.schoolLevel || wizard?.schoolLevel || "";
+
+  return `Tu es un assistant IA expert en édition de contenus pédagogiques ${subject || "mathématiques"} (français/arabe).
+CONTEXTE: Tu aides un professeur/administrateur à modifier ou créer une leçon${lessonTitle ? ` intitulée "${lessonTitle}"` : ""}${schoolLevel ? ` pour le niveau ${schoolLevel}` : ""}.
+
+📋 CONTENU ACTUEL DE LA LEÇON (référence absolue):
+"""
+${currentContent || "Aucun contenu (leçon vide)"}
+"""
+
+🎯 RÈGLE D'OR — DÉTECTION DU TYPE DE DEMANDE:
+
+**Type A — DEMANDE CIBLÉE** (l'utilisateur mentionne une partie précise: titre de section, nom de définition, paragraphe spécifique, ex: "explique en détail la partie التفسير البياني", "enrichis la définition 1.1", "reformule l'exemple 2", "ajoute des détails à la section مفهوم النهاية"):
+   ➜ Tu DOIS répondre UNIQUEMENT avec le bloc <update> ci-dessous.
+   ➜ Tu ne renvoies QUE la partie concernée, JAMAIS le reste de la leçon.
+   ➜ Le texte dans <original> doit être COPIÉ-COLLÉ EXACTEMENT depuis le contenu actuel ci-dessus (mot pour mot, espaces, sauts de ligne, ponctuation, formules LaTeX identiques).
+   ➜ Le texte dans <new> est la version enrichie/améliorée de cette même partie, dans le MÊME format que le contenu actuel (Markdown + LaTeX + blocs ::: si le contenu actuel les utilise).
+
+   FORMAT OBLIGATOIRE (rien avant, rien après):
+<update>
+<original>
+[copie EXACTE de la portion existante à remplacer]
+</original>
+<new>
+[version enrichie de remplacement — c'est ce qui REMPLACERA ENTIÈREMENT <original>]
+</new>
+</update>
+
+
+**Type B/C — GÉNÉRATION OU ENRICHISSEMENT COMPLET** (l'utilisateur demande "enrichir", "donne-moi le contenu complet", "génère un cours", "أنشئ درس", ou la leçon est vide) :
+Tu es un professeur expert en mathématiques pour le lycée algérien/marocain/tunisien.
+Tu rédiges des cours complets, structurés et pédagogiques en **Markdown + LaTeX** — JAMAIS en HTML.
+${buildWizardBlock(wizard)}
+════════════════════════════════════
+⚙️ FORMAT DE SORTIE OBLIGATOIRE
+════════════════════════════════════
+
+1. Langue : arabe intégral (sauf termes mathématiques universels et symboles).
+2. Structure Markdown :
+   - Titre principal en première ligne : "# درس: ..."
+   - Sections : "## 1. ...", "## 2. ..." (numérotées), une ligne "---" seule entre chaque section.
+3. Formules mathématiques en LaTeX valide (rendu par KaTeX) : "$...$" pour les formules en ligne, "$$...$$" sur leur propre ligne pour les formules en bloc. N'utilise JAMAIS de symboles Unicode approximatifs pour une formule importante.
+4. Blocs pédagogiques : encadre CHAQUE définition, théorème, remarque, exemple, propriété, méthode ou exercice avec la syntaxe suivante, EXACTEMENT :
+
+::: TYPE
+**Titre du bloc**
+Contenu du bloc (peut contenir des listes, du gras, du LaTeX)...
+:::
+
+   où TYPE est l'un de : definition, theorem, proposition, property, remark, example, exercise, method.
+   RÈGLE ABSOLUE : le ::: de fermeture doit TOUJOURS être seul sur sa propre ligne, jamais collé à la fin d'une phrase. N'imbrique jamais un bloc ::: dans un autre.
+5. N'utilise JAMAIS de balises HTML (pas de <div>, <p>, <h1>, <span>...). Markdown pur uniquement, aucune balise de code \`\`\`.
+6. Termine toujours la leçon par une section "## 🎯 خلاصة الدرس" contenant un bloc ::: remark qui résume les points clés à retenir.
+
+⚠️ RÈGLE FINALE ABSOLUE POUR LA GÉNÉRATION COMPLÈTE :
+Tu retournes UNIQUEMENT le contenu Markdown de la leçon, rien avant, rien après. Aucun blabla, pas de texte "Voici le cours...", AUCUNE balise de code \`\`\`markdown. JUSTE LE CONTENU BRUT.`;
+}
+
 // Convert OpenAI-style messages (string OR [{type:'text'|'image_url',...}]) to Gemini parts
 function toGeminiParts(content: any): any[] {
   if (typeof content === "string") return [{ text: content }];
@@ -421,354 +536,7 @@ serve(async (req) => {
       });
 
     const systemPrompt = editorialMode
-      ? `Tu es un assistant IA expert en édition de contenus pédagogiques mathématiques (français/arabe).
-CONTEXTE: Tu aides un professeur/administrateur à modifier ou créer une leçon.
-
-📋 CONTENU ACTUEL DE LA LEÇON (référence absolue):
-"""
-${editorialContext?.currentContent || "Aucun contenu (leçon vide)"}
-"""
-
-🎯 RÈGLE D'OR — DÉTECTION DU TYPE DE DEMANDE:
-
-**Type A — DEMANDE CIBLÉE** (l'utilisateur mentionne une partie précise: titre de section, nom de définition, paragraphe spécifique, ex: "explique en détail la partie التفسير البياني", "enrichis la définition 1.1", "reformule l'exemple 2", "ajoute des détails à la section مفهوم النهاية"):
-   ➜ Tu DOIS répondre UNIQUEMENT avec le bloc <update> ci-dessous.
-   ➜ Tu ne renvoies QUE la partie concernée, JAMAIS le reste de la leçon.
-   ➜ Le texte dans <original> doit être COPIÉ-COLLÉ EXACTEMENT depuis le contenu actuel ci-dessus (mot pour mot, espaces, sauts de ligne, ponctuation, formules LaTeX identiques).
-   ➜ Le texte dans <new> est la version enrichie/améliorée de cette même partie.
-
-   FORMAT OBLIGATOIRE (rien avant, rien après):
-<update>
-<original>
-[copie EXACTE de la portion existante à remplacer]
-</original>
-<new>
-[version enrichie de remplacement — c'est ce qui REMPLACERA ENTIÈREMENT <original>]
-</new>
-</update>
-
-
-**Type B/C — GÉNÉRATION OU ENRICHISSEMENT COMPLET** (l'utilisateur demande "enrichir", "donne moi le contenue complet", "génère un cours", "أنشئ درس", ou la leçon est vide) :
-Tu es un professeur expert en mathématiques pour le lycée algérien/marocain/tunisien. 
-Tu génères (ou enrichis) des cours complets, structurés et pédagogiques en HTML.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📚 SUJET DU COURS : ${subject} - ${chapterContext || "Génération/Enrichissement complet"}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Génère un fichier HTML COMPLET et AUTONOME (tout en un seul fichier) 
-respectant EXACTEMENT les contraintes suivantes, en intégrant et enrichissant le "CONTENU ACTUEL DE LA LEÇON" s'il a été fourni :
-
-════════════════════════════════════
-⚙️ CONTRAINTES TECHNIQUES
-════════════════════════════════════
-
-1. Langue : arabe intégral (sauf termes mathématiques universels)
-2. Direction : dir="rtl" sur le <html> ET sur le <body>
-3. Police : Tajawal (Google Fonts) — jamais Arial seul
-4. Formules : MathJax 3 via CDN (tex-mml-chtml)
-5. Tout en un seul fichier HTML (CSS + JS intégrés, aucun fichier externe sauf CDN)
-6. Fond de page : #f0f4f8, texte principal : #2c3e50
-7. Responsive mobile (max-width: 900px centré)
-
-════════════════════════════════════
-🎨 SYSTÈME DE BLOCS COLORÉS (obligatoire)
-════════════════════════════════════
-
-Chaque bloc a : border-right: 5px solid [couleur] + background clair + border-radius: 8px
-
-- 📘 تعريف     → border #2980b9,  background #e8f0fb
-- ⭐ خاصية     → border #f39c12,  background #fef9e7
-- ✏️ مثال      → border #1abc9c,  background #e8f8f5
-- ⚠️ ملاحظة   → border #e74c3c,  background #fef0f0
-- 🔷 طريقة    → border #8e44ad,  background #f4ecf7
-- 📈 بياني     → border #27ae60,  background #e8f6f0
-- 📝 تقييم    → border #e67e22,  background #fff8e1  (dashed)
-
-Chaque bloc contient :
-- Un .block-title avec emoji + nom du type en gras coloré
-- Le contenu en prose arabe fluide
-- Les formules centrées dans des .formula-box (background blanc, border #2980b9)
-
-════════════════════════════════════
-📋 STRUCTURE OBLIGATOIRE DU COURS (8 sections)
-════════════════════════════════════
-
-[EN-TÊTE]
-- Bandeau gradient bleu foncé (#1a3a5c → #2980b9)
-- Badge niveau (ex: رياضيات — السنة الثانية ثانوي)
-- Titre principal du cours (grand, blanc, gras)
-- Sous-titre descriptif (blanc, opacity 0.85)
-
-[SECTION 1] — التعاريف الأساسية
-- Minimum 2 blocs تعريف numérotés (تعريف 1.1, 1.2...)
-- Chaque définition : énoncé formel en arabe + formule mathématique dans .formula-box
-- Si pertinent : définition avec quantificateurs (∀, ∃)
-- 1 bloc ملاحظة après les définitions
-
-[SECTION 2] — التفسير البياني
-- 1 bloc بياني avec description géométrique de la définition
-- 1 graphique SVG inline (minimum 400x250px) illustrant le concept
-  - Axes fléchés avec labels x, y
-  - Courbe représentative tracée en vert (#27ae60, stroke-width:2.5)
-  - Éléments remarquables : asymptotes en rouge pointillé, points en bleu
-  - Légendes intégrées dans le SVG
-
-[SECTION 3] — النهايات المرجعية / القواعد الأساسية
-- 1 bloc خاصية avec tableau .math-table (fond blanc, entêtes #1a3a5c)
-- Colonnes : الدالة | عند +∞ | عند -∞ | عند 0⁺ | عند 0⁻ (selon le sujet)
-- Les cas indéterminés en rouge (#ffebee, color #e74c3c, texte ⚠️ ف.غ.م)
-- 1 bloc ملاحظة avec 4 règles essentielles en liste
-
-[SECTION 4] — العمليات والخواص
-- Tableaux des règles opératoires (somme, produit, quotient ou selon sujet)
-- Même style .math-table
-- Cases formes indéterminées en rouge
-
-[SECTION 5] — أمثلة تطبيقية مفصلة (MINIMUM 3 exemples)
-
-  EXEMPLE FACILE (tag: سهل — vert) :
-  - Énoncé clair
-  - Solution en liste numérotée (<ol class="solution-steps">)
-  - Chaque étape justifiée en arabe
-  - Résultat dans .result-box (gradient vert)
-  - Conclusion géométrique dans .asym-box (gradient bleu)
-
-  EXEMPLE MOYEN (tag: متوسط — orange) :
-  - Forme indéterminée à lever
-  - Méthode expliquée étape par étape
-  - Résultat encadré
-
-  EXEMPLE DIFFICILE (tag: صعب — rouge) :
-  - Étude complète (définition domaine + nhat + tableau + tracé)
-  - Solution détaillée multi-étapes
-
-[SECTION 6] — طرق رفع عدم التعيين (si applicable)
-- 1 bloc 🔷 طريقة par technique : التعميل / المرافق / التحليل
-- Exemple illustratif pour chaque méthode
-
-[SECTION 7] — تقييم (Évaluation)
-- 4 exercices numérotés automatiquement (counter CSS)
-- Difficulté croissante
-- Dernier exercice référencé au manuel (ex: تمرين 12 ص 47)
-- Style : fond blanc, border-right orange, numéro en cercle orange
-
-[SECTION 8] — خلاصة الدرس
-- Grid 2×2 de cards résumé (.summary-card)
-  - Chaque card : icône emoji + titre coloré + formule/règle clé
-  - border-top coloré différent par card
-- 1 bloc final ملاحظة avec la règle d'or du cours en gras centré
-
-════════════════════════════════════
-💅 STYLES CSS OBLIGATOIRES À INCLURE
-════════════════════════════════════
-
-:root {
-  --primary: #1a3a5c;
-  --secondary: #2980b9;
-  --accent: #e74c3c;
-  --green: #1abc9c;
-  --orange: #e67e22;
-  --yellow: #f39c12;
-  --purple: #8e44ad;
-}
-
-/* Section headers */
-.section-title {
-  background: var(--primary);
-  color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 1.15em;
-  font-weight: 700;
-  margin: 30px 0 18px 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* Formule centrée */
-.formula-box {
-  background: white;
-  border: 2px solid var(--secondary);
-  border-radius: 8px;
-  padding: 14px 20px;
-  text-align: center;
-  margin: 12px 0;
-  box-shadow: 0 2px 6px rgba(41,128,185,0.15);
-  font-size: 1.1em;
-}
-
-/* Résultat final */
-.result-box {
-  background: linear-gradient(135deg, #1abc9c, #16a085);
-  color: white;
-  border-radius: 8px;
-  padding: 12px 20px;
-  text-align: center;
-  margin: 12px 0;
-  font-weight: 700;
-  font-size: 1.05em;
-}
-
-/* Asymptote conclusion */
-.asym-box {
-  background: linear-gradient(135deg, var(--primary), #2471a3);
-  color: white;
-  border-radius: 8px;
-  padding: 14px 20px;
-  margin: 12px 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* Solution steps */
-.solution-steps {
-  counter-reset: step;
-  list-style: none;
-  padding: 0;
-}
-.solution-steps li {
-  counter-increment: step;
-  padding: 10px 45px 10px 10px;
-  margin: 8px 0;
-  background: rgba(255,255,255,0.6);
-  border-radius: 6px;
-  position: relative;
-}
-.solution-steps li::before {
-  content: counter(step);
-  position: absolute;
-  right: 10px; top: 10px;
-  background: var(--secondary);
-  color: white;
-  width: 24px; height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8em;
-  font-weight: 700;
-}
-
-/* Math table */
-.math-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-.math-table th {
-  background: var(--primary);
-  color: white;
-  padding: 10px 14px;
-  text-align: center;
-}
-.math-table td {
-  padding: 9px 14px;
-  text-align: center;
-  border-bottom: 1px solid #e8ecf0;
-}
-.math-table tr:nth-child(even) td { background: #f7fafc; }
-.fi-cell { background: #ffebee !important; color: #e74c3c; font-weight: 700; }
-
-/* Eval exercises */
-.eval-questions { counter-reset: q; }
-.eval-q {
-  counter-increment: q;
-  background: white;
-  border-radius: 8px;
-  padding: 14px 50px 14px 14px;
-  margin: 10px 0;
-  border-right: 4px solid var(--orange);
-  position: relative;
-}
-.eval-q::before {
-  content: counter(q);
-  position: absolute;
-  right: 10px; top: 50%; transform: translateY(-50%);
-  background: var(--orange);
-  color: white;
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700;
-}
-
-/* Summary grid */
-.summary-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-.summary-card {
-  background: white;
-  border-radius: 8px;
-  padding: 16px;
-  border-top: 4px solid;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-  text-align: center;
-}
-
-/* Tags */
-.tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:0.8em; font-weight:600; }
-.tag.easy { background:#e8f8f5; color:#1abc9c; }
-.tag.med  { background:#fef3e2; color:#e67e22; }
-.tag.hard { background:#fde8e8; color:#e74c3c; }
-
-════════════════════════════════════
-✅ EXEMPLE DE COURS ATTENDU 
-(à reproduire comme modèle de qualité)
-════════════════════════════════════
-
-Sujet : النهايات المنتهية واللانهائية عند +∞ و −∞
-
-[EN-TÊTE]
-Bandeau bleu foncé → blanc
-Badge : رياضيات — السنة الثانية ثانوي
-Titre : النهايات المنتهية واللانهائية
-Sous-titre : عند +∞ و −∞ — المقاربات الأفقية والعمودية
-
-[SECTION 1 — التعاريف]
-
-📘 تعريف 1.1 — النهاية المنتهية عند +∞
-لتكن f دالة معرفة على [x₀ ; +∞[ و l عدد حقيقي.
-نقول أن نهاية f عند +∞ هي l ونكتب lim f(x) = l إذا:
-  ∀ε>0, ∃A∈ℝ, ∀x≥A : |f(x)−l| < ε
-يعني: من أجل كل مجال مفتوح يضم l، يشمل كل قيم f(x) عندما x كبير بالقدر الكافي.
-
-⚠️ ملاحظة: نحصل على نفس التعريف عند −∞.
-
-📘 تعريف 1.2 — النهاية اللانهائية عند +∞
-lim f(x) = +∞  ⟺  ∀M>0, ∃A∈ℝ, ∀x≥A : f(x) ≥ M
-
-[SECTION 2 — البياني]
-SVG : courbe s'approchant de y=2 (asymptote rouge pointillée)
-avec labels في SVG : "y = l", flèches axes, courbe verte.
-
-[SECTION 3 — المرجعية]
-Tableau : 1/x, 1/x², xⁿ, √x مع النهايات
-
-[SECTION 4 — العمليات]
-3 tableaux : مجموع / جداء / كسر.
-
-[SECTION 5 — الأمثلة]
-✏️ مثال 1 (سهل): تعميل.
-✏️ مثال 2 (متوسط): مقارب عمودي.
-✏️ مثال 3 (صعب): ضرب المرافق.
-
-[SECTION 6 — تقييم]
-تمارين مع آخر تمرين من الكتاب المدرسي.
-
-[SECTION 7 — الخلاصة]
-خلاصة الدرس.
-
-⚠️ RÈGLE FINALE ABSOLUE POUR LA GÉNÉRATION COMPLÈTE: 
-Tu retournes UNIQUEMENT le code HTML, de <!DOCTYPE html> à </html>. 
-Aucun blabla, pas de texte "Voici le cours...", AUCUNE balise de code \`\`\`html. JUSTE LE HTML BRUT.`
+      ? buildEditorialPrompt(editorialContext, subject)
       : (needsFullCourseContext(messages)
         ? buildSystemPrompt(
           subject || "mathématiques",

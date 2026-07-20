@@ -352,6 +352,8 @@ export default function LessonEditor() {
       <AdminAssistantPanel
         lessonId={lesson.id}
         currentContent={content}
+        lessonTitle={lesson.title_ar || lesson.title}
+        schoolLevel={lesson.school_level}
         onUpdateContent={(newContent) => {
           setContent(newContent);
           setContentVersion(v => v + 1);
