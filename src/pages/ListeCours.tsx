@@ -177,20 +177,6 @@ const ListeCours = () => {
     return translated === key ? level : translated;
   };
 
-  // Sélection automatique de la matière quand le pédago (ou l'admin) n'en a
-  // qu'une seule assignée — on ne montre l'écran de choix que s'il y en a
-  // plusieurs, pour ne rien changer à l'expérience d'un pédago mono-matière.
-  useEffect(() => {
-    if (subjectsLoaded && !selectedSubject && availableSubjects.length === 1) {
-      setSelectedSubject(availableSubjects[0].id);
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.set("matiere", availableSubjects[0].id);
-        return next;
-      });
-    }
-  }, [subjectsLoaded, selectedSubject, availableSubjects, setSearchParams]);
-
   const handleSubjectSelect = (subjectId: string) => {
     setSelectedSubject(subjectId);
     setSearchParams((prev) => {
@@ -291,9 +277,9 @@ const ListeCours = () => {
     );
   }
 
-  // Admin/Pédago view - Subject selection (only shown when more than one
-  // matière est disponible ; un pédago mono-matière passe directement au
-  // choix du niveau, comme avant cette fonctionnalité).
+  // Admin/Pédago view - Subject selection. Toujours affiché en premier
+  // (même s'il n'y a qu'une seule matière assignée) : le pédago voit ses
+  // matières, puis clique dessus pour accéder au choix du niveau.
   if ((isAdmin || isPedago) && !selectedSubject) {
     if (!subjectsLoaded || loadingSubjects) {
       return (
@@ -320,51 +306,37 @@ const ListeCours = () => {
       );
     }
 
-    if (availableSubjects.length > 1) {
-      return (
-        <div className="min-h-screen bg-background">
-          <AppHeader />
-          <main className="container mx-auto px-4 py-8">
-            <div className="max-w-5xl mx-auto">
-              <div className="rounded-2xl bg-[image:var(--gradient-primary)] px-6 py-8 text-center text-primary-foreground shadow-[var(--shadow-elegant)] mb-8 animate-fade-in">
-                <h1 className="text-3xl md:text-4xl font-extrabold mb-2">Choisissez une matière</h1>
-                <p className="text-primary-foreground/75 text-base">
-                  Sélectionnez la matière dont vous voulez gérer le contenu.
-                </p>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                {availableSubjects.map((subject, index) => (
-                  <button
-                    key={subject.id}
-                    type="button"
-                    onClick={() => handleSubjectSelect(subject.id)}
-                    className="group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40 animate-fade-in"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <div className="flex flex-col items-center text-center gap-3 p-6">
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl bg-primary/10 shadow-md transition-transform group-hover:scale-110">
-                        {subject.icon}
-                      </div>
-                      <h3 className="font-display font-bold text-base leading-tight">{subject.name}</h3>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </main>
-        </div>
-      );
-    }
-
-    // Exactement une matière : l'effet ci-dessus va la sélectionner
-    // automatiquement au prochain rendu (bref écran de chargement).
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
-          <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
-          <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
-        </div>
+      <div className="min-h-screen bg-background">
+        <AppHeader />
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-5xl mx-auto">
+            <div className="rounded-2xl bg-[image:var(--gradient-primary)] px-6 py-8 text-center text-primary-foreground shadow-[var(--shadow-elegant)] mb-8 animate-fade-in">
+              <h1 className="text-3xl md:text-4xl font-extrabold mb-2">Choisissez une matière</h1>
+              <p className="text-primary-foreground/75 text-base">
+                Sélectionnez la matière dont vous voulez gérer le contenu.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              {availableSubjects.map((subject, index) => (
+                <button
+                  key={subject.id}
+                  type="button"
+                  onClick={() => handleSubjectSelect(subject.id)}
+                  className="group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40 animate-fade-in"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div className="flex flex-col items-center text-center gap-3 p-6">
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl bg-primary/10 shadow-md transition-transform group-hover:scale-110">
+                      {subject.icon}
+                    </div>
+                    <h3 className="font-display font-bold text-base leading-tight">{subject.name}</h3>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
@@ -379,12 +351,10 @@ const ListeCours = () => {
           <div className="max-w-7xl mx-auto">
             {/* Hero Section */}
             <div className="mb-10 animate-fade-in">
-              {availableSubjects.length > 1 && (
-                <Button variant="ghost" size="sm" className="mb-4 gap-2 rounded-xl" onClick={handleBackToSubjects}>
-                  <ArrowLeft className="h-4 w-4" />
-                  Changer de matière
-                </Button>
-              )}
+              <Button variant="ghost" size="sm" className="mb-4 gap-2 rounded-xl" onClick={handleBackToSubjects}>
+                <ArrowLeft className="h-4 w-4" />
+                Changer de matière
+              </Button>
               <div className="rounded-2xl bg-[image:var(--gradient-primary)] px-6 py-8 text-center text-primary-foreground shadow-[var(--shadow-elegant)] mb-7">
                 <h1 className="text-3xl md:text-4xl font-extrabold mb-2">
                   {t("listeCours.pedagogicalContentByLevel")}
