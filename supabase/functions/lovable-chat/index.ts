@@ -378,7 +378,11 @@ async function callGemini(
   const body = {
     system_instruction: { parts: [{ text: systemPrompt }] },
     contents: geminiMessages,
-    generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
+    // Une leçon complète en 8 sections avec formules LaTeX dépasse largement
+    // 8192 tokens et se retrouvait tronquée en plein milieu. thinkingBudget:0
+    // évite aussi que des tokens de "raisonnement" interne grignotent le
+    // budget de sortie visible (même fix que generate-adaptive-content).
+    generationConfig: { temperature: 0.7, maxOutputTokens: 32768, thinkingConfig: { thinkingBudget: 0 } },
   };
 
   let response: Response | null = null;
