@@ -39,21 +39,21 @@ interface LessonMarkdownProps {
 }
 
 /**
- * Pré-traitement Markdown pour fiabiliser KaTeX en contexte arabe (RTL).
- * Stratégie : on n'utilise plus remark-math (qui rate les $ collés à de l'arabe),
- * on laisse passer les $...$ et $$...$$ tels quels dans le HTML, puis on appelle
- * KaTeX auto-render sur le DOM final — c'est beaucoup plus permissif.
+ * Remplace les blocs pédagogiques ::: type \n content ::: par du HTML
+ * (définition / théorème / remarque / exemple / schéma). Appelée à la fois
+ * pour le contenu Markdown pur et pour le contenu détecté comme HTML : une
+ * leçon enrichie par IA est souvent une enveloppe HTML (<div dir="rtl">...)
+ * qui contient malgré tout ces blocs ::: à l'intérieur, donc la conversion
+ * ne doit pas dépendre du format global détecté.
+ * Le ::: de fermeture n'est pas toujours sur sa propre ligne (le contenu
+ * généré par IA le colle parfois à la fin de la dernière phrase), donc on
+ * ne l'exige pas précédé d'un saut de ligne.
+ * Le titre est émis en HTML (<strong>) plutôt qu'en **gras** Markdown : ce
+ * dernier ne serait jamais converti côté branche HTML (rendu directement
+ * via dangerouslySetInnerHTML, sans passage par ReactMarkdown).
  */
-function preprocessContent(raw: string): string {
-  let s = raw || "";
-  // Normaliser $$...$$ sur leur propre ligne pour le mode display
-  s = s.replace(/([^\n])\$\$/g, "$1\n$$").replace(/\$\$([^\n])/g, "$$\n$1");
-
-  // Remplacer les blocs pédagogiques ::: type \n content ::: par du HTML.
-  // Le ::: de fermeture n'est pas toujours sur sa propre ligne (le contenu
-  // généré par IA le colle parfois à la fin de la dernière phrase), donc on
-  // ne l'exige pas précédé d'un saut de ligne.
-  s = s.replace(/^:::\s*([a-zA-Z0-9_-]+)(.*?)\n([\s\S]*?):::/gm, (match, type, titleRaw, content) => {
+function convertPedagoBlocks(raw: string): string {
+  return (raw || "").replace(/^:::\s*([a-zA-Z0-9_-]+)(.*?)\n([\s\S]*?):::/gm, (match, type, titleRaw, content) => {
     let blockClass = "lesson-block";
     const typeLower = type.toLowerCase();
     if (typeLower === "definition") blockClass += " block-definition";
@@ -76,13 +76,25 @@ function preprocessContent(raw: string): string {
     }
 
     if (titleText) {
-      titleHtml = `<div class="lesson-block-title">\n\n**${titleText}**\n\n</div>`;
+      titleHtml = `<div class="lesson-block-title"><strong>${titleText}</strong></div>`;
     }
 
     // On doit ajouter un saut de ligne \n\n après les balises div pour que le Markdown à l'intérieur soit bien rendu par ReactMarkdown
     return `\n<div class="${blockClass}">\n${titleHtml}\n<div class="lesson-block-content">\n\n${innerContent}\n\n</div>\n</div>\n`;
   });
+}
 
+/**
+ * Pré-traitement Markdown pour fiabiliser KaTeX en contexte arabe (RTL).
+ * Stratégie : on n'utilise plus remark-math (qui rate les $ collés à de l'arabe),
+ * on laisse passer les $...$ et $$...$$ tels quels dans le HTML, puis on appelle
+ * KaTeX auto-render sur le DOM final — c'est beaucoup plus permissif.
+ */
+function preprocessContent(raw: string): string {
+  let s = raw || "";
+  // Normaliser $$...$$ sur leur propre ligne pour le mode display
+  s = s.replace(/([^\n])\$\$/g, "$1\n$$").replace(/\$\$([^\n])/g, "$$\n$1");
+  s = convertPedagoBlocks(s);
   return s;
 }
 
@@ -103,7 +115,7 @@ const LessonMarkdown: React.FC<LessonMarkdownProps> = ({ content, dir = "rtl" })
   const isHtml = useMemo(() => isHtmlContent(content || ""), [content]);
   const processed = useMemo(
     () => (isHtml
-      ? sanitizeLessonHtml(stripCodeFences(content || ""))
+      ? sanitizeLessonHtml(convertPedagoBlocks(stripCodeFences(content || "")))
       : preprocessContent(content || "")),
     [content, isHtml]
   );
