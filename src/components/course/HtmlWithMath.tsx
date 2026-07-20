@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 import renderMathInElement from "katex/dist/contrib/auto-render.js";
 import "katex/dist/katex.min.css";
 import { sanitizeLessonHtml } from "@/lib/sanitizeHtml";
+import { convertPedagoBlocks } from "@/lib/lessonBlocks";
 
 interface HtmlWithMathProps extends React.HTMLAttributes<HTMLDivElement> {
   htmlContent: string;
@@ -29,9 +30,11 @@ function preprocessMathContent(raw: string) {
   // formula). Collapse any newline found inside $$...$$ or $...$ to a space first.
   content = content.replace(/\$\$[\s\S]*?\$\$|\$[^$]*?\$/g, (span) => span.replace(/\s*\n\s*/g, " "));
 
-  const normalized = content
-    .replace(/([^\n])\$\$/g, "$1\n$$")
-    .replace(/\$\$([^\n])/g, "$$\n$1");
+  const normalized = convertPedagoBlocks(
+    content
+      .replace(/([^\n])\$\$/g, "$1\n$$")
+      .replace(/\$\$([^\n])/g, "$$\n$1")
+  );
 
   if (HTML_TAG_REGEX.test(normalized)) {
     return normalized;
