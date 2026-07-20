@@ -6,7 +6,7 @@ import { courseService } from '@/services/courseService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Save, Trash2, Pencil, Eye, Sparkles, Loader2, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import LessonRichEditor from '@/components/course/LessonRichEditor';
+import LessonSourceEditor from '@/components/course/LessonSourceEditor';
 import { TableOfContents } from '@/components/course/TableOfContents';
 import { injectHeaderIds } from '@/lib/toc-utils';
 import { LessonEditorActivities } from '@/components/course/LessonEditorActivities';
@@ -308,7 +308,7 @@ export default function LessonEditor() {
                 </CardHeader>
                 <CardContent>
                   {mode === 'edit' ? (
-                    <LessonRichEditor content={content} onChange={setContent} editable />
+                    <LessonSourceEditor content={content} onChange={setContent} editable />
                   ) : (
                     content ? (
                       /<\s*(html|body|head|!doctype)/i.test(content) ? (
