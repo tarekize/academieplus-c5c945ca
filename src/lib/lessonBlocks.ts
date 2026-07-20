@@ -42,7 +42,7 @@ export const lessonSchema = {
  * (dangerouslySetInnerHTML / contentEditable, sans passage par ReactMarkdown).
  */
 export function convertPedagoBlocks(raw: string): string {
-  return (raw || "").replace(
+  let s = (raw || "").replace(
     /^[ \t\u200e\u200f\u202a-\u202e]*:::\s*([a-zA-Z0-9_-]+)(.*?)\n([\s\S]*?):::/gm,
     (match, type, titleRaw, content) => {
       let blockClass = "lesson-block";
@@ -74,4 +74,21 @@ export function convertPedagoBlocks(raw: string): string {
       return `\n<div class="${blockClass}">\n${titleHtml}\n<div class="lesson-block-content">\n\n${innerContent}\n\n</div>\n</div>\n`;
     }
   );
+
+  // Filet de sécurité : certaines leçons ont été converties en HTML avant
+  // l'existence du format :::, ce qui encapsule chaque ligne dans son
+  // propre <p>/<li> et fragmente la syntaxe ::: type ... ::: sur plusieurs
+  // balises (ex: "<p>::: remark\n<strong>titre</strong></p>" puis le
+  // contenu dans des balises suivantes, fermeture "...:::</li>" imbriquée
+  // dans une liste). Impossible à reconstituer en encadré fiable dans ce
+  // cas — mais on retire au moins les marqueurs bruts restants pour ne
+  // jamais les afficher à l'élève : "::: type" isolé disparaît (le titre en
+  // gras qui suit reste visible), et les ::: de fermeture orphelins aussi.
+  if (s.includes(":::")) {
+    s = s
+      .replace(/:::\s*[a-zA-Z0-9_-]+\s*\n?/g, "")
+      .replace(/:::/g, "");
+  }
+
+  return s;
 }
