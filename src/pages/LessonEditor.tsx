@@ -4,9 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { courseService } from '@/services/courseService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save, Trash2, Pencil, Eye, Sparkles, Loader2, Send } from 'lucide-react';
+import { ArrowLeft, Trash2, Sparkles, Loader2, Send, Undo2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import LessonSourceEditor from '@/components/course/LessonSourceEditor';
+import InlineLessonEditor from '@/components/course/InlineLessonEditor';
 import { TableOfContents } from '@/components/course/TableOfContents';
 import { injectHeaderIds } from '@/lib/toc-utils';
 import { LessonEditorActivities } from '@/components/course/LessonEditorActivities';
@@ -33,12 +33,12 @@ export default function LessonEditor() {
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [lesson, setLesson] = useState<{ id: string; title: string; title_ar: string | null; content: string | null; chapter_id: string; subject?: string; school_level?: string; filiere_code?: string } | null>(null);
   const [content, setContent] = useState('');
-  const [mode, setMode] = useState<'view' | 'edit'>('view');
+  // Incrémenté pour forcer une réinitialisation de l'éditeur (chargement, sync distante, annulation)
+  const [contentVersion, setContentVersion] = useState(0);
   const [canManage, setCanManage] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [isActivityActive, setActivityActive] = useState(false);
@@ -102,6 +102,7 @@ export default function LessonEditor() {
         filiere_code: chFiliereCode
       });
       setContent(data.content || '');
+      setContentVersion(v => v + 1);
     } catch (err) {
       console.error(err);
       toast({ title: 'Erreur', description: 'Impossible de charger la leçon', variant: 'destructive' });
@@ -120,19 +121,17 @@ export default function LessonEditor() {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'lessons', filter: `id=eq.${lessonId}` }, (payload) => {
         const newContent = (payload.new as any).content || '';
         setLesson(prev => prev ? { ...prev, content: newContent } : null);
-        if (mode === 'view') {
-          setContent(newContent);
-        }
+        setContent(newContent);
+        setContentVersion(v => v + 1);
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [lessonId, mode, isDirty]);
+  }, [lessonId, isDirty]);
 
-  const handleSave = async () => {
-    // Sauvegarde locale uniquement - pas encore publié
-    setIsDirty(true);
-    toast({ title: 'Brouillon sauvegardé', description: 'Le contenu a été sauvegardé localement. Cliquez sur "Envoyer les modifications" pour publier.' });
-    setMode('view');
+  const handleDiscard = () => {
+    setContent(lesson?.content || '');
+    setContentVersion(v => v + 1);
+    setIsDirty(false);
   };
 
   const handlePublish = async () => {
@@ -160,9 +159,9 @@ export default function LessonEditor() {
   const handleDelete = async () => {
     // Marquer pour suppression locale - pas encore publié
     setContent('');
+    setContentVersion(v => v + 1);
     setIsDirty(true);
     toast({ title: 'Contenu marqué pour suppression (Brouillon)', description: 'Cliquez sur "Envoyer les modifications" pour publier la suppression.' });
-    setMode('view');
   };
 
   if (loading) {
@@ -233,60 +232,47 @@ export default function LessonEditor() {
               {canManage && (
                 <>
                   <div className="flex items-center gap-2 mb-6 flex-wrap">
-                    {mode === 'view' ? (
-                      <>
-                        <Button onClick={() => setMode('edit')}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Modifier
-                        </Button>
-                        <Button variant="secondary" onClick={handleGenerateAI} disabled={generating}>
-                          {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                          {generating ? 'Génération...' : 'Généré avec IA'}
-                        </Button>
-                        {lesson.content && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="destructive">
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Supprimer le contenu
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Cette action supprimera tout le contenu de cette leçon. Cette action est irréversible.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        )}
-
-                        {/* Bouton Envoyer les modifications - Visible si y a des changements */}
-                        {isDirty && (
-                          <Button
-                            onClick={handlePublish}
-                            disabled={publishing}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <Send className="h-4 w-4 mr-2" />
-                            {publishing ? 'Envoi...' : 'Envoyer les modifications'}
+                    <Button variant="secondary" onClick={handleGenerateAI} disabled={generating}>
+                      {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                      {generating ? 'Génération...' : 'Généré avec IA'}
+                    </Button>
+                    {lesson.content && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Supprimer le contenu
                           </Button>
-                        )}
-                      </>
-                    ) : (
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Cette action supprimera tout le contenu de cette leçon. Cette action est irréversible.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+
+                    {/* Visible uniquement s'il y a des changements non publiés */}
+                    {isDirty && (
                       <>
-                        <Button onClick={handleSave} disabled={saving}>
-                          <Save className="h-4 w-4 mr-2" />
-                          {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+                        <Button
+                          onClick={handlePublish}
+                          disabled={publishing}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          {publishing ? 'Envoi...' : 'Envoyer les modifications'}
                         </Button>
-                        <Button variant="outline" onClick={() => { setMode('view'); setContent(lesson.content || ''); }}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Annuler
+                        <Button variant="outline" onClick={handleDiscard} disabled={publishing}>
+                          <Undo2 className="h-4 w-4 mr-2" />
+                          Annuler les modifications
                         </Button>
                       </>
                     )}
@@ -304,32 +290,28 @@ export default function LessonEditor() {
               {/* Content */}
               <Card>
                 <CardHeader>
-                  <CardTitle>{mode === 'edit' ? 'Éditeur de contenu' : 'Contenu du cours'}</CardTitle>
+                  <CardTitle>Contenu du cours</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {mode === 'edit' ? (
-                    <LessonSourceEditor content={content} onChange={setContent} editable />
-                  ) : (
-                    content ? (
-                      /<\s*(html|body|head|!doctype)/i.test(content) ? (
-                        <HtmlWithMath
-                          className="lesson-markdown prose prose-sm dark:prose-invert max-w-none"
-                          htmlContent={injectHeaderIds(content)}
-                        />
-                      ) : (
-                        <LessonMarkdown content={content} dir="rtl" />
-                      )
+                  {canManage ? (
+                    <InlineLessonEditor
+                      content={content}
+                      onChange={(html) => { setContent(html); setIsDirty(true); }}
+                      resetKey={`${lesson.id}-${contentVersion}`}
+                    />
+                  ) : content ? (
+                    /<\s*(html|body|head|!doctype)/i.test(content) ? (
+                      <HtmlWithMath
+                        className="lesson-markdown prose prose-sm dark:prose-invert max-w-none"
+                        htmlContent={injectHeaderIds(content)}
+                      />
                     ) : (
-                      <div className="text-center py-12 text-muted-foreground">
-                        <p>Aucun contenu pour cette leçon.</p>
-                        {canManage && (
-                          <Button className="mt-4" onClick={() => setMode('edit')}>
-                            <Pencil className="h-4 w-4 mr-2" />
-                            Ajouter du contenu
-                          </Button>
-                        )}
-                      </div>
+                      <LessonMarkdown content={content} dir="rtl" />
                     )
+                  ) : (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <p>Aucun contenu pour cette leçon.</p>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -348,6 +330,7 @@ export default function LessonEditor() {
         currentContent={content}
         onUpdateContent={(newContent) => {
           setContent(newContent);
+          setContentVersion(v => v + 1);
           setIsDirty(true);
         }}
         open={isAIPanelOpen}
