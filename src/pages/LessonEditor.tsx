@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { courseService } from '@/services/courseService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Trash2, Sparkles, Loader2, Send, Undo2, FileCode, PenLine } from 'lucide-react';
+import { ArrowLeft, Trash2, Sparkles, Loader2, Send, Undo2, FileCode, PenLine, History } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import InlineLessonEditor from '@/components/course/InlineLessonEditor';
 import LessonSourceEditor from '@/components/course/LessonSourceEditor';
@@ -25,9 +25,23 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from "@/components/ui/button";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import LessonMarkdown from "@/components/course/LessonMarkdown";
+
+interface LessonVersion {
+  id: string;
+  content: string | null;
+  created_at: string;
+  created_by_name: string;
+}
 
 export default function LessonEditor() {
   const { lessonId } = useParams<{ lessonId: string }>();
@@ -47,6 +61,11 @@ export default function LessonEditor() {
   const [isActivityActive, setActivityActive] = useState(false);
   const [isAIPanelOpen, setIsAIPanelOpen] = useState(false);
   const { targetRef: keyboardTarget, bindTarget } = useArabicKeyboardTarget();
+  const [currentUserName, setCurrentUserName] = useState('');
+  const [versions, setVersions] = useState<LessonVersion[]>([]);
+  const [versionsLoading, setVersionsLoading] = useState(false);
+  const [versionsListOpen, setVersionsListOpen] = useState(false);
+  const [viewingVersion, setViewingVersion] = useState<LessonVersion | null>(null);
 
   const fetchLesson = useCallback(async () => {
     if (!lessonId) return;
@@ -58,6 +77,16 @@ export default function LessonEditor() {
       const { data: roles } = await supabase.from('user_roles').select('role').eq('user_id', user.id);
       const userRoles = roles?.map(r => r.role) || [];
       setCanManage(userRoles.includes('admin') || userRoles.includes('pedago'));
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (profile) {
+        const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+        setCurrentUserName(fullName || profile.email || 'مستخدم');
+      }
 
       const data = await courseService.getLessonById(lessonId);
       if (!data) {
@@ -144,6 +173,16 @@ export default function LessonEditor() {
     try {
       const { error } = await supabase.from('lessons').update({ content }).eq('id', lessonId);
       if (error) throw error;
+
+      // Archive un instantané du contenu envoyé, pour l'historique des versions.
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from('lesson_versions' as any).insert({
+        lesson_id: lessonId,
+        content,
+        created_by: user?.id || null,
+        created_by_name: currentUserName || 'مستخدم',
+      });
+
       toast({ title: 'Publié', description: 'Les modifications ont été envoyées avec succès.' });
       setIsDirty(false);
       // Update local state
@@ -154,6 +193,30 @@ export default function LessonEditor() {
     } finally {
       setPublishing(false);
     }
+  };
+
+  const fetchVersions = useCallback(async () => {
+    if (!lessonId) return;
+    setVersionsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('lesson_versions' as any)
+        .select('id, content, created_at, created_by_name')
+        .eq('lesson_id', lessonId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setVersions((data as any) || []);
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'خطأ', description: 'تعذر تحميل سجل الإصدارات.', variant: 'destructive' });
+    } finally {
+      setVersionsLoading(false);
+    }
+  }, [lessonId, toast]);
+
+  const openVersionsList = () => {
+    setVersionsListOpen(true);
+    fetchVersions();
   };
 
   const handleGenerateAI = () => {
@@ -244,6 +307,10 @@ export default function LessonEditor() {
                 <>
                   <div className="flex items-center gap-2 mb-6 flex-wrap">
                     <ArabicKeyboardButton targetRef={keyboardTarget} />
+                    <Button variant="outline" onClick={openVersionsList}>
+                      <History className="h-4 w-4 mr-2" />
+                      الإصدارات السابقة
+                    </Button>
                     <Button variant="outline" onClick={toggleLatexMode}>
                       {latexMode ? <PenLine className="h-4 w-4 mr-2" /> : <FileCode className="h-4 w-4 mr-2" />}
                       {latexMode ? 'Retour à l\'édition directe' : 'Modifier en LaTeX'}
@@ -362,6 +429,71 @@ export default function LessonEditor() {
         open={isAIPanelOpen}
         onClose={() => setIsAIPanelOpen(false)}
       />
+
+      {/* Liste des versions précédentes de la leçon */}
+      <Dialog open={versionsListOpen} onOpenChange={setVersionsListOpen}>
+        <DialogContent className="sm:max-w-[480px] max-h-[80vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>الإصدارات السابقة</DialogTitle>
+            <DialogDescription>
+              كل إصدار يمثل نسخة من الدرس تم إرسالها للطلاب في وقت معين.
+            </DialogDescription>
+          </DialogHeader>
+          {versionsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : versions.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              لا توجد إصدارات محفوظة بعد. سيتم إنشاء إصدار جديد عند كل إرسال للتعديلات.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {versions.map((v, idx) => {
+                const versionNumber = versions.length - idx;
+                return (
+                  <button
+                    key={v.id}
+                    onClick={() => { setViewingVersion(v); setVersionsListOpen(false); }}
+                    className="text-right rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="font-medium text-sm">الإصدار {versionNumber}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {new Date(v.created_at).toLocaleString('ar')} — {v.created_by_name}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Aperçu en lecture seule d'une version précédente */}
+      <Dialog open={!!viewingVersion} onOpenChange={(isOpen) => { if (!isOpen) setViewingVersion(null); }}>
+        <DialogContent className="sm:max-w-[800px] max-h-[85vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>
+              {viewingVersion && `الإصدار ${versions.length - versions.findIndex(v => v.id === viewingVersion.id)}`}
+            </DialogTitle>
+            <DialogDescription>
+              {viewingVersion && `${new Date(viewingVersion.created_at).toLocaleString('ar')} — ${viewingVersion.created_by_name}`}
+            </DialogDescription>
+          </DialogHeader>
+          {viewingVersion?.content ? (
+            /<\s*(html|body|head|!doctype)/i.test(viewingVersion.content) ? (
+              <HtmlWithMath
+                className="lesson-markdown prose prose-sm dark:prose-invert max-w-none"
+                htmlContent={injectHeaderIds(viewingVersion.content)}
+              />
+            ) : (
+              <LessonMarkdown content={viewingVersion.content} dir="rtl" />
+            )
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-8">لا يوجد محتوى في هذا الإصدار.</p>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
