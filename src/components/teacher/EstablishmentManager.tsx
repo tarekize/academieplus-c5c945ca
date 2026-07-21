@@ -227,6 +227,18 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
           .eq("teacher_id", teacherId)
           .eq("establishment_id", target.establishment_profile_id);
         if (linkError) throw linkError;
+
+        // get_my_primary_establishment() (appelée par le self-heal de fetchEstablishments()
+        // ci-dessous quand la liste est vide) ne lit PAS teacher_establishments mais
+        // profiles.establishment_id — le lien posé une fois à l'inscription. Sans ce reset,
+        // la ligne "establishments" qu'on vient de supprimer était systématiquement recréée
+        // à la prochaine visite de la page, donnant l'impression que la suppression échouait.
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update({ establishment_id: null } as any)
+          .eq("id", teacherId)
+          .eq("establishment_id", target.establishment_profile_id);
+        if (profileError) throw profileError;
       }
 
       const { error } = await supabase.from("establishments" as any).delete().eq("id", id);
