@@ -535,7 +535,7 @@ const Cours = () => {
                     <Button
                       variant="outline"
                       className="rounded-full gap-2 active:scale-95 transition-transform"
-                      onClick={() => navigate("/liste-cours")}
+                      onClick={() => navigate(`/liste-cours?matiere=${subjectId || "math"}`)}
                     >
                       <ArrowLeft className="h-4 w-4" />
                       {t("cours.backToLevels")}
