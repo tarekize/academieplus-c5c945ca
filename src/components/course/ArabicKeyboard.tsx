@@ -128,11 +128,17 @@ export function useArabicKeyboardField() {
 export function ArabicKeyboardProvider({ children }: { children: ReactNode }) {
   const targetRef = useRef<EditableTarget | null>(null);
   const [visible, setVisible] = useState(false);
+  // Nœud de la modale Radix (role="dialog") contenant le champ actif, s'il y
+  // en a un — recalculé à chaque focus pour rester juste si le focus passe
+  // d'un champ dans une modale à un champ hors modale (ou l'inverse).
+  const [dialogHost, setDialogHost] = useState<HTMLElement | null>(null);
   const hideTimeout = useRef<ReturnType<typeof setTimeout>>();
 
   const focusField = useCallback((el: EditableTarget) => {
     clearTimeout(hideTimeout.current);
     targetRef.current = el;
+    const host = typeof el.closest === 'function' ? (el.closest('[role="dialog"]') as HTMLElement | null) : null;
+    setDialogHost(host);
     setVisible(true);
   }, []);
 
@@ -143,25 +149,158 @@ export function ArabicKeyboardProvider({ children }: { children: ReactNode }) {
   return (
     <ArabicKeyboardContext.Provider value={{ focusField, blurField }}>
       {children}
-      {visible && <ArabicKeyboardWidget targetRef={targetRef} />}
+      {visible && <ArabicKeyboardWidget targetRef={targetRef} dialogHost={dialogHost} />}
     </ArabicKeyboardContext.Provider>
   );
 }
 
 interface ArabicKeyboardWidgetProps {
   targetRef: MutableRefObject<EditableTarget | null>;
+  dialogHost: HTMLElement | null;
 }
 
 /**
- * Clavier arabe virtuel flottant. Le bouton lui-même est une pastille
+ * Choisit le mode d'affichage du clavier selon que le champ actif se trouve
+ * dans une modale Radix (role="dialog") ou non :
+ * - dans une modale : rendu ancré à l'intérieur même de la modale (portail
+ *   vers son propre nœud), pour qu'il en fasse réellement partie du point de
+ *   vue du DOM — Radix ne peut alors jamais le traiter comme un clic "en
+ *   dehors" qui ferme la modale, quel que soit son mécanisme de détection.
+ * - ailleurs (page complète, barre de recherche...) : widget flottant,
+ *   déplaçable, avec position mémorisée, comme avant.
+ */
+function ArabicKeyboardWidget({ targetRef, dialogHost }: ArabicKeyboardWidgetProps) {
+  if (dialogHost) {
+    return <InlineDialogKeyboard targetRef={targetRef} host={dialogHost} />;
+  }
+  return <FloatingKeyboard targetRef={targetRef} />;
+}
+
+function useOutsideCollapse(open: boolean, widgetRef: MutableRefObject<HTMLDivElement | null>, onCollapse: () => void) {
+  useEffect(() => {
+    if (!open) return;
+    const handlePointerDown = (e: PointerEvent) => {
+      if (widgetRef.current?.contains(e.target as Node)) return;
+      onCollapse();
+    };
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    return () => document.removeEventListener('pointerdown', handlePointerDown, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+}
+
+function KeyRows({ targetRef }: { targetRef: MutableRefObject<EditableTarget | null> }) {
+  const withTarget = (fn: (el: EditableTarget) => void) => () => {
+    const el = targetRef.current;
+    if (el) fn(el);
+  };
+
+  return (
+    <div className="p-2 space-y-1 border-t">
+      {ROWS.map((row, i) => (
+        <div key={i} className="flex gap-1 justify-center">
+          {row.map((key) => (
+            <Button
+              key={key}
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="h-9 w-9 p-0 text-base"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={withTarget((el) => insertIntoTarget(el, key))}
+            >
+              {key}
+            </Button>
+          ))}
+        </div>
+      ))}
+      <div className="flex gap-1 justify-center pt-1">
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          className="h-9 px-3"
+          title="حذف"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={withTarget(deleteBeforeCursor)}
+        >
+          <Delete className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          className="h-9 flex-1"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={withTarget((el) => insertIntoTarget(el, ' '))}
+        >
+          مسافة
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          className="h-9 px-3"
+          title="سطر جديد"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={withTarget((el) => insertIntoTarget(el, '\n'))}
+        >
+          <CornerDownLeft className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Variante utilisée quand le champ actif est à l'intérieur d'une modale
+ * Radix : ancrée dans un coin de la modale elle-même (portail vers le nœud
+ * de la modale, pas document.body), sans glisser-déposer — la modale est de
+ * toute façon centrée et de taille limitée.
+ */
+function InlineDialogKeyboard({ targetRef, host }: { targetRef: MutableRefObject<EditableTarget | null>; host: HTMLElement }) {
+  const [open, setOpen] = useState(false);
+  const widgetRef = useRef<HTMLDivElement>(null);
+
+  useOutsideCollapse(open, widgetRef, () => setOpen(false));
+
+  return createPortal(
+    <div
+      ref={widgetRef}
+      dir="rtl"
+      data-arabic-keyboard-widget=""
+      className={cn(
+        'absolute top-4 left-4 z-20 rounded-xl border bg-popover shadow-2xl',
+        !open && 'w-fit',
+        open && 'w-[300px]',
+      )}
+      onMouseDown={(e) => e.preventDefault()}
+    >
+      <button
+        type="button"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 px-3 py-1.5 rounded-t-xl bg-muted/60 text-sm font-medium whitespace-nowrap w-full"
+      >
+        <Keyboard className="h-4 w-4 shrink-0" />
+        <span>لوحة المفاتيح العربية</span>
+      </button>
+      {open && <KeyRows targetRef={targetRef} />}
+    </div>,
+    host
+  );
+}
+
+/**
+ * Clavier arabe virtuel flottant, pour un champ hors de toute modale (page
+ * complète, barre de recherche...). Le bouton lui-même est une pastille
  * flottante (position fixe) qui reste visible quel que soit le défilement
  * de la page, positionnée par défaut au-dessus de la table des matières.
  * Le pédagogue peut la faire glisser où il veut (position mémorisée), et le
  * panneau déployé ne se referme (vers la pastille) que via le bouton X ou un
- * clic en dehors — jamais en tapant une lettre. Le widget entier disparaît
- * dès que le champ associé perd le focus (voir ArabicKeyboardProvider).
+ * clic en dehors — jamais en tapant une lettre.
  */
-function ArabicKeyboardWidget({ targetRef }: ArabicKeyboardWidgetProps) {
+function FloatingKeyboard({ targetRef }: { targetRef: MutableRefObject<EditableTarget | null> }) {
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<Position>({ top: 110, left: 24 });
   const [mounted, setMounted] = useState(false);
@@ -178,41 +317,7 @@ function ArabicKeyboardWidget({ targetRef }: ArabicKeyboardWidgetProps) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(position)); } catch { /* ignore */ }
   }, [position, mounted]);
 
-  // Replie le panneau déployé sur un clic en dehors du widget (jamais sur une touche)
-  useEffect(() => {
-    if (!open) return;
-    const handlePointerDown = (e: PointerEvent) => {
-      if (widgetRef.current?.contains(e.target as Node)) return;
-      setOpen(false);
-    };
-    document.addEventListener('pointerdown', handlePointerDown, true);
-    return () => document.removeEventListener('pointerdown', handlePointerDown, true);
-  }, [open]);
-
-  // Empêche tout clic sur le widget d'atteindre le document : Radix Dialog
-  // détecte les clics "en dehors" via un listener natif posé sur `document`
-  // (phase de bulles). Le widget est monté dans un portail à part
-  // (document.body), donc un `stopPropagation()` React (qui suit l'arbre
-  // React des portails, pas forcément l'arbre DOM réel dans tous les cas)
-  // n'est pas fiable ici — on pose un vrai listener DOM natif, en phase de
-  // capture, directement sur le nœud du widget, pour être certain d'arrêter
-  // l'événement avant qu'il ne redescende/remonte jusqu'à `document`.
-  useEffect(() => {
-    const node = widgetRef.current;
-    if (!node) return;
-    const stop = (e: Event) => e.stopPropagation();
-    node.addEventListener('pointerdown', stop, true);
-    node.addEventListener('mousedown', stop, true);
-    return () => {
-      node.removeEventListener('pointerdown', stop, true);
-      node.removeEventListener('mousedown', stop, true);
-    };
-  }, [mounted]);
-
-  const withTarget = (fn: (el: EditableTarget) => void) => () => {
-    const el = targetRef.current;
-    if (el) fn(el);
-  };
+  useOutsideCollapse(open, widgetRef, () => setOpen(false));
 
   const startDrag = (e: React.PointerEvent) => {
     dragState.current = { startX: e.clientX, startY: e.clientY, startTop: position.top, startLeft: position.left, moved: false };
@@ -256,11 +361,6 @@ function ArabicKeyboardWidget({ targetRef }: ArabicKeyboardWidgetProps) {
         open && 'w-[320px]',
       )}
       onMouseDown={(e) => e.preventDefault()}
-      // Empêche un clic sur le widget (portalé hors de toute modale Radix,
-      // donc vu comme "en dehors" par son détecteur de clic extérieur) de
-      // remonter jusqu'au document et de fermer une modale ouverte
-      // (ex: "Nouveau chapitre") par-dessus laquelle il flotte.
-      onPointerDown={(e) => e.stopPropagation()}
     >
       <div
         className="flex items-center justify-between gap-2 px-3 py-2 rounded-t-xl bg-muted/60 cursor-move touch-none select-none"
@@ -280,7 +380,6 @@ function ArabicKeyboardWidget({ targetRef }: ArabicKeyboardWidgetProps) {
             size="icon"
             className="h-6 w-6 shrink-0"
             onMouseDown={(e) => e.preventDefault()}
-            onPointerDown={(e) => e.stopPropagation()}
             onClick={() => setOpen(false)}
             title="إغلاق"
           >
@@ -291,61 +390,7 @@ function ArabicKeyboardWidget({ targetRef }: ArabicKeyboardWidgetProps) {
         )}
       </div>
 
-      {open && (
-        <div className="p-2 space-y-1 border-t">
-          {ROWS.map((row, i) => (
-            <div key={i} className="flex gap-1 justify-center">
-              {row.map((key) => (
-                <Button
-                  key={key}
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="h-9 w-9 p-0 text-base"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={withTarget((el) => insertIntoTarget(el, key))}
-                >
-                  {key}
-                </Button>
-              ))}
-            </div>
-          ))}
-          <div className="flex gap-1 justify-center pt-1">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="h-9 px-3"
-              title="حذف"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={withTarget(deleteBeforeCursor)}
-            >
-              <Delete className="h-4 w-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="h-9 flex-1"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={withTarget((el) => insertIntoTarget(el, ' '))}
-            >
-              مسافة
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="h-9 px-3"
-              title="سطر جديد"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={withTarget((el) => insertIntoTarget(el, '\n'))}
-            >
-              <CornerDownLeft className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
+      {open && <KeyRows targetRef={targetRef} />}
     </div>,
     document.body
   );
