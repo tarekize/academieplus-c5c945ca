@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (_event === 'SIGNED_OUT') {
         setRoles([]);
         setLoading(false);
-      } else if (session?.user && (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION' || _event === 'USER_UPDATED')) {
+      } else if (session?.user && (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION' || _event === 'USER_UPDATED' || _event === 'PASSWORD_RECOVERY')) {
         fetchRoles(session.user.id).then((r) => {
           setRoles(r);
           setLoading(false);

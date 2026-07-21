@@ -15,6 +15,7 @@ const MentionsLegales = lazy(() => import("./pages/MentionsLegales"));
 const PolitiqueConfidentialite = lazy(() => import("./pages/PolitiqueConfidentialite"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Auth = lazy(() => import("./pages/Auth"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ListeCours = lazy(() => import("./pages/ListeCours"));
@@ -81,6 +82,7 @@ const App = () => (
               <Route path="/editorial/equipe" element={<ProtectedRoute allowedRoles={['pedago', 'admin']}><GestionEquipe /></ProtectedRoute>} />
               <Route path="/editorial/historique/:id" element={<ProtectedRoute allowedRoles={['pedago', 'admin']}><HistoriqueVersions /></ProtectedRoute>} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
               <Route path="/learning-assessment" element={<ProtectedRoute allowedRoles={['student']}><LearningAssessment /></ProtectedRoute>} />
 
