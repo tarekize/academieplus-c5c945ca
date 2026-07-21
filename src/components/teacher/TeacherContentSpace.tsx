@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { PencilLine, Sparkles, History, FileText, Target, ClipboardList } from "lucide-react";
+import { useEffect, useState } from "react";
+import { PencilLine, Sparkles, History, FileText, Target, ClipboardList, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { ContentType, CONTENT_TYPE_LABELS } from "@/lib/teacherContent";
+import { useTeacherEstablishmentStatus } from "@/hooks/useTeacherEstablishmentStatus";
 import TeacherPageHeader from "./TeacherPageHeader";
 import ManualContentForm from "./ManualContentForm";
 import GuidedContentChatbot from "./GuidedContentChatbot";
@@ -35,6 +37,14 @@ const MODES = [
 export default function TeacherContentSpace({ teacherId, contentType, onBack }: Props) {
   const [mode, setMode] = useState<"manual" | "ai" | "history">("ai");
   const label = CONTENT_TYPE_LABELS[contentType];
+  const { hasActiveEstablishment } = useTeacherEstablishmentStatus(teacherId);
+  // false seulement une fois qu'on sait avec certitude qu'aucun établissement
+  // lié n'a un abonnement actif — pendant le chargement (null) on ne bloque pas.
+  const aiLocked = hasActiveEstablishment === false;
+
+  useEffect(() => {
+    if (aiLocked && mode === "ai") setMode("manual");
+  }, [aiLocked, mode]);
 
   return (
     <div className="space-y-5">
@@ -49,16 +59,25 @@ export default function TeacherContentSpace({ teacherId, contentType, onBack }: 
             {MODES.map((m) => {
               const Icon = m.icon;
               const active = mode === m.key;
+              const locked = m.key === "ai" && aiLocked;
               return (
                 <button
                   key={m.key}
-                  onClick={() => setMode(m.key)}
+                  onClick={() => {
+                    if (locked) {
+                      toast.error("L'assistant IA est désactivé : l'abonnement de votre établissement n'est pas actif.");
+                      return;
+                    }
+                    setMode(m.key);
+                  }}
                   className={cn(
                     "flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium transition-all",
-                    active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                    locked
+                      ? "cursor-not-allowed text-muted-foreground/50"
+                      : active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  <Icon className="h-4 w-4" />
+                  {locked ? <Lock className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                   <span className="hidden sm:inline">{m.label}</span>
                 </button>
               );
@@ -67,12 +86,12 @@ export default function TeacherContentSpace({ teacherId, contentType, onBack }: 
         }
       />
 
-      {mode === "ai"
+      {mode === "manual" || (mode === "ai" && aiLocked)
+        ? <ManualContentForm key={contentType} teacherId={teacherId} contentType={contentType} />
+        : mode === "ai"
         ? (contentType === "exam"
           ? <ExamAIBuilder key={contentType} teacherId={teacherId} />
           : <GuidedContentChatbot key={contentType} teacherId={teacherId} contentType={contentType} />)
-        : mode === "manual"
-        ? <ManualContentForm key={contentType} teacherId={teacherId} contentType={contentType} />
         : <TeacherContentHistory key={contentType} teacherId={teacherId} contentType={contentType} />}
     </div>
   );

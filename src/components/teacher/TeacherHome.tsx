@@ -1,12 +1,18 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { School, FileText, Target, ClipboardList, AlertCircle, User, ArrowRight } from "lucide-react";
+import { School, FileText, Target, ClipboardList, AlertCircle, User, ArrowRight, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export type TeacherSection = "establishment" | "exercise" | "quiz" | "exam" | "reclamation" | "profil";
 
 interface Props {
   onSelect: (section: TeacherSection) => void;
+  // Sections nécessitant un établissement lié pour être utilisées (envoyer un
+  // exercice/quiz/examen ou une réclamation n'a pas de sens sans établissement).
+  hasEstablishment: boolean;
 }
+
+const REQUIRES_ESTABLISHMENT: TeacherSection[] = ["exercise", "quiz", "exam", "reclamation"];
 
 export const TEACHER_SECTIONS: {
   key: TeacherSection;
@@ -24,40 +30,55 @@ export const TEACHER_SECTIONS: {
   { key: "profil", label: "Mon profil", desc: "Informations & compte", icon: User, iconBg: "bg-indigo-500/10", iconText: "text-indigo-600" },
 ];
 
-export default function TeacherHome({ onSelect }: Props) {
+export default function TeacherHome({ onSelect, hasEstablishment }: Props) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {TEACHER_SECTIONS.map((t) => {
         const Icon = t.icon;
+        const locked = !hasEstablishment && REQUIRES_ESTABLISHMENT.includes(t.key);
+        const handleActivate = () => {
+          if (locked) {
+            toast.error("Ajoutez d'abord un établissement pour accéder à cette fonctionnalité.");
+            return;
+          }
+          onSelect(t.key);
+        };
         return (
           <Card
             key={t.key}
-            onClick={() => onSelect(t.key)}
+            onClick={handleActivate}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onSelect(t.key); }}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleActivate(); }}
             className={cn(
-              "group cursor-pointer rounded-2xl border-border/60 transition-all duration-300",
-              "hover:-translate-y-1 hover:border-transparent hover:shadow-[var(--shadow-card)]",
+              "group rounded-2xl border-border/60 transition-all duration-300",
+              locked
+                ? "cursor-not-allowed opacity-60"
+                : "cursor-pointer hover:-translate-y-1 hover:border-transparent hover:shadow-[var(--shadow-card)]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             )}
           >
             <CardContent className="flex flex-col gap-4 p-6">
               <div
                 className={cn(
-                  "flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110",
+                  "flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-300",
+                  !locked && "group-hover:scale-110",
                   t.iconBg,
                   t.iconText,
                 )}
               >
-                <Icon className="h-7 w-7" />
+                {locked ? <Lock className="h-7 w-7" /> : <Icon className="h-7 w-7" />}
               </div>
               <div className="space-y-1">
                 <h3 className="flex items-center gap-1 text-lg font-semibold">
                   {t.label}
-                  <ArrowRight className="h-4 w-4 -translate-x-1 text-muted-foreground opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+                  {!locked && (
+                    <ArrowRight className="h-4 w-4 -translate-x-1 text-muted-foreground opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+                  )}
                 </h3>
-                <p className="text-sm leading-snug text-muted-foreground">{t.desc}</p>
+                <p className="text-sm leading-snug text-muted-foreground">
+                  {locked ? "Ajoutez un établissement pour débloquer" : t.desc}
+                </p>
               </div>
             </CardContent>
           </Card>

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, LogOut, Loader2 } from "lucide-react";
+import { useTeacherEstablishmentStatus } from "@/hooks/useTeacherEstablishmentStatus";
 
 import TeacherHome, { TeacherSection, TEACHER_SECTIONS } from "@/components/teacher/TeacherHome";
 import EstablishmentManager from "@/components/teacher/EstablishmentManager";
@@ -16,6 +17,7 @@ const TeacherDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [section, setSection] = useState<TeacherSection | null>(null);
+  const { hasEstablishment } = useTeacherEstablishmentStatus(user?.id);
 
   useEffect(() => {
     if (authLoading) return;
@@ -92,7 +94,7 @@ const TeacherDashboard = () => {
                 <p className="text-primary-foreground/80 text-sm mt-1.5">Que souhaitez-vous faire aujourd'hui ?</p>
               </div>
             </div>
-            <TeacherHome onSelect={setSection} />
+            <TeacherHome onSelect={setSection} hasEstablishment={hasEstablishment !== false} />
           </div>
         )}
 
