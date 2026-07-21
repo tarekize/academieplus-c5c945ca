@@ -47,6 +47,7 @@ const Account = () => {
   const { hasRole } = useAuth();
   const [isParent, setIsParent] = useState(false);
   const [isStudent, setIsStudent] = useState(false);
+  const [isPedago, setIsPedago] = useState(false);
   const [hasClass, setHasClass] = useState(false);
 
   const [subscription, setSubscription] = useState<StudentSubscription | null>(null);
@@ -63,6 +64,7 @@ const Account = () => {
       fetchProfile(session.user.id);
       hasRole('parent').then(setIsParent);
       hasRole('student').then(setIsStudent);
+      hasRole('pedago').then(setIsPedago);
       fetchSubscription(session.user.id);
       checkClassMembership(session.user.id);
     });
@@ -78,6 +80,7 @@ const Account = () => {
       fetchProfile(session.user.id);
       hasRole('parent').then(setIsParent);
       hasRole('student').then(setIsStudent);
+      hasRole('pedago').then(setIsPedago);
       fetchSubscription(session.user.id);
       checkClassMembership(session.user.id);
     });
@@ -281,7 +284,19 @@ const Account = () => {
     },
   ];
 
-  const accountCards = isParent ? parentCards : studentCards;
+  // Pédago : uniquement les informations personnelles (pas d'abonnement,
+  // de facturation ni de statistiques d'apprentissage — ça ne les concerne pas).
+  const pedagoCards = [
+    {
+      title: t("account.myInfo"),
+      description: t("account.myInfoDesc"),
+      icon: UserCircle,
+      color: "text-blue-600",
+      onClick: () => navigate("/mes-informations"),
+    },
+  ];
+
+  const accountCards = isParent ? parentCards : isPedago ? pedagoCards : studentCards;
 
   const remaining = subscription ? Math.floor(getRemainingDays(subscription)) : 0;
 
