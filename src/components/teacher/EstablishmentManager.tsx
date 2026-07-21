@@ -179,8 +179,16 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
     try {
       const { data: joinResult, error: rpcError } = await supabase
         .rpc("join_establishment_by_code" as any, { p_code: code });
+      // Le code masquait systématiquement le vrai message d'erreur Postgres (RLS,
+      // colonne, etc.) derrière "Code d'établissement invalide.", rendant tout autre
+      // problème indiscernable d'un simple mauvais code — on affiche maintenant le
+      // message réel renvoyé par la RPC quand il y en a un.
+      if (rpcError) {
+        toast.error(rpcError.message || "Code d'établissement invalide.");
+        return;
+      }
       const result = Array.isArray(joinResult) ? joinResult[0] : joinResult;
-      if (rpcError || !result?.establishment_name) {
+      if (!result?.establishment_name) {
         toast.error("Code d'établissement invalide.");
         return;
       }
