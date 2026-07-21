@@ -326,7 +326,14 @@
     "correctCount": "{{count}} correctes",
     "explanation": "Explication :",
     "vsLastAttempt": "{{delta}} points vs ton dernier essai",
-    "vsLastAttemptEqual": "Même score que ton dernier essai"
+    "vsLastAttemptEqual": "Même score que ton dernier essai",
+    "introTitle": "Prêt(e) pour l'examen blanc ?",
+    "introDesc": "Cet examen comporte {{count}} questions et dure 30 minutes.",
+    "introRuleTime": "Chrono de 30 minutes, visible tout au long de l'examen",
+    "introRuleAnswer": "Une seule réponse possible par question, pas de retour en arrière",
+    "introRuleLeave": "Tu peux quitter à tout moment via le bouton \"Quitter\"",
+    "introStart": "Commencer l'examen",
+    "movingToNext": "Question suivante dans un instant..."
   },
   "account": {
     "errorTitle": "Erreur",

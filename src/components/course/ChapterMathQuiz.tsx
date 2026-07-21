@@ -179,8 +179,8 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           <Progress value={percentage} className="h-3" />
           <div className="space-y-3 max-h-64 overflow-y-auto">
             {answers.map((answer, index) => (
-              <div key={index} className={cn("p-3 rounded-lg flex items-start gap-3", answer.correct ? "bg-green-500/10" : "bg-red-500/10")}>
-                {answer.correct ? <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 shrink-0" /> : <XCircle className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />}
+              <div key={index} className={cn("p-3 rounded-lg flex items-start gap-3", answer.correct ? "bg-mint/10" : "bg-coral/10")}>
+                {answer.correct ? <CheckCircle2 className="h-5 w-5 text-mint mt-0.5 shrink-0" /> : <XCircle className="h-5 w-5 text-coral mt-0.5 shrink-0" />}
                 <HtmlWithMath htmlContent={answer.question} className="text-sm" dir="rtl" />
               </div>
             ))}
@@ -223,8 +223,11 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
       <div className="sticky top-20 z-40 glass-card p-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-lg font-bold streak-chip !text-coral">
-              <Clock className="h-5 w-5" />
+            {/* Chrono discret en entraînement (contrairement à l'examen blanc) :
+                l'objectif est de laisser le temps disponible sans en faire la
+                pression dominante de l'écran. */}
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Clock className="h-4 w-4" />
               <span className="font-mono">{formattedTime}</span>
               {isPaused && <span className="text-xs opacity-80">(إيقاف)</span>}
             </div>
@@ -264,15 +267,15 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                 variant="outline"
                 size="sm"
                 onClick={() => { setShowHint(v => !v); if (!hasAnswered) setHintUsed(true); }}
-                className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950 font-semibold">
+                className="gap-2 border-amber text-amber hover:bg-amber/10 font-semibold">
                 <Lightbulb className="h-4 w-4" />
                 {showHint ? "إخفاء المساعدة" : "💡 مساعدة"}
               </Button>
               {showHint && (
-                <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-300 dark:border-amber-700">
+                <div className="p-4 rounded-lg bg-amber/10 border-2 border-amber/40">
                   <div className="flex items-start gap-3">
-                    <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
-                    <div className="flex-1 text-sm text-amber-900 dark:text-amber-200">
+                    <Lightbulb className="h-5 w-5 text-amber mt-0.5 shrink-0" />
+                    <div className="flex-1 text-sm text-foreground">
                       <p className="font-semibold mb-2">نصيحة مفيدة:</p>
                       <HtmlWithMath htmlContent={currentQuestion.hint} className="max-w-none text-right leading-relaxed" />
                     </div>
@@ -297,8 +300,8 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                 )}>
                   <RadioGroupItem value={option} id={`option-${index}`} />
                   <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer" dir="rtl"><HtmlWithMath htmlContent={option} /></Label>
-                  {(isThisCorrect || isThisTheCorrectOne) && <CheckCircle2 className="h-5 w-5 text-green-500" />}
-                  {isThisWrong && <XCircle className="h-5 w-5 text-red-500" />}
+                  {(isThisCorrect || isThisTheCorrectOne) && <CheckCircle2 className="h-5 w-5 text-mint" />}
+                  {isThisWrong && <XCircle className="h-5 w-5 text-coral" />}
                 </div>
               );
             })}
@@ -307,18 +310,18 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           {hasAnswered && (
             <div className={cn(
               "p-5 rounded-lg border-2 space-y-3",
-              isCorrect ? "bg-green-50 dark:bg-green-950/20 border-green-300 dark:border-green-700" : "bg-amber-50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-700"
+              isCorrect ? "bg-mint/10 border-mint/40" : "bg-amber/10 border-amber/40"
             )} dir="rtl">
               <div className="flex items-center gap-2 font-semibold">
                 {isCorrect ? (
                   <>
-                    <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-                    <span className="text-green-900 dark:text-green-200">✓ إجابة صحيحة! ممتاز 🎉</span>
+                    <CheckCircle2 className="h-5 w-5 text-mint" />
+                    <span className="text-mint">✓ إجابة صحيحة! ممتاز 🎉</span>
                   </>
                 ) : (
                   <>
-                    <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                    <span className="text-red-900 dark:text-red-200">✗ إجابة خاطئة</span>
+                    <XCircle className="h-5 w-5 text-coral" />
+                    <span className="text-coral">✗ إجابة خاطئة</span>
                   </>
                 )}
               </div>
@@ -328,9 +331,9 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
               )}
 
               {!isCorrect && correctAnswer && (
-                <div className="bg-white/50 dark:bg-black/20 p-3 rounded border border-green-200 dark:border-green-700">
-                  <p className="text-sm font-semibold text-green-900 dark:text-green-200 mb-1">✓ الإجابة الصحيحة:</p>
-                  <div className="text-sm text-green-800 dark:text-green-300"><HtmlWithMath htmlContent={correctAnswer} /></div>
+                <div className="bg-white/50 dark:bg-black/20 p-3 rounded border border-mint/30">
+                  <p className="text-sm font-semibold text-mint mb-1">✓ الإجابة الصحيحة:</p>
+                  <div className="text-sm text-mint"><HtmlWithMath htmlContent={correctAnswer} /></div>
                 </div>
               )}
             </div>

@@ -514,15 +514,15 @@ const ListeCours = () => {
             </p>
 
             {/* Search Bar */}
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-md mx-auto">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder={t("listeCours.searchSubject")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="glass-card pl-12 h-14 text-lg border-0 focus-visible:ring-primary"
+                  className="pl-10 h-11 rounded-xl bg-card border-border/50 shadow-sm focus-visible:ring-1 focus-visible:ring-primary/50"
                 />
               </div>
             </div>

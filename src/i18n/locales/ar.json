@@ -332,7 +332,14 @@
     "correctCount": "{{count}} إجابة صحيحة",
     "explanation": "الشرح:",
     "vsLastAttempt": "{{delta}} نقطة مقارنة بمحاولتك الأخيرة",
-    "vsLastAttemptEqual": "نفس نتيجة محاولتك الأخيرة"
+    "vsLastAttemptEqual": "نفس نتيجة محاولتك الأخيرة",
+    "introTitle": "هل أنت مستعد لبدء الامتحان التجريبي؟",
+    "introDesc": "يتضمن هذا الامتحان {{count}} سؤالاً ومدته 30 دقيقة.",
+    "introRuleTime": "مؤقت 30 دقيقة، ظاهر طوال الامتحان",
+    "introRuleAnswer": "إجابة واحدة فقط لكل سؤال، بدون رجوع للخلف",
+    "introRuleLeave": "يمكنك المغادرة في أي وقت عبر زر \"مغادرة\"",
+    "introStart": "بدء الامتحان",
+    "movingToNext": "السؤال التالي خلال لحظات..."
   },
   "account": {
     "errorTitle": "خطأ",

@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface QuizQuestionProps {
@@ -81,9 +81,9 @@ export const QuizQuestion = ({
                   key={index}
                   className={`flex items-center space-x-3 p-4 rounded-lg border-2 transition-all ${
                     isThisCorrect
-                      ? "bg-green-500/10 border-green-500"
+                      ? "bg-mint/10 border-mint"
                       : isThisWrong
-                      ? "bg-red-500/10 border-red-500"
+                      ? "bg-coral/10 border-coral"
                       : isThisSelected
                       ? "bg-primary/10 border-primary"
                       : "border-border hover:bg-accent"
@@ -97,10 +97,10 @@ export const QuizQuestion = ({
                     {option}
                   </Label>
                   {isThisCorrect && (
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    <CheckCircle2 className="h-5 w-5 text-mint" />
                   )}
                   {isThisWrong && (
-                    <XCircle className="h-5 w-5 text-red-500" />
+                    <XCircle className="h-5 w-5 text-coral" />
                   )}
                 </div>
               );
@@ -110,7 +110,7 @@ export const QuizQuestion = ({
 
         {hasAnswered && serverExplanation && (
           <div className={`p-4 rounded-lg ${
-            isCorrect ? "bg-green-500/10" : "bg-yellow-500/10"
+            isCorrect ? "bg-mint/10" : "bg-amber/10"
           }`}>
             <p className="text-sm font-medium mb-1">Explication :</p>
             <p className="text-sm">{serverExplanation}</p>
@@ -128,7 +128,7 @@ export const QuizQuestion = ({
             disabled={!selectedAnswer || validating}
             className="w-full"
           >
-            {validating ? "Validation..." : "Valider"}
+            {validating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Validation...</> : "Valider"}
           </Button>
         )}
       </CardContent>

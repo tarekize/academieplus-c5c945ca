@@ -128,20 +128,23 @@ const Cours = () => {
         return;
       }
 
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, avatar_url, school_level, filiere, email")
-        .eq("id", user.id)
-        .single();
+      // profiles et user_roles ne dépendent que de user.id (pas l'un de l'autre) :
+      // les paralléliser évite un aller-retour réseau séquentiel inutile.
+      const [{ data: profileData }, { data: rolesData }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, first_name, last_name, avatar_url, school_level, filiere, email")
+          .eq("id", user.id)
+          .single(),
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id),
+      ]);
 
       setProfile(profileData as Profile | null);
 
       // Check if user can manage content (admin or pedago)
-      const { data: rolesData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id);
-
       const roles = rolesData?.map(r => r.role) || [];
       setCanManage(roles.includes("admin") || roles.includes("pedago"));
 
@@ -156,46 +159,39 @@ const Cours = () => {
         return;
       }
 
-      // Resolve filiere_id for CRUD
-      if (effectiveFiliere && effectiveLevel) {
-        const { data: fData } = await supabase
-          .from("filieres")
-          .select("id")
-          .eq("code", effectiveFiliere)
-          .eq("school_level", effectiveLevel as any)
-          .maybeSingle();
-        setFiliereId(fData?.id || null);
-      }
+      // Résolution de filiere_id et récupération des chapitres : indépendantes
+      // l'une de l'autre (toutes deux dérivées du profil déjà résolu ci-dessus).
+      const [filiereResult, dbChapters] = await Promise.all([
+        effectiveFiliere && effectiveLevel
+          ? supabase
+              .from("filieres")
+              .select("id")
+              .eq("code", effectiveFiliere)
+              .eq("school_level", effectiveLevel as any)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        subjectId && effectiveLevel
+          ? courseService.getChaptersWithLessons(effectiveLevel as any, effectiveFiliere, subjectId)
+          : Promise.resolve([]),
+      ]);
+      setFiliereId(filiereResult?.data?.id || null);
 
-      // Fetch chapters from database
-      if (subjectId && effectiveLevel) {
-        const dbChapters = await courseService.getChaptersWithLessons(
-          effectiveLevel as any,
-          effectiveFiliere,
-          subjectId
-        );
+      if (dbChapters.length > 0) {
+        // Map database chapters to component format
+        const mappedChapters: Chapter[] = dbChapters.map((ch) => ({
+          id: ch.id,
+          title: ch.title_ar || ch.title,
+          order_index: ch.order_index,
+          content: `<h2>${ch.title_ar || ch.title}</h2>${ch.description ? `<p>${ch.description}</p>` : ""}`,
+          lessons: ch.lessons.map((l) => ({
+            id: l.id,
+            title: l.title_ar || l.title,
+            titleAr: l.title_ar || l.title,
+            content: l.content || "",
+          })),
+        }));
 
-        if (dbChapters.length > 0) {
-          // Map database chapters to component format
-          const mappedChapters: Chapter[] = dbChapters.map((ch) => ({
-            id: ch.id,
-            title: ch.title_ar || ch.title,
-            order_index: ch.order_index,
-            content: `<h2>${ch.title_ar || ch.title}</h2>${ch.description ? `<p>${ch.description}</p>` : ""}`,
-            lessons: ch.lessons.map((l) => ({
-              id: l.id,
-              title: l.title_ar || l.title,
-              titleAr: l.title_ar || l.title,
-              content: l.content || "",
-            })),
-          }));
-
-          setChapters(mappedChapters);
-        } else {
-          setChapters([]);
-          setActiveChapter(null);
-          setActiveChapterIndex(0);
-        }
+        setChapters(mappedChapters);
       } else {
         setChapters([]);
         setActiveChapter(null);

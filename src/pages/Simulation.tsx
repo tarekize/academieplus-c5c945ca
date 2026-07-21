@@ -41,6 +41,10 @@ const Simulation = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [previousAttempt, setPreviousAttempt] = useState<{ score: number; total_questions: number } | null>(null);
   const [attemptSaved, setAttemptSaved] = useState(false);
+  // L'examen (et son chrono) ne démarre qu'après l'écran d'introduction —
+  // évite un démarrage à froid où le compte à rebours de 30 min s'enclenche
+  // avant même que l'élève ait vu les règles.
+  const [examStarted, setExamStarted] = useState(false);
 
   useEffect(() => {
     if (subjectId) {
@@ -49,7 +53,7 @@ const Simulation = () => {
   }, [subjectId]);
 
   useEffect(() => {
-    if (!loading && !showResults && timeRemaining > 0) {
+    if (!loading && examStarted && !showResults && timeRemaining > 0) {
       const timer = setInterval(() => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
@@ -61,7 +65,7 @@ const Simulation = () => {
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [loading, showResults, timeRemaining]);
+  }, [loading, examStarted, showResults, timeRemaining]);
 
   const fetchQuestions = async () => {
     try {
@@ -192,6 +196,38 @@ const Simulation = () => {
     );
   }
 
+  if (!examStarted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-secondary/20 to-background">
+        <Card className="max-w-lg w-full p-8 text-center">
+          <CardHeader className="p-0 mb-4">
+            <CardTitle className="text-2xl">{t("simulation.introTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 space-y-5">
+            <p className="text-muted-foreground">{t("simulation.introDesc", { count: questions.length })}</p>
+            <ul className="text-sm space-y-2.5 bg-muted/50 rounded-lg p-4 text-left" dir="auto">
+              <li className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-primary shrink-0" />
+                {t("simulation.introRuleTime")}
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-primary shrink-0" />
+                {t("simulation.introRuleAnswer")}
+              </li>
+              <li className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4 text-primary shrink-0" />
+                {t("simulation.introRuleLeave")}
+              </li>
+            </ul>
+            <Button size="lg" className="w-full" onClick={() => setExamStarted(true)}>
+              {t("simulation.introStart")}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (showResults) {
     const score = answers.filter(a => a.correct).length;
     const percentage = Math.round((score / questions.length) * 100);
@@ -205,7 +241,7 @@ const Simulation = () => {
               <CardTitle className="text-3xl">{t("simulation.resultsTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className={`text-6xl font-bold ${percentage >= 50 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={`text-6xl font-bold ${percentage >= 50 ? 'text-mint' : 'text-coral'}`}>
                 {percentage}%
               </div>
 
@@ -213,7 +249,7 @@ const Simulation = () => {
                 const previousPercentage = Math.round((previousAttempt.score / previousAttempt.total_questions) * 100);
                 const delta = percentage - previousPercentage;
                 return (
-                  <p className={`text-sm font-medium ${delta > 0 ? 'text-green-600' : delta < 0 ? 'text-red-600' : 'text-muted-foreground'}`}>
+                  <p className={`text-sm font-medium ${delta > 0 ? 'text-mint' : delta < 0 ? 'text-coral' : 'text-muted-foreground'}`}>
                     {delta === 0
                       ? t("simulation.vsLastAttemptEqual")
                       : t("simulation.vsLastAttempt", { delta: delta > 0 ? `+${delta}` : delta })}
@@ -222,12 +258,12 @@ const Simulation = () => {
               })()}
 
               <div className="grid grid-cols-2 gap-4 text-center">
-                <div className="p-4 bg-green-500/10 rounded-lg">
-                  <p className="text-2xl font-bold text-green-600">{score}</p>
+                <div className="p-4 bg-mint/10 rounded-lg">
+                  <p className="text-2xl font-bold text-mint">{score}</p>
                   <p className="text-sm text-muted-foreground">{t("simulation.correctAnswers")}</p>
                 </div>
-                <div className="p-4 bg-red-500/10 rounded-lg">
-                  <p className="text-2xl font-bold text-red-600">{questions.length - score}</p>
+                <div className="p-4 bg-coral/10 rounded-lg">
+                  <p className="text-2xl font-bold text-coral">{questions.length - score}</p>
                   <p className="text-sm text-muted-foreground">{t("simulation.wrongAnswers")}</p>
                 </div>
               </div>
@@ -246,6 +282,7 @@ const Simulation = () => {
                   setShowResults(false);
                   setTimeRemaining(30 * 60);
                   setAttemptSaved(false);
+                  setExamStarted(false);
                   fetchQuestions();
                 }}>
                   {t("simulation.restart")}
@@ -274,7 +311,7 @@ const Simulation = () => {
           </Button>
 
           <div className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-lg ${
-            timeRemaining < 300 ? 'bg-red-500/10 text-red-600' : 'bg-muted'
+            timeRemaining < 300 ? 'bg-coral/10 text-coral' : 'bg-muted'
           }`}>
             <Clock className="h-5 w-5" />
             {formatTime(timeRemaining)}
@@ -307,9 +344,9 @@ const Simulation = () => {
                 let buttonClass = "w-full justify-start text-left p-4 h-auto";
                 if (showResult) {
                   if (isCorrect) {
-                    buttonClass += " bg-green-500/20 border-green-500 text-green-700";
+                    buttonClass += " bg-mint/20 border-mint text-mint";
                   } else if (isSelected && !isCorrect) {
-                    buttonClass += " bg-red-500/20 border-red-500 text-red-700";
+                    buttonClass += " bg-coral/20 border-coral text-coral";
                   }
                 } else if (isSelected) {
                   buttonClass += " border-primary bg-primary/10";
@@ -328,16 +365,27 @@ const Simulation = () => {
                     </span>
                     {option}
                     {showResult && isCorrect && (
-                      <Check className="ml-auto h-5 w-5 text-green-600" />
+                      <Check className="ml-auto h-5 w-5 text-mint" />
                     )}
                     {showResult && isSelected && !isCorrect && (
-                      <X className="ml-auto h-5 w-5 text-red-600" />
+                      <X className="ml-auto h-5 w-5 text-coral" />
                     )}
                   </Button>
                 );
               })}
             </CardContent>
           </Card>
+
+          {showResult && (
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground" dir="auto">
+              <span className="flex gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-bounce" />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-bounce" style={{ animationDelay: '300ms' }} />
+              </span>
+              {t("simulation.movingToNext")}
+            </div>
+          )}
 
           {showResult && (
             <Card className="p-4 bg-muted/50">
