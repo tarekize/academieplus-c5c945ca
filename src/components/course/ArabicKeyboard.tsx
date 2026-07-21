@@ -82,10 +82,10 @@ function clamp(pos: Position, width: number, height: number): Position {
   };
 }
 
-function loadPosition(): Position {
-  if (typeof window === 'undefined') return { top: 110, left: 24 };
+function loadPosition(storageKey: string, defaultPosition?: Position): Position {
+  if (typeof window === 'undefined') return defaultPosition || { top: 110, left: 24 };
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (typeof parsed?.top === 'number' && typeof parsed?.left === 'number') {
@@ -93,12 +93,18 @@ function loadPosition(): Position {
       }
     }
   } catch { /* ignore */ }
+  if (defaultPosition) return clamp(defaultPosition, COLLAPSED_WIDTH_GUESS, COLLAPSED_HEIGHT_GUESS);
   // Par défaut : juste au-dessus de la table des matières (barre latérale droite)
   return clamp({ top: 110, left: window.innerWidth - PANEL_WIDTH_GUESS - 24 }, COLLAPSED_WIDTH_GUESS, COLLAPSED_HEIGHT_GUESS);
 }
 
 interface ArabicKeyboardButtonProps {
   targetRef: MutableRefObject<EditableTarget | null>;
+  /** Clé de stockage distincte pour permettre à plusieurs instances (ex : un
+   * champ de recherche et un formulaire dans une modale ouverte en même temps)
+   * de garder chacune leur propre emplacement mémorisé, sans se superposer. */
+  storageKey?: string;
+  defaultPosition?: Position;
 }
 
 /**
@@ -109,22 +115,24 @@ interface ArabicKeyboardButtonProps {
  * clavier déployé ne se ferme que via le bouton X ou un clic en dehors —
  * jamais en tapant une lettre.
  */
-export function ArabicKeyboardButton({ targetRef }: ArabicKeyboardButtonProps) {
+export function ArabicKeyboardButton({ targetRef, storageKey = STORAGE_KEY, defaultPosition }: ArabicKeyboardButtonProps) {
   const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState<Position>({ top: 110, left: 24 });
+  const [position, setPosition] = useState<Position>(defaultPosition || { top: 110, left: 24 });
   const [mounted, setMounted] = useState(false);
   const widgetRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{ startX: number; startY: number; startTop: number; startLeft: number; moved: boolean } | null>(null);
 
   useEffect(() => {
-    setPosition(loadPosition());
+    setPosition(loadPosition(storageKey, defaultPosition));
     setMounted(true);
-  }, []);
+    // Ne dépend que de storageKey : le chargement initial ne doit se faire qu'au montage.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storageKey]);
 
   useEffect(() => {
     if (!mounted) return;
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(position)); } catch { /* ignore */ }
-  }, [position, mounted]);
+    try { localStorage.setItem(storageKey, JSON.stringify(position)); } catch { /* ignore */ }
+  }, [position, mounted, storageKey]);
 
   // Ferme le clavier déployé sur un clic en dehors du widget (jamais sur une touche)
   useEffect(() => {
@@ -176,6 +184,7 @@ export function ArabicKeyboardButton({ targetRef }: ArabicKeyboardButtonProps) {
     <div
       ref={widgetRef}
       dir="rtl"
+      data-arabic-keyboard-widget=""
       style={{ position: 'fixed', top: position.top, left: position.left, zIndex: 9999 }}
       className={cn(
         'rounded-xl border bg-popover shadow-2xl',
