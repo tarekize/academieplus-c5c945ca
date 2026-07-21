@@ -5,6 +5,18 @@ import { Loader2 } from 'lucide-react';
 
 type AppRole = 'admin' | 'parent' | 'student' | 'pedago' | 'teacher' | 'etablissement';
 
+// Page d'accueil de chaque rôle, utilisée pour rediriger un utilisateur non autorisé
+// vers SON espace plutôt que vers un /dashboard générique qui peut lui-même lui être
+// interdit (ex: un enseignant ou un établissement y rebondirait indéfiniment).
+const ROLE_HOME: Record<AppRole, string> = {
+  admin: '/dashboard',
+  pedago: '/liste-cours',
+  parent: '/parent-dashboard',
+  teacher: '/teacher-dashboard',
+  etablissement: '/etablissement-dashboard',
+  student: '/cours/math',
+};
+
 interface ProtectedRouteProps {
   children: ReactNode;
   requiredRole?: AppRole;
@@ -20,7 +32,7 @@ export default function ProtectedRoute({
   requireAdmin = false,
   blockAdmin = false
 }: ProtectedRouteProps) {
-  const { user, loading, hasRole, isAdmin } = useAuth();
+  const { user, loading, roles, hasRole, isAdmin } = useAuth();
   const location = useLocation();
   const [authorized, setAuthorized] = useState<boolean | null>(null);
 
@@ -92,9 +104,11 @@ export default function ProtectedRoute({
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // Redirect to dashboard if admin is blocked or not authorized
+  // Redirect to admin/not-authorized user's own space instead of a generic /dashboard
+  // that they may not even be allowed into (e.g. teacher/etablissement roles).
   if (!authorized) {
-    return <Navigate to="/dashboard" replace />;
+    const ownHome = (Object.keys(ROLE_HOME) as AppRole[]).find((r) => roles.includes(r));
+    return <Navigate to={ownHome ? ROLE_HOME[ownHome] : '/dashboard'} replace />;
   }
 
   // Render children if authorized

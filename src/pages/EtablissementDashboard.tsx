@@ -30,8 +30,12 @@ import {
   Copy,
   Check,
   Search,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
+import { getSchoolLevelLabel } from "@/lib/validation";
+import ClassProgressView, { ClassRow } from "@/components/teacher/ClassProgressView";
+import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
 
 interface Teacher {
   id: string;
@@ -45,6 +49,7 @@ interface ClassInfo {
   id: string;
   name: string;
   school_level: string | null;
+  filiere: string | null;
   subject: string | null;
   student_count: number;
 }
@@ -53,10 +58,24 @@ interface StudentRow {
   id: string;
   first_name: string | null;
   last_name: string | null;
+  email: string | null;
+  school_level: string | null;
+  filiere: string | null;
+  avatar_url: string | null;
   class_id: string;
   class_name: string;
   teacher_id: string;
   teacher_name: string;
+}
+
+interface DetailStudent {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  school_level: string | null;
+  filiere: string | null;
+  avatar_url: string | null;
 }
 
 interface Reclamation {
@@ -90,6 +109,9 @@ const EtablissementDashboard = () => {
   const [filterTeacher, setFilterTeacher] = useState<string>("all");
   const [filterClass, setFilterClass] = useState<string>("all");
   const [searchStudent, setSearchStudent] = useState("");
+  const [activeTab, setActiveTab] = useState("teachers");
+  const [selectedClass, setSelectedClass] = useState<ClassRow | null>(null);
+  const [detailStudent, setDetailStudent] = useState<DetailStudent | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -161,11 +183,26 @@ const EtablissementDashboard = () => {
 
       const teacherIds = profiles.map((p: any) => p.id);
 
-      // Get classes for these teachers
-      const { data: classes } = await (supabase as any)
-        .from("classes")
-        .select("id, name, school_level, subject, teacher_id")
-        .in("teacher_id", teacherIds);
+      // classes.establishment_id pointe vers la table "establishments" (liste libre gérée
+      // côté enseignant), pas directement vers profiles.id de ce compte établissement : il
+      // faut d'abord résoudre les lignes "establishments" qui pointent réellement vers ce
+      // compte, sinon on affiche aussi les classes d'un même enseignant liées à un AUTRE
+      // établissement.
+      const { data: estabRows } = await (supabase as any)
+        .from("establishments")
+        .select("id")
+        .eq("establishment_profile_id", user!.id);
+      const estabIds = ((estabRows as any[]) || []).map((e) => e.id);
+
+      let classes: any[] = [];
+      if (estabIds.length > 0) {
+        const { data } = await (supabase as any)
+          .from("classes")
+          .select("id, name, school_level, filiere, subject, teacher_id")
+          .in("teacher_id", teacherIds)
+          .in("establishment_id", estabIds);
+        classes = data || [];
+      }
 
       // Get student counts per class
       const classIds = (classes || []).map((c: any) => c.id);
@@ -189,6 +226,7 @@ const EtablissementDashboard = () => {
             id: c.id,
             name: c.name,
             school_level: c.school_level,
+            filiere: c.filiere,
             subject: c.subject,
             student_count: studentCounts[c.id] || 0,
           })),
@@ -218,7 +256,7 @@ const EtablissementDashboard = () => {
       const studentIds = [...new Set(((csRows as any[]) || []).map((r) => r.student_id))];
       const { data: studentProfiles } = await (supabase as any)
         .from("profiles")
-        .select("id, first_name, last_name")
+        .select("id, first_name, last_name, email, school_level, filiere, avatar_url")
         .in("id", studentIds);
 
       const profileMap = new Map(((studentProfiles as any[]) || []).map((p) => [p.id, p]));
@@ -233,6 +271,10 @@ const EtablissementDashboard = () => {
           id: r.student_id,
           first_name: p?.first_name ?? null,
           last_name: p?.last_name ?? null,
+          email: p?.email ?? null,
+          school_level: p?.school_level ?? null,
+          filiere: p?.filiere ?? null,
+          avatar_url: p?.avatar_url ?? null,
           class_id: r.class_id,
           class_name: meta?.class_name ?? "",
           teacher_id: meta?.teacher_id ?? "",
@@ -335,33 +377,106 @@ const EtablissementDashboard = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen pro-shell">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
-                <GraduationCap className="h-5 w-5 text-white" />
-              </div>
-              <span className="font-semibold hidden sm:block">Espace Établissement</span>
+  const renderHeader = () => (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
+              <GraduationCap className="h-5 w-5 text-white" />
             </div>
-            <div className="flex items-center gap-2">
-              <LanguageToggle />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="gap-2 rounded-xl text-muted-foreground hover:text-foreground"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Déconnexion</span>
-              </Button>
-            </div>
+            <span className="font-semibold hidden sm:block">Espace Établissement</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="gap-2 rounded-xl text-muted-foreground hover:text-foreground"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Déconnexion</span>
+            </Button>
           </div>
         </div>
-      </header>
+      </div>
+    </header>
+  );
+
+  // --- Vue détail élève (lecture seule) : accessible depuis la grille de progression
+  // d'une classe ou depuis le tableau "Élèves" ---
+  if (detailStudent) {
+    return (
+      <div className="min-h-screen pro-shell">
+        {renderHeader()}
+        <main className="container mx-auto px-4 pt-20 pb-12">
+          <div className="max-w-5xl mx-auto space-y-6">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDetailStudent(null)}
+              className="gap-2 -ml-2 rounded-xl text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" /> Retour
+            </Button>
+            <StudentDashboardContent
+              userId={detailStudent.id}
+              profile={{
+                first_name: detailStudent.first_name,
+                last_name: detailStudent.last_name,
+                avatar_url: detailStudent.avatar_url,
+                school_level: detailStudent.school_level,
+                filiere: detailStudent.filiere,
+                email: detailStudent.email,
+              }}
+              parentView
+              hideActions
+            />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // --- Vue détail classe (lecture seule) : progression uniquement, pas de gestion
+  // d'exercices/rappels (réservée à l'enseignant) ---
+  if (selectedClass) {
+    return (
+      <div className="min-h-screen pro-shell">
+        {renderHeader()}
+        <main className="container mx-auto px-4 pt-20 pb-12">
+          <div className="max-w-5xl mx-auto space-y-6">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedClass(null)}
+              className="gap-2 -ml-2 rounded-xl text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" /> Retour
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold">{selectedClass.name}</h1>
+              <p className="text-muted-foreground">
+                {getSchoolLevelLabel(selectedClass.school_level || "")}
+                {selectedClass.filiere ? ` · ${selectedClass.filiere}` : ""}
+              </p>
+            </div>
+            <ClassProgressView
+              key={selectedClass.id}
+              classRow={selectedClass}
+              onOpenStudentDetail={(s) => setDetailStudent(s as DetailStudent)}
+              readOnly
+            />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen pro-shell">
+      {renderHeader()}
 
       <main className="container mx-auto px-4 pt-20 pb-12">
         <div className="max-w-5xl mx-auto space-y-6">
@@ -459,7 +574,7 @@ const EtablissementDashboard = () => {
           </div>
 
           {/* Tabs */}
-          <Tabs defaultValue="teachers">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="rounded-xl">
               <TabsTrigger value="teachers" className="rounded-lg">Enseignants & Classes</TabsTrigger>
               <TabsTrigger value="eleves" className="rounded-lg">Élèves</TabsTrigger>
@@ -519,7 +634,19 @@ const EtablissementDashboard = () => {
                           ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               {teacher.classes.map((cls) => (
-                                <div key={cls.id} className="bg-card rounded-xl border border-border/50 p-3">
+                                <button
+                                  key={cls.id}
+                                  onClick={() =>
+                                    setSelectedClass({
+                                      id: cls.id,
+                                      name: cls.name,
+                                      school_level: cls.school_level,
+                                      filiere: cls.filiere,
+                                      subject: cls.subject || "math",
+                                    })
+                                  }
+                                  className="text-left bg-card rounded-xl border border-border/50 p-3 hover:border-primary/50 hover:shadow-sm transition-all"
+                                >
                                   <div className="flex items-start justify-between gap-2 mb-1">
                                     <p className="font-medium text-sm">{cls.name}</p>
                                     <Badge variant="outline" className="text-xs whitespace-nowrap">
@@ -534,7 +661,7 @@ const EtablissementDashboard = () => {
                                       <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{cls.subject}</span>
                                     )}
                                   </div>
-                                </div>
+                                </button>
                               ))}
                             </div>
                           )}
@@ -620,7 +747,21 @@ const EtablissementDashboard = () => {
                       </TableHeader>
                       <TableBody>
                         {filtered.map((s) => (
-                          <TableRow key={`${s.id}-${s.class_id}`}>
+                          <TableRow
+                            key={`${s.id}-${s.class_id}`}
+                            className="cursor-pointer hover:bg-muted/40"
+                            onClick={() =>
+                              setDetailStudent({
+                                id: s.id,
+                                first_name: s.first_name,
+                                last_name: s.last_name,
+                                email: s.email,
+                                school_level: s.school_level,
+                                filiere: s.filiere,
+                                avatar_url: s.avatar_url,
+                              })
+                            }
+                          >
                             <TableCell className="font-medium">
                               {[s.first_name, s.last_name].filter(Boolean).join(" ") || "Élève"}
                             </TableCell>

@@ -48,9 +48,10 @@ interface CreateClassDialogProps {
   teacherId: string;
   establishmentId?: string | null;
   onCreated: () => void;
+  disabled?: boolean;
 }
 
-export default function CreateClassDialog({ teacherId, establishmentId, onCreated }: CreateClassDialogProps) {
+export default function CreateClassDialog({ teacherId, establishmentId, onCreated, disabled }: CreateClassDialogProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [schoolLevel, setSchoolLevel] = useState("");
@@ -86,7 +87,7 @@ export default function CreateClassDialog({ teacherId, establishmentId, onCreate
         school_level: schoolLevel as any,
         filiere: needsFiliere ? filiere : null,
         subject: "math",
-        establishment_id: establishmentId ?? null,
+        establishment_id: establishmentId || null,
       } as any);
       if (error) throw error;
       reset();
@@ -100,9 +101,13 @@ export default function CreateClassDialog({ teacherId, establishmentId, onCreate
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
+    <Dialog open={open && !disabled} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       <DialogTrigger asChild>
-        <Button className="gap-2 rounded-xl">
+        <Button
+          className="gap-2 rounded-xl"
+          disabled={disabled}
+          title={disabled ? "Ajoutez d'abord un établissement pour créer une classe." : undefined}
+        >
           <Plus className="h-4 w-4" /> Ajouter une classe
         </Button>
       </DialogTrigger>

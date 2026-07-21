@@ -205,11 +205,37 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
 
   const handleDeleteEstablishment = async (id: string) => {
     try {
+      const target = establishments.find((e) => e.id === id);
+
+      // Les classes rattachées ne doivent pas juste perdre leur establishment_id (SET NULL
+      // par défaut) : elles doivent disparaître avec l'établissement, et class_students en
+      // cascade avec elles (FK ON DELETE CASCADE), pour que les élèves n'aient plus ce prof.
+      const { error: classesError } = await supabase
+        .from("classes")
+        .delete()
+        .eq("teacher_id", teacherId)
+        .eq("establishment_id", id);
+      if (classesError) throw classesError;
+
+      // Casse le lien réel côté compte établissement (table lue par son propre tableau de
+      // bord) : sans ça, le prochain fetchEstablishments() recrée cette ligne via
+      // get_my_primary_establishment() et l'établissement continue de voir ce prof.
+      if (target?.establishment_profile_id) {
+        const { error: linkError } = await supabase
+          .from("teacher_establishments" as any)
+          .delete()
+          .eq("teacher_id", teacherId)
+          .eq("establishment_id", target.establishment_profile_id);
+        if (linkError) throw linkError;
+      }
+
       const { error } = await supabase.from("establishments" as any).delete().eq("id", id);
       if (error) throw error;
+
       const remaining = establishments.filter((e) => e.id !== id);
       setEstablishments(remaining);
       if (activeEstab === id) setActiveEstab(remaining[0]?.id ?? "");
+      fetchClasses();
       toast.success("Établissement supprimé");
     } catch {
       toast.error("Impossible de supprimer l'établissement");
@@ -379,7 +405,12 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
         description="Gérez vos classes et suivez la progression de vos élèves."
         onBack={onBack}
         action={!isActiveLocked && (
-          <CreateClassDialog teacherId={teacherId} establishmentId={activeEstab} onCreated={fetchClasses} />
+          <CreateClassDialog
+            teacherId={teacherId}
+            establishmentId={activeEstab}
+            onCreated={fetchClasses}
+            disabled={establishments.length === 0}
+          />
         )}
       />
 

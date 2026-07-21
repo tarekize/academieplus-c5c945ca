@@ -92,9 +92,10 @@ function fullName(p: StudentProfile): string {
 interface ClassProgressViewProps {
   classRow: ClassRow;
   onOpenStudentDetail: (student: StudentProfile) => void;
+  readOnly?: boolean;
 }
 
-export default function ClassProgressView({ classRow, onOpenStudentDetail }: ClassProgressViewProps) {
+export default function ClassProgressView({ classRow, onOpenStudentDetail, readOnly }: ClassProgressViewProps) {
   const [loading, setLoading] = useState(true);
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
@@ -399,14 +400,16 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail }: Cla
                               >
                                 Voir en détail <ChevronRight className="h-4 w-4" />
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeStudent(s.linkId)}
-                                className="text-destructive h-7 px-2"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              {!readOnly && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeStudent(s.linkId)}
+                                  className="text-destructive h-7 px-2"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </td>

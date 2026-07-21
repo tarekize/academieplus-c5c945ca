@@ -99,6 +99,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRoles([]);
         setLoading(false);
       } else if (session?.user && (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION' || _event === 'USER_UPDATED' || _event === 'PASSWORD_RECOVERY')) {
+        // `loading` peut déjà être à false (ex: session initiale nulle sur /auth) au moment
+        // où ce SIGNED_IN arrive : sans ce setLoading(true) synchrone, un ProtectedRoute déjà
+        // monté sur la route de destination lirait le cache `roles` encore vide et rejetterait
+        // l'utilisateur vers /dashboard avant même que fetchRoles() n'ait eu le temps de répondre.
+        setLoading(true);
         fetchRoles(session.user.id).then((r) => {
           setRoles(r);
           setLoading(false);
