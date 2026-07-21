@@ -8,7 +8,7 @@ import { ArrowLeft, Trash2, Sparkles, Loader2, Send, Undo2, FileCode, PenLine, H
 import { useToast } from '@/hooks/use-toast';
 import InlineLessonEditor from '@/components/course/InlineLessonEditor';
 import LessonSourceEditor from '@/components/course/LessonSourceEditor';
-import { ArabicKeyboardButton, useArabicKeyboardTarget } from '@/components/course/ArabicKeyboard';
+import { useArabicKeyboardField } from '@/components/course/ArabicKeyboard';
 import { TableOfContents } from '@/components/course/TableOfContents';
 import { injectHeaderIds } from '@/lib/toc-utils';
 import { LessonEditorActivities } from '@/components/course/LessonEditorActivities';
@@ -60,7 +60,7 @@ export default function LessonEditor() {
   const [generating, setGenerating] = useState(false);
   const [isActivityActive, setActivityActive] = useState(false);
   const [isAIPanelOpen, setIsAIPanelOpen] = useState(false);
-  const { targetRef: keyboardTarget, bindTarget } = useArabicKeyboardTarget();
+  const { onFocus: onKeyboardFocus, onBlur: onKeyboardBlur } = useArabicKeyboardField();
   const [currentUserName, setCurrentUserName] = useState('');
   const [versions, setVersions] = useState<LessonVersion[]>([]);
   const [versionsLoading, setVersionsLoading] = useState(false);
@@ -306,7 +306,6 @@ export default function LessonEditor() {
               {canManage && (
                 <>
                   <div className="flex items-center gap-2 mb-6 flex-wrap">
-                    <ArabicKeyboardButton targetRef={keyboardTarget} />
                     <Button variant="outline" onClick={openVersionsList}>
                       <History className="h-4 w-4 mr-2" />
                       الإصدارات السابقة
@@ -387,7 +386,8 @@ export default function LessonEditor() {
                         content={content}
                         onChange={(html) => { setContent(html); setIsDirty(true); }}
                         resetKey={`${lesson.id}-${contentVersion}`}
-                        onFocusTarget={bindTarget}
+                        onFocusTarget={onKeyboardFocus}
+                        onBlurTarget={onKeyboardBlur}
                       />
                     )
                   ) : content ? (

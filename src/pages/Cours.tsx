@@ -24,7 +24,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Capacitor } from "@capacitor/core";
 import { SUBJECTS } from "@/lib/subjects";
-import { ArabicKeyboardButton, useArabicKeyboardTarget } from "@/components/course/ArabicKeyboard";
+import { useArabicKeyboardField } from "@/components/course/ArabicKeyboard";
 
 // Static subject data dérivée du catalogue partagé (src/lib/subjects.ts)
 const staticSubjects: Record<string, { id: string; name: string; icon: string }> =
@@ -97,7 +97,7 @@ const Cours = () => {
   const [canManage, setCanManage] = useState(false);
   const [filiereId, setFiliereId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const { targetRef: searchKeyboardTarget, bindTarget: bindSearchKeyboardTarget } = useArabicKeyboardTarget();
+  const { onFocus: onSearchKeyboardFocus, onBlur: onSearchKeyboardBlur } = useArabicKeyboardField();
   const [initialLessonId, setInitialLessonId] = useState<string | null>(null);
   const [dbQuizzes, setDbQuizzes] = useState<DBQuizQuestion[]>([]);
   const [dbExercises, setDbExercises] = useState<DBExercise[]>([]);
@@ -553,21 +553,15 @@ const Cours = () => {
                   </Button>
                 </div>
               </div>
-              <div className="relative flex items-center gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder={t("cours.searchPlaceholder")}
-                    className="pl-9 rounded-xl h-11"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={(e) => bindSearchKeyboardTarget(e.currentTarget)}
-                  />
-                </div>
-                <ArabicKeyboardButton
-                  targetRef={searchKeyboardTarget}
-                  storageKey="academieplus.arabicKeyboardPosition.search"
-                  defaultPosition={{ top: 110, left: 24 }}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder={t("cours.searchPlaceholder")}
+                  className="pl-9 rounded-xl h-11"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={(e) => onSearchKeyboardFocus(e.currentTarget)}
+                  onBlur={onSearchKeyboardBlur}
                 />
               </div>
             </motion.div>

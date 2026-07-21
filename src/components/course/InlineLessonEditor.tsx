@@ -19,6 +19,8 @@ interface InlineLessonEditorProps {
   resetKey: string | number;
   /** Appelé quand la zone éditable reçoit le focus (ex: pour cibler le clavier arabe virtuel). */
   onFocusTarget?: (el: HTMLDivElement) => void;
+  /** Appelé quand la zone éditable perd le focus (ex: pour masquer le clavier arabe virtuel). */
+  onBlurTarget?: () => void;
 }
 
 const isHtmlContent = (s: string) => /<\s*(html|body|head|!doctype|div|section|article|main|h[1-6]|p)\b/i.test((s || '').trim());
@@ -34,12 +36,14 @@ function InlineLessonEditorInner({
   placeholder,
   className,
   onFocusTarget,
+  onBlurTarget,
 }: {
   initialContent: string;
   onChange: (html: string) => void;
   placeholder?: string;
   className?: string;
   onFocusTarget?: (el: HTMLDivElement) => void;
+  onBlurTarget?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [isEmpty, setIsEmpty] = useState(!initialContent?.trim());
@@ -56,7 +60,8 @@ function InlineLessonEditorInner({
     const raw = ref.current?.innerHTML || '';
     setIsEmpty(!ref.current?.textContent?.trim());
     onChange(sanitizeLessonHtml(raw));
-  }, [onChange]);
+    onBlurTarget?.();
+  }, [onChange, onBlurTarget]);
 
   const handleInput = useCallback(() => {
     setIsEmpty(!ref.current?.textContent?.trim());
@@ -111,7 +116,7 @@ function InlineLessonEditorInner({
  * trop fragile à modifier en place) ; elles s'affichent en LaTeX rendu
  * uniquement côté élève.
  */
-export default function InlineLessonEditor({ content, onChange, placeholder, className, resetKey, onFocusTarget }: InlineLessonEditorProps) {
+export default function InlineLessonEditor({ content, onChange, placeholder, className, resetKey, onFocusTarget, onBlurTarget }: InlineLessonEditorProps) {
   return (
     <InlineLessonEditorInner
       key={resetKey}
@@ -120,6 +125,7 @@ export default function InlineLessonEditor({ content, onChange, placeholder, cla
       placeholder={placeholder}
       className={className}
       onFocusTarget={onFocusTarget}
+      onBlurTarget={onBlurTarget}
     />
   );
 }

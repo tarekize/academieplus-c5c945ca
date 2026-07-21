@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { ArabicKeyboardButton, useArabicKeyboardTarget } from "@/components/course/ArabicKeyboard";
+import { useArabicKeyboardField } from "@/components/course/ArabicKeyboard";
 
 interface PedagoChapterFormProps {
   schoolLevel: string;
@@ -40,7 +40,7 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
   const [loading, setLoading] = useState(false);
   const [titleAr, setTitleAr] = useState(chapter?.title_ar || chapter?.title || "");
   const [description, setDescription] = useState(chapter?.description || "");
-  const { targetRef: keyboardTarget, bindTarget } = useArabicKeyboardTarget();
+  const { onFocus: onKeyboardFocus, onBlur: onKeyboardBlur } = useArabicKeyboardField();
 
   const isEdit = !!chapter;
 
@@ -125,14 +125,14 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
             {isEdit ? "Modifiez les informations du chapitre." : "Ajoutez un nouveau chapitre au programme."}
           </DialogDescription>
         </DialogHeader>
-        <ArabicKeyboardButton targetRef={keyboardTarget} />
         <div className="space-y-4 py-4">
           <div>
             <label className="text-sm font-medium mb-1 block">العنوان *</label>
             <Input
               value={titleAr}
               onChange={(e) => setTitleAr(e.target.value)}
-              onFocus={(e) => bindTarget(e.currentTarget)}
+              onFocus={(e) => onKeyboardFocus(e.currentTarget)}
+              onBlur={onKeyboardBlur}
               placeholder="العنوان بالعربية"
               dir="rtl"
             />
@@ -142,7 +142,8 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              onFocus={(e) => bindTarget(e.currentTarget)}
+              onFocus={(e) => onKeyboardFocus(e.currentTarget)}
+              onBlur={onKeyboardBlur}
               placeholder="Description du chapitre..."
             />
           </div>
@@ -213,7 +214,7 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [titleAr, setTitleAr] = useState(lesson?.title_ar || lesson?.title || "");
-  const { targetRef: keyboardTarget, bindTarget } = useArabicKeyboardTarget();
+  const { onFocus: onKeyboardFocus, onBlur: onKeyboardBlur } = useArabicKeyboardField();
 
   const isEdit = !!lesson;
 
@@ -281,14 +282,14 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
         <DialogHeader>
           <DialogTitle>{isEdit ? "Modifier la leçon" : "Nouvelle leçon"}</DialogTitle>
         </DialogHeader>
-        <ArabicKeyboardButton targetRef={keyboardTarget} />
         <div className="space-y-4 py-4">
           <div>
             <label className="text-sm font-medium mb-1 block">العنوان *</label>
             <Input
               value={titleAr}
               onChange={(e) => setTitleAr(e.target.value)}
-              onFocus={(e) => bindTarget(e.currentTarget)}
+              onFocus={(e) => onKeyboardFocus(e.currentTarget)}
+              onBlur={onKeyboardBlur}
               placeholder="العنوان بالعربية"
               dir="rtl"
             />

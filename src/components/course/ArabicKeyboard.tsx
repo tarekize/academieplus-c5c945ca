@@ -1,4 +1,7 @@
-import { useRef, useState, useCallback, useEffect, type MutableRefObject } from 'react';
+import {
+  createContext, useContext, useRef, useState, useCallback, useEffect,
+  type MutableRefObject, type ReactNode,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Keyboard, Delete, CornerDownLeft, X, GripHorizontal } from 'lucide-react';
@@ -20,6 +23,11 @@ const COLLAPSED_HEIGHT_GUESS = 40;
 const PANEL_WIDTH_GUESS = 320;
 const PANEL_HEIGHT_GUESS = 300;
 const DRAG_THRESHOLD = 4;
+// Laisse le temps à un clic sur le clavier lui-même de s'exécuter avant de le
+// masquer : le champ ne perd jamais réellement le focus en cliquant dessus
+// (mousedown y est intercepté plus bas), donc ce délai ne se déclenche que
+// pour un vrai clic ailleurs sur la page.
+const HIDE_DELAY_MS = 150;
 
 function isTextField(el: EditableTarget): el is HTMLInputElement | HTMLTextAreaElement {
   return el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
@@ -58,15 +66,6 @@ function deleteBeforeCursor(el: EditableTarget) {
   }
 }
 
-/** Partage la référence du champ actuellement ciblé par le clavier virtuel arabe. */
-export function useArabicKeyboardTarget() {
-  const ref = useRef<EditableTarget | null>(null);
-  const bindTarget = useCallback((el: EditableTarget | null) => {
-    if (el) ref.current = el;
-  }, []);
-  return { targetRef: ref, bindTarget };
-}
-
 interface Position {
   top: number;
   left: number;
@@ -82,10 +81,10 @@ function clamp(pos: Position, width: number, height: number): Position {
   };
 }
 
-function loadPosition(storageKey: string, defaultPosition?: Position): Position {
-  if (typeof window === 'undefined') return defaultPosition || { top: 110, left: 24 };
+function loadPosition(): Position {
+  if (typeof window === 'undefined') return { top: 110, left: 24 };
   try {
-    const raw = localStorage.getItem(storageKey);
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (typeof parsed?.top === 'number' && typeof parsed?.left === 'number') {
@@ -93,18 +92,64 @@ function loadPosition(storageKey: string, defaultPosition?: Position): Position 
       }
     }
   } catch { /* ignore */ }
-  if (defaultPosition) return clamp(defaultPosition, COLLAPSED_WIDTH_GUESS, COLLAPSED_HEIGHT_GUESS);
   // Par défaut : juste au-dessus de la table des matières (barre latérale droite)
   return clamp({ top: 110, left: window.innerWidth - PANEL_WIDTH_GUESS - 24 }, COLLAPSED_WIDTH_GUESS, COLLAPSED_HEIGHT_GUESS);
 }
 
-interface ArabicKeyboardButtonProps {
+interface ArabicKeyboardContextValue {
+  focusField: (el: EditableTarget) => void;
+  blurField: () => void;
+}
+
+const ArabicKeyboardContext = createContext<ArabicKeyboardContextValue | null>(null);
+
+/**
+ * À utiliser sur n'importe quel champ texte arabe (input, textarea, zone
+ * contentEditable) pour l'enregistrer auprès du clavier virtuel global. Le
+ * bouton/panneau ne s'affiche que pendant que ce champ (ou un autre champ
+ * enregistré ailleurs sur la page) a le focus — jamais en permanence.
+ */
+export function useArabicKeyboardField() {
+  const ctx = useContext(ArabicKeyboardContext);
+  const onFocus = useCallback((el: EditableTarget) => ctx?.focusField(el), [ctx]);
+  const onBlur = useCallback(() => ctx?.blurField(), [ctx]);
+  return { onFocus, onBlur };
+}
+
+/**
+ * Fournisseur unique du clavier arabe virtuel, monté une seule fois près de
+ * la racine de l'app (voir App.tsx). Un seul widget est jamais rendu à la
+ * fois, quel que soit le nombre de champs enregistrés via
+ * useArabicKeyboardField() sur la page (barre de recherche, modale d'ajout
+ * de chapitre/leçon, éditeur de leçon...), ce qui évite les doublons quand
+ * plusieurs champs coexistent (ex : une modale ouverte par-dessus une page
+ * qui a elle-même un champ arabe).
+ */
+export function ArabicKeyboardProvider({ children }: { children: ReactNode }) {
+  const targetRef = useRef<EditableTarget | null>(null);
+  const [visible, setVisible] = useState(false);
+  const hideTimeout = useRef<ReturnType<typeof setTimeout>>();
+
+  const focusField = useCallback((el: EditableTarget) => {
+    clearTimeout(hideTimeout.current);
+    targetRef.current = el;
+    setVisible(true);
+  }, []);
+
+  const blurField = useCallback(() => {
+    hideTimeout.current = setTimeout(() => setVisible(false), HIDE_DELAY_MS);
+  }, []);
+
+  return (
+    <ArabicKeyboardContext.Provider value={{ focusField, blurField }}>
+      {children}
+      {visible && <ArabicKeyboardWidget targetRef={targetRef} />}
+    </ArabicKeyboardContext.Provider>
+  );
+}
+
+interface ArabicKeyboardWidgetProps {
   targetRef: MutableRefObject<EditableTarget | null>;
-  /** Clé de stockage distincte pour permettre à plusieurs instances (ex : un
-   * champ de recherche et un formulaire dans une modale ouverte en même temps)
-   * de garder chacune leur propre emplacement mémorisé, sans se superposer. */
-  storageKey?: string;
-  defaultPosition?: Position;
 }
 
 /**
@@ -112,29 +157,28 @@ interface ArabicKeyboardButtonProps {
  * flottante (position fixe) qui reste visible quel que soit le défilement
  * de la page, positionnée par défaut au-dessus de la table des matières.
  * Le pédagogue peut la faire glisser où il veut (position mémorisée), et le
- * clavier déployé ne se ferme que via le bouton X ou un clic en dehors —
- * jamais en tapant une lettre.
+ * panneau déployé ne se referme (vers la pastille) que via le bouton X ou un
+ * clic en dehors — jamais en tapant une lettre. Le widget entier disparaît
+ * dès que le champ associé perd le focus (voir ArabicKeyboardProvider).
  */
-export function ArabicKeyboardButton({ targetRef, storageKey = STORAGE_KEY, defaultPosition }: ArabicKeyboardButtonProps) {
+function ArabicKeyboardWidget({ targetRef }: ArabicKeyboardWidgetProps) {
   const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState<Position>(defaultPosition || { top: 110, left: 24 });
+  const [position, setPosition] = useState<Position>({ top: 110, left: 24 });
   const [mounted, setMounted] = useState(false);
   const widgetRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{ startX: number; startY: number; startTop: number; startLeft: number; moved: boolean } | null>(null);
 
   useEffect(() => {
-    setPosition(loadPosition(storageKey, defaultPosition));
+    setPosition(loadPosition());
     setMounted(true);
-    // Ne dépend que de storageKey : le chargement initial ne doit se faire qu'au montage.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storageKey]);
+  }, []);
 
   useEffect(() => {
     if (!mounted) return;
-    try { localStorage.setItem(storageKey, JSON.stringify(position)); } catch { /* ignore */ }
-  }, [position, mounted, storageKey]);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(position)); } catch { /* ignore */ }
+  }, [position, mounted]);
 
-  // Ferme le clavier déployé sur un clic en dehors du widget (jamais sur une touche)
+  // Replie le panneau déployé sur un clic en dehors du widget (jamais sur une touche)
   useEffect(() => {
     if (!open) return;
     const handlePointerDown = (e: PointerEvent) => {
@@ -192,6 +236,11 @@ export function ArabicKeyboardButton({ targetRef, storageKey = STORAGE_KEY, defa
         open && 'w-[320px]',
       )}
       onMouseDown={(e) => e.preventDefault()}
+      // Empêche un clic sur le widget (portalé hors de toute modale Radix,
+      // donc vu comme "en dehors" par son détecteur de clic extérieur) de
+      // remonter jusqu'au document et de fermer une modale ouverte
+      // (ex: "Nouveau chapitre") par-dessus laquelle il flotte.
+      onPointerDown={(e) => e.stopPropagation()}
     >
       <div
         className="flex items-center justify-between gap-2 px-3 py-2 rounded-t-xl bg-muted/60 cursor-move touch-none select-none"

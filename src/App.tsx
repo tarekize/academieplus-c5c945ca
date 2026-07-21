@@ -8,6 +8,7 @@ import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n/config";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ArabicKeyboardProvider } from "@/components/course/ArabicKeyboard";
 import Index from "./pages/Index";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -74,6 +75,7 @@ const App = () => (
         <ErrorBoundary>
         <BrowserRouter>
           <AuthProvider>
+            <ArabicKeyboardProvider>
             <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -146,6 +148,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             </Suspense>
+            </ArabicKeyboardProvider>
           </AuthProvider>
         </BrowserRouter>
         </ErrorBoundary>
