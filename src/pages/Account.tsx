@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -40,52 +39,27 @@ interface StudentSubscription {
 const Account = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, roles, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { hasRole } = useAuth();
-  const [isParent, setIsParent] = useState(false);
-  const [isStudent, setIsStudent] = useState(false);
-  const [isPedago, setIsPedago] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const isParent = roles.includes('parent');
+  const isStudent = roles.includes('student');
+  const isPedago = roles.includes('pedago');
   const [hasClass, setHasClass] = useState(false);
 
   const [subscription, setSubscription] = useState<StudentSubscription | null>(null);
   const [activationCode, setActivationCode] = useState("");
   const [activatingCode, setActivatingCode] = useState(false);
 
+  // La session/les rôles viennent déjà de AuthContext (ProtectedRoute garde
+  // déjà cette route) : seuls le profil, l'abonnement et l'appartenance à une
+  // classe (non exposés par le contexte) restent à charger ici.
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-      setUser(session.user);
-      fetchProfile(session.user.id);
-      hasRole('parent').then(setIsParent);
-      hasRole('student').then(setIsStudent);
-      hasRole('pedago').then(setIsPedago);
-      fetchSubscription(session.user.id);
-      checkClassMembership(session.user.id);
-    });
-
-    const {
-      data: { subscription: authSub },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-      setUser(session.user);
-      fetchProfile(session.user.id);
-      hasRole('parent').then(setIsParent);
-      hasRole('student').then(setIsStudent);
-      hasRole('pedago').then(setIsPedago);
-      fetchSubscription(session.user.id);
-      checkClassMembership(session.user.id);
-    });
-
-    return () => authSub.unsubscribe();
-  }, [navigate, hasRole]);
+    if (!user) return;
+    fetchProfile(user.id);
+    fetchSubscription(user.id);
+    checkClassMembership(user.id);
+  }, [user?.id]);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -102,7 +76,7 @@ const Account = () => {
         description: error.message,
       });
     } finally {
-      setLoading(false);
+      setProfileLoading(false);
     }
   };
 
@@ -204,7 +178,7 @@ const Account = () => {
     }
   };
 
-  if (loading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/10">
         <div className="relative h-14 w-14">

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
 import { Users, GraduationCap, BarChart3, CreditCard, FileText, Cpu } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
 import DashboardTile from "@/components/dashboard/DashboardTile";
 import { cn } from "@/lib/utils";
@@ -24,26 +24,17 @@ interface Profile {
 const Dashboard = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, roles, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
 
+  // La session/les rôles viennent déjà de AuthContext (chargés une seule fois
+  // par session, cf. ProtectedRoute qui garde déjà cette route) : seul le
+  // profil (non exposé par le contexte) reste à charger ici.
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) { navigate('/auth'); return; }
-      setUser(session.user);
-      fetchProfile(session.user.id);
-      fetchUserRole(session.user.id);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) { navigate('/auth'); return; }
-      setUser(session.user);
-      fetchProfile(session.user.id);
-      fetchUserRole(session.user.id);
-    });
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    if (!user) return;
+    fetchProfile(user.id);
+  }, [user?.id]);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -57,21 +48,7 @@ const Dashboard = () => {
     } catch (error: any) {
       toast.error("Erreur", { description: error.message });
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchUserRole = async (userId: string) => {
-    try {
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .limit(1)
-        .maybeSingle();
-      if (data) setUserRole(data.role);
-    } catch (error) {
-      console.error("Error fetching user role:", error);
+      setProfileLoading(false);
     }
   };
 
@@ -81,7 +58,7 @@ const Dashboard = () => {
     return parts.length > 0 ? parts.join(" ") : t("dashboard.user");
   };
 
-  if (loading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -99,8 +76,8 @@ const Dashboard = () => {
   }
 
   const fullName = getFullName(profile);
-  const isAdmin = userRole === 'admin';
-  const isStudent = userRole === 'student';
+  const isAdmin = roles.includes('admin');
+  const isStudent = roles.includes('student');
 
   return (
     <div className={cn("min-h-screen", isStudent ? "student-shell" : "bg-background")}>
@@ -129,7 +106,7 @@ const Dashboard = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {userRole === 'parent' && (
+                {roles.includes('parent') && (
                   <DashboardTile
                     icon={Users}
                     iconBg="bg-blue-500/10"

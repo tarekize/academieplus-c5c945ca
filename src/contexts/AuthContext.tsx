@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  roles: string[];
   signOut: () => Promise<void>;
   hasRole: (role: 'admin' | 'parent' | 'student' | 'pedago' | 'teacher' | 'etablissement') => Promise<boolean>;
   isAdmin: () => Promise<boolean>;
@@ -203,6 +204,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     session,
     loading,
+    roles,
     signOut,
     hasRole,
     isAdmin,

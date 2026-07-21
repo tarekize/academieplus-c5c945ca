@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   GraduationCap,
@@ -68,12 +68,12 @@ const ListeCours = () => {
   const subjectsList: Subject[] = staticSubjects.map((s) => (s.id === "math" ? { ...s, name: t("listeCours.math") } : s));
   const levelsList: SchoolLevel[] = schoolLevels.map((l) => ({ ...l, name: t(`app.schoolLevels.${l.id}`) }));
   const [searchParams, setSearchParams] = useSearchParams();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, roles, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isPedago, setIsPedago] = useState(false);
+  const isAdmin = roles.includes("admin");
+  const isPedago = roles.includes("pedago");
   const [selectedLevel, setSelectedLevel] = useState<string | null>(searchParams.get("niveau"));
   const [filieres, setFilieres] = useState<{ code: string; name: string; name_ar: string | null }[]>([]);
   const [loadingFilieres, setLoadingFilieres] = useState(false);
@@ -82,65 +82,30 @@ const ListeCours = () => {
   const [subjectsLoaded, setSubjectsLoaded] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(searchParams.get("matiere"));
 
+  // La session/les rôles viennent déjà de AuthContext (ProtectedRoute garde
+  // déjà cette route) : seuls le profil et les matières du pédago (non
+  // exposés par le contexte) restent à charger ici.
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-      setUser(session.user);
-      fetchProfileAndRole(session.user.id);
-    });
+    if (!user) return;
+    fetchProfileAndSubjects(user.id);
+  }, [user?.id, isAdmin, isPedago]);
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-      setUser(session.user);
-      fetchProfileAndRole(session.user.id);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const fetchProfileAndRole = async (userId: string) => {
+  const fetchProfileAndSubjects = async (userId: string) => {
     try {
-      // Fetch profile and roles in parallel
-      const [profileResult, adminResult, pedagoResult] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("id, first_name, last_name, avatar_url, school_level, email")
-          .eq("id", userId)
-          .single(),
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", userId)
-          .eq("role", "admin")
-          .maybeSingle(),
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", userId)
-          .eq("role", "pedago")
-          .maybeSingle(),
-      ]);
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, avatar_url, school_level, email")
+        .eq("id", userId)
+        .single();
 
-      if (profileResult.error) throw profileResult.error;
-      setProfile(profileResult.data);
-      const admin = !!adminResult.data;
-      const pedago = !!pedagoResult.data;
-      setIsAdmin(admin);
-      setIsPedago(pedago);
+      if (profileError) throw profileError;
+      setProfile(profileData);
 
-      if (admin) {
+      if (isAdmin) {
         // L'admin gère toutes les matières, pas besoin de requête.
         setAvailableSubjects(SUBJECTS);
         setSubjectsLoaded(true);
-      } else if (pedago) {
+      } else if (isPedago) {
         setLoadingSubjects(true);
         const { data, error } = await supabase
           .from("pedago_subjects" as any)
@@ -163,7 +128,7 @@ const ListeCours = () => {
         description: error.message,
       });
     } finally {
-      setLoading(false);
+      setProfileLoading(false);
     }
   };
 
@@ -250,12 +215,12 @@ const ListeCours = () => {
 
   // Auto-redirect students directly to math course (only subject available)
   useEffect(() => {
-    if (!loading && profile && !isAdmin && !isPedago) {
+    if (!authLoading && !profileLoading && profile && !isAdmin && !isPedago) {
       navigate("/cours/math", { replace: true });
     }
-  }, [loading, profile, isAdmin, isPedago, navigate]);
+  }, [authLoading, profileLoading, profile, isAdmin, isPedago, navigate]);
 
-  if (loading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
