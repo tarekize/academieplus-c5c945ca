@@ -189,6 +189,26 @@ function ArabicKeyboardWidget({ targetRef }: ArabicKeyboardWidgetProps) {
     return () => document.removeEventListener('pointerdown', handlePointerDown, true);
   }, [open]);
 
+  // Empêche tout clic sur le widget d'atteindre le document : Radix Dialog
+  // détecte les clics "en dehors" via un listener natif posé sur `document`
+  // (phase de bulles). Le widget est monté dans un portail à part
+  // (document.body), donc un `stopPropagation()` React (qui suit l'arbre
+  // React des portails, pas forcément l'arbre DOM réel dans tous les cas)
+  // n'est pas fiable ici — on pose un vrai listener DOM natif, en phase de
+  // capture, directement sur le nœud du widget, pour être certain d'arrêter
+  // l'événement avant qu'il ne redescende/remonte jusqu'à `document`.
+  useEffect(() => {
+    const node = widgetRef.current;
+    if (!node) return;
+    const stop = (e: Event) => e.stopPropagation();
+    node.addEventListener('pointerdown', stop, true);
+    node.addEventListener('mousedown', stop, true);
+    return () => {
+      node.removeEventListener('pointerdown', stop, true);
+      node.removeEventListener('mousedown', stop, true);
+    };
+  }, [mounted]);
+
   const withTarget = (fn: (el: EditableTarget) => void) => () => {
     const el = targetRef.current;
     if (el) fn(el);
