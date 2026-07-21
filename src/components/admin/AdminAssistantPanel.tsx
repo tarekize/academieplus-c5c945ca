@@ -3,7 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
     Send, Loader2, Sparkles, Wand2, X, Copy, CheckCheck,
-    ArrowLeft, Wand, PencilLine, MessageCircle, ListTree,
+    ArrowLeft, Wand, PencilLine, MessageCircle, ListTree, Paperclip, FileText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -21,6 +21,38 @@ interface Message {
     content: string;
 }
 
+// Forme des messages envoyés à l'IA (Gemini) : soit du texte simple, soit un
+// tableau de "parts" mixant texte et fichier joint (image ou PDF, encodés en
+// data URL) — même forme que celle déjà consommée par l'edge function
+// lovable-chat (toGeminiParts) pour le chatbot élève.
+type ContentPart = { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } };
+
+interface AttachedDocument {
+    name: string;
+    // 'text' : contenu déjà extrait côté client (Word) ; 'image' | 'pdf' :
+    // fichier transmis tel quel à l'IA (vision/document Gemini natif).
+    kind: 'text' | 'image' | 'pdf';
+    text?: string;
+    dataUrl?: string;
+}
+
+type DocumentMode = 'present-improve' | 'present-replace' | 'absent-generate' | 'absent-exact';
+
+const MAX_DOCUMENT_SIZE = 20 * 1024 * 1024;
+
+/** Extrait le texte brut d'un fichier Word (.docx) via mammoth, chargé à la
+ * demande depuis un CDN ESM — évite d'alourdir le bundle pour un usage
+ * ponctuel déclenché par l'utilisateur. Ne supporte pas l'ancien format .doc
+ * (binaire, pas pris en charge par mammoth). */
+async function extractDocxText(file: File): Promise<string> {
+    const arrayBuffer = await file.arrayBuffer();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mod: any = await import(/* @vite-ignore */ 'https://esm.sh/mammoth@1.12.0');
+    const mammoth = mod.extractRawText ? mod : mod.default;
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return (result?.value || '').trim();
+}
+
 interface AdminAssistantPanelProps {
     lessonId: string;
     currentContent: string;
@@ -31,7 +63,7 @@ interface AdminAssistantPanelProps {
     onClose: () => void;
 }
 
-type Step = 'entry' | 'targeted-choice' | 'guided-structure' | 'guided-concepts' | 'guided-style' | 'chat' | 'preview';
+type Step = 'entry' | 'targeted-choice' | 'guided-structure' | 'guided-concepts' | 'guided-style' | 'chat' | 'preview' | 'document-choice';
 
 type StructureChoice = 'standard' | 'practice' | 'custom';
 type ExampleStyle = 'academic' | 'visual' | 'progressive';
@@ -196,6 +228,11 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
     const [streamingProgress, setStreamingProgress] = useState('');
     const previewScrollRef = useRef<HTMLDivElement>(null);
 
+    // Génération à partir d'un document joint (PDF, Word, image)
+    const [attachedDoc, setAttachedDoc] = useState<AttachedDocument | null>(null);
+    const [docProcessing, setDocProcessing] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const isEmpty = !currentContent || !currentContent.trim();
     const titleLabel = lessonTitle || 'هذا الدرس';
     const levelLabel = schoolLevel || 'هذا المستوى';
@@ -209,6 +246,8 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             setStructureChoice(null);
             setCustomSections('');
             setConcepts({ definition: true, properties: true, methodology: true, exercises: true });
+            setAttachedDoc(null);
+            setDocProcessing(false);
         }
     }, [open]);
 
@@ -222,7 +261,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
 
     // --- Appel générique (streaming SSE) au backend IA ---
     const streamAi = async (
-        apiMessages: { role: string; content: string }[],
+        apiMessages: { role: string; content: string | ContentPart[] }[],
         referenceContent: string,
         wizard: Record<string, unknown> | null,
         onToken: (full: string) => void,
@@ -398,6 +437,103 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
         }
     };
 
+    // --- Document joint (PDF, Word, image) : lecture puis choix du mode ---
+    const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        if (!file) return;
+
+        if (file.size > MAX_DOCUMENT_SIZE) {
+            toast({ title: 'الملف كبير جداً', description: 'الحد الأقصى لحجم الملف هو 20 ميغابايت.', variant: 'destructive' });
+            return;
+        }
+
+        const lowerName = file.name.toLowerCase();
+        const isImage = file.type.startsWith('image/');
+        const isPdf = file.type === 'application/pdf';
+        const isDocx = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || lowerName.endsWith('.docx');
+        const isOldDoc = file.type === 'application/msword' || lowerName.endsWith('.doc');
+
+        if (isOldDoc) {
+            toast({ title: 'صيغة غير مدعومة', description: 'صيغة .doc القديمة غير مدعومة. يرجى تحويل الملف إلى .docx أو PDF.', variant: 'destructive' });
+            return;
+        }
+        if (!isImage && !isPdf && !isDocx) {
+            toast({ title: 'نوع ملف غير مدعوم', description: 'يمكنك إرفاق PDF أو Word (.docx) أو صورة فقط.', variant: 'destructive' });
+            return;
+        }
+
+        setDocProcessing(true);
+        try {
+            if (isDocx) {
+                const text = await extractDocxText(file);
+                if (!text) throw new Error('لم يتم العثور على نص قابل للقراءة في هذا الملف.');
+                setAttachedDoc({ name: file.name, kind: 'text', text });
+            } else {
+                const dataUrl = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = () => reject(new Error('تعذرت قراءة الملف.'));
+                    reader.readAsDataURL(file);
+                });
+                setAttachedDoc({ name: file.name, kind: isPdf ? 'pdf' : 'image', dataUrl });
+            }
+            setStep('document-choice');
+        } catch (error: any) {
+            console.error(error);
+            toast({ title: 'خطأ', description: error.message || 'تعذرت معالجة الملف.', variant: 'destructive' });
+        } finally {
+            setDocProcessing(false);
+        }
+    };
+
+    const DOCUMENT_INSTRUCTIONS: Record<DocumentMode, (fileName: string) => string> = {
+        'present-improve': (fileName) => `لدي مستند مرفق (${fileName}) يحتوي على محتوى إضافي حول درس "${titleLabel}". حسّن وأثرِ المحتوى الحالي للدرس بالاستناد إلى هذا المستند، مع الحفاظ على الأجزاء الجيدة من المحتوى الحالي وإضافة أو تصحيح ما يقترحه المستند. التزم بتنسيق الدرس المعتاد (::: تعريف، ::: مثال، إلخ) وبصيغة LaTeX للرموز الرياضية.`,
+        'present-replace': (fileName) => `لدي مستند مرفق (${fileName}). تجاهل تماماً المحتوى الحالي لدرس "${titleLabel}" وأعد إنشاءه بالاعتماد حصرياً على ما هو موجود في هذا المستند فقط. نظّم المحتوى وفق تنسيق الدرس المعتاد (::: تعريف، ::: مثال، إلخ) وبصيغة LaTeX عند الحاجة، دون إضافة أفكار من عندك غير موجودة في المستند.`,
+        'absent-generate': (fileName) => `لا يحتوي درس "${titleLabel}" على أي محتوى بعد. لدي مستند مرفق (${fileName}) كمصدر أساسي. أنشئ الدرس بالاستناد إلى محتوى هذا المستند، مع إدخال تحسينات تربوية من عندك (لا يجب أن يكون مطابقاً 100% للمستند): أعد الصياغة والترتيب لتحسين الوضوح والتدرج، وأضف أمثلة أو توضيحات إذا لزم الأمر، مع احترام تنسيق الدرس المعتاد (::: تعريف، ::: مثال، إلخ) وصيغة LaTeX.`,
+        'absent-exact': (fileName) => `لا يحتوي درس "${titleLabel}" على أي محتوى بعد. لدي مستند مرفق (${fileName}). انقل محتوى هذا المستند كما هو تماماً دون أي تغيير في المضمون أو الأسلوب أو حذف أو إضافة أي فكرة، فقط أعد تنسيقه ليتوافق مع بنية الدرس المعتادة (::: تعريف، ::: مثال، إلخ) وصيغة LaTeX للرموز الرياضية إن وجدت.`,
+    };
+
+    const runDocumentBasedGeneration = async (mode: DocumentMode) => {
+        if (!attachedDoc) return;
+        setStep('preview');
+        setPreviewLoading(true);
+        setPreviewContent('');
+        setStreamingProgress('');
+
+        const instruction = DOCUMENT_INSTRUCTIONS[mode](attachedDoc.name);
+        setPreviewMessages([{ role: 'user', content: `📎 ${attachedDoc.name}\n\n${instruction}` }]);
+
+        const contentParts: ContentPart[] = attachedDoc.kind === 'text'
+            ? [{ type: 'text', text: `${instruction}\n\n--- محتوى المستند المرفق ---\n${attachedDoc.text}` }]
+            : [
+                { type: 'text', text: instruction },
+                { type: 'image_url', image_url: { url: attachedDoc.dataUrl! } },
+            ];
+
+        try {
+            const full = await streamAi(
+                [{ role: 'user', content: contentParts }],
+                mode === 'present-improve' ? currentContent : '',
+                null,
+                (partial) => setStreamingProgress(partial),
+            );
+            const { finalContent } = resolveAiContent(full, '');
+            setPreviewContent(finalContent || full);
+            setPreviewMessages(prev => [...prev, {
+                role: 'assistant',
+                content: 'إليك النتيجة المستندة إلى الملف المرفق. راجعها قبل الاعتماد.',
+            }]);
+        } catch (error: any) {
+            console.error(error);
+            toast({ title: 'خطأ في الذكاء الاصطناعي', description: error.message || 'حدث خطأ ما', variant: 'destructive' });
+            setStep('document-choice');
+        } finally {
+            setPreviewLoading(false);
+            setStreamingProgress('');
+        }
+    };
+
     // --- Aperçu : affiner la proposition avant validation ---
     const handlePreviewRefine = async (overrideText?: string) => {
         const text = (overrideText ?? previewInput).trim();
@@ -446,6 +582,11 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
         setStep('chat');
         setInput(text);
         setTimeout(() => textareaRef.current?.focus(), 50);
+    };
+
+    const cancelAttachedDocument = () => {
+        setAttachedDoc(null);
+        setStep('entry');
     };
 
     if (!open) return null;
@@ -529,6 +670,72 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                                 </Button>
                             </div>
                         )}
+
+                        <Button
+                            variant="ghost"
+                            className="justify-center gap-2 h-auto py-3 border border-dashed text-muted-foreground"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={docProcessing}
+                        >
+                            {docProcessing ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <Paperclip className="h-4 w-4 shrink-0" />}
+                            <span className="text-center flex-1">
+                                {docProcessing ? 'جارٍ معالجة الملف...' : '📎 أو أرفق ملفاً (PDF، Word، صورة) لاستخدامه كمصدر'}
+                            </span>
+                        </Button>
+                    </div>
+                </ScrollArea>
+            )}
+
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx,image/*"
+                onChange={handleFileSelected}
+                className="hidden"
+            />
+
+            {/* --- Choix du mode d'utilisation du document joint --- */}
+            {step === 'document-choice' && attachedDoc && (
+                <ScrollArea className="flex-1 p-4">
+                    <div className="flex flex-col gap-4" dir="rtl">
+                        <div className="rounded-lg border bg-muted/40 p-3 text-sm flex items-center gap-2">
+                            <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                            <span className="truncate">{attachedDoc.name}</span>
+                        </div>
+
+                        {isEmpty ? (
+                            <>
+                                <p className="text-sm">الدرس فارغ حالياً. ماذا تريد أن تفعل بهذا المستند؟</p>
+                                <div className="flex flex-col gap-2">
+                                    <Button className="justify-start gap-2 h-auto py-3" onClick={() => runDocumentBasedGeneration('absent-generate')}>
+                                        <Wand className="h-4 w-4 shrink-0" />
+                                        <span className="text-right flex-1">🪄 توليد الدرس من هذا المستند مع تحسينات الذكاء الاصطناعي (ليس مطابقاً 100%)</span>
+                                    </Button>
+                                    <Button variant="outline" className="justify-start gap-2 h-auto py-3" onClick={() => runDocumentBasedGeneration('absent-exact')}>
+                                        <ListTree className="h-4 w-4 shrink-0" />
+                                        <span className="text-right flex-1">📋 استرجاع محتوى المستند كما هو تماماً، دون أي تغيير</span>
+                                    </Button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-sm">الدرس يحتوي على محتوى بالفعل. ماذا تريد أن تفعل بهذا المستند؟</p>
+                                <div className="flex flex-col gap-2">
+                                    <Button className="justify-start gap-2 h-auto py-3" onClick={() => runDocumentBasedGeneration('present-improve')}>
+                                        <Sparkles className="h-4 w-4 shrink-0" />
+                                        <span className="text-right flex-1">📈 تحسين المحتوى الحالي بالاستناد إلى هذا المستند</span>
+                                    </Button>
+                                    <Button variant="outline" className="justify-start gap-2 h-auto py-3" onClick={() => runDocumentBasedGeneration('present-replace')}>
+                                        <ListTree className="h-4 w-4 shrink-0" />
+                                        <span className="text-right flex-1">🔄 استبدال كل المحتوى الحالي والاعتماد فقط على هذا المستند</span>
+                                    </Button>
+                                </div>
+                            </>
+                        )}
+
+                        <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={cancelAttachedDocument}>
+                            إلغاء واختيار ملف آخر
+                        </Button>
                     </div>
                 </ScrollArea>
             )}
