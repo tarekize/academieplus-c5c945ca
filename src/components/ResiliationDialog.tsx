@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -46,7 +46,6 @@ const FALLBACK_PRICES: PriceConfig = {
 };
 
 const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) => {
-  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -168,8 +167,7 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
         }
 
         const refundInfo = getFamilyGroupRefund();
-        toast({
-          title: "Resiliation confirmee",
+        toast.success("Resiliation confirmee", {
           description: `Le pack famille a ete resilie (${familySubs.length} codes supprimes). Montant a rembourser : ${refundInfo.refund}DA`,
         });
       } else {
@@ -195,8 +193,7 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
         }
 
         const refundInfo = calculateRefund(selectedSub);
-        toast({
-          title: "Resiliation confirmee",
+        toast.success("Resiliation confirmee", {
           description: `L'abonnement a ete resilie. Montant a rembourser : ${refundInfo.refund}DA`,
         });
       }
@@ -206,10 +203,8 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
       setSelectedSub(null);
       onResiliation?.();
     } catch (error: any) {
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);

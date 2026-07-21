@@ -13,7 +13,7 @@ import {
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList } from "@/components/ui/breadcrumb";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Copy, Check, User as UserIcon, LogOut, GraduationCap, Users, Gift, TrendingUp, Wallet, Link as LinkIcon } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { ReferralShareDialog } from "@/components/ReferralShareDialog";
 
 interface Profile {
@@ -28,7 +28,6 @@ interface Profile {
 
 const Parrainage = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -71,8 +70,7 @@ const Parrainage = () => {
     if (referralCode) {
       navigator.clipboard.writeText(referralUrl);
       setCopied(true);
-      toast({
-        title: "Lien copié !",
+      toast.success("Lien copié !", {
         description: "Le lien de parrainage a été copié dans le presse-papier.",
       });
       setTimeout(() => setCopied(false), 2000);

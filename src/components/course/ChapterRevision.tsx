@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sparkles, BookOpen, Loader2, RefreshCw, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { MarkdownSolution } from "@/components/course/MarkdownSolution";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -84,7 +84,7 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
 
   const generate = async () => {
     if (!chapter?.lessons || chapter.lessons.length === 0) {
-      toast({ title: "لا توجد دروس", description: "هذا الفصل لا يحتوي على أي درس.", variant: "destructive" });
+      toast.error("لا توجد دروس", { description: "هذا الفصل لا يحتوي على أي درس." });
       return;
     }
 
@@ -120,17 +120,17 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
       });
       if (dbError) {
         console.error("Error saving chapter revision to DB:", dbError);
-        toast({ title: "تعذر حفظ بطاقة المراجعة", description: dbError.message, variant: "destructive" });
+        toast.error("تعذر حفظ بطاقة المراجعة", { description: dbError.message });
         return;
       }
 
       setContent(newContent);
       await loadHistory();
 
-      toast({ title: "✅ تم إنشاء بطاقة المراجعة" });
+      toast.success("✅ تم إنشاء بطاقة المراجعة");
 
     } catch (e: unknown) {
-      toast({ title: "خطأ في توليد بطاقة المراجعة", description: e instanceof Error ? e.message : "حاول مرة أخرى", variant: "destructive" });
+      toast.error("خطأ في توليد بطاقة المراجعة", { description: e instanceof Error ? e.message : "حاول مرة أخرى" });
     } finally {
       setLoading(false);
     }

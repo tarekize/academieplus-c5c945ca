@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { computeDelta, applyDelta, computeComposite, applyDecay, hesitationAdjustment, HintUsage } from "@/lib/levelEngine";
 import { getPlacementLevel } from "@/lib/initialLevel";
 
@@ -41,7 +41,6 @@ interface StudentScore {
 
 
 export function useAdaptiveContent(lessonId: string, chapterId: string, userId: string, schoolLevel: string, lessonTitle: string, chapterTitle: string) {
-  const { toast } = useToast();
   const [quizzes, setQuizzes] = useState<QuizItem[]>([]);
   const [exercises, setExercises] = useState<ExerciseItem[]>([]);
   const [revisions, setRevisions] = useState<RevisionItem[]>([]);
@@ -297,14 +296,14 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
         });
       }
 
-      toast({ title: "✅ تم إنشاء المحتوى", description: `5 ${contentType === "quiz" ? "أسئلة" : contentType === "exercise" ? "تمارين" : "بطاقات"} جديدة حسب مستواك (${compositeLevel}/100)` });
+      toast.success("✅ تم إنشاء المحتوى", { description: `5 ${contentType === "quiz" ? "أسئلة" : contentType === "exercise" ? "تمارين" : "بطاقات"} جديدة حسب مستواك (${compositeLevel}/100)` });
     } catch (err) {
       console.error("Generate error:", err);
-      toast({ title: "خطأ", description: err instanceof Error ? err.message : "فشل في إنشاء المحتوى", variant: "destructive" });
+      toast.error("خطأ", { description: err instanceof Error ? err.message : "فشل في إنشاء المحتوى" });
     } finally {
       setLoading(prev => ({ ...prev, [contentType]: false }));
     }
-  }, [lessonId, chapterId, schoolLevel, lessonTitle, chapterTitle, userId, toast, quizzes, exercises, computeCompositeLevel]);
+  }, [lessonId, chapterId, schoolLevel, lessonTitle, chapterTitle, userId, quizzes, exercises, computeCompositeLevel]);
 
   // Record answer + update score. New AI content is generated only from the manual "تجديد" button.
   const recordAnswer = useCallback(async (
@@ -433,7 +432,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
 
       // Notify user that level updated — but DO NOT auto-regenerate.
       // The student must click "تجديد" manually to get a new batch.
-      toast({ title: "✅ تم تحديث مستواك", description: "اضغط على \"تجديد\" للحصول على تمارين جديدة حسب مستواك." });
+      toast.success("✅ تم تحديث مستواك", { description: "اضغط على \"تجديد\" للحصول على تمارين جديدة حسب مستواك." });
 
       // Generate AI personalized comment ONCE per page-load session.
       // Subsequent level recalculations in the same session do NOT trigger a new comment.
@@ -458,7 +457,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     }
 
     return finalScore;
-  }, [userId, lessonId, chapterId, toast, saveLessonComment, computeCompositeLevel]);
+  }, [userId, lessonId, chapterId, saveLessonComment, computeCompositeLevel]);
 
   const updateReadingTime = useCallback(async (seconds: number) => {
     const newScore = { ...scoreRef.current, reading_time_seconds: scoreRef.current.reading_time_seconds + seconds };

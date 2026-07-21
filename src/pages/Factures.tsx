@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, FileText, Receipt, Calendar, CreditCard } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { formatLocaleDate } from "@/lib/formatLocale";
@@ -41,7 +41,6 @@ interface Payment {
 
 const Factures = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -76,7 +75,7 @@ const Factures = () => {
       if (error) throw error;
       setProfile(data);
     } catch (error: any) {
-      toast({ title: t("factures.errorTitle"), description: error.message, variant: "destructive" });
+      toast.error(t("factures.errorTitle"), { description: error.message });
     } finally {
       setLoading(false);
     }
@@ -146,7 +145,7 @@ const Factures = () => {
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      toast({ title: t("factures.errorTitle"), description: t("factures.popupBlocked"), variant: "destructive" });
+      toast.error(t("factures.errorTitle"), { description: t("factures.popupBlocked") });
       return;
     }
 
@@ -222,7 +221,7 @@ const Factures = () => {
       <script>window.onload=function(){window.print()}<\/script>
     </body></html>`);
     printWindow.document.close();
-    toast({ title: t("factures.invoiceReady"), description: t("factures.invoiceReadyDesc", { invoiceNum }) });
+    toast.success(t("factures.invoiceReady"), { description: t("factures.invoiceReadyDesc", { invoiceNum }) });
   };
 
   if (loading) {

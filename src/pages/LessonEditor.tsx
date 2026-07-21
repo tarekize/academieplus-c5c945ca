@@ -5,7 +5,7 @@ import type { User } from '@supabase/supabase-js';
 import { courseService } from '@/services/courseService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Trash2, Sparkles, Loader2, Send, Undo2, FileCode, PenLine, History } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import InlineLessonEditor from '@/components/course/InlineLessonEditor';
 import LessonSourceEditor from '@/components/course/LessonSourceEditor';
 import { useArabicKeyboardField } from '@/components/course/ArabicKeyboard';
@@ -46,7 +46,6 @@ interface LessonVersion {
 export default function LessonEditor() {
   const { lessonId } = useParams<{ lessonId: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
@@ -90,7 +89,7 @@ export default function LessonEditor() {
 
       const data = await courseService.getLessonById(lessonId);
       if (!data) {
-        toast({ title: 'Erreur', description: 'Leçon introuvable', variant: 'destructive' });
+        toast.error('Erreur', { description: 'Leçon introuvable' });
         navigate(-1 as any);
         return;
       }
@@ -138,11 +137,11 @@ export default function LessonEditor() {
       setContentVersion(v => v + 1);
     } catch (err) {
       console.error(err);
-      toast({ title: 'Erreur', description: 'Impossible de charger la leçon', variant: 'destructive' });
+      toast.error('Erreur', { description: 'Impossible de charger la leçon' });
     } finally {
       setLoading(false);
     }
-  }, [lessonId, navigate, toast]);
+  }, [lessonId, navigate]);
 
   useEffect(() => { fetchLesson(); }, [fetchLesson]);
 
@@ -183,13 +182,13 @@ export default function LessonEditor() {
         created_by_name: currentUserName || 'مستخدم',
       });
 
-      toast({ title: 'Publié', description: 'Les modifications ont été envoyées avec succès.' });
+      toast.success('Publié', { description: 'Les modifications ont été envoyées avec succès.' });
       setIsDirty(false);
       // Update local state
       setLesson(prev => prev ? { ...prev, content } : null);
     } catch (err: any) {
       console.error(err);
-      toast({ title: 'Erreur', description: err.message || 'Impossible de publier', variant: 'destructive' });
+      toast.error('Erreur', { description: err.message || 'Impossible de publier' });
     } finally {
       setPublishing(false);
     }
@@ -208,11 +207,11 @@ export default function LessonEditor() {
       setVersions((data as any) || []);
     } catch (err) {
       console.error(err);
-      toast({ title: 'خطأ', description: 'تعذر تحميل سجل الإصدارات.', variant: 'destructive' });
+      toast.error('خطأ', { description: 'تعذر تحميل سجل الإصدارات.' });
     } finally {
       setVersionsLoading(false);
     }
-  }, [lessonId, toast]);
+  }, [lessonId]);
 
   const openVersionsList = () => {
     setVersionsListOpen(true);
@@ -235,7 +234,7 @@ export default function LessonEditor() {
     setContent('');
     setContentVersion(v => v + 1);
     setIsDirty(true);
-    toast({ title: 'Contenu marqué pour suppression (Brouillon)', description: 'Cliquez sur "Envoyer les modifications" pour publier la suppression.' });
+    toast('Contenu marqué pour suppression (Brouillon)', { description: 'Cliquez sur "Envoyer les modifications" pour publier la suppression.' });
   };
 
   if (loading) {

@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Camera, Loader2, Trash2 } from "lucide-react";
 
 interface AvatarUploadProps {
@@ -14,7 +14,6 @@ interface AvatarUploadProps {
 
 export function AvatarUpload({ url, onUpload, onDelete }: AvatarUploadProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
 
   async function uploadAvatar(event: React.ChangeEvent<HTMLInputElement>) {
@@ -68,16 +67,13 @@ export function AvatarUpload({ url, onUpload, onDelete }: AvatarUploadProps) {
       const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(fileName);
 
       onUpload(publicUrl);
-      toast({
-        title: "Succès",
+      toast.success("Succès", {
         description: "Votre photo de profil a été mise à jour.",
       });
     } catch (error: any) {
       console.error("Avatar upload error:", error);
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: error.message || "Impossible de télécharger l'image",
-        variant: "destructive",
       });
     } finally {
       setUploading(false);

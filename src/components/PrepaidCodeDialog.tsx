@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -19,16 +19,13 @@ interface PrepaidCodeDialogProps {
 
 export const PrepaidCodeDialog = ({ open, onOpenChange }: PrepaidCodeDialogProps) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleActivateCode = async () => {
     if (!code.trim()) {
-      toast({
-        title: "Code requis",
+      toast.error("Code requis", {
         description: "Veuillez entrer un code prépayé",
-        variant: "destructive",
       });
       return;
     }
@@ -38,17 +35,14 @@ export const PrepaidCodeDialog = ({ open, onOpenChange }: PrepaidCodeDialogProps
     try {
       // TODO: Implement prepaid code activation when the function exists
       // For now, show a message that this feature is coming soon
-      toast({
-        title: "Fonctionnalité bientôt disponible",
+      toast("Fonctionnalité bientôt disponible", {
         description: "L'activation des codes prépayés sera disponible prochainement.",
       });
       onOpenChange(false);
       setCode("");
     } catch (error: any) {
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: error.message || "Une erreur est survenue lors de l'activation du code",
-        variant: "destructive",
       });
     } finally {
       setLoading(false);

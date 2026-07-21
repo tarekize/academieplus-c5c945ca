@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { videoService, type ReelVideo, type VideoMapping } from "@/services/videoService";
 
 export const VideoLibraryManager = () => {
@@ -32,11 +32,10 @@ export const VideoLibraryManager = () => {
     });
     const [loading, setLoading] = useState(false);
     const [deletingTitle, setDeletingTitle] = useState<string | null>(null);
-    const { toast } = useToast();
 
     const handleAddMapping = async () => {
         if (!formData.lessonTitle.trim() || !formData.mainVideoUrl.trim()) {
-            toast({ description: "Le titre et l'URL sont requis" });
+            toast.error("Le titre et l'URL sont requis");
             return;
         }
 
@@ -61,10 +60,10 @@ export const VideoLibraryManager = () => {
                     mainVideoDuration: "15:00",
                     reelsJson: "",
                 });
-                toast({ description: "Mapping vidéo ajouté avec succès" });
+                toast.success("Mapping vidéo ajouté avec succès");
             }
         } catch (error) {
-            toast({ description: "Erreur lors de l'ajout du mapping" });
+            toast.error("Erreur lors de l'ajout du mapping");
         }
     };
 
@@ -73,7 +72,7 @@ export const VideoLibraryManager = () => {
         try {
             if (await videoService.deleteVideoMapping(title)) {
                 setMappings(JSON.parse(localStorage.getItem("video_mappings") || "{}"));
-                toast({ description: "Mapping supprimé" });
+                toast.success("Mapping supprimé");
             }
         } finally {
             setDeletingTitle(null);

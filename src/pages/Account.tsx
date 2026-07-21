@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { UserCircle, BarChart3, ArrowLeft, GraduationCap, Key, Pause, Play, Clock, FileText, Loader2, AlertCircle, Sparkles, ChevronRight, MessageSquareWarning } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChangePasswordButton } from "@/components/ChangePasswordButton";
 import JoinClassDialog from "@/components/student/JoinClassDialog";
@@ -39,7 +39,6 @@ interface StudentSubscription {
 
 const Account = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -99,10 +98,8 @@ const Account = () => {
       if (error) throw error;
       setProfile(data);
     } catch (error: any) {
-      toast({
-        title: t("account.errorTitle"),
+      toast.error(t("account.errorTitle"), {
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -148,11 +145,11 @@ const Account = () => {
 
     const { error } = await supabase.rpc("pause_my_subscription" as any);
     if (error) {
-      toast({ title: t("account.errorTitle"), description: error.message, variant: "destructive" });
+      toast.error(t("account.errorTitle"), { description: error.message });
       return;
     }
 
-    toast({ title: t("account.subscriptionPaused"), description: t("account.subscriptionPausedDesc") });
+    toast.success(t("account.subscriptionPaused"), { description: t("account.subscriptionPausedDesc") });
     fetchSubscription(user.id);
   };
 
@@ -161,11 +158,11 @@ const Account = () => {
 
     const { error } = await supabase.rpc("resume_my_subscription" as any);
     if (error) {
-      toast({ title: t("account.errorTitle"), description: error.message, variant: "destructive" });
+      toast.error(t("account.errorTitle"), { description: error.message });
       return;
     }
 
-    toast({ title: t("account.subscriptionResumed"), description: t("account.subscriptionResumedDesc") });
+    toast.success(t("account.subscriptionResumed"), { description: t("account.subscriptionResumedDesc") });
     fetchSubscription(user.id);
   };
 
@@ -193,15 +190,15 @@ const Account = () => {
       });
 
       if (error) {
-        toast({ title: t("account.invalidCode"), description: error.message || t("account.invalidCodeDesc"), variant: "destructive" });
+        toast.error(t("account.invalidCode"), { description: error.message || t("account.invalidCodeDesc") });
         return;
       }
 
-      toast({ title: t("account.codeActivated"), description: t("account.codeActivatedDesc") });
+      toast.success(t("account.codeActivated"), { description: t("account.codeActivatedDesc") });
       setActivationCode("");
       fetchSubscription(user.id);
     } catch (error: any) {
-      toast({ title: t("account.errorTitle"), description: error.message, variant: "destructive" });
+      toast.error(t("account.errorTitle"), { description: error.message });
     } finally {
       setActivatingCode(false);
     }
@@ -248,7 +245,7 @@ const Account = () => {
       description: t("account.myStatsDesc"),
       icon: BarChart3,
       color: "text-indigo-600",
-      onClick: () => toast({ title: t("account.myStats"), description: t("account.inDevelopment") }),
+      onClick: () => toast(t("account.myStats"), { description: t("account.inDevelopment") }),
     },
   ];
 
@@ -280,7 +277,7 @@ const Account = () => {
       description: t("account.myStatsDesc"),
       icon: BarChart3,
       color: "text-indigo-600",
-      onClick: () => toast({ title: t("account.myStats"), description: t("account.inDevelopment") }),
+      onClick: () => toast(t("account.myStats"), { description: t("account.inDevelopment") }),
     },
   ];
 

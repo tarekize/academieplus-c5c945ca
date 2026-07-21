@@ -23,7 +23,7 @@ import {
   BreadcrumbList,
 } from "@/components/ui/breadcrumb";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatLocaleDate } from "@/lib/formatLocale";
 
@@ -53,7 +53,6 @@ interface SubStatus {
 
 const Abonnements = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { hasRole } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -90,7 +89,7 @@ const Abonnements = () => {
       if (error) throw error;
       setProfile(data);
     } catch (error: any) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast.error("Erreur", { description: error.message });
     } finally {
       setLoading(false);
     }
@@ -143,7 +142,7 @@ const Abonnements = () => {
 
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
-    toast({ title: "Code copié !", description: code });
+    toast.success("Code copié !", { description: code });
   };
 
   const getEndDate = (code: ActivationCode) => {

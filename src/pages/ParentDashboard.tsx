@@ -23,7 +23,6 @@ import {
   GraduationCap, UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen, Key, Check, Calendar as CalendarIcon, FileDown, FileText, Users, RefreshCw
 } from "lucide-react";
 import { downloadParentReportPdf, type ParentReportData } from "@/lib/parentReportPdf";
-import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { getSchoolLevelLabel, allSchoolLevels } from "@/lib/validation";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
@@ -81,7 +80,6 @@ interface LinkedChild {
 
 const ParentDashboard = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [children, setChildren] = useState<LinkedChild[]>([]);
@@ -129,11 +127,11 @@ const ParentDashboard = () => {
       if (error) throw error;
       setProfile(data);
     } catch (error: any) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      sonnerToast.error("Erreur", { description: error.message });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   const fetchChildren = useCallback(async (userId: string) => {
     setChildrenLoading(true);

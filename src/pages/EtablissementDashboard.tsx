@@ -31,7 +31,7 @@ import {
   Check,
   Search,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface Teacher {
   id: string;
@@ -75,7 +75,6 @@ interface Reclamation {
 const EtablissementDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { toast } = useToast();
 
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [reclamations, setReclamations] = useState<Reclamation[]>([]);
@@ -271,10 +270,8 @@ const EtablissementDashboard = () => {
       }
     } catch (err) {
       console.error(err);
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Impossible de charger les réclamations. Réessayez.",
-        variant: "destructive",
       });
     } finally {
       setLoadingRec(false);
@@ -298,11 +295,11 @@ const EtablissementDashboard = () => {
 
       if (error) throw error;
 
-      toast({ title: "Réponse envoyée", description: "La réclamation a été marquée comme résolue." });
+      toast.success("Réponse envoyée", { description: "La réclamation a été marquée comme résolue." });
       setResponseText((prev) => ({ ...prev, [reclamationId]: "" }));
       fetchReclamations();
     } catch (err: any) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+      toast.error("Erreur", { description: err.message });
     } finally {
       setRespondingId(null);
     }

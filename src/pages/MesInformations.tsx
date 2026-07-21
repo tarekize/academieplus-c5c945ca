@@ -23,7 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { z } from "zod";
 import { LinkedChildrenSection } from "@/components/profile/LinkedChildrenSection";
 import { LinkedParentsSection } from "@/components/profile/LinkedParentsSection";
@@ -60,7 +60,6 @@ interface Profile {
 
 const MesInformations = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { user, loading: authLoading, hasRole } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -130,10 +129,8 @@ const MesInformations = () => {
         ecole: (data as any).ecole || "",
       });
     } catch (error: any) {
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -168,10 +165,8 @@ const MesInformations = () => {
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
         if (sessionError || !sessionData.session) {
-          toast({
-            title: "Session expirée",
+          toast.error("Session expirée", {
             description: "Veuillez vous reconnecter pour modifier votre email.",
-            variant: "destructive",
           });
           navigate("/auth");
           return;
@@ -185,8 +180,7 @@ const MesInformations = () => {
           throw new Error(emailError.message || "Erreur lors de la mise à jour de l'email");
         }
 
-        toast({
-          title: "Confirmez votre nouvel email",
+        toast.success("Confirmez votre nouvel email", {
           description: "Un email de confirmation a été envoyé à votre nouvelle adresse. Le changement ne sera effectif qu'après avoir cliqué sur le lien reçu.",
         });
       }
@@ -213,16 +207,12 @@ const MesInformations = () => {
       navigate("/update-success");
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        toast({
-          title: "Erreur de validation",
+        toast.error("Erreur de validation", {
           description: error.errors[0].message,
-          variant: "destructive",
         });
       } else {
-        toast({
-          title: "Erreur",
+        toast.error("Erreur", {
           description: error.message,
-          variant: "destructive",
         });
       }
     } finally {
@@ -245,10 +235,8 @@ const MesInformations = () => {
       await supabase.auth.signOut();
       navigate("/");
     } catch (error: any) {
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: error.message,
-        variant: "destructive",
       });
       setDeleting(false);
     }
@@ -529,8 +517,7 @@ const MesInformations = () => {
                             onClick={() => {
                               navigator.clipboard.writeText(profile.linking_code!);
                               setCodeCopied(true);
-                              toast({
-                                title: "Copié !",
+                              toast.success("Copié !", {
                                 description: "Le code a été copié dans le presse-papiers",
                               });
                               setTimeout(() => setCodeCopied(false), 2000);

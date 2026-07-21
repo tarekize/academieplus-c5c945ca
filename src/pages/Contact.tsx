@@ -4,13 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const Contact = () => {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -34,16 +33,13 @@ const Contact = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Message envoyé !",
+      toast.success("Message envoyé !", {
         description: "Nous vous répondrons dans les plus brefs délais.",
       });
       setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
     } catch (error: any) {
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: error.message || "Le message n'a pas pu être envoyé. Réessayez.",
-        variant: "destructive",
       });
     } finally {
       setLoading(false);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -40,7 +40,6 @@ interface Props {
 }
 
 export default function TeacherReclamationPanel({ onBack }: Props) {
-  const { toast } = useToast();
   const [reclamations, setReclamations] = useState<Reclamation[]>([]);
   const [loadingList, setLoadingList] = useState(true);
   const [subject, setSubject] = useState("");
@@ -68,7 +67,7 @@ export default function TeacherReclamationPanel({ onBack }: Props) {
 
   const handleSubmit = async () => {
     if (!subject || !message.trim()) {
-      toast({ title: "Champs requis", description: "Veuillez remplir tous les champs.", variant: "destructive" });
+      toast.error("Champs requis", { description: "Veuillez remplir tous les champs." });
       return;
     }
     setSubmitting(true);
@@ -85,12 +84,12 @@ export default function TeacherReclamationPanel({ onBack }: Props) {
 
       if (error) throw error;
 
-      toast({ title: "Réclamation envoyée", description: "Votre réclamation a été transmise à l'établissement." });
+      toast.success("Réclamation envoyée", { description: "Votre réclamation a été transmise à l'établissement." });
       setSubject("");
       setMessage("");
       fetchReclamations();
     } catch (err: any) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+      toast.error("Erreur", { description: err.message });
     } finally {
       setSubmitting(false);
     }

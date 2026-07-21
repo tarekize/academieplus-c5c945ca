@@ -16,7 +16,7 @@ import {
 import {
   ArrowLeft, CreditCard, Calendar, Settings, Users, Eye, Loader2, Save, Plus, Pencil,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -53,7 +53,6 @@ interface PaymentRecord {
 
 export default function AdminAbonnements() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [configs, setConfigs] = useState<SubscriptionConfig[]>([]);
   const [periods, setPeriods] = useState<SubscriptionPeriod[]>([]);
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
@@ -137,9 +136,9 @@ export default function AdminAbonnements() {
       .eq("id", configId);
 
     if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast.error("Erreur", { description: error.message });
     } else {
-      toast({ title: "Succès", description: "Prix mis à jour avec succès" });
+      toast.success("Succès", { description: "Prix mis à jour avec succès" });
       fetchConfigs();
     }
     setSaving(false);
@@ -152,14 +151,14 @@ export default function AdminAbonnements() {
         .from("subscription_periods")
         .update({ label: periodForm.label, start_date: periodForm.start_date, end_date: periodForm.end_date, updated_at: new Date().toISOString() })
         .eq("id", editingPeriod.id);
-      if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" });
-      else toast({ title: "Succès", description: "Période mise à jour" });
+      if (error) toast.error("Erreur", { description: error.message });
+      else toast.success("Succès", { description: "Période mise à jour" });
     } else {
       const { error } = await supabase
         .from("subscription_periods")
         .insert({ label: periodForm.label, start_date: periodForm.start_date, end_date: periodForm.end_date });
-      if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" });
-      else toast({ title: "Succès", description: "Période créée" });
+      if (error) toast.error("Erreur", { description: error.message });
+      else toast.success("Succès", { description: "Période créée" });
     }
     setPeriodDialog(false);
     setEditingPeriod(null);

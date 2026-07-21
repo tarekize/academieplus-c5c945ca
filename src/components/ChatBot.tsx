@@ -3,7 +3,7 @@ import { Send, Paperclip, X, Mic, MicOff, Lock, Crown, MessageCircle, Image, Bot
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { ChatMessage } from "./ChatMessage";
 import { supabase } from "@/integrations/supabase/client";
 import { useChatLimits } from "@/hooks/useChatLimits";
@@ -51,7 +51,6 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   const { conversationId, debouncedSave, loadConversation, newConversation } = useChatHistory(chapterId);
@@ -90,10 +89,8 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
 
     // Check image limit for non-subscribers
     if (!canSendImage) {
-      toast({
-        title: "Limite d'images atteinte",
+      toast.error("Limite d'images atteinte", {
         description: `Vous avez utilisé vos ${FREE_IMAGE_LIMIT} images gratuites du jour. Abonnez-vous pour un accès illimité.`,
-        variant: "destructive",
       });
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
@@ -103,20 +100,16 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
     const maxSize = 20 * 1024 * 1024;
 
     if (file.size > maxSize) {
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Le fichier est trop volumineux (max 20MB)",
-        variant: "destructive",
       });
       return;
     }
 
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"];
     if (!allowedTypes.includes(file.type)) {
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Type de fichier non supporté. Utilisez des images ou PDF.",
-        variant: "destructive",
       });
       return;
     }
@@ -125,16 +118,13 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
     reader.onload = async (event) => {
       const base64 = event.target?.result as string;
       setUploadedFiles((prev) => [...prev, { name: file.name, base64, type: file.type }]);
-      toast({
-        title: "Fichier ajouté",
+      toast.success("Fichier ajouté", {
         description: `${file.name} est prêt à être envoyé`,
       });
     };
     reader.onerror = () => {
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Erreur lors de la lecture du fichier",
-        variant: "destructive",
       });
     };
     reader.readAsDataURL(file);
@@ -153,20 +143,16 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
 
     // Check message limit
     if (!canSendMessage) {
-      toast({
-        title: "Limite de messages atteinte",
+      toast.error("Limite de messages atteinte", {
         description: `Vous avez utilisé vos ${FREE_MESSAGE_LIMIT} messages gratuits du jour. Abonnez-vous pour un accès illimité.`,
-        variant: "destructive",
       });
       return;
     }
 
     // Check image limit if files are attached
     if (uploadedFiles.length > 0 && !canSendImage) {
-      toast({
-        title: "Limite d'images atteinte",
+      toast.error("Limite d'images atteinte", {
         description: `Vous avez utilisé vos ${FREE_IMAGE_LIMIT} images gratuites du jour. Abonnez-vous pour un accès illimité.`,
-        variant: "destructive",
       });
       return;
     }
@@ -274,15 +260,13 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
       }
     } catch (error: any) {
       console.error("Error sending message:", error);
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description:
           error.message === "Insufficient credits"
             ? "Crédits insuffisants pour utiliser l'IA"
             : error.message === "Rate limit exceeded"
               ? "Limite de taux dépassée, veuillez réessayer plus tard"
               : "Impossible d'envoyer le message. Veuillez réessayer.",
-        variant: "destructive",
       });
       setMessages((prev) => prev.slice(0, -1));
     } finally {
@@ -350,10 +334,8 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
       if (!SpeechRecognition) {
-        toast({
-          title: "Non supporté",
+        toast.error("Non supporté", {
           description: "Votre navigateur ne supporte pas la reconnaissance vocale",
-          variant: "destructive",
         });
         return;
       }
@@ -378,10 +360,8 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
 
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        toast({
-          title: "Erreur",
+        toast.error("Erreur", {
           description: "Erreur lors de la reconnaissance vocale",
-          variant: "destructive",
         });
         setIsRecording(false);
       };
@@ -395,10 +375,8 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
 
     } catch (error) {
       console.error('Error starting speech recognition:', error);
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Impossible de démarrer la reconnaissance vocale",
-        variant: "destructive",
       });
     }
   };

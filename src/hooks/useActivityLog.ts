@@ -1,9 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 export const useActivityLog = () => {
-  const { toast } = useToast();
-
   const logActivity = async (
     action: string,
     details?: Record<string, any>

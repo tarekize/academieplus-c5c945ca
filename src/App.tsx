@@ -1,8 +1,6 @@
 import { lazy, Suspense } from "react";
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n/config";
@@ -56,8 +54,6 @@ const ExamList = lazy(() => import("./pages/ExamList"));
 const LessonRemediation = lazy(() => import("./pages/LessonRemediation"));
 const JoinClass = lazy(() => import("./pages/JoinClass"));
 
-const queryClient = new QueryClient();
-
 const RouteFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
     <div className="w-10 h-10 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
@@ -65,10 +61,8 @@ const RouteFallback = () => (
 );
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
     <I18nextProvider i18n={i18n}>
       <TooltipProvider>
-        <Toaster />
         <Sonner />
         <ErrorBoundary>
         <BrowserRouter>
@@ -150,7 +144,6 @@ const App = () => (
         </ErrorBoundary>
       </TooltipProvider>
     </I18nextProvider>
-  </QueryClientProvider >
 );
 
 export default App;

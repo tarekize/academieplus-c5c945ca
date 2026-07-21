@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, Pencil, Trash2, Play, Clock, FileText, BookOpenCheck, Search, Sparkles, Loader2, Share2, GraduationCap, Eye } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { cn } from "@/lib/utils";
@@ -83,7 +83,6 @@ const ExamList = () => {
   const niveau = searchParams.get("niveau") || "";
   const subject = searchParams.get("subject") || "math";
   const trimester = parseInt(searchParams.get("trimester") || "1");
-  const { toast } = useToast();
   const { user: authUser } = useAuth();
 
   const [exams, setExams] = useState<Exam[]>([]);
@@ -286,7 +285,7 @@ const ExamList = () => {
 
     const validExercises = formExercises.filter((e) => e.statement.trim());
     if (validExercises.length === 0) {
-      toast({ title: "خطأ", description: "أضف تمريناً واحداً على الأقل مع الإنشاء", variant: "destructive" });
+      toast.error("خطأ", { description: "أضف تمريناً واحداً على الأقل مع الإنشاء" });
       return;
     }
 
@@ -297,18 +296,18 @@ const ExamList = () => {
       const { error } = await supabase.from("exams" as any).update(payload as any).eq("id", editExam.id);
       setSaving(false);
       if (error) {
-        toast({ title: "Erreur", description: error.message, variant: "destructive" });
+        toast.error("Erreur", { description: error.message });
         return;
       }
-      toast({ title: "تم مشاركة الاختبار بنجاح" });
+      toast.success("تم مشاركة الاختبار بنجاح");
     } else {
       const { error } = await supabase.from("exams" as any).insert(payload as any);
       setSaving(false);
       if (error) {
-        toast({ title: "Erreur", description: error.message, variant: "destructive" });
+        toast.error("Erreur", { description: error.message });
         return;
       }
-      toast({ title: "تم مشاركة الاختبار بنجاح" });
+      toast.success("تم مشاركة الاختبار بنجاح");
     }
 
     setFormOpen(false);
@@ -318,10 +317,10 @@ const ExamList = () => {
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from("exams" as any).delete().eq("id", id);
     if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast.error("Erreur", { description: error.message });
       return;
     }
-    toast({ title: "تم الحذف بنجاح" });
+    toast.success("تم الحذف بنجاح");
     fetchExams();
   };
 
@@ -358,7 +357,7 @@ const ExamList = () => {
   const generateAiExercise = async (index: number) => {
     const row = aiRows[index];
     if (!row.chapter_id) {
-      toast({ title: "خطأ", description: "اختر الفصل أولاً", variant: "destructive" });
+      toast.error("خطأ", { description: "اختر الفصل أولاً" });
       return;
     }
     updateAiRow(index, "generating", true);
@@ -378,7 +377,7 @@ const ExamList = () => {
       );
     } catch (e: any) {
       updateAiRow(index, "generating", false);
-      toast({ title: "Erreur", description: e.message || "فشل التوليد", variant: "destructive" });
+      toast.error("Erreur", { description: e.message || "فشل التوليد" });
     }
   };
 
@@ -391,7 +390,7 @@ const ExamList = () => {
       .map((r) => ({ statement: r.statement, solution: r.solution, answer: r.answer }));
 
     if (validExercises.length === 0) {
-      toast({ title: "خطأ", description: "ولّد تمريناً واحداً على الأقل", variant: "destructive" });
+      toast.error("خطأ", { description: "ولّد تمريناً واحداً على الأقل" });
       return;
     }
 
@@ -400,10 +399,10 @@ const ExamList = () => {
     const { error } = await supabase.from("exams" as any).insert(payload as any);
     setAiSaving(false);
     if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast.error("Erreur", { description: error.message });
       return;
     }
-    toast({ title: "تم مشاركة الاختبار بنجاح" });
+    toast.success("تم مشاركة الاختبار بنجاح");
     setAiOpen(false);
     fetchExams();
   };

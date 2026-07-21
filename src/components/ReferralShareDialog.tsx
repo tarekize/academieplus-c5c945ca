@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Copy, Mail, MessageSquare, Share2, X } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { FaWhatsapp, FaFacebookMessenger, FaFacebook, FaTwitter } from "react-icons/fa";
 
 interface ReferralShareDialogProps {
@@ -22,15 +22,12 @@ export const ReferralShareDialog = ({
   referralUrl,
   referralCode,
 }: ReferralShareDialogProps) => {
-  const { toast } = useToast();
-
   const shareMessage = `Rejoins-moi sur AcadémiePlus de soutien scolaire ! Utilise mon code de parrainage : ${referralCode} et nous recevrons tous les deux 5% de réduction ! ${referralUrl}`;
 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(referralUrl);
-      toast({
-        title: "Lien copié !",
+      toast.success("Lien copié !", {
         description: "Le lien de parrainage a été copié dans le presse-papier.",
       });
     } catch (error) {
@@ -43,15 +40,12 @@ export const ReferralShareDialog = ({
       textArea.select();
       try {
         document.execCommand('copy');
-        toast({
-          title: "Lien copié !",
+        toast.success("Lien copié !", {
           description: "Le lien de parrainage a été copié dans le presse-papier.",
         });
       } catch (err) {
-        toast({
-          title: "Erreur",
+        toast.error("Erreur", {
           description: "Impossible de copier le lien. Veuillez le copier manuellement.",
-          variant: "destructive",
         });
       }
       document.body.removeChild(textArea);

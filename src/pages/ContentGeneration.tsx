@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Sparkles, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const SCHOOL_LEVELS = [
   { value: 'all', label: 'Tous les niveaux' },
@@ -22,7 +22,6 @@ const SCHOOL_LEVELS = [
 
 export default function ContentGeneration() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [level, setLevel] = useState('all');
   const [running, setRunning] = useState(false);
   const [stats, setStats] = useState({ total: 0, withContent: 0, remaining: 0 });
@@ -58,14 +57,14 @@ export default function ContentGeneration() {
       if (error) throw error;
 
       if (data.processed === 0) {
-        toast({ title: 'Terminé', description: 'Toutes les leçons ont du contenu.' });
+        toast.success('Terminé', { description: 'Toutes les leçons ont du contenu.' });
       } else {
         setLog(prev => [...data.results, ...prev].slice(0, 50));
-        toast({ title: `${data.processed} leçon(s) générée(s)`, description: `${data.remaining} restante(s)` });
+        toast.success(`${data.processed} leçon(s) générée(s)`, { description: `${data.remaining} restante(s)` });
       }
       await refreshStats();
     } catch (err: any) {
-      toast({ title: 'Erreur', description: err.message, variant: 'destructive' });
+      toast.error('Erreur', { description: err.message });
     } finally {
       setRunning(false);
     }
@@ -88,7 +87,7 @@ export default function ContentGeneration() {
         break;
       }
     }
-    toast({ title: 'Génération terminée' });
+    toast.success('Génération terminée');
     setRunning(false);
   };
 

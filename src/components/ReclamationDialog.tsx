@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -35,7 +35,6 @@ const SUBJECTS = [
 ];
 
 const ReclamationDialog = ({ userRole, trigger }: ReclamationDialogProps) => {
-  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -43,7 +42,7 @@ const ReclamationDialog = ({ userRole, trigger }: ReclamationDialogProps) => {
 
   const handleSubmit = async () => {
     if (!subject || !message.trim()) {
-      toast({ title: "Champs requis", description: "Veuillez remplir tous les champs.", variant: "destructive" });
+      toast.error("Champs requis", { description: "Veuillez remplir tous les champs." });
       return;
     }
 
@@ -61,12 +60,12 @@ const ReclamationDialog = ({ userRole, trigger }: ReclamationDialogProps) => {
 
       if (error) throw error;
 
-      toast({ title: "Réclamation envoyée", description: "Votre réclamation a été transmise à l'établissement." });
+      toast.success("Réclamation envoyée", { description: "Votre réclamation a été transmise à l'établissement." });
       setSubject("");
       setMessage("");
       setOpen(false);
     } catch (err: any) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+      toast.error("Erreur", { description: err.message });
     } finally {
       setLoading(false);
     }

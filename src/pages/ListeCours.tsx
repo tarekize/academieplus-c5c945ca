@@ -11,7 +11,7 @@ import {
   Calculator,
   ArrowLeft,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -68,7 +68,6 @@ const ListeCours = () => {
   const subjectsList: Subject[] = staticSubjects.map((s) => (s.id === "math" ? { ...s, name: t("listeCours.math") } : s));
   const levelsList: SchoolLevel[] = schoolLevels.map((l) => ({ ...l, name: t(`app.schoolLevels.${l.id}`) }));
   const [searchParams, setSearchParams] = useSearchParams();
-  const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -160,10 +159,8 @@ const ListeCours = () => {
         setSubjectsLoaded(true);
       }
     } catch (error: any) {
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -205,10 +202,8 @@ const ListeCours = () => {
         setFilieres(data || []);
       } catch (error) {
         console.error("Error fetching filieres:", error);
-        toast({
-          title: "Erreur",
+        toast.error("Erreur", {
           description: "Impossible de charger les filières. Réessayez.",
-          variant: "destructive",
         });
       } finally {
         setLoadingFilieres(false);

@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import ChatBot from "@/components/ChatBot";
 import ITSRecommendations from "@/components/its/ITSRecommendations";
 import { ChapterFormDialog, DeleteChapterButton, LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { Rnd } from 'react-rnd';
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -63,7 +63,6 @@ const Cours = () => {
   const chapitreParam = searchParams.get("chapitre");
   const leconParam = searchParams.get("lecon");
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [needsProfileCompletion, setNeedsProfileCompletion] = useState(false);
@@ -200,15 +199,13 @@ const Cours = () => {
 
     } catch (error: any) {
       console.error("Error:", error);
-      toast({
-        title: t("cours.errorTitle"),
+      toast.error(t("cours.errorTitle"), {
         description: t("cours.loadError"),
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [subjectId, adminNiveau, adminFiliere, navigate, toast]);
+  }, [subjectId, adminNiveau, adminFiliere, navigate]);
 
   useEffect(() => {
     if (!chapters.length) return;
@@ -325,8 +322,7 @@ const Cours = () => {
       [activeChapter.id]: !prev[activeChapter.id]
     }));
 
-    toast({
-      title: progress[activeChapter.id] ? t("cours.chapterUncompleted") : t("cours.chapterCompleted"),
+    toast(progress[activeChapter.id] ? t("cours.chapterUncompleted") : t("cours.chapterCompleted"), {
       description: progress[activeChapter.id] ? "" : t("cours.chapterCompletedDesc"),
     });
   };
@@ -366,22 +362,19 @@ const Cours = () => {
       const content = activeChapter.content?.replace(/<[^>]*>/g, '') || 'Contenu non disponible';
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
-        toast({ title: t("cours.errorTitle"), description: t("cours.popupBlocked"), variant: "destructive" });
+        toast.error(t("cours.errorTitle"), { description: t("cours.popupBlocked") });
         return;
       }
       printWindow.document.write(`<!DOCTYPE html><html><head><title>${activeChapter.title}</title><style>body{font-family:Arial,sans-serif;padding:40px;color:#333}h1{font-size:24px;border-bottom:2px solid #333;padding-bottom:10px}</style></head><body><h1>${activeChapter.title}</h1><p style="line-height:1.6;white-space:pre-wrap">${content}</p><script>window.onload=function(){window.print()}<\/script></body></html>`);
       printWindow.document.close();
 
-      toast({
-        title: t("cours.pdfDownloaded"),
+      toast.success(t("cours.pdfDownloaded"), {
         description: t("cours.pdfDownloadedDesc"),
       });
     } catch (error) {
       console.error("Error generating PDF:", error);
-      toast({
-        title: t("cours.errorTitle"),
+      toast.error(t("cours.errorTitle"), {
         description: t("cours.pdfError"),
-        variant: "destructive",
       });
     }
   };

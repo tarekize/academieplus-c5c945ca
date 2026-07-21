@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, Component, type ReactNode } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import {
     Send, Loader2, Sparkles, Wand2, X, Copy, CheckCheck,
@@ -209,7 +209,6 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const { toast } = useToast();
 
     // Choix du flux guidé (leçon vide)
     const [structureChoice, setStructureChoice] = useState<StructureChoice | null>(null);
@@ -347,7 +346,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             });
         } catch (error: any) {
             console.error(error);
-            toast({ title: 'خطأ في الذكاء الاصطناعي', description: error.message || 'حدث خطأ ما', variant: 'destructive' });
+            toast.error('خطأ في الذكاء الاصطناعي', { description: error.message || 'حدث خطأ ما' });
             setMessages(prev => {
                 const next = [...prev];
                 next[next.length - 1] = { role: 'assistant', content: 'عذراً، حدث خطأ تقني. يرجى المحاولة مرة أخرى.' };
@@ -362,23 +361,20 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
         navigator.clipboard.writeText(content);
         setCopiedIndex(index);
         setTimeout(() => setCopiedIndex(null), 2000);
-        toast({ title: 'تم نسخ المحتوى', description: 'تم نسخ النص إلى الحافظة.' });
+        toast.success('تم نسخ المحتوى', { description: 'تم نسخ النص إلى الحافظة.' });
     };
 
     const handleApply = (content: string) => {
         const { finalContent, isPartial, replaced } = resolveAiContent(content, currentContent);
         if (isPartial && !replaced) {
-            toast({
-                title: '⚠️ فشل الاستبدال التلقائي',
+            toast.error('⚠️ فشل الاستبدال التلقائي', {
                 description: "لم يتم العثور على النص الأصلي. تم نسخ النسخة الجديدة — الصقها يدوياً.",
-                variant: 'destructive',
                 duration: 6000,
             });
             navigator.clipboard.writeText(finalContent);
             return;
         }
-        toast({
-            title: isPartial ? '✅ تم تحديث الجزء' : '✅ تم تطبيق النسخة الجديدة',
+        toast.success(isPartial ? '✅ تم تحديث الجزء' : '✅ تم تطبيق النسخة الجديدة', {
             description: isPartial ? 'تم تعديل الجزء المستهدف فقط في المحرر.' : 'تم استبدال الدرس بالكامل.',
             duration: 4000,
         });
@@ -429,7 +425,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             }]);
         } catch (error: any) {
             console.error(error);
-            toast({ title: 'خطأ في الذكاء الاصطناعي', description: error.message || 'حدث خطأ ما', variant: 'destructive' });
+            toast.error('خطأ في الذكاء الاصطناعي', { description: error.message || 'حدث خطأ ما' });
             setStep('guided-style');
         } finally {
             setPreviewLoading(false);
@@ -444,7 +440,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
         if (!file) return;
 
         if (file.size > MAX_DOCUMENT_SIZE) {
-            toast({ title: 'الملف كبير جداً', description: 'الحد الأقصى لحجم الملف هو 20 ميغابايت.', variant: 'destructive' });
+            toast.error('الملف كبير جداً', { description: 'الحد الأقصى لحجم الملف هو 20 ميغابايت.' });
             return;
         }
 
@@ -455,11 +451,11 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
         const isOldDoc = file.type === 'application/msword' || lowerName.endsWith('.doc');
 
         if (isOldDoc) {
-            toast({ title: 'صيغة غير مدعومة', description: 'صيغة .doc القديمة غير مدعومة. يرجى تحويل الملف إلى .docx أو PDF.', variant: 'destructive' });
+            toast.error('صيغة غير مدعومة', { description: 'صيغة .doc القديمة غير مدعومة. يرجى تحويل الملف إلى .docx أو PDF.' });
             return;
         }
         if (!isImage && !isPdf && !isDocx) {
-            toast({ title: 'نوع ملف غير مدعوم', description: 'يمكنك إرفاق PDF أو Word (.docx) أو صورة فقط.', variant: 'destructive' });
+            toast.error('نوع ملف غير مدعوم', { description: 'يمكنك إرفاق PDF أو Word (.docx) أو صورة فقط.' });
             return;
         }
 
@@ -481,7 +477,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             setStep('document-choice');
         } catch (error: any) {
             console.error(error);
-            toast({ title: 'خطأ', description: error.message || 'تعذرت معالجة الملف.', variant: 'destructive' });
+            toast.error('خطأ', { description: error.message || 'تعذرت معالجة الملف.' });
         } finally {
             setDocProcessing(false);
         }
@@ -526,7 +522,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             }]);
         } catch (error: any) {
             console.error(error);
-            toast({ title: 'خطأ في الذكاء الاصطناعي', description: error.message || 'حدث خطأ ما', variant: 'destructive' });
+            toast.error('خطأ في الذكاء الاصطناعي', { description: error.message || 'حدث خطأ ما' });
             setStep('document-choice');
         } finally {
             setPreviewLoading(false);
@@ -560,7 +556,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             }
         } catch (error: any) {
             console.error(error);
-            toast({ title: 'خطأ في الذكاء الاصطناعي', description: error.message || 'حدث خطأ ما', variant: 'destructive' });
+            toast.error('خطأ في الذكاء الاصطناعي', { description: error.message || 'حدث خطأ ما' });
         } finally {
             setPreviewLoading(false);
         }
@@ -568,7 +564,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
 
     const handleValidatePreview = () => {
         onUpdateContent(previewContent);
-        toast({ title: '✅ تم إدراج الدرس', description: 'تم تطبيق الاقتراح على الدرس.', duration: 4000 });
+        toast.success('✅ تم إدراج الدرس', { description: 'تم تطبيق الاقتراح على الدرس.', duration: 4000 });
         onClose();
     };
 
@@ -997,7 +993,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                                                                     variant="outline"
                                                                     size="sm"
                                                                     className="h-8 text-xs"
-                                                                    onClick={() => toast({ title: 'تم رفض التعديل', description: 'تم تجاهل الاقتراح.' })}
+                                                                    onClick={() => toast('تم رفض التعديل', { description: 'تم تجاهل الاقتراح.' })}
                                                                 >
                                                                     ✖ رفض
                                                                 </Button>

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Plus, Trash2, Edit } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
@@ -48,7 +48,6 @@ const FAQAdmin = () => {
     order_index: 0,
     is_active: true,
   });
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,8 +58,7 @@ const FAQAdmin = () => {
           ? { ...item, ...formData }
           : item
       ));
-      toast({
-        title: "Succès",
+      toast.success("Succès", {
         description: "Question FAQ mise à jour",
       });
     } else {
@@ -69,8 +67,7 @@ const FAQAdmin = () => {
         ...formData,
       };
       setItems(prev => [...prev, newItem]);
-      toast({
-        title: "Succès",
+      toast.success("Succès", {
         description: "Nouvelle question FAQ ajoutée",
       });
     }
@@ -99,8 +96,7 @@ const FAQAdmin = () => {
   const handleDelete = (id: string) => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer cette question ?")) return;
     setItems(prev => prev.filter(item => item.id !== id));
-    toast({
-      title: "Succès",
+    toast.success("Succès", {
       description: "Question FAQ supprimée",
     });
   };

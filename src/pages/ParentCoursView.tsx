@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, GraduationCap, BookOpen, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { DBQuizQuestion } from "@/components/course/ChapterMathQuiz";
 import { DBExercise } from "@/components/course/ChapterMathExercises";
 import { AdaptiveLessonContent } from "./Cours.AdaptiveLessonContent";
@@ -23,7 +23,6 @@ interface Chapter {
 const ParentCoursView = () => {
   const { childId } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [childName, setChildName] = useState("");
   const [schoolLevel, setSchoolLevel] = useState("");
@@ -45,7 +44,7 @@ const ParentCoursView = () => {
         .single();
 
       if (!childProfile?.school_level) {
-        toast({ title: "Erreur", description: "Niveau scolaire non défini", variant: "destructive" });
+        toast.error("Erreur", { description: "Niveau scolaire non défini" });
         navigate("/parent-dashboard");
         return;
       }
@@ -77,11 +76,11 @@ const ParentCoursView = () => {
       if (mapped.length > 0) setActiveChapter(mapped[0]);
     } catch (error: any) {
       console.error(error);
-      toast({ title: "Erreur", description: "Impossible de charger les cours", variant: "destructive" });
+      toast.error("Erreur", { description: "Impossible de charger les cours" });
     } finally {
       setLoading(false);
     }
-  }, [childId, navigate, toast]);
+  }, [childId, navigate]);
 
   const fetchQuizExercises = useCallback(async (lessonId?: string | null) => {
     if (!activeChapter) return;

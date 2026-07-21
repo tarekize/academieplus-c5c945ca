@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface Lesson {
   id: string;
@@ -26,7 +26,7 @@ export function CompleteChapterActivitiesButton({ chapterId, chapterTitleAr, les
   const handleClick = async () => {
     if (loading) return;
     if (!lessons?.length) {
-      toast({ title: "Aucune leçon dans ce chapitre", variant: "destructive" });
+      toast.error("Aucune leçon dans ce chapitre");
       return;
     }
 
@@ -53,12 +53,11 @@ export function CompleteChapterActivitiesButton({ chapterId, chapterTitleAr, les
       );
 
       if (incomplete.length === 0) {
-        toast({ title: "Tout est déjà complet ✅", description: `Toutes les leçons ont ${TARGET} exercices et ${TARGET} quiz.` });
+        toast.success("Tout est déjà complet ✅", { description: `Toutes les leçons ont ${TARGET} exercices et ${TARGET} quiz.` });
         return;
       }
 
-      toast({
-        title: "Génération en cours…",
+      toast("Génération en cours…", {
         description: `${incomplete.length} leçon(s) à compléter. Cela peut prendre quelques minutes.`,
       });
 
@@ -93,18 +92,20 @@ export function CompleteChapterActivitiesButton({ chapterId, chapterTitleAr, les
 
       setProgress({ done: incomplete.length, total: incomplete.length });
 
-      toast({
-        title: "Génération terminée",
-        description: failCount
-          ? `${okCount} leçon(s) complétée(s), ${failCount} échec(s). ${failures[0] || ""}`
-          : `${okCount} leçon(s) complétée(s).`,
-        variant: failCount ? "destructive" : "default",
-      });
+      if (failCount) {
+        toast.error("Génération terminée", {
+          description: `${okCount} leçon(s) complétée(s), ${failCount} échec(s). ${failures[0] || ""}`,
+        });
+      } else {
+        toast.success("Génération terminée", {
+          description: `${okCount} leçon(s) complétée(s).`,
+        });
+      }
 
       onDone?.();
     } catch (e: any) {
       console.error(e);
-      toast({ title: "Erreur", description: e.message || String(e), variant: "destructive" });
+      toast.error("Erreur", { description: e.message || String(e) });
     } finally {
       setLoading(false);
       setProgress(null);

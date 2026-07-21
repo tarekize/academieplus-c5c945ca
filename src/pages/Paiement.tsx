@@ -21,7 +21,7 @@ import {
   BreadcrumbList,
 } from "@/components/ui/breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { formatLocaleDate } from "@/lib/formatLocale";
 
 interface Profile {
@@ -45,7 +45,6 @@ interface PaymentInfo {
 const Paiement = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
   const paymentInfo = location.state as PaymentInfo | null;
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -77,7 +76,7 @@ const Paiement = () => {
       if (error) throw error;
       setProfile(data);
     } catch (error: any) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast.error("Erreur", { description: error.message });
     } finally {
       setLoading(false);
     }
@@ -122,9 +121,9 @@ const Paiement = () => {
       setPaymentDone(true);
 
       const codeCount = data.codes?.length || 1;
-      toast({ title: "Paiement effectué !", description: `${codeCount} code(s) d'activation généré(s).` });
+      toast.success("Paiement effectué !", { description: `${codeCount} code(s) d'activation généré(s).` });
     } catch (err: any) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+      toast.error("Erreur", { description: err.message });
     } finally {
       setProcessing(false);
     }
@@ -132,7 +131,7 @@ const Paiement = () => {
 
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
-    toast({ title: "Code copié !", description: code });
+    toast.success("Code copié !", { description: code });
   };
 
   const getBillingDetails = () => {

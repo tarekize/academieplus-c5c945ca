@@ -17,7 +17,7 @@ import remarkGfm from "remark-gfm";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface RemediationExercise {
   title: string;
@@ -84,7 +84,6 @@ function isAnswerCorrect(userAnswer: string, exercise: RemediationExercise) {
 
 export default function LessonRemediation() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [params] = useSearchParams();
   const lessonId = params.get("lecon") || "";
   const chapterId = params.get("chapitre") || "";
@@ -179,15 +178,13 @@ export default function LessonRemediation() {
       }
     } catch (e) {
       console.error(e);
-      toast({
-        title: "تعذّر توليد التمارين",
+      toast.error("تعذّر توليد التمارين", {
         description: "حدث خطأ أثناء التوليد. حاول مرة أخرى.",
-        variant: "destructive",
       });
     } finally {
       setGenerating(false);
     }
-  }, [persist, toast]);
+  }, [persist]);
 
   useEffect(() => {
     const init = async () => {
@@ -289,9 +286,9 @@ export default function LessonRemediation() {
     if (allEx && allQ) {
       setResolved(true);
       await persist(exs, qzs, true);
-      toast({ title: "أحسنت! 🎉", description: "عالجت كل الثغرات بنجاح. تم إيقاف التنبيه." });
+      toast.success("أحسنت! 🎉", { description: "عالجت كل الثغرات بنجاح. تم إيقاف التنبيه." });
     }
-  }, [persist, toast]);
+  }, [persist]);
 
   // Sur erreur d'un exercice : générer un exercice similaire (même lacune) à refaire.
   const regenerateExercise = useCallback(async (idx: number, ex: RemediationExercise) => {
@@ -316,15 +313,15 @@ export default function LessonRemediation() {
         setExAnswers((p) => ({ ...p, [idx]: "" }));
         setExResults((p) => { const n = { ...p }; delete n[idx]; return n; });
         await persist(newExs, quizzesRef.current, false);
-        toast({ title: "تمرين جديد مشابه", description: "حاول مرة أخرى على نفس الثغرة." });
+        toast("تمرين جديد مشابه", { description: "حاول مرة أخرى على نفس الثغرة." });
       }
     } catch (e) {
       console.error(e);
-      toast({ title: "تعذّر توليد تمرين جديد", description: "حاول التحقق مجدداً.", variant: "destructive" });
+      toast.error("تعذّر توليد تمرين جديد", { description: "حاول التحقق مجدداً." });
     } finally {
       setRegenEx((p) => ({ ...p, [idx]: false }));
     }
-  }, [schoolLevel, lessonLevel, lessonTitle, chapterTitle, weakConcepts, persist, toast]);
+  }, [schoolLevel, lessonLevel, lessonTitle, chapterTitle, weakConcepts, persist]);
 
   // Sur erreur d'un quiz : générer un quiz similaire (même lacune) à refaire.
   const regenerateQuiz = useCallback(async (idx: number, q: RemediationQuiz) => {
@@ -349,15 +346,15 @@ export default function LessonRemediation() {
         setQuizPicks((p) => { const n = { ...p }; delete n[idx]; return n; });
         setQuizSubmitted((p) => { const n = { ...p }; delete n[idx]; return n; });
         await persist(exercisesRef.current, newQzs, false);
-        toast({ title: "سؤال جديد مشابه", description: "حاول مرة أخرى على نفس الثغرة." });
+        toast("سؤال جديد مشابه", { description: "حاول مرة أخرى على نفس الثغرة." });
       }
     } catch (e) {
       console.error(e);
-      toast({ title: "تعذّر توليد سؤال جديد", description: "حاول التأكيد مجدداً.", variant: "destructive" });
+      toast.error("تعذّر توليد سؤال جديد", { description: "حاول التأكيد مجدداً." });
     } finally {
       setRegenQuiz((p) => ({ ...p, [idx]: false }));
     }
-  }, [schoolLevel, lessonLevel, lessonTitle, chapterTitle, weakConcepts, persist, toast]);
+  }, [schoolLevel, lessonLevel, lessonTitle, chapterTitle, weakConcepts, persist]);
 
   const checkExercise = async (idx: number, ex: RemediationExercise) => {
     const correct = isAnswerCorrect(exAnswers[idx] || "", ex);
