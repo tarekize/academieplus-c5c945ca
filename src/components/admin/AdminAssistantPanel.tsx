@@ -37,15 +37,15 @@ type StructureChoice = 'standard' | 'practice' | 'custom';
 type ExampleStyle = 'academic' | 'visual' | 'progressive';
 
 const STRUCTURE_OPTIONS: { id: StructureChoice; label: string; description: string }[] = [
-    { id: 'standard', label: 'Standard', description: 'Rappels → Théorie & Théorèmes → Applications & Méthodes → Exercices' },
-    { id: 'practice', label: "Pratique d'abord", description: "Exemple d'introduction → Formalisation théorique → Exercices" },
-    { id: 'custom', label: 'Personnalisée', description: 'Je définis mes sections' },
+    { id: 'standard', label: 'قياسية', description: 'تذكير ← نظرية ومبرهنات ← تطبيقات ومناهج ← تمارين' },
+    { id: 'practice', label: 'التطبيق أولاً', description: 'مثال تمهيدي ← صياغة نظرية ← تمارين' },
+    { id: 'custom', label: 'مخصصة', description: 'أحدد أقسامي بنفسي' },
 ];
 
 const STYLE_OPTIONS: { id: ExampleStyle; label: string; description: string }[] = [
-    { id: 'academic', label: '🎓 Académiques et classiques', description: 'axés sur les examens' },
-    { id: 'visual', label: '💡 Visuels ou concrets', description: 'applications concrètes' },
-    { id: 'progressive', label: '🚀 Progressifs', description: 'de très facile à difficile' },
+    { id: 'academic', label: '🎓 أكاديمية وكلاسيكية', description: 'تركز على الامتحانات' },
+    { id: 'visual', label: '💡 بصرية أو ملموسة', description: 'تطبيقات ملموسة' },
+    { id: 'progressive', label: '🚀 متدرجة', description: 'من السهل جداً إلى الصعب' },
 ];
 
 // Même projet Supabase que src/integrations/supabase/client.ts (fichier généré,
@@ -54,10 +54,10 @@ const STYLE_OPTIONS: { id: ExampleStyle; label: string; description: string }[] 
 const LOVABLE_CHAT_URL = 'https://lfothlxoixayjiytwwqa.supabase.co/functions/v1/lovable-chat';
 
 const CONCEPT_LABELS: Record<string, string> = {
-    definition: 'Définition et notations',
-    properties: 'Propriétés et théorèmes fondamentaux',
-    methodology: 'Méthodologie (changement de variable, etc.)',
-    exercises: "Exercices d'application progressifs",
+    definition: 'التعريف والرموز',
+    properties: 'الخصائص والمبرهنات الأساسية',
+    methodology: 'المنهجية (تغيير المتغير، إلخ)',
+    exercises: 'تمارين تطبيقية متدرجة',
 };
 
 /** Confine un éventuel crash de rendu (contenu IA imprévisible : formule ou
@@ -77,8 +77,8 @@ class LessonPreviewBoundary extends Component<{ children: ReactNode; resetKey: s
     render() {
         if (this.state.hasError) {
             return (
-                <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-lg">
-                    ⚠️ L'aperçu n'a pas pu s'afficher (mise en forme inattendue), mais le contenu a bien été généré. Vous pouvez tout de même le valider, ou demander une correction dans le champ ci-contre.
+                <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-lg" dir="rtl">
+                    ⚠️ تعذر عرض المعاينة (تنسيق غير متوقع)، لكن المحتوى تم إنشاؤه بالفعل. يمكنك مع ذلك اعتماده، أو طلب تصحيح في الحقل المقابل.
                 </div>
             );
         }
@@ -197,8 +197,8 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
     const previewScrollRef = useRef<HTMLDivElement>(null);
 
     const isEmpty = !currentContent || !currentContent.trim();
-    const titleLabel = lessonTitle || 'cette leçon';
-    const levelLabel = schoolLevel || 'ce niveau';
+    const titleLabel = lessonTitle || 'هذا الدرس';
+    const levelLabel = schoolLevel || 'هذا المستوى';
 
     useEffect(() => {
         if (open) {
@@ -229,7 +229,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
     ): Promise<string> => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.access_token) {
-            throw new Error('Session expirée, merci de vous reconnecter.');
+            throw new Error('انتهت الجلسة، يرجى إعادة تسجيل الدخول.');
         }
 
         const payload = {
@@ -254,7 +254,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             body: JSON.stringify(payload),
         });
 
-        if (!response.ok) throw new Error("Erreur lors de la génération avec l'IA");
+        if (!response.ok) throw new Error("خطأ أثناء التوليد بواسطة الذكاء الاصطناعي");
 
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();
@@ -308,10 +308,10 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             });
         } catch (error: any) {
             console.error(error);
-            toast({ title: 'Erreur IA', description: error.message || 'Une erreur est survenue', variant: 'destructive' });
+            toast({ title: 'خطأ في الذكاء الاصطناعي', description: error.message || 'حدث خطأ ما', variant: 'destructive' });
             setMessages(prev => {
                 const next = [...prev];
-                next[next.length - 1] = { role: 'assistant', content: 'Désolé, une erreur technique est survenue. Veuillez réessayer.' };
+                next[next.length - 1] = { role: 'assistant', content: 'عذراً، حدث خطأ تقني. يرجى المحاولة مرة أخرى.' };
                 return next;
             });
         } finally {
@@ -323,15 +323,15 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
         navigator.clipboard.writeText(content);
         setCopiedIndex(index);
         setTimeout(() => setCopiedIndex(null), 2000);
-        toast({ title: 'Contenu copié', description: 'Le texte a été copié dans le presse-papiers.' });
+        toast({ title: 'تم نسخ المحتوى', description: 'تم نسخ النص إلى الحافظة.' });
     };
 
     const handleApply = (content: string) => {
         const { finalContent, isPartial, replaced } = resolveAiContent(content, currentContent);
         if (isPartial && !replaced) {
             toast({
-                title: '⚠️ Remplacement automatique échoué',
-                description: "Le texte d'origine n'a pas été retrouvé. La nouvelle version a été copiée — collez-la manuellement.",
+                title: '⚠️ فشل الاستبدال التلقائي',
+                description: "لم يتم العثور على النص الأصلي. تم نسخ النسخة الجديدة — الصقها يدوياً.",
                 variant: 'destructive',
                 duration: 6000,
             });
@@ -339,8 +339,8 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             return;
         }
         toast({
-            title: isPartial ? '✅ Partie mise à jour' : '✅ Nouvelle version appliquée',
-            description: isPartial ? 'Seule la partie ciblée a été modifiée dans l\'éditeur.' : 'L\'ensemble de la leçon a été remplacée.',
+            title: isPartial ? '✅ تم تحديث الجزء' : '✅ تم تطبيق النسخة الجديدة',
+            description: isPartial ? 'تم تعديل الجزء المستهدف فقط في المحرر.' : 'تم استبدال الدرس بالكامل.',
             duration: 4000,
         });
         onUpdateContent(finalContent || content);
@@ -354,15 +354,15 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
         setStreamingProgress('');
 
         const structureLabel = structureChoice === 'custom'
-            ? (customSections.trim() || 'Structure personnalisée')
+            ? (customSections.trim() || 'هيكل مخصص')
             : STRUCTURE_OPTIONS.find(o => o.id === structureChoice)?.description || '';
-        const conceptsList = Object.entries(concepts).filter(([, v]) => v).map(([k]) => CONCEPT_LABELS[k]).join(', ') || 'aucun point particulier';
+        const conceptsList = Object.entries(concepts).filter(([, v]) => v).map(([k]) => CONCEPT_LABELS[k]).join(', ') || 'لا توجد نقطة محددة';
         const styleLabel = STYLE_OPTIONS.find(o => o.id === exampleStyle)?.label || '';
 
-        const summary = `Génère la leçon complète "${titleLabel}" (niveau ${levelLabel}) avec :
-- Structure : ${structureLabel}
-- Points clés à inclure : ${conceptsList}
-- Style des exemples/exercices : ${styleLabel}`;
+        const summary = `أنشئ الدرس الكامل "${titleLabel}" (مستوى ${levelLabel}) مع:
+- الهيكل: ${structureLabel}
+- النقاط الأساسية المطلوب تضمينها: ${conceptsList}
+- أسلوب الأمثلة/التمارين: ${styleLabel}`;
 
         const wizard = {
             structure: structureChoice,
@@ -386,11 +386,11 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             setPreviewContent(finalContent || full);
             setPreviewMessages(prev => [...prev, {
                 role: 'assistant',
-                content: "Voici une proposition de leçon structurée pour vos élèves. Prenez le temps de la relire.",
+                content: "إليك اقتراح درس منظم لطلابك. خذ وقتك لمراجعته.",
             }]);
         } catch (error: any) {
             console.error(error);
-            toast({ title: 'Erreur IA', description: error.message || 'Une erreur est survenue', variant: 'destructive' });
+            toast({ title: 'خطأ في الذكاء الاصطناعي', description: error.message || 'حدث خطأ ما', variant: 'destructive' });
             setStep('guided-style');
         } finally {
             setPreviewLoading(false);
@@ -417,14 +417,14 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             );
             const { finalContent, isPartial, replaced } = resolveAiContent(full, previewContent);
             if (isPartial && !replaced) {
-                setPreviewMessages(prev => [...prev, { role: 'assistant', content: "Je n'ai pas retrouvé le passage exact à modifier. Pouvez-vous préciser davantage (titre de section, numéro de définition...) ?" }]);
+                setPreviewMessages(prev => [...prev, { role: 'assistant', content: "لم أتمكن من العثور على المقطع المحدد للتعديل. هل يمكنك التوضيح أكثر (عنوان القسم، رقم التعريف...) ؟" }]);
             } else {
                 setPreviewContent(finalContent);
-                setPreviewMessages(prev => [...prev, { role: 'assistant', content: isPartial ? '✅ Section mise à jour dans l\'aperçu ci-contre.' : '✅ Aperçu régénéré ci-contre.' }]);
+                setPreviewMessages(prev => [...prev, { role: 'assistant', content: isPartial ? '✅ تم تحديث القسم في المعاينة المقابلة.' : '✅ تمت إعادة إنشاء المعاينة المقابلة.' }]);
             }
         } catch (error: any) {
             console.error(error);
-            toast({ title: 'Erreur IA', description: error.message || 'Une erreur est survenue', variant: 'destructive' });
+            toast({ title: 'خطأ في الذكاء الاصطناعي', description: error.message || 'حدث خطأ ما', variant: 'destructive' });
         } finally {
             setPreviewLoading(false);
         }
@@ -432,7 +432,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
 
     const handleValidatePreview = () => {
         onUpdateContent(previewContent);
-        toast({ title: '✅ Leçon insérée', description: 'La proposition a été appliquée à la leçon.', duration: 4000 });
+        toast({ title: '✅ تم إدراج الدرس', description: 'تم تطبيق الاقتراح على الدرس.', duration: 4000 });
         onClose();
     };
 
@@ -463,13 +463,13 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                             size="icon"
                             className="h-7 w-7 -ml-1"
                             onClick={() => setStep('entry')}
-                            title="Retour"
+                            title="رجوع"
                         >
                             <ArrowLeft className="w-4 h-4" />
                         </Button>
                     )}
                     <Wand2 className="w-5 h-5" />
-                    <span>Assistant Éditoriel IA</span>
+                    <span dir="rtl">المساعد التحريري للذكاء الاصطناعي</span>
                 </div>
                 <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 rounded-full">
                     <X className="w-4 h-4" />
@@ -479,22 +479,22 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             {/* --- Étape d'entrée : détecte leçon vide / non vide --- */}
             {step === 'entry' && (
                 <ScrollArea className="flex-1 p-4">
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-4" dir="rtl">
                         <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded border border-border/50">
-                            <p className="font-semibold mb-2">📋 Contenu actuel de la leçon :</p>
-                            <div className="max-h-[160px] overflow-y-auto text-xs whitespace-pre-wrap font-mono bg-background p-2 rounded border border-border/30">
-                                {isEmpty ? 'Aucun contenu (leçon vide)' : currentContent.substring(0, 500) + (currentContent.length > 500 ? '...' : '')}
+                            <p className="font-semibold mb-2">📋 محتوى الدرس الحالي:</p>
+                            <div className="max-h-[160px] overflow-y-auto text-xs whitespace-pre-wrap font-mono bg-background p-2 rounded border border-border/30" dir="auto">
+                                {isEmpty ? 'لا يوجد محتوى (درس فارغ)' : currentContent.substring(0, 500) + (currentContent.length > 500 ? '...' : '')}
                             </div>
                         </div>
 
                         <div className="rounded-lg border bg-muted/40 p-4 text-sm">
                             {isEmpty ? (
                                 <p>
-                                    Bonjour ! Je vois que vous préparez la leçon <strong>{titleLabel}</strong> pour le niveau <strong>{levelLabel}</strong>. Le contenu est actuellement vide. Comment souhaitez-vous procéder ?
+                                    مرحباً! أرى أنك تُعِدّ درس <strong>{titleLabel}</strong> لمستوى <strong>{levelLabel}</strong>. المحتوى فارغ حالياً. كيف تريد المتابعة؟
                                 </p>
                             ) : (
                                 <p>
-                                    Bonjour ! Votre leçon <strong>{titleLabel}</strong> pour le niveau <strong>{levelLabel}</strong> contient déjà du contenu. Que souhaitez-vous faire ?
+                                    مرحباً! درسك <strong>{titleLabel}</strong> لمستوى <strong>{levelLabel}</strong> يحتوي بالفعل على محتوى. ماذا تريد أن تفعل؟
                                 </p>
                             )}
                         </div>
@@ -503,29 +503,29 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                             <div className="flex flex-col gap-2">
                                 <Button className="justify-start gap-2 h-auto py-3" onClick={() => setStep('guided-structure')}>
                                     <Wand className="h-4 w-4 shrink-0" />
-                                    <span className="text-right flex-1">🪄 Générer une leçon pas à pas (Guidé)</span>
+                                    <span className="text-right flex-1">🪄 إنشاء درس خطوة بخطوة (موجّه)</span>
                                 </Button>
                                 <Button variant="outline" className="justify-start gap-2 h-auto py-3" onClick={() => setStep('chat')}>
                                     <PencilLine className="h-4 w-4 shrink-0" />
-                                    <span className="text-right flex-1">✍️ Saisir un prompt libre</span>
+                                    <span className="text-right flex-1">✍️ كتابة طلب حر</span>
                                 </Button>
                             </div>
                         ) : (
                             <div className="flex flex-col gap-2">
                                 <Button
                                     className="justify-start gap-2 h-auto py-3"
-                                    onClick={() => goChatWithPrefill(`Enrichis et restructure la leçon "${titleLabel}" en améliorant la clarté, la progression pédagogique et en complétant les parties trop courtes.`)}
+                                    onClick={() => goChatWithPrefill(`أثرِ وأعد هيكلة درس "${titleLabel}" مع تحسين الوضوح والتدرج التربوي وإكمال الأجزاء القصيرة جداً.`)}
                                 >
                                     <ListTree className="h-4 w-4 shrink-0" />
-                                    <span className="text-right flex-1">📈 Enrichir ou restructurer la leçon actuelle</span>
+                                    <span className="text-right flex-1">📈 إثراء أو إعادة هيكلة الدرس الحالي</span>
                                 </Button>
                                 <Button variant="outline" className="justify-start gap-2 h-auto py-3" onClick={() => setStep('targeted-choice')}>
                                     <Sparkles className="h-4 w-4 shrink-0" />
-                                    <span className="text-right flex-1">🎯 Ajouter un élément ciblé (Exemple, Exercice, Méthode)</span>
+                                    <span className="text-right flex-1">🎯 إضافة عنصر محدد (مثال، تمرين، منهجية)</span>
                                 </Button>
                                 <Button variant="outline" className="justify-start gap-2 h-auto py-3" onClick={() => setStep('chat')}>
                                     <MessageCircle className="h-4 w-4 shrink-0" />
-                                    <span className="text-right flex-1">💬 Discuter librement avec l'assistant</span>
+                                    <span className="text-right flex-1">💬 التحدث بحرية مع المساعد</span>
                                 </Button>
                             </div>
                         )}
@@ -536,17 +536,17 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             {/* --- Sous-choix de "élément ciblé" --- */}
             {step === 'targeted-choice' && (
                 <ScrollArea className="flex-1 p-4">
-                    <div className="flex flex-col gap-4">
-                        <p className="text-sm text-muted-foreground">Quel type d'élément souhaitez-vous ajouter ?</p>
+                    <div className="flex flex-col gap-4" dir="rtl">
+                        <p className="text-sm text-muted-foreground">ما نوع العنصر الذي تريد إضافته؟</p>
                         <div className="flex flex-col gap-2">
-                            <Button variant="outline" className="justify-start h-auto py-3" onClick={() => goChatWithPrefill('Ajoute un exemple détaillé sur la section ')}>
-                                ➕ Un exemple
+                            <Button variant="outline" className="justify-start h-auto py-3" onClick={() => goChatWithPrefill('أضف مثالاً مفصلاً حول القسم ')}>
+                                ➕ مثال
                             </Button>
-                            <Button variant="outline" className="justify-start h-auto py-3" onClick={() => goChatWithPrefill('Ajoute un exercice supplémentaire sur ')}>
-                                📝 Un exercice
+                            <Button variant="outline" className="justify-start h-auto py-3" onClick={() => goChatWithPrefill('أضف تمريناً إضافياً حول ')}>
+                                📝 تمرين
                             </Button>
-                            <Button variant="outline" className="justify-start h-auto py-3" onClick={() => goChatWithPrefill('Ajoute une méthode/technique de résolution pour ')}>
-                                🔧 Une méthode
+                            <Button variant="outline" className="justify-start h-auto py-3" onClick={() => goChatWithPrefill('أضف منهجية/تقنية حل لـ ')}>
+                                🔧 منهجية
                             </Button>
                         </div>
                     </div>
@@ -556,8 +556,8 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             {/* --- Étape 1 : structure générale --- */}
             {step === 'guided-structure' && (
                 <ScrollArea className="flex-1 p-4">
-                    <div className="flex flex-col gap-4">
-                        <p className="text-sm">Pour un cours sur <strong>{titleLabel}</strong>, quelle structure préférez-vous adopter ?</p>
+                    <div className="flex flex-col gap-4" dir="rtl">
+                        <p className="text-sm">لدرس حول <strong>{titleLabel}</strong>، ما الهيكل الذي تفضل اعتماده؟</p>
                         <div className="flex flex-col gap-2">
                             {STRUCTURE_OPTIONS.map(opt => (
                                 <button
@@ -577,7 +577,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                             <Textarea
                                 value={customSections}
                                 onChange={(e) => setCustomSections(e.target.value)}
-                                placeholder="Ex: Rappels, Définitions, Exemples guidés, Exercices, Synthèse..."
+                                placeholder="مثال: تذكيرات، تعريفات، أمثلة موجهة، تمارين، خلاصة..."
                                 className="min-h-[80px]"
                                 dir="auto"
                             />
@@ -587,7 +587,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                             disabled={!structureChoice || (structureChoice === 'custom' && !customSections.trim())}
                             onClick={() => setStep('guided-concepts')}
                         >
-                            Continuer
+                            متابعة
                         </Button>
                     </div>
                 </ScrollArea>
@@ -596,8 +596,8 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             {/* --- Étape 2 : concepts clés --- */}
             {step === 'guided-concepts' && (
                 <ScrollArea className="flex-1 p-4">
-                    <div className="flex flex-col gap-4">
-                        <p className="text-sm">D'après le programme de <strong>{levelLabel}</strong>, voici les points clés que je suggère d'inclure. Cochez ceux que vous voulez garder :</p>
+                    <div className="flex flex-col gap-4" dir="rtl">
+                        <p className="text-sm">وفقاً لمنهج <strong>{levelLabel}</strong>، إليك النقاط الأساسية التي أقترح تضمينها. اختر ما تريد الاحتفاظ به:</p>
                         <div className="flex flex-col gap-3">
                             {Object.entries(CONCEPT_LABELS).map(([key, label]) => (
                                 <label key={key} className="flex items-center gap-3 text-sm cursor-pointer">
@@ -607,7 +607,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                             ))}
                         </div>
                         <Button className="mt-2" onClick={() => setStep('guided-style')}>
-                            Continuer
+                            متابعة
                         </Button>
                     </div>
                 </ScrollArea>
@@ -616,8 +616,8 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             {/* --- Étape 3 : style des exemples/exercices --- */}
             {step === 'guided-style' && (
                 <ScrollArea className="flex-1 p-4">
-                    <div className="flex flex-col gap-4">
-                        <p className="text-sm">Quel type d'exemples et d'exercices souhaitez-vous intégrer pour illustrer le cours ?</p>
+                    <div className="flex flex-col gap-4" dir="rtl">
+                        <p className="text-sm">ما نوع الأمثلة والتمارين التي تريد دمجها لتوضيح الدرس؟</p>
                         <div className="flex flex-col gap-2">
                             {STYLE_OPTIONS.map(opt => (
                                 <button
@@ -640,8 +640,8 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                     <div className="flex-1 min-h-[240px] lg:min-h-0 overflow-y-auto border-b lg:border-b-0 lg:border-l p-4 bg-card">
                         {previewLoading ? (
                             <div className="flex flex-col h-full">
-                                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-6">
-                                    <Loader2 className="h-4 w-4 animate-spin" /> Génération en cours...
+                                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-6" dir="rtl">
+                                    <Loader2 className="h-4 w-4 animate-spin" /> جارٍ الإنشاء...
                                 </div>
                                 {/* Texte brut uniquement pendant le streaming : pas de rendu Markdown/KaTeX
                                     en direct sur du contenu potentiellement incomplet (cf. commentaire sur
@@ -657,7 +657,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                                 <LessonMarkdown content={previewContent} dir="rtl" />
                             </LessonPreviewBoundary>
                         ) : (
-                            <p className="text-sm text-muted-foreground text-center mt-8">L'aperçu s'affichera ici...</p>
+                            <p className="text-sm text-muted-foreground text-center mt-8" dir="rtl">ستظهر المعاينة هنا...</p>
                         )}
                     </div>
 
@@ -689,19 +689,19 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                         </ScrollArea>
 
                         {!previewLoading && previewContent && (
-                            <div className="p-3 border-t space-y-2">
+                            <div className="p-3 border-t space-y-2" dir="rtl">
                                 <Button className="w-full bg-green-600 hover:bg-green-700" onClick={handleValidatePreview}>
-                                    ✅ Valider et insérer dans la leçon
+                                    ✅ اعتماد وإدراج في الدرس
                                 </Button>
                                 <div className="grid grid-cols-1 gap-1.5">
-                                    <Button variant="outline" size="sm" className="h-auto py-2 text-xs justify-start" onClick={() => prefillPreviewInput('➕ Ajoute un exemple détaillé sur la section ')}>
-                                        ➕ Ajouter un exemple détaillé sur une section
+                                    <Button variant="outline" size="sm" className="h-auto py-2 text-xs justify-start" onClick={() => prefillPreviewInput('➕ أضف مثالاً مفصلاً حول القسم ')}>
+                                        ➕ إضافة مثال مفصل حول قسم
                                     </Button>
-                                    <Button variant="outline" size="sm" className="h-auto py-2 text-xs justify-start" onClick={() => prefillPreviewInput("🔄 Rends l'exercice ")}>
-                                        🔄 Rendre un exercice plus difficile / plus facile
+                                    <Button variant="outline" size="sm" className="h-auto py-2 text-xs justify-start" onClick={() => prefillPreviewInput("🔄 اجعل التمرين ")}>
+                                        🔄 جعل تمرين أصعب / أسهل
                                     </Button>
-                                    <Button variant="outline" size="sm" className="h-auto py-2 text-xs justify-start" onClick={() => prefillPreviewInput('✏️ Modifie la définition ')}>
-                                        ✏️ Modifier une définition
+                                    <Button variant="outline" size="sm" className="h-auto py-2 text-xs justify-start" onClick={() => prefillPreviewInput('✏️ عدّل التعريف ')}>
+                                        ✏️ تعديل تعريف
                                     </Button>
                                 </div>
                             </div>
@@ -718,7 +718,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                                             handlePreviewRefine();
                                         }
                                     }}
-                                    placeholder="Ex: Ajoute une remarque importante concernant l'ordre des fonctions pour la composition."
+                                    placeholder="مثال: أضف ملاحظة مهمة بخصوص ترتيب الدوال في التركيب."
                                     className="min-h-[50px] max-h-[120px] resize-none pr-12 text-sm focus-visible:ring-1"
                                     disabled={previewLoading}
                                     dir="auto"
@@ -742,10 +742,10 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                 <>
                     <ScrollArea className="flex-1 p-4" ref={scrollRef}>
                         {messages.length === 0 ? (
-                            <div className="text-center text-muted-foreground mt-8">
+                            <div className="text-center text-muted-foreground mt-8" dir="rtl">
                                 <Sparkles className="w-12 h-12 mb-4 opacity-20 mx-auto" />
-                                <p className="text-sm font-medium mb-1">Écrivez votre demande à l'assistant</p>
-                                <p className="text-xs text-muted-foreground">Ex : "Enrichis la définition 1.1", "Ajoute un exemple après la propriété 2.1"...</p>
+                                <p className="text-sm font-medium mb-1">اكتب طلبك للمساعد</p>
+                                <p className="text-xs text-muted-foreground">مثال: "أثرِ التعريف 1.1"، "أضف مثالاً بعد الخاصية 2.1"...</p>
                             </div>
                         ) : (
                             <div className="space-y-4 pb-4">
@@ -764,13 +764,13 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                                                         {isPartial ? (
                                                             <div className="space-y-3">
                                                                 <div className="rounded-md border border-destructive/30 bg-destructive/5 p-2">
-                                                                    <div className="text-[10px] font-bold uppercase tracking-wide text-destructive/80 mb-1">➖ Partie actuelle (à remplacer)</div>
+                                                                    <div className="text-[10px] font-bold uppercase tracking-wide text-destructive/80 mb-1" dir="rtl">➖ الجزء الحالي (سيُستبدل)</div>
                                                                     <div className="prose prose-sm dark:prose-invert max-w-none text-xs opacity-80 text-right" dir="rtl">
                                                                         <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>{originalText}</ReactMarkdown>
                                                                     </div>
                                                                 </div>
                                                                 <div className="rounded-md border border-primary/40 bg-primary/5 p-2">
-                                                                    <div className="text-[10px] font-bold uppercase tracking-wide text-primary mb-1 text-right">➕ Nouvelle version proposée</div>
+                                                                    <div className="text-[10px] font-bold uppercase tracking-wide text-primary mb-1 text-right" dir="rtl">➕ النسخة الجديدة المقترحة</div>
                                                                     <div className="prose prose-sm dark:prose-invert max-w-none text-right" dir="rtl">
                                                                         <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>{newText}</ReactMarkdown>
                                                                     </div>
@@ -782,19 +782,19 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                                                             </div>
                                                         )}
                                                         {msg.content && !isLoading && (
-                                                            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
+                                                            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50" dir="rtl">
                                                                 <Button variant="default" size="sm" className="h-8 text-xs flex-1" onClick={() => handleApply(msg.content)}>
-                                                                    ✅ {isPartial ? 'Accepter cette modification' : 'Appliquer toute la version'}
+                                                                    ✅ {isPartial ? 'قبول هذا التعديل' : 'تطبيق النسخة كاملة'}
                                                                 </Button>
                                                                 <Button
                                                                     variant="outline"
                                                                     size="sm"
                                                                     className="h-8 text-xs"
-                                                                    onClick={() => toast({ title: 'Modification refusée', description: 'La proposition a été ignorée.' })}
+                                                                    onClick={() => toast({ title: 'تم رفض التعديل', description: 'تم تجاهل الاقتراح.' })}
                                                                 >
-                                                                    ✖ Refuser
+                                                                    ✖ رفض
                                                                 </Button>
-                                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleCopy(msg.content, idx)} title="Copier la proposition brute">
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleCopy(msg.content, idx)} title="نسخ الاقتراح الخام">
                                                                     {copiedIndex === idx ? <CheckCheck className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                                                                 </Button>
                                                             </div>
@@ -832,7 +832,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                                         handleSend();
                                     }
                                 }}
-                                placeholder="Ex: Enrichis la section théorique avec un exemple..."
+                                placeholder="مثال: أثرِ القسم النظري بمثال..."
                                 className="min-h-[50px] max-h-[150px] resize-none pr-12 focus-visible:ring-1"
                                 disabled={isLoading}
                                 dir="auto"
