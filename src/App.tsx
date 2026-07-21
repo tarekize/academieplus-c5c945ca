@@ -21,8 +21,6 @@ const Auth = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ListeCours = lazy(() => import("./pages/ListeCours"));
 const Cours = lazy(() => import("./pages/Cours"));
-const Revision = lazy(() => import("./pages/Revision"));
-const Simulation = lazy(() => import("./pages/Simulation"));
 const Account = lazy(() => import("./pages/Account"));
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminAbonnements = lazy(() => import("./pages/AdminAbonnements"));
@@ -112,8 +110,6 @@ const App = () => (
               <Route path="/liste-cours" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><ListeCours /></ProtectedRoute>} />
               <Route path="/cours/:subjectId" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><Cours /></ProtectedRoute>} />
               <Route path="/lecon/:lessonId" element={<ProtectedRoute allowedRoles={['pedago', 'admin']}><LessonEditor /></ProtectedRoute>} />
-              <Route path="/revision/:subjectId" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><Revision /></ProtectedRoute>} />
-              <Route path="/simulation/:subjectId" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><Simulation /></ProtectedRoute>} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/analytics" element={<ProtectedRoute allowedRoles={['admin', 'pedago']}><Analytics /></ProtectedRoute>} />
               <Route path="/faq-admin" element={<ProtectedRoute allowedRoles={['admin', 'pedago']}><FAQAdmin /></ProtectedRoute>} />

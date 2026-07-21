@@ -15,7 +15,7 @@ const ITEMS: NavItem[] = [
   { key: "home", icon: Home, label: "الرئيسية", path: "/dashboard", match: (p) => p === "/dashboard" },
   { key: "lessons", icon: BookOpen, label: "الدروس", path: "/liste-cours", match: (p) => p.startsWith("/liste-cours") || p.startsWith("/cours") },
   { key: "practice", icon: PenTool, label: "تمارين", path: "/cours/math", match: () => false },
-  { key: "exams", icon: Target, label: "المراجعة", path: "/exams", match: (p) => p.startsWith("/exams") || p.startsWith("/revision") },
+  { key: "exams", icon: Target, label: "المراجعة", path: "/exams", match: (p) => p.startsWith("/exams") },
   { key: "account", icon: User, label: "حسابي", path: "/account", match: (p) => p.startsWith("/account") },
 ];
 
