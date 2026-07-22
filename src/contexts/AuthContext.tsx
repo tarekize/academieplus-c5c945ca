@@ -121,7 +121,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .eq('id', session.user.id)
             .maybeSingle();
 
-          if (profileData && profileData.is_active === false) {
+          // Un profil introuvable (et non juste "is_active = false") signifie que le
+          // compte a été supprimé pendant que ce navigateur gardait une session encore
+          // valide localement (jeton non expiré) : on ne doit pas le traiter comme un
+          // nouvel utilisateur sans rôle (-> /complete-profile), mais déconnecter et
+          // renvoyer vers l'accueil.
+          if (!profileData) {
+            await supabase.auth.signOut();
+            window.location.href = '/';
+            return;
+          }
+
+          if (profileData.is_active === false) {
             await supabase.auth.signOut();
             window.location.href = '/auth?deactivated=1';
             return;
