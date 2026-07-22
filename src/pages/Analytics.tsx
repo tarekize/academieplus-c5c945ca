@@ -15,6 +15,12 @@ interface ActivityLog {
   created_at: string | null;
 }
 
+interface UserProfile {
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+}
+
 interface Stats {
   totalLogs: number;
   uniqueUsers: number;
@@ -25,6 +31,7 @@ const Analytics = () => {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userNames, setUserNames] = useState<Record<string, UserProfile>>({});
 
   useEffect(() => {
     loadAnalytics();
@@ -42,6 +49,20 @@ const Analytics = () => {
       if (logsError) throw logsError;
 
       setLogs(logsData || []);
+
+      const userIds = [...new Set((logsData || []).map((log) => log.user_id).filter(Boolean))] as string[];
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, email')
+          .in('id', userIds);
+
+        const map: Record<string, UserProfile> = {};
+        (profilesData || []).forEach((p: any) => {
+          map[p.id] = { first_name: p.first_name, last_name: p.last_name, email: p.email };
+        });
+        setUserNames(map);
+      }
 
       // Calculate stats
       if (logsData) {
@@ -70,6 +91,13 @@ const Analytics = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const userLabel = (userId: string | null) => {
+    if (!userId) return '-';
+    const p = userNames[userId];
+    const name = p ? [p.first_name, p.last_name].filter(Boolean).join(' ').trim() : '';
+    return name || p?.email || `${userId.slice(0, 8)}...`;
   };
 
   if (loading) {
@@ -139,7 +167,7 @@ const Analytics = () => {
               <TableRow>
                 <TableHead>Date</TableHead>
                 <TableHead>Action</TableHead>
-                <TableHead>ID utilisateur</TableHead>
+                <TableHead>Utilisateur</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -147,7 +175,7 @@ const Analytics = () => {
                 <TableRow key={log.id}>
                   <TableCell>{log.created_at ? new Date(log.created_at).toLocaleString('fr-FR') : '-'}</TableCell>
                   <TableCell>{log.action}</TableCell>
-                  <TableCell className="font-mono text-xs">{log.user_id ? log.user_id.slice(0, 8) + '...' : '-'}</TableCell>
+                  <TableCell className="text-sm">{userLabel(log.user_id)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
