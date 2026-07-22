@@ -13,11 +13,38 @@ import TeacherContentSpace from "@/components/teacher/TeacherContentSpace";
 import TeacherReclamationPanel from "@/components/teacher/TeacherReclamationPanel";
 import TeacherProfile from "@/components/teacher/TeacherProfile";
 
+const SECTION_STORAGE_KEY = "teacherDashboard:section";
+
+// L'onglet actif ne vivait qu'en mémoire (useState) : sur mobile en
+// particulier, changer de fenêtre/appli peut faire décharger puis recharger
+// l'onglet par le navigateur, ce qui remonte le composant et renvoie
+// silencieusement l'enseignant au menu principal. On restaure donc la
+// dernière section ouverte depuis sessionStorage au montage.
+const readStoredSection = (): TeacherSection | null => {
+  try {
+    const stored = sessionStorage.getItem(SECTION_STORAGE_KEY);
+    return TEACHER_SECTIONS.some((s) => s.key === stored) ? (stored as TeacherSection) : null;
+  } catch {
+    return null;
+  }
+};
+
 const TeacherDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const [section, setSection] = useState<TeacherSection | null>(null);
+  const [section, setSectionState] = useState<TeacherSection | null>(readStoredSection);
   const { hasEstablishment } = useTeacherEstablishmentStatus(user?.id);
+
+  const setSection = (next: TeacherSection | null) => {
+    setSectionState(next);
+    try {
+      if (next) sessionStorage.setItem(SECTION_STORAGE_KEY, next);
+      else sessionStorage.removeItem(SECTION_STORAGE_KEY);
+    } catch {
+      // Stockage indisponible (navigation privée, quota...) : la session ne
+      // survivra pas à un remount, mais la navigation reste fonctionnelle.
+    }
+  };
 
   useEffect(() => {
     if (authLoading) return;
