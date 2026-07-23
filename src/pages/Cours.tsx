@@ -1064,6 +1064,21 @@ const Cours = () => {
                   bounds="parent"
                   dragHandleClassName="chatbot-drag-handle"
                   className="pointer-events-auto"
+                  // Les poignées de redimensionnement de react-rnd sont transparentes par
+                  // défaut : sur un fond clair, on ne voit ni où cliquer ni qu'on peut
+                  // redimensionner. On teinte juste le fond (sans toucher taille/position
+                  // des zones de prise, déjà correctes) pour les rendre visibles, la
+                  // poignée en bas-à-droite étant la plus visible car la plus utilisée.
+                  resizeHandleStyles={{
+                    bottomRight: { background: 'rgba(0,0,0,0.45)', borderRadius: '0 0 12px 0' },
+                    bottomLeft: { background: 'rgba(0,0,0,0.25)', borderRadius: '0 0 0 12px' },
+                    topRight: { background: 'rgba(0,0,0,0.25)', borderRadius: '0 12px 0 0' },
+                    topLeft: { background: 'rgba(0,0,0,0.25)', borderRadius: '12px 0 0 0' },
+                    bottom: { background: 'rgba(0,0,0,0.12)' },
+                    top: { background: 'rgba(0,0,0,0.12)' },
+                    left: { background: 'rgba(0,0,0,0.12)' },
+                    right: { background: 'rgba(0,0,0,0.12)' },
+                  }}
                 >
                   <div className="w-full h-full shadow-[var(--shadow-elegant)] rounded-2xl overflow-hidden bg-background animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-300">
                     {chatBotNode}
