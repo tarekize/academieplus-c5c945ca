@@ -543,7 +543,7 @@ serve(async (req) => {
       .from("activity_logs")
       .select("id", { count: "exact", head: true })
       .eq("user_id", callerUserId)
-      .eq("action", "lovable_chat_request")
+      .eq("action", "ia_chat_request")
       .gte("created_at", rateLimitWindowStart);
 
     if ((recentRequests ?? 0) >= RATE_LIMIT_MAX_REQUESTS) {
@@ -555,9 +555,9 @@ serve(async (req) => {
 
     adminClient
       .from("activity_logs")
-      .insert({ user_id: callerUserId, action: "lovable_chat_request" })
+      .insert({ user_id: callerUserId, action: "ia_chat_request" })
       .then(({ error }: any) => {
-        if (error) console.error("Failed to log lovable_chat_request:", error);
+        if (error) console.error("Failed to log ia_chat_request:", error);
       });
 
     const systemPrompt = editorialMode
