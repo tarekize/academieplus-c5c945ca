@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSessionState } from "@/hooks/useSessionState";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -88,7 +89,10 @@ const ParentDashboard = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [selectedChild, setSelectedChild] = useState<LinkedChild | null>(null);
+  // Persisté en sessionStorage : un changement de fenêtre peut faire décharger
+  // puis recharger l'onglet par le navigateur, ce qui remonterait le composant
+  // et ramènerait sinon silencieusement le parent à l'écran de sélection d'enfant.
+  const [selectedChild, setSelectedChild] = useSessionState<LinkedChild | null>("parentDashboard:selectedChild", null);
   const [removingChildId, setRemovingChildId] = useState<string | null>(null);
 
   // Create child account state

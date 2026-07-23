@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSessionState } from "@/hooks/useSessionState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -109,9 +110,12 @@ const EtablissementDashboard = () => {
   const [filterTeacher, setFilterTeacher] = useState<string>("all");
   const [filterClass, setFilterClass] = useState<string>("all");
   const [searchStudent, setSearchStudent] = useState("");
-  const [activeTab, setActiveTab] = useState("teachers");
-  const [selectedClass, setSelectedClass] = useState<ClassRow | null>(null);
-  const [detailStudent, setDetailStudent] = useState<DetailStudent | null>(null);
+  // Persisté en sessionStorage : un changement de fenêtre peut faire décharger
+  // puis recharger l'onglet par le navigateur, ce qui remonterait le composant
+  // et ramènerait sinon silencieusement l'établissement à l'onglet "Enseignants".
+  const [activeTab, setActiveTab] = useSessionState("etablissementDashboard:activeTab", "teachers");
+  const [selectedClass, setSelectedClass] = useSessionState<ClassRow | null>("etablissementDashboard:selectedClass", null);
+  const [detailStudent, setDetailStudent] = useSessionState<DetailStudent | null>("etablissementDashboard:detailStudent", null);
 
   useEffect(() => {
     if (authLoading) return;
