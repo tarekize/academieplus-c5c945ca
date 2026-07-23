@@ -602,7 +602,7 @@ const ParentDashboard = () => {
                     />
 
                     <Button onClick={handleCreateChild} disabled={creating} className="w-full">
-                      {creating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+                      {creating ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <Plus className="h-4 w-4 me-2" />}
                       Créer le compte élève
                     </Button>
                   </div>
@@ -626,7 +626,7 @@ const ParentDashboard = () => {
                       <p className="text-sm text-muted-foreground">Demandez à votre enfant de générer un code depuis son profil</p>
                     </div>
                     <Button onClick={handleAddByCode} disabled={submitting} className="w-full">
-                      {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Hash className="h-4 w-4 mr-2" />}
+                      {submitting ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <Hash className="h-4 w-4 me-2" />}
                       Valider le code
                     </Button>
                   </div>
@@ -654,7 +654,7 @@ const ParentDashboard = () => {
                       />
                     </div>
                     <Button onClick={handleActivateSubscription} disabled={activating || !activationCode} className="w-full">
-                      {activating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Key className="h-4 w-4 mr-2" />}
+                      {activating ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <Key className="h-4 w-4 me-2" />}
                       Activer maintenant
                     </Button>
                   </div>
@@ -699,7 +699,7 @@ const ParentDashboard = () => {
                       <TableHead>Niveau</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead>Dernier rapport</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="text-end">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -774,7 +774,7 @@ const ParentDashboard = () => {
                               );
                             })()}
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-end">
                             <div className="flex items-center justify-end gap-2 flex-wrap">
                               {link.subscription ? (
                                 (() => {
@@ -798,7 +798,7 @@ const ParentDashboard = () => {
                                       onClick={() => sonnerToast.success(`Abonnement actif : ${rem} jours restants`)}
                                       title="Voir les jours restants de l'abonnement"
                                     >
-                                      <Check className="h-4 w-4 mr-2" />
+                                      <Check className="h-4 w-4 me-2" />
                                       {rem} jours restants
                                     </Button>
                                   );
@@ -814,7 +814,7 @@ const ParentDashboard = () => {
                                   }}
                                   title="Ajouter un code d'abonnement pour cet enfant"
                                 >
-                                  <Key className="h-4 w-4 mr-2" />
+                                  <Key className="h-4 w-4 me-2" />
                                   Activer l'abonnement
                                 </Button>
                               )}
@@ -825,7 +825,7 @@ const ParentDashboard = () => {
                                 onClick={() => setSelectedChild(link)}
                                 title="Voir le tableau de bord et la progression de cet enfant"
                               >
-                                <Eye className="h-4 w-4 mr-2" />Tableau de bord
+                                <Eye className="h-4 w-4 me-2" />Tableau de bord
                               </Button>
                               <Button
                                 variant="outline"
@@ -834,7 +834,7 @@ const ParentDashboard = () => {
                                 onClick={() => navigate(`/parent-cours/${link.child_id}`)}
                                 title="Consulter les leçons et le contenu de cours"
                               >
-                                <BookOpen className="h-4 w-4 mr-2" />Contenu des cours
+                                <BookOpen className="h-4 w-4 me-2" />Contenu des cours
                               </Button>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>

@@ -267,59 +267,84 @@ Deno.serve(async (req) => {
 
     const now = Date.now();
 
+    // --- Anti N+1 : l'ancienne version faisait 2-3 requêtes séquentielles
+    // PAR lien parent-enfant (dernière activité, dernier rapport périodique,
+    // dernier rapport d'inactivité), ce qui grossit linéairement avec le
+    // nombre de liens et risquait de dépasser le timeout de la fonction sur
+    // une base d'utilisateurs plus grande (les liens traités après la
+    // coupure ne recevaient alors jamais leur rapport). On récupère ici
+    // TOUTE l'information nécessaire en 2 requêtes groupées (.in()), puis on
+    // ne garde que la ligne la plus récente par élève côté JS (tri
+    // décroissant : la première occurrence rencontrée pour un child_id est
+    // la plus récente). Le contenu réel du rapport (buildPeriodicReport /
+    // buildInactivityReport) continue de faire ses propres requêtes, mais
+    // uniquement pour les liens qui génèrent effectivement un rapport — un
+    // coût proportionnel au travail réel, pas à la taille de la boucle. ---
+    const childIds = Array.from(new Set((links ?? []).map((l: any) => l.child_id)));
+
+    const lastActiveByChild = new Map<string, Date>();
+    const lastPeriodicByChild = new Map<string, Date>();
+    const lastInactivityByChild = new Map<string, Date>();
+
+    if (childIds.length > 0) {
+      const [{ data: scoreRows }, { data: reportRows }] = await Promise.all([
+        supabase
+          .from("student_scores")
+          .select("user_id, updated_at")
+          .in("user_id", childIds)
+          .order("updated_at", { ascending: false }),
+        supabase
+          .from("parent_reports")
+          .select("child_id, report_type, generated_at")
+          .in("child_id", childIds)
+          .in("report_type", ["periodic", "inactivity"])
+          .order("generated_at", { ascending: false }),
+      ]);
+
+      for (const row of scoreRows ?? []) {
+        if (!lastActiveByChild.has(row.user_id)) lastActiveByChild.set(row.user_id, new Date(row.updated_at));
+      }
+      for (const row of reportRows ?? []) {
+        const map = row.report_type === "periodic" ? lastPeriodicByChild : lastInactivityByChild;
+        if (!map.has(row.child_id)) map.set(row.child_id, new Date(row.generated_at));
+      }
+    }
+
     for (const link of links ?? []) {
       stats.processed++;
       try {
-        // last activity: max(updated_at) from student_scores
-        const { data: lastScore } = await supabase
-          .from("student_scores")
-          .select("updated_at")
-          .eq("user_id", link.child_id)
-          .order("updated_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        const lastActive = lastScore?.updated_at ? new Date(lastScore.updated_at) : null;
+        const lastActive = lastActiveByChild.get(link.child_id) ?? null;
 
-        // last periodic report
-        const { data: lastPeriodic } = await supabase
-          .from("parent_reports")
-          .select("generated_at")
-          .eq("child_id", link.child_id)
-          .eq("report_type", "periodic")
-          .order("generated_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
+        const lastPeriodic = lastPeriodicByChild.get(link.child_id) ?? null;
         const daysSincePeriodic = lastPeriodic
-          ? (now - new Date(lastPeriodic.generated_at).getTime()) / 86400000
+          ? (now - lastPeriodic.getTime()) / 86400000
           : Infinity;
 
         if (daysSincePeriodic >= PERIODIC_DAYS) {
           const { error } = await buildPeriodicReport(supabase, link.parent_id, link.child_id);
           if (error) throw error;
           stats.periodic++;
+          // Un enfant lié à plusieurs parents peut apparaître dans plusieurs
+          // liens traités dans CETTE même exécution : on met à jour la map
+          // tout de suite pour que les liens suivants du même enfant voient
+          // ce rapport comme "vient d'être généré" (même sémantique que
+          // l'ancienne re-requête séquentielle, sans repayer une requête).
+          lastPeriodicByChild.set(link.child_id, new Date());
         }
 
         // Inactivity check
         const inactive = !lastActive || (now - lastActive.getTime()) / 86400000 >= INACTIVITY_DAYS;
         if (inactive) {
-          const { data: lastInactivity } = await supabase
-            .from("parent_reports")
-            .select("generated_at")
-            .eq("child_id", link.child_id)
-            .eq("report_type", "inactivity")
-            .order("generated_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
+          const lastInactivity = lastInactivityByChild.get(link.child_id) ?? null;
           const daysSinceInactivity = lastInactivity
-            ? (now - new Date(lastInactivity.generated_at).getTime()) / 86400000
+            ? (now - lastInactivity.getTime()) / 86400000
             : Infinity;
 
           if (daysSinceInactivity >= INACTIVITY_DAYS) {
             const { error } = await buildInactivityReport(supabase, link.parent_id, link.child_id, lastActive);
             if (error) throw error;
             stats.inactivity++;
+            lastInactivityByChild.set(link.child_id, new Date());
           }
         }
       } catch (e) {

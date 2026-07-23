@@ -657,7 +657,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
               <h2 className="font-display text-xl md:text-2xl font-extrabold mt-0.5">{fullName}</h2>
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
-                  <GraduationCap className="h-3 w-3 ml-1" />
+                  <GraduationCap className="h-3 w-3 ms-1" />
                   {getSchoolLevelLabel(profile.school_level)}
                 </Badge>
                 {streak > 0 && (
@@ -669,13 +669,13 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="text-white text-left">
+            <div className="text-white text-start">
               <p className="text-[11px] opacity-75">{t("studentDashboard.currentLevel")}</p>
               <p className="font-display text-3xl font-black leading-none mt-1">
                 {avgLevel}<span className="text-sm font-semibold opacity-80">/100</span>
               </p>
             </div>
-            <div className="text-white/90 text-left hidden sm:block">
+            <div className="text-white/90 text-start hidden sm:block">
               <p className="text-[10px] opacity-75">{t("studentDashboard.lastUpdated")}</p>
               <p className="text-xs font-medium">
                 {lastUpdated.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}
@@ -951,7 +951,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
                               <button
                                 type="button"
                                 onClick={() => navigate(`/cours/math?chapitre=${selectedChapter.chapterId}&lecon=${lesson.lessonId}`)}
-                                className="text-sm font-medium truncate hover:text-primary text-right min-w-0"
+                                className="text-sm font-medium truncate hover:text-primary text-end min-w-0"
                               >
                                 <span className="truncate">{lesson.lessonTitleAr || lesson.lessonTitle}</span>
                               </button>

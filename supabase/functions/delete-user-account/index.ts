@@ -92,17 +92,23 @@ serve(async (req) => {
 
     const adminName = fullName(adminProfile) ?? (userData.user.email ?? "Admin");
 
-    const { error: deleteAuthError } = await adminClient.auth.admin.deleteUser(targetUserId);
-    if (deleteAuthError) {
-      throw deleteAuthError;
-    }
-
+    // --- Ordre important : on nettoie D'ABORD toutes les tables qui n'ont
+    // pas de ON DELETE CASCADE depuis auth.users (ex: parent_reports, voir
+    // migration 20260517115936), et on ne supprime le compte auth.users
+    // qu'EN DERNIER, une fois ce nettoyage confirmé réussi. Dans l'ancien
+    // ordre (auth.users supprimé en premier), un échec au milieu de la boucle
+    // de nettoyage laissait des lignes orphelines (chat_usage, activity_logs,
+    // teacher_content_attempts...) définitivement irrécupérables : le compte
+    // n'existant plus, impossible de relancer la suppression pour les
+    // nettoyer. Avec ce nouvel ordre, un échec de nettoyage échoue AVANT la
+    // suppression du compte, qui reste donc intact et la suppression peut
+    // être retentée sans données orphelines. ---
     const cleanupSteps = [
       () => adminClient.from("parent_child_links").delete().eq("child_id", targetUserId),
       () => adminClient.from("parent_child_links").delete().eq("parent_id", targetUserId),
       () => adminClient.from("student_subscriptions").delete().eq("user_id", targetUserId),
       () => adminClient.from("student_scores").delete().eq("user_id", targetUserId),
-      
+
       () => adminClient.from("chat_usage").delete().eq("user_id", targetUserId),
       () => adminClient.from("chat_conversations").delete().eq("user_id", targetUserId),
       () => adminClient.from("ai_generated_content").delete().eq("user_id", targetUserId),
@@ -121,6 +127,11 @@ serve(async (req) => {
       if (error) {
         throw error;
       }
+    }
+
+    const { error: deleteAuthError } = await adminClient.auth.admin.deleteUser(targetUserId);
+    if (deleteAuthError) {
+      throw deleteAuthError;
     }
 
     // Log the deletion action under the admin/actor user
