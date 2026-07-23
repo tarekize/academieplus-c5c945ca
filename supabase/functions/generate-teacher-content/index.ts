@@ -39,17 +39,24 @@ function buildPrompt(b: Body) {
 Niveau scolaire : ${levelLabel}
 Chapitre : ${b.chapterTitle || "—"}
 Leçon ciblée : ${b.lessonTitle || "—"}
-Difficulté demandée : entre ${dMin}/5 et ${dMax}/5 (varie les difficultés dans cet intervalle).
+Difficulté demandée : entre ${dMin}/5 et ${dMax}/5 (varie réellement les difficultés dans cet intervalle : ne génère pas ${count} items au même niveau).
 ${b.focusNote ? `Contexte pédagogique : ${b.focusNote}` : ""}
 Reste STRICTEMENT sur la leçon "${b.lessonTitle || ""}".
-IMPORTANT — Langue : rédige la totalité du contenu (énoncés, options, réponses, indices, explications) EXCLUSIVEMENT en arabe (اللغة العربية). N'utilise JAMAIS le français, sauf pour la notation mathématique standard qui reste universelle (chiffres, symboles, formules).`;
+IMPORTANT — Langue : rédige la totalité du contenu (énoncés, options, réponses, indices, explications) EXCLUSIVEMENT en arabe (اللغة العربية). N'utilise JAMAIS le français, sauf pour la notation mathématique standard qui reste universelle (chiffres, symboles, formules).
+
+FORMAT MATHÉMATIQUE OBLIGATOIRE : TOUTES les expressions mathématiques (variables, fonctions, fractions, puissances, indices, limites, racines, symboles ∞, ≤, ≥, ≠, ±, →, etc.) DOIVENT être écrites en LaTeX entre délimiteurs $...$ (ou $$...$$ pour une formule isolée), pour le rendu KaTeX côté client.
+- Fractions : \\frac{a}{b} (JAMAIS a/b en texte brut).
+- Puissances : x^{n} (JAMAIS x^n ni x**n). Indices : x_{n}. Racines : \\sqrt{x}.
+- Symboles : \\infty, \\to, \\lim_{x \\to +\\infty}, \\leq, \\geq, \\neq, \\pm, \\cdot, \\times.
+- Exemple correct : "$f(x) = \\frac{2x^{2} + 3x - 1}{x - 1}$". INTERDIT d'écrire f(x) = (2x^2+3x-1)/(x-1) en texte brut.`;
 
   if (b.contentType === "quiz") {
     return {
       system: common,
       user: `Génère ${count} questions de quiz à choix multiple (QCM) sur cette leçon.
 Réponds UNIQUEMENT en JSON valide de la forme :
-{"items":[{"question":"...","options":["A","B","C","D"],"correct_answer":"la bonne option exacte (texte identique à l'une des options)","hint":"indice utile sans donner la réponse","explanation":"explication de la correction","difficulty":1}]}`,
+{"items":[{"question":"...","options":["A","B","C","D"],"correct_answer":"la bonne option exacte (texte identique à l'une des options)","hint":"indice utile sans donner la réponse","explanation":"explication de la correction, qui cible l'erreur typique de l'élève","difficulty":1}]}
+Les "options" et "correct_answer" doivent aussi utiliser LaTeX entre $...$ quand elles contiennent des maths.`,
     };
   }
   // exercise or exam
@@ -57,7 +64,13 @@ Réponds UNIQUEMENT en JSON valide de la forme :
     system: common,
     user: `Génère ${count} ${b.contentType === "exam" ? "exercices d'examen" : "exercices"} sur cette leçon.
 Réponds UNIQUEMENT en JSON valide de la forme :
-{"items":[{"title":"titre court","statement":"énoncé complet de l'exercice","hint":"indice utile sans donner la réponse","expected_answer":"réponse attendue concise","solution":"correction détaillée étape par étape","difficulty":2}]}`,
+{"items":[{"title":"titre court","statement":"énoncé complet de l'exercice","hint":"indice utile sans donner la réponse","expected_answer":"réponse attendue concise","solution":"correction détaillée (voir format ci-dessous)","difficulty":2}]}
+
+Format de "solution" — OBLIGATOIRE :
+- Corrections RICHES et DÉTAILLÉES en HTML avec plusieurs étapes numérotées, JAMAIS une seule ligne.
+- Structure attendue : <p><strong>الخطوة 1 :</strong> ...</p><p>$$ formule $$</p><p><strong>الخطوة 2 :</strong> ...</p>... puis <p><strong>الاستنتاج :</strong> $$ \\boxed{résultat} $$</p>.
+- Chaque étape doit justifier le calcul (règle, théorème ou propriété utilisée), pas seulement donner le résultat.
+- Minimum 3 étapes claires pour un exercice de difficulté ≥ 2.`,
   };
 }
 

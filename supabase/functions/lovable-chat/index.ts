@@ -215,120 +215,10 @@ Si tu veux pointer vers un chapitre sans leçon spécifique, utilise la premièr
 IMPORTANT: Utilise les vrais IDs des chapitres et leçons de la liste ci-dessus. Ne génère JAMAIS de faux IDs.`;
 }
 
-// --- Assistant éditorial (panneau "Généré avec IA" du pédagogue) ---
-
-const WIZARD_STRUCTURE_DESCRIPTIONS: Record<string, string> = {
-  standard: "Rappels → Théorie & Théorèmes → Applications & Méthodes → Exercices",
-  practice: "Exemple d'introduction → Formalisation théorique → Exercices",
-};
-
-const WIZARD_CONCEPT_DESCRIPTIONS: Record<string, string> = {
-  definition: "Définitions et notations précises",
-  properties: "Propriétés et théorèmes fondamentaux (avec justification si pertinent)",
-  methodology: "Méthodologie de résolution (changement de variable, techniques de calcul...)",
-  exercises: "Exercices d'application progressifs",
-};
-
-const WIZARD_STYLE_DESCRIPTIONS: Record<string, string> = {
-  academic: "des exemples et exercices académiques et classiques, orientés examens et sujets types",
-  visual: "des exemples visuels et concrets, avec des applications réelles quand c'est pertinent",
-  progressive: "des exemples et exercices progressifs, du plus facile au plus difficile",
-};
-
-// Construit le bloc de plan pédagogique co-construit avec le flux guidé
-// (structure / concepts clés / style d'exemples choisis pas à pas par le
-// pédagogue). Absent quand la demande ne vient pas du flux guidé.
-function buildWizardBlock(wizard: any): string {
-  if (!wizard) return "";
-
-  const structureDesc = wizard.structure === "custom"
-    ? (wizard.customSections || "Structure personnalisée définie par l'enseignant")
-    : (WIZARD_STRUCTURE_DESCRIPTIONS[wizard.structure] || "");
-
-  const conceptsDesc = Array.isArray(wizard.concepts) && wizard.concepts.length > 0
-    ? wizard.concepts.map((c: string) => `- ${WIZARD_CONCEPT_DESCRIPTIONS[c] || c}`).join("\n")
-    : "- Aucune contrainte particulière";
-
-  const styleDesc = WIZARD_STYLE_DESCRIPTIONS[wizard.exampleStyle] || "";
-
-  return `
-════════════════════════════════════
-📋 PLAN CO-CONSTRUIT AVEC LE PÉDAGOGUE (À RESPECTER STRICTEMENT)
-════════════════════════════════════
-- Structure générale : ${structureDesc}
-- Points clés à inclure impérativement :
-${conceptsDesc}
-- Style des exemples et exercices : ${styleDesc}
-`;
-}
-
-// Prompt de l'assistant éditorial : détecte lui-même si la demande de
-// l'utilisateur porte sur une partie précise (Type A → <update> ciblé) ou
-// sur une génération/enrichissement complet (Type B/C). La génération
-// complète produit du Markdown + LaTeX avec les blocs pédagogiques natifs
-// ::: definition/theorem/remark/example/property/method/exercise (rendus en
-// encadrés stylés côté client), jamais du HTML brut.
-function buildEditorialPrompt(editorialContext: any, subject: string): string {
-  const currentContent = editorialContext?.currentContent || "";
-  const wizard = editorialContext?.wizard || null;
-  const lessonTitle = editorialContext?.lessonTitle || wizard?.lessonTitle || "";
-  const schoolLevel = editorialContext?.schoolLevel || wizard?.schoolLevel || "";
-
-  return `Tu es un assistant IA expert en édition de contenus pédagogiques ${subject || "mathématiques"} (français/arabe).
-CONTEXTE: Tu aides un professeur/administrateur à modifier ou créer une leçon${lessonTitle ? ` intitulée "${lessonTitle}"` : ""}${schoolLevel ? ` pour le niveau ${schoolLevel}` : ""}.
-
-📋 CONTENU ACTUEL DE LA LEÇON (référence absolue):
-"""
-${currentContent || "Aucun contenu (leçon vide)"}
-"""
-
-🎯 RÈGLE D'OR — DÉTECTION DU TYPE DE DEMANDE:
-
-**Type A — DEMANDE CIBLÉE** (l'utilisateur mentionne une partie précise: titre de section, nom de définition, paragraphe spécifique, ex: "explique en détail la partie التفسير البياني", "enrichis la définition 1.1", "reformule l'exemple 2", "ajoute des détails à la section مفهوم النهاية"):
-   ➜ Tu DOIS répondre UNIQUEMENT avec le bloc <update> ci-dessous.
-   ➜ Tu ne renvoies QUE la partie concernée, JAMAIS le reste de la leçon.
-   ➜ Le texte dans <original> doit être COPIÉ-COLLÉ EXACTEMENT depuis le contenu actuel ci-dessus (mot pour mot, espaces, sauts de ligne, ponctuation, formules LaTeX identiques).
-   ➜ Le texte dans <new> est la version enrichie/améliorée de cette même partie, dans le MÊME format que le contenu actuel (Markdown + LaTeX + blocs ::: si le contenu actuel les utilise).
-
-   FORMAT OBLIGATOIRE (rien avant, rien après):
-<update>
-<original>
-[copie EXACTE de la portion existante à remplacer]
-</original>
-<new>
-[version enrichie de remplacement — c'est ce qui REMPLACERA ENTIÈREMENT <original>]
-</new>
-</update>
-
-
-**Type B/C — GÉNÉRATION OU ENRICHISSEMENT COMPLET** (l'utilisateur demande "enrichir", "donne-moi le contenu complet", "génère un cours", "أنشئ درس", ou la leçon est vide) :
-Tu es un professeur expert en mathématiques pour le lycée algérien/marocain/tunisien.
-Tu rédiges des cours complets, structurés et pédagogiques en **Markdown + LaTeX** — JAMAIS en HTML.
-${buildWizardBlock(wizard)}
-════════════════════════════════════
-⚙️ FORMAT DE SORTIE OBLIGATOIRE
-════════════════════════════════════
-
-1. Langue : arabe intégral (sauf termes mathématiques universels et symboles).
-2. Structure Markdown :
-   - Titre principal en première ligne : "# درس: ..."
-   - Sections : "## 1. ...", "## 2. ..." (numérotées), une ligne "---" seule entre chaque section.
-3. Formules mathématiques en LaTeX valide (rendu par KaTeX) : "$...$" pour les formules en ligne, "$$...$$" sur leur propre ligne pour les formules en bloc. N'utilise JAMAIS de symboles Unicode approximatifs pour une formule importante.
-4. Blocs pédagogiques : encadre CHAQUE définition, théorème, remarque, exemple, propriété, méthode ou exercice avec la syntaxe suivante, EXACTEMENT :
-
-::: TYPE
-**Titre du bloc**
-Contenu du bloc (peut contenir des listes, du gras, du LaTeX)...
-:::
-
-   où TYPE est l'un de : definition, theorem, proposition, property, remark, example, exercise, method.
-   RÈGLE ABSOLUE : le ::: de fermeture doit TOUJOURS être seul sur sa propre ligne, jamais collé à la fin d'une phrase. N'imbrique jamais un bloc ::: dans un autre.
-5. N'utilise JAMAIS de balises HTML (pas de <div>, <p>, <h1>, <span>...). Markdown pur uniquement, aucune balise de code \`\`\`.
-6. Termine toujours la leçon par une section "## 🎯 خلاصة الدرس" contenant un bloc ::: remark qui résume les points clés à retenir.
-
-⚠️ RÈGLE FINALE ABSOLUE POUR LA GÉNÉRATION COMPLÈTE :
-Tu retournes UNIQUEMENT le contenu Markdown de la leçon, rien avant, rien après. Aucun blabla, pas de texte "Voici le cours...", AUCUNE balise de code \`\`\`markdown. JUSTE LE CONTENU BRUT.`;
-}
+// Note : l'assistant éditorial du pédagogue/enseignant (édition de leçons) vit
+// désormais dans sa propre fonction, generate-editorial-assistant — ce fichier
+// est dédié exclusivement au chatbot élève, pour que les deux IA soient
+// tracées séparément dans les logs (function_name distinct).
 
 // Convert OpenAI-style messages (string OR [{type:'text'|'image_url',...}]) to Gemini parts
 function toGeminiParts(content: any): any[] {
@@ -503,7 +393,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, subject, schoolLevel, chapterContext, allChapters, editorialMode, editorialContext, hideReformulation } = await req.json();
+    const { messages, subject, schoolLevel, chapterContext, allChapters, hideReformulation } = await req.json();
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -525,13 +415,6 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (editorialMode && !["teacher", "pedago", "admin"].includes(callerRoleGroup)) {
-      return new Response(JSON.stringify({ error: "Accès réservé aux enseignants et à l'équipe pédagogique" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     // --- Rate limiting : évite l'épuisement du quota IA payant (script/bot,
     // ou compte compromis) en bornant le nombre d'appels par utilisateur.
     // Même pattern que link-child-by-code : compteur sur activity_logs. ---
@@ -560,23 +443,21 @@ serve(async (req) => {
         if (error) console.error("Failed to log ia_chat_request:", error);
       });
 
-    const systemPrompt = editorialMode
-      ? buildEditorialPrompt(editorialContext, subject)
-      : (needsFullCourseContext(messages)
-        ? buildSystemPrompt(
-          subject || "mathématiques",
-          schoolLevel,
-          chapterContext,
-          allChapters,
-          !!hideReformulation
-        )
-        // Message léger (salutation, message court, méta-question) : on n'envoie
-        // PAS tout le corpus de cours → économie massive de tokens.
-        : buildLeanSystemPrompt(
-          subject || "mathématiques",
-          schoolLevel,
-          chapterContext
-        ));
+    const systemPrompt = needsFullCourseContext(messages)
+      ? buildSystemPrompt(
+        subject || "mathématiques",
+        schoolLevel,
+        chapterContext,
+        allChapters,
+        !!hideReformulation
+      )
+      // Message léger (salutation, message court, méta-question) : on n'envoie
+      // PAS tout le corpus de cours → économie massive de tokens.
+      : buildLeanSystemPrompt(
+        subject || "mathématiques",
+        schoolLevel,
+        chapterContext
+      );
 
 
     try {

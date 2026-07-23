@@ -1,12 +1,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { logTokenUsageAsync, resolveCallerRoleGroup, extractOpenAiCompatUsage, type AiUsage } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function callOpenRouterAI(apiKey: string, systemPrompt: string, userPrompt: string): Promise<string> {
+async function callOpenRouterAI(apiKey: string, systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -32,7 +33,7 @@ async function callOpenRouterAI(apiKey: string, systemPrompt: string, userPrompt
   }
 
   const result = await response.json();
-  return result.choices?.[0]?.message?.content || "";
+  return { text: result.choices?.[0]?.message?.content || "", usage: extractOpenAiCompatUsage(result) };
 }
 
 function extractJSON(raw: string): Record<string, unknown> {
@@ -100,16 +101,28 @@ serve(async (req) => {
 المستوى: ${level} | النتيجة: ${score.score}/${score.total}
 نقاط الضعف: ${weaknesses.join("، ")}
 
-المطلوب: أعطِ نصيحة مختصرة (جملتين فقط) ثم أنشئ 3 تمارين بسيطة مناسبة لمستوى الطالب تستهدف نقاط ضعفه.
+المطلوب: أعطِ نصيحة مختصرة (جملتين فقط) ثم أنشئ 3 تمارين بسيطة مناسبة لمستوى الطالب تستهدف نقاط ضعفه حصراً (بدون رفع الصعوبة، الهدف سدّ الثغرة).
+
+صيغة الرياضيات إلزامية: كل تعبير رياضي (كسور، قوى، جذور، رموز) يكتب بين $...$ بصيغة LaTeX (\\frac{a}{b}, x^{n}, \\sqrt{x}...)، ممنوع كتابة الرياضيات كنص خام.
 
 أجب بـ JSON فقط:
-{"advice": "نصيحة مختصرة جملتين", "weaknesses": ["نقطة1"], "exercises": [{"question": "السؤال", "answer": "الجواب", "hint": "تلميح"}]}`;
+{"advice": "نصيحة مختصرة جملتين", "weaknesses": ["نقطة1"], "exercises": [{"question": "السؤال (مع LaTeX عند الحاجة)", "answer": "الجواب", "hint": "تلميح دون كشف الجواب"}]}`;
 
-    const raw = await callOpenRouterAI(
+    const { text: raw, usage } = await callOpenRouterAI(
       OPENROUTER_API_KEY,
       "أنت معلم خبير. أجب بـ JSON فقط. كن مختصراً.",
       prompt
     );
+
+    // Log de consommation IA seulement si l'appel a réellement abouti.
+    if (usage) {
+      const { userId, roleGroup } = await resolveCallerRoleGroup(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, authHeader);
+      logTokenUsageAsync({
+        supabaseUrl: SUPABASE_URL, serviceRoleKey: SUPABASE_SERVICE_ROLE_KEY, userId, roleGroup,
+        functionName: "generate-periodic-advice",
+        inputTokens: usage.inputTokens, outputTokens: usage.outputTokens,
+      });
+    }
 
     const parsed = extractJSON(raw);
 

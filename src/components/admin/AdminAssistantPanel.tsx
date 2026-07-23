@@ -83,7 +83,9 @@ const STYLE_OPTIONS: { id: ExampleStyle; label: string; description: string }[] 
 // Même projet Supabase que src/integrations/supabase/client.ts (fichier généré,
 // on évite de le modifier directement). Utilisé uniquement pour le fetch SSE
 // manuel ci-dessous (supabase.functions.invoke ne supporte pas le streaming).
-const LOVABLE_CHAT_URL = 'https://lfothlxoixayjiytwwqa.supabase.co/functions/v1/lovable-chat';
+// Fonction dédiée (distincte du chatbot élève lovable-chat) pour que les deux
+// IA soient tracées séparément dans les logs admin.
+const EDITORIAL_ASSISTANT_URL = 'https://lfothlxoixayjiytwwqa.supabase.co/functions/v1/generate-editorial-assistant';
 
 const CONCEPT_LABELS: Record<string, string> = {
     definition: 'التعريف والرموز',
@@ -272,7 +274,6 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
 
         const payload = {
             messages: apiMessages,
-            editorialMode: true,
             editorialContext: {
                 currentContent: referenceContent || 'Leçon vide',
                 lessonTitle: lessonTitle || '',
@@ -280,10 +281,9 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                 wizard,
             },
             subject: 'mathématiques',
-            schoolLevel: 'professeur',
         };
 
-        const response = await fetch(LOVABLE_CHAT_URL, {
+        const response = await fetch(EDITORIAL_ASSISTANT_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

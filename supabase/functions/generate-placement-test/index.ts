@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { logTokenUsageAsync, resolveCallerRoleGroup, extractOpenAiCompatUsage, type AiUsage } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,7 +17,7 @@ const PREVIOUS_LEVEL_MAP: Record<string, string> = {
   "terminale": "seconde",
 };
 
-async function callOpenRouterAI(apiKey: string, systemPrompt: string, userPrompt: string): Promise<string> {
+async function callOpenRouterAI(apiKey: string, systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -42,7 +43,7 @@ async function callOpenRouterAI(apiKey: string, systemPrompt: string, userPrompt
   }
 
   const result = await response.json();
-  return result.choices?.[0]?.message?.content || "";
+  return { text: result.choices?.[0]?.message?.content || "", usage: extractOpenAiCompatUsage(result) };
 }
 
 function extractJSON(raw: string): any {
@@ -120,15 +121,29 @@ serve(async (req) => {
 البرنامج المرجعي:
 ${chaptersContext}
 
-قواعد: 4 خيارات، خيار صحيح واحد، correct_index من 0 إلى 3.
+قواعد:
+- 4 خيارات، خيار صحيح واحد، correct_index من 0 إلى 3.
+- الأسئلة الخمسة يجب أن تغطي مفاهيم مختلفة من البرنامج المرجعي أعلاه (لا تكرر نفس المفهوم مرتين)، بترتيب تصاعدي في الصعوبة.
+- صيغة الرياضيات إلزامية عند الحاجة: أي تعبير رياضي (كسور، قوى، جذور) يكتب بين $...$ بصيغة LaTeX (\\frac{a}{b}, x^{n}, \\sqrt{x}...)، وليس كنص خام.
+- "explanation" يشرح بإيجاز لماذا الجواب الصحيح صحيح (يساعد الطالب على الفهم، ليس فقط الإشارة إليه).
+
 أجب بـ JSON فقط:
 {"questions": [{"question": "...", "options": ["...", "...", "...", "..."], "correct_index": 0, "chapter_ref": "...", "explanation": "..."}]}`;
 
-      const raw = await callOpenRouterAI(
+      const { text: raw, usage } = await callOpenRouterAI(
         OPENROUTER_API_KEY,
         "أجب بـ JSON فقط. لا شرح خارج JSON.",
         prompt
       );
+
+      if (usage) {
+        const { userId, roleGroup } = await resolveCallerRoleGroup(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, authHeader);
+        logTokenUsageAsync({
+          supabaseUrl: SUPABASE_URL, serviceRoleKey: SUPABASE_SERVICE_ROLE_KEY, userId, roleGroup,
+          functionName: "generate-placement-test",
+          inputTokens: usage.inputTokens, outputTokens: usage.outputTokens,
+        });
+      }
 
       const parsed = extractJSON(raw);
       if (!parsed.questions || !Array.isArray(parsed.questions) || parsed.questions.length === 0) {
@@ -163,11 +178,20 @@ ${answersText}
 أنشئ تقرير مختصر. أجب بـ JSON فقط:
 {"level_label": "مبتدئ/متوسط/متقدم", "summary": "جملة واحدة فقط", "strengths": ["نقطة واحدة"], "improvements": ["نقطة واحدة"], "advice": "نصيحة في جملة واحدة"}`;
 
-      const raw = await callOpenRouterAI(
+      const { text: raw, usage } = await callOpenRouterAI(
         OPENROUTER_API_KEY,
         "أجب بـ JSON مختصر فقط. لا تكتب أكثر من جملة واحدة لكل حقل.",
         prompt
       );
+
+      if (usage) {
+        const { userId, roleGroup } = await resolveCallerRoleGroup(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, authHeader);
+        logTokenUsageAsync({
+          supabaseUrl: SUPABASE_URL, serviceRoleKey: SUPABASE_SERVICE_ROLE_KEY, userId, roleGroup,
+          functionName: "generate-placement-test",
+          inputTokens: usage.inputTokens, outputTokens: usage.outputTokens,
+        });
+      }
 
       const report = extractJSON(raw);
 

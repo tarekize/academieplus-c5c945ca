@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,9 @@ import {
 } from "@/components/ui/table";
 import { ArrowLeft, Cpu, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -29,10 +32,41 @@ const GROUP_LABELS: Record<string, string> = {
   admin: "Administrateurs",
 };
 
+// Nom lisible de chaque IA (function_name technique de l'edge function) pour
+// que l'admin voie immédiatement QUELLE IA a été appelée, pas juste un nom de
+// fonction technique. Une IA = une fonction = une ligne ici : si une nouvelle
+// fonction IA est ajoutée côté backend sans entrée ici, son nom technique
+// brut s'affiche quand même (repli dans FUNCTION_LABEL ci-dessous).
+const FUNCTION_LABELS: Record<string, string> = {
+  "lovable-chat": "💬 Chat IA — Élève (tuteur de maths)",
+  "generate-editorial-assistant": "✍️ Assistant éditorial — Enseignant/Pédago",
+  "generate-lesson-comment": "📝 Commentaire post-exercice — Élève",
+  "generate-adaptive-content": "🎯 Exercices/Quiz adaptatifs — Élève",
+  "generate-remediation": "🩹 Remédiation ciblée (lacunes) — Élève",
+  "generate-exam-exercise": "📐 Génération d'exercice d'examen — Enseignant",
+  "generate-teacher-content": "🧑‍🏫 Contenu pédagogique (exercices/quiz/examen) — Enseignant",
+  "generate-parent-report": "👪 Rapport de suivi — Parent",
+  "generate-periodic-advice": "📆 Conseils + exercices périodiques — Élève",
+  "generate-placement-test": "🧭 Test de positionnement — Élève",
+  "generate-lesson-content": "📘 Génération de contenu de leçon — Admin/Pédago",
+  "generate-chapter-quizzes": "❓ Quiz de chapitre — Admin/Pédago",
+  "generate-chapter-revision": "📋 Fiche de révision de chapitre — Admin/Pédago",
+  "bulk-gen-terminale-gemini": "📦 Génération en masse Terminale — Admin",
+  "bulk-generate-all-terminale": "📦 Génération en masse Terminale (legacy) — Admin",
+  "bulk-generate-lesson-content": "📦 Génération en masse de leçons — Admin",
+  "enrich-chapter-lessons": "✨ Enrichissement de leçons — Admin/Pédago",
+  "scheduled-parent-reports": "⏰ Rapports parents programmés — Automatique",
+};
+
+function functionLabel(name: string): string {
+  return FUNCTION_LABELS[name] || name;
+}
+
 export default function AdminTokenUsage() {
   const navigate = useNavigate();
   const [rows, setRows] = useState<UsageRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [functionFilter, setFunctionFilter] = useState<string>("all");
 
   useEffect(() => {
     fetchUsage();
@@ -48,6 +82,18 @@ export default function AdminTokenUsage() {
     setRows((data as any as UsageRow[]) || []);
     setLoading(false);
   };
+
+  // Liste des IA effectivement présentes dans les logs, triée par nom lisible
+  // — sert au filtre "Filtrer par IA" du tableau ci-dessous.
+  const availableFunctions = useMemo(() => {
+    const names = Array.from(new Set(rows.map((r) => r.function_name)));
+    return names.sort((a, b) => functionLabel(a).localeCompare(functionLabel(b)));
+  }, [rows]);
+
+  const filteredRows = useMemo(
+    () => (functionFilter === "all" ? rows : rows.filter((r) => r.function_name === functionFilter)),
+    [rows, functionFilter]
+  );
 
   const chartData = Object.keys(GROUP_LABELS).map((group) => {
     const groupRows = rows.filter((r) => r.role_group === group);
@@ -136,9 +182,26 @@ export default function AdminTokenUsage() {
         </Card>
 
         <Card className="border-0 shadow-lg">
-          <CardHeader className="border-b bg-muted/30">
-            <CardTitle>Derniers appels IA</CardTitle>
-            <CardDescription>200 entrées les plus récentes</CardDescription>
+          <CardHeader className="border-b bg-muted/30 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle>Derniers appels IA</CardTitle>
+              <CardDescription>
+                {functionFilter === "all"
+                  ? "200 entrées les plus récentes"
+                  : `200 entrées les plus récentes — filtré sur : ${functionLabel(functionFilter)}`}
+              </CardDescription>
+            </div>
+            <Select value={functionFilter} onValueChange={setFunctionFilter}>
+              <SelectTrigger className="w-full sm:w-[320px]">
+                <SelectValue placeholder="Filtrer par IA" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les IA</SelectItem>
+                {availableFunctions.map((name) => (
+                  <SelectItem key={name} value={name}>{functionLabel(name)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
@@ -146,24 +209,27 @@ export default function AdminTokenUsage() {
                 <TableRow className="bg-muted/30">
                   <TableHead>Date</TableHead>
                   <TableHead>Groupe</TableHead>
-                  <TableHead>Fonction</TableHead>
+                  <TableHead>IA utilisée</TableHead>
                   <TableHead>Précision</TableHead>
                   <TableHead className="text-right">Tokens</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.length === 0 ? (
+                {filteredRows.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       Aucune consommation enregistrée pour le moment.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  rows.slice(0, 200).map((r, i) => (
+                  filteredRows.slice(0, 200).map((r, i) => (
                     <TableRow key={i}>
                       <TableCell>{format(new Date(r.created_at), "dd MMM yyyy à HH:mm", { locale: fr })}</TableCell>
                       <TableCell>{GROUP_LABELS[r.role_group] || r.role_group}</TableCell>
-                      <TableCell className="text-muted-foreground">{r.function_name}</TableCell>
+                      <TableCell>
+                        <div className="text-sm">{functionLabel(r.function_name)}</div>
+                        <div className="text-xs text-muted-foreground font-mono">{r.function_name}</div>
+                      </TableCell>
                       <TableCell>
                         {r.is_estimated === false ? (
                           <Badge variant="default" className="rounded-full">Exact</Badge>

@@ -1,12 +1,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { logTokenUsageAsync, extractGeminiUsage, extractOpenAiCompatUsage, type AiUsage } from "../_shared/tokenLogger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-async function callAIWithFallback(messages: any[]): Promise<string> {
+async function callAIWithFallback(messages: any[]): Promise<{ text: string; usage: AiUsage | null }> {
   const openrouterKey = Deno.env.get("OPENROUTER_API_KEY");
   const lovableKey = Deno.env.get("LOVABLE_API_KEY");
   const geminiKey = Deno.env.get("GEMINI_API_KEY");
@@ -27,7 +28,7 @@ async function callAIWithFallback(messages: any[]): Promise<string> {
       });
       if (resp.ok) {
         const result = await resp.json();
-        return result.choices?.[0]?.message?.content || "";
+        return { text: result.choices?.[0]?.message?.content || "", usage: extractOpenAiCompatUsage(result) };
       }
       console.error("OpenRouter failed:", resp.status);
     } catch (e) { console.error("OpenRouter error:", e); }
@@ -47,7 +48,7 @@ async function callAIWithFallback(messages: any[]): Promise<string> {
       });
       if (resp.ok) {
         const result = await resp.json();
-        return result.choices?.[0]?.message?.content || "";
+        return { text: result.choices?.[0]?.message?.content || "", usage: extractOpenAiCompatUsage(result) };
       }
       console.error("Lovable AI failed:", resp.status);
     } catch (e) { console.error("Lovable AI error:", e); }
@@ -68,7 +69,7 @@ async function callAIWithFallback(messages: any[]): Promise<string> {
       });
       if (resp.ok) {
         const data = await resp.json();
-        return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        return { text: data?.candidates?.[0]?.content?.parts?.[0]?.text || "", usage: extractGeminiUsage(data) };
       }
       console.error("Gemini direct failed:", resp.status);
     } catch (e) { console.error("Gemini error:", e); }
@@ -77,7 +78,11 @@ async function callAIWithFallback(messages: any[]): Promise<string> {
   throw new Error("Tous les services IA sont indisponibles.");
 }
 
-async function generateForLesson(supabase: any, lessonId: string) {
+async function generateForLesson(
+  supabase: any,
+  lessonId: string,
+  tokenLogCtx?: { supabaseUrl: string; serviceRoleKey: string; userId: string; roleGroup: "admin" | "pedago" },
+) {
   const { data: lesson } = await supabase.from("lessons").select("title, title_ar, chapter_id, content").eq("id", lessonId).single();
   if (!lesson) throw new Error("Lesson not found");
 
@@ -101,8 +106,17 @@ async function generateForLesson(supabase: any, lessonId: string) {
     { role: "user", content: prompt },
   ];
 
-  let content = await callAIWithFallback(messages);
-  content = content.replace(/```html\n?/g, "").replace(/```\n?/g, "").trim();
+  const { text: rawContent, usage } = await callAIWithFallback(messages);
+  const content = rawContent.replace(/```html\n?/g, "").replace(/```\n?/g, "").trim();
+
+  if (usage && tokenLogCtx) {
+    logTokenUsageAsync({
+      supabaseUrl: tokenLogCtx.supabaseUrl, serviceRoleKey: tokenLogCtx.serviceRoleKey,
+      userId: tokenLogCtx.userId, roleGroup: tokenLogCtx.roleGroup,
+      functionName: "generate-lesson-content",
+      inputTokens: usage.inputTokens, outputTokens: usage.outputTokens,
+    });
+  }
 
   await supabase.from("lessons").update({ content }).eq("id", lessonId);
   return { id: lessonId, status: "success" };
@@ -150,10 +164,17 @@ serve(async (req) => {
       });
     }
 
+    const tokenLogCtx = {
+      supabaseUrl: SUPABASE_URL,
+      serviceRoleKey: SUPABASE_SERVICE_ROLE_KEY,
+      userId: user.id,
+      roleGroup: (roles.includes("admin") ? "admin" : "pedago") as "admin" | "pedago",
+    };
+
     const body = await req.json();
 
     if (body.lesson_id) {
-      const result = await generateForLesson(supabase, body.lesson_id);
+      const result = await generateForLesson(supabase, body.lesson_id, tokenLogCtx);
       return new Response(JSON.stringify({ success: true, ...result }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -192,7 +213,7 @@ serve(async (req) => {
     const results: { id: string; status: string }[] = [];
     for (const lesson of lessons) {
       try {
-        const r = await generateForLesson(supabase, lesson.id);
+        const r = await generateForLesson(supabase, lesson.id, tokenLogCtx);
         results.push(r);
       } catch (err: any) {
         results.push({ id: lesson.id, status: `error: ${err.message}` });

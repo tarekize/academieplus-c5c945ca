@@ -146,23 +146,35 @@ serve(async (req) => {
     const chapterTitle = (chapterData as any).title_ar || (chapterData as any).title || "الفصل";
     const diffLabel = difficulty === 1 ? "سهل" : difficulty === 3 ? "صعب" : "متوسط";
 
-    const systemPrompt = `أنت أستاذ رياضيات جزائري خبير. مهمتك توليد تمرين امتحان واحد باللغة العربية مع حل مفصل وإجابة نهائية. الرد فقط بكائن JSON صحيح، بدون أي نص خارج JSON.`;
+    const systemPrompt = `أنت أستاذ رياضيات جزائري خبير في إعداد مواضيع الامتحانات. مهمتك توليد تمرين امتحان واحد باللغة العربية مع حل مفصل خطوة بخطوة وإجابة نهائية. الرد فقط بكائن JSON صحيح، بدون أي نص خارج JSON.`;
 
     const userPrompt = `
 ولّد تمرين امتحان واحد (مستوى ${diffLabel}) حول فصل "${chapterTitle}".
 
 صيغة JSON المطلوبة (كائن واحد بالضبط):
 {
-  "statement": "نص التمرين (الإنشاء) بالعربية، يمكن استعمال LaTeX داخل $...$ أو $$...$$",
-  "solution": "الحل المفصل خطوة بخطوة بالعربية مع الصيغ الرياضية (LaTeX)",
+  "statement": "نص التمرين (الإنشاء) بالعربية",
+  "solution": "الحل المفصل خطوة بخطوة بالعربية (انظر تنسيق الحل الإلزامي أدناه)",
   "answer": "الإجابة النهائية المختصرة"
 }
 
 شروط مهمة:
-- جميع النصوص بالعربية
-- استعمل LaTeX للصيغ الرياضية: $\\lim_{x\\to 0}$, $\\frac{a}{b}$, $\\sqrt{x}$ ...
-- الحل يجب أن يكون مفصلاً وواضحاً
-- ⚠️ الرد JSON فقط (كائن واحد)، بدون \`\`\`json أو أي نص آخر`;
+- جميع النصوص بالعربية.
+- التمرين يجب أن يكون مناسباً لمستوى الصعوبة "${diffLabel}" ومطابقاً لبرنامج فصل "${chapterTitle}" فقط.
+
+FORMAT MATHÉMATIQUE OBLIGATOIRE : TOUTES les expressions mathématiques (variables, fonctions, fractions, puissances, indices, limites, racines, symboles ∞, ≤, ≥, ≠, ±, →, etc.) DOIVENT être écrites en LaTeX entre délimiteurs $...$ (ou $$...$$ pour les formules isolées) pour le rendu KaTeX.
+- الكسور: \\frac{a}{b} (ممنوع كتابتها a/b).
+- القوى: x^{n} (ممنوع x^n أو x**n). الأدلة: x_{n}. الجذور: \\sqrt{x}.
+- الرموز: \\infty, \\to, \\lim_{x \\to +\\infty}, \\leq, \\geq, \\neq, \\pm, \\cdot, \\times.
+- مثال صحيح: "$f(x) = \\frac{2x^{2} + 3x - 1}{x - 1}$" — ممنوع كتابتها كنص خام f(x) = (2x^2+3x-1)/(x-1).
+
+تنسيق الحل ("solution") - إلزامي:
+- حل غني ومفصل بعدة خطوات مرقّمة، أبداً سطر واحد فقط.
+- استعمل بنية HTML بسيطة: <p><strong>الخطوة 1 :</strong> ...</p><p>$$ ... $$</p> لكل خطوة، ثم <p><strong>الاستنتاج :</strong> $$ \\boxed{...} $$</p> في النهاية.
+- كل خطوة يجب أن تُبرّر الحساب (القاعدة أو المبرهنة أو الخاصية المستعملة)، ليس فقط النتيجة.
+- 4 خطوات كحد أدنى للتمارين متوسطة/صعبة الصعوبة.
+
+⚠️ الرد JSON فقط (كائن واحد)، بدون \`\`\`json أو أي نص آخر`;
 
     const { text: rawContent, usage } = await callGemini2(systemPrompt, userPrompt);
     if (!rawContent.trim()) throw new Error("Empty AI response");
