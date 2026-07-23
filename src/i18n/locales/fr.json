@@ -249,15 +249,15 @@
     "questions": {
       "howItWorks": {
         "question": "Comment fonctionne la plateforme de cours en ligne ?",
-        "answer": "Notre plateforme vous donne accès 24h/24 et 7j/7 à des cours vidéo de qualité, des exercices interactifs avec correction automatique, et un suivi personnalisé de votre progression. Vous pouvez apprendre à votre rythme depuis n'importe quel appareil."
+        "answer": "Notre plateforme vous donne accès à des leçons de mathématiques structurées (avec vidéos explicatives sur certaines leçons), à un tuteur IA disponible 24h/24 et 7j/7 pour répondre à vos questions et corriger vos exercices, ainsi qu'à des exercices et quiz générés automatiquement et adaptés à votre niveau et à vos lacunes. Un tableau de bord personnel suit votre progression en temps réel."
       },
       "subjects": {
         "question": "Quelles matières sont disponibles ?",
-        "answer": "Actuellement, nous nous concentrons exclusivement sur les mathématiques pour tous les niveaux, de la 5ème année à la terminale. Nous prévoyons d'ajouter d'autres matières à l'avenir."
+        "answer": "Actuellement, nous nous concentrons exclusivement sur les mathématiques, pour tous les niveaux de la 5ème année primaire à la terminale (filières scientifiques, littéraires et de gestion). Nous prévoyons d'ajouter d'autres matières à l'avenir."
       },
       "freeTrial": {
         "question": "Puis-je essayer gratuitement avant de m'abonner ?",
-        "answer": "Oui ! Nous offrons un essai gratuit de 7 jours pour que vous puissiez explorer la plateforme, accéder aux cours et exercices, et voir si notre méthode vous convient avant de vous engager."
+        "answer": "Il n'y a pas d'essai limité dans le temps, mais chaque élève dispose gratuitement, sans limite de durée, de 10 messages et 3 images par jour avec le tuteur IA pour découvrir la plateforme. Un abonnement (formule mensuelle ou annuelle, individuelle ou famille) supprime cette limite quotidienne et donne un accès illimité au chat IA."
       },
       "tracking": {
         "question": "Comment puis-je suivre ma progression ?",
@@ -265,7 +265,7 @@
       },
       "support": {
         "question": "Y a-t-il un support en cas de questions ?",
-        "answer": "Absolument ! Notre équipe pédagogique est disponible par email et chat pour répondre à toutes vos questions. Les abonnés Premium et Intensif bénéficient également d'un support prioritaire et de sessions de tutorat en direct."
+        "answer": "Oui : vous pouvez nous contacter via le formulaire de contact, ou soumettre une réclamation directement depuis votre espace (élève, enseignant ou parent), suivie par notre équipe pédagogique. Le tuteur IA reste également disponible à tout moment pour vos questions de cours."
       },
       "algerian": {
         "question": "Les cours sont-ils conformes au programme algérien ?",
@@ -273,7 +273,7 @@
       },
       "changePlan": {
         "question": "Puis-je changer de formule à tout moment ?",
-        "answer": "Oui, vous pouvez passer à une formule supérieure ou inférieure à tout moment. Le changement prendra effet immédiatement et sera pris en compte sur votre prochaine facturation."
+        "answer": "Oui, vous pouvez choisir ou changer de formule (mensuelle ou annuelle, individuelle ou famille) à tout moment depuis votre espace Abonnements : les nouveaux jours d'accès sont ajoutés à votre compte dès l'activation. Vous pouvez également résilier votre abonnement à tout moment depuis cet espace."
       }
     }
   },
