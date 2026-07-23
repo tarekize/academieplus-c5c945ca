@@ -10,10 +10,15 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('lesson-media', 'lesson-media', true)
 ON CONFLICT (id) DO NOTHING;
 
+-- DROP IF EXISTS avant chaque CREATE POLICY : rend la migration rejouable
+-- sans erreur si une exécution précédente s'est arrêtée à mi-chemin (ex:
+-- bucket créé mais policies pas encore appliquées).
+DROP POLICY IF EXISTS "Public read access to lesson media" ON storage.objects;
 CREATE POLICY "Public read access to lesson media"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'lesson-media');
 
+DROP POLICY IF EXISTS "Pedago and admin can upload lesson media" ON storage.objects;
 CREATE POLICY "Pedago and admin can upload lesson media"
 ON storage.objects FOR INSERT
 TO authenticated
@@ -25,6 +30,7 @@ WITH CHECK (
   )
 );
 
+DROP POLICY IF EXISTS "Pedago and admin can update lesson media" ON storage.objects;
 CREATE POLICY "Pedago and admin can update lesson media"
 ON storage.objects FOR UPDATE
 TO authenticated
@@ -36,6 +42,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Pedago and admin can delete lesson media" ON storage.objects;
 CREATE POLICY "Pedago and admin can delete lesson media"
 ON storage.objects FOR DELETE
 TO authenticated
@@ -46,3 +53,5 @@ USING (
     WHERE ur.user_id = auth.uid() AND (ur.role = 'admin' OR ur.role = 'pedago')
   )
 );
+
+NOTIFY pgrst, 'reload schema';
