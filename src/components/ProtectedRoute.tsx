@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
@@ -35,6 +35,33 @@ export default function ProtectedRoute({
   const { user, loading, roles, hasRole, isAdmin } = useAuth();
   const location = useLocation();
   const [authorized, setAuthorized] = useState<boolean | null>(null);
+
+  // Sur un changement de fenêtre/onglet, Supabase relance un rafraîchissement du
+  // jeton en arrière-plan ; s'il rencontre le moindre accroc réseau, le SDK peut
+  // émettre un événement SIGNED_OUT transitoire (user = null) juste avant que la
+  // session ne se rétablisse d'elle-même. Sans cette marge, ce blip renvoyait
+  // immédiatement vers /auth puis rebondissait vers la page d'origine — visible
+  // par l'utilisateur comme "un changement de page". On n'applique cette marge
+  // que si une session avait déjà été vue (hadUserRef) : un visiteur jamais
+  // connecté est redirigé vers /auth sans délai.
+  const hadUserRef = useRef(false);
+  const [confirmedLoggedOut, setConfirmedLoggedOut] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      hadUserRef.current = true;
+      setConfirmedLoggedOut(false);
+      return;
+    }
+    if (loading) return;
+    if (!hadUserRef.current) {
+      setConfirmedLoggedOut(true);
+      return;
+    }
+    setConfirmedLoggedOut(false);
+    const timer = setTimeout(() => setConfirmedLoggedOut(true), 1500);
+    return () => clearTimeout(timer);
+  }, [user, loading]);
 
   useEffect(() => {
     async function checkAuthorization() {
@@ -99,8 +126,19 @@ export default function ProtectedRoute({
     );
   }
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated — unless we're still within the grace
+  // window giving a possible transient session blip a chance to recover.
   if (!user) {
+    if (!confirmedLoggedOut) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+            <p className="text-muted-foreground">Vérification des autorisations...</p>
+          </div>
+        </div>
+      );
+    }
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
