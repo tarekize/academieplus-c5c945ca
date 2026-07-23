@@ -9,11 +9,12 @@ import { Separator } from '@/components/ui/separator';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { sanitizeLessonHtml } from '@/lib/sanitizeHtml';
 import { lessonSchema, convertPedagoBlocks } from '@/lib/lessonBlocks';
+import { uploadLessonImage } from '@/lib/lessonMedia';
 import { cn } from '@/lib/utils';
 import {
   Bold, Italic, Heading1, Heading2, Heading3, List, ListOrdered,
   Sigma, FunctionSquare, BookMarked, Scale, PenLine,
-  Table2, ImagePlus, Minus, Palette,
+  Table2, ImagePlus, Minus, Palette, Loader2,
 } from 'lucide-react';
 
 // Même palette que LessonSourceEditor (LaTeX) : classes CSS fixes définies
@@ -75,7 +76,14 @@ function InlineLessonEditorInner({
   onBlurTarget?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  // Curseur sauvegardé au moment d'ouvrir le sélecteur de fichiers : le temps
+  // que le pédagogue choisisse une image et que l'upload se termine, le
+  // focus est parti sur la boîte de dialogue du système puis revient — la
+  // sélection dans la zone éditable serait perdue sans ça.
+  const savedRangeRef = useRef<Range | null>(null);
   const [isEmpty, setIsEmpty] = useState(!initialContent?.trim());
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Capturé une seule fois au montage (ou lors d'une réinitialisation via `key`) :
   // on ne relit jamais `content` depuis les props ensuite, pour laisser le
@@ -168,8 +176,42 @@ function InlineLessonEditorInner({
     );
   }, [insertHtmlAtCursor]);
 
+  // Le bouton "Ajouter une image" ouvre le sélecteur de fichiers de
+  // l'appareil (en sauvegardant d'abord le curseur courant) ; l'upload réel
+  // a lieu dans handleImageSelected ci-dessous.
   const insertImage = useCallback(() => {
-    insertHtmlAtCursor('<img src="URL_DE_L_IMAGE" alt="Description de l\'image" />');
+    const el = ref.current;
+    const sel = window.getSelection();
+    if (el && sel && sel.rangeCount > 0 && el.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+      savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+    } else {
+      savedRangeRef.current = null;
+    }
+    imageInputRef.current?.click();
+  }, []);
+
+  const handleImageSelected = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (imageInputRef.current) imageInputRef.current.value = '';
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const url = await uploadLessonImage(file);
+      const el = ref.current;
+      const sel = window.getSelection();
+      if (el && sel && savedRangeRef.current) {
+        el.focus();
+        sel.removeAllRanges();
+        sel.addRange(savedRangeRef.current);
+      }
+      insertHtmlAtCursor(`<img src="${url}" alt="${escapeHtml(file.name)}" />`);
+      toast.success('Image ajoutée');
+    } catch (error: any) {
+      toast.error("Erreur lors de l'import de l'image", { description: error.message });
+    } finally {
+      setUploadingImage(false);
+    }
   }, [insertHtmlAtCursor]);
 
   const insertHorizontalRule = useCallback(() => {
@@ -217,7 +259,7 @@ function InlineLessonEditorInner({
   // cours dans la zone éditable) de disparaître au moment de cliquer sur un
   // bouton de la barre d'outils — sans ça, le clic arrive après que le
   // navigateur ait déjà retiré le focus de la zone éditable.
-  const ToolBtn = ({ onClick, children, title }: { onClick: () => void; children: React.ReactNode; title: string }) => (
+  const ToolBtn = ({ onClick, children, title, disabled }: { onClick: () => void; children: React.ReactNode; title: string; disabled?: boolean }) => (
     <Button
       type="button"
       variant="ghost"
@@ -227,6 +269,7 @@ function InlineLessonEditorInner({
       onClick={onClick}
       title={title}
       aria-label={title}
+      disabled={disabled}
     >
       {children}
     </Button>
@@ -234,6 +277,13 @@ function InlineLessonEditorInner({
 
   const toolbar = (
     <div className="flex md:flex-col flex-row flex-wrap md:flex-nowrap items-center gap-0.5 p-1.5 bg-muted/50 border rounded-lg shrink-0 md:self-stretch">
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleImageSelected}
+      />
       <ToolBtn onClick={() => toggleInlineStyle('bold')} title="Gras">
         <Bold className="h-4 w-4" />
       </ToolBtn>
@@ -293,8 +343,8 @@ function InlineLessonEditorInner({
       <ToolBtn onClick={insertTable} title="Insérer un tableau">
         <Table2 className="h-4 w-4" />
       </ToolBtn>
-      <ToolBtn onClick={insertImage} title="Ajouter une image">
-        <ImagePlus className="h-4 w-4" />
+      <ToolBtn onClick={insertImage} title="Ajouter une image depuis l'appareil" disabled={uploadingImage}>
+        {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
       </ToolBtn>
       <ToolBtn onClick={insertHorizontalRule} title="Ajouter une ligne de séparation">
         <Minus className="h-4 w-4" />

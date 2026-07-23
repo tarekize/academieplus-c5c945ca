@@ -5,12 +5,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { uploadLessonImage } from '@/lib/lessonMedia';
 import LessonMarkdown from './LessonMarkdown';
 import { HtmlWithMath } from './HtmlWithMath';
 import {
   Bold, Italic, Heading1, Heading2, Heading3, List, ListOrdered,
   Sigma, FunctionSquare, BookMarked, Scale, PenLine,
-  Table2, ImagePlus, Minus, Palette,
+  Table2, ImagePlus, Minus, Palette, Loader2,
   Columns2, PanelLeft, PanelRight,
 } from 'lucide-react';
 
@@ -61,7 +62,9 @@ function renderPreview(content: string) {
  */
 export default function LessonSourceEditor({ content, onChange, editable = true }: LessonSourceEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [layout, setLayout] = useState<Layout>('split');
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Enveloppe la sélection (ou insère un texte par défaut) avec des marqueurs, puis replace le curseur juste après.
   const wrapSelection = useCallback((before: string, after: string, placeholder: string) => {
@@ -118,8 +121,27 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
     insertAtCursor('\n| Colonne 1 | Colonne 2 |\n| --- | --- |\n| Valeur 1 | Valeur 2 |\n| Valeur 3 | Valeur 4 |\n');
   }, [insertAtCursor]);
 
+  // Le bouton "Ajouter une image" ouvre le sélecteur de fichiers de
+  // l'appareil ; l'upload réel a lieu dans handleImageSelected ci-dessous.
   const insertImage = useCallback(() => {
-    insertAtCursor('\n![Description de l\'image](URL_DE_L_IMAGE)\n');
+    imageInputRef.current?.click();
+  }, []);
+
+  const handleImageSelected = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (imageInputRef.current) imageInputRef.current.value = '';
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const url = await uploadLessonImage(file);
+      insertAtCursor(`\n![${file.name}](${url})\n`);
+      toast.success('Image ajoutée');
+    } catch (error: any) {
+      toast.error("Erreur lors de l'import de l'image", { description: error.message });
+    } finally {
+      setUploadingImage(false);
+    }
   }, [insertAtCursor]);
 
   const insertHorizontalRule = useCallback(() => {
@@ -145,7 +167,7 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
     return <div className="prose prose-sm dark:prose-invert max-w-none">{renderPreview(content)}</div>;
   }
 
-  const ToolBtn = ({ active, onClick, children, title }: { active?: boolean; onClick: () => void; children: React.ReactNode; title?: string }) => (
+  const ToolBtn = ({ active, onClick, children, title, disabled }: { active?: boolean; onClick: () => void; children: React.ReactNode; title?: string; disabled?: boolean }) => (
     <Button
       type="button"
       variant={active ? 'default' : 'ghost'}
@@ -154,6 +176,7 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
       onClick={onClick}
       title={title}
       aria-label={title}
+      disabled={disabled}
     >
       {children}
     </Button>
@@ -161,6 +184,13 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
 
   return (
     <div className="border rounded-lg overflow-hidden flex flex-col">
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleImageSelected}
+      />
       {/* Barre d'outils */}
       <div className="flex flex-wrap items-center gap-0.5 p-2 bg-muted/50 border-b">
         <ToolBtn onClick={() => wrapSelection('**', '**', 'texte en gras')} title="Gras">
@@ -217,8 +247,8 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
         <ToolBtn onClick={insertTable} title="Insérer un tableau">
           <Table2 className="h-4 w-4" />
         </ToolBtn>
-        <ToolBtn onClick={insertImage} title="Ajouter une image">
-          <ImagePlus className="h-4 w-4" />
+        <ToolBtn onClick={insertImage} title="Ajouter une image depuis l'appareil" disabled={uploadingImage}>
+          {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
         </ToolBtn>
         <ToolBtn onClick={insertHorizontalRule} title="Ajouter une ligne de séparation">
           <Minus className="h-4 w-4" />
