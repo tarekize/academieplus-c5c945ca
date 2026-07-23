@@ -143,6 +143,18 @@ const MesInformations = () => {
     return parts.length > 0 ? parts.join(" ") : "Utilisateur";
   };
 
+  // La photo de profil s'enregistre immédiatement (contrairement aux autres
+  // champs, qui restent groupés derrière le bouton "Mettre à jour").
+  const persistAvatarUrl = async (avatarUrl: string | null) => {
+    if (!user) return;
+    const { error } = await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("id", user.id);
+    if (error) {
+      toast.error("Erreur", { description: "Impossible d'enregistrer la photo de profil." });
+      return;
+    }
+    setProfile((prev) => (prev ? { ...prev, avatar_url: avatarUrl } : prev));
+  };
+
   const handleUpdate = async () => {
     try {
       setUpdating(true);
@@ -319,8 +331,8 @@ const MesInformations = () => {
             <div className="relative bg-card/80 backdrop-blur-sm rounded-3xl border border-border/50 p-8 flex flex-col items-center text-center">
               <AvatarUpload
                 url={formData.avatar_url}
-                onUpload={(url) => setFormData({ ...formData, avatar_url: url })}
-                onDelete={() => setFormData({ ...formData, avatar_url: null })}
+                onUpload={(url) => { setFormData({ ...formData, avatar_url: url }); persistAvatarUrl(url); }}
+                onDelete={() => { setFormData({ ...formData, avatar_url: null }); persistAvatarUrl(null); }}
               />
               <h1 className="mt-5 font-display text-2xl font-extrabold text-foreground">{fullName}</h1>
               <p className="text-muted-foreground text-sm">{profile?.email}</p>

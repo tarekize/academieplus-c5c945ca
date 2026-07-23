@@ -214,13 +214,6 @@ const Account = () => {
       color: "text-emerald-600",
       onClick: () => navigate("/factures"),
     },
-    {
-      title: t("account.myStats"),
-      description: t("account.myStatsDesc"),
-      icon: BarChart3,
-      color: "text-indigo-600",
-      onClick: () => toast(t("account.myStats"), { description: t("account.inDevelopment") }),
-    },
   ];
 
   // Parent cards: full set
@@ -245,13 +238,6 @@ const Account = () => {
       icon: FileText,
       color: "text-emerald-600",
       onClick: () => navigate("/factures"),
-    },
-    {
-      title: t("account.myStats"),
-      description: t("account.myStatsDesc"),
-      icon: BarChart3,
-      color: "text-indigo-600",
-      onClick: () => toast(t("account.myStats"), { description: t("account.inDevelopment") }),
     },
   ];
 

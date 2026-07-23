@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 
 import ChatBot from "@/components/ChatBot";
 import ITSRecommendations from "@/components/its/ITSRecommendations";
+import { useChapterCompletion } from "@/hooks/useChapterCompletion";
 import { ChapterFormDialog, DeleteChapterButton, LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -70,13 +71,17 @@ const Cours = () => {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [activeChapter, setActiveChapter] = useState<Chapter | null>(null);
   const [activeChapterIndex, setActiveChapterIndex] = useState<number>(0);
-  const [progress, setProgress] = useState<Record<string, boolean>>({});
   const [viewMode, setViewMode] = useState<"grid" | "content">("grid");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isChatExpanded, setIsChatExpanded] = useState(false);
   const [chatSize, setChatSize] = useState({ width: 400, height: typeof window !== 'undefined' ? window.innerHeight - 120 : 600 });
   const [chatPos, setChatPos] = useState({ x: typeof window !== 'undefined' ? window.innerWidth - 420 : 0, y: 80 });
+
+  // Un chapitre est marqué terminé (coche verte) automatiquement une fois toutes
+  // ses leçons terminées (tous les exercices + tous les QCM traités) — plus de
+  // bascule manuelle non reliée à la vraie progression.
+  const progress = useChapterCompletion(profile?.id, chapters);
 
   useEffect(() => {
     if (isChatExpanded) {
@@ -313,19 +318,6 @@ const Cours = () => {
       navigate('/complete-profile', { replace: true });
     }
   }, [needsProfileCompletion, navigate]);
-
-  const handleMarkComplete = async () => {
-    if (!activeChapter) return;
-
-    setProgress(prev => ({
-      ...prev,
-      [activeChapter.id]: !prev[activeChapter.id]
-    }));
-
-    toast(progress[activeChapter.id] ? t("cours.chapterUncompleted") : t("cours.chapterCompleted"), {
-      description: progress[activeChapter.id] ? "" : t("cours.chapterCompletedDesc"),
-    });
-  };
 
   const handleChapterChange = (direction: "prev" | "next") => {
     if (!chapters.length || !activeChapter) return;
@@ -955,7 +947,6 @@ const Cours = () => {
               fetchQuizExercises={fetchQuizExercises}
               subjectId={subjectId}
               progress={progress}
-              handleMarkComplete={handleMarkComplete}
               handleDownloadPDF={handleDownloadPDF}
               handleChapterChange={handleChapterChange}
               chapters={chapters}
