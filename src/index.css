@@ -374,6 +374,21 @@ All colors MUST be HSL.
 .lesson-markdown .block-graphic     { border-color: hsl(340 75% 55%); background: hsl(340 75% 55% / 0.06); }
 .lesson-markdown .block-graphic     .lesson-block-title { color: hsl(340 75% 45%); }
 
+/* --- Couleurs de texte proposées par le bouton "Couleur" de l'éditeur
+   pédagogue (LessonSourceEditor) : classes fixes (pas du Tailwind arbitraire,
+   qui ne serait pas généré pour du contenu de leçon stocké en base et jamais
+   scanné par le JIT), appliquées via <span class="clr-..."> autorisé par le
+   schéma de sanitization (lessonSchema, className sur span). --- */
+.lesson-markdown .clr-red    { color: #dc2626; }
+.lesson-markdown .clr-orange { color: #ea580c; }
+.lesson-markdown .clr-green  { color: #16a34a; }
+.lesson-markdown .clr-blue   { color: #2563eb; }
+.lesson-markdown .clr-purple { color: #9333ea; }
+.lesson-markdown .clr-pink   { color: #db2777; }
+.lesson-markdown .clr-gray   { color: #6b7280; }
+.lesson-markdown .clr-black  { color: #111827; }
+.dark .lesson-markdown .clr-black { color: #f3f4f6; }
+
 /* --- KaTeX : forcer LTR pour éviter le décalage en RTL --- */
 .lesson-markdown .katex,
 .lesson-markdown .katex-display {

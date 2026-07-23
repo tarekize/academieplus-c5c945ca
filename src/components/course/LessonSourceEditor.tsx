@@ -2,14 +2,33 @@ import { useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import LessonMarkdown from './LessonMarkdown';
 import { HtmlWithMath } from './HtmlWithMath';
 import {
   Bold, Italic, Heading1, Heading2, Heading3, List, ListOrdered,
-  Sigma, FunctionSquare, BookMarked, Lightbulb, PenLine,
+  Sigma, FunctionSquare, BookMarked, Scale, PenLine,
+  Table2, ImagePlus, Minus, Palette,
   Columns2, PanelLeft, PanelRight,
 } from 'lucide-react';
+
+// Palette de couleurs proposée par le bouton "Couleur" : classes CSS fixes
+// (définies dans index.css sous .lesson-markdown, pas des classes Tailwind
+// arbitraires — celles-ci ne seraient pas générées par le JIT puisqu'elles
+// n'apparaissent dans aucun fichier scanné au build, seulement dans du
+// contenu de leçon stocké en base).
+const TEXT_COLORS = [
+  { label: 'Rouge', className: 'clr-red', hex: '#dc2626' },
+  { label: 'Orange', className: 'clr-orange', hex: '#ea580c' },
+  { label: 'Vert', className: 'clr-green', hex: '#16a34a' },
+  { label: 'Bleu', className: 'clr-blue', hex: '#2563eb' },
+  { label: 'Violet', className: 'clr-purple', hex: '#9333ea' },
+  { label: 'Rose', className: 'clr-pink', hex: '#db2777' },
+  { label: 'Gris', className: 'clr-gray', hex: '#6b7280' },
+  { label: 'Noir', className: 'clr-black', hex: '#111827' },
+] as const;
 
 interface LessonSourceEditorProps {
   content: string;
@@ -26,7 +45,7 @@ function renderPreview(content: string) {
     return <p className="text-muted-foreground text-sm italic">L'aperçu s'affichera ici...</p>;
   }
   return isHtmlContent(content) ? (
-    <HtmlWithMath className="prose prose-sm dark:prose-invert max-w-none" htmlContent={content} />
+    <HtmlWithMath className="lesson-markdown prose prose-sm dark:prose-invert max-w-none" htmlContent={content} />
   ) : (
     <LessonMarkdown content={content} dir="rtl" />
   );
@@ -78,6 +97,50 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
     });
   }, [content, onChange]);
 
+  // Insère un texte fixe à la position du curseur (sans envelopper de sélection).
+  const insertAtCursor = useCallback((snippet: string) => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart ?? content.length;
+    const end = el.selectionEnd ?? content.length;
+    const needsLeadingNewline = start > 0 && content[start - 1] !== '\n';
+    const text = `${needsLeadingNewline ? '\n' : ''}${snippet}`;
+    const newValue = content.slice(0, start) + text + content.slice(end);
+    onChange(newValue);
+    requestAnimationFrame(() => {
+      el.focus();
+      const cursor = start + text.length;
+      el.setSelectionRange(cursor, cursor);
+    });
+  }, [content, onChange]);
+
+  const insertTable = useCallback(() => {
+    insertAtCursor('\n| Colonne 1 | Colonne 2 |\n| --- | --- |\n| Valeur 1 | Valeur 2 |\n| Valeur 3 | Valeur 4 |\n');
+  }, [insertAtCursor]);
+
+  const insertImage = useCallback(() => {
+    insertAtCursor('\n![Description de l\'image](URL_DE_L_IMAGE)\n');
+  }, [insertAtCursor]);
+
+  const insertHorizontalRule = useCallback(() => {
+    insertAtCursor('\n---\n');
+  }, [insertAtCursor]);
+
+  // Colore la sélection : ne fait rien si rien n'est sélectionné (contrairement à
+  // wrapSelection, un texte de remplissage coloré au hasard serait déroutant).
+  const applyColor = useCallback((colorClass: string) => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart ?? 0;
+    const end = el.selectionEnd ?? 0;
+    if (start === end) {
+      toast.info('Sélectionnez d\'abord le texte à colorer, puis choisissez une couleur.');
+      el.focus();
+      return;
+    }
+    wrapSelection(`<span class="${colorClass}">`, '</span>', '');
+  }, [wrapSelection]);
+
   if (!editable) {
     return <div className="prose prose-sm dark:prose-invert max-w-none">{renderPreview(content)}</div>;
   }
@@ -90,6 +153,7 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
       className="h-8 w-8 shrink-0"
       onClick={onClick}
       title={title}
+      aria-label={title}
     >
       {children}
     </Button>
@@ -108,13 +172,13 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
 
         <Separator orientation="vertical" className="h-6 mx-1" />
 
-        <ToolBtn onClick={() => wrapSelection('\n# ', '', 'Titre')} title="Titre 1">
+        <ToolBtn onClick={() => wrapSelection('\n# ', '', 'Titre')} title="Titre">
           <Heading1 className="h-4 w-4" />
         </ToolBtn>
-        <ToolBtn onClick={() => wrapSelection('\n## ', '', 'Titre')} title="Titre 2">
+        <ToolBtn onClick={() => wrapSelection('\n## ', '', 'Sous-titre')} title="Sous-titre">
           <Heading2 className="h-4 w-4" />
         </ToolBtn>
-        <ToolBtn onClick={() => wrapSelection('\n### ', '', 'Titre')} title="Titre 3">
+        <ToolBtn onClick={() => wrapSelection('\n### ', '', 'Sous-sous-titre')} title="Sous-sous-titre">
           <Heading3 className="h-4 w-4" />
         </ToolBtn>
 
@@ -141,12 +205,50 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
         <ToolBtn onClick={() => insertBlock('definition', 'Énoncé de la définition...')} title="Bloc Définition">
           <BookMarked className="h-4 w-4" />
         </ToolBtn>
-        <ToolBtn onClick={() => insertBlock('theorem', 'Énoncé du théorème...')} title="Bloc Théorème">
-          <Lightbulb className="h-4 w-4" />
+        <ToolBtn onClick={() => insertBlock('property', 'Énoncé de la propriété...')} title="Bloc Propriété">
+          <Scale className="h-4 w-4" />
         </ToolBtn>
         <ToolBtn onClick={() => insertBlock('example', "Énoncé de l'exemple...")} title="Bloc Exemple">
           <PenLine className="h-4 w-4" />
         </ToolBtn>
+
+        <Separator orientation="vertical" className="h-6 mx-1" />
+
+        <ToolBtn onClick={insertTable} title="Insérer un tableau">
+          <Table2 className="h-4 w-4" />
+        </ToolBtn>
+        <ToolBtn onClick={insertImage} title="Ajouter une image">
+          <ImagePlus className="h-4 w-4" />
+        </ToolBtn>
+        <ToolBtn onClick={insertHorizontalRule} title="Ajouter une ligne de séparation">
+          <Minus className="h-4 w-4" />
+        </ToolBtn>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0" title="Couleur du texte" aria-label="Couleur du texte">
+              <Palette className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-2" align="start">
+            <p className="text-xs text-muted-foreground mb-2 px-1">
+              Sélectionnez du texte dans l'éditeur, puis choisissez une couleur
+            </p>
+            <div className="grid grid-cols-4 gap-1.5">
+              {TEXT_COLORS.map((c) => (
+                <button
+                  key={c.className}
+                  type="button"
+                  onClick={() => applyColor(c.className)}
+                  title={c.label}
+                  aria-label={`Colorer en ${c.label.toLowerCase()}`}
+                  className="h-7 w-7 rounded-full border border-border/60 shadow-sm hover:scale-110 transition-transform"
+                  style={{ backgroundColor: c.hex }}
+                />
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
 
         {/* Bascule d'affichage */}
         <div className="ml-auto flex items-center gap-0.5">
