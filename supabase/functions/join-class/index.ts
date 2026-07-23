@@ -95,8 +95,12 @@ Deno.serve(async (req) => {
       .insert({ class_id: klass.id, student_id: studentId });
 
     if (insertErr) {
+      // 23505 = violation de la contrainte UNIQUE(student_id) (garde-fou DB
+      // contre la course entre le contrôle ci-dessus et cet insert — cf.
+      // migration 20260723120300) : le message reste générique car la classe
+      // déjà rejointe entre-temps peut être différente de celle-ci.
       if (insertErr.code === "23505") {
-        return new Response(JSON.stringify({ error: "Vous êtes déjà dans cette classe" }), {
+        return new Response(JSON.stringify({ error: "Vous êtes déjà membre d'une classe. Quittez-la avant d'en rejoindre une autre." }), {
           status: 409,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });

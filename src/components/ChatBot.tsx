@@ -437,6 +437,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                   onClick={() => setShowHistory(true)}
                   className="h-9 w-9 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5"
                   title="Historique des conversations"
+                  aria-label="Historique des conversations"
                 >
                   <History className="h-5 w-5" />
                 </Button>
@@ -448,6 +449,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                     onClick={onToggleExpand}
                     className="h-9 w-9 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5"
                     title={isExpanded ? "Réduire" : "Agrandir"}
+                    aria-label={isExpanded ? "Réduire" : "Agrandir"}
                   >
                     {isExpanded ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
                   </Button>
@@ -580,6 +582,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                           onClick={() => removeFile(index)}
                           className="hover:text-red-500 transition-colors p-0.5 rounded-full hover:bg-white"
                           disabled={isLoading}
+                          aria-label={`Retirer le fichier ${file.name}`}
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>
@@ -616,6 +619,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                           onClick={() => fileInputRef.current?.click()}
                           disabled={isLoading || isRecording || (!canSendImage && !hasSubscription)}
                           title={!canSendImage && !hasSubscription ? "Limite d'images atteinte" : "Joindre un fichier"}
+                          aria-label={!canSendImage && !hasSubscription ? "Limite d'images atteinte" : "Joindre un fichier"}
                           className="w-10 h-10 rounded-xl text-slate-500 hover:text-primary hover:bg-primary/5"
                         >
                           <Paperclip strokeWidth={1.5} className="h-5 w-5" />
@@ -628,6 +632,7 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                           disabled={isLoading || isRecording}
                           className="w-10 h-10 rounded-xl text-slate-500 hover:text-primary hover:bg-primary/5 text-xs font-bold font-mono tracking-tight"
                           title={voiceLang === 'fr-FR' ? 'Français' : 'العربية'}
+                          aria-label={`Changer la langue de dictée vocale, actuellement ${voiceLang === 'fr-FR' ? 'Français' : 'Arabe'}`}
                         >
                           {voiceLang === 'fr-FR' ? 'FR' : 'AR'}
                         </Button>
@@ -638,6 +643,8 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
                           onClick={isRecording ? stopRecording : startRecording}
                           disabled={isLoading}
                           className={`w-10 h-10 rounded-xl relative hover:bg-primary/5 ${isRecording ? 'text-red-500 hover:text-red-600 bg-red-50' : 'text-slate-500 hover:text-primary'}`}
+                          title={isRecording ? "Arrêter l'enregistrement" : "Dicter un message vocal"}
+                          aria-label={isRecording ? "Arrêter l'enregistrement" : "Dicter un message vocal"}
                         >
                           {isRecording ? <MicOff strokeWidth={1.5} className="h-5 w-5" /> : <Mic strokeWidth={1.5} className="h-5 w-5" />}
 

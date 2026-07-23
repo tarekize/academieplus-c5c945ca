@@ -198,7 +198,7 @@ export function SectionEditor({
                       {media.url && (
                         <img
                           src={media.url}
-                          alt={media.alt_text}
+                          alt={media.alt_text || ''}
                           className="h-16 w-16 object-cover rounded"
                         />
                       )}

@@ -108,7 +108,7 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v && chapter) { setTitleAr(chapter.title_ar || chapter.title || ""); setDescription(chapter.description || ""); } }}>
       <DialogTrigger asChild>
         {isEdit ? (
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Modifier le chapitre">
             <Pencil className="h-4 w-4" />
           </Button>
         ) : (
@@ -182,7 +182,7 @@ export function DeleteChapterButton({ chapterId, onDeleted }: { chapterId: strin
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" aria-label="Supprimer le chapitre">
           <Trash2 className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>
@@ -268,7 +268,7 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v && lesson) { setTitleAr(lesson.title_ar || lesson.title || ""); } }}>
       <DialogTrigger asChild>
         {isEdit ? (
-          <Button variant="ghost" size="icon" className="h-7 w-7">
+          <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Modifier la leçon">
             <Pencil className="h-3 w-3" />
           </Button>
         ) : (
@@ -327,7 +327,7 @@ export function DeleteLessonButton({ lessonId, onDeleted }: { lessonId: string; 
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive">
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" aria-label="Supprimer la leçon">
           <Trash2 className="h-3 w-3" />
         </Button>
       </AlertDialogTrigger>

@@ -90,18 +90,24 @@ Deno.serve(async (req) => {
     // Use service role client to bypass RLS and find child by code
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // --- Rate limiting: too many failed code guesses from this account
-    // recently -> block. Prevents brute-forcing the 8-char linking code to
-    // gain access to an arbitrary child's data. ---
-    const windowStart = new Date(Date.now() - WINDOW_MINUTES * 60 * 1000).toISOString();
-    const { count: recentFailures } = await adminClient
-      .from("activity_logs")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", parentId)
-      .eq("action", "link_code_failed")
-      .gte("created_at", windowStart);
+    // --- Rate limiting: too many code guesses from this account recently ->
+    // block. Prevents brute-forcing the 8-char linking code to gain access to
+    // an arbitrary child's data. check_and_log_rate_limit counts + logs the
+    // attempt atomically (per-user advisory lock, see migration
+    // 20260723120200) so concurrent parallel guesses can't all slip through
+    // on the same stale count before any of them is recorded — it gates on
+    // every attempt (not just failures), which is also a tighter brute-force
+    // bound than counting failures alone. ---
+    const { data: allowed, error: rateLimitError } = await adminClient.rpc("check_and_log_rate_limit", {
+      p_user_id: parentId,
+      p_action: "link_code_attempt",
+      p_window_seconds: WINDOW_MINUTES * 60,
+      p_max_requests: MAX_ATTEMPTS,
+    });
 
-    if ((recentFailures ?? 0) >= MAX_ATTEMPTS) {
+    if (rateLimitError) {
+      console.error("Rate limit check failed:", rateLimitError);
+    } else if (!allowed) {
       console.log(`Rate limit hit for parent ${parentId}`);
       return new Response(
         JSON.stringify({ error: "Trop de tentatives. Réessayez dans quelques minutes." }),
@@ -111,14 +117,6 @@ Deno.serve(async (req) => {
         }
       );
     }
-
-    const logFailure = async () => {
-      const { error } = await adminClient.from("activity_logs").insert({
-        user_id: parentId,
-        action: "link_code_failed",
-      });
-      if (error) console.error("Failed to log link_code_failed:", error);
-    };
 
     // Find the child profile by linking code (case-insensitive)
     const { data: childProfile, error: findError } = await adminClient
@@ -140,7 +138,6 @@ Deno.serve(async (req) => {
 
     if (!childProfile) {
       console.log("No child found for code:", trimmedCode);
-      await logFailure();
       return new Response(
         JSON.stringify({ error: "Code de liaison invalide" }),
         {
@@ -174,7 +171,6 @@ Deno.serve(async (req) => {
 
     if (!childRole) {
       console.log("Child is not a student");
-      await logFailure();
       return new Response(
         JSON.stringify({ error: "Ce code n'appartient pas à un élève" }),
         {
@@ -224,6 +220,15 @@ Deno.serve(async (req) => {
       });
 
     if (insertError) {
+      // 23505 = violation de la contrainte UNIQUE(parent_id, child_id)
+      // (garde-fou DB contre la course entre le contrôle "lien existant ?"
+      // ci-dessus et cet insert — cf. migration 20260723120300).
+      if (insertError.code === "23505") {
+        return new Response(
+          JSON.stringify({ error: "Une demande de liaison existe déjà pour cet élève." }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       console.error("Error creating link:", insertError);
       return new Response(
         JSON.stringify({ error: "Erreur lors de la création du lien" }),

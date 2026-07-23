@@ -22,8 +22,10 @@ type Step = "password" | "mfa";
 export function ChangePasswordButton({ className }: { className?: string } = {}) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("password");
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -125,7 +127,12 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    if (!currentPassword) {
+      toast.error("Veuillez entrer votre mot de passe actuel.");
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       toast.error("Les mots de passe ne correspondent pas.");
       return;
@@ -140,6 +147,30 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
     setLoading(true);
 
     try {
+      // --- Vérifie le mot de passe ACTUEL avant tout changement : sans ce
+      // contrôle, une session volée (XSS, jeton local exposé, appareil
+      // partagé resté connecté) suffisait à elle seule pour changer le mot
+      // de passe et exclure le vrai propriétaire du compte, sans qu'il n'ait
+      // jamais à prouver qu'il connaît le mot de passe actuel. Supabase
+      // n'expose pas d'API dédiée de vérification : se reconnecter avec le
+      // mot de passe actuel est le moyen standard de le confirmer côté client. ---
+      const { data: userData } = await supabase.auth.getUser();
+      const email = userData?.user?.email;
+      if (!email) {
+        toast.error("Session invalide, veuillez vous reconnecter.");
+        setLoading(false);
+        return;
+      }
+      const { error: reauthError } = await supabase.auth.signInWithPassword({
+        email,
+        password: currentPassword,
+      });
+      if (reauthError) {
+        toast.error("Mot de passe actuel incorrect.");
+        setLoading(false);
+        return;
+      }
+
       // Check if MFA verification is required
       const mfaRequired = await checkMfaRequired();
       
@@ -179,6 +210,7 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
   };
 
   const resetForm = () => {
+    setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
     setMfaCode("");
@@ -203,11 +235,31 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
             <DialogHeader>
               <DialogTitle>Modifier le mot de passe</DialogTitle>
               <DialogDescription>
-                Entrez votre nouveau mot de passe. Il doit contenir au moins 8 caractères, une majuscule et un chiffre.
+                Entrez votre mot de passe actuel puis votre nouveau mot de passe. Il doit contenir au moins 8 caractères, une majuscule et un chiffre.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
               <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="current-password">Mot de passe actuel</Label>
+                  <div className="relative">
+                    <Input
+                      id="current-password"
+                      type={showCurrentPassword ? "text" : "password"}
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      required
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="new-password">Nouveau mot de passe</Label>
                   <div className="relative">

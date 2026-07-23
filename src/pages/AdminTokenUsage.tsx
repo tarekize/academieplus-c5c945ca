@@ -14,6 +14,7 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { toast } from "sonner";
 
 interface UsageRow {
   role_group: string;
@@ -66,6 +67,7 @@ export default function AdminTokenUsage() {
   const navigate = useNavigate();
   const [rows, setRows] = useState<UsageRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [functionFilter, setFunctionFilter] = useState<string>("all");
 
   useEffect(() => {
@@ -74,11 +76,18 @@ export default function AdminTokenUsage() {
 
   const fetchUsage = async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("ai_token_usage" as any)
       .select("role_group, function_name, estimated_input_tokens, estimated_output_tokens, is_estimated, created_at")
       .order("created_at", { ascending: false })
       .limit(5000);
+    if (error) {
+      console.error("Failed to load AI token usage:", error);
+      setLoadError(error.message);
+      toast.error("Impossible de charger la consommation IA", { description: error.message });
+    } else {
+      setLoadError(null);
+    }
     setRows((data as any as UsageRow[]) || []);
     setLoading(false);
   };
@@ -139,6 +148,12 @@ export default function AdminTokenUsage() {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
+        {loadError && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 text-destructive px-4 py-3 text-sm">
+            Échec du chargement des données : {loadError}
+          </div>
+        )}
+
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Card className="border-0 shadow-lg">
             <CardContent className="p-4">

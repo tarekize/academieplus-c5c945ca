@@ -79,7 +79,11 @@ export default function AdminAbonnements() {
   };
 
   const fetchConfigs = async () => {
-    const { data } = await supabase.from("subscription_config").select("*").order("plan_type");
+    const { data, error } = await supabase.from("subscription_config").select("*").order("plan_type");
+    if (error) {
+      toast.error("Impossible de charger les tarifs", { description: error.message });
+      return;
+    }
     if (data) {
       setConfigs(data as SubscriptionConfig[]);
       const prices: Record<string, { single: number; family: number }> = {};
@@ -91,15 +95,24 @@ export default function AdminAbonnements() {
   };
 
   const fetchPeriods = async () => {
-    const { data } = await supabase.from("subscription_periods").select("*").order("start_date", { ascending: false });
+    const { data, error } = await supabase.from("subscription_periods").select("*").order("start_date", { ascending: false });
+    if (error) {
+      toast.error("Impossible de charger les périodes", { description: error.message });
+      return;
+    }
     if (data) setPeriods(data as SubscriptionPeriod[]);
   };
 
   const fetchPayments = async () => {
-    const { data: paymentsData } = await supabase
+    const { data: paymentsData, error: paymentsError } = await supabase
       .from("payments")
       .select("*")
       .order("payment_date", { ascending: false });
+
+    if (paymentsError) {
+      toast.error("Impossible de charger les paiements", { description: paymentsError.message });
+      return;
+    }
 
     if (paymentsData && paymentsData.length > 0) {
       // Fetch profile names
