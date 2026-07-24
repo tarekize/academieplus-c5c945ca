@@ -5,6 +5,12 @@ import { logTokenUsageAsync, resolveCallerRoleGroup, extractGeminiUsage, type Ai
 const RATE_LIMIT_WINDOW_SECONDS = 60;
 const RATE_LIMIT_MAX_REQUESTS = 20;
 
+// Doit rester identique à src/hooks/useChatLimits.ts : le client n'affiche
+// plus qu'un compteur optimiste, cette fonction est la seule source de
+// vérité pour l'application réelle du quota (voir plus bas).
+const FREE_MESSAGE_LIMIT = 10;
+const FREE_IMAGE_LIMIT = 3;
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -437,6 +443,71 @@ serve(async (req) => {
         JSON.stringify({ error: "Trop de requêtes. Merci de patienter quelques instants." }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // --- Quota gratuit quotidien (10 messages / 3 images par jour) : jusqu'ici
+    // vérifié ET décompté UNIQUEMENT côté client (useChatLimits.ts) — un appel
+    // direct à cette fonction (sans passer par ChatBot.tsx) consommait le
+    // quota Gemini payant sans jamais être ni compté ni bloqué. Cette
+    // fonction est désormais la seule source de vérité : elle revérifie et
+    // décompte elle-même : useChatLimits.ts ne fait plus qu'un affichage
+    // optimiste. Seuls les élèves sont soumis à ce quota — seul rôle qui
+    // appelle cette fonction en pratique (l'assistant éditorial enseignant/
+    // pédago vit dans generate-editorial-assistant, avec son propre quota).
+    if (callerRoleGroup === "student") {
+      const { data: sub } = await adminClient
+        .from("student_subscriptions")
+        .select("days_used, total_days, is_paused, last_tick_at")
+        .eq("user_id", callerUserId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      let hasSubscription = false;
+      if (sub) {
+        if (!sub.is_paused && sub.last_tick_at) {
+          const elapsedDays = (Date.now() - new Date(sub.last_tick_at).getTime()) / 86400000;
+          const totalUsed = Number(sub.days_used || 0) + elapsedDays;
+          hasSubscription = Number(sub.total_days || 0) - totalUsed > 0;
+        } else if (sub.is_paused) {
+          hasSubscription = Number(sub.total_days || 0) - Number(sub.days_used || 0) > 0;
+        }
+      }
+
+      if (!hasSubscription) {
+        const today = new Date().toISOString().split("T")[0];
+        const { data: usageRow } = await adminClient
+          .from("chat_usage")
+          .select("message_count, image_count")
+          .eq("user_id", callerUserId)
+          .eq("usage_date", today)
+          .maybeSingle();
+
+        const messageCount = usageRow?.message_count ?? 0;
+        const imageCount = usageRow?.image_count ?? 0;
+        const lastUserMessage = [...(messages || [])].reverse().find((m: any) => m?.role === "user");
+        const imagesInRequest = Array.isArray(lastUserMessage?.content)
+          ? lastUserMessage.content.filter((p: any) => p?.type === "image_url").length
+          : 0;
+
+        if (messageCount >= FREE_MESSAGE_LIMIT || (imagesInRequest > 0 && imageCount >= FREE_IMAGE_LIMIT)) {
+          return new Response(
+            JSON.stringify({ error: "Limite quotidienne gratuite atteinte. Abonnez-vous pour un accès illimité." }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Décompte atomique : nécessite le JWT de l'appelant (increment_chat_usage
+        // utilise auth.uid() en interne, toujours NULL avec le client service_role).
+        const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
+          global: { headers: { Authorization: authHeader } },
+        });
+        const { error: incrementError } = await userClient.rpc("increment_chat_usage", {
+          p_messages: 1,
+          p_images: imagesInRequest,
+        });
+        if (incrementError) console.error("Failed to increment chat_usage:", incrementError);
+      }
     }
 
     const systemPrompt = needsFullCourseContext(messages)

@@ -7,6 +7,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const RATE_LIMIT_WINDOW_SECONDS = 60;
+const RATE_LIMIT_MAX_REQUESTS = 20;
+
 const SCHOOL_LEVEL_LABELS: Record<string, string> = {
   "5eme_primaire": "5ème année primaire",
   "1ere_cem": "1ère année CEM",
@@ -107,9 +110,12 @@ async function callGateway(system: string, user: string): Promise<{ parsed: any;
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    // --- Authentification obligatoire : cette fonction consomme un quota IA
-    // à chaque appel. resolveCallerRoleGroup() plus bas ne fait que
-    // catégoriser l'appelant pour les logs, il ne rejette rien. ---
+    // --- Authentification + autorisation obligatoires : cette fonction
+    // consomme un quota IA payant à chaque appel et n'a de sens que pour un
+    // enseignant/pédagogue/admin qui prépare du contenu de classe — sans
+    // contrôle de rôle, n'importe quel élève authentifié pouvait l'appeler
+    // directement (en contournant ExamAIBuilder.tsx) pour générer du contenu
+    // IA payant à volonté. ---
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Non autorisé" }), {
@@ -118,6 +124,7 @@ serve(async (req) => {
     }
     const supabaseUrlAuth = Deno.env.get("SUPABASE_URL")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const serviceRoleKeyAuth = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const userClient = createClient(supabaseUrlAuth, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -125,6 +132,31 @@ serve(async (req) => {
     if (callerError || !caller) {
       return new Response(JSON.stringify({ error: "Non autorisé" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const adminClientAuth = createClient(supabaseUrlAuth, serviceRoleKeyAuth, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data: callerRoles } = await adminClientAuth.from("user_roles").select("role").eq("user_id", caller.id);
+    const isAuthorized = (callerRoles ?? []).some((r: any) => ["teacher", "pedago", "admin"].includes(r.role));
+    if (!isAuthorized) {
+      return new Response(JSON.stringify({ error: "Accès réservé aux enseignants et à l'équipe pédagogique" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: allowed, error: rateLimitError } = await adminClientAuth.rpc("check_and_log_rate_limit", {
+      p_user_id: caller.id,
+      p_action: "ia_teacher_content_request",
+      p_window_seconds: RATE_LIMIT_WINDOW_SECONDS,
+      p_max_requests: RATE_LIMIT_MAX_REQUESTS,
+    });
+    if (rateLimitError) {
+      console.error("Rate limit check failed:", rateLimitError);
+    } else if (!allowed) {
+      return new Response(JSON.stringify({ error: "Trop de requêtes. Merci de patienter quelques instants." }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 

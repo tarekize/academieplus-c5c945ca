@@ -6,6 +6,16 @@ const BodySchema = z.object({
   code: z.string().trim().min(4).max(20),
 });
 
+// .ilike() traite % et _ comme des jokers SQL LIKE : sans échappement, un
+// élève soumettant par exemple "____" (4 underscores) fait chercher "une
+// classe dont le code fait exactement 4 caractères", au lieu du code exact
+// qu'il est censé connaître — un moyen de deviner un code de classe sans le
+// connaître. Échapper \, % et _ neutralise ces jokers (\ est l'échappement
+// LIKE par défaut de Postgres).
+function escapeLikePattern(input: string): string {
+  return input.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -66,7 +76,7 @@ Deno.serve(async (req) => {
     const { data: klass } = await admin
       .from("classes")
       .select("id, name")
-      .ilike("join_code", code)
+      .ilike("join_code", escapeLikePattern(code))
       .maybeSingle();
     if (!klass) {
       return new Response(JSON.stringify({ error: "Aucune classe trouvée avec ce code" }), {

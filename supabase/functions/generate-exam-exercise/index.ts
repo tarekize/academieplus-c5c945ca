@@ -7,6 +7,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const RATE_LIMIT_WINDOW_SECONDS = 60;
+const RATE_LIMIT_MAX_REQUESTS = 20;
+
 interface GeneratedExamExercise {
   statement: string;
   solution: string;
@@ -111,9 +114,11 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!supabaseUrl || !supabaseKey) throw new Error("Missing Supabase configuration");
 
-    // --- Authentification obligatoire : cette fonction consomme un quota IA
-    // payant à chaque appel. resolveCallerRoleGroup() plus bas ne fait que
-    // catégoriser l'appelant pour les logs, il ne rejette rien. ---
+    // --- Authentification + autorisation obligatoires : cette fonction
+    // consomme un quota IA payant à chaque appel et n'a de sens que pour un
+    // enseignant/pédagogue/admin qui prépare un examen — sans contrôle de
+    // rôle, n'importe quel élève authentifié pouvait l'appeler directement
+    // pour générer du contenu IA payant à volonté. ---
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
@@ -134,6 +139,30 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { data: callerRoles } = await supabase.from("user_roles").select("role").eq("user_id", caller.id);
+    const isAuthorized = (callerRoles ?? []).some((r: any) => ["teacher", "pedago", "admin"].includes(r.role));
+    if (!isAuthorized) {
+      return new Response(
+        JSON.stringify({ error: "Accès réservé aux enseignants et à l'équipe pédagogique" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { data: allowed, error: rateLimitError } = await supabase.rpc("check_and_log_rate_limit", {
+      p_user_id: caller.id,
+      p_action: "ia_exam_exercise_request",
+      p_window_seconds: RATE_LIMIT_WINDOW_SECONDS,
+      p_max_requests: RATE_LIMIT_MAX_REQUESTS,
+    });
+    if (rateLimitError) {
+      console.error("Rate limit check failed:", rateLimitError);
+    } else if (!allowed) {
+      return new Response(
+        JSON.stringify({ error: "Trop de requêtes. Merci de patienter quelques instants." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const { data: chapterData, error: chapterError } = await supabase
       .from("chapters")

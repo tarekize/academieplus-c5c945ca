@@ -153,22 +153,26 @@ export function useChatLimits() {
   const canSendMessage = hasSubscription || usage.messageCount < FREE_MESSAGE_LIMIT;
   const canSendImage = hasSubscription || usage.imageCount < FREE_IMAGE_LIMIT;
 
-  const recordMessage = useCallback(async () => {
+  // Affichage optimiste uniquement : le décompte réel a lieu côté serveur,
+  // dans l'edge function lovable-chat elle-même (seule source de vérité,
+  // sans quoi un appel direct à l'API — hors de ce hook — consommait le
+  // quota Gemini payant sans jamais être compté). Incrémenter le compteur
+  // ICI AUSSI doublerait le décompte serveur, épuisant le quota deux fois
+  // plus vite que prévu.
+  const recordMessage = useCallback(() => {
     if (hasSubscription || !userId) return;
     const current = usageRef.current;
     const newUsage = { ...current, messageCount: current.messageCount + 1 };
     setUsage(newUsage);
     usageRef.current = newUsage;
-    await supabase.rpc('increment_chat_usage' as any, { p_messages: 1, p_images: 0 });
   }, [hasSubscription, userId]);
 
-  const recordImage = useCallback(async (count: number = 1) => {
+  const recordImage = useCallback((count: number = 1) => {
     if (hasSubscription || !userId) return;
     const current = usageRef.current;
     const newUsage = { ...current, imageCount: current.imageCount + count };
     setUsage(newUsage);
     usageRef.current = newUsage;
-    await supabase.rpc('increment_chat_usage' as any, { p_messages: 0, p_images: count });
   }, [hasSubscription, userId]);
 
   return {

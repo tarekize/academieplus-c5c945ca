@@ -129,7 +129,19 @@ Deno.serve(async (req) => {
       role,
     });
 
-    if (roleError) throw roleError;
+    // Sans ce rollback, un échec ici (contrainte unique, erreur transitoire...)
+    // laissait un compte Auth pleinement créé mais sans rôle ni profil, et
+    // irrécupérable : ce même email ne peut plus être réutilisé ("déjà
+    // enregistré") tant que personne ne supprime manuellement l'utilisateur
+    // orphelin. Même pattern que le rollback déjà en place plus bas pour le
+    // conflit de matière pédago.
+    if (roleError) {
+      await adminClient.auth.admin.deleteUser(newUserId);
+      return new Response(JSON.stringify({ error: roleError.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Establishment accounts get a unique enrollment code (used by teachers at sign-up).
     let establishmentCode: string | null = null;
@@ -137,7 +149,13 @@ Deno.serve(async (req) => {
       const { data: codeData, error: codeError } = await adminClient.rpc(
         "generate_establishment_code"
       );
-      if (codeError) throw codeError;
+      if (codeError) {
+        await adminClient.auth.admin.deleteUser(newUserId);
+        return new Response(JSON.stringify({ error: codeError.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       establishmentCode = codeData as unknown as string;
     }
 

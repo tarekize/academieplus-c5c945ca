@@ -146,37 +146,15 @@ export default function AdminContrats() {
     }
     setSavingRow(row.id);
 
-    const { data: existing } = await supabase
-      .from("student_subscriptions")
-      .select("id, total_days")
-      .eq("user_id", row.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const now = new Date().toISOString();
-    let error;
-    if (existing) {
-      ({ error } = await supabase
-        .from("student_subscriptions")
-        .update({
-          total_days: (existing.total_days || 0) + days,
-          is_paused: false,
-          paused_at: null,
-          last_tick_at: now,
-        })
-        .eq("id", existing.id));
-    } else {
-      ({ error } = await supabase.from("student_subscriptions").insert({
-        user_id: row.id,
-        plan_type: "admin_grant",
-        total_days: days,
-        days_used: 0,
-        is_paused: false,
-        started_at: now,
-        last_tick_at: now,
-      }));
-    }
+    // RPC atomique (verrou de ligne côté DB) : évite qu'un double-clic ou deux
+    // onglets admin ouverts en parallèle ne s'écrasent l'un l'autre (lecture
+    // de total_days puis écriture séparées, sans verrou), et crédite d'abord
+    // le temps déjà écoulé depuis le dernier last_tick_at dans days_used
+    // avant de réinitialiser l'horloge — voir migration 20260723140100.
+    const { error } = await supabase.rpc("admin_grant_subscription_days" as any, {
+      p_user_id: row.id,
+      p_days: days,
+    });
 
     if (error) toast.error(error.message);
     else {
