@@ -276,7 +276,7 @@ function InlineLessonEditorInner({
   );
 
   const toolbar = (
-    <div className="flex md:flex-col flex-row flex-wrap md:flex-nowrap items-center gap-0.5 p-1.5 bg-muted/50 border rounded-lg shrink-0 md:self-stretch">
+    <div className="flex md:flex-col flex-row flex-wrap md:flex-nowrap items-center gap-0.5 p-1.5 bg-muted/50 border rounded-lg shrink-0 md:self-start md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:overflow-y-auto">
       <input
         ref={imageInputRef}
         type="file"
