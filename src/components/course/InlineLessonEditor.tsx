@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 import {
   Bold, Italic, Heading1, Heading2, Heading3, List, ListOrdered,
   Sigma, FunctionSquare, BookMarked, Scale, PenLine,
-  Table2, ImagePlus, Minus, Palette, Loader2,
+  Table2, ImagePlus, Minus, Palette, Loader2, Plus,
 } from 'lucide-react';
 
 // Même palette que LessonSourceEditor (LaTeX) : classes CSS fixes définies
@@ -78,6 +78,9 @@ function InlineLessonEditorInner({
   onBlurTarget?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  // Englobe la zone éditable : sert de repère (position:relative) pour
+  // positionner les boutons "+" flottants au-dessus du tableau actif.
+  const containerRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   // Curseur sauvegardé au moment d'ouvrir le sélecteur de fichiers : le temps
   // que le pédagogue choisisse une image et que l'upload se termine, le
@@ -87,7 +90,14 @@ function InlineLessonEditorInner({
   const [isEmpty, setIsEmpty] = useState(!initialContent?.trim());
   const [uploadingImage, setUploadingImage] = useState(false);
   const [tablePopoverOpen, setTablePopoverOpen] = useState(false);
-  const [tableEditContext, setTableEditContext] = useState(false);
+  // Tableau HTML dans lequel se trouve le curseur (ou null) : pilote à la
+  // fois le panneau du bouton "Tableau" (édition vs insertion) et la
+  // position des boutons "+" flottants (ajout rapide de ligne/colonne).
+  const [activeTable, setActiveTable] = useState<HTMLTableElement | null>(null);
+  // Incrémenté après chaque ajout/suppression de ligne/colonne pour forcer
+  // le recalcul de la position des boutons "+" (leur taille dépend du
+  // tableau, qui vient de changer de dimensions).
+  const [layoutTick, setLayoutTick] = useState(0);
   const [tableRowsInput, setTableRowsInput] = useState('3');
   const [tableColsInput, setTableColsInput] = useState('3');
 
@@ -193,14 +203,24 @@ function InlineLessonEditorInner({
     return { table, row, colIndex: Array.from(row.cells).indexOf(cell) };
   }, []);
 
-  // Tient `tableEditContext` à jour en continu (clic ou navigation clavier
-  // dans la zone éditable), pour que le bouton "Tableau" affiche le bon
-  // panneau dès le premier clic — sans ça, l'état ne serait calculé qu'au
-  // moment de cliquer sur le bouton lui-même, un instant trop tard si la
-  // sélection a bougé entre-temps.
-  const updateTableEditContext = useCallback(() => {
-    setTableEditContext(!!getTableContext());
+  // Tient `activeTable` à jour en continu (clic ou navigation clavier dans
+  // la zone éditable), pour que le bouton "Tableau" affiche le bon panneau
+  // et que les boutons "+" flottants suivent le bon tableau — sans ça,
+  // l'état ne serait calculé qu'au moment de cliquer sur le bouton
+  // lui-même, un instant trop tard si la sélection a bougé entre-temps.
+  const updateActiveTable = useCallback(() => {
+    setActiveTable(getTableContext()?.table ?? null);
   }, [getTableContext]);
+
+  // Repositionne les boutons "+" flottants si la fenêtre est redimensionnée
+  // pendant qu'un tableau est actif (leur position est calculée à partir du
+  // rectangle réel du tableau, qui bouge avec la mise en page).
+  useEffect(() => {
+    if (!activeTable) return;
+    const handleResize = () => setLayoutTick((t) => t + 1);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [activeTable]);
 
   const withTableContext = useCallback((fn: (ctx: { table: HTMLTableElement; row: HTMLTableRowElement; colIndex: number }) => void) => {
     const ctx = getTableContext();
@@ -210,6 +230,7 @@ function InlineLessonEditorInner({
     }
     fn(ctx);
     persist();
+    setLayoutTick((t) => t + 1);
   }, [getTableContext, persist]);
 
   const addTableRow = useCallback((position: 'above' | 'below') => {
@@ -261,6 +282,33 @@ function InlineLessonEditorInner({
     withTableContext(({ table }) => {
       table.remove();
     });
+    setActiveTable(null);
+  }, [withTableContext]);
+
+  // Boutons "+" flottants (coin haut-gauche = colonne, coin bas-droit =
+  // ligne) : ajoutent toujours à la toute fin du tableau, indépendamment de
+  // la cellule où se trouve le curseur (contrairement à addTableRow/
+  // addTableColumn ci-dessus, utilisées par le panneau du bouton "Tableau"
+  // pour un positionnement précis au-dessus/en dessous, à gauche/à droite).
+  const appendTableColumn = useCallback(() => {
+    withTableContext(({ table }) => {
+      Array.from(table.rows).forEach((r) => {
+        const isHeaderRow = r.cells.length > 0 && Array.from(r.cells).every((c) => c.tagName === 'TH');
+        const cell = document.createElement(isHeaderRow ? 'th' : 'td');
+        cell.innerHTML = '&nbsp;';
+        r.appendChild(cell);
+      });
+    });
+  }, [withTableContext]);
+
+  const appendTableRow = useCallback(() => {
+    withTableContext(({ table }) => {
+      const numCols = table.rows[0]?.cells.length ?? 0;
+      const newRow = table.insertRow(-1);
+      for (let i = 0; i < numCols; i++) {
+        newRow.insertCell(i).innerHTML = '&nbsp;';
+      }
+    });
   }, [withTableContext]);
 
   // Insère un nouveau tableau à la taille choisie par le pédagogue (bouton
@@ -301,7 +349,7 @@ function InlineLessonEditorInner({
         sel2.addRange(range);
       }
     }
-    setTableEditContext(true);
+    setActiveTable(newTable ?? null);
   }, [tableRowsInput, tableColsInput, insertHtmlAtCursor]);
 
   // Le bouton "Ajouter une image" ouvre le sélecteur de fichiers de
@@ -478,7 +526,7 @@ function InlineLessonEditorInner({
             onMouseDown={(e) => {
               e.preventDefault();
               const ctx = getTableContext();
-              setTableEditContext(!!ctx);
+              setActiveTable(ctx?.table ?? null);
               if (!ctx) {
                 const el = ref.current;
                 const sel = window.getSelection();
@@ -496,7 +544,7 @@ function InlineLessonEditorInner({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-64 p-3" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
-          {tableEditContext ? (
+          {activeTable ? (
             <div>
               <p className="text-xs text-muted-foreground mb-2 px-1">
                 Modifier le tableau (curseur placé dans une cellule)
@@ -609,10 +657,33 @@ function InlineLessonEditorInner({
     </div>
   );
 
+  // Position des boutons "+" flottants (coin haut-gauche = ajouter une
+  // colonne, coin bas-droit = ajouter une ligne), calculée à chaque rendu
+  // par rapport au conteneur (position:relative) à partir du rectangle réel
+  // du tableau actif — ce calcul est intentionnellement synchrone (pas de
+  // useLayoutEffect) pour rester toujours à jour avec le dernier DOM, y
+  // compris juste après un ajout de ligne/colonne (voir `layoutTick`).
+  let addColStyle: React.CSSProperties | undefined;
+  let addRowStyle: React.CSSProperties | undefined;
+  if (activeTable && containerRef.current && containerRef.current.contains(activeTable)) {
+    const tableRect = activeTable.getBoundingClientRect();
+    const containerRect = containerRef.current.getBoundingClientRect();
+    addColStyle = {
+      position: 'absolute',
+      top: tableRect.top - containerRect.top - 14,
+      left: tableRect.left - containerRect.left - 14,
+    };
+    addRowStyle = {
+      position: 'absolute',
+      top: tableRect.top - containerRect.top + tableRect.height - 14,
+      left: tableRect.left - containerRect.left + tableRect.width - 14,
+    };
+  }
+
   return (
     <div className="flex flex-col md:flex-row gap-3" dir="ltr">
       {toolbar}
-      <div className="relative flex-1 min-w-0">
+      <div ref={containerRef} className="relative flex-1 min-w-0">
         {isEmpty && (
           <p className="absolute inset-0 p-4 text-muted-foreground italic pointer-events-none">
             {placeholder || 'Cliquez ici pour ajouter le contenu de la leçon...'}
@@ -628,8 +699,8 @@ function InlineLessonEditorInner({
             onFocus={(e) => onFocusTarget?.(e.currentTarget)}
             onBlur={commit}
             onInput={handleInput}
-            onMouseUp={updateTableEditContext}
-            onKeyUp={updateTableEditContext}
+            onMouseUp={updateActiveTable}
+            onKeyUp={updateActiveTable}
             className={cn(EDITABLE_CLASSES, className)}
             dangerouslySetInnerHTML={{ __html: frozenHtml }}
           />
@@ -643,14 +714,40 @@ function InlineLessonEditorInner({
             onFocus={(e) => onFocusTarget?.(e.currentTarget)}
             onBlur={commit}
             onInput={handleInput}
-            onMouseUp={updateTableEditContext}
-            onKeyUp={updateTableEditContext}
+            onMouseUp={updateActiveTable}
+            onKeyUp={updateActiveTable}
             className={cn(EDITABLE_CLASSES, className)}
           >
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, [rehypeSanitize, lessonSchema]]}>
               {frozenMarkdown}
             </ReactMarkdown>
           </div>
+        )}
+        {addColStyle && (
+          <button
+            type="button"
+            style={addColStyle}
+            className="lesson-table-float-btn"
+            title="Ajouter une colonne"
+            aria-label="Ajouter une colonne"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={appendTableColumn}
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+        )}
+        {addRowStyle && (
+          <button
+            type="button"
+            style={addRowStyle}
+            className="lesson-table-float-btn"
+            title="Ajouter une ligne"
+            aria-label="Ajouter une ligne"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={appendTableRow}
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
         )}
       </div>
     </div>

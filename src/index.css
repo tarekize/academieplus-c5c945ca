@@ -337,6 +337,28 @@ All colors MUST be HSL.
 }
 .lesson-markdown th { background: hsl(var(--muted)); font-weight: 700; }
 
+/* Boutons "+" flottants au-dessus du tableau actif dans l'éditeur de leçon
+   (ajout rapide d'une ligne/colonne, façon tableur) — positionnés en JS via
+   `style` (top/left), cette classe ne gère que l'apparence. */
+.lesson-table-float-btn {
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: 2px solid hsl(var(--background));
+  box-shadow: 0 1px 4px hsl(var(--foreground) / 0.25);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+.lesson-table-float-btn:hover {
+  transform: scale(1.12);
+}
+
 .lesson-markdown blockquote {
   border-right: 4px solid hsl(var(--primary));
   border-left: none;
