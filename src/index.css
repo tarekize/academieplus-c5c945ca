@@ -359,6 +359,34 @@ All colors MUST be HSL.
   transform: scale(1.12);
 }
 
+/* Poignées de sélection/déplacement au-dessus/à gauche du tableau actif
+   (façon lettres de colonne / numéros de ligne d'un tableur) : cliquer
+   sélectionne (Suppr/Retour arrière supprime), glisser réordonne. */
+.lesson-table-handle {
+  z-index: 15;
+  padding: 0;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 3px;
+  cursor: grab;
+}
+.lesson-table-handle:hover {
+  background: hsl(var(--primary) / 0.35);
+}
+.lesson-table-handle:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 1px;
+}
+.lesson-table-handle-selected {
+  background: hsl(var(--primary));
+}
+.lesson-table-handle-dragover {
+  background: hsl(var(--primary) / 0.7);
+}
+.lesson-markdown .lesson-table-cell-selected {
+  background: hsl(var(--primary) / 0.18) !important;
+}
+
 .lesson-markdown blockquote {
   border-right: 4px solid hsl(var(--primary));
   border-left: none;

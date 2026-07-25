@@ -100,6 +100,14 @@ function InlineLessonEditorInner({
   const [layoutTick, setLayoutTick] = useState(0);
   const [tableRowsInput, setTableRowsInput] = useState('3');
   const [tableColsInput, setTableColsInput] = useState('3');
+  // Ligne/colonne actuellement sélectionnée via sa poignée (bande cliquable
+  // au-dessus/à gauche du tableau), façon Excel : Suppr/Retour arrière la
+  // supprime. Distinct de `activeTable` (qui suit juste le curseur texte).
+  const [structSelection, setStructSelection] = useState<{ type: 'row' | 'col'; index: number } | null>(null);
+  // Poignée survolée pendant un glisser-déposer (mise en évidence visuelle).
+  const [dragOverHandle, setDragOverHandle] = useState<{ type: 'row' | 'col'; index: number } | null>(null);
+  // Poignée en cours de glissement : une ref suffit, pas besoin de re-rendu.
+  const dragFromRef = useRef<{ type: 'row' | 'col'; index: number } | null>(null);
 
   // Capturé une seule fois au montage (ou lors d'une réinitialisation via `key`) :
   // on ne relit jamais `content` depuis les props ensuite, pour laisser le
@@ -114,6 +122,13 @@ function InlineLessonEditorInner({
   // chaque clic sur un bouton de la barre d'outils, où le focus ne quitte
   // jamais réellement l'utilisateur (juste le DOM).
   const persist = useCallback(() => {
+    // Le surlignage de sélection ligne/colonne (classe posée directement sur
+    // les <td>/<th> par selectColumn/selectRow) est un état d'édition
+    // purement visuel : jamais dans le contenu réellement enregistré, sinon
+    // les élèves verraient une colonne restée "surlignée" indéfiniment.
+    ref.current?.querySelectorAll('.lesson-table-cell-selected').forEach((el) => {
+      el.classList.remove('lesson-table-cell-selected');
+    });
     const raw = ref.current?.innerHTML || '';
     setIsEmpty(!ref.current?.textContent?.trim());
     onChange(sanitizeLessonHtml(raw));
@@ -222,6 +237,12 @@ function InlineLessonEditorInner({
     return () => window.removeEventListener('resize', handleResize);
   }, [activeTable]);
 
+  // Le curseur a changé de tableau (ou en est sorti) : toute sélection de
+  // ligne/colonne d'un tableau précédent n'a plus lieu d'être.
+  useEffect(() => {
+    setStructSelection(null);
+  }, [activeTable]);
+
   const withTableContext = useCallback((fn: (ctx: { table: HTMLTableElement; row: HTMLTableRowElement; colIndex: number }) => void) => {
     const ctx = getTableContext();
     if (!ctx) {
@@ -310,6 +331,111 @@ function InlineLessonEditorInner({
       }
     });
   }, [withTableContext]);
+
+  // --- Sélection/suppression/déplacement de ligne ou colonne, façon tableur —
+  // via les poignées (bandes cliquables) au-dessus/à gauche du tableau actif.
+
+  const clearStructHighlight = useCallback((table: HTMLTableElement) => {
+    table.querySelectorAll('.lesson-table-cell-selected').forEach((el) => el.classList.remove('lesson-table-cell-selected'));
+  }, []);
+
+  const clearStructSelection = useCallback(() => {
+    if (activeTable) clearStructHighlight(activeTable);
+    setStructSelection(null);
+  }, [activeTable, clearStructHighlight]);
+
+  // Clique sur une poignée de colonne : surligne toute la colonne (comme
+  // cliquer sur une lettre de colonne dans Excel), pour ensuite la
+  // supprimer via la touche Suppr/Retour arrière.
+  const selectColumn = useCallback((index: number) => {
+    if (!activeTable) return;
+    clearStructHighlight(activeTable);
+    Array.from(activeTable.rows).forEach((r) => r.cells[index]?.classList.add('lesson-table-cell-selected'));
+    setStructSelection({ type: 'col', index });
+  }, [activeTable, clearStructHighlight]);
+
+  const selectRow = useCallback((index: number) => {
+    if (!activeTable) return;
+    clearStructHighlight(activeTable);
+    const row = activeTable.rows[index];
+    if (row) Array.from(row.cells).forEach((c) => c.classList.add('lesson-table-cell-selected'));
+    setStructSelection({ type: 'row', index });
+  }, [activeTable, clearStructHighlight]);
+
+  const deleteColumnAt = useCallback((index: number) => {
+    if (!activeTable) return;
+    if ((activeTable.rows[0]?.cells.length ?? 0) <= 1) {
+      toast.info('Le tableau doit garder au moins une colonne.');
+      return;
+    }
+    Array.from(activeTable.rows).forEach((r) => {
+      if (r.cells[index]) r.deleteCell(index);
+    });
+    persist();
+    setLayoutTick((t) => t + 1);
+    setStructSelection(null);
+  }, [activeTable, persist]);
+
+  const deleteRowAt = useCallback((index: number) => {
+    if (!activeTable) return;
+    if (activeTable.rows.length <= 1) {
+      toast.info('Le tableau doit garder au moins une ligne.');
+      return;
+    }
+    activeTable.deleteRow(index);
+    persist();
+    setLayoutTick((t) => t + 1);
+    setStructSelection(null);
+  }, [activeTable, persist]);
+
+  // Suppr/Retour arrière pendant qu'une poignée a le focus (donc qu'une
+  // ligne/colonne est sélectionnée) supprime la ligne/colonne — comme dans
+  // un tableur. Échap annule juste la sélection.
+  const handleStripKeyDown = useCallback((e: React.KeyboardEvent, type: 'row' | 'col', index: number) => {
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault();
+      if (type === 'col') deleteColumnAt(index); else deleteRowAt(index);
+    } else if (e.key === 'Escape') {
+      (e.target as HTMLElement).blur();
+    }
+  }, [deleteColumnAt, deleteRowAt]);
+
+  const moveTableColumn = useCallback((table: HTMLTableElement, from: number, to: number) => {
+    if (from === to) return;
+    Array.from(table.rows).forEach((row) => {
+      const cell = row.cells[from];
+      if (!cell) return;
+      row.removeChild(cell);
+      const cells = Array.from(row.cells);
+      row.insertBefore(cell, to >= cells.length ? null : cells[to]);
+    });
+  }, []);
+
+  const moveTableRow = useCallback((table: HTMLTableElement, from: number, to: number) => {
+    if (from === to) return;
+    const rowNode = table.rows[from];
+    if (!rowNode) return;
+    rowNode.remove();
+    const remaining = Array.from(table.rows);
+    const refNode = to >= remaining.length ? null : remaining[to];
+    const parent = refNode ? refNode.parentElement! : (table.tBodies[0] ?? table);
+    parent.insertBefore(rowNode, refNode);
+  }, []);
+
+  // Glisser-déposer d'une poignée : déplace la ligne/colonne à l'endroit
+  // déposé (les autres se décalent), façon réorganisation de colonnes/lignes
+  // dans un tableur.
+  const handleStripDrop = useCallback((type: 'row' | 'col', targetIndex: number) => {
+    setDragOverHandle(null);
+    const from = dragFromRef.current;
+    dragFromRef.current = null;
+    if (!from || !activeTable || from.type !== type || from.index === targetIndex) return;
+    if (type === 'col') moveTableColumn(activeTable, from.index, targetIndex);
+    else moveTableRow(activeTable, from.index, targetIndex);
+    persist();
+    setLayoutTick((t) => t + 1);
+    clearStructSelection();
+  }, [activeTable, moveTableColumn, moveTableRow, persist, clearStructSelection]);
 
   // Insère un nouveau tableau à la taille choisie par le pédagogue (bouton
   // "Insérer" du panneau). Restaure d'abord le curseur sauvegardé à
@@ -665,6 +791,11 @@ function InlineLessonEditorInner({
   // compris juste après un ajout de ligne/colonne (voir `layoutTick`).
   let addColStyle: React.CSSProperties | undefined;
   let addRowStyle: React.CSSProperties | undefined;
+  // Poignées de sélection/déplacement : une bande cliquable au-dessus de
+  // chaque colonne (comme les lettres de colonne d'Excel) et une à gauche de
+  // chaque ligne (comme les numéros de ligne).
+  const colHandles: { index: number; style: React.CSSProperties }[] = [];
+  const rowHandles: { index: number; style: React.CSSProperties }[] = [];
   if (activeTable && containerRef.current && containerRef.current.contains(activeTable)) {
     const tableRect = activeTable.getBoundingClientRect();
     const containerRect = containerRef.current.getBoundingClientRect();
@@ -678,6 +809,35 @@ function InlineLessonEditorInner({
       top: tableRect.top - containerRect.top + tableRect.height - 14,
       left: tableRect.left - containerRect.left + tableRect.width - 14,
     };
+    const headerRow = activeTable.rows[0];
+    if (headerRow) {
+      Array.from(headerRow.cells).forEach((cell, index) => {
+        const cellRect = cell.getBoundingClientRect();
+        colHandles.push({
+          index,
+          style: {
+            position: 'absolute',
+            top: tableRect.top - containerRect.top - 11,
+            left: cellRect.left - containerRect.left,
+            width: cellRect.width,
+            height: 9,
+          },
+        });
+      });
+    }
+    Array.from(activeTable.rows).forEach((row, index) => {
+      const rowRect = row.getBoundingClientRect();
+      rowHandles.push({
+        index,
+        style: {
+          position: 'absolute',
+          top: rowRect.top - containerRect.top,
+          left: tableRect.left - containerRect.left - 11,
+          width: 9,
+          height: rowRect.height,
+        },
+      });
+    });
   }
 
   return (
@@ -749,6 +909,52 @@ function InlineLessonEditorInner({
             <Plus className="h-3.5 w-3.5" />
           </button>
         )}
+        {colHandles.map(({ index, style }) => (
+          <button
+            key={`col-handle-${index}`}
+            type="button"
+            draggable
+            style={style}
+            className={cn(
+              'lesson-table-handle',
+              structSelection?.type === 'col' && structSelection.index === index && 'lesson-table-handle-selected',
+              dragOverHandle?.type === 'col' && dragOverHandle.index === index && 'lesson-table-handle-dragover',
+            )}
+            title={`Colonne ${index + 1} — cliquer pour sélectionner, glisser pour déplacer, Suppr pour supprimer`}
+            aria-label={`Sélectionner la colonne ${index + 1}`}
+            onClick={() => selectColumn(index)}
+            onKeyDown={(e) => handleStripKeyDown(e, 'col', index)}
+            onBlur={clearStructSelection}
+            onDragStart={() => { dragFromRef.current = { type: 'col', index }; }}
+            onDragOver={(e) => { e.preventDefault(); setDragOverHandle({ type: 'col', index }); }}
+            onDragLeave={() => setDragOverHandle((d) => (d?.type === 'col' && d.index === index ? null : d))}
+            onDrop={(e) => { e.preventDefault(); handleStripDrop('col', index); }}
+            onDragEnd={() => { dragFromRef.current = null; setDragOverHandle(null); }}
+          />
+        ))}
+        {rowHandles.map(({ index, style }) => (
+          <button
+            key={`row-handle-${index}`}
+            type="button"
+            draggable
+            style={style}
+            className={cn(
+              'lesson-table-handle',
+              structSelection?.type === 'row' && structSelection.index === index && 'lesson-table-handle-selected',
+              dragOverHandle?.type === 'row' && dragOverHandle.index === index && 'lesson-table-handle-dragover',
+            )}
+            title={`Ligne ${index + 1} — cliquer pour sélectionner, glisser pour déplacer, Suppr pour supprimer`}
+            aria-label={`Sélectionner la ligne ${index + 1}`}
+            onClick={() => selectRow(index)}
+            onKeyDown={(e) => handleStripKeyDown(e, 'row', index)}
+            onBlur={clearStructSelection}
+            onDragStart={() => { dragFromRef.current = { type: 'row', index }; }}
+            onDragOver={(e) => { e.preventDefault(); setDragOverHandle({ type: 'row', index }); }}
+            onDragLeave={() => setDragOverHandle((d) => (d?.type === 'row' && d.index === index ? null : d))}
+            onDrop={(e) => { e.preventDefault(); handleStripDrop('row', index); }}
+            onDragEnd={() => { dragFromRef.current = null; setDragOverHandle(null); }}
+          />
+        ))}
       </div>
     </div>
   );
