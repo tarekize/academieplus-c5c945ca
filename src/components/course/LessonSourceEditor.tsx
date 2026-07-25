@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { uploadLessonImage } from '@/lib/lessonMedia';
@@ -41,6 +43,61 @@ type Layout = 'split' | 'source' | 'preview';
 
 const isHtmlContent = (s: string) => /<\s*(html|body|head|!doctype)/i.test(s || '');
 
+// --- Détection/édition d'un tableau Markdown sous le curseur --------------
+// Un tableau Markdown est ici une suite de lignes contiguës commençant par
+// "|", dont la 2e ligne est la ligne de séparation ("| --- | --- |").
+
+const isTableLine = (line: string) => line.trim().startsWith('|');
+const isSeparatorLine = (line: string) => /^\s*\|?\s*:?-{1,}:?\s*(\|\s*:?-{1,}:?\s*)+\|?\s*$/.test(line);
+
+function splitRowCells(line: string): string[] {
+  const withoutEdges = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+  return withoutEdges.split('|').map((c) => c.trim());
+}
+
+function buildRow(cells: string[]): string {
+  return '| ' + cells.join(' | ') + ' |';
+}
+
+interface MarkdownTableCtx {
+  lines: string[];
+  start: number; // index de la ligne d'en-tête
+  end: number; // index de la dernière ligne de données
+  lineIndex: number; // ligne où se trouve le curseur
+  colIndex: number; // colonne où se trouve le curseur
+  numCols: number;
+}
+
+function getMarkdownTableContext(content: string, cursorPos: number): MarkdownTableCtx | null {
+  const lines = content.split('\n');
+  let lineStartOffset = 0;
+  let lineIndex = lines.length - 1;
+  for (let i = 0; i < lines.length; i++) {
+    const lineEnd = lineStartOffset + lines[i].length;
+    if (cursorPos <= lineEnd) { lineIndex = i; break; }
+    lineStartOffset = lineEnd + 1;
+  }
+  const cursorInLine = cursorPos - lineStartOffset;
+  if (!isTableLine(lines[lineIndex] || '')) return null;
+
+  let start = lineIndex;
+  while (start > 0 && isTableLine(lines[start - 1])) start--;
+  let end = lineIndex;
+  while (end < lines.length - 1 && isTableLine(lines[end + 1])) end++;
+  if (end - start < 1 || !isSeparatorLine(lines[start + 1])) return null;
+
+  const numCols = Math.max(1, splitRowCells(lines[start]).length);
+
+  const lineText = lines[lineIndex] || '';
+  let pipesBefore = 0;
+  for (let i = 0; i < Math.min(cursorInLine, lineText.length); i++) {
+    if (lineText[i] === '|') pipesBefore++;
+  }
+  const colIndex = Math.min(Math.max(pipesBefore - 1, 0), numCols - 1);
+
+  return { lines, start, end, lineIndex, colIndex, numCols };
+}
+
 function renderPreview(content: string) {
   if (!content) {
     return <p className="text-muted-foreground text-sm italic">L'aperçu s'affichera ici...</p>;
@@ -65,6 +122,10 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [layout, setLayout] = useState<Layout>('split');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [tablePopoverOpen, setTablePopoverOpen] = useState(false);
+  const [tableEditContext, setTableEditContext] = useState(false);
+  const [tableRowsInput, setTableRowsInput] = useState('3');
+  const [tableColsInput, setTableColsInput] = useState('3');
 
   // Enveloppe la sélection (ou insère un texte par défaut) avec des marqueurs, puis replace le curseur juste après.
   const wrapSelection = useCallback((before: string, after: string, placeholder: string) => {
@@ -117,9 +178,84 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
     });
   }, [content, onChange]);
 
+  // Insère un nouveau tableau à la taille choisie par le pédagogue dans le panneau du bouton "Tableau".
   const insertTable = useCallback(() => {
-    insertAtCursor('\n| Colonne 1 | Colonne 2 |\n| --- | --- |\n| Valeur 1 | Valeur 2 |\n| Valeur 3 | Valeur 4 |\n');
-  }, [insertAtCursor]);
+    const rows = Math.min(50, Math.max(1, parseInt(tableRowsInput, 10) || 1));
+    const cols = Math.min(20, Math.max(1, parseInt(tableColsInput, 10) || 1));
+    const header = buildRow(Array.from({ length: cols }, (_, i) => `Colonne ${i + 1}`));
+    const separator = buildRow(Array.from({ length: cols }, () => '---'));
+    const dataRows = Array.from({ length: rows }, (_, r) =>
+      buildRow(Array.from({ length: cols }, (_, c) => `Valeur ${r * cols + c + 1}`))
+    );
+    insertAtCursor(`\n${[header, separator, ...dataRows].join('\n')}\n`);
+    setTablePopoverOpen(false);
+  }, [tableRowsInput, tableColsInput, insertAtCursor]);
+
+  // Toutes les opérations d'édition d'un tableau existant (ligne/colonne)
+  // repèrent le tableau via la position du curseur dans le textarea, comme
+  // wrapSelection/insertAtCursor ci-dessus.
+  const withMarkdownTable = useCallback((fn: (ctx: MarkdownTableCtx) => string[]) => {
+    const el = textareaRef.current;
+    const ctx = getMarkdownTableContext(content, el?.selectionStart ?? content.length);
+    if (!ctx) {
+      toast.info("Placez le curseur dans une ligne du tableau à modifier.");
+      return;
+    }
+    const newLines = fn(ctx);
+    onChange(newLines.join('\n'));
+    requestAnimationFrame(() => el?.focus());
+  }, [content, onChange]);
+
+  const addMarkdownRow = useCallback((position: 'above' | 'below') => {
+    withMarkdownTable(({ lines, start, lineIndex, numCols }) => {
+      const insertAt = lineIndex < start + 2 ? start + 2 : (position === 'above' ? lineIndex : lineIndex + 1);
+      const newRow = buildRow(Array.from({ length: numCols }, () => ''));
+      return [...lines.slice(0, insertAt), newRow, ...lines.slice(insertAt)];
+    });
+  }, [withMarkdownTable]);
+
+  const deleteMarkdownRow = useCallback(() => {
+    withMarkdownTable(({ lines, start, lineIndex }) => {
+      if (lineIndex < start + 2) {
+        toast.info("Sélectionnez une ligne de données (pas l'en-tête) à supprimer.");
+        return lines;
+      }
+      return [...lines.slice(0, lineIndex), ...lines.slice(lineIndex + 1)];
+    });
+  }, [withMarkdownTable]);
+
+  const addMarkdownColumn = useCallback((position: 'left' | 'right') => {
+    withMarkdownTable(({ lines, start, end, colIndex }) => {
+      const insertIdx = position === 'left' ? colIndex : colIndex + 1;
+      const newLines = [...lines];
+      for (let i = start; i <= end; i++) {
+        const cells = splitRowCells(lines[i]);
+        cells.splice(insertIdx, 0, i === start + 1 ? '---' : i === start ? 'Colonne' : '');
+        newLines[i] = buildRow(cells);
+      }
+      return newLines;
+    });
+  }, [withMarkdownTable]);
+
+  const deleteMarkdownColumn = useCallback(() => {
+    withMarkdownTable(({ lines, start, end, colIndex, numCols }) => {
+      if (numCols <= 1) {
+        toast.info('Le tableau doit garder au moins une colonne.');
+        return lines;
+      }
+      const newLines = [...lines];
+      for (let i = start; i <= end; i++) {
+        const cells = splitRowCells(lines[i]);
+        cells.splice(colIndex, 1);
+        newLines[i] = buildRow(cells);
+      }
+      return newLines;
+    });
+  }, [withMarkdownTable]);
+
+  const deleteMarkdownTable = useCallback(() => {
+    withMarkdownTable(({ lines, start, end }) => [...lines.slice(0, start), ...lines.slice(end + 1)]);
+  }, [withMarkdownTable]);
 
   // Le bouton "Ajouter une image" ouvre le sélecteur de fichiers de
   // l'appareil ; l'upload réel a lieu dans handleImageSelected ci-dessous.
@@ -244,9 +380,94 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
 
         <Separator orientation="vertical" className="h-6 mx-1" />
 
-        <ToolBtn onClick={insertTable} title="Insérer un tableau">
-          <Table2 className="h-4 w-4" />
-        </ToolBtn>
+        <Popover open={tablePopoverOpen} onOpenChange={setTablePopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={() => {
+                const el = textareaRef.current;
+                const ctx = el ? getMarkdownTableContext(content, el.selectionStart ?? content.length) : null;
+                setTableEditContext(!!ctx);
+              }}
+              title="Tableau"
+              aria-label="Tableau"
+            >
+              <Table2 className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-3" align="start">
+            {tableEditContext ? (
+              <div>
+                <p className="text-xs text-muted-foreground mb-2 px-1">
+                  Modifier le tableau (curseur placé dans une ligne)
+                </p>
+                <div className="grid gap-0.5">
+                  <button type="button" onClick={() => addMarkdownRow('above')} className="w-full text-left h-8 px-2 text-sm rounded hover:bg-muted">
+                    Ajouter une ligne au-dessus
+                  </button>
+                  <button type="button" onClick={() => addMarkdownRow('below')} className="w-full text-left h-8 px-2 text-sm rounded hover:bg-muted">
+                    Ajouter une ligne en dessous
+                  </button>
+                  <button type="button" onClick={deleteMarkdownRow} className="w-full text-left h-8 px-2 text-sm rounded hover:bg-muted">
+                    Supprimer la ligne
+                  </button>
+                  <Separator className="my-1" />
+                  <button type="button" onClick={() => addMarkdownColumn('left')} className="w-full text-left h-8 px-2 text-sm rounded hover:bg-muted">
+                    Ajouter une colonne à gauche
+                  </button>
+                  <button type="button" onClick={() => addMarkdownColumn('right')} className="w-full text-left h-8 px-2 text-sm rounded hover:bg-muted">
+                    Ajouter une colonne à droite
+                  </button>
+                  <button type="button" onClick={deleteMarkdownColumn} className="w-full text-left h-8 px-2 text-sm rounded hover:bg-muted">
+                    Supprimer la colonne
+                  </button>
+                  <Separator className="my-1" />
+                  <button type="button" onClick={deleteMarkdownTable} className="w-full text-left h-8 px-2 text-sm rounded hover:bg-muted text-destructive">
+                    Supprimer le tableau
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs text-muted-foreground mb-2 px-1">Taille du tableau à insérer</p>
+                <div className="flex items-end gap-2 mb-3">
+                  <div className="flex-1">
+                    <Label htmlFor="source-table-rows" className="text-xs text-muted-foreground">Lignes</Label>
+                    <Input
+                      id="source-table-rows"
+                      type="number"
+                      min={1}
+                      max={50}
+                      value={tableRowsInput}
+                      onChange={(e) => setTableRowsInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && insertTable()}
+                      className="h-8"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Label htmlFor="source-table-cols" className="text-xs text-muted-foreground">Colonnes</Label>
+                    <Input
+                      id="source-table-cols"
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={tableColsInput}
+                      onChange={(e) => setTableColsInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && insertTable()}
+                      className="h-8"
+                    />
+                  </div>
+                </div>
+                <Button type="button" size="sm" className="w-full" onClick={insertTable}>
+                  Insérer
+                </Button>
+              </div>
+            )}
+          </PopoverContent>
+        </Popover>
         <ToolBtn onClick={insertImage} title="Ajouter une image depuis l'appareil" disabled={uploadingImage}>
           {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
         </ToolBtn>

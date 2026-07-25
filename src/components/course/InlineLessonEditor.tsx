@@ -7,6 +7,8 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { sanitizeLessonHtml } from '@/lib/sanitizeHtml';
 import { lessonSchema, convertPedagoBlocks } from '@/lib/lessonBlocks';
 import { uploadLessonImage } from '@/lib/lessonMedia';
@@ -84,6 +86,10 @@ function InlineLessonEditorInner({
   const savedRangeRef = useRef<Range | null>(null);
   const [isEmpty, setIsEmpty] = useState(!initialContent?.trim());
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [tablePopoverOpen, setTablePopoverOpen] = useState(false);
+  const [tableEditContext, setTableEditContext] = useState(false);
+  const [tableRowsInput, setTableRowsInput] = useState('3');
+  const [tableColsInput, setTableColsInput] = useState('3');
 
   // Capturé une seule fois au montage (ou lors d'une réinitialisation via `key`) :
   // on ne relit jamais `content` depuis les props ensuite, pour laisser le
@@ -170,11 +176,105 @@ function InlineLessonEditorInner({
     insertHtmlAtCursor(display ? `$$${text}$$` : `$${text}$`);
   }, [getSelectedText, insertHtmlAtCursor]);
 
+  // Repère la cellule/ligne/tableau sous le curseur actuel (utilisé aussi bien
+  // pour décider quel panneau afficher au clic sur le bouton "Tableau" que
+  // pour cibler les opérations d'ajout/suppression de ligne ou colonne).
+  const getTableContext = useCallback((): { table: HTMLTableElement; row: HTMLTableRowElement; colIndex: number } | null => {
+    const el = ref.current;
+    const sel = window.getSelection();
+    if (!el || !sel || sel.rangeCount === 0) return null;
+    const node = sel.getRangeAt(0).commonAncestorContainer;
+    if (!el.contains(node)) return null;
+    const startEl = node.nodeType === Node.ELEMENT_NODE ? (node as Element) : node.parentElement;
+    const cell = startEl?.closest('td, th') as HTMLTableCellElement | null;
+    const row = cell?.closest('tr') as HTMLTableRowElement | null;
+    const table = cell?.closest('table') as HTMLTableElement | null;
+    if (!cell || !row || !table || !el.contains(table)) return null;
+    return { table, row, colIndex: Array.from(row.cells).indexOf(cell) };
+  }, []);
+
+  const withTableContext = useCallback((fn: (ctx: { table: HTMLTableElement; row: HTMLTableRowElement; colIndex: number }) => void) => {
+    const ctx = getTableContext();
+    if (!ctx) {
+      toast.info("Cliquez d'abord dans une cellule du tableau à modifier.");
+      return;
+    }
+    fn(ctx);
+    persist();
+  }, [getTableContext, persist]);
+
+  const addTableRow = useCallback((position: 'above' | 'below') => {
+    withTableContext(({ table, row }) => {
+      const insertIndex = position === 'above' ? row.rowIndex : row.rowIndex + 1;
+      const numCols = row.cells.length;
+      const newRow = table.insertRow(insertIndex);
+      for (let i = 0; i < numCols; i++) {
+        newRow.insertCell(i).innerHTML = '&nbsp;';
+      }
+    });
+  }, [withTableContext]);
+
+  const deleteTableRow = useCallback(() => {
+    withTableContext(({ table, row }) => {
+      if (table.rows.length <= 1) {
+        toast.info('Le tableau doit garder au moins une ligne.');
+        return;
+      }
+      table.deleteRow(row.rowIndex);
+    });
+  }, [withTableContext]);
+
+  const addTableColumn = useCallback((position: 'left' | 'right') => {
+    withTableContext(({ table, colIndex }) => {
+      const insertIndex = position === 'left' ? colIndex : colIndex + 1;
+      Array.from(table.rows).forEach((r) => {
+        const isHeaderRow = r.cells.length > 0 && Array.from(r.cells).every((c) => c.tagName === 'TH');
+        const cell = document.createElement(isHeaderRow ? 'th' : 'td');
+        cell.innerHTML = '&nbsp;';
+        r.insertBefore(cell, r.cells[insertIndex] || null);
+      });
+    });
+  }, [withTableContext]);
+
+  const deleteTableColumn = useCallback(() => {
+    withTableContext(({ table, colIndex }) => {
+      if (table.rows[0] && table.rows[0].cells.length <= 1) {
+        toast.info('Le tableau doit garder au moins une colonne.');
+        return;
+      }
+      Array.from(table.rows).forEach((r) => {
+        if (r.cells[colIndex]) r.deleteCell(colIndex);
+      });
+    });
+  }, [withTableContext]);
+
+  const deleteTableEl = useCallback(() => {
+    withTableContext(({ table }) => {
+      table.remove();
+    });
+  }, [withTableContext]);
+
+  // Insère un nouveau tableau à la taille choisie par le pédagogue (bouton
+  // "Insérer" du panneau). Restaure d'abord le curseur sauvegardé à
+  // l'ouverture du panneau, car cliquer dans les champs "Lignes"/"Colonnes"
+  // fait perdre la sélection dans la zone éditable.
   const insertTable = useCallback(() => {
-    insertHtmlAtCursor(
-      '<table><thead><tr><th>Colonne 1</th><th>Colonne 2</th></tr></thead><tbody><tr><td>Valeur 1</td><td>Valeur 2</td></tr><tr><td>Valeur 3</td><td>Valeur 4</td></tr></tbody></table>'
-    );
-  }, [insertHtmlAtCursor]);
+    const el = ref.current;
+    const sel = window.getSelection();
+    if (el && sel && savedRangeRef.current) {
+      el.focus();
+      sel.removeAllRanges();
+      sel.addRange(savedRangeRef.current);
+    }
+    const rows = Math.min(50, Math.max(1, parseInt(tableRowsInput, 10) || 1));
+    const cols = Math.min(20, Math.max(1, parseInt(tableColsInput, 10) || 1));
+    const headerCells = Array.from({ length: cols }, (_, i) => `<th>Colonne ${i + 1}</th>`).join('');
+    const bodyRows = Array.from({ length: rows }, (_, r) =>
+      `<tr>${Array.from({ length: cols }, (_, c) => `<td>Valeur ${r * cols + c + 1}</td>`).join('')}</tr>`
+    ).join('');
+    insertHtmlAtCursor(`<table><tr>${headerCells}</tr>${bodyRows}</table>`);
+    setTablePopoverOpen(false);
+  }, [tableRowsInput, tableColsInput, insertHtmlAtCursor]);
 
   // Le bouton "Ajouter une image" ouvre le sélecteur de fichiers de
   // l'appareil (en sauvegardant d'abord le curseur courant) ; l'upload réel
@@ -340,9 +440,103 @@ function InlineLessonEditorInner({
       <Separator orientation="horizontal" className="hidden md:block w-6 my-1" />
       <Separator orientation="vertical" className="md:hidden h-6 mx-1" />
 
-      <ToolBtn onClick={insertTable} title="Insérer un tableau">
-        <Table2 className="h-4 w-4" />
-      </ToolBtn>
+      <Popover open={tablePopoverOpen} onOpenChange={setTablePopoverOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              const ctx = getTableContext();
+              setTableEditContext(!!ctx);
+              if (!ctx) {
+                const el = ref.current;
+                const sel = window.getSelection();
+                if (el && sel && sel.rangeCount > 0 && el.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+                  savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+                } else {
+                  savedRangeRef.current = null;
+                }
+              }
+            }}
+            title="Tableau"
+            aria-label="Tableau"
+          >
+            <Table2 className="h-4 w-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 p-3" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
+          {tableEditContext ? (
+            <div>
+              <p className="text-xs text-muted-foreground mb-2 px-1">
+                Modifier le tableau (curseur placé dans une cellule)
+              </p>
+              <div className="grid gap-0.5">
+                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => addTableRow('above')} className="w-full text-left h-8 px-2 text-sm rounded hover:bg-muted">
+                  Ajouter une ligne au-dessus
+                </button>
+                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => addTableRow('below')} className="w-full text-left h-8 px-2 text-sm rounded hover:bg-muted">
+                  Ajouter une ligne en dessous
+                </button>
+                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={deleteTableRow} className="w-full text-left h-8 px-2 text-sm rounded hover:bg-muted">
+                  Supprimer la ligne
+                </button>
+                <Separator className="my-1" />
+                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => addTableColumn('left')} className="w-full text-left h-8 px-2 text-sm rounded hover:bg-muted">
+                  Ajouter une colonne à gauche
+                </button>
+                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => addTableColumn('right')} className="w-full text-left h-8 px-2 text-sm rounded hover:bg-muted">
+                  Ajouter une colonne à droite
+                </button>
+                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={deleteTableColumn} className="w-full text-left h-8 px-2 text-sm rounded hover:bg-muted">
+                  Supprimer la colonne
+                </button>
+                <Separator className="my-1" />
+                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={deleteTableEl} className="w-full text-left h-8 px-2 text-sm rounded hover:bg-muted text-destructive">
+                  Supprimer le tableau
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p className="text-xs text-muted-foreground mb-2 px-1">Taille du tableau à insérer</p>
+              <div className="flex items-end gap-2 mb-3">
+                <div className="flex-1">
+                  <Label htmlFor="inline-table-rows" className="text-xs text-muted-foreground">Lignes</Label>
+                  <Input
+                    id="inline-table-rows"
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={tableRowsInput}
+                    onChange={(e) => setTableRowsInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && insertTable()}
+                    className="h-8"
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor="inline-table-cols" className="text-xs text-muted-foreground">Colonnes</Label>
+                  <Input
+                    id="inline-table-cols"
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={tableColsInput}
+                    onChange={(e) => setTableColsInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && insertTable()}
+                    className="h-8"
+                  />
+                </div>
+              </div>
+              <Button type="button" size="sm" className="w-full" onMouseDown={(e) => e.preventDefault()} onClick={insertTable}>
+                Insérer
+              </Button>
+            </div>
+          )}
+        </PopoverContent>
+      </Popover>
       <ToolBtn onClick={insertImage} title="Ajouter une image depuis l'appareil" disabled={uploadingImage}>
         {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
       </ToolBtn>
