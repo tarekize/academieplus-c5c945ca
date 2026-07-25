@@ -193,6 +193,15 @@ function InlineLessonEditorInner({
     return { table, row, colIndex: Array.from(row.cells).indexOf(cell) };
   }, []);
 
+  // Tient `tableEditContext` à jour en continu (clic ou navigation clavier
+  // dans la zone éditable), pour que le bouton "Tableau" affiche le bon
+  // panneau dès le premier clic — sans ça, l'état ne serait calculé qu'au
+  // moment de cliquer sur le bouton lui-même, un instant trop tard si la
+  // sélection a bougé entre-temps.
+  const updateTableEditContext = useCallback(() => {
+    setTableEditContext(!!getTableContext());
+  }, [getTableContext]);
+
   const withTableContext = useCallback((fn: (ctx: { table: HTMLTableElement; row: HTMLTableRowElement; colIndex: number }) => void) => {
     const ctx = getTableContext();
     if (!ctx) {
@@ -257,7 +266,10 @@ function InlineLessonEditorInner({
   // Insère un nouveau tableau à la taille choisie par le pédagogue (bouton
   // "Insérer" du panneau). Restaure d'abord le curseur sauvegardé à
   // l'ouverture du panneau, car cliquer dans les champs "Lignes"/"Colonnes"
-  // fait perdre la sélection dans la zone éditable.
+  // fait perdre la sélection dans la zone éditable. Replace ensuite le
+  // curseur DANS la première cellule du tableau créé (et non juste après),
+  // pour pouvoir enchaîner immédiatement sur les boutons d'ajout/suppression
+  // de ligne/colonne sans avoir à recliquer dans le tableau.
   const insertTable = useCallback(() => {
     const el = ref.current;
     const sel = window.getSelection();
@@ -268,12 +280,28 @@ function InlineLessonEditorInner({
     }
     const rows = Math.min(50, Math.max(1, parseInt(tableRowsInput, 10) || 1));
     const cols = Math.min(20, Math.max(1, parseInt(tableColsInput, 10) || 1));
+    const markerId = `tbl-${Date.now()}`;
     const headerCells = Array.from({ length: cols }, (_, i) => `<th>Colonne ${i + 1}</th>`).join('');
     const bodyRows = Array.from({ length: rows }, (_, r) =>
       `<tr>${Array.from({ length: cols }, (_, c) => `<td>Valeur ${r * cols + c + 1}</td>`).join('')}</tr>`
     ).join('');
-    insertHtmlAtCursor(`<table><tr>${headerCells}</tr>${bodyRows}</table>`);
+    insertHtmlAtCursor(`<table data-tmp-id="${markerId}"><tr>${headerCells}</tr>${bodyRows}</table>`);
     setTablePopoverOpen(false);
+
+    const newTable = el?.querySelector<HTMLTableElement>(`table[data-tmp-id="${markerId}"]`);
+    if (newTable) {
+      newTable.removeAttribute('data-tmp-id');
+      const firstCell = newTable.rows[0]?.cells[0];
+      const sel2 = window.getSelection();
+      if (firstCell && sel2) {
+        const range = document.createRange();
+        range.selectNodeContents(firstCell);
+        range.collapse(true);
+        sel2.removeAllRanges();
+        sel2.addRange(range);
+      }
+    }
+    setTableEditContext(true);
   }, [tableRowsInput, tableColsInput, insertHtmlAtCursor]);
 
   // Le bouton "Ajouter une image" ouvre le sélecteur de fichiers de
@@ -600,6 +628,8 @@ function InlineLessonEditorInner({
             onFocus={(e) => onFocusTarget?.(e.currentTarget)}
             onBlur={commit}
             onInput={handleInput}
+            onMouseUp={updateTableEditContext}
+            onKeyUp={updateTableEditContext}
             className={cn(EDITABLE_CLASSES, className)}
             dangerouslySetInnerHTML={{ __html: frozenHtml }}
           />
@@ -613,6 +643,8 @@ function InlineLessonEditorInner({
             onFocus={(e) => onFocusTarget?.(e.currentTarget)}
             onBlur={commit}
             onInput={handleInput}
+            onMouseUp={updateTableEditContext}
+            onKeyUp={updateTableEditContext}
             className={cn(EDITABLE_CLASSES, className)}
           >
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, [rehypeSanitize, lessonSchema]]}>

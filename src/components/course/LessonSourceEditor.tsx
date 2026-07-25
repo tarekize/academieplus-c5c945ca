@@ -178,8 +178,22 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
     });
   }, [content, onChange]);
 
-  // Insère un nouveau tableau à la taille choisie par le pédagogue dans le panneau du bouton "Tableau".
+  // Repère en continu si le curseur est dans un tableau existant (au clic ou
+  // à la navigation clavier dans le textarea), pour que le bouton "Tableau"
+  // affiche le bon panneau dès le premier clic dessus.
+  const updateTableEditContext = useCallback(() => {
+    const el = textareaRef.current;
+    const ctx = el ? getMarkdownTableContext(content, el.selectionStart ?? content.length) : null;
+    setTableEditContext(!!ctx);
+  }, [content]);
+
+  // Insère un nouveau tableau à la taille choisie par le pédagogue dans le
+  // panneau du bouton "Tableau", et place le curseur dans la 1re cellule
+  // d'en-tête (et non après tout le bloc) pour pouvoir enchaîner
+  // immédiatement sur les boutons d'ajout/suppression de ligne/colonne.
   const insertTable = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
     const rows = Math.min(50, Math.max(1, parseInt(tableRowsInput, 10) || 1));
     const cols = Math.min(20, Math.max(1, parseInt(tableColsInput, 10) || 1));
     const header = buildRow(Array.from({ length: cols }, (_, i) => `Colonne ${i + 1}`));
@@ -187,9 +201,21 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
     const dataRows = Array.from({ length: rows }, (_, r) =>
       buildRow(Array.from({ length: cols }, (_, c) => `Valeur ${r * cols + c + 1}`))
     );
-    insertAtCursor(`\n${[header, separator, ...dataRows].join('\n')}\n`);
+    const start = el.selectionStart ?? content.length;
+    const end = el.selectionEnd ?? content.length;
+    const needsLeadingNewline = start > 0 && content[start - 1] !== '\n';
+    const block = `${needsLeadingNewline ? '\n' : ''}\n${[header, separator, ...dataRows].join('\n')}\n`;
+    const newValue = content.slice(0, start) + block + content.slice(end);
+    onChange(newValue);
     setTablePopoverOpen(false);
-  }, [tableRowsInput, tableColsInput, insertAtCursor]);
+    setTableEditContext(true);
+    const tableStart = start + (needsLeadingNewline ? 2 : 1);
+    const cursor = tableStart + 2; // juste après "| ", dans la 1re cellule d'en-tête
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(cursor, cursor);
+    });
+  }, [content, onChange, tableRowsInput, tableColsInput]);
 
   // Toutes les opérations d'édition d'un tableau existant (ligne/colonne)
   // repèrent le tableau via la position du curseur dans le textarea, comme
@@ -203,6 +229,10 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
     }
     const newLines = fn(ctx);
     onChange(newLines.join('\n'));
+    // On sait déjà qu'on est dans un tableau (ctx non null ci-dessus) : pas
+    // besoin de recalculer via `content`, qui n'a pas encore été mis à jour
+    // par ce `onChange` au moment où cette fonction s'exécute.
+    setTableEditContext(true);
     requestAnimationFrame(() => el?.focus());
   }, [content, onChange]);
 
@@ -387,11 +417,7 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
               variant="ghost"
               size="icon"
               className="h-8 w-8 shrink-0"
-              onClick={() => {
-                const el = textareaRef.current;
-                const ctx = el ? getMarkdownTableContext(content, el.selectionStart ?? content.length) : null;
-                setTableEditContext(!!ctx);
-              }}
+              onClick={updateTableEditContext}
               title="Tableau"
               aria-label="Tableau"
             >
@@ -522,6 +548,7 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
             ref={textareaRef}
             value={content}
             onChange={(e) => onChange(e.target.value)}
+            onSelect={updateTableEditContext}
             dir="auto"
             spellCheck={false}
             placeholder={"Écrivez le contenu en Markdown + LaTeX...\n\nExemples :\n**gras**, *italique*, # Titre\nFormule en ligne : $x^2 + y^2 = z^2$\nFormule en bloc :\n$$\\int_a^b f(x)\\,dx$$"}
