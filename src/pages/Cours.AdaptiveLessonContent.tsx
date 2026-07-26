@@ -35,7 +35,7 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel, showActivityCards, initialLessonId, onInitialLessonHandled, onBackToChapters, onBackToLessons, readOnly }: any) {
+export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel, showActivityCards, initialLessonId, onInitialLessonHandled, onBackToChapters, onBackToLessons, readOnly }: any) {
     const navigate = useNavigate();
     const [selectedLesson, setSelectedLesson] = useState<any>(null);
     const [lessonContent, setLessonContent] = useState<string>("");
@@ -47,6 +47,7 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
     const [activityResetKey, setActivityResetKey] = useState(0);
     const [showRevision, setShowRevision] = useState(false);
     const [tocOpen, setTocOpen] = useState(false);
+    const [pendingLessonIds, setPendingLessonIds] = useState<Set<string>>(new Set());
     const isNativeApp = Capacitor.isNativePlatform();
 
     // Reset when chapter changes
@@ -58,6 +59,28 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
         setShowRevision(false);
         setTocOpen(false);
     }, [chapter.id]);
+
+    // Notification pédago/admin : quelles leçons de ce chapitre ont une
+    // version en attente de validation (badge sur la liste des leçons).
+    useEffect(() => {
+        if (!canManage || !chapter.id) {
+            setPendingLessonIds(new Set());
+            return;
+        }
+        let cancelled = false;
+        supabase
+            .from("lessons" as any)
+            .select("id, pending_version_id")
+            .eq("chapter_id", chapter.id)
+            .then(({ data }) => {
+                if (cancelled) return;
+                const ids = ((data as any[]) || [])
+                    .filter((row) => row.pending_version_id)
+                    .map((row) => row.id as string);
+                setPendingLessonIds(new Set(ids));
+            });
+        return () => { cancelled = true; };
+    }, [chapter.id, canManage]);
 
     useEffect(() => {
         if (selectedLesson?.id) {
@@ -257,6 +280,17 @@ export function AdaptiveLessonContent({ chapter, canManage, fetchCourse, dbQuizz
                             <p className="font-medium text-base truncate">{lesson.titleAr}</p>
                             <p className="text-sm text-muted-foreground truncate">{lesson.title}</p>
                         </div>
+                        {pendingLessonIds.has(lesson.id) && (
+                            isAdmin ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white shrink-0 animate-pulse">
+                                    بانتظار المصادقة
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2.5 py-1 text-xs font-semibold shrink-0">
+                                    قيد المراجعة
+                                </span>
+                            )
+                        )}
                         <ChevronLeft className="h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-300 group-hover:-translate-x-1 rtl:group-hover:translate-x-1" />
                         {canManage && (
                             <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>

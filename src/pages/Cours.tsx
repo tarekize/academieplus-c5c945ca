@@ -99,6 +99,8 @@ const Cours = () => {
   const [chatChapterId, setChatChapterId] = useState<string | null>(null);
   const [activeActivity, setActiveActivity] = useState<string | null>(null);
   const [canManage, setCanManage] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [pendingValidationCounts, setPendingValidationCounts] = useState<Record<string, number>>({});
   const [filiereId, setFiliereId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { onFocus: onSearchKeyboardFocus, onBlur: onSearchKeyboardBlur } = useArabicKeyboardField();
@@ -151,6 +153,7 @@ const Cours = () => {
       // Check if user can manage content (admin or pedago)
       const roles = rolesData?.map(r => r.role) || [];
       setCanManage(roles.includes("admin") || roles.includes("pedago"));
+      setIsAdmin(roles.includes("admin"));
 
       // Use admin query params if present, otherwise use profile data
       const effectiveLevel = adminNiveau || profileData?.school_level || "";
@@ -196,10 +199,29 @@ const Cours = () => {
         }));
 
         setChapters(mappedChapters);
+
+        // Notification admin : compter, par chapitre, les leçons dont une
+        // version attend une validation (bouton rouge sur la carte du chapitre).
+        if (roles.includes("admin")) {
+          const chapterIds = mappedChapters.map((c) => c.id);
+          const { data: pendingRows } = await supabase
+            .from("lessons" as any)
+            .select("chapter_id, pending_version_id")
+            .in("chapter_id", chapterIds)
+            .not("pending_version_id", "is", null);
+          const counts: Record<string, number> = {};
+          ((pendingRows as any[]) || []).forEach((row) => {
+            counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
+          });
+          setPendingValidationCounts(counts);
+        } else {
+          setPendingValidationCounts({});
+        }
       } else {
         setChapters([]);
         setActiveChapter(null);
         setActiveChapterIndex(0);
+        setPendingValidationCounts({});
       }
 
     } catch (error: any) {
@@ -890,6 +912,11 @@ const Cours = () => {
                             {progress[chapter.id] && (
                               <Check className="h-5 w-5 text-green-500 shrink-0" />
                             )}
+                            {isAdmin && !!pendingValidationCounts[chapter.id] && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white shrink-0 animate-pulse">
+                                {pendingValidationCounts[chapter.id]} بانتظار المصادقة
+                              </span>
+                            )}
                             {canManage && (
                               <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                                 <ChapterFormDialog
@@ -941,6 +968,7 @@ const Cours = () => {
               }}
               chapter={activeChapter}
               canManage={canManage}
+              isAdmin={isAdmin}
               fetchCourse={fetchCourse}
               dbQuizzes={dbQuizzes}
               dbExercises={dbExercises}

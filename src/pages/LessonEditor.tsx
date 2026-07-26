@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { courseService } from '@/services/courseService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Trash2, Sparkles, Loader2, Send, Undo2, FileCode, PenLine, History } from 'lucide-react';
+import { ArrowLeft, Trash2, Sparkles, Loader2, Send, Undo2, FileCode, PenLine, History, Save, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import InlineLessonEditor from '@/components/course/InlineLessonEditor';
 import LessonSourceEditor from '@/components/course/LessonSourceEditor';
@@ -31,8 +31,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import LessonMarkdown from "@/components/course/LessonMarkdown";
 
@@ -41,6 +44,18 @@ interface LessonVersion {
   content: string | null;
   created_at: string;
   created_by_name: string;
+}
+
+interface LatestVersion {
+  id: string;
+  version_number: number;
+  status: "pending" | "approved" | "rejected" | "superseded";
+  content: string | null;
+  created_by_name: string;
+  created_at: string;
+  reviewed_by_name: string | null;
+  reviewed_at: string | null;
+  rejection_reason: string | null;
 }
 
 export default function LessonEditor() {
@@ -56,6 +71,15 @@ export default function LessonEditor() {
   const [contentVersion, setContentVersion] = useState(0);
   const [latexMode, setLatexMode] = useState(false);
   const [canManage, setCanManage] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
+  const [latestVersion, setLatestVersion] = useState<LatestVersion | null>(null);
+  const [approving, setApproving] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [previewPending, setPreviewPending] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [isActivityActive, setActivityActive] = useState(false);
   const [isAIPanelOpen, setIsAIPanelOpen] = useState(false);
@@ -76,6 +100,7 @@ export default function LessonEditor() {
       const { data: roles } = await supabase.from('user_roles').select('role').eq('user_id', user.id);
       const userRoles = roles?.map(r => r.role) || [];
       setCanManage(userRoles.includes('admin') || userRoles.includes('pedago'));
+      setIsAdmin(userRoles.includes('admin'));
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -133,8 +158,23 @@ export default function LessonEditor() {
         school_level: chSchoolLevel,
         filiere_code: chFiliereCode
       });
-      setContent(data.content || '');
+
+      // Colonnes ajoutées par le workflow de validation (pas encore dans les
+      // types générés) : brouillon éventuel + dernière version soumise.
+      const draft = (data as any).draft_content as string | null;
+      setHasDraft(!!draft);
+      setContent(draft ?? data.content ?? '');
+      setIsDirty(!!draft);
       setContentVersion(v => v + 1);
+
+      const { data: latest } = await supabase
+        .from('lesson_versions' as any)
+        .select('id, version_number, status, content, created_by_name, created_at, reviewed_by_name, reviewed_at, rejection_reason')
+        .eq('lesson_id', lessonId)
+        .order('version_number', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      setLatestVersion((latest as any) || null);
     } catch (err) {
       console.error(err);
       toast.error('Erreur', { description: 'Impossible de charger la leçon' });
@@ -145,52 +185,105 @@ export default function LessonEditor() {
 
   useEffect(() => { fetchLesson(); }, [fetchLesson]);
 
-  // Realtime: auto-refresh when lesson content changes (only if not dirty)
+  // Realtime: auto-refresh when the lesson (contenu, brouillon, statut de
+  // validation) change côté serveur — seulement si l'utilisateur n'a pas de
+  // modifications locales non enregistrées.
   useEffect(() => {
-    if (!lessonId || isDirty) return; // Ne pas mettre à jour si on a des modifications locales
+    if (!lessonId || isDirty) return;
     const channel = supabase
       .channel(`lesson-${lessonId}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'lessons', filter: `id=eq.${lessonId}` }, (payload) => {
-        const newContent = (payload.new as any).content || '';
-        setLesson(prev => prev ? { ...prev, content: newContent } : null);
-        setContent(newContent);
-        setContentVersion(v => v + 1);
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'lessons', filter: `id=eq.${lessonId}` }, () => {
+        fetchLesson();
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [lessonId, isDirty]);
+  }, [lessonId, isDirty, fetchLesson]);
 
-  const handleDiscard = () => {
+  const handleDiscard = async () => {
     setContent(lesson?.content || '');
     setContentVersion(v => v + 1);
     setIsDirty(false);
+    if (hasDraft && lessonId) {
+      setHasDraft(false);
+      await supabase.rpc('save_lesson_draft' as any, { p_lesson_id: lessonId, p_content: null });
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    if (!lessonId) return;
+    setSavingDraft(true);
+    try {
+      const { error } = await supabase.rpc('save_lesson_draft' as any, { p_lesson_id: lessonId, p_content: content });
+      if (error) throw error;
+      setHasDraft(true);
+      toast.success('Brouillon enregistré', { description: 'Vos modifications sont sauvegardées, pas encore envoyées à l\'administrateur.' });
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Erreur', { description: err.message || 'Impossible d\'enregistrer le brouillon' });
+    } finally {
+      setSavingDraft(false);
+    }
   };
 
   const handlePublish = async () => {
     if (!lessonId) return;
     setPublishing(true);
     try {
-      const { error } = await supabase.from('lessons').update({ content }).eq('id', lessonId);
+      const { data: version, error } = await supabase
+        .rpc('submit_lesson_version' as any, { p_lesson_id: lessonId, p_content: content });
       if (error) throw error;
 
-      // Archive un instantané du contenu envoyé, pour l'historique des versions.
-      const { data: { user } } = await supabase.auth.getUser();
-      await supabase.from('lesson_versions' as any).insert({
-        lesson_id: lessonId,
-        content,
-        created_by: user?.id || null,
-        created_by_name: currentUserName || 'مستخدم',
-      });
-
-      toast.success('Publié', { description: 'Les modifications ont été envoyées avec succès.' });
       setIsDirty(false);
-      // Update local state
-      setLesson(prev => prev ? { ...prev, content } : null);
+      setHasDraft(false);
+      setLatestVersion(version as any);
+
+      if (isAdmin) {
+        toast.success('Publié', { description: 'Les modifications ont été envoyées avec succès.' });
+        setLesson(prev => prev ? { ...prev, content } : null);
+      } else {
+        toast.success('Envoyé pour validation', { description: `Version ${(version as any).version_number} envoyée à l'administrateur.` });
+      }
     } catch (err: any) {
       console.error(err);
-      toast.error('Erreur', { description: err.message || 'Impossible de publier' });
+      toast.error('Erreur', { description: err.message || 'Impossible d\'envoyer les modifications' });
     } finally {
       setPublishing(false);
+    }
+  };
+
+  const handleApprove = async () => {
+    if (!latestVersion || latestVersion.status !== 'pending') return;
+    setApproving(true);
+    try {
+      const { error } = await supabase.rpc('approve_lesson_version' as any, { p_version_id: latestVersion.id });
+      if (error) throw error;
+      toast.success('Validé', { description: 'La nouvelle version est maintenant visible par les élèves.' });
+      setPreviewPending(false);
+      await fetchLesson();
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Erreur', { description: err.message || 'Impossible de valider la version' });
+    } finally {
+      setApproving(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!latestVersion || latestVersion.status !== 'pending') return;
+    setRejecting(true);
+    try {
+      const { error } = await supabase.rpc('reject_lesson_version' as any, { p_version_id: latestVersion.id, p_reason: rejectReason || null });
+      if (error) throw error;
+      toast.success('Refusé', { description: 'Le pédagogue verra le motif du refus.' });
+      setRejectDialogOpen(false);
+      setRejectReason('');
+      setPreviewPending(false);
+      await fetchLesson();
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Erreur', { description: err.message || 'Impossible de refuser la version' });
+    } finally {
+      setRejecting(false);
     }
   };
 
@@ -343,15 +436,19 @@ export default function LessonEditor() {
                     {/* Visible uniquement s'il y a des changements non publiés */}
                     {isDirty && (
                       <>
+                        <Button variant="outline" onClick={handleSaveDraft} disabled={savingDraft || publishing}>
+                          {savingDraft ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                          {savingDraft ? 'Enregistrement...' : 'Enregistrer le brouillon'}
+                        </Button>
                         <Button
                           onClick={handlePublish}
-                          disabled={publishing}
+                          disabled={publishing || savingDraft}
                           className="bg-green-600 hover:bg-green-700"
                         >
                           <Send className="h-4 w-4 mr-2" />
-                          {publishing ? 'Envoi...' : 'Envoyer les modifications'}
+                          {publishing ? 'Envoi...' : isAdmin ? 'Envoyer les modifications' : 'Envoyer pour validation'}
                         </Button>
-                        <Button variant="outline" onClick={handleDiscard} disabled={publishing}>
+                        <Button variant="outline" onClick={handleDiscard} disabled={publishing || savingDraft}>
                           <Undo2 className="h-4 w-4 mr-2" />
                           Annuler les modifications
                         </Button>
@@ -359,10 +456,63 @@ export default function LessonEditor() {
                     )}
                   </div>
 
+                  {/* État de la version en cours (numéro + statut de validation) */}
+                  {latestVersion && (
+                    <div className="mb-4 flex flex-wrap items-center gap-2 text-sm">
+                      <span className="text-muted-foreground">الإصدار {latestVersion.version_number} :</span>
+                      {latestVersion.status === 'pending' && (
+                        <Badge className="bg-amber-500 hover:bg-amber-500 text-white gap-1">
+                          <Clock className="h-3 w-3" /> بانتظار المصادقة
+                        </Badge>
+                      )}
+                      {latestVersion.status === 'approved' && (
+                        <Badge className="bg-green-600 hover:bg-green-600 text-white gap-1">
+                          <CheckCircle2 className="h-3 w-3" /> تم النشر
+                        </Badge>
+                      )}
+                      {latestVersion.status === 'rejected' && (
+                        <Badge variant="destructive" className="gap-1">
+                          <XCircle className="h-3 w-3" /> مرفوض
+                        </Badge>
+                      )}
+                      {latestVersion.status === 'rejected' && latestVersion.rejection_reason && (
+                        <span className="text-muted-foreground">— {latestVersion.rejection_reason}</span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Panneau de validation admin : une version attend sa décision */}
+                  {isAdmin && latestVersion?.status === 'pending' && (
+                    <Card className="mb-4 border-red-300 dark:border-red-900 bg-red-50/60 dark:bg-red-950/20">
+                      <CardContent className="py-4 flex flex-col gap-3">
+                        <p className="text-sm text-red-800 dark:text-red-200">
+                          <strong>{latestVersion.created_by_name}</strong> a envoyé une nouvelle version (الإصدار {latestVersion.version_number}) le {new Date(latestVersion.created_at).toLocaleString('ar')}, en attente de validation.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          <Button variant="outline" size="sm" onClick={() => setPreviewPending(true)}>
+                            Voir le contenu proposé
+                          </Button>
+                          <Button size="sm" onClick={handleApprove} disabled={approving || rejecting} className="bg-green-600 hover:bg-green-700">
+                            {approving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+                            Valider
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={() => setRejectDialogOpen(true)} disabled={approving || rejecting}>
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Refuser
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
                   {/* Indicateur de modifications non publiées */}
                   {isDirty && (
                     <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md text-sm text-yellow-800 dark:text-yellow-200">
-                      ⚠️ Vous avez des modifications non publiées. Les autres utilisateurs ne verront ces changements qu'après avoir cliqué sur "Envoyer les modifications".
+                      {hasDraft
+                        ? '📝 Brouillon enregistré. Les élèves ne verront ces changements qu\'après validation.'
+                        : isAdmin
+                          ? '⚠️ Vous avez des modifications non publiées. Les autres utilisateurs ne verront ces changements qu\'après avoir cliqué sur "Envoyer les modifications".'
+                          : '⚠️ Vous avez des modifications non envoyées. Elles ne seront visibles par les élèves qu\'après validation par un administrateur.'}
                     </div>
                   )}
                 </>
@@ -491,6 +641,55 @@ export default function LessonEditor() {
           ) : (
             <p className="text-sm text-muted-foreground text-center py-8">لا يوجد محتوى في هذا الإصدار.</p>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Aperçu en lecture seule de la version en attente de validation */}
+      <Dialog open={previewPending} onOpenChange={setPreviewPending}>
+        <DialogContent className="sm:max-w-[800px] max-h-[85vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>الإصدار {latestVersion?.version_number} — بانتظار المصادقة</DialogTitle>
+            <DialogDescription>
+              {latestVersion && `${new Date(latestVersion.created_at).toLocaleString('ar')} — ${latestVersion.created_by_name}`}
+            </DialogDescription>
+          </DialogHeader>
+          {latestVersion?.content ? (
+            /<\s*(html|body|head|!doctype)/i.test(latestVersion.content) ? (
+              <HtmlWithMath
+                className="lesson-markdown prose prose-sm dark:prose-invert max-w-none"
+                htmlContent={injectHeaderIds(latestVersion.content)}
+              />
+            ) : (
+              <LessonMarkdown content={latestVersion.content} dir="rtl" />
+            )
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-8">لا يوجد محتوى في هذا الإصدار.</p>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Motif de refus (optionnel) */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent className="sm:max-w-[480px]" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>Refuser cette version ?</DialogTitle>
+            <DialogDescription>
+              Vous pouvez expliquer au pédagogue pourquoi cette modification est refusée (optionnel).
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="Motif du refus (optionnel)..."
+            rows={4}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)} disabled={rejecting}>Annuler</Button>
+            <Button variant="destructive" onClick={handleReject} disabled={rejecting}>
+              {rejecting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <XCircle className="h-4 w-4 mr-2" />}
+              Refuser
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
