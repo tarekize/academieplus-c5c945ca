@@ -397,7 +397,7 @@ export default function LessonEditor() {
               {/* Action bar */}
               {canManage && (
                 <>
-                  <div className="flex items-center gap-2 mb-6 flex-wrap">
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
                     <Button variant="outline" onClick={openVersionsList}>
                       <History className="h-4 w-4 mr-2" />
                       الإصدارات السابقة
@@ -432,29 +432,30 @@ export default function LessonEditor() {
                         </AlertDialogContent>
                       </AlertDialog>
                     )}
-
-                    {/* Visible uniquement s'il y a des changements non publiés */}
-                    {isDirty && (
-                      <>
-                        <Button variant="outline" onClick={handleSaveDraft} disabled={savingDraft || publishing}>
-                          {savingDraft ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                          {savingDraft ? 'Enregistrement...' : 'Enregistrer le brouillon'}
-                        </Button>
-                        <Button
-                          onClick={handlePublish}
-                          disabled={publishing || savingDraft}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <Send className="h-4 w-4 mr-2" />
-                          {publishing ? 'Envoi...' : isAdmin ? 'Envoyer les modifications' : 'Envoyer pour validation'}
-                        </Button>
-                        <Button variant="outline" onClick={handleDiscard} disabled={publishing || savingDraft}>
-                          <Undo2 className="h-4 w-4 mr-2" />
-                          Annuler les modifications
-                        </Button>
-                      </>
-                    )}
                   </div>
+
+                  {/* Rangée dédiée : évite que ces boutons ne réorganisent la
+                      rangée ci-dessus à chaque fois qu'ils apparaissent/disparaissent. */}
+                  {isDirty && (
+                    <div className="flex items-center gap-2 mb-6 flex-wrap">
+                      <Button
+                        onClick={handlePublish}
+                        disabled={publishing || savingDraft}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        {publishing ? 'Envoi...' : isAdmin ? 'Envoyer les modifications' : 'Envoyer pour validation'}
+                      </Button>
+                      <Button variant="outline" onClick={handleSaveDraft} disabled={savingDraft || publishing}>
+                        {savingDraft ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                        {savingDraft ? 'Enregistrement...' : 'Enregistrer le brouillon'}
+                      </Button>
+                      <Button variant="outline" onClick={handleDiscard} disabled={publishing || savingDraft}>
+                        <Undo2 className="h-4 w-4 mr-2" />
+                        Annuler les modifications
+                      </Button>
+                    </div>
+                  )}
 
                   {/* État de la version en cours (numéro + statut de validation) */}
                   {latestVersion && (
