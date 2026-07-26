@@ -539,6 +539,7 @@ export default function LessonEditor() {
                       <InlineLessonEditor
                         content={content}
                         onChange={(html) => { setContent(html); setIsDirty(true); }}
+                        onDirty={() => setIsDirty(true)}
                         resetKey={`${lesson.id}-${contentVersion}`}
                         onFocusTarget={onKeyboardFocus}
                         onBlurTarget={onKeyboardBlur}

@@ -53,6 +53,9 @@ interface InlineLessonEditorProps {
   onFocusTarget?: (el: HTMLDivElement) => void;
   /** Appelé quand la zone éditable perd le focus (ex: pour masquer le clavier arabe virtuel). */
   onBlurTarget?: () => void;
+  /** Appelé à chaque frappe (avant même la synchronisation du HTML complet
+   * via onChange), pour piloter un indicateur "modifications non enregistrées". */
+  onDirty?: () => void;
 }
 
 const isHtmlContent = (s: string) => /<\s*(html|body|head|!doctype|div|section|article|main|h[1-6]|p)\b/i.test((s || '').trim());
@@ -69,6 +72,7 @@ function InlineLessonEditorInner({
   className,
   onFocusTarget,
   onBlurTarget,
+  onDirty,
 }: {
   initialContent: string;
   onChange: (html: string) => void;
@@ -76,6 +80,7 @@ function InlineLessonEditorInner({
   className?: string;
   onFocusTarget?: (el: HTMLDivElement) => void;
   onBlurTarget?: () => void;
+  onDirty?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   // Englobe la zone éditable : sert de repère (position:relative) pour
@@ -141,7 +146,14 @@ function InlineLessonEditorInner({
 
   const handleInput = useCallback(() => {
     setIsEmpty(!ref.current?.textContent?.trim());
-  }, []);
+    // Signale immédiatement qu'il y a une modification en cours (pour que
+    // les boutons "Envoyer pour validation" / "Enregistrer le brouillon"
+    // apparaissent dès la frappe), sans synchroniser le HTML complet vers le
+    // parent à chaque caractère — ça, c'est toujours `persist()` (au blur ou
+    // via un bouton de la barre d'outils) qui s'en charge, cf. commentaire
+    // plus haut sur `frozenHtml`.
+    onDirty?.();
+  }, [onDirty]);
 
   // Insère un fragment HTML à la position du curseur dans la zone éditable
   // (ou à la fin si aucune sélection valide n'y est active), puis replace le
@@ -972,7 +984,7 @@ function InlineLessonEditorInner({
  * (pas du KaTeX déjà rendu, trop fragile à modifier en place) ; elles
  * s'affichent en LaTeX rendu uniquement côté élève.
  */
-export default function InlineLessonEditor({ content, onChange, placeholder, className, resetKey, onFocusTarget, onBlurTarget }: InlineLessonEditorProps) {
+export default function InlineLessonEditor({ content, onChange, placeholder, className, resetKey, onFocusTarget, onBlurTarget, onDirty }: InlineLessonEditorProps) {
   return (
     <InlineLessonEditorInner
       key={resetKey}
@@ -982,6 +994,7 @@ export default function InlineLessonEditor({ content, onChange, placeholder, cla
       className={className}
       onFocusTarget={onFocusTarget}
       onBlurTarget={onBlurTarget}
+      onDirty={onDirty}
     />
   );
 }
