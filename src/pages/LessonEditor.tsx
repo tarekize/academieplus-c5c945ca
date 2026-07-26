@@ -394,68 +394,72 @@ export default function LessonEditor() {
         {!isActivityActive && (
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="flex-1 min-w-0">
-              {/* Action bar */}
+              {/* Action bar : collante en haut de l'écran pendant le défilement,
+                  pour que les boutons (dont "Envoyer pour validation") restent
+                  accessibles même en éditant plus bas dans une longue leçon. */}
               {canManage && (
                 <>
-                  <div className="flex items-center gap-2 mb-3 flex-wrap">
-                    <Button variant="outline" onClick={openVersionsList}>
-                      <History className="h-4 w-4 mr-2" />
-                      الإصدارات السابقة
-                    </Button>
-                    <Button variant="outline" onClick={toggleLatexMode}>
-                      {latexMode ? <PenLine className="h-4 w-4 mr-2" /> : <FileCode className="h-4 w-4 mr-2" />}
-                      {latexMode ? 'Retour à l\'édition directe' : 'Modifier en LaTeX'}
-                    </Button>
-                    <Button variant="secondary" onClick={handleGenerateAI} disabled={generating}>
-                      {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                      {generating ? 'Génération...' : 'Généré avec IA'}
-                    </Button>
-                    {lesson.content && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive">
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Supprimer le contenu
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Cette action supprimera tout le contenu de cette leçon. Cette action est irréversible.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                  <div className="sticky top-2 z-20 mb-6 p-2 -m-2 rounded-lg bg-background/95 backdrop-blur-sm border border-border/40 shadow-sm">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Button variant="outline" onClick={openVersionsList}>
+                        <History className="h-4 w-4 mr-2" />
+                        الإصدارات السابقة
+                      </Button>
+                      <Button variant="outline" onClick={toggleLatexMode}>
+                        {latexMode ? <PenLine className="h-4 w-4 mr-2" /> : <FileCode className="h-4 w-4 mr-2" />}
+                        {latexMode ? 'Retour à l\'édition directe' : 'Modifier en LaTeX'}
+                      </Button>
+                      <Button variant="secondary" onClick={handleGenerateAI} disabled={generating}>
+                        {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                        {generating ? 'Génération...' : 'Généré avec IA'}
+                      </Button>
+                      {lesson.content && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Supprimer le contenu
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Cette action supprimera tout le contenu de cette leçon. Cette action est irréversible.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
+
+                    {/* Rangée dédiée : évite que ces boutons ne réorganisent la
+                        rangée ci-dessus à chaque fois qu'ils apparaissent/disparaissent. */}
+                    {isDirty && (
+                      <div className="flex items-center gap-2 flex-wrap mt-2 pt-2 border-t border-border/40">
+                        <Button
+                          onClick={handlePublish}
+                          disabled={publishing || savingDraft}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          {publishing ? 'Envoi...' : isAdmin ? 'Envoyer les modifications' : 'Envoyer pour validation'}
+                        </Button>
+                        <Button variant="outline" onClick={handleSaveDraft} disabled={savingDraft || publishing}>
+                          {savingDraft ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                          {savingDraft ? 'Enregistrement...' : 'Enregistrer le brouillon'}
+                        </Button>
+                        <Button variant="outline" onClick={handleDiscard} disabled={publishing || savingDraft}>
+                          <Undo2 className="h-4 w-4 mr-2" />
+                          Annuler les modifications
+                        </Button>
+                      </div>
                     )}
                   </div>
-
-                  {/* Rangée dédiée : évite que ces boutons ne réorganisent la
-                      rangée ci-dessus à chaque fois qu'ils apparaissent/disparaissent. */}
-                  {isDirty && (
-                    <div className="flex items-center gap-2 mb-6 flex-wrap">
-                      <Button
-                        onClick={handlePublish}
-                        disabled={publishing || savingDraft}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        <Send className="h-4 w-4 mr-2" />
-                        {publishing ? 'Envoi...' : isAdmin ? 'Envoyer les modifications' : 'Envoyer pour validation'}
-                      </Button>
-                      <Button variant="outline" onClick={handleSaveDraft} disabled={savingDraft || publishing}>
-                        {savingDraft ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                        {savingDraft ? 'Enregistrement...' : 'Enregistrer le brouillon'}
-                      </Button>
-                      <Button variant="outline" onClick={handleDiscard} disabled={publishing || savingDraft}>
-                        <Undo2 className="h-4 w-4 mr-2" />
-                        Annuler les modifications
-                      </Button>
-                    </div>
-                  )}
 
                   {/* État de la version en cours (numéro + statut de validation) */}
                   {latestVersion && (
