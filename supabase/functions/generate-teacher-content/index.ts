@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { logTokenUsageAsync, resolveCallerRoleGroup, extractOpenAiCompatUsage, type AiUsage } from "../_shared/tokenLogger.ts";
+import { parseAiJson } from "../_shared/jsonFix.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -100,10 +101,13 @@ async function callGateway(system: string, user: string): Promise<{ parsed: any;
   const content = data?.choices?.[0]?.message?.content || "{}";
   const usage = extractOpenAiCompatUsage(data);
   try {
-    return { parsed: JSON.parse(content), usage };
-  } catch {
-    const m = content.match(/\{[\s\S]*\}/);
-    return { parsed: m ? JSON.parse(m[0]) : { items: [] }, usage };
+    return { parsed: parseAiJson(content), usage };
+  } catch (e) {
+    // Le contenu LaTeX (\frac, \infty, \lim...) casse parfois le JSON même après
+    // réparation des échappements — on dégrade en liste vide plutôt que de faire
+    // échouer toute la requête avec une erreur 500 opaque.
+    console.error("[generate-teacher-content] JSON parse failed:", (e as Error).message, "raw:", content.slice(0, 500));
+    return { parsed: { items: [] }, usage };
   }
 }
 
