@@ -13,8 +13,42 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, Loader2, Sparkles } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Plus, Pencil, Trash2, Loader2, Sparkles, FileCode, PenLine } from "lucide-react";
 import { toast } from "sonner";
+import InlineLessonEditor from "./InlineLessonEditor";
+import LessonSourceEditor from "./LessonSourceEditor";
+
+// Champ de contenu riche réutilisé tel quel depuis l'éditeur de leçon :
+// bascule entre édition directe (WYSIWYG) et édition source (LaTeX/Markdown).
+function RichContentField({ label, value, onChange, minHeight = 100 }: { label: string; value: string; onChange: (v: string) => void; minHeight?: number }) {
+  const [latexMode, setLatexMode] = useState(false);
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <label className="text-sm font-medium">{label}</label>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-7 gap-1 text-xs"
+          onClick={() => setLatexMode((v) => !v)}
+        >
+          {latexMode ? <PenLine className="h-3 w-3" /> : <FileCode className="h-3 w-3" />}
+          {latexMode ? "التحرير المباشر" : "تحرير LaTeX"}
+        </Button>
+      </div>
+      <div className="border rounded-md overflow-hidden" style={{ minHeight }} dir="ltr">
+        {latexMode ? (
+          <LessonSourceEditor content={value} onChange={onChange} />
+        ) : (
+          <InlineLessonEditor content={value} onChange={onChange} />
+        )}
+      </div>
+    </div>
+  );
+}
 
 // ---- Quiz CRUD ----
 interface QuizFormProps {
@@ -95,10 +129,10 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
           <Button variant="outline" size="sm" className="gap-1"><Plus className="h-3 w-3" />سؤال جديد</Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle dir="rtl">{isEdit ? "تعديل السؤال" : "سؤال جديد"}</DialogTitle></DialogHeader>
         <div className="space-y-3 py-2" dir="rtl">
-          <Textarea value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="نص السؤال..." className="min-h-[60px]" />
+          <RichContentField label="نص السؤال" value={question} onChange={setQuestion} minHeight={120} />
           <div className="space-y-2">
             <label className="text-sm font-medium">الخيارات</label>
             {options.map((opt, i) => (
@@ -127,10 +161,7 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
               </Select>
             </div>
           </div>
-          <div>
-            <label className="text-sm font-medium">الشرح</label>
-            <Textarea value={explanation} onChange={(e) => setExplanation(e.target.value)} placeholder="شرح الإجابة..." />
-          </div>
+          <RichContentField label="الشرح" value={explanation} onChange={setExplanation} minHeight={100} />
           <div>
             <label className="text-sm font-medium">💡 مساعدة (Hint) — يظهر للتلميذ عند الطلب</label>
             <Textarea value={hint} onChange={(e) => setHint(e.target.value)} placeholder="فكرة أو تلميح يساعد التلميذ على الوصول للجواب..." />
@@ -248,17 +279,14 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
           <Button variant="outline" size="sm" className="gap-1"><Plus className="h-3 w-3" />تمرين جديد</Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle dir="rtl">{isEdit ? "تعديل التمرين" : "تمرين جديد"}</DialogTitle></DialogHeader>
         <div className="space-y-3 py-2" dir="rtl">
           <div>
             <label className="text-sm font-medium">العنوان</label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="عنوان التمرين" />
           </div>
-          <div>
-            <label className="text-sm font-medium">نص التمرين</label>
-            <Textarea value={statement} onChange={(e) => setStatement(e.target.value)} placeholder="نص التمرين..." className="min-h-[80px]" />
-          </div>
+          <RichContentField label="نص التمرين" value={statement} onChange={setStatement} minHeight={120} />
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium">الإجابة المتوقعة</label>
@@ -284,10 +312,7 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
             <label className="text-sm font-medium">إجابات مقبولة (مفصولة بفواصل)</label>
             <Input value={acceptedAnswers} onChange={(e) => setAcceptedAnswers(e.target.value)} placeholder="إجابة1, إجابة2" />
           </div>
-          <div>
-            <label className="text-sm font-medium">الحل المفصل</label>
-            <Textarea value={solution} onChange={(e) => setSolution(e.target.value)} placeholder="خطوات الحل..." className="min-h-[100px]" />
-          </div>
+          <RichContentField label="الحل المفصل" value={solution} onChange={setSolution} minHeight={140} />
           <div>
             <label className="text-sm font-medium">💡 مساعدة (Hint) — يظهر للتلميذ عند الطلب</label>
             <Textarea value={hint} onChange={(e) => setHint(e.target.value)} placeholder="فكرة أو تلميح يساعد التلميذ على الوصول للجواب..." className="min-h-[60px]" />
@@ -337,37 +362,74 @@ export function DeleteExerciseButton({ exerciseId, onDeleted }: { exerciseId: st
 }
 
 // ---- Generate with AI button ----
-export function GenerateQuizExercisesButton({ chapterId, lessonId, onGenerated }: { chapterId: string; lessonId?: string; onGenerated: () => void }) {
+type ContentType = "exercises" | "quizzes";
+type Section = "discover" | "understand";
+
+export function GenerateQuizExercisesButton({
+  chapterId,
+  lessonId,
+  onGenerated,
+  lockedContentType,
+}: {
+  chapterId: string;
+  lessonId: string;
+  onGenerated: () => void;
+  /** Si fourni, verrouille le type de contenu généré (بدون سؤال) — utilisé quand le bouton
+   * est déclenché depuis l'onglet "تمارين" ou l'onglet "اسئله متعدده الاختيارات". */
+  lockedContentType?: ContentType;
+}) {
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-  const [mode, setMode] = useState<"append" | "replace">("append");
+  const [mode, setMode] = useState<"add" | "replace">("add");
+  const [sections, setSections] = useState<Section[]>(["discover", "understand"]);
+  const [contentTypes, setContentTypes] = useState<ContentType[]>(
+    lockedContentType ? [lockedContentType] : ["exercises", "quizzes"]
+  );
+  const [count, setCount] = useState(10);
+  const [difficultyMin, setDifficultyMin] = useState(1);
+  const [difficultyMax, setDifficultyMax] = useState(5);
+
+  const toggleSection = (s: Section) => {
+    setSections((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
+  };
+  const toggleContentType = (t: ContentType) => {
+    if (lockedContentType) return;
+    setContentTypes((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
+  };
 
   const handleGenerate = async () => {
+    if (sections.length === 0) {
+      toast.error("اختر مكان توليد الأسئلة (اكتشف أو افهم) على الأقل");
+      return;
+    }
+    if (contentTypes.length === 0) {
+      toast.error("اختر تمارين أو أسئلة على الأقل");
+      return;
+    }
+    if (difficultyMin > difficultyMax) {
+      toast.error("المستوى الأدنى يجب أن يكون أصغر أو يساوي المستوى الأقصى");
+      return;
+    }
     setLoading(true);
     try {
-      if (!lessonId && mode === "replace") {
-        const [delQuizResult, delExerciseResult] = await Promise.all([
-          supabase.from("chapter_quizzes").delete().eq("chapter_id", chapterId).is("lesson_id", null),
-          supabase.from("chapter_exercises").delete().eq("chapter_id", chapterId).is("lesson_id", null),
-        ]);
-        if (delQuizResult.error) throw delQuizResult.error;
-        if (delExerciseResult.error) throw delExerciseResult.error;
-        toast.success("تم حذف الأسئلة والتمارين السابقة");
-      }
-
-      const { data, error } = lessonId
-        ? await supabase.functions.invoke("bulk-gen-terminale-gemini", {
-            body: { chapter_id: chapterId, lesson_id: lessonId, replace: mode === "replace" },
-          })
-        : await supabase.functions.invoke("generate-chapter-quizzes", {
-            body: { chapter_id: chapterId, lesson_id: null },
-          });
+      const { data, error } = await supabase.functions.invoke("bulk-gen-terminale-gemini", {
+        body: {
+          chapter_id: chapterId,
+          lesson_id: lessonId,
+          replace: mode === "replace",
+          sections,
+          content_types: contentTypes,
+          count,
+          difficulty_min: difficultyMin,
+          difficulty_max: difficultyMax,
+        },
+      });
       if (error) throw error;
       if (data?.success === false) throw new Error(data.error || "خطأ في التوليد");
       if (data?.error) throw new Error(data.error);
-      const quizCount = data?.quizzes ?? data?.inserted_quizzes ?? 0;
-      const exerciseCount = data?.exercises ?? data?.inserted_exercises ?? 0;
-      toast.success(`تم إنشاء ${quizCount} أسئلة و ${exerciseCount} تمارين بنجاح`);
+      const quizCount = data?.inserted_quizzes ?? 0;
+      const exerciseCount = data?.inserted_exercises ?? 0;
+      toast.success(`تم إنشاء ${exerciseCount} تمارين و ${quizCount} أسئلة بنجاح`);
       setOpenDialog(false);
       onGenerated();
     } catch (err: any) {
@@ -377,6 +439,8 @@ export function GenerateQuizExercisesButton({ chapterId, lessonId, onGenerated }
     }
   };
 
+  const typeLabel = lockedContentType === "exercises" ? "تمارين فقط" : lockedContentType === "quizzes" ? "أسئلة اختيار من متعدد فقط" : null;
+
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
@@ -385,40 +449,103 @@ export function GenerateQuizExercisesButton({ chapterId, lessonId, onGenerated }
           توليد بالذكاء الاصطناعي
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle dir="rtl">توليد الأسئلة والتمارين بالذكاء الاصطناعي</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4" dir="rtl">
-          <p className="text-sm text-muted-foreground">
-            اختر كيفية إضافة الأسئلة والتمارين المولدة:
-          </p>
-          <div className="space-y-3">
-            <div
-              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                mode === "append"
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
-              }`}
-              onClick={() => setMode("append")}
-            >
-              <h3 className="font-medium mb-1">إضافة (إضافة إلى الموجودة)</h3>
-              <p className="text-xs text-muted-foreground">
-                سيتم إضافة الأسئلة والتمارين الجديدة إلى الموجودة
-              </p>
+        <div className="space-y-5 py-2" dir="rtl">
+          {/* Ajouter / Remplacer */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">كيفية الإضافة</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                className={`p-2.5 border-2 rounded-lg text-sm transition-all ${mode === "add" ? "border-primary bg-primary/5 font-medium" : "border-border hover:border-primary/50"}`}
+                onClick={() => setMode("add")}
+              >
+                إضافة إلى الموجود
+              </button>
+              <button
+                type="button"
+                className={`p-2.5 border-2 rounded-lg text-sm transition-all ${mode === "replace" ? "border-destructive bg-destructive/5 font-medium text-destructive" : "border-border hover:border-destructive/50"}`}
+                onClick={() => setMode("replace")}
+              >
+                استبدال الموجود
+              </button>
             </div>
-            <div
-              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                mode === "replace"
-                  ? "border-destructive bg-destructive/5"
-                  : "border-border hover:border-destructive/50"
-              }`}
-              onClick={() => setMode("replace")}
-            >
-              <h3 className="font-medium mb-1 text-destructive">استبدال (حذف القديمة)</h3>
-              <p className="text-xs text-muted-foreground">
-                سيتم حذف الأسئلة والتمارين الموجودة واستبدالها بأخرى جديدة
-              </p>
+          </div>
+
+          {/* Emplacement : Découvrir / Comprendre */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">أين تريد وضع الأسئلة؟</Label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox checked={sections.includes("discover")} onCheckedChange={() => toggleSection("discover")} />
+                اكتشف (Découvrir)
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox checked={sections.includes("understand")} onCheckedChange={() => toggleSection("understand")} />
+                افهم (Comprendre)
+              </label>
+            </div>
+            {sections.length === 2 && (
+              <p className="text-xs text-muted-foreground">سيتم توزيع العدد على المرحلتين معاً</p>
+            )}
+          </div>
+
+          {/* Type : Exercices / Quiz */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">ماذا تريد أن تولّد؟</Label>
+            {typeLabel ? (
+              <p className="text-sm px-3 py-2 rounded-md bg-muted font-medium">{typeLabel}</p>
+            ) : (
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <Checkbox checked={contentTypes.includes("exercises")} onCheckedChange={() => toggleContentType("exercises")} />
+                  تمارين
+                </label>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <Checkbox checked={contentTypes.includes("quizzes")} onCheckedChange={() => toggleContentType("quizzes")} />
+                  أسئلة اختيار من متعدد
+                </label>
+              </div>
+            )}
+            {contentTypes.length === 2 && (
+              <p className="text-xs text-muted-foreground">سيتم توليد نفس العدد لكل من التمارين والأسئلة</p>
+            )}
+          </div>
+
+          {/* Nombre */}
+          <div>
+            <Label className="text-sm font-medium">كم عدد الأسئلة/التمارين؟</Label>
+            <Input
+              type="number"
+              min={1}
+              max={20}
+              value={count}
+              onChange={(e) => setCount(Math.min(20, Math.max(1, parseInt(e.target.value) || 1)))}
+            />
+          </div>
+
+          {/* Niveau min / max */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium">المستوى الأدنى</Label>
+              <Select value={difficultyMin.toString()} onValueChange={(v) => setDifficultyMin(parseInt(v))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={n.toString()}>{n}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">المستوى الأقصى</Label>
+              <Select value={difficultyMax.toString()} onValueChange={(v) => setDifficultyMax(parseInt(v))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={n.toString()}>{n}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>

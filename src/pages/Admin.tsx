@@ -438,6 +438,7 @@ export default function Admin() {
                         <TableHead>Pédago</TableHead>
                         <TableHead>Statut</TableHead>
                         <TableHead>Inscription</TableHead>
+                        <TableHead>Dernière connexion</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -457,7 +458,7 @@ export default function Admin() {
                       ))}
                       {filteredPedagos.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                             Aucun pédago trouvé
                           </TableCell>
                         </TableRow>
@@ -504,6 +505,7 @@ export default function Admin() {
                         <TableHead>Parent</TableHead>
                         <TableHead>Statut</TableHead>
                         <TableHead>Inscription</TableHead>
+                        <TableHead>Dernière connexion</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -523,7 +525,7 @@ export default function Admin() {
                       ))}
                       {filteredParents.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                             Aucun parent trouvé
                           </TableCell>
                         </TableRow>
@@ -571,6 +573,7 @@ export default function Admin() {
                         <TableHead>Niveau</TableHead>
                         <TableHead>Statut</TableHead>
                         <TableHead>Inscription</TableHead>
+                        <TableHead>Dernière connexion</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -591,7 +594,7 @@ export default function Admin() {
                       ))}
                       {filteredStudents.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                             Aucun élève trouvé
                           </TableCell>
                         </TableRow>
@@ -638,6 +641,7 @@ export default function Admin() {
                         <TableHead>Enseignant</TableHead>
                         <TableHead>Statut</TableHead>
                         <TableHead>Inscription</TableHead>
+                        <TableHead>Dernière connexion</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -657,7 +661,7 @@ export default function Admin() {
                       ))}
                       {filteredTeachers.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                             Aucun enseignant trouvé
                           </TableCell>
                         </TableRow>
@@ -709,6 +713,7 @@ export default function Admin() {
                         <TableHead>Établissement</TableHead>
                         <TableHead>Statut</TableHead>
                         <TableHead>Inscription</TableHead>
+                        <TableHead>Dernière connexion</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -727,7 +732,7 @@ export default function Admin() {
                       ))}
                       {filteredEtablissements.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                             Aucun établissement trouvé
                           </TableCell>
                         </TableRow>
@@ -986,6 +991,13 @@ function UserRow({
       </TableCell>
       <TableCell>
         {user.created_at && format(new Date(user.created_at), "dd/MM/yyyy", { locale: fr })}
+      </TableCell>
+      <TableCell>
+        {user.last_sign_in_at ? (
+          format(new Date(user.last_sign_in_at), "dd/MM/yyyy HH:mm", { locale: fr })
+        ) : (
+          <span className="text-muted-foreground">Jamais</span>
+        )}
       </TableCell>
       <TableCell className="text-right">
         <DropdownMenu>

@@ -9,6 +9,7 @@ type ProfileRow = Tables<"profiles">;
 export interface AdminUser extends ProfileRow {
   // Computed fields from user_roles join
   roles?: string[];
+  last_sign_in_at?: string | null;
 }
 
 export interface ActivityLog {
@@ -63,10 +64,14 @@ export function useAdminUsers() {
         .from("user_roles")
         .select("user_id, role");
 
-      // Map roles to users
+      // Fetch last sign-in times (admin-only RPC bridging to auth.users)
+      const { data: lastSignInData } = await supabase.rpc("admin_get_last_sign_in_times");
+
+      // Map roles and last sign-in to users
       const usersWithRoles = (data || []).map(profile => {
         const userRoles = rolesData?.filter(r => r.user_id === profile.id).map(r => r.role) || [];
-        return { ...profile, roles: userRoles };
+        const lastSignIn = lastSignInData?.find(r => r.user_id === profile.id)?.last_sign_in_at ?? null;
+        return { ...profile, roles: userRoles, last_sign_in_at: lastSignIn };
       });
 
       setUsers(usersWithRoles);

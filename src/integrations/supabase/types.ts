@@ -1564,6 +1564,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_get_last_sign_in_times: {
+        Args: never
+        Returns: {
+          user_id: string
+          last_sign_in_at: string | null
+        }[]
+      }
       check_exercise_answer: {
         Args: { _exercise_id: string; _user_answer: string }
         Returns: Json

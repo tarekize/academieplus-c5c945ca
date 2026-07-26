@@ -16,26 +16,74 @@ const GEMINI_KEYS = [Deno.env.get("GEMINI_API_KEY_2"), Deno.env.get("GEMINI_API_
 const GEMINI_MODELS = ["gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-flash-latest"];
 
 const SYSTEM_PROMPT = `أنت معلم رياضيات خبير للسنة النهائية شعبة العلوم التجريبية في الجزائر.
-مهمتك: توليد 10 تمارين و 10 أسئلة اختيار من متعدد لدرس معطى، باللغة العربية، بمستوى مناسب للبكالوريا.
+مهمتك: توليد تمارين وأسئلة اختيار من متعدد لدرس معطى، باللغة العربية، بمستوى مناسب للبكالوريا.
 قواعد صارمة:
 - اكتب فقط بالعربية (التعليمات والحلول).
 - استعمل LaTeX داخل $...$ للصيغ القصيرة و $$...$$ للمعروضة.
-- درجات الصعوبة من 1 (سهل جدا) إلى 5 (صعب جدا)، وزع بشكل متدرج.
+- احترم بدقة توزيع مستويات الصعوبة المطلوب لكل مجموعة.
 - أرجع JSON صالح فقط حسب الخطاطة المطلوبة.`;
 
-function buildUserPrompt(chapterAr: string, lessonAr: string, lessonFr: string) {
-  return `الفصل: ${chapterAr}
-الدرس: ${lessonAr} (${lessonFr})
+// Un "batch" décrit une tranche demandée : N éléments dans une bande de difficulté donnée
+// (bande = emplacement Découvrir [1-2] ou Comprendre [3-5], recoupée avec le niveau min/max choisi).
+interface DifficultyBatch { count: number; min: number; max: number; }
 
-ولِّد بالضبط:
-- 10 تمارين (exercises)
-- 10 أسئلة اختيار من متعدد (quizzes)
+function describeBatches(batches: DifficultyBatch[], label: string): string {
+  return batches
+    .map((b, i) => `- ${b.count} ${label} بمستوى صعوبة بين ${b.min} و ${b.max}`)
+    .join("\n");
+}
 
-كل تمرين: title, statement (LaTeX), expected_answer, accepted_answers (مصفوفة 2-4), solution (Markdown مع ### الخطوة 1: وينتهي بـ $$\\boxed{...}$$), difficulty (1-5), hint (يبدأ بـ 💡).
-كل quiz: question, options (4 نصوص), correct_answer (يطابق أحد options بالضبط), explanation, difficulty (1-5), hint (يبدأ بـ 💡).
+function buildUserPrompt(
+  chapterAr: string,
+  lessonAr: string,
+  lessonFr: string,
+  exerciseBatches: DifficultyBatch[],
+  quizBatches: DifficultyBatch[],
+) {
+  const totalExercises = exerciseBatches.reduce((s, b) => s + b.count, 0);
+  const totalQuizzes = quizBatches.reduce((s, b) => s + b.count, 0);
 
-أرجع JSON بهذا الشكل بالضبط دون أي شرح خارجي:
-{"exercises":[...10...],"quizzes":[...10...]}`;
+  const parts: string[] = [`الفصل: ${chapterAr}`, `الدرس: ${lessonAr} (${lessonFr})`, ""];
+
+  if (totalExercises > 0) {
+    parts.push(`ولِّد بالضبط ${totalExercises} تمرين (exercises) موزعة كالتالي:`);
+    parts.push(describeBatches(exerciseBatches, "تمارين"));
+    parts.push(`كل تمرين: title, statement (LaTeX), expected_answer, accepted_answers (مصفوفة 2-4), solution (Markdown مع ### الخطوة 1: وينتهي بـ $$\\boxed{...}$$), difficulty (رقم ضمن البند المطلوب), hint (يبدأ بـ 💡).`);
+    parts.push("");
+  }
+  if (totalQuizzes > 0) {
+    parts.push(`ولِّد بالضبط ${totalQuizzes} سؤال اختيار من متعدد (quizzes) موزعة كالتالي:`);
+    parts.push(describeBatches(quizBatches, "أسئلة"));
+    parts.push(`كل quiz: question, options (4 نصوص), correct_answer (يطابق أحد options بالضبط), explanation, difficulty (رقم ضمن البند المطلوب), hint (يبدأ بـ 💡).`);
+    parts.push("");
+  }
+
+  parts.push("أرجع JSON بهذا الشكل بالضبط دون أي شرح خارجي:");
+  parts.push(`{"exercises":[...${totalExercises}...],"quizzes":[...${totalQuizzes}...]}`);
+  return parts.join("\n");
+}
+
+const SECTION_BANDS: Record<"discover" | "understand", [number, number]> = {
+  discover: [1, 2],
+  understand: [3, 5],
+};
+
+// Répartit `count` éléments sur les sections sélectionnées, le plus équitablement possible.
+function buildBatches(sections: ("discover" | "understand")[], count: number, reqMin: number, reqMax: number): DifficultyBatch[] {
+  if (sections.length === 0 || count <= 0) return [];
+  const per = Math.floor(count / sections.length);
+  let remainder = count - per * sections.length;
+  return sections.map((section) => {
+    const [bandMin, bandMax] = SECTION_BANDS[section];
+    // Recoupe le niveau min/max demandé par le pédago avec la bande de la section ;
+    // si l'intersection est vide, on retombe sur la bande de la section pour rester cohérent.
+    let min = Math.max(reqMin, bandMin);
+    let max = Math.min(reqMax, bandMax);
+    if (min > max) { min = bandMin; max = bandMax; }
+    const c = per + (remainder > 0 ? 1 : 0);
+    if (remainder > 0) remainder -= 1;
+    return { count: c, min, max };
+  }).filter((b) => b.count > 0);
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -155,6 +203,20 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { lesson_id, chapter_id, lesson_title_ar, lesson_title_fr, chapter_title_ar, replace, shared_token } = body;
 
+    // Nouveaux paramètres du flux de génération guidée (emplacement, nombre, niveau, type).
+    // Valeurs par défaut = comportement historique (10+10, toute difficulté, les deux sections).
+    const sections: ("discover" | "understand")[] = Array.isArray(body.sections) && body.sections.length
+      ? body.sections.filter((s: string) => s === "discover" || s === "understand")
+      : ["discover", "understand"];
+    const contentTypes: ("exercises" | "quizzes")[] = Array.isArray(body.content_types) && body.content_types.length
+      ? body.content_types.filter((t: string) => t === "exercises" || t === "quizzes")
+      : ["exercises", "quizzes"];
+    const requestedCount = Math.min(20, Math.max(1, Number(body.count) || 10));
+    const difficultyMin = Math.min(5, Math.max(1, Number(body.difficulty_min) || 1));
+    const difficultyMax = Math.min(5, Math.max(1, Number(body.difficulty_max) || 5));
+    const wantExercises = contentTypes.includes("exercises");
+    const wantQuizzes = contentTypes.includes("quizzes");
+
     // shared-token gate for batch scripts, otherwise require a logged-in pedago/admin user.
     // No insecure fallback: if BULK_GEN_TOKEN isn't set, the token path is disabled and
     // every caller must go through the JWT + role check below.
@@ -199,7 +261,12 @@ Deno.serve(async (req) => {
       lessonTitleFr = lessonTitleFr || (lessonData as any)?.title || "";
     }
 
-    const userPrompt = buildUserPrompt(chapterTitle, lessonTitleAr, lessonTitleFr);
+    const exerciseBatches = wantExercises ? buildBatches(sections, requestedCount, difficultyMin, difficultyMax) : [];
+    const quizBatches = wantQuizzes ? buildBatches(sections, requestedCount, difficultyMin, difficultyMax) : [];
+    const totalExercisesWanted = exerciseBatches.reduce((s, b) => s + b.count, 0);
+    const totalQuizzesWanted = quizBatches.reduce((s, b) => s + b.count, 0);
+
+    const userPrompt = buildUserPrompt(chapterTitle, lessonTitleAr, lessonTitleFr, exerciseBatches, quizBatches);
 
     let parsed: any = null;
     let usage: GeminiUsage | null = null;
@@ -209,7 +276,9 @@ Deno.serve(async (req) => {
         const result = await callGemini(SYSTEM_PROMPT, userPrompt);
         parsed = result.parsed;
         usage = result.usage;
-        if (parsed?.exercises?.length && parsed?.quizzes?.length) break;
+        const exOk = !wantExercises || parsed?.exercises?.length;
+        const qzOk = !wantQuizzes || parsed?.quizzes?.length;
+        if (exOk && qzOk) break;
         lastErr = "missing fields";
       } catch (e: any) {
         lastErr = e.message;
@@ -227,13 +296,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!parsed?.exercises || !parsed?.quizzes) {
+    if ((wantExercises && !parsed?.exercises) || (wantQuizzes && !parsed?.quizzes)) {
       return new Response(JSON.stringify({ error: `generation failed: ${lastErr}` }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // "Remplacer" ne supprime que les types de contenu réellement demandés
+    // (générer seulement des exercices ne doit pas effacer les quiz existants).
     if (replace) {
-      await admin.from("chapter_exercises").delete().eq("lesson_id", lesson_id);
-      await admin.from("chapter_quizzes").delete().eq("lesson_id", lesson_id);
+      if (wantExercises) await admin.from("chapter_exercises").delete().eq("lesson_id", lesson_id);
+      if (wantQuizzes) await admin.from("chapter_quizzes").delete().eq("lesson_id", lesson_id);
     }
 
     let startExerciseOrder = 1;
@@ -247,7 +318,7 @@ Deno.serve(async (req) => {
       startQuizOrder = Number((lastQuiz as any)?.order_index || 0) + 1;
     }
 
-    const exercisesToInsert = parsed.exercises.slice(0, 10).map((ex: any, i: number) => ({
+    const exercisesToInsert = wantExercises ? (parsed.exercises || []).slice(0, totalExercisesWanted).map((ex: any, i: number) => ({
       chapter_id, lesson_id,
       title: String(ex.title ?? `تمرين ${i + 1}`).slice(0, 300),
       statement: String(ex.statement ?? ""),
@@ -257,9 +328,9 @@ Deno.serve(async (req) => {
       hint: String(ex.hint ?? ""),
       difficulty: Math.min(5, Math.max(1, Number(ex.difficulty) || 2)),
       order_index: startExerciseOrder + i,
-    }));
+    })) : [];
 
-    const quizzesToInsert = parsed.quizzes.slice(0, 10).map((q: any, i: number) => ({
+    const quizzesToInsert = wantQuizzes ? (parsed.quizzes || []).slice(0, totalQuizzesWanted).map((q: any, i: number) => ({
       chapter_id, lesson_id,
       question: String(q.question ?? ""),
       options: Array.isArray(q.options) ? q.options.map(String) : [],
@@ -268,12 +339,16 @@ Deno.serve(async (req) => {
       hint: String(q.hint ?? ""),
       difficulty: Math.min(5, Math.max(1, Number(q.difficulty) || 2)),
       order_index: startQuizOrder + i,
-    }));
+    })) : [];
 
-    const { error: exErr } = await admin.from("chapter_exercises").insert(exercisesToInsert);
-    if (exErr) throw new Error(`insert exercises: ${exErr.message}`);
-    const { error: qzErr } = await admin.from("chapter_quizzes").insert(quizzesToInsert);
-    if (qzErr) throw new Error(`insert quizzes: ${qzErr.message}`);
+    if (exercisesToInsert.length) {
+      const { error: exErr } = await admin.from("chapter_exercises").insert(exercisesToInsert);
+      if (exErr) throw new Error(`insert exercises: ${exErr.message}`);
+    }
+    if (quizzesToInsert.length) {
+      const { error: qzErr } = await admin.from("chapter_quizzes").insert(quizzesToInsert);
+      if (qzErr) throw new Error(`insert quizzes: ${qzErr.message}`);
+    }
 
     return new Response(JSON.stringify({
       ok: true, lesson_id,

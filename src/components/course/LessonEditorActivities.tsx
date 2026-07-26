@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, PenTool, ChevronLeft, Eye, Lightbulb, Plus, Pencil, Trash2 } from "lucide-react";
-import { QuizFormDialog, DeleteQuizButton, ExerciseFormDialog, DeleteExerciseButton } from "./QuizExerciseCRUD";
+import { QuizFormDialog, DeleteQuizButton, ExerciseFormDialog, DeleteExerciseButton, GenerateQuizExercisesButton } from "./QuizExerciseCRUD";
 
 interface DBQuiz {
   id: string;
@@ -146,7 +146,7 @@ export function LessonEditorActivities({
   return (
     <div className="mt-6 mb-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 bg-card rounded-xl border shadow-sm p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between border-b pb-4">
+      <div className="flex items-center justify-between border-b pb-4 flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={() => handleTabChange(null)} className="h-9 px-4 gap-2 hover:bg-primary hover:text-primary-foreground transition-colors group">
             <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
@@ -160,6 +160,14 @@ export function LessonEditorActivities({
             {lessonTitle && <p className="text-sm text-muted-foreground mt-1" dir="rtl">{lessonTitle}</p>}
           </div>
         </div>
+        {lessonId && (
+          <GenerateQuizExercisesButton
+            chapterId={chapterId}
+            lessonId={lessonId}
+            lockedContentType={isExercises ? "exercises" : "quizzes"}
+            onGenerated={fetchData}
+          />
+        )}
       </div>
 
       <Tabs value={activeLevel} onValueChange={setActiveLevel} className="w-full">

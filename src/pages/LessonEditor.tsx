@@ -12,7 +12,6 @@ import { useArabicKeyboardField } from '@/components/course/ArabicKeyboard';
 import { TableOfContents } from '@/components/course/TableOfContents';
 import { injectHeaderIds } from '@/lib/toc-utils';
 import { LessonEditorActivities } from '@/components/course/LessonEditorActivities';
-import { GenerateQuizExercisesButton } from '@/components/course/QuizExerciseCRUD';
 import { AdminAssistantPanel } from '@/components/admin/AdminAssistantPanel';
 import {
   AlertDialog,
@@ -375,19 +374,14 @@ export default function LessonEditor() {
           </div>
         </div>
 
-        {/* AI Generation button + Exercises & Quizzes CRUD for pedago */}
+        {/* Exercises & Quizzes management for pedago (génération IA intégrée par onglet) */}
         {canManage && lesson.chapter_id && (
-          <>
-            <div className="flex justify-center mb-4">
-              <GenerateQuizExercisesButton chapterId={lesson.chapter_id} lessonId={lesson.id} onGenerated={() => window.location.reload()} />
-            </div>
-            <LessonEditorActivities
-              chapterId={lesson.chapter_id}
-              lessonId={lesson.id}
-              lessonTitle={lesson.title_ar || lesson.title}
-              onActiveChange={(isActive) => setActivityActive(isActive)}
-            />
-          </>
+          <LessonEditorActivities
+            chapterId={lesson.chapter_id}
+            lessonId={lesson.id}
+            lessonTitle={lesson.title_ar || lesson.title}
+            onActiveChange={(isActive) => setActivityActive(isActive)}
+          />
         )}
 
         {/* Hide the rest of the page if an activity is active */}
