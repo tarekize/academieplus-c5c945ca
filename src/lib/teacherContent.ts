@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { extractFunctionErrorMessage } from "@/lib/edgeFunctionError";
 
 export type ContentType = "exercise" | "quiz" | "exam";
 
@@ -128,7 +129,7 @@ export async function generateTeacherContent(params: {
   const { data, error } = await supabase.functions.invoke("generate-teacher-content", {
     body: params,
   });
-  if (error) throw error;
+  if (error) throw new Error(await extractFunctionErrorMessage(error));
   const items = (data as any)?.items;
   if ((data as any)?.error) throw new Error((data as any).error);
   return Array.isArray(items) ? items : [];

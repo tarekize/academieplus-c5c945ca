@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Pencil, Trash2, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import RichContentField from "./RichContentField";
+import { extractFunctionErrorMessage } from "@/lib/edgeFunctionError";
 
 // ---- Quiz CRUD ----
 interface QuizFormProps {
@@ -393,7 +394,7 @@ export function GenerateQuizExercisesButton({
           difficulty_max: difficultyMax,
         },
       });
-      if (error) throw error;
+      if (error) throw new Error(await extractFunctionErrorMessage(error));
       if (data?.success === false) throw new Error(data.error || "خطأ في التوليد");
       if (data?.error) throw new Error(data.error);
       const quizCount = data?.inserted_quizzes ?? 0;
