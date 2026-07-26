@@ -46,13 +46,6 @@ function Bubble({ children }: { children: React.ReactNode }) {
   );
 }
 
-function distribute(count: number, buckets: number): number[] {
-  if (buckets <= 0) return [];
-  const per = Math.floor(count / buckets);
-  let rem = count - per * buckets;
-  return Array.from({ length: buckets }, () => per + (rem-- > 0 ? 1 : 0));
-}
-
 type Phase =
   | "loadingGroups" | "selectGroup"
   | "analyzing" | "none" | "selectLacunes"
@@ -192,37 +185,38 @@ export default function HelpChatbot(props: Props) {
   };
 
   // --- Branche "l'IA génère tout" ---
+  // aiExerciseCount / aiQuizCount s'appliquent à CHAQUE leçon choisie (pas un total
+  // réparti) : "1 exercice et 1 quiz" avec 2 leçons donne 1+1 par leçon, soit 4 items.
   const runAiGeneration = async () => {
     setPhase("generating");
     try {
       const lessons = selectedLessons;
-      const exShares = types.includes("exercise") ? distribute(aiExerciseCount, lessons.length) : lessons.map(() => 0);
-      const qzShares = types.includes("quiz") ? distribute(aiQuizCount, lessons.length) : lessons.map(() => 0);
-      const total = exShares.reduce((a, b) => a + b, 0) + qzShares.reduce((a, b) => a + b, 0);
+      const perLessonExercises = types.includes("exercise") ? aiExerciseCount : 0;
+      const perLessonQuizzes = types.includes("quiz") ? aiQuizCount : 0;
+      const total = (perLessonExercises + perLessonQuizzes) * lessons.length;
       setGenProgress({ done: 0, total });
       const results: GenEntry[] = [];
       const focusBase = mode === "class"
         ? `Ces élèves (groupe ${selectedGroup?.letter}) sont en difficulté sur cette leçon.`
         : `${targetName} est en difficulté sur cette leçon.`;
-      for (let i = 0; i < lessons.length; i++) {
-        const lesson = lessons[i];
-        if (exShares[i] > 0) {
+      for (const lesson of lessons) {
+        if (perLessonExercises > 0) {
           const gen = await generateTeacherContent({
             contentType: "exercise", schoolLevel: schoolLevel || undefined,
             chapterTitle: lesson.chapterTitle, lessonTitle: lesson.title,
-            count: exShares[i], difficultyMin: 1, difficultyMax: 3, focusNote: focusBase,
+            count: perLessonExercises, difficultyMin: 1, difficultyMax: 3, focusNote: focusBase,
           });
           results.push(...gen.map((g) => ({ ...g, _type: "exercise" as const, _lessonTitle: lesson.title })));
-          setGenProgress((p) => p && { done: p.done + exShares[i], total: p.total });
+          setGenProgress((p) => p && { done: p.done + perLessonExercises, total: p.total });
         }
-        if (qzShares[i] > 0) {
+        if (perLessonQuizzes > 0) {
           const gen = await generateTeacherContent({
             contentType: "quiz", schoolLevel: schoolLevel || undefined,
             chapterTitle: lesson.chapterTitle, lessonTitle: lesson.title,
-            count: qzShares[i], difficultyMin: 1, difficultyMax: 3, focusNote: focusBase,
+            count: perLessonQuizzes, difficultyMin: 1, difficultyMax: 3, focusNote: focusBase,
           });
           results.push(...gen.map((g) => ({ ...g, _type: "quiz" as const, _lessonTitle: lesson.title })));
-          setGenProgress((p) => p && { done: p.done + qzShares[i], total: p.total });
+          setGenProgress((p) => p && { done: p.done + perLessonQuizzes, total: p.total });
         }
       }
       if (results.length === 0) { toast.error("Aucun contenu généré."); setPhase("aiCounts"); return; }
@@ -459,21 +453,24 @@ export default function HelpChatbot(props: Props) {
 
           {phase === "aiCounts" && (
             <>
-              <Bubble>Combien voulez-vous en tout, réparti sur les leçons choisies ?</Bubble>
+              <Bubble>Combien en voulez-vous, pour chacune des {selectedLessons.length} leçon{selectedLessons.length > 1 ? "s" : ""} choisie{selectedLessons.length > 1 ? "s" : ""} ?</Bubble>
               <div className="pl-10 grid grid-cols-2 gap-4 max-w-sm">
                 {types.includes("exercise") && (
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground">Exercices</label>
-                    <Input type="number" min={0} max={40} value={aiExerciseCount} onChange={(e) => setAiExerciseCount(Math.max(0, parseInt(e.target.value) || 0))} />
+                    <label className="text-xs font-medium text-muted-foreground">Exercices / leçon</label>
+                    <Input type="number" min={0} max={20} value={aiExerciseCount} onChange={(e) => setAiExerciseCount(Math.max(0, parseInt(e.target.value) || 0))} />
                   </div>
                 )}
                 {types.includes("quiz") && (
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground">Quiz</label>
-                    <Input type="number" min={0} max={40} value={aiQuizCount} onChange={(e) => setAiQuizCount(Math.max(0, parseInt(e.target.value) || 0))} />
+                    <label className="text-xs font-medium text-muted-foreground">Quiz / leçon</label>
+                    <Input type="number" min={0} max={20} value={aiQuizCount} onChange={(e) => setAiQuizCount(Math.max(0, parseInt(e.target.value) || 0))} />
                   </div>
                 )}
               </div>
+              <p className="pl-10 text-xs text-muted-foreground">
+                Soit {(types.includes("exercise") ? aiExerciseCount : 0) + (types.includes("quiz") ? aiQuizCount : 0)} item(s) × {selectedLessons.length} leçon{selectedLessons.length > 1 ? "s" : ""} au total.
+              </p>
               <div className="pl-10">
                 <Button size="sm" onClick={runAiGeneration} className="gap-1"><Sparkles className="h-4 w-4" /> Générer</Button>
               </div>

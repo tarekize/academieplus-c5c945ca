@@ -99,25 +99,21 @@ function cleanGeneratedJson(rawContent: string): string {
   return cleaned;
 }
 
-// Commandes LaTeX fréquentes qui commencent par une lettre coïncidant avec un
-// échappement JSON valide (n, r, t) — ex: \neq, \rightarrow, \tan. Sans ce
+// Commandes LaTeX fréquentes qui commencent par "n" — seule lettre encore
+// ambiguë avec un vrai échappement JSON ici (\n reste nécessaire pour les
+// sauts de ligne des solutions multi-étapes). Ex : \neq, \nabla. Sans ce
 // garde-fou, "\n" suivi de "eq{...}" serait lu comme un saut de ligne suivi
 // du texte "eq{...}", corrompant la formule.
-const LATEX_WORDS_BY_ESCAPE_LETTER: Record<string, string[]> = {
-  n: ["nabla", "neq", "notin", "ncong", "nless", "ngtr", "nexists", "nmid"],
-  r: ["rightarrow", "rangle", "rceil", "rfloor", "rho"],
-  t: ["tan", "tanh", "theta", "times", "tau", "top", "triangleq", "therefore", "textbf", "textit"],
-};
+const LATEX_N_WORDS = ["nabla", "neq", "notin", "ncong", "nless", "ngtr", "nexists", "nmid"];
 
-function looksLikeLatexCommand(input: string, pos: number, letter: string): boolean {
-  const words = LATEX_WORDS_BY_ESCAPE_LETTER[letter];
-  return !!words && words.some((w) => input.startsWith(w, pos));
+function looksLikeLatexNCommand(input: string, pos: number): boolean {
+  return LATEX_N_WORDS.some((w) => input.startsWith(w, pos));
 }
 
 // Walk the JSON character-by-character; inside string literals, escape any
 // backslash that isn't followed by a valid JSON escape char. This handles
 // LaTeX commands (\frac, \alpha, \sqrt, \mathbb, \begin, \\) without
-// breaking already-valid escapes like \n, \t, \", \\, \uXXXX.
+// breaking already-valid escapes like \n, \", \\, \uXXXX.
 function fixJsonStringEscapes(input: string): string {
   let out = "";
   let inString = false;
@@ -140,11 +136,15 @@ function fixJsonStringEscapes(input: string): string {
     if (next === '"' || next === "\\" || next === "/") {
       out += "\\" + next; i++; continue;
     }
-    // \b et \f (retour arrière / saut de page) n'ont jamais de sens dans ce
-    // contenu : ce sont quasi toujours le début d'une commande LaTeX (\frac,
-    // \forall, \begin, \boxed, \binom, \bar, \beta...) — toujours échappés.
-    if ((next === "n" || next === "r" || next === "t") && !looksLikeLatexCommand(input, i + 1, next)) {
-      out += "\\" + next; i++; continue;
+    // \n reste un vrai saut de ligne, sauf s'il amorce une commande LaTeX
+    // connue (\neq, \nabla...). \b, \f, \r et \t ne sont JAMAIS utilisés
+    // intentionnellement par ce générateur (aucun besoin de tabulation, retour
+    // arrière, saut de page ou retour chariot dans ce contenu) : ce sont
+    // toujours le début d'une commande LaTeX (\frac, \forall, \begin, \boxed,
+    // \binom, \bar, \beta, \right, \rightarrow, \rho, \tan, \theta, \times,
+    // \to, \tau...) — le backslash est donc systématiquement doublé pour eux.
+    if (next === "n" && !looksLikeLatexNCommand(input, i + 1)) {
+      out += "\\n"; i++; continue;
     }
     if (next === "u" && /^[0-9a-fA-F]{4}$/.test(input.slice(i + 2, i + 6))) {
       out += "\\u" + input.slice(i + 2, i + 6); i += 5; continue;
