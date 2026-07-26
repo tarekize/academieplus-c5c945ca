@@ -170,9 +170,13 @@ function toGeminiParts(content: any): any[] {
 }
 
 // Modèles essayés dans l'ordre : gemini-flash-latest est le modèle habituel,
-// les suivants ne servent que de repli quand Google renvoie une indispo
-// temporaire (503 "high demand") ou un dépassement de quota (429) — jamais
-// pour une erreur de requête (400 etc.) qui échouerait pareil ailleurs.
+// les suivants servent de repli. On essaie TOUS les modèles de la liste quel
+// que soit le code d'erreur (pas seulement 503/429) : constaté en prod que
+// "gemini-flash-latest" peut renvoyer 400 "invalid argument" de façon
+// systématique (l'alias "latest" pointe parfois vers une version dont les
+// limites/paramètres diffèrent légèrement) alors que la même requête passe
+// très bien avec un modèle versionné explicite comme gemini-2.5-flash — donc
+// une erreur 400 sur UN modèle ne garantit pas l'échec des autres.
 const GEMINI_MODEL_FALLBACKS = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
 
 async function callGemini(
@@ -217,10 +221,8 @@ async function callGemini(
     lastStatus = attempt.status;
     const errText = await attempt.text();
     console.error(`Gemini error (${model}):`, attempt.status, errText);
-
-    // Erreur de requête (mauvais prompt, clé invalide...) : réessayer avec un
-    // autre modèle échouerait exactement pareil, inutile d'insister.
-    if (attempt.status !== 503 && attempt.status !== 429) break;
+    // On continue vers le modèle suivant quel que soit le code d'erreur —
+    // voir le commentaire sur GEMINI_MODEL_FALLBACKS ci-dessus.
   }
 
   if (!response) {
