@@ -292,7 +292,19 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             body: JSON.stringify(payload),
         });
 
-        if (!response.ok) throw new Error("خطأ أثناء التوليد بواسطة الذكاء الاصطناعي");
+        if (!response.ok) {
+            // L'edge function renvoie un JSON { error: "..." } avec la vraie
+            // cause (401 non autorisé, 403 rôle refusé, 429 trop de requêtes,
+            // 503 IA indisponible...) : on la lit au lieu de toujours afficher
+            // le même message générique, sinon impossible pour l'enseignant
+            // (et pour nous) de savoir ce qui a réellement échoué.
+            let serverMessage = '';
+            try {
+                const errBody = await response.json();
+                serverMessage = errBody?.error || '';
+            } catch { /* réponse non-JSON, on garde le message générique */ }
+            throw new Error(serverMessage || `خطأ أثناء التوليد بواسطة الذكاء الاصطناعي (${response.status})`);
+        }
 
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();

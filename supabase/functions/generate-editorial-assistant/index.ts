@@ -36,6 +36,20 @@ const WIZARD_STYLE_DESCRIPTIONS: Record<string, string> = {
   progressive: "des exemples et exercices progressifs, du plus facile au plus difficile",
 };
 
+// Le contenu d'une leçon peut avoir été importé (Word via mammoth, copier-
+// coller depuis un PDF/site web, anciennes générations IA...) et contenir des
+// demi-paires UTF-16 orphelines ou des caractères de contrôle invisibles à
+// l'écran. Une seule fois dans tout le texte envoyé, et Gemini rejette la
+// requête ENTIÈRE avec un générique 400 "Request contains an invalid
+// argument" sans plus de détail exploitable — d'où ce nettoyage défensif
+// avant d'inclure quoi que ce soit venant de la leçon dans le prompt.
+function sanitizeForGemini(text: string): string {
+  return text
+    .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/g, "")
+    .replace(/(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "");
+}
+
 // Construit le bloc de plan pédagogique co-construit avec le flux guidé
 // (structure / concepts clés / style d'exemples choisis pas à pas par le
 // pédagogue). Absent quand la demande ne vient pas du flux guidé.
@@ -70,10 +84,10 @@ ${conceptsDesc}
 // ::: definition/theorem/remark/example/property/method/exercise (rendus en
 // encadrés stylés côté client), jamais du HTML brut.
 function buildEditorialPrompt(editorialContext: any, subject: string): string {
-  const currentContent = editorialContext?.currentContent || "";
+  const currentContent = sanitizeForGemini(editorialContext?.currentContent || "");
   const wizard = editorialContext?.wizard || null;
-  const lessonTitle = editorialContext?.lessonTitle || wizard?.lessonTitle || "";
-  const schoolLevel = editorialContext?.schoolLevel || wizard?.schoolLevel || "";
+  const lessonTitle = sanitizeForGemini(editorialContext?.lessonTitle || wizard?.lessonTitle || "");
+  const schoolLevel = sanitizeForGemini(editorialContext?.schoolLevel || wizard?.schoolLevel || "");
 
   return `Tu es un assistant IA expert en édition de contenus pédagogiques ${subject || "mathématiques"} (français/arabe).
 CONTEXTE: Tu aides un professeur/administrateur à modifier ou créer une leçon${lessonTitle ? ` intitulée "${lessonTitle}"` : ""}${schoolLevel ? ` pour le niveau ${schoolLevel}` : ""}.
@@ -133,13 +147,13 @@ Tu retournes UNIQUEMENT le contenu Markdown de la leçon, rien avant, rien aprè
 
 // Convert OpenAI-style messages (string OR [{type:'text'|'image_url',...}]) to Gemini parts
 function toGeminiParts(content: any): any[] {
-  if (typeof content === "string") return [{ text: content }];
-  if (!Array.isArray(content)) return [{ text: String(content ?? "") }];
+  if (typeof content === "string") return [{ text: sanitizeForGemini(content) }];
+  if (!Array.isArray(content)) return [{ text: sanitizeForGemini(String(content ?? "")) }];
   const parts: any[] = [];
   for (const p of content) {
     if (!p) continue;
     if (p.type === "text" && typeof p.text === "string") {
-      parts.push({ text: p.text });
+      parts.push({ text: sanitizeForGemini(p.text) });
     } else if (p.type === "image_url" && p.image_url?.url) {
       const url: string = p.image_url.url;
       const m = url.match(/^data:([^;]+);base64,(.+)$/);
