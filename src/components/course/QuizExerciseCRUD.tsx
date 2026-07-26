@@ -15,40 +15,9 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plus, Pencil, Trash2, Loader2, Sparkles, FileCode, PenLine } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import InlineLessonEditor from "./InlineLessonEditor";
-import LessonSourceEditor from "./LessonSourceEditor";
-
-// Champ de contenu riche réutilisé tel quel depuis l'éditeur de leçon :
-// bascule entre édition directe (WYSIWYG) et édition source (LaTeX/Markdown).
-function RichContentField({ label, value, onChange, minHeight = 100 }: { label: string; value: string; onChange: (v: string) => void; minHeight?: number }) {
-  const [latexMode, setLatexMode] = useState(false);
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1">
-        <label className="text-sm font-medium">{label}</label>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 gap-1 text-xs"
-          onClick={() => setLatexMode((v) => !v)}
-        >
-          {latexMode ? <PenLine className="h-3 w-3" /> : <FileCode className="h-3 w-3" />}
-          {latexMode ? "التحرير المباشر" : "تحرير LaTeX"}
-        </Button>
-      </div>
-      <div className="border rounded-md overflow-hidden" style={{ minHeight }} dir="ltr">
-        {latexMode ? (
-          <LessonSourceEditor content={value} onChange={onChange} />
-        ) : (
-          <InlineLessonEditor content={value} onChange={onChange} />
-        )}
-      </div>
-    </div>
-  );
-}
+import RichContentField from "./RichContentField";
 
 // ---- Quiz CRUD ----
 interface QuizFormProps {

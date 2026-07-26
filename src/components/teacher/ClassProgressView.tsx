@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { Fragment, useEffect, useMemo, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { computeGlobal } from "@/lib/levelEngine";
+import { computeStudentGroup, GROUP_INFO, GROUP_ORDER, type StudentGroupLetter } from "@/lib/studentGrouping";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -54,23 +54,9 @@ interface ComputedStudent {
   profile: StudentProfile;
   linkId: string;
   global: number;
-  group: "A" | "B" | "C" | "D";
+  group: StudentGroupLetter;
   lessonLevels: Record<string, number | null>;
   answered: boolean;
-}
-
-const GROUP_INFO: Record<string, { label: string; tone: string }> = {
-  A: { label: "Avancé — maîtrise solide", tone: "bg-blue-600 text-white" },
-  B: { label: "Intermédiaire — en progression", tone: "bg-green-600 text-white" },
-  C: { label: "Fragile — à consolider", tone: "bg-amber-600 text-white" },
-  D: { label: "En difficulté — accompagnement", tone: "bg-red-500 text-white" },
-};
-
-function groupFromPct(pct: number): "A" | "B" | "C" | "D" {
-  if (pct >= 70) return "A";
-  if (pct >= 50) return "B";
-  if (pct >= 30) return "C";
-  return "D";
 }
 
 function cellColor(level: number | null): string {
@@ -199,24 +185,25 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
           }
         }
 
-        const g = computeGlobal(
+        const { global: pct, answered, group } = computeStudentGroup(
           own.map((s) => ({ lesson_id: s.lesson_id, current_level: s.current_level, total_answers: s.total_answers })),
         );
-        const answered = own.some((s) => (s.total_answers || 0) > 0);
-        const pct = answered ? g.global : 0;
 
         return {
           profile: p,
           linkId: m.id,
           global: pct,
-          group: groupFromPct(pct),
+          group,
           lessonLevels,
           answered,
         };
       });
 
-      // Sort by score descending (like the reference dashboard)
-      computed.sort((a, b) => b.global - a.global);
+      // Regroupe par niveau (A/B/C/D), puis trie par score décroissant au sein de chaque groupe
+      computed.sort((a, b) => {
+        const gi = GROUP_ORDER.indexOf(a.group) - GROUP_ORDER.indexOf(b.group);
+        return gi !== 0 ? gi : b.global - a.global;
+      });
       setStudents(computed);
     } catch (e: any) {
       toast.error(e.message || "Erreur lors du chargement de la classe");
@@ -381,7 +368,28 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
                     </tr>
                   </thead>
                   <tbody>
-                    {students.map((s) => (
+                    {students.map((s, i) => {
+                      const prevGroup = i > 0 ? students[i - 1].group : null;
+                      const isNewGroup = s.group !== prevGroup;
+                      const groupCount = students.filter((st) => st.group === s.group).length;
+                      const groupAvg = Math.round(
+                        students.filter((st) => st.group === s.group).reduce((a, st) => a + st.global, 0) / groupCount,
+                      );
+                      return (
+                      <Fragment key={s.profile.id}>
+                      {isNewGroup && (
+                        <tr key={`group-${s.group}`}>
+                          <td colSpan={flatLessons.length + 2} className="pt-4 pb-1 sticky left-0">
+                            <div className="flex items-center gap-2">
+                              <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-md text-xs font-bold ${GROUP_INFO[s.group].tone}`}>
+                                Groupe {s.group}
+                              </span>
+                              <span className="text-xs font-medium text-foreground/80">{GROUP_INFO[s.group].label}</span>
+                              <span className="text-xs text-muted-foreground">· {groupCount} élève{groupCount > 1 ? "s" : ""} · moyenne {groupAvg}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
                       <tr key={s.profile.id}>
                         <td className="sticky left-0 bg-background pr-3 align-top py-2">
                           <div className="space-y-1.5">
@@ -435,7 +443,9 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
                           </span>
                         </td>
                       </tr>
-                    ))}
+                      </Fragment>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
