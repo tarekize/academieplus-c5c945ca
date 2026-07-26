@@ -286,7 +286,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                     بانتظار المصادقة
                                 </span>
                             ) : (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2.5 py-1 text-xs font-semibold shrink-0">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning px-2.5 py-1 text-xs font-semibold shrink-0">
                                     قيد المراجعة
                                 </span>
                             )

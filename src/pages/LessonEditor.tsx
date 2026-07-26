@@ -461,7 +461,7 @@ export default function LessonEditor() {
                     <div className="mb-4 flex flex-wrap items-center gap-2 text-sm">
                       <span className="text-muted-foreground">الإصدار {latestVersion.version_number} :</span>
                       {latestVersion.status === 'pending' && (
-                        <Badge className="bg-amber-500 hover:bg-amber-500 text-white gap-1">
+                        <Badge className="bg-warning hover:bg-warning text-warning-foreground gap-1">
                           <Clock className="h-3 w-3" /> بانتظار المصادقة
                         </Badge>
                       )}
