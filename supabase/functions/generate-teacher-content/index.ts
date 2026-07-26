@@ -1,7 +1,57 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { logTokenUsageAsync, resolveCallerRoleGroup, extractOpenAiCompatUsage, type AiUsage } from "../_shared/tokenLogger.ts";
-import { parseAiJson } from "../_shared/jsonFix.ts";
+
+// NB : ces deux helpers sont dupliqués depuis bulk-gen-terminale-gemini plutôt que
+// partagés via _shared/ car les redéploiements mono-fonction de cette plateforme ne
+// repèrent pas toujours un nouveau fichier _shared/ ajouté après coup ("Module not
+// found" au déploiement) — chaque function reste donc volontairement autonome ici.
+function cleanGeneratedJson(rawContent: string): string {
+  let cleaned = rawContent.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
+  const objectMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (objectMatch) cleaned = objectMatch[0];
+  return cleaned;
+}
+
+// Walk the JSON character-by-character; inside string literals, escape any
+// backslash that isn't followed by a valid JSON escape char. This handles
+// LaTeX commands (\frac, \alpha, \sqrt, \mathbb, \begin, \\) without
+// breaking already-valid escapes like \n, \t, \", \\, \uXXXX.
+function fixJsonStringEscapes(input: string): string {
+  let out = "";
+  let inString = false;
+  for (let i = 0; i < input.length; i++) {
+    const c = input[i];
+    if (!inString) {
+      out += c;
+      if (c === '"') inString = true;
+      continue;
+    }
+    if (c === '"') { out += c; inString = false; continue; }
+    if (c === "\n") { out += "\\n"; continue; }
+    if (c === "\r") { out += "\\r"; continue; }
+    if (c === "\t") { out += "\\t"; continue; }
+    if (c !== "\\") { out += c; continue; }
+    const next = input[i + 1];
+    if (next === undefined) { out += "\\\\"; continue; }
+    if (next === '"' || next === "\\" || next === "/" ||
+        next === "b" || next === "f" || next === "n" || next === "r" || next === "t") {
+      out += "\\" + next; i++; continue;
+    }
+    if (next === "u" && /^[0-9a-fA-F]{4}$/.test(input.slice(i + 2, i + 6))) {
+      out += "\\u" + input.slice(i + 2, i + 6); i += 5; continue;
+    }
+    out += "\\\\";
+  }
+  return out;
+}
+
+function parseAiJson(rawContent: string): any {
+  const cleaned = cleanGeneratedJson(rawContent);
+  try { return JSON.parse(cleaned); } catch { /* fallthrough */ }
+  const fixed = fixJsonStringEscapes(cleaned);
+  return JSON.parse(fixed);
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

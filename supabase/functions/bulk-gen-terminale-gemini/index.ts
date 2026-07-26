@@ -2,7 +2,6 @@
 // No auth required: uses a shared secret token to prevent abuse.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { logTokenUsageAsync, extractGeminiUsage, type GeminiUsage } from "../_shared/tokenLogger.ts";
-import { parseAiJson } from "../_shared/jsonFix.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -89,11 +88,59 @@ function buildBatches(sections: ("discover" | "understand")[], count: number, re
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// NB : dupliqué (plutôt que partagé via _shared/) car les redéploiements
+// mono-fonction de cette plateforme ne repèrent pas toujours un nouveau
+// fichier _shared/ ajouté après coup ("Module not found" au déploiement) —
+// chaque function reste donc volontairement autonome pour ce point.
+function cleanGeneratedJson(rawContent: string): string {
+  let cleaned = rawContent.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
+  const objectMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (objectMatch) cleaned = objectMatch[0];
+  return cleaned;
+}
+
+// Walk the JSON character-by-character; inside string literals, escape any
+// backslash that isn't followed by a valid JSON escape char. This handles
+// LaTeX commands (\frac, \alpha, \sqrt, \mathbb, \begin, \\) without
+// breaking already-valid escapes like \n, \t, \", \\, \uXXXX.
+function fixJsonStringEscapes(input: string): string {
+  let out = "";
+  let inString = false;
+  for (let i = 0; i < input.length; i++) {
+    const c = input[i];
+    if (!inString) {
+      out += c;
+      if (c === '"') inString = true;
+      continue;
+    }
+    // inside a string
+    if (c === '"') { out += c; inString = false; continue; }
+    if (c === "\n") { out += "\\n"; continue; }
+    if (c === "\r") { out += "\\r"; continue; }
+    if (c === "\t") { out += "\\t"; continue; }
+    if (c !== "\\") { out += c; continue; }
+    // current is backslash — look at next
+    const next = input[i + 1];
+    if (next === undefined) { out += "\\\\"; continue; }
+    if (next === '"' || next === "\\" || next === "/" ||
+        next === "b" || next === "f" || next === "n" || next === "r" || next === "t") {
+      out += "\\" + next; i++; continue;
+    }
+    if (next === "u" && /^[0-9a-fA-F]{4}$/.test(input.slice(i + 2, i + 6))) {
+      out += "\\u" + input.slice(i + 2, i + 6); i += 5; continue;
+    }
+    // invalid escape (LaTeX command, lone backslash, \\\\ pair, etc.) — double it
+    out += "\\\\";
+  }
+  return out;
+}
+
 function parseGeneratedObject(rawContent: string): any {
-  try {
-    return parseAiJson(rawContent);
-  } catch (e) {
-    console.error("[parse] failed:", (e as Error).message, "snippet:", rawContent.slice(0, 400));
+  const cleaned = cleanGeneratedJson(rawContent);
+  try { return JSON.parse(cleaned); } catch { /* fallthrough */ }
+  const fixed = fixJsonStringEscapes(cleaned);
+  try { return JSON.parse(fixed); } catch (e) {
+    console.error("[parse] failed:", (e as Error).message, "snippet:", fixed.slice(0, 400));
     throw e;
   }
 }
