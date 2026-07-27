@@ -1,9 +1,48 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// NB : dupliqué (plutôt que partagé via _shared/) car les redéploiements
+// mono-fonction de cette plateforme ne repèrent pas toujours un nouveau
+// fichier _shared/ ajouté après coup ("Module not found" au déploiement) —
+// chaque function reste donc volontairement autonome pour ce point.
+async function sendSmtpEmail(to: string, subject: string, html: string, text: string) {
+  const hostname = Deno.env.get("SMTP_HOST");
+  const port = Number(Deno.env.get("SMTP_PORT") || "465");
+  const username = Deno.env.get("SMTP_USERNAME");
+  const password = Deno.env.get("SMTP_PASSWORD");
+  const fromEmail = Deno.env.get("SMTP_FROM_EMAIL") || username;
+  const fromName = Deno.env.get("SMTP_FROM_NAME") || "AcademiePlus";
+
+  if (!hostname || !username || !password) {
+    throw new Error("SMTP non configuré (SMTP_HOST/SMTP_USERNAME/SMTP_PASSWORD manquants dans les secrets)");
+  }
+
+  const client = new SMTPClient({
+    connection: {
+      hostname,
+      port,
+      tls: port === 465,
+      auth: { username, password },
+    },
+  });
+
+  try {
+    await client.send({
+      from: `${fromName} <${fromEmail}>`,
+      to,
+      subject,
+      content: text,
+      html,
+    });
+  } finally {
+    await client.close();
+  }
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -96,36 +135,17 @@ Deno.serve(async (req) => {
       <p>— L'équipe AcadémiePlus</p>
     `;
 
-    const resendKey = Deno.env.get("RESEND_API_KEY");
+    const text = `Bonjour ${displayName}, votre ${isEtablissement ? "contrat" : "abonnement"} AcadémiePlus${
+      expiryLabel ? ` arrive à échéance le ${expiryLabel}` : ""
+    }. Pensez à le renouveler. — L'équipe AcadémiePlus`;
+
     let success = false;
     let errorMessage: string | null = null;
-
-    if (!resendKey) {
-      errorMessage = "RESEND_API_KEY non configurée";
-    } else {
-      const emailRes = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: "AcademiePlus <onboarding@resend.dev>",
-          to: [targetProfile.email],
-          subject,
-          html,
-        }),
-      });
-      success = emailRes.ok;
-      if (!success) {
-        const rawError = await emailRes.text();
-        try {
-          const parsed = JSON.parse(rawError);
-          errorMessage = parsed.message || rawError;
-        } catch {
-          errorMessage = rawError;
-        }
-      }
+    try {
+      await sendSmtpEmail(targetProfile.email, subject, html, text);
+      success = true;
+    } catch (smtpErr: any) {
+      errorMessage = smtpErr.message ?? String(smtpErr);
     }
 
     await adminClient.from("renewal_reminders_log").insert({

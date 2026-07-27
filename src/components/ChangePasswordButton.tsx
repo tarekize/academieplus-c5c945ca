@@ -11,13 +11,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Key, Eye, EyeOff, Loader2, Shield } from "lucide-react";
+import { Key, Eye, EyeOff, Loader2, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { cn } from "@/lib/utils";
+import { extractFunctionErrorMessage } from "@/lib/edgeFunctionError";
 
-type Step = "password" | "mfa";
+type Step = "password" | "code";
+
+const RESEND_COOLDOWN_SECONDS = 30;
 
 export function ChangePasswordButton({ className }: { className?: string } = {}) {
   const [open, setOpen] = useState(false);
@@ -29,8 +32,8 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [mfaCode, setMfaCode] = useState("");
-  const [factorId, setFactorId] = useState<string | null>(null);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const validatePassword = (password: string): string | null => {
     if (password.length < 8) {
@@ -45,84 +48,20 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
     return null;
   };
 
-  const checkMfaRequired = async (): Promise<boolean> => {
-    try {
-      const { data: aalData, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      
-      if (aalError) {
-        console.error("Error checking AAL:", aalError);
-        return false;
-      }
-
-      // If current level is aal1 but next level requires aal2, MFA verification is needed
-      if (aalData.currentLevel === "aal1" && aalData.nextLevel === "aal2") {
-        // Get the TOTP factor
-        const { data: factorsData, error: factorsError } = await supabase.auth.mfa.listFactors();
-        
-        if (factorsError) {
-          console.error("Error listing factors:", factorsError);
-          return false;
-        }
-
-        const totpFactor = factorsData.totp.find(f => f.status === "verified");
-        if (totpFactor) {
-          setFactorId(totpFactor.id);
-          return true;
-        }
-      }
-
-      return false;
-    } catch (error) {
-      console.error("Error in MFA check:", error);
-      return false;
-    }
+  const startResendCooldown = () => {
+    setResendCooldown(RESEND_COOLDOWN_SECONDS);
+    const interval = setInterval(() => {
+      setResendCooldown((s) => {
+        if (s <= 1) { clearInterval(interval); return 0; }
+        return s - 1;
+      });
+    }, 1000);
   };
 
-  const verifyMfaAndUpdate = async () => {
-    if (!factorId || mfaCode.length !== 6) {
-      toast.error("Veuillez entrer le code à 6 chiffres.");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // Create and verify the MFA challenge
-      const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
-        factorId: factorId,
-      });
-
-      if (challengeError) throw challengeError;
-
-      const { error: verifyError } = await supabase.auth.mfa.verify({
-        factorId: factorId,
-        challengeId: challengeData.id,
-        code: mfaCode,
-      });
-
-      if (verifyError) throw verifyError;
-
-      // Now update the password with AAL2 session
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (updateError) throw updateError;
-
-      toast.success("Mot de passe modifié avec succès !");
-      setOpen(false);
-      resetForm();
-    } catch (error: any) {
-      console.error("Error during MFA verification:", error);
-      if (error.message?.includes("Invalid TOTP code")) {
-        toast.error("Code de vérification invalide. Veuillez réessayer.");
-      } else {
-        toast.error(error.message || "Erreur lors de la vérification MFA.");
-      }
-      setMfaCode("");
-    } finally {
-      setLoading(false);
-    }
+  const requestVerificationCode = async () => {
+    const { error } = await supabase.functions.invoke("request-password-change");
+    if (error) throw new Error(await extractFunctionErrorMessage(error));
+    startResendCooldown();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -171,39 +110,51 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
         return;
       }
 
-      // Check if MFA verification is required
-      const mfaRequired = await checkMfaRequired();
-      
-      if (mfaRequired) {
-        setLoading(false);
-        setStep("mfa");
-        return;
-      }
+      // Envoie un code de vérification par email avant d'autoriser le changement.
+      await requestVerificationCode();
+      toast.success("Un code de vérification a été envoyé à votre adresse email.");
+      setStep("code");
+    } catch (error: any) {
+      console.error("Error changing password:", error);
+      toast.error(error.message || "Erreur lors du changement de mot de passe.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      // No MFA required, update directly
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
+  const handleResendCode = async () => {
+    if (resendCooldown > 0) return;
+    setLoading(true);
+    try {
+      await requestVerificationCode();
+      toast.success("Un nouveau code a été envoyé.");
+    } catch (error: any) {
+      toast.error(error.message || "Erreur lors de l'envoi du code.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmCode = async () => {
+    if (verificationCode.length !== 6) {
+      toast.error("Veuillez entrer le code à 6 chiffres.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke("confirm-password-change", {
+        body: { code: verificationCode, newPassword },
       });
-
-      if (error) {
-        // Check if error is about AAL2 requirement
-        if (error.message?.includes("AAL2")) {
-          const mfaNeeded = await checkMfaRequired();
-          if (mfaNeeded) {
-            setLoading(false);
-            setStep("mfa");
-            return;
-          }
-        }
-        throw error;
-      }
+      if (error) throw new Error(await extractFunctionErrorMessage(error));
 
       toast.success("Mot de passe modifié avec succès !");
       setOpen(false);
       resetForm();
     } catch (error: any) {
-      console.error("Error changing password:", error);
-      toast.error(error.message || "Erreur lors du changement de mot de passe.");
+      console.error("Error confirming password change:", error);
+      toast.error(error.message || "Code invalide ou expiré.");
+      setVerificationCode("");
     } finally {
       setLoading(false);
     }
@@ -213,9 +164,9 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
-    setMfaCode("");
+    setVerificationCode("");
     setStep("password");
-    setFactorId(null);
+    setResendCooldown(0);
   };
 
   return (
@@ -312,7 +263,7 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
                       Vérification...
                     </>
                   ) : (
-                    "Modifier"
+                    "Continuer"
                   )}
                 </Button>
               </DialogFooter>
@@ -322,18 +273,18 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                Vérification requise
+                <Mail className="h-5 w-5 text-primary" />
+                Vérification par email
               </DialogTitle>
               <DialogDescription>
-                Pour modifier votre mot de passe, veuillez entrer le code de votre application d'authentification.
+                Un code de vérification à 6 chiffres a été envoyé à votre adresse email. Entrez-le pour confirmer le changement de mot de passe.
               </DialogDescription>
             </DialogHeader>
             <div className="py-6 flex flex-col items-center gap-4">
               <InputOTP
                 maxLength={6}
-                value={mfaCode}
-                onChange={(value) => setMfaCode(value)}
+                value={verificationCode}
+                onChange={(value) => setVerificationCode(value)}
               >
                 <InputOTPGroup>
                   <InputOTPSlot index={0} />
@@ -344,15 +295,20 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
                   <InputOTPSlot index={5} />
                 </InputOTPGroup>
               </InputOTP>
-              <p className="text-sm text-muted-foreground text-center">
-                Ouvrez votre application d'authentification et entrez le code à 6 chiffres.
-              </p>
+              <button
+                type="button"
+                onClick={handleResendCode}
+                disabled={resendCooldown > 0 || loading}
+                className="text-sm text-primary hover:underline disabled:text-muted-foreground disabled:no-underline disabled:cursor-not-allowed"
+              >
+                {resendCooldown > 0 ? `Renvoyer le code (${resendCooldown}s)` : "Renvoyer le code"}
+              </button>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setStep("password")}>
                 Retour
               </Button>
-              <Button onClick={verifyMfaAndUpdate} disabled={loading || mfaCode.length !== 6}>
+              <Button onClick={handleConfirmCode} disabled={loading || verificationCode.length !== 6}>
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
