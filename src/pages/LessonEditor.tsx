@@ -43,6 +43,9 @@ interface LessonVersion {
   content: string | null;
   created_at: string;
   created_by_name: string;
+  status: "pending" | "approved" | "rejected" | "superseded";
+  reviewed_by_name: string | null;
+  rejection_reason: string | null;
 }
 
 interface LatestVersion {
@@ -292,7 +295,7 @@ export default function LessonEditor() {
     try {
       const { data, error } = await supabase
         .from('lesson_versions' as any)
-        .select('id, content, created_at, created_by_name')
+        .select('id, content, created_at, created_by_name, status, reviewed_by_name, rejection_reason')
         .eq('lesson_id', lessonId)
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -304,6 +307,32 @@ export default function LessonEditor() {
       setVersionsLoading(false);
     }
   }, [lessonId]);
+
+  const renderVersionStatusBadge = (status: LessonVersion["status"]) => {
+    if (status === "approved") {
+      return (
+        <Badge className="bg-green-600 hover:bg-green-600 text-white gap-1">
+          <CheckCircle2 className="h-3 w-3" /> تم القبول
+        </Badge>
+      );
+    }
+    if (status === "rejected") {
+      return (
+        <Badge variant="destructive" className="gap-1">
+          <XCircle className="h-3 w-3" /> مرفوض
+        </Badge>
+      );
+    }
+    if (status === "pending") {
+      return (
+        <Badge className="bg-warning hover:bg-warning text-warning-foreground gap-1">
+          <Clock className="h-3 w-3" /> بانتظار المصادقة
+        </Badge>
+      );
+    }
+    // superseded : remplacée par un envoi plus récent, sans décision propre
+    return <Badge variant="secondary">استُبدلت</Badge>;
+  };
 
   const openVersionsList = () => {
     setVersionsListOpen(true);
@@ -608,10 +637,19 @@ export default function LessonEditor() {
                     onClick={() => { setViewingVersion(v); setVersionsListOpen(false); }}
                     className="text-right rounded-lg border p-3 hover:bg-muted/50 transition-colors"
                   >
-                    <div className="font-medium text-sm">الإصدار {versionNumber}</div>
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="font-medium text-sm">الإصدار {versionNumber}</div>
+                      {renderVersionStatusBadge(v.status)}
+                    </div>
                     <div className="text-xs text-muted-foreground mt-0.5">
                       {new Date(v.created_at).toLocaleString('ar')} — {v.created_by_name}
                     </div>
+                    {v.status === "rejected" && v.rejection_reason && (
+                      <div className="text-xs text-destructive mt-1">— {v.rejection_reason}</div>
+                    )}
+                    {v.status === "approved" && v.reviewed_by_name && (
+                      <div className="text-xs text-muted-foreground mt-0.5">قبِلها: {v.reviewed_by_name}</div>
+                    )}
                   </button>
                 );
               })}
