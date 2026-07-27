@@ -45,6 +45,7 @@ const Account = () => {
   const isParent = roles.includes('parent');
   const isStudent = roles.includes('student');
   const isPedago = roles.includes('pedago');
+  const isAdmin = roles.includes('admin');
   const [hasClass, setHasClass] = useState(false);
 
   const [subscription, setSubscription] = useState<StudentSubscription | null>(null);
@@ -253,7 +254,19 @@ const Account = () => {
     },
   ];
 
-  const accountCards = isParent ? parentCards : isPedago ? pedagoCards : studentCards;
+  // Admin : uniquement les informations personnelles (même logique que pédago —
+  // pas d'abonnement, de facturation ni de statistiques d'apprentissage).
+  const adminCards = [
+    {
+      title: t("account.myInfo"),
+      description: t("account.myInfoDesc"),
+      icon: UserCircle,
+      color: "text-blue-600",
+      onClick: () => navigate("/mes-informations"),
+    },
+  ];
+
+  const accountCards = isAdmin ? adminCards : isParent ? parentCards : isPedago ? pedagoCards : studentCards;
 
   const remaining = subscription ? Math.floor(getRemainingDays(subscription)) : 0;
 

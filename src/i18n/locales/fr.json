@@ -422,6 +422,8 @@
     "contractsDesc": "Gérez les contrats établissements, élèves et parents",
     "aiUsage": "Consommation IA",
     "aiUsageDesc": "Estimation de l'usage de tokens par groupe",
+    "notifications": "Notifications",
+    "notificationsDesc": "Modèles d'email, rappels et campagnes ciblées",
     "viewCourses": "Voir les Cours",
     "viewCoursesDesc": "Consultez les cours par niveau",
     "myCourses": "Mes Cours",

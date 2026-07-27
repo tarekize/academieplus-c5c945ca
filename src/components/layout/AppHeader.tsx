@@ -100,17 +100,16 @@ export function AppHeader() {
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg border-border/50">
-                {isAdmin ? (
+                {isAdmin && (
                   <DropdownMenuItem onClick={() => navigate("/admin")} className="rounded-lg cursor-pointer">
                     <Users className="mr-2 h-4 w-4" />
                     <span>{t("dashboard.userManagement")}</span>
                   </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    <span>{t("app.manageAccount")}</span>
-                  </DropdownMenuItem>
                 )}
+                <DropdownMenuItem onClick={() => navigate("/account")} className="rounded-lg cursor-pointer">
+                  <UserIcon className="mr-2 h-4 w-4" />
+                  <span>{t("app.manageAccount")}</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate(isParent ? "/parent-dashboard" : "/dashboard")} className="rounded-lg cursor-pointer">
                   <BarChart3 className="mr-2 h-4 w-4" />
                   <span>{t("app.dashboard")}</span>

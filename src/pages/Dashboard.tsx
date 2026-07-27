@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, GraduationCap, BarChart3, CreditCard, FileText, Cpu } from "lucide-react";
+import { Users, GraduationCap, BarChart3, CreditCard, FileText, Cpu, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
@@ -157,6 +157,14 @@ const Dashboard = () => {
                       title={t("dashboard.aiUsage")}
                       description={t("dashboard.aiUsageDesc")}
                       onClick={() => navigate("/admin/token-usage")}
+                    />
+                    <DashboardTile
+                      icon={Bell}
+                      iconBg="bg-rose-500/10"
+                      iconText="text-rose-600"
+                      title={t("dashboard.notifications")}
+                      description={t("dashboard.notificationsDesc")}
+                      onClick={() => navigate("/admin/notifications")}
                     />
                   </>
                 )}

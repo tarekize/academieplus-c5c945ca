@@ -24,6 +24,7 @@ const Account = lazy(() => import("./pages/Account"));
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminAbonnements = lazy(() => import("./pages/AdminAbonnements"));
 const AdminContrats = lazy(() => import("./pages/AdminContrats"));
+const AdminNotifications = lazy(() => import("./pages/AdminNotifications"));
 const AdminTokenUsage = lazy(() => import("./pages/AdminTokenUsage"));
 const Factures = lazy(() => import("./pages/Factures"));
 const MesInformations = lazy(() => import("./pages/MesInformations"));
@@ -92,7 +93,7 @@ const App = () => (
               <Route path="/etablissement-dashboard" element={<ProtectedRoute allowedRoles={['etablissement']}><EtablissementDashboard /></ProtectedRoute>} />
               <Route path="/parent-cours/:childId" element={<ProtectedRoute allowedRoles={['parent']}><ParentCoursView /></ProtectedRoute>} />
               <Route path="/account" element={
-                <ProtectedRoute blockAdmin>
+                <ProtectedRoute>
                   <Account />
                 </ProtectedRoute>
               } />
@@ -138,6 +139,11 @@ const App = () => (
               <Route path="/admin/token-usage" element={
                 <ProtectedRoute requireAdmin>
                   <AdminTokenUsage />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/notifications" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminNotifications />
                 </ProtectedRoute>
               } />
               <Route path="/rejoindre/:code" element={<JoinClass />} />
