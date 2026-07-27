@@ -299,21 +299,21 @@ const ListeCours = () => {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {availableSubjects.map((subject, index) => (
-                <button
-                  key={subject.id}
-                  type="button"
-                  onClick={() => handleSubjectSelect(subject.id)}
-                  className="group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40 animate-fade-in"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
+                <div key={subject.id} className="relative animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
                   <PendingBadge count={pendingItems.filter((i) => i.subject === subject.id).length} />
-                  <div className="flex flex-col items-center text-center gap-3 p-6">
-                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl bg-primary/10 shadow-md transition-transform group-hover:scale-110">
-                      {subject.icon}
+                  <button
+                    type="button"
+                    onClick={() => handleSubjectSelect(subject.id)}
+                    className="group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40 w-full"
+                  >
+                    <div className="flex flex-col items-center text-center gap-3 p-6">
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl bg-primary/10 shadow-md transition-transform group-hover:scale-110">
+                        {subject.icon}
+                      </div>
+                      <h3 className="font-display font-bold text-base leading-tight">{subject.name}</h3>
                     </div>
-                    <h3 className="font-display font-bold text-base leading-tight">{subject.name}</h3>
-                  </div>
-                </button>
+                  </button>
+                </div>
               ))}
             </div>
           </div>
@@ -369,25 +369,25 @@ const ListeCours = () => {
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
                   {filteredLevels.map((level, index) => (
-                    <button
-                      key={level.id}
-                      type="button"
-                      onClick={() => handleLevelSelect(level.id)}
-                      className="group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40 animate-fade-in"
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
+                    <div key={level.id} className="relative animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
                       <PendingBadge count={pendingItems.filter((i) => i.subject === selectedSubject && i.school_level === level.id).length} />
-                      <div className="h-1.5 w-full" style={{ backgroundColor: level.color }} />
-                      <div className="flex flex-col items-center text-center gap-3 p-6">
-                        <div
-                          className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md transition-transform group-hover:scale-110"
-                          style={{ backgroundColor: level.color }}
-                        >
-                          <GraduationCap className="h-7 w-7" />
+                      <button
+                        type="button"
+                        onClick={() => handleLevelSelect(level.id)}
+                        className="group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40 w-full"
+                      >
+                        <div className="h-1.5 w-full" style={{ backgroundColor: level.color }} />
+                        <div className="flex flex-col items-center text-center gap-3 p-6">
+                          <div
+                            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md transition-transform group-hover:scale-110"
+                            style={{ backgroundColor: level.color }}
+                          >
+                            <GraduationCap className="h-7 w-7" />
+                          </div>
+                          <h3 className="font-display font-bold text-base leading-tight">{level.name}</h3>
                         </div>
-                        <h3 className="font-display font-bold text-base leading-tight">{level.name}</h3>
-                      </div>
-                    </button>
+                      </button>
+                    </div>
                   ))}
                 </div>
 
