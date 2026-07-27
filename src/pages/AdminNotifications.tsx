@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { extractFunctionErrorMessage } from "@/lib/edgeFunctionError";
+import { cn } from "@/lib/utils";
 
 interface EmailTemplate {
   id: string;
@@ -34,6 +35,15 @@ interface EmailTemplate {
   logo_url: string | null;
   created_by_name: string | null;
   updated_at: string;
+}
+
+interface NotificationCandidate {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  role: string;
+  contract_status: string;
 }
 
 interface EmailCampaign {
@@ -68,6 +78,22 @@ const CONTRACT_STATUS_OPTIONS: { value: string; label: string }[] = [
 const roleLabel = (value: string) => ROLE_OPTIONS.find((r) => r.value === value)?.label || value;
 const contractStatusLabel = (value: string) => CONTRACT_STATUS_OPTIONS.find((c) => c.value === value)?.label || value;
 
+const CONTRACT_STATUS_SHORT: Record<string, string> = {
+  no_contract: "Sans contrat",
+  has_contract: "Avec contrat",
+  expiring_soon: "Bientôt expiré",
+  expired: "Expiré",
+};
+
+const contractStatusBadgeVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+  if (status === "expired") return "destructive";
+  if (status === "no_contract") return "secondary";
+  return "outline";
+};
+
+const contractStatusBadgeClass = (status: string): string =>
+  status === "expiring_soon" ? "border-orange-400 text-orange-700 dark:text-orange-400" : "";
+
 const emptyTemplateForm = { name: "", subject: "", bodyText: "", logoUrl: "" };
 
 export default function AdminNotifications() {
@@ -84,11 +110,11 @@ export default function AdminNotifications() {
   const [savingTemplate, setSavingTemplate] = useState(false);
 
   // Send campaign
+  const [candidates, setCandidates] = useState<NotificationCandidate[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
-  const [contractStatus, setContractStatus] = useState("all");
-  const [previewCount, setPreviewCount] = useState<number | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
+  const [roleFilter, setRoleFilter] = useState<string[]>([]);
+  const [contractFilter, setContractFilter] = useState("all");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
@@ -97,8 +123,17 @@ export default function AdminNotifications() {
 
   const fetchAll = async () => {
     setLoading(true);
-    await Promise.all([fetchTemplates(), fetchCampaigns()]);
+    await Promise.all([fetchTemplates(), fetchCampaigns(), fetchCandidates()]);
     setLoading(false);
+  };
+
+  const fetchCandidates = async () => {
+    const { data, error } = await supabase.rpc("admin_list_notification_candidates" as any);
+    if (error) {
+      toast.error("Erreur", { description: error.message });
+      return;
+    }
+    setCandidates((data as any) || []);
   };
 
   const fetchTemplates = async () => {
@@ -125,12 +160,6 @@ export default function AdminNotifications() {
     }
     setCampaigns((data as any) || []);
   };
-
-  // Reset le compteur de destinataires dès que le filtre change : un ancien
-  // aperçu resterait sinon affiché à côté d'un filtre qu'il ne décrit plus.
-  useEffect(() => {
-    setPreviewCount(null);
-  }, [selectedRoles, contractStatus]);
 
   const openCreateTemplate = () => {
     setEditingTemplateId(null);
@@ -235,42 +264,53 @@ export default function AdminNotifications() {
     fetchTemplates();
   };
 
-  const toggleRole = (role: string) => {
-    setSelectedRoles((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]));
+  const toggleRoleFilter = (role: string) => {
+    setRoleFilter((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]));
   };
 
-  const handlePreviewCount = async () => {
-    if (selectedRoles.length === 0) {
-      toast.error("Sélectionnez au moins un rôle destinataire.");
-      return;
-    }
-    setPreviewLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("count_notification_recipients" as any, {
-        _roles: selectedRoles,
-        _contract_status: contractStatus,
-      });
-      if (error) throw error;
-      setPreviewCount((data as number) ?? 0);
-    } catch (error: any) {
-      toast.error("Erreur", { description: error.message });
-    } finally {
-      setPreviewLoading(false);
-    }
+  // Liste vide de filtre rôle = aucune restriction (tout le monde visible),
+  // conforme à l'affichage initial "tous les utilisateurs" avant tout filtre.
+  const visibleCandidates = candidates.filter((c) => {
+    if (roleFilter.length > 0 && !roleFilter.includes(c.role)) return false;
+    if (contractFilter !== "all" && c.contract_status !== contractFilter) return false;
+    return true;
+  });
+
+  const allVisibleSelected = visibleCandidates.length > 0 && visibleCandidates.every((c) => selectedIds.has(c.id));
+
+  const toggleSelectAllVisible = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) {
+        visibleCandidates.forEach((c) => next.delete(c.id));
+      } else {
+        visibleCandidates.forEach((c) => next.add(c.id));
+      }
+      return next;
+    });
+  };
+
+  const toggleCandidateSelection = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const handleSendCampaign = async () => {
-    if (!selectedTemplateId || selectedRoles.length === 0) return;
+    if (!selectedTemplateId || selectedIds.size === 0) return;
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("send-bulk-notification", {
-        body: { templateId: selectedTemplateId, filterRoles: selectedRoles, filterContractStatus: contractStatus },
+        body: { templateId: selectedTemplateId, recipientIds: Array.from(selectedIds) },
       });
       if (error) throw new Error(await extractFunctionErrorMessage(error));
       toast.success("Campagne envoyée", {
         description: `${data.successCount}/${data.recipientCount} email(s) envoyé(s)${data.failureCount ? `, ${data.failureCount} échec(s)` : ""}.`,
       });
-      setPreviewCount(null);
+      setSelectedIds(new Set());
       fetchCampaigns();
     } catch (error: any) {
       toast.error("Échec de l'envoi", { description: error.message });
@@ -324,7 +364,7 @@ export default function AdminNotifications() {
               <CardHeader className="border-b bg-muted/30">
                 <CardTitle>Envoyer une campagne</CardTitle>
                 <CardDescription>
-                  Choisissez un modèle, filtrez les destinataires, puis envoyez. {"{{prenom}}"}, {"{{nom}}"} et {"{{email}}"} sont remplacés automatiquement dans le modèle.
+                  Tous les utilisateurs sont affichés ci-dessous. Le filtre ne fait que réduire la liste — cochez qui doit recevoir l'email. {"{{prenom}}"}, {"{{nom}}"} et {"{{email}}"} sont remplacés automatiquement.
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-6 space-y-6">
@@ -349,13 +389,13 @@ export default function AdminNotifications() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Destinataires — rôle</Label>
+                      <Label>Filtrer par rôle</Label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {ROLE_OPTIONS.map((role) => (
                           <label key={role.value} className="flex items-center gap-2 text-sm cursor-pointer">
                             <Checkbox
-                              checked={selectedRoles.includes(role.value)}
-                              onCheckedChange={() => toggleRole(role.value)}
+                              checked={roleFilter.includes(role.value)}
+                              onCheckedChange={() => toggleRoleFilter(role.value)}
                             />
                             {role.label}
                           </label>
@@ -364,8 +404,8 @@ export default function AdminNotifications() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Destinataires — statut contrat / abonnement</Label>
-                      <RadioGroup value={contractStatus} onValueChange={setContractStatus} className="space-y-2">
+                      <Label>Filtrer par statut contrat / abonnement</Label>
+                      <RadioGroup value={contractFilter} onValueChange={setContractFilter} className="space-y-2">
                         {CONTRACT_STATUS_OPTIONS.map((opt) => (
                           <label key={opt.value} className="flex items-center gap-2 text-sm cursor-pointer">
                             <RadioGroupItem value={opt.value} />
@@ -375,42 +415,69 @@ export default function AdminNotifications() {
                       </RadioGroup>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 pt-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handlePreviewCount}
-                        disabled={previewLoading || selectedRoles.length === 0}
-                      >
-                        {previewLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                        Prévisualiser le nombre de destinataires
-                      </Button>
-                      {previewCount !== null && (
-                        <Badge variant="secondary" className="rounded-full px-3 py-1.5">
-                          {previewCount} destinataire{previewCount !== 1 ? "s" : ""}
-                        </Badge>
-                      )}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <Label>Destinataires</Label>
+                        <p className="text-xs text-muted-foreground">
+                          {visibleCandidates.length} affiché{visibleCandidates.length !== 1 ? "s" : ""} sur {candidates.length} au total — {selectedIds.size} sélectionné{selectedIds.size !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                      <div className="border border-border rounded-lg overflow-hidden">
+                        <div className="flex items-center gap-3 px-4 py-2.5 bg-muted/40 border-b border-border">
+                          <Checkbox
+                            checked={allVisibleSelected}
+                            onCheckedChange={toggleSelectAllVisible}
+                            disabled={visibleCandidates.length === 0}
+                          />
+                          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            Tout sélectionner ({visibleCandidates.length})
+                          </span>
+                        </div>
+                        <div className="max-h-80 overflow-y-auto divide-y divide-border">
+                          {visibleCandidates.length === 0 ? (
+                            <p className="text-sm text-muted-foreground p-4">Aucun utilisateur ne correspond à ce filtre.</p>
+                          ) : (
+                            visibleCandidates.map((c) => (
+                              <label
+                                key={c.id}
+                                className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/30 transition-colors cursor-pointer"
+                              >
+                                <Checkbox
+                                  checked={selectedIds.has(c.id)}
+                                  onCheckedChange={() => toggleCandidateSelection(c.id)}
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">
+                                    {[c.first_name, c.last_name].filter(Boolean).join(" ") || "Sans nom"}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground truncate">{c.email}</p>
+                                </div>
+                                <Badge variant="outline" className="rounded-full shrink-0">{roleLabel(c.role)}</Badge>
+                                <Badge variant={contractStatusBadgeVariant(c.contract_status)} className={cn("rounded-full shrink-0", contractStatusBadgeClass(c.contract_status))}>
+                                  {CONTRACT_STATUS_SHORT[c.contract_status] || c.contract_status}
+                                </Badge>
+                              </label>
+                            ))
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
                           className="gap-2"
-                          disabled={!selectedTemplateId || selectedRoles.length === 0 || sending}
+                          disabled={!selectedTemplateId || selectedIds.size === 0 || sending}
                         >
                           {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                          Envoyer la campagne
+                          Envoyer à {selectedIds.size} destinataire{selectedIds.size !== 1 ? "s" : ""}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Confirmer l'envoi</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Vous allez envoyer « {selectedTemplate?.name} » à : {selectedRoles.map(roleLabel).join(", ")} — {contractStatusLabel(contractStatus)}.
-                            {previewCount !== null
-                              ? ` Environ ${previewCount} destinataire${previewCount !== 1 ? "s" : ""} recevront cet email.`
-                              : " Utilisez « Prévisualiser » pour connaître le nombre exact avant d'envoyer."}
-                            {" "}Cette action est irréversible.
+                            Vous allez envoyer « {selectedTemplate?.name} » à {selectedIds.size} destinataire{selectedIds.size !== 1 ? "s" : ""} sélectionné{selectedIds.size !== 1 ? "s" : ""}. Cette action est irréversible.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

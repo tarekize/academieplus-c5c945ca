@@ -1,8 +1,10 @@
-// Envoie un modèle d'email (centre de notifications admin) à un segment
-// d'utilisateurs filtré par rôle + statut contrat/abonnement. Réservé aux
-// admins. Chaque destinataire est traité indépendamment (une erreur SMTP sur
-// l'un n'interrompt pas les autres), et le résultat est journalisé dans
-// email_campaigns pour l'historique affiché côté admin.
+// Envoie un modèle d'email (centre de notifications admin) à une sélection
+// explicite de destinataires choisie par l'admin dans la liste cochable
+// (le filtre rôle/contrat côté client ne fait que montrer/cacher des lignes,
+// l'envoi cible exactement ce qui est coché — pas "tout ce qui correspond au
+// filtre"). Réservé aux admins. Chaque destinataire est traité indépendamment
+// (une erreur SMTP sur l'un n'interrompt pas les autres), et le résultat est
+// journalisé dans email_campaigns pour l'historique affiché côté admin.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
@@ -14,10 +16,8 @@ const corsHeaders = {
 const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
 const RATE_LIMIT_MAX_REQUESTS = 10;
 const MAX_RECIPIENTS = 300;
-const EXPIRING_SOON_DAYS = 30;
 
 const VALID_ROLES = ["student", "teacher", "pedago", "etablissement", "parent"];
-const VALID_CONTRACT_STATUSES = ["all", "no_contract", "has_contract", "expiring_soon", "expired"];
 
 // NB : dupliqué (plutôt que partagé via _shared/) car les redéploiements
 // mono-fonction de cette plateforme ne repèrent pas toujours un nouveau
@@ -123,20 +123,24 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { templateId, filterRoles, filterContractStatus } = await req.json();
+    const { templateId, recipientIds } = await req.json();
 
     if (!templateId) {
       return new Response(JSON.stringify({ error: "Modèle d'email requis" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const roles: string[] = Array.isArray(filterRoles) ? filterRoles.filter((r) => VALID_ROLES.includes(r)) : [];
-    if (roles.length === 0) {
-      return new Response(JSON.stringify({ error: "Sélectionnez au moins un rôle destinataire" }), {
+    const requestedIds: string[] = Array.isArray(recipientIds) ? [...new Set(recipientIds.filter((id) => typeof id === "string" && id))] : [];
+    if (requestedIds.length === 0) {
+      return new Response(JSON.stringify({ error: "Sélectionnez au moins un destinataire" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const contractStatus: string = VALID_CONTRACT_STATUSES.includes(filterContractStatus) ? filterContractStatus : "all";
+    if (requestedIds.length > MAX_RECIPIENTS) {
+      return new Response(JSON.stringify({
+        error: `${requestedIds.length} destinataires sélectionnés, ce qui dépasse la limite de ${MAX_RECIPIENTS} par envoi. Réduisez la sélection.`,
+      }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     const { data: template, error: templateError } = await admin
       .from("email_templates")
@@ -149,59 +153,44 @@ Deno.serve(async (req) => {
       });
     }
 
+    // La sélection vient du client (liste cochée par l'admin), mais on ne fait
+    // jamais confiance aveuglément à des IDs fournis par le client : on ne
+    // conserve que ceux qui sont réellement des destinataires valides
+    // (rôle autorisé, email présent, compte actif) — un ID invalide ou d'un
+    // rôle non ciblé (ex: un autre admin) est silencieusement ignoré plutôt
+    // que de planter tout l'envoi.
     const { data: roleRows, error: roleRowsError } = await admin
       .from("user_roles")
       .select("user_id, role")
-      .in("role", roles);
+      .in("user_id", requestedIds)
+      .in("role", VALID_ROLES);
     if (roleRowsError) throw new Error(roleRowsError.message);
+
+    const validIds = (roleRows ?? []).map((r) => r.user_id);
+    if (validIds.length === 0) {
+      return new Response(JSON.stringify({ error: "Aucun destinataire valide dans la sélection" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const userIdToRole = new Map<string, string>();
     for (const row of roleRows ?? []) userIdToRole.set(row.user_id, row.role);
-    const candidateIds = Array.from(userIdToRole.keys());
-
-    if (candidateIds.length === 0) {
-      return new Response(JSON.stringify({ error: "Aucun destinataire ne correspond à ce filtre" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     const { data: profileRows, error: profileError } = await admin
       .from("profiles")
-      .select("id, email, first_name, last_name, is_active, contract_end_date, subscription_end_date")
-      .in("id", candidateIds);
+      .select("id, email, first_name, last_name, is_active")
+      .in("id", validIds);
     if (profileError) throw new Error(profileError.message);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const expiringCutoff = new Date(today);
-    expiringCutoff.setDate(expiringCutoff.getDate() + EXPIRING_SOON_DAYS);
-
-    const recipients = (profileRows ?? []).filter((p) => {
-      if (!p.email || p.is_active === false) return false;
-      if (contractStatus === "all") return true;
-
-      const role = userIdToRole.get(p.id);
-      const expiryRaw = role === "etablissement" ? p.contract_end_date : p.subscription_end_date;
-      const expiry = expiryRaw ? new Date(expiryRaw) : null;
-
-      if (contractStatus === "no_contract") return !expiry;
-      if (!expiry) return false;
-      if (contractStatus === "has_contract") return true;
-      if (contractStatus === "expiring_soon") return expiry >= today && expiry <= expiringCutoff;
-      if (contractStatus === "expired") return expiry < today;
-      return true;
-    });
+    const recipients = (profileRows ?? []).filter((p) => p.email && p.is_active !== false);
 
     if (recipients.length === 0) {
-      return new Response(JSON.stringify({ error: "Aucun destinataire ne correspond à ce filtre" }), {
+      return new Response(JSON.stringify({ error: "Aucun destinataire valide dans la sélection" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (recipients.length > MAX_RECIPIENTS) {
-      return new Response(JSON.stringify({
-        error: `Ce filtre correspond à ${recipients.length} destinataires, ce qui dépasse la limite de ${MAX_RECIPIENTS} par envoi. Affinez le filtre.`,
-      }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+
+    const rolesRepresented = [...new Set(recipients.map((p) => userIdToRole.get(p.id)).filter(Boolean))] as string[];
 
     const hostname = Deno.env.get("SMTP_HOST");
     const port = Number(Deno.env.get("SMTP_PORT") || "465");
@@ -253,8 +242,8 @@ Deno.serve(async (req) => {
       template_id: template.id,
       template_name_snapshot: template.name,
       subject_snapshot: template.subject,
-      filter_roles: roles,
-      filter_contract_status: contractStatus,
+      filter_roles: rolesRepresented,
+      filter_contract_status: "sélection manuelle",
       recipient_count: recipients.length,
       success_count: successCount,
       failure_count: failedEmails.length,
