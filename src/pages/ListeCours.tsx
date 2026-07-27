@@ -75,7 +75,7 @@ const levelsWithFilieres = ["premiere", "seconde", "terminale"];
 function PendingBadge({ count }: { count: number }) {
   if (count <= 0) return null;
   return (
-    <span className="absolute -top-2 -right-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-red-600 px-1.5 text-xs font-bold text-white shadow-sm animate-pulse">
+    <span className="absolute -top-2 -right-2 z-10 flex h-6 min-w-6 items-center justify-center rounded-full bg-red-600 px-1.5 text-xs font-bold text-white shadow-sm animate-pulse">
       {count}
     </span>
   );
