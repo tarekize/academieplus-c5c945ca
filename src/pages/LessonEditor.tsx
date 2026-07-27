@@ -382,6 +382,7 @@ export default function LessonEditor() {
             lessonId={lesson.id}
             lessonTitle={lesson.title_ar || lesson.title}
             onActiveChange={(isActive) => setActivityActive(isActive)}
+            isAdmin={isAdmin}
           />
         )}
 

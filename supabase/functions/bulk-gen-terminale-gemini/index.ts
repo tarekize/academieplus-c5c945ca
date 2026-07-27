@@ -342,6 +342,13 @@ Deno.serve(async (req) => {
       startQuizOrder = Number((lastQuiz as any)?.order_index || 0) + 1;
     }
 
+    // Le contenu généré par l'IA n'est jamais publié directement pour un pédago :
+    // il reste en 'draft' (visible seulement de lui, qui l'édite et le renvoie via
+    // submit_chapter_item_for_review) tant qu'un admin ne l'a pas validé. Un admin
+    // reste l'autorité de validation : ce qu'il génère lui-même est auto-approuvé
+    // (même règle que pour le contenu de leçon, cf. submit_lesson_version).
+    const itemStatus = callerRoleGroup === "admin" ? "approved" : "draft";
+
     const exercisesToInsert = wantExercises ? (parsed.exercises || []).slice(0, totalExercisesWanted).map((ex: any, i: number) => ({
       chapter_id, lesson_id,
       title: String(ex.title ?? `تمرين ${i + 1}`).slice(0, 300),
@@ -352,6 +359,7 @@ Deno.serve(async (req) => {
       hint: String(ex.hint ?? ""),
       difficulty: Math.min(5, Math.max(1, Number(ex.difficulty) || 2)),
       order_index: startExerciseOrder + i,
+      status: itemStatus,
     })) : [];
 
     const quizzesToInsert = wantQuizzes ? (parsed.quizzes || []).slice(0, totalQuizzesWanted).map((q: any, i: number) => ({
@@ -363,6 +371,7 @@ Deno.serve(async (req) => {
       hint: String(q.hint ?? ""),
       difficulty: Math.min(5, Math.max(1, Number(q.difficulty) || 2)),
       order_index: startQuizOrder + i,
+      status: itemStatus,
     })) : [];
 
     if (exercisesToInsert.length) {

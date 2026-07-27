@@ -61,24 +61,29 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
     }, [chapter.id]);
 
     // Notification pédago/admin : quelles leçons de ce chapitre ont une
-    // version en attente de validation (badge sur la liste des leçons).
+    // version en attente de validation, ou des exercices/quiz IA en attente
+    // (badge sur la liste des leçons).
     useEffect(() => {
         if (!canManage || !chapter.id) {
             setPendingLessonIds(new Set());
             return;
         }
         let cancelled = false;
-        supabase
-            .from("lessons" as any)
-            .select("id, pending_version_id")
-            .eq("chapter_id", chapter.id)
-            .then(({ data }) => {
-                if (cancelled) return;
-                const ids = ((data as any[]) || [])
-                    .filter((row) => row.pending_version_id)
-                    .map((row) => row.id as string);
-                setPendingLessonIds(new Set(ids));
-            });
+        Promise.all([
+            supabase.from("lessons" as any).select("id, pending_version_id").eq("chapter_id", chapter.id),
+            supabase.from("chapter_exercises" as any).select("lesson_id").eq("chapter_id", chapter.id).eq("status", "pending"),
+            supabase.from("chapter_quizzes" as any).select("lesson_id").eq("chapter_id", chapter.id).eq("status", "pending"),
+        ]).then(([{ data: lessonRows }, { data: exRows }, { data: qzRows }]) => {
+            if (cancelled) return;
+            const ids = new Set<string>();
+            for (const row of (lessonRows as any[]) || []) {
+                if (row.pending_version_id) ids.add(row.id as string);
+            }
+            for (const row of [...((exRows as any[]) || []), ...((qzRows as any[]) || [])]) {
+                if (row.lesson_id) ids.add(row.lesson_id as string);
+            }
+            setPendingLessonIds(ids);
+        });
         return () => { cancelled = true; };
     }, [chapter.id, canManage]);
 

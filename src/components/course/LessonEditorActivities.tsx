@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, PenTool, ChevronLeft, Eye, Lightbulb, Plus, Pencil, Trash2 } from "lucide-react";
-import { QuizFormDialog, DeleteQuizButton, ExerciseFormDialog, DeleteExerciseButton, GenerateQuizExercisesButton } from "./QuizExerciseCRUD";
+import {
+  QuizFormDialog, DeleteQuizButton, ExerciseFormDialog, DeleteExerciseButton, GenerateQuizExercisesButton,
+  StatusBadge, SubmitItemButton, SubmitAllDraftsButton, ReviewActionButtons,
+} from "./QuizExerciseCRUD";
 
 interface DBQuiz {
   id: string;
@@ -15,6 +18,8 @@ interface DBQuiz {
   explanation: string | null;
   order_index: number;
   difficulty: number;
+  status?: string;
+  rejection_reason?: string | null;
 }
 
 interface DBExercise {
@@ -26,6 +31,8 @@ interface DBExercise {
   solution: string;
   order_index: number;
   difficulty: number;
+  status?: string;
+  rejection_reason?: string | null;
 }
 
 const LEVELS = [
@@ -38,6 +45,8 @@ interface LessonEditorActivitiesProps {
   lessonId?: string;
   lessonTitle?: string;
   onActiveChange?: (isActive: boolean) => void;
+  /** true pour un admin (peut accepter/refuser), false/absent pour un pédago (peut envoyer). */
+  isAdmin?: boolean;
 }
 
 export function LessonEditorActivities({
@@ -45,6 +54,7 @@ export function LessonEditorActivities({
   lessonId,
   lessonTitle = "",
   onActiveChange,
+  isAdmin = false,
 }: LessonEditorActivitiesProps) {
   const [activeTab, setActiveTab] = useState<"exercises" | "quizzes" | null>(null);
   const [activeLevel, setActiveLevel] = useState<string>("discover");
@@ -100,6 +110,22 @@ export function LessonEditorActivities({
   const exercisesByLevel = splitByLevel(exercises);
   const quizzesByLevel = splitByLevel(quizzes);
 
+  const pendingExercisesCount = exercises.filter((e) => e.status === "pending").length;
+  const pendingQuizzesCount = quizzes.filter((q) => q.status === "pending").length;
+  const toSendExercisesCount = exercises.filter((e) => e.status === "draft" || e.status === "rejected").length;
+  const toSendQuizzesCount = quizzes.filter((q) => q.status === "draft" || q.status === "rejected").length;
+
+  const NotifDot = ({ count, tone }: { count: number; tone: "pending" | "action" }) =>
+    count > 0 ? (
+      <span
+        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold text-white shrink-0 ${
+          tone === "pending" ? "bg-red-600 animate-pulse" : "bg-warning"
+        }`}
+      >
+        {count} {tone === "pending" ? "بانتظار المصادقة" : "بانتظار الإرسال"}
+      </span>
+    ) : null;
+
   // Tab buttons view
   if (!activeTab) {
     return (
@@ -113,8 +139,11 @@ export function LessonEditorActivities({
               <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center group-hover:bg-accent group-hover:scale-110 transition-all duration-300">
                 <PenTool className="h-7 w-7 text-accent-foreground group-hover:text-white transition-colors" />
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-slate-800 dark:text-white" dir="rtl">تمارين (Exercices)</h3>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-white" dir="rtl">تمارين (Exercices)</h3>
+                  {isAdmin ? <NotifDot count={pendingExercisesCount} tone="pending" /> : <NotifDot count={toSendExercisesCount} tone="action" />}
+                </div>
                 <p className="text-sm font-medium text-muted-foreground mt-1" dir="rtl">{exercises.length} تمارين متاحة</p>
               </div>
             </CardContent>
@@ -128,8 +157,11 @@ export function LessonEditorActivities({
               <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:scale-110 transition-all duration-300">
                 <Brain className="h-7 w-7 text-primary group-hover:text-white transition-colors" />
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-slate-800 dark:text-white" dir="rtl">اسئله متعدده الاختيارات (Quizzes)</h3>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-white" dir="rtl">اسئله متعدده الاختيارات (Quizzes)</h3>
+                  {isAdmin ? <NotifDot count={pendingQuizzesCount} tone="pending" /> : <NotifDot count={toSendQuizzesCount} tone="action" />}
+                </div>
                 <p className="text-sm font-medium text-muted-foreground mt-1" dir="rtl">{quizzes.length} أسئلة متاحة</p>
               </div>
             </CardContent>
@@ -207,19 +239,30 @@ export function LessonEditorActivities({
                     <p className="text-xs text-muted-foreground">{level.label}</p>
                   </div>
                 </div>
-                {isExercises ? (
-                  <ExerciseFormDialog
-                    chapterId={chapterId}
-                    lessonId={lessonId}
-                    onSaved={fetchData}
-                  />
-                ) : (
-                  <QuizFormDialog
-                    chapterId={chapterId}
-                    lessonId={lessonId}
-                    onSaved={fetchData}
-                  />
-                )}
+                <div className="flex items-center gap-2 flex-wrap justify-end">
+                  {!isAdmin && (
+                    <SubmitAllDraftsButton
+                      itemType={isExercises ? "exercise" : "quiz"}
+                      chapterId={chapterId}
+                      lessonId={lessonId}
+                      count={items.filter((i: any) => i.status === "draft" || i.status === "rejected").length}
+                      onSubmitted={fetchData}
+                    />
+                  )}
+                  {isExercises ? (
+                    <ExerciseFormDialog
+                      chapterId={chapterId}
+                      lessonId={lessonId}
+                      onSaved={fetchData}
+                    />
+                  ) : (
+                    <QuizFormDialog
+                      chapterId={chapterId}
+                      lessonId={lessonId}
+                      onSaved={fetchData}
+                    />
+                  )}
+                </div>
               </div>
 
               {items.length === 0 ? (
@@ -249,15 +292,16 @@ export function LessonEditorActivities({
                         </div>
 
                         <div className="p-4 flex-1 min-w-0" dir="rtl">
+                          <StatusBadge status={item.status} rejectionReason={item.rejection_reason} />
                           {isExercises ? (
-                            <div className="space-y-2 text-right">
+                            <div className="space-y-2 text-right mt-2">
                               <h4 className="font-semibold text-base sm:text-lg text-foreground">{item.title}</h4>
                               <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed bg-muted/20 p-2 rounded-md border border-border/40">
                                 {item.statement}
                               </p>
                             </div>
                           ) : (
-                            <div className="space-y-3 text-right">
+                            <div className="space-y-3 text-right mt-2">
                               <h4 className="font-semibold text-base sm:text-lg text-foreground">{item.question}</h4>
                               <div className="flex flex-wrap gap-2 justify-start">
                                 {item.options?.map((opt: string, i: number) => (
@@ -277,6 +321,12 @@ export function LessonEditorActivities({
                         </div>
 
                         <div className="flex sm:flex-col gap-2 p-3 sm:border-l bg-muted/10 items-center justify-end sm:justify-start border-t sm:border-t-0">
+                          {isAdmin && item.status === "pending" && (
+                            <ReviewActionButtons itemType={isExercises ? "exercise" : "quiz"} itemId={item.id} onReviewed={fetchData} />
+                          )}
+                          {!isAdmin && (item.status === "draft" || item.status === "rejected") && (
+                            <SubmitItemButton itemType={isExercises ? "exercise" : "quiz"} itemId={item.id} onSubmitted={fetchData} />
+                          )}
                           {isExercises ? (
                             <>
                               <ExerciseFormDialog

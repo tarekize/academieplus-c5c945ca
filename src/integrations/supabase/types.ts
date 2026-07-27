@@ -242,8 +242,16 @@ export type Database = {
           id: string
           lesson_id: string | null
           order_index: number
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewed_by_name: string | null
           solution: string
           statement: string
+          status: string
+          submitted_at: string | null
+          submitted_by: string | null
+          submitted_by_name: string | null
           title: string
           updated_at: string
         }
@@ -257,8 +265,16 @@ export type Database = {
           id?: string
           lesson_id?: string | null
           order_index?: number
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewed_by_name?: string | null
           solution: string
           statement: string
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          submitted_by_name?: string | null
           title: string
           updated_at?: string
         }
@@ -272,8 +288,16 @@ export type Database = {
           id?: string
           lesson_id?: string | null
           order_index?: number
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewed_by_name?: string | null
           solution?: string
           statement?: string
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          submitted_by_name?: string | null
           title?: string
           updated_at?: string
         }
@@ -307,6 +331,14 @@ export type Database = {
           options: Json
           order_index: number
           question: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewed_by_name: string | null
+          status: string
+          submitted_at: string | null
+          submitted_by: string | null
+          submitted_by_name: string | null
           updated_at: string
         }
         Insert: {
@@ -321,6 +353,14 @@ export type Database = {
           options?: Json
           order_index?: number
           question: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewed_by_name?: string | null
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          submitted_by_name?: string | null
           updated_at?: string
         }
         Update: {
@@ -335,6 +375,14 @@ export type Database = {
           options?: Json
           order_index?: number
           question?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewed_by_name?: string | null
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          submitted_by_name?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1570,6 +1618,42 @@ export type Database = {
           user_id: string
           last_sign_in_at: string | null
         }[]
+      }
+      admin_pending_content_items: {
+        Args: never
+        Returns: {
+          id: string
+          item_type: string
+          title: string
+          difficulty: number
+          chapter_id: string
+          chapter_title: string
+          subject: string
+          school_level: Database["public"]["Enums"]["school_level"]
+          filiere_id: string | null
+          filiere_code: string | null
+          filiere_name: string | null
+          lesson_id: string | null
+          lesson_title: string | null
+          submitted_by_name: string | null
+          submitted_at: string | null
+        }[]
+      }
+      approve_chapter_item: {
+        Args: { p_item_type: string; p_item_id: string }
+        Returns: undefined
+      }
+      reject_chapter_item: {
+        Args: { p_item_type: string; p_item_id: string; p_reason?: string }
+        Returns: undefined
+      }
+      submit_chapter_item_for_review: {
+        Args: { p_item_type: string; p_item_id: string }
+        Returns: undefined
+      }
+      submit_chapter_items_for_review: {
+        Args: { p_item_type: string; p_chapter_id: string; p_lesson_id?: string }
+        Returns: number
       }
       check_exercise_answer: {
         Args: { _exercise_id: string; _user_answer: string }

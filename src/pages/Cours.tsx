@@ -212,18 +212,34 @@ const Cours = () => {
         setChapters(mappedChapters);
 
         // Notification admin : compter, par chapitre, les leçons dont une
-        // version attend une validation (bouton rouge sur la carte du chapitre).
+        // version attend une validation + les exercices/quiz IA en attente
+        // (bouton rouge sur la carte du chapitre).
         if (roles.includes("admin")) {
           const chapterIds = mappedChapters.map((c) => c.id);
-          const { data: pendingRows } = await supabase
-            .from("lessons" as any)
-            .select("chapter_id, pending_version_id")
-            .in("chapter_id", chapterIds)
-            .not("pending_version_id", "is", null);
+          const [{ data: pendingRows }, { data: pendingEx }, { data: pendingQz }] = await Promise.all([
+            supabase
+              .from("lessons" as any)
+              .select("chapter_id, pending_version_id")
+              .in("chapter_id", chapterIds)
+              .not("pending_version_id", "is", null),
+            supabase
+              .from("chapter_exercises" as any)
+              .select("chapter_id")
+              .in("chapter_id", chapterIds)
+              .eq("status", "pending"),
+            supabase
+              .from("chapter_quizzes" as any)
+              .select("chapter_id")
+              .in("chapter_id", chapterIds)
+              .eq("status", "pending"),
+          ]);
           const counts: Record<string, number> = {};
-          ((pendingRows as any[]) || []).forEach((row) => {
+          for (const row of (pendingRows as any[]) || []) {
             counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
-          });
+          }
+          for (const row of [...((pendingEx as any[]) || []), ...((pendingQz as any[]) || [])]) {
+            counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
+          }
           setPendingValidationCounts(counts);
         } else {
           setPendingValidationCounts({});

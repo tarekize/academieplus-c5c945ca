@@ -15,10 +15,154 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plus, Pencil, Trash2, Loader2, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Pencil, Trash2, Loader2, Sparkles, Send, CheckCircle2, XCircle, Clock, FileEdit } from "lucide-react";
 import { toast } from "sonner";
 import RichContentField from "./RichContentField";
 import { extractFunctionErrorMessage } from "@/lib/edgeFunctionError";
+
+export type ItemType = "exercise" | "quiz";
+export type ItemStatus = "draft" | "pending" | "approved" | "rejected";
+
+/** Badge d'état de validation — rien pour "approved" (état normal, publié). */
+export function StatusBadge({ status, rejectionReason }: { status?: string; rejectionReason?: string | null }) {
+  if (!status || status === "approved") return null;
+  if (status === "draft") {
+    return <Badge variant="secondary" className="gap-1 w-fit"><FileEdit className="h-3 w-3" /> مسودة (لم ترسل بعد)</Badge>;
+  }
+  if (status === "pending") {
+    return <Badge className="bg-warning hover:bg-warning text-warning-foreground gap-1 w-fit"><Clock className="h-3 w-3" /> بانتظار المصادقة</Badge>;
+  }
+  return (
+    <div className="flex flex-col gap-1">
+      <Badge variant="destructive" className="gap-1 w-fit"><XCircle className="h-3 w-3" /> مرفوض</Badge>
+      {rejectionReason && <span className="text-xs text-destructive">{rejectionReason}</span>}
+    </div>
+  );
+}
+
+/** Pédago : envoie un item (brouillon ou refusé, corrigé) à l'admin pour validation. */
+export function SubmitItemButton({ itemType, itemId, onSubmitted }: { itemType: ItemType; itemId: string; onSubmitted: () => void }) {
+  const [loading, setLoading] = useState(false);
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.rpc("submit_chapter_item_for_review" as any, { p_item_type: itemType, p_item_id: itemId });
+      if (error) throw error;
+      toast.success("تم الإرسال للمراجعة");
+      onSubmitted();
+    } catch (e: any) {
+      toast.error(e.message || "خطأ في الإرسال");
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <Button size="sm" variant="outline" className="gap-1" onClick={handleSubmit} disabled={loading}>
+      {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+      إرسال للمراجعة
+    </Button>
+  );
+}
+
+/** Pédago : envoie en une fois tous les brouillons/refusés d'un niveau (تمارين ou أسئلة). */
+export function SubmitAllDraftsButton({ itemType, chapterId, lessonId, count, onSubmitted }: {
+  itemType: ItemType; chapterId: string; lessonId?: string; count: number; onSubmitted: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  if (count === 0) return null;
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.rpc("submit_chapter_items_for_review" as any, {
+        p_item_type: itemType, p_chapter_id: chapterId, p_lesson_id: lessonId ?? null,
+      });
+      if (error) throw error;
+      toast.success(`تم إرسال ${data} عنصر للمراجعة`);
+      onSubmitted();
+    } catch (e: any) {
+      toast.error(e.message || "خطأ في الإرسال");
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <Button size="sm" variant="outline" className="gap-1" onClick={handleClick} disabled={loading}>
+      {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+      إرسال الكل للمراجعة ({count})
+    </Button>
+  );
+}
+
+/** Admin : accepte (publie aux élèves) ou refuse (motif optionnel) un item en attente. */
+export function ReviewActionButtons({ itemType, itemId, onReviewed }: { itemType: ItemType; itemId: string; onReviewed: () => void }) {
+  const [loading, setLoading] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [reason, setReason] = useState("");
+
+  const approve = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.rpc("approve_chapter_item" as any, { p_item_type: itemType, p_item_id: itemId });
+      if (error) throw error;
+      toast.success("تم القبول ونشره للطلاب");
+      onReviewed();
+    } catch (e: any) {
+      toast.error(e.message || "خطأ في القبول");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const reject = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.rpc("reject_chapter_item" as any, { p_item_type: itemType, p_item_id: itemId, p_reason: reason.trim() || null });
+      if (error) throw error;
+      toast.success("تم الرفض");
+      setRejectOpen(false);
+      setReason("");
+      onReviewed();
+    } catch (e: any) {
+      toast.error(e.message || "خطأ في الرفض");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="flex gap-1.5">
+        <Button size="sm" onClick={approve} disabled={loading} className="gap-1 bg-green-600 hover:bg-green-700">
+          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+          قبول
+        </Button>
+        <Button size="sm" variant="destructive" onClick={() => setRejectOpen(true)} disabled={loading} className="gap-1">
+          <XCircle className="h-3 w-3" /> رفض
+        </Button>
+      </div>
+      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle dir="rtl">سبب الرفض (اختياري)</DialogTitle></DialogHeader>
+          <Textarea
+            dir="rtl"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="اشرح للمعلم سبب الرفض حتى يتمكن من التصحيح..."
+            className="min-h-[100px]"
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectOpen(false)}>إلغاء</Button>
+            <Button variant="destructive" onClick={reject} disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              تأكيد الرفض
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
 
 // ---- Quiz CRUD ----
 interface QuizFormProps {

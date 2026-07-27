@@ -42,6 +42,15 @@ interface SchoolLevel {
   color: string;
 }
 
+interface PendingContentItem {
+  id: string;
+  item_type: string;
+  subject: string;
+  school_level: string;
+  filiere_id: string | null;
+  filiere_code: string | null;
+}
+
 // Only Mathematics is available for students currently
 const staticSubjects: Subject[] = [
   { id: "math", name: "Mathématiques", icon: Calculator, color: "#3B82F6", available: true },
@@ -62,6 +71,16 @@ const schoolLevels: SchoolLevel[] = [
 // Levels that require filiere selection
 const levelsWithFilieres = ["premiere", "seconde", "terminale"];
 
+/** Pastille rouge "en attente de validation" — notification admin en cascade. */
+function PendingBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span className="absolute -top-2 -right-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-red-600 px-1.5 text-xs font-bold text-white shadow-sm animate-pulse">
+      {count}
+    </span>
+  );
+}
+
 const ListeCours = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -81,6 +100,7 @@ const ListeCours = () => {
   const [availableSubjects, setAvailableSubjects] = useState<SubjectDef[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [subjectsLoaded, setSubjectsLoaded] = useState(false);
+  const [pendingItems, setPendingItems] = useState<PendingContentItem[]>([]);
 
   // La session/les rôles viennent déjà de AuthContext (ProtectedRoute garde
   // déjà cette route) : seuls le profil et les matières du pédago (non
@@ -89,6 +109,17 @@ const ListeCours = () => {
     if (!user) return;
     fetchProfileAndSubjects(user.id);
   }, [user?.id, isAdmin, isPedago]);
+
+  // Notification admin en cascade (matière -> niveau -> filière) : exercices/quiz
+  // IA envoyés par un pédago et en attente de validation, partout dans le catalogue.
+  useEffect(() => {
+    if (!isAdmin) { setPendingItems([]); return; }
+    let cancelled = false;
+    supabase.rpc("admin_pending_content_items" as any).then(({ data }) => {
+      if (!cancelled) setPendingItems((data as any) || []);
+    });
+    return () => { cancelled = true; };
+  }, [isAdmin]);
 
   const fetchProfileAndSubjects = async (userId: string) => {
     try {
@@ -275,6 +306,7 @@ const ListeCours = () => {
                   className="group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40 animate-fade-in"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
+                  <PendingBadge count={pendingItems.filter((i) => i.subject === subject.id).length} />
                   <div className="flex flex-col items-center text-center gap-3 p-6">
                     <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl bg-primary/10 shadow-md transition-transform group-hover:scale-110">
                       {subject.icon}
@@ -344,6 +376,7 @@ const ListeCours = () => {
                       className="group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)] hover:border-primary/40 animate-fade-in"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
+                      <PendingBadge count={pendingItems.filter((i) => i.subject === selectedSubject && i.school_level === level.id).length} />
                       <div className="h-1.5 w-full" style={{ backgroundColor: level.color }} />
                       <div className="flex flex-col items-center text-center gap-3 p-6">
                         <div
@@ -413,9 +446,10 @@ const ListeCours = () => {
                     key={filiere.code}
                     type="button"
                     onClick={() => handleFiliereSelect(filiere.code)}
-                    className="group bg-card rounded-2xl border border-border/50 p-6 text-left hover:shadow-lg hover:border-primary/30 transition-all duration-200 animate-fade-in"
+                    className="group relative bg-card rounded-2xl border border-border/50 p-6 text-left hover:shadow-lg hover:border-primary/30 transition-all duration-200 animate-fade-in"
                     style={{ animationDelay: `${index * 60}ms` }}
                   >
+                    <PendingBadge count={pendingItems.filter((i) => i.subject === selectedSubject && i.school_level === selectedLevel && i.filiere_code === filiere.code).length} />
                     <div className="flex flex-col items-center text-center gap-3">
                       <div
                         className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform"
