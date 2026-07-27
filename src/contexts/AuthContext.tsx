@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -73,12 +73,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  // Suit l'utilisateur actuellement connu en dehors du cycle de rendu (pas de closure
+  // périmée) : sert à distinguer une vraie connexion (nouvel utilisateur) d'une simple
+  // ré-authentification du même utilisateur (ex : ChangePasswordButton revérifie le mot
+  // de passe actuel via signInWithPassword, ce qui émet aussi un SIGNED_IN).
+  const currentUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      currentUserIdRef.current = session?.user?.id ?? null;
       setRoles(session?.user ? await fetchRoles(session.user.id) : []);
       setLoading(false);
     });
@@ -87,8 +93,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      const previousUserId = currentUserIdRef.current;
       setSession(session);
       setUser(session?.user ?? null);
+      currentUserIdRef.current = session?.user?.id ?? null;
+
+      // Une ré-authentification du même utilisateur déjà connu (ex : ChangePasswordButton
+      // qui revérifie le mot de passe actuel via signInWithPassword, ce qui émet aussi un
+      // SIGNED_IN) ne peut pas avoir changé ses rôles ni nécessiter les redirections
+      // post-connexion ci-dessous — inutile de repasser `loading` à true et de faire
+      // disparaître la page protégée (spinner plein écran de ProtectedRoute) derrière
+      // l'utilisateur, ce qui détruisait par ex. la modale de changement de mot de passe
+      // en plein milieu de sa saisie du code reçu par email.
+      const isSameUserReauth =
+        _event === 'SIGNED_IN' && !!session?.user && previousUserId !== null && previousUserId === session.user.id;
 
       // Only re-fetch roles on an actual sign-in/out, not on every event this
       // listener sees (e.g. TOKEN_REFRESHED fires roughly hourly for the same
@@ -99,11 +117,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRoles([]);
         setLoading(false);
       } else if (session?.user && (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION' || _event === 'USER_UPDATED' || _event === 'PASSWORD_RECOVERY')) {
-        // `loading` peut déjà être à false (ex: session initiale nulle sur /auth) au moment
-        // où ce SIGNED_IN arrive : sans ce setLoading(true) synchrone, un ProtectedRoute déjà
-        // monté sur la route de destination lirait le cache `roles` encore vide et rejetterait
-        // l'utilisateur vers /dashboard avant même que fetchRoles() n'ait eu le temps de répondre.
-        setLoading(true);
+        if (!isSameUserReauth) {
+          // `loading` peut déjà être à false (ex: session initiale nulle sur /auth) au moment
+          // où ce SIGNED_IN arrive : sans ce setLoading(true) synchrone, un ProtectedRoute déjà
+          // monté sur la route de destination lirait le cache `roles` encore vide et rejetterait
+          // l'utilisateur vers /dashboard avant même que fetchRoles() n'ait eu le temps de répondre.
+          setLoading(true);
+        }
         fetchRoles(session.user.id).then((r) => {
           setRoles(r);
           setLoading(false);
@@ -112,8 +132,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
 
-      // Vérifier si l'utilisateur SSO a besoin de compléter son profil
-      if (session?.user) {
+      // Vérifier si l'utilisateur SSO a besoin de compléter son profil (inutile et risqué
+      // pour une simple ré-authentification du même utilisateur : voir isSameUserReauth).
+      if (session?.user && !isSameUserReauth) {
         setTimeout(async () => {
           const { data: profileData } = await supabase
             .from('profiles')
