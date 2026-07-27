@@ -4,6 +4,7 @@ import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GraduationCap, LogOut, Loader2 } from "lucide-react";
 import { useTeacherEstablishmentStatus } from "@/hooks/useTeacherEstablishmentStatus";
 
@@ -29,11 +30,30 @@ const readStoredSection = (): TeacherSection | null => {
   }
 };
 
+interface TeacherProfileHeaderInfo {
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+}
+
 const TeacherDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [section, setSectionState] = useState<TeacherSection | null>(readStoredSection);
   const { hasEstablishment } = useTeacherEstablishmentStatus(user?.id);
+  const [profile, setProfile] = useState<TeacherProfileHeaderInfo | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("first_name, last_name, avatar_url")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => setProfile(data));
+  }, [user]);
+
+  const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Enseignant";
 
   const setSection = (next: TeacherSection | null) => {
     setSectionState(next);
@@ -93,7 +113,23 @@ const TeacherDashboard = () => {
                 )}
               </span>
             </button>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setSection("profil")}
+                className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 hover:bg-muted transition-colors"
+              >
+                <Avatar className="h-8 w-8 ring-2 ring-primary/20">
+                  <AvatarImage src={profile?.avatar_url || undefined} />
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                    {fullName.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-left hidden md:block">
+                  <p className="text-sm font-semibold leading-tight">{fullName}</p>
+                  <p className="text-xs text-muted-foreground leading-tight">Enseignant</p>
+                </div>
+              </button>
               <LanguageToggle />
               <Button
                 variant="ghost"

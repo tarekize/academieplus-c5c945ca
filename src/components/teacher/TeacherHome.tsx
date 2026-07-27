@@ -1,6 +1,5 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { School, FileText, Target, ClipboardList, AlertCircle, User, ArrowRight, Lock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import DashboardTile from "@/components/dashboard/DashboardTile";
+import { School, FileText, Target, ClipboardList, AlertCircle, User } from "lucide-react";
 import { toast } from "sonner";
 
 export type TeacherSection = "establishment" | "exercise" | "quiz" | "exam" | "reclamation" | "profil";
@@ -34,7 +33,6 @@ export default function TeacherHome({ onSelect, hasEstablishment }: Props) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {TEACHER_SECTIONS.map((t) => {
-        const Icon = t.icon;
         const locked = !hasEstablishment && REQUIRES_ESTABLISHMENT.includes(t.key);
         const handleActivate = () => {
           if (locked) {
@@ -44,44 +42,17 @@ export default function TeacherHome({ onSelect, hasEstablishment }: Props) {
           onSelect(t.key);
         };
         return (
-          <Card
+          <DashboardTile
             key={t.key}
+            icon={t.icon}
+            iconBg={t.iconBg}
+            iconText={t.iconText}
+            title={t.label}
+            description={t.desc}
             onClick={handleActivate}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleActivate(); }}
-            className={cn(
-              "group rounded-2xl border-border/60 transition-all duration-300",
-              locked
-                ? "cursor-not-allowed opacity-60"
-                : "cursor-pointer hover:-translate-y-1 hover:border-transparent hover:shadow-[var(--shadow-card)]",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-            )}
-          >
-            <CardContent className="flex flex-col gap-4 p-6">
-              <div
-                className={cn(
-                  "flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-300",
-                  !locked && "group-hover:scale-110",
-                  t.iconBg,
-                  t.iconText,
-                )}
-              >
-                {locked ? <Lock className="h-7 w-7" /> : <Icon className="h-7 w-7" />}
-              </div>
-              <div className="space-y-1">
-                <h3 className="flex items-center gap-1 text-lg font-semibold">
-                  {t.label}
-                  {!locked && (
-                    <ArrowRight className="h-4 w-4 -translate-x-1 text-muted-foreground opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
-                  )}
-                </h3>
-                <p className="text-sm leading-snug text-muted-foreground">
-                  {locked ? "Ajoutez un établissement pour débloquer" : t.desc}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+            locked={locked}
+            lockedDescription="Ajoutez un établissement pour débloquer"
+          />
         );
       })}
     </div>
