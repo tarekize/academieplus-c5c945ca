@@ -164,7 +164,7 @@ const Auth = () => {
         } else if (roleData.role === 'etablissement') {
           navigate("/etablissement-dashboard");
         } else {
-          navigate("/cours/math");
+          navigate("/cours/math/chapitres");
         }
       } catch (error) {
         console.error('Erreur lors de la redirection après connexion:', error);

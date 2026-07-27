@@ -188,13 +188,13 @@ export const ChatMessage = ({ role, content, isStreaming, onNavigate, onReformul
   const textAlign = isRtl ? "text-right" : "text-left";
 
   const handleChapterClick = (bc: BreadcrumbNav) => {
-    const path = `/cours/math?chapitre=${bc.chapterId}`;
+    const path = `/cours/math/chapitres/${bc.chapterId}/lecons`;
     if (onNavigate) onNavigate(path);
     else navigate(path);
   };
 
   const handleLessonClick = (bc: BreadcrumbNav) => {
-    const path = `/cours/math?chapitre=${bc.chapterId}&lecon=${bc.lessonId}`;
+    const path = `/cours/math/chapitres/${bc.chapterId}/lecons?lecon=${bc.lessonId}`;
     if (onNavigate) onNavigate(path);
     else navigate(path);
   };

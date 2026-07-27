@@ -152,24 +152,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
           }
 
-          // Rediriger admin et pédago vers /liste-cours après connexion
+          // Rediriger admin et pédago vers /liste-matieres après connexion
           if ((roleData?.role === 'pedago' || roleData?.role === 'admin') &&
             (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/')) {
-            window.location.href = '/liste-cours';
+            window.location.href = '/liste-matieres';
             return;
           }
 
           // Rediriger les parents vers /parent-dashboard après connexion
-          // Inclure /liste-cours et /cours pour éviter qu'ils soient redirigés vers l'espace élève
+          // Inclure /liste-matieres et /cours pour éviter qu'ils soient redirigés vers l'espace élève
           if (roleData?.role === 'parent' &&
-            (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/' || currentPath.includes('/liste-cours') || currentPath.startsWith('/cours'))) {
+            (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/' || currentPath.includes('/liste-matieres') || currentPath.startsWith('/cours'))) {
             window.location.href = '/parent-dashboard';
             return;
           }
 
           // Rediriger les enseignants vers /teacher-dashboard après connexion
           if (roleData?.role === 'teacher' &&
-            (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/' || currentPath.includes('/liste-cours') || currentPath.startsWith('/cours'))) {
+            (currentPath.includes('/complete-profile') || currentPath.includes('/auth') || currentPath === '/' || currentPath.includes('/liste-matieres') || currentPath.startsWith('/cours'))) {
             window.location.href = '/teacher-dashboard';
             return;
           }
@@ -181,10 +181,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
           }
 
-          // Rediriger les élèves vers /cours/math après connexion par défaut
+          // Rediriger les élèves vers /cours/math/chapitres après connexion par défaut
           if (roleData?.role === 'student' &&
             (currentPath.includes('/auth') || currentPath === '/')) {
-            window.location.href = '/cours/math';
+            window.location.href = '/cours/math/chapitres';
             return;
           }
 

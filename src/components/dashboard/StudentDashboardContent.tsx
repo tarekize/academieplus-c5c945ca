@@ -820,7 +820,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button className="w-full justify-between gap-2 group" onClick={() => navigate("/liste-cours")}>
+                <Button className="w-full justify-between gap-2 group" onClick={() => navigate("/liste-matieres")}>
                   <span className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> {t("studentDashboard.openMyLessons")}</span>
                   <ChevronRight className="h-4 w-4 group-hover:-translate-x-1 transition-transform rtl:rotate-180" />
                 </Button>
@@ -951,7 +951,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
                               )}
                               <button
                                 type="button"
-                                onClick={() => navigate(`/cours/math?chapitre=${selectedChapter.chapterId}&lecon=${lesson.lessonId}`)}
+                                onClick={() => navigate(`/cours/math/chapitres/${selectedChapter.chapterId}/lecons?lecon=${lesson.lessonId}`)}
                                 className="text-sm font-medium truncate hover:text-primary text-end min-w-0"
                               >
                                 <span className="truncate">{lesson.lessonTitleAr || lesson.lessonTitle}</span>
@@ -1035,7 +1035,11 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
                 <Button
                   size="sm"
                   onClick={() => {
-                    navigate(`/cours/math?chapitre=${selectedLessonComment.chapterId || ""}&lecon=${selectedLessonComment.lessonId}`);
+                    navigate(
+                      selectedLessonComment.chapterId
+                        ? `/cours/math/chapitres/${selectedLessonComment.chapterId}/lecons?lecon=${selectedLessonComment.lessonId}`
+                        : `/cours/math/chapitres`
+                    );
                     setSelectedLessonComment(null);
                   }}
                 >

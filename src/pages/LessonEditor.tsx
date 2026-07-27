@@ -356,9 +356,8 @@ export default function LessonEditor() {
               if (lesson?.subject && lesson?.chapter_id) {
                 const params = new URLSearchParams();
                 if (lesson.filiere_code) params.append('filiere', lesson.filiere_code);
-                params.append('chapitre', lesson.chapter_id);
                 const niveauSegment = lesson.school_level ? `/${lesson.school_level}` : '';
-                navigate(`/cours/${lesson.subject}${niveauSegment}?${params.toString()}`);
+                navigate(`/cours/${lesson.subject}${niveauSegment}/chapitres/${lesson.chapter_id}/lecons?${params.toString()}`);
               } else {
                 navigate(-1 as any);
               }

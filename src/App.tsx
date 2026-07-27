@@ -103,11 +103,15 @@ const App = () => (
               <Route path="/paiement" element={<ProtectedRoute><Paiement /></ProtectedRoute>} />
               <Route path="/parrainage" element={<ProtectedRoute><Parrainage /></ProtectedRoute>} />
               <Route path="/mes-donnees-personnelles" element={<ProtectedRoute><MesDonneesPersonnelles /></ProtectedRoute>} />
-              <Route path="/liste-cours" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><ListeCours /></ProtectedRoute>} />
-              <Route path="/liste-cours/:matiere" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><ListeCours /></ProtectedRoute>} />
-              <Route path="/liste-cours/:matiere/:niveau" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><ListeCours /></ProtectedRoute>} />
-              <Route path="/cours/:subjectId" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><Cours /></ProtectedRoute>} />
-              <Route path="/cours/:subjectId/:niveau" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><Cours /></ProtectedRoute>} />
+              {/* Choix matière → niveau → filière : chaque étape nomme explicitement ce qu'elle liste */}
+              <Route path="/liste-matieres" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><ListeCours /></ProtectedRoute>} />
+              <Route path="/liste-matieres/:matiere/niveaux" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><ListeCours /></ProtectedRoute>} />
+              <Route path="/liste-matieres/:matiere/niveaux/:niveau/filieres" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><ListeCours /></ProtectedRoute>} />
+              {/* Chapitres → leçons d'une matière (élève : niveau implicite via son profil ; admin/pédago : niveau explicite) */}
+              <Route path="/cours/:subjectId/chapitres" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><Cours /></ProtectedRoute>} />
+              <Route path="/cours/:subjectId/chapitres/:chapitreId/lecons" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><Cours /></ProtectedRoute>} />
+              <Route path="/cours/:subjectId/:niveau/chapitres" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><Cours /></ProtectedRoute>} />
+              <Route path="/cours/:subjectId/:niveau/chapitres/:chapitreId/lecons" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><Cours /></ProtectedRoute>} />
               <Route path="/lecon/:lessonId" element={<ProtectedRoute allowedRoles={['pedago', 'admin']}><LessonEditor /></ProtectedRoute>} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/analytics" element={<ProtectedRoute allowedRoles={['admin', 'pedago']}><Analytics /></ProtectedRoute>} />

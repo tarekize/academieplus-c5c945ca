@@ -21,7 +21,7 @@ const NotFound = () => {
         <h1 className="mb-2 font-display text-5xl font-extrabold text-foreground">404</h1>
         <p className="mb-6 text-lg text-muted-foreground">{t("notFound.description")}</p>
         <Button asChild>
-          <Link to="/liste-cours">{t("notFound.backToCourses")}</Link>
+          <Link to="/liste-matieres">{t("notFound.backToCourses")}</Link>
         </Button>
       </div>
     </div>

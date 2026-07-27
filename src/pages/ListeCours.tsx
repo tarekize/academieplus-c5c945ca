@@ -67,7 +67,7 @@ const ListeCours = () => {
   const { t } = useTranslation();
   const subjectsList: Subject[] = staticSubjects.map((s) => (s.id === "math" ? { ...s, name: t("listeCours.math") } : s));
   const levelsList: SchoolLevel[] = schoolLevels.map((l) => ({ ...l, name: t(`app.schoolLevels.${l.id}`) }));
-  // matière et niveau viennent du chemin (/liste-cours/:matiere/:niveau) — l'URL
+  // matière et niveau viennent du chemin (/liste-matieres/:matiere/niveaux[/:niveau/filieres]) — l'URL
   // est la seule source de vérité pour ces deux étapes de navigation.
   const { matiere: selectedSubject = null, niveau: selectedLevel = null } = useParams<{ matiere?: string; niveau?: string }>();
   const { user, roles, loading: authLoading } = useAuth();
@@ -140,20 +140,21 @@ const ListeCours = () => {
   };
 
   const handleSubjectSelect = (subjectId: string) => {
-    navigate(`/liste-cours/${subjectId}`);
+    navigate(`/liste-matieres/${subjectId}/niveaux`);
   };
 
   const handleLevelSelect = (levelId: string) => {
     if (levelsWithFilieres.includes(levelId)) {
       // Étape intermédiaire : choix de la filière (premiere/seconde/terminale)
-      navigate(`/liste-cours/${selectedSubject || "math"}/${levelId}`);
+      navigate(`/liste-matieres/${selectedSubject || "math"}/niveaux/${levelId}/filieres`);
     } else {
       // Pas de filière requise pour ce niveau : direction les chapitres
-      navigate(`/cours/${selectedSubject || "math"}/${levelId}`);
+      navigate(`/cours/${selectedSubject || "math"}/${levelId}/chapitres`);
     }
   };
 
-  // Charge les filières dès que l'URL pointe vers un niveau qui en requiert (étape /liste-cours/:matiere/:niveau)
+  // Charge les filières dès que l'URL pointe vers un niveau qui en requiert
+  // (étape /liste-matieres/:matiere/niveaux/:niveau/filieres)
   useEffect(() => {
     if (!(isAdmin || isPedago) || !selectedLevel || !levelsWithFilieres.includes(selectedLevel)) {
       setFilieres([]);
@@ -181,16 +182,16 @@ const ListeCours = () => {
 
   const handleFiliereSelect = (filiereCode: string) => {
     if (selectedLevel) {
-      navigate(`/cours/${selectedSubject || "math"}/${selectedLevel}?filiere=${filiereCode}`);
+      navigate(`/cours/${selectedSubject || "math"}/${selectedLevel}/chapitres?filiere=${filiereCode}`);
     }
   };
 
   const handleBackToLevels = () => {
-    navigate(`/liste-cours/${selectedSubject || "math"}`);
+    navigate(`/liste-matieres/${selectedSubject || "math"}/niveaux`);
   };
 
   const handleBackToSubjects = () => {
-    navigate("/liste-cours");
+    navigate("/liste-matieres");
   };
 
   const filteredSubjects = subjectsList.filter((subject) =>
@@ -204,7 +205,7 @@ const ListeCours = () => {
   // Auto-redirect students directly to math course (only subject available)
   useEffect(() => {
     if (!authLoading && !profileLoading && profile && !isAdmin && !isPedago) {
-      navigate("/cours/math", { replace: true });
+      navigate("/cours/math/chapitres", { replace: true });
     }
   }, [authLoading, profileLoading, profile, isAdmin, isPedago, navigate]);
 
@@ -498,7 +499,7 @@ const ListeCours = () => {
                       key={subject.id}
                       type="button"
                       disabled={!subject.available}
-                      onClick={() => subject.available && navigate(`/cours/${subject.id}`)}
+                      onClick={() => subject.available && navigate(`/cours/${subject.id}/chapitres`)}
                       className={`group relative overflow-hidden glass-card text-left transition-all duration-300 animate-pop-in ${subject.available
                         ? "cursor-pointer hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)]"
                         : "opacity-60 cursor-not-allowed"

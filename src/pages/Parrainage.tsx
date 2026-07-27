@@ -113,7 +113,7 @@ const Parrainage = () => {
     <div className="min-h-screen pro-shell">
       <header className="bg-background border-b sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/liste-cours")}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/liste-matieres")}>
             <GraduationCap className="h-8 w-8 text-primary" />
             <span className="text-xl font-bold">AcadémiePlus</span>
           </div>

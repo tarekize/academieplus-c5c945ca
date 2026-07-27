@@ -179,7 +179,7 @@ const LearningAssessment = () => {
           sessionStorage.removeItem('returnTo');
           navigate(returnTo);
         } else {
-          navigate("/cours/math");
+          navigate("/cours/math/chapitres");
         }
       }
     };
@@ -380,7 +380,7 @@ const LearningAssessment = () => {
         sessionStorage.removeItem('returnTo');
         navigate(returnTo);
       } else {
-        navigate("/cours/math");
+        navigate("/cours/math/chapitres");
       }
     } catch (e: any) {
       console.error("Primary save to student_scores failed, trying legacy fallback:", e);
@@ -421,7 +421,7 @@ const LearningAssessment = () => {
           sessionStorage.removeItem('returnTo');
           navigate(returnToFallback);
         } else {
-          navigate("/cours/math");
+          navigate("/cours/math/chapitres");
         }
       } catch (legacyError: any) {
         console.error("Legacy save failed:", legacyError);

@@ -10,11 +10,11 @@ type AppRole = 'admin' | 'parent' | 'student' | 'pedago' | 'teacher' | 'etabliss
 // interdit (ex: un enseignant ou un établissement y rebondirait indéfiniment).
 const ROLE_HOME: Record<AppRole, string> = {
   admin: '/dashboard',
-  pedago: '/liste-cours',
+  pedago: '/liste-matieres',
   parent: '/parent-dashboard',
   teacher: '/teacher-dashboard',
   etablissement: '/etablissement-dashboard',
-  student: '/cours/math',
+  student: '/cours/math/chapitres',
 };
 
 interface ProtectedRouteProps {

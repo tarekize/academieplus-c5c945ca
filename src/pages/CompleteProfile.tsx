@@ -76,7 +76,7 @@ const CompleteProfile = () => {
       // Rediriger uniquement si l'utilisateur a déjà un rôle ET un niveau scolaire
       if (roleData?.role && profile?.school_level) {
         if (roleData.role === 'parent') navigate("/parent-dashboard");
-        else navigate("/liste-cours");
+        else navigate("/liste-matieres");
         return;
       }
     };

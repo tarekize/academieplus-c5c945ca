@@ -168,7 +168,7 @@ const Abonnements = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/liste-cours")}>
+            <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/liste-matieres")}>
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                 <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>

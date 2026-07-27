@@ -166,7 +166,7 @@ const Dashboard = () => {
                   iconText="text-purple-600"
                   title={isAdmin ? t("dashboard.viewCourses") : t("dashboard.myCourses")}
                   description={isAdmin ? t("dashboard.viewCoursesDesc") : t("dashboard.myCoursesDesc")}
-                  onClick={() => navigate("/liste-cours")}
+                  onClick={() => navigate("/liste-matieres")}
                 />
               </div>
             </>

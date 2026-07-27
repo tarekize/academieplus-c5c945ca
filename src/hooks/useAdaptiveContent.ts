@@ -104,7 +104,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     if (!userId || !lessonId) return;
 
     // Send weak/strong concepts so AI can build per-lacune explanations
-    const link = `/cours/math?chapitre=${chapterId}&lecon=${lessonId}`;
+    const link = `/cours/math/chapitres/${chapterId}/lecons?lecon=${lessonId}`;
     let message = buildFallbackComment(levelBefore, levelAfter, sessionCorrectCount, sessionTotalCount);
 
     const weak = Array.from(new Set(weakConceptsRef.current)).slice(0, 5);

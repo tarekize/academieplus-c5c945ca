@@ -112,7 +112,7 @@ export default function DashboardEditorial() {
           <p className="text-sm text-muted-foreground">
             En attendant, les cours de mathématiques sont disponibles via les données statiques.
           </p>
-          <Button className="mt-6 bg-[image:var(--gradient-primary)] border-0" onClick={() => navigate('/liste-cours')}>
+          <Button className="mt-6 bg-[image:var(--gradient-primary)] border-0" onClick={() => navigate('/liste-matieres')}>
             Voir les cours disponibles
           </Button>
         </Card>

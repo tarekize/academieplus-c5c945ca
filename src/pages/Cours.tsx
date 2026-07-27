@@ -57,15 +57,24 @@ interface Chapter {
 }
 
 const Cours = () => {
-  const { subjectId, niveau: niveauParam } = useParams();
+  const { subjectId, niveau: niveauParam, chapitreId: chapitreIdParam } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  // Le niveau vit désormais dans le chemin (/cours/:subjectId/:niveau) ; on retombe
-  // sur l'ancien ?niveau= pour ne pas casser d'éventuels liens déjà partagés.
+  // Le niveau et le chapitre actif vivent désormais dans le chemin
+  // (/cours/:subjectId/:niveau/chapitres/:chapitreId/lecons) ; on retombe sur les
+  // anciens ?niveau=/?chapitre= pour ne pas casser d'éventuels liens déjà partagés.
   const adminNiveau = niveauParam || searchParams.get("niveau");
   const adminFiliere = searchParams.get("filiere");
-  const chapitreParam = searchParams.get("chapitre");
+  const chapitreParam = chapitreIdParam || searchParams.get("chapitre");
   const leconParam = searchParams.get("lecon");
   const navigate = useNavigate();
+  // Construit l'URL "chapitres" (grille) ou "chapitres/:id/lecons" (contenu) pour
+  // la matière/le niveau courants, afin que l'adresse reflète toujours ce qui est affiché.
+  const buildCoursPath = useCallback((chapitreId?: string | null) => {
+    const niveauSegment = niveauParam ? `/${niveauParam}` : "";
+    return chapitreId
+      ? `/cours/${subjectId}${niveauSegment}/chapitres/${chapitreId}/lecons`
+      : `/cours/${subjectId}${niveauSegment}/chapitres`;
+  }, [subjectId, niveauParam]);
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [needsProfileCompletion, setNeedsProfileCompletion] = useState(false);
@@ -325,7 +334,7 @@ const Cours = () => {
   // Redirect admin/pedago without niveau param back to level selection
   useEffect(() => {
     if (!loading && canManage && !adminNiveau) {
-      navigate(`/liste-cours/${subjectId || "math"}`, { replace: true });
+      navigate(`/liste-matieres/${subjectId || "math"}/niveaux`, { replace: true });
     }
   }, [loading, canManage, adminNiveau, navigate, subjectId]);
 
@@ -347,15 +356,17 @@ const Cours = () => {
     if (!chapters.length || !activeChapter) return;
 
     const currentIndex = chapters.findIndex((c) => c.id === activeChapter.id);
-    if (direction === "prev" && currentIndex > 0) {
-      setActiveChapter(chapters[currentIndex - 1]);
-      setActiveChapterIndex(currentIndex - 1);
-      setInitialLessonId(null);
-    } else if (direction === "next" && currentIndex < chapters.length - 1) {
-      setActiveChapter(chapters[currentIndex + 1]);
-      setActiveChapterIndex(currentIndex + 1);
-      setInitialLessonId(null);
-    }
+    const targetIndex = direction === "prev" ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= chapters.length) return;
+
+    const targetChapter = chapters[targetIndex];
+    setActiveChapter(targetChapter);
+    setActiveChapterIndex(targetIndex);
+    setInitialLessonId(null);
+    const qp = new URLSearchParams();
+    if (adminFiliere) qp.set("filiere", adminFiliere);
+    const qs = qp.toString();
+    navigate(`${buildCoursPath(targetChapter.id)}${qs ? `?${qs}` : ""}`, { replace: true });
   };
 
   const getSchoolLevelName = (level: string) => {
@@ -420,7 +431,7 @@ const Cours = () => {
         <p className="text-muted-foreground mb-6">
           {t("cours.courseUnavailableDesc")}
         </p>
-        <Button onClick={() => navigate("/liste-cours")}>{t("cours.backToCourseList")}</Button>
+        <Button onClick={() => navigate("/liste-matieres")}>{t("cours.backToCourseList")}</Button>
       </div>
     );
   }
@@ -542,7 +553,7 @@ const Cours = () => {
                     <Button
                       variant="outline"
                       className="rounded-full gap-2 active:scale-95 transition-transform"
-                      onClick={() => navigate(`/liste-cours/${subjectId || "math"}`)}
+                      onClick={() => navigate(`/liste-matieres/${subjectId || "math"}/niveaux`)}
                     >
                       <ArrowLeft className="h-4 w-4" />
                       {t("cours.backToLevels")}
@@ -840,9 +851,15 @@ const Cours = () => {
                         onClick={() => {
                           setActiveChapter(chapter);
                           setActiveChapterIndex(chapterIndex);
-                          setInitialLessonId(lesson.id !== chapter.id ? lesson.id : null);
+                          const lessonId = lesson.id !== chapter.id ? lesson.id : null;
+                          setInitialLessonId(lessonId);
                           setViewMode("content");
                           setSearchQuery("");
+                          const qp = new URLSearchParams();
+                          if (adminFiliere) qp.set("filiere", adminFiliere);
+                          if (lessonId) qp.set("lecon", lessonId);
+                          const qs = qp.toString();
+                          navigate(`${buildCoursPath(chapter.id)}${qs ? `?${qs}` : ""}`);
                         }}
                       >
                         <CardHeader className="pb-2">
@@ -902,6 +919,10 @@ const Cours = () => {
                           setActiveChapter(chapter);
                           setActiveChapterIndex(index);
                           setViewMode("content");
+                          const qp = new URLSearchParams();
+                          if (adminFiliere) qp.set("filiere", adminFiliere);
+                          const qs = qp.toString();
+                          navigate(`${buildCoursPath(chapter.id)}${qs ? `?${qs}` : ""}`);
                         }}
                       >
                         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -956,11 +977,13 @@ const Cours = () => {
               onBackToChapters={() => {
                 setViewMode("grid");
                 setInitialLessonId(null);
-                // Clear chapitre/lecon URL params to prevent useEffect from re-forcing content view
+                // Retour à l'URL "chapitres" (grille) : on quitte le chapitre actif,
+                // donc chapitre/lecon disparaissent du chemin comme des query params.
                 const newParams = new URLSearchParams(searchParams);
                 newParams.delete("chapitre");
                 newParams.delete("lecon");
-                setSearchParams(newParams, { replace: true });
+                const qs = newParams.toString();
+                navigate(`${buildCoursPath()}${qs ? `?${qs}` : ""}`, { replace: true });
               }}
               onBackToLessons={() => {
                 setInitialLessonId(null);
@@ -1045,7 +1068,12 @@ const Cours = () => {
                 } : null}
                 onNavigate={(path) => {
                   const targetUrl = new URL(path, window.location.origin);
-                  const targetChapterId = targetUrl.searchParams.get("chapitre");
+                  // Le lien peut pointer vers l'ancien format (?chapitre=) ou le
+                  // nouveau (/chapitres/:id/lecons) selon d'où il vient.
+                  const pathSegments = targetUrl.pathname.split("/").filter(Boolean);
+                  const chapitresIdx = pathSegments.indexOf("chapitres");
+                  const pathChapterId = chapitresIdx >= 0 ? pathSegments[chapitresIdx + 1] : null;
+                  const targetChapterId = pathChapterId || targetUrl.searchParams.get("chapitre");
                   const targetLessonId = targetUrl.searchParams.get("lecon");
 
                   setIsChatOpen(false);
@@ -1063,11 +1091,11 @@ const Cours = () => {
                   }
 
                   const newParams = new URLSearchParams(searchParams);
-                  if (targetChapterId) newParams.set("chapitre", targetChapterId);
-                  else newParams.delete("chapitre");
+                  newParams.delete("chapitre");
                   if (targetLessonId) newParams.set("lecon", targetLessonId);
                   else newParams.delete("lecon");
-                  setSearchParams(newParams, { replace: true });
+                  const qs = newParams.toString();
+                  navigate(`${buildCoursPath(targetChapterId || null)}${qs ? `?${qs}` : ""}`, { replace: true });
                 }}
               />
             );

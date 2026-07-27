@@ -72,7 +72,7 @@ export function AppHeader() {
         <div className="flex items-center justify-between h-16">
           <div
             className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => navigate(isAdmin || isPedago ? "/dashboard" : isParent ? "/parent-dashboard" : "/liste-cours")}
+            onClick={() => navigate(isAdmin || isPedago ? "/dashboard" : isParent ? "/parent-dashboard" : "/liste-matieres")}
           >
             <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
               <GraduationCap className="h-5 w-5 text-white" />

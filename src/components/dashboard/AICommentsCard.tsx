@@ -84,7 +84,7 @@ export default function AICommentsCard({ userId }: { userId: string }) {
       level_after: levelAfter,
       level_delta: levelAfter - levelBefore,
       message,
-      link_url: `/cours/math?chapitre=${score.chapter_id}&lecon=${score.lesson_id}`,
+      link_url: `/cours/math/chapitres/${score.chapter_id}/lecons?lecon=${score.lesson_id}`,
       created_at: score.updated_at,
       accuracy_rate: accuracy,
     };

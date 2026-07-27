@@ -52,7 +52,7 @@ export default function JoinClass() {
         sessionStorage.removeItem("pendingClassCode");
 
         setTimeout(() => {
-          navigate("/cours/math", { replace: true });
+          navigate("/cours/math/chapitres", { replace: true });
         }, 2500);
       } catch (e: any) {
         setStatus("error");
@@ -93,7 +93,7 @@ export default function JoinClass() {
               <p className="text-xl font-bold">Échec de l'adhésion</p>
               <p className="text-muted-foreground mt-1">{errorMsg}</p>
             </div>
-            <Button onClick={() => navigate("/cours/math")}>Retour à l'accueil</Button>
+            <Button onClick={() => navigate("/cours/math/chapitres")}>Retour à l'accueil</Button>
           </>
         )}
       </div>
