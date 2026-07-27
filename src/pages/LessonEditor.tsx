@@ -355,8 +355,10 @@ export default function LessonEditor() {
             onClick={() => {
               if (lesson?.subject && lesson?.chapter_id) {
                 const params = new URLSearchParams();
-                if (lesson.school_level) params.append('niveau', lesson.school_level); if (lesson.filiere_code) params.append('filiere', lesson.filiere_code); params.append('chapitre', lesson.chapter_id);
-                navigate(`/cours/${lesson.subject}?${params.toString()}`);
+                if (lesson.filiere_code) params.append('filiere', lesson.filiere_code);
+                params.append('chapitre', lesson.chapter_id);
+                const niveauSegment = lesson.school_level ? `/${lesson.school_level}` : '';
+                navigate(`/cours/${lesson.subject}${niveauSegment}?${params.toString()}`);
               } else {
                 navigate(-1 as any);
               }

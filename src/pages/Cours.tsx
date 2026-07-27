@@ -57,9 +57,11 @@ interface Chapter {
 }
 
 const Cours = () => {
-  const { subjectId } = useParams();
+  const { subjectId, niveau: niveauParam } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const adminNiveau = searchParams.get("niveau");
+  // Le niveau vit désormais dans le chemin (/cours/:subjectId/:niveau) ; on retombe
+  // sur l'ancien ?niveau= pour ne pas casser d'éventuels liens déjà partagés.
+  const adminNiveau = niveauParam || searchParams.get("niveau");
   const adminFiliere = searchParams.get("filiere");
   const chapitreParam = searchParams.get("chapitre");
   const leconParam = searchParams.get("lecon");
@@ -323,9 +325,9 @@ const Cours = () => {
   // Redirect admin/pedago without niveau param back to level selection
   useEffect(() => {
     if (!loading && canManage && !adminNiveau) {
-      navigate("/liste-cours", { replace: true });
+      navigate(`/liste-cours/${subjectId || "math"}`, { replace: true });
     }
-  }, [loading, canManage, adminNiveau, navigate]);
+  }, [loading, canManage, adminNiveau, navigate, subjectId]);
 
   // Initial fetch
   useEffect(() => {
@@ -540,7 +542,7 @@ const Cours = () => {
                     <Button
                       variant="outline"
                       className="rounded-full gap-2 active:scale-95 transition-transform"
-                      onClick={() => navigate(`/liste-cours?matiere=${subjectId || "math"}`)}
+                      onClick={() => navigate(`/liste-cours/${subjectId || "math"}`)}
                     >
                       <ArrowLeft className="h-4 w-4" />
                       {t("cours.backToLevels")}

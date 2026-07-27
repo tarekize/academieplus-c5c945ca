@@ -104,7 +104,10 @@ const App = () => (
               <Route path="/parrainage" element={<ProtectedRoute><Parrainage /></ProtectedRoute>} />
               <Route path="/mes-donnees-personnelles" element={<ProtectedRoute><MesDonneesPersonnelles /></ProtectedRoute>} />
               <Route path="/liste-cours" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><ListeCours /></ProtectedRoute>} />
+              <Route path="/liste-cours/:matiere" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><ListeCours /></ProtectedRoute>} />
+              <Route path="/liste-cours/:matiere/:niveau" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><ListeCours /></ProtectedRoute>} />
               <Route path="/cours/:subjectId" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><Cours /></ProtectedRoute>} />
+              <Route path="/cours/:subjectId/:niveau" element={<ProtectedRoute allowedRoles={['student', 'pedago', 'admin']}><Cours /></ProtectedRoute>} />
               <Route path="/lecon/:lessonId" element={<ProtectedRoute allowedRoles={['pedago', 'admin']}><LessonEditor /></ProtectedRoute>} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/analytics" element={<ProtectedRoute allowedRoles={['admin', 'pedago']}><Analytics /></ProtectedRoute>} />

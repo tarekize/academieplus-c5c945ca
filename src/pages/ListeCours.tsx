@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -67,20 +67,20 @@ const ListeCours = () => {
   const { t } = useTranslation();
   const subjectsList: Subject[] = staticSubjects.map((s) => (s.id === "math" ? { ...s, name: t("listeCours.math") } : s));
   const levelsList: SchoolLevel[] = schoolLevels.map((l) => ({ ...l, name: t(`app.schoolLevels.${l.id}`) }));
-  const [searchParams, setSearchParams] = useSearchParams();
+  // matière et niveau viennent du chemin (/liste-cours/:matiere/:niveau) — l'URL
+  // est la seule source de vérité pour ces deux étapes de navigation.
+  const { matiere: selectedSubject = null, niveau: selectedLevel = null } = useParams<{ matiere?: string; niveau?: string }>();
   const { user, roles, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const isAdmin = roles.includes("admin");
   const isPedago = roles.includes("pedago");
-  const [selectedLevel, setSelectedLevel] = useState<string | null>(searchParams.get("niveau"));
   const [filieres, setFilieres] = useState<{ code: string; name: string; name_ar: string | null }[]>([]);
   const [loadingFilieres, setLoadingFilieres] = useState(false);
   const [availableSubjects, setAvailableSubjects] = useState<SubjectDef[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [subjectsLoaded, setSubjectsLoaded] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(searchParams.get("matiere"));
 
   // La session/les rôles viennent déjà de AuthContext (ProtectedRoute garde
   // déjà cette route) : seuls le profil et les matières du pédago (non
@@ -140,69 +140,57 @@ const ListeCours = () => {
   };
 
   const handleSubjectSelect = (subjectId: string) => {
-    setSelectedSubject(subjectId);
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set("matiere", subjectId);
-      return next;
-    });
+    navigate(`/liste-cours/${subjectId}`);
   };
 
-  const handleLevelSelect = async (levelId: string) => {
-    if ((isAdmin || isPedago) && levelsWithFilieres.includes(levelId)) {
-      // Show filiere selection for premiere/seconde/terminale
-      setSelectedLevel(levelId);
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.set("niveau", levelId);
-        return next;
-      });
-      setLoadingFilieres(true);
-      try {
-        const { data } = await supabase
-          .from("filieres")
-          .select("code, name, name_ar")
-          .eq("school_level", levelId as any)
-          .order("name");
-        setFilieres(data || []);
-      } catch (error) {
-        console.error("Error fetching filieres:", error);
-        toast.error("Erreur", {
-          description: "Impossible de charger les filières. Réessayez.",
-        });
-      } finally {
-        setLoadingFilieres(false);
-      }
-    } else if (isAdmin || isPedago) {
-      // No filiere needed, go directly to course
-      navigate(`/cours/${selectedSubject || "math"}?niveau=${levelId}`);
+  const handleLevelSelect = (levelId: string) => {
+    if (levelsWithFilieres.includes(levelId)) {
+      // Étape intermédiaire : choix de la filière (premiere/seconde/terminale)
+      navigate(`/liste-cours/${selectedSubject || "math"}/${levelId}`);
     } else {
-      setSelectedLevel(levelId);
-      setSearchParams({ niveau: levelId });
+      // Pas de filière requise pour ce niveau : direction les chapitres
+      navigate(`/cours/${selectedSubject || "math"}/${levelId}`);
     }
   };
 
+  // Charge les filières dès que l'URL pointe vers un niveau qui en requiert (étape /liste-cours/:matiere/:niveau)
+  useEffect(() => {
+    if (!(isAdmin || isPedago) || !selectedLevel || !levelsWithFilieres.includes(selectedLevel)) {
+      setFilieres([]);
+      return;
+    }
+    let cancelled = false;
+    setLoadingFilieres(true);
+    supabase
+      .from("filieres")
+      .select("code, name, name_ar")
+      .eq("school_level", selectedLevel as any)
+      .order("name")
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error("Error fetching filieres:", error);
+          toast.error("Erreur", { description: "Impossible de charger les filières. Réessayez." });
+        } else {
+          setFilieres(data || []);
+        }
+        setLoadingFilieres(false);
+      });
+    return () => { cancelled = true; };
+  }, [isAdmin, isPedago, selectedLevel]);
+
   const handleFiliereSelect = (filiereCode: string) => {
     if (selectedLevel) {
-      navigate(`/cours/${selectedSubject || "math"}?niveau=${selectedLevel}&filiere=${filiereCode}`);
+      navigate(`/cours/${selectedSubject || "math"}/${selectedLevel}?filiere=${filiereCode}`);
     }
   };
 
   const handleBackToLevels = () => {
-    setSelectedLevel(null);
-    setFilieres([]);
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.delete("niveau");
-      return next;
-    });
+    navigate(`/liste-cours/${selectedSubject || "math"}`);
   };
 
   const handleBackToSubjects = () => {
-    setSelectedSubject(null);
-    setSelectedLevel(null);
-    setFilieres([]);
-    setSearchParams({});
+    navigate("/liste-cours");
   };
 
   const filteredSubjects = subjectsList.filter((subject) =>
