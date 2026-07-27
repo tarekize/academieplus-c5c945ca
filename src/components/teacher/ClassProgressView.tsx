@@ -1,12 +1,13 @@
 import { Fragment, useEffect, useMemo, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { computeStudentGroup, GROUP_INFO, GROUP_ORDER, type StudentGroupLetter } from "@/lib/studentGrouping";
+import { applyDecay } from "@/lib/levelEngine";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Loader2, Users, Target, AlertTriangle, TrendingUp, ChevronRight, Trash2 } from "lucide-react";
+import { Loader2, Users, Target, AlertTriangle, TrendingUp, ChevronRight, Trash2, RefreshCw } from "lucide-react";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import { toast } from "sonner";
 
@@ -48,6 +49,7 @@ interface ScoreRow {
   lesson_id: string | null;
   current_level: number;
   total_answers: number;
+  updated_at: string | null;
 }
 
 interface ComputedStudent {
@@ -83,13 +85,14 @@ interface ClassProgressViewProps {
 
 export default function ClassProgressView({ classRow, onOpenStudentDetail, readOnly }: ClassProgressViewProps) {
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [students, setStudents] = useState<ComputedStudent[]>([]);
-  
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  const fetchData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
       // 1. Class members
       const { data: members, error: memErr } = await supabase
@@ -136,6 +139,10 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
         chapterRows = (chs as any[]) || [];
       }
       setChapters(chapterRows);
+      setSelectedChapterId((prev) => {
+        if (prev && chapterRows.some((c) => c.id === prev)) return prev;
+        return chapterRows[0]?.id ?? null;
+      });
 
       // 2c. Lessons for all chapters of the level (the "notions")
       let lessonRows: LessonRow[] = [];
@@ -161,7 +168,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
       if (studentIds.length > 0) {
         const { data: scores } = await supabase
           .from("student_scores")
-          .select("user_id, chapter_id, lesson_id, current_level, total_answers")
+          .select("user_id, chapter_id, lesson_id, current_level, total_answers, updated_at")
           .in("user_id", studentIds);
         scoreRows = (scores as any[]) || [];
       }
@@ -171,17 +178,26 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
         .filter((m) => profilesById[m.student_id])
         .map((m) => {
         const p = profilesById[m.student_id];
-        const own = scoreRows.filter((s) => s.user_id === p.id);
+        // Applique la décroissance temporelle (oubli) avant tout calcul — sans ça,
+        // le niveau affiché ici divergeait de celui du tableau de bord élève
+        // (qui l'applique déjà), ce qui pouvait faire manquer un blocage réel
+        // dont le niveau brut était encore juste au-dessus du seuil.
+        const own = scoreRows
+          .filter((s) => s.user_id === p.id)
+          .map((s) => ({ ...s, current_level: applyDecay(s.current_level || 0, s.updated_at).level }));
 
-        // Per lesson (notion) average level
+        // Per lesson (notion) : moyenne pondérée par nombre de réponses — cohérent
+        // avec le calcul du tableau de bord élève, pas une moyenne simple entre
+        // lignes (qui pourrait diluer un vrai blocage si plusieurs lignes existent).
         const lessonLevels: Record<string, number | null> = {};
         for (const ls of lessonRows) {
           const rows = own.filter((s) => s.lesson_id === ls.id && (s.total_answers || 0) > 0);
           if (rows.length === 0) {
             lessonLevels[ls.id] = null;
           } else {
-            const avg = rows.reduce((a, s) => a + (s.current_level || 0), 0) / rows.length;
-            lessonLevels[ls.id] = Math.round(avg);
+            const weightedSum = rows.reduce((a, s) => a + s.current_level * s.total_answers, 0);
+            const weightTotal = rows.reduce((a, s) => a + s.total_answers, 0);
+            lessonLevels[ls.id] = weightTotal > 0 ? Math.round(weightedSum / weightTotal) : null;
           }
         }
 
@@ -209,6 +225,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
       toast.error(e.message || "Erreur lors du chargement de la classe");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [classRow.id, classRow.school_level]);
 
@@ -312,7 +329,19 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
       {/* Progress grid */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Grille de progression — élèves × notions</CardTitle>
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <CardTitle className="text-lg">Grille de progression — élèves × notions</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => fetchData(true)}
+              disabled={refreshing}
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+              Rafraîchir
+            </Button>
+          </div>
           <div className="flex flex-wrap gap-3 text-xs pt-2">
             <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-blue-600" /> Maîtrisé &gt;75%</span>
             <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-green-600" /> En ZPD 40-74%</span>
@@ -320,51 +349,54 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
             <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-red-500" /> Blocage &lt;20%</span>
             <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-muted border" /> Non évalué</span>
           </div>
+          {/* Sélecteur de chapitre — affiche un seul chapitre à la fois : la grille
+              précédente entassait tous les chapitres dans un tableau géant à
+              défilement horizontal avec des en-têtes de leçon en texte vertical
+              minuscule, illisible. Un chapitre à la fois avec des en-têtes
+              horizontaux normaux reste lisible sans défilement excessif. */}
+          {chapters.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-3">
+              {chapters.map((ch) => (
+                <button
+                  key={ch.id}
+                  type="button"
+                  onClick={() => setSelectedChapterId(ch.id)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                    selectedChapterId === ch.id
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-foreground/70 border-border hover:bg-muted"
+                  }`}
+                >
+                  {ch.title}
+                </button>
+              ))}
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           {(() => {
-            const chapterGroups = chapters
-              .map((ch) => ({ ch, lessons: lessons.filter((l) => l.chapter_id === ch.id) }))
-              .filter((g) => g.lessons.length > 0);
-            const flatLessons = chapterGroups.flatMap((g) => g.lessons);
-            const groupStartIds = new Set(chapterGroups.map((g) => g.lessons[0]?.id).filter(Boolean));
-            const sepClass = (id: string) => (groupStartIds.has(id) ? "border-l-2 border-border pl-1" : "");
+            const chapterLessons = lessons.filter((l) => l.chapter_id === selectedChapterId);
 
-            if (flatLessons.length === 0) {
-              return <p className="text-sm text-muted-foreground">Aucune leçon disponible pour ce niveau.</p>;
+            if (chapters.length === 0) {
+              return <p className="text-sm text-muted-foreground">Aucun chapitre disponible pour ce niveau.</p>;
+            }
+            if (chapterLessons.length === 0) {
+              return <p className="text-sm text-muted-foreground">Aucune leçon disponible pour ce chapitre.</p>;
             }
 
             return (
               <div className="overflow-x-auto">
-                <table className="border-separate" style={{ borderSpacing: "2px" }}>
+                <table className="border-separate w-full" style={{ borderSpacing: "2px" }}>
                   <thead>
-                    {/* Chapter grouping row */}
                     <tr>
-                      <th rowSpan={2} className="text-left text-xs font-medium text-muted-foreground sticky left-0 bg-background pr-3 min-w-[200px] align-bottom">Élève</th>
-                      {chapterGroups.map((g) => (
-                        <th
-                          key={g.ch.id}
-                          colSpan={g.lessons.length}
-                          title={g.ch.title}
-                          className="text-[10px] font-semibold text-foreground/80 px-1 pb-1 border-b border-l-2 border-border text-center"
-                        >
-                          <div className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
-                            {g.ch.title.length > 22 ? g.ch.title.slice(0, 22) + "…" : g.ch.title}
-                          </div>
+                      <th className="text-left text-xs font-medium text-muted-foreground sticky left-0 bg-background pr-3 min-w-[200px]">Élève</th>
+                      {chapterLessons.map((ls) => (
+                        <th key={ls.id} title={ls.title} className="text-xs font-medium text-muted-foreground px-2 pb-2 text-center min-w-[110px] max-w-[160px]">
+                          <div className="whitespace-normal leading-snug">{ls.title}</div>
                         </th>
                       ))}
-                      <th rowSpan={2} className="text-xs font-medium text-muted-foreground px-2 align-bottom">Score</th>
-                      <th rowSpan={2} className="text-xs font-medium text-muted-foreground px-1 align-bottom">Gr.</th>
-                    </tr>
-                    {/* Lesson (notion) row */}
-                    <tr>
-                      {flatLessons.map((ls) => (
-                        <th key={ls.id} title={ls.title} className={`text-[10px] font-medium text-muted-foreground align-bottom h-20 ${sepClass(ls.id)}`}>
-                          <div className="rotate-180 [writing-mode:vertical-rl] mx-auto max-h-20 overflow-hidden whitespace-nowrap">
-                            {ls.title.length > 22 ? ls.title.slice(0, 22) + "…" : ls.title}
-                          </div>
-                        </th>
-                      ))}
+                      <th className="text-xs font-medium text-muted-foreground px-2">Score</th>
+                      <th className="text-xs font-medium text-muted-foreground px-1">Gr.</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -379,7 +411,7 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
                       <Fragment key={s.profile.id}>
                       {isNewGroup && (
                         <tr key={`group-${s.group}`}>
-                          <td colSpan={flatLessons.length + 2} className="pt-4 pb-1 sticky left-0">
+                          <td colSpan={chapterLessons.length + 3} className="pt-4 pb-1 sticky left-0">
                             <div className="flex items-center gap-2">
                               <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-md text-xs font-bold ${GROUP_INFO[s.group].tone}`}>
                                 Groupe {s.group}
@@ -421,13 +453,13 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
                             </div>
                           </div>
                         </td>
-                        {flatLessons.map((ls) => {
+                        {chapterLessons.map((ls) => {
                           const lvl = s.lessonLevels[ls.id];
                           return (
-                            <td key={ls.id} className={`align-top ${sepClass(ls.id)}`}>
+                            <td key={ls.id} className="align-top text-center">
                               <div
                                 title={`${ls.title} : ${lvl === null ? "Non évalué" : lvl + "%"}`}
-                                className={`w-5 h-5 rounded-sm ${cellColor(lvl)} cursor-default`}
+                                className={`w-5 h-5 rounded-sm mx-auto ${cellColor(lvl)} cursor-default`}
                               />
                             </td>
                           );
