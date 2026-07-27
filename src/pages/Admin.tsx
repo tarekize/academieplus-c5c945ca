@@ -51,11 +51,13 @@ import {
   TrendingUp,
   LayoutDashboard,
   Building2,
+  Pencil,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import { AddUserDialog } from "@/components/admin/AddUserDialog";
+import { EditUserDialog } from "@/components/admin/EditUserDialog";
 
 // Helper to get full name from profile
 const getFullName = (user: AdminUser): string => {
@@ -83,6 +85,8 @@ export default function Admin() {
   const [searchQueryEtablissements, setSearchQueryEtablissements] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<AdminUser | null>(null);
 
   // Separate users by role
   const pedagos = users.filter((user) => getPrimaryRole(user) === "pedago");
@@ -450,6 +454,10 @@ export default function Admin() {
                           onToggleStatus={() =>
                             toggleUserStatus(user.id, !user.is_active, user.email || '')
                           }
+                          onEdit={() => {
+                            setUserToEdit(user);
+                            setEditDialogOpen(true);
+                          }}
                           onDelete={() => {
                             setUserToDelete(user);
                             setDeleteDialogOpen(true);
@@ -517,6 +525,10 @@ export default function Admin() {
                           onToggleStatus={() =>
                             toggleUserStatus(user.id, !user.is_active, user.email || '')
                           }
+                          onEdit={() => {
+                            setUserToEdit(user);
+                            setEditDialogOpen(true);
+                          }}
                           onDelete={() => {
                             setUserToDelete(user);
                             setDeleteDialogOpen(true);
@@ -586,6 +598,10 @@ export default function Admin() {
                           onToggleStatus={() =>
                             toggleUserStatus(user.id, !user.is_active, user.email || '')
                           }
+                          onEdit={() => {
+                            setUserToEdit(user);
+                            setEditDialogOpen(true);
+                          }}
                           onDelete={() => {
                             setUserToDelete(user);
                             setDeleteDialogOpen(true);
@@ -653,6 +669,10 @@ export default function Admin() {
                           onToggleStatus={() =>
                             toggleUserStatus(user.id, !user.is_active, user.email || '')
                           }
+                          onEdit={() => {
+                            setUserToEdit(user);
+                            setEditDialogOpen(true);
+                          }}
                           onDelete={() => {
                             setUserToDelete(user);
                             setDeleteDialogOpen(true);
@@ -724,6 +744,10 @@ export default function Admin() {
                           user={user}
                           hideToggle
                           onToggleStatus={() => {}}
+                          onEdit={() => {
+                            setUserToEdit(user);
+                            setEditDialogOpen(true);
+                          }}
                           onDelete={() => {
                             setUserToDelete(user);
                             setDeleteDialogOpen(true);
@@ -873,6 +897,14 @@ export default function Admin() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit User Dialog */}
+      <EditUserDialog
+        user={userToEdit}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onUserUpdated={refetch}
+      />
     </div>
   );
 }
@@ -942,12 +974,14 @@ function UserRow({
   user,
   showLevel,
   hideToggle,
+  onEdit,
   onToggleStatus,
   onDelete,
 }: {
   user: AdminUser;
   showLevel?: boolean;
   hideToggle?: boolean;
+  onEdit: () => void;
   onToggleStatus: () => void;
   onDelete: () => void;
 }) {
@@ -1007,6 +1041,10 @@ function UserRow({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="rounded-xl shadow-lg border-border/50">
+            <DropdownMenuItem onClick={onEdit} className="rounded-lg cursor-pointer">
+              <Pencil className="h-4 w-4 mr-2" />
+              Modifier
+            </DropdownMenuItem>
             {!hideToggle ? (
               <DropdownMenuItem onClick={onToggleStatus} className="rounded-lg cursor-pointer">
                 {user.is_active ? (
