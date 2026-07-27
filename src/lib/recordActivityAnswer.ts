@@ -107,13 +107,23 @@ export async function recordActivityHesitation({
   };
 
   const adjust = hesitationAdjustment(kind, difficulty);
+  // Un timeout (question ouverte > 1 min puis abandonnée sans réponse) est un
+  // vrai signal de niveau — il porte un ajustement (adjust !== 0) et doit donc
+  // peser dans la moyenne de la leçon/du chapitre comme le ferait une réponse
+  // ratée, sinon il reste invisible du calcul agrégé malgré l'ajustement
+  // appliqué à current_level. "erase" ne porte aucun ajustement (adjust === 0,
+  // rien à intégrer) et ne compte donc pas comme une réponse.
+  const countsAsAnswer = adjust !== 0;
 
   if (existing) {
     const newLevel = applyDelta(existing.current_level ?? 50, adjust);
-    await supabase
-      .from("student_scores")
-      .update({ assessment_data: nextAssessment, current_level: newLevel })
-      .eq("id", existing.id);
+    const update: Record<string, unknown> = { assessment_data: nextAssessment, current_level: newLevel };
+    if (countsAsAnswer) {
+      const newTotalAnswers = (existing.total_answers || 0) + 1;
+      update.total_answers = newTotalAnswers;
+      update.accuracy_rate = Math.round(((existing.correct_answers || 0) / newTotalAnswers) * 100);
+    }
+    await supabase.from("student_scores").update(update).eq("id", existing.id);
   } else {
     const baseLevel = await getPlacementLevel(userId);
     await supabase.from("student_scores").insert({
@@ -122,6 +132,8 @@ export async function recordActivityHesitation({
       lesson_id: lessonId,
       current_level: applyDelta(baseLevel, adjust),
       assessment_data: nextAssessment,
+      total_answers: countsAsAnswer ? 1 : 0,
+      accuracy_rate: 0,
     });
   }
 }

@@ -472,9 +472,6 @@ const Cours = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <h1 className="font-display text-xl md:text-2xl font-extrabold text-foreground truncate">{subject?.name || "Cours"}</h1>
-                <p className="text-sm text-muted-foreground">
-                  {t("cours.chaptersCompleted", { completed: Object.values(progress).filter(Boolean).length, total: chapters.length })}
-                </p>
               </div>
             </div>
             <div className="mt-4">

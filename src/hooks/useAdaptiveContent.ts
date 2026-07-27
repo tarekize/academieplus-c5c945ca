@@ -484,15 +484,29 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   }, [userId, lessonId, chapterId]);
 
   // Règle 3.2 — hésitation/abandon sans réponse soumise.
+  // Un timeout porte un vrai ajustement de niveau (adjust !== 0) : il doit donc
+  // aussi compter dans total_answers pour peser dans les moyennes leçon/chapitre,
+  // sinon l'ajustement appliqué à current_level reste invisible du calcul agrégé
+  // (qui pondère par total_answers). "erase" ne porte aucun ajustement et ne
+  // compte donc pas comme une réponse.
   const recordHesitation = useCallback(async (kind: "timeout" | "erase", difficulty?: number) => {
     if (!userId || !lessonId) return;
     const adjust = hesitationAdjustment(kind, difficulty);
+    const countsAsAnswer = adjust !== 0;
 
-    setScore((prev) => ({ ...prev, current_level: applyDelta(prev.current_level, adjust) }));
+    setScore((prev) => {
+      const newTotalAnswers = countsAsAnswer ? prev.total_answers + 1 : prev.total_answers;
+      return {
+        ...prev,
+        current_level: applyDelta(prev.current_level, adjust),
+        total_answers: newTotalAnswers,
+        accuracy_rate: countsAsAnswer ? Math.round((prev.correct_answers / newTotalAnswers) * 100) : prev.accuracy_rate,
+      };
+    });
 
     const { data: existing } = await supabase
       .from("student_scores")
-      .select("id, current_level, assessment_data")
+      .select("id, current_level, assessment_data, total_answers, correct_answers")
       .eq("user_id", userId)
       .eq("lesson_id", lessonId)
       .maybeSingle();
@@ -505,10 +519,16 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     };
 
     if (existing) {
-      await supabase
-        .from("student_scores")
-        .update({ assessment_data: nextAssessment, current_level: applyDelta(existing.current_level ?? 50, adjust) })
-        .eq("id", existing.id);
+      const update: Record<string, unknown> = {
+        assessment_data: nextAssessment,
+        current_level: applyDelta(existing.current_level ?? 50, adjust),
+      };
+      if (countsAsAnswer) {
+        const newTotalAnswers = (existing.total_answers || 0) + 1;
+        update.total_answers = newTotalAnswers;
+        update.accuracy_rate = Math.round(((existing.correct_answers || 0) / newTotalAnswers) * 100);
+      }
+      await supabase.from("student_scores").update(update).eq("id", existing.id);
     } else {
       const baseLevel = await getPlacementLevel(userId);
       await supabase.from("student_scores").insert({
@@ -517,6 +537,8 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
         chapter_id: chapterId,
         current_level: applyDelta(baseLevel, adjust),
         assessment_data: nextAssessment,
+        total_answers: countsAsAnswer ? 1 : 0,
+        accuracy_rate: 0,
       });
     }
   }, [userId, lessonId, chapterId]);

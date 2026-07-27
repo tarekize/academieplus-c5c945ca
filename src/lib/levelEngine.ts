@@ -87,6 +87,11 @@ export function computeDelta({
   } else {
     // Abandon avec indice curatif → perte accrue.
     if (hintUsage === "curative") delta = Math.round(delta * 1.3);
+    // Réponse abandonnée (solution révélée / quitté sans avoir vraiment cherché)
+    // → aucune capacité de résolution démontrée, perte accrue par rapport à une
+    // simple mauvaise réponse. Le paramètre `abandoned` était accepté par cette
+    // fonction sans jamais être utilisé — corrige ce trou.
+    if (abandoned) delta = Math.round(delta * 1.5);
   }
 
   // Re-clamp after modulators

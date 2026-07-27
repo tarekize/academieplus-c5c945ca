@@ -937,9 +937,6 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
               <div className="rounded-full bg-secondary/70 px-3 py-1.5 text-xs font-medium flex items-center gap-1.5">
                 <Target className="h-3.5 w-3.5 text-primary" /> {t("studentDashboard.levelLabel")}: {selectedChapter.level}/100
               </div>
-              <div className="rounded-full bg-secondary/70 px-3 py-1.5 text-xs font-medium flex items-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> {t("studentDashboard.lessonsLabel")}: {selectedChapterLessons?.completedLessons || 0}/{selectedChapterLessons?.totalLessons || 0}
-              </div>
             </div>
 
             <div>
