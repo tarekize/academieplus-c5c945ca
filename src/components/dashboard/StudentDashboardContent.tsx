@@ -254,6 +254,14 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
       // et persister la valeur dégradée dans la base pour cohérence.
       const decayedRows: Array<{ id: string; lesson_id: string | null; current_level: number; total_answers: number }> = [];
       const decayPersistPromises: Promise<unknown>[] = [];
+      // Le niveau d'un chapitre = moyenne pondérée (par nombre de réponses) des
+      // leçons réellement répondues, pas "la dernière ligne traitée" (l'ancien
+      // `existing.level = effectiveLevel || existing.level` écrasait le niveau à
+      // chaque ligne du chapitre, donc le résultat final dépendait de l'ordre de
+      // traitement au lieu d'une vraie moyenne — et une leçon simplement ouverte
+      // sans réponse pouvait quand même écraser le niveau d'un chapitre déjà
+      // travaillé). Les lignes sans réponse (total_answers = 0) ne comptent pas.
+      const chapterLevelAccum = new Map<string, { weightedSum: number; weightTotal: number }>();
 
       (data || []).forEach((s: any) => {
         const cId = s.chapter_id;
@@ -295,16 +303,33 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
         };
         existing.totalTime += (s.reading_time_seconds || 0) + (s.quiz_time_seconds || 0) + (s.exercise_time_seconds || 0);
         existing.accuracy = Number(s.accuracy_rate) || existing.accuracy;
-        existing.level = effectiveLevel || existing.level;
         existing.correctAnswers += s.correct_answers || 0;
         existing.totalAnswers += s.total_answers || 0;
         chapterMap.set(cId, existing);
+
+        const rowAnswers = s.total_answers || 0;
+        if (rowAnswers > 0) {
+          const accum = chapterLevelAccum.get(cId) || { weightedSum: 0, weightTotal: 0 };
+          accum.weightedSum += effectiveLevel * rowAnswers;
+          accum.weightTotal += rowAnswers;
+          chapterLevelAccum.set(cId, accum);
+        }
+
         totalReadTime += s.reading_time_seconds || 0;
         totalQuizTime += s.quiz_time_seconds || 0;
         totalExTime += s.exercise_time_seconds || 0;
         sumCorrect += s.correct_answers || 0;
         sumTotal += s.total_answers || 0;
         if ((s.streak || 0) > maxStreak) maxStreak = s.streak;
+      });
+
+      // Un chapitre jamais commencé (aucune ligne avec réponse) reste à son
+      // niveau initial 0 — il n'est pas dans chapterLevelAccum.
+      chapterLevelAccum.forEach((accum, cId) => {
+        const chapter = chapterMap.get(cId);
+        if (chapter && accum.weightTotal > 0) {
+          chapter.level = Math.round(accum.weightedSum / accum.weightTotal);
+        }
       });
 
       // Fire decay updates without blocking UI
@@ -390,14 +415,18 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
           correctAnswers += r.correct_answers || 0;
           totalLessonAnswers += r.total_answers || 0;
 
+          // Une leçon simplement ouverte (temps de lecture suivi) crée une ligne
+          // student_scores avec total_answers = 0 et un current_level "par défaut"
+          // (50, ou le niveau du test de positionnement) qui ne reflète aucune
+          // vraie réponse donnée — l'ancien "fallback" comptait quand même ce
+          // niveau, ce qui affichait un pourcentage de maîtrise pour une leçon
+          // jamais réellement travaillée. Seules les lignes avec au moins une
+          // réponse comptent désormais ; sans ça, lessonLevel reste `null`
+          // (rendu comme "non commencée", pas comme "50% acquis").
           const w = r.total_answers || 0;
           if (w > 0 && typeof r.current_level === "number") {
             levelWeightedSum += r.current_level * w;
             levelWeightTotal += w;
-          } else if (typeof r.current_level === "number" && levelWeightTotal === 0) {
-            // fallback: at least record the level even without answers
-            levelWeightedSum += r.current_level;
-            levelWeightTotal = Math.max(levelWeightTotal, 1);
           }
 
           const assessmentData = (r.assessment_data || {}) as Record<string, any>;
