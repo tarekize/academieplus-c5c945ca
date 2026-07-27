@@ -36,10 +36,16 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       onPointerDownOutside={(e) => {
-        // Le clavier arabe virtuel flotte dans un portail à part (document.body),
-        // donc un clic dessus compte comme "en dehors" de la modale pour Radix —
-        // sans ce garde-fou, cliquer une touche fermerait la modale au lieu d'écrire.
-        if ((e.target as HTMLElement | null)?.closest("[data-arabic-keyboard-widget]")) {
+        // Le clavier arabe virtuel et les toasts (sonner) flottent dans des portails
+        // à part (document.body), donc un clic dessus compte comme "en dehors" de la
+        // modale pour Radix — sans ce garde-fou, cliquer une touche ou fermer un toast
+        // fermerait la modale au lieu d'agir sur son propre élément (ex : la modale de
+        // vérification par code se fermait dès qu'on cliquait le X du toast affiché dessus).
+        if (
+          (e.target as HTMLElement | null)?.closest(
+            "[data-arabic-keyboard-widget], [data-sonner-toaster], [data-sonner-toast]",
+          )
+        ) {
           e.preventDefault();
           return;
         }
