@@ -245,9 +245,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   // est rattaché, pour ne pas éteindre par erreur le point d'autres leçons.
   useEffect(() => {
     if (activeStep !== "maclasse" || !lessonId) return;
-    const toMark = unreadItems.filter((it) => it.lesson_id === lessonId && it.content_type !== "exam").map((it) => it.content_id);
+    const wantedType = activeSection === "quiz" ? "quiz" : "exercise";
+    const toMark = unreadItems.filter((it) => it.lesson_id === lessonId && it.content_type === wantedType).map((it) => it.content_id);
     if (toMark.length > 0) markRead(toMark);
-  }, [activeStep, lessonId, unreadItems, markRead]);
+  }, [activeStep, activeSection, lessonId, unreadItems, markRead]);
 
   useEffect(() => {
     const loadProgress = async () => {
@@ -641,9 +642,12 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const visibleSteps = inClass ? [...baseSteps, myClassStep] : baseSteps;
 
   if (activeSection === null) {
+    const unreadExerciseHere = unreadItems.some((it) => it.lesson_id === lessonId && it.content_type === "exercise");
+    const unreadQuizHere = unreadItems.some((it) => it.lesson_id === lessonId && it.content_type === "quiz");
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-        <Card className="cursor-pointer group hover:shadow-lg hover:border-primary/50 transition-all" onClick={() => handleSectionChange("exercises")}>
+        <Card className="relative cursor-pointer group hover:shadow-lg hover:border-primary/50 transition-all" onClick={() => handleSectionChange("exercises")}>
+          <TeacherContentRedDot show={unreadExerciseHere} className="top-3 right-3" />
           <CardContent className="p-6 flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-amber/10 flex items-center justify-center group-hover:scale-110 transition-transform">
               <PenTool className="h-7 w-7 text-amber" />
@@ -655,7 +659,8 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
           </CardContent>
         </Card>
-        <Card className="cursor-pointer group hover:shadow-lg hover:border-primary/50 transition-all" onClick={() => handleSectionChange("quiz")}>
+        <Card className="relative cursor-pointer group hover:shadow-lg hover:border-primary/50 transition-all" onClick={() => handleSectionChange("quiz")}>
+          <TeacherContentRedDot show={unreadQuizHere} className="top-3 right-3" />
           <CardContent className="p-6 flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Brain className="h-7 w-7 text-primary" />
@@ -705,7 +710,12 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     : "hover:bg-background/60 text-muted-foreground hover:text-foreground hover:shadow-sm"
               )}
             >
-              {step.id === "maclasse" && <TeacherContentRedDot show={hasUnreadForLesson(lessonId || "")} className="top-1 right-1" />}
+              {step.id === "maclasse" && (
+                <TeacherContentRedDot
+                  show={unreadItems.some((it) => it.lesson_id === lessonId && it.content_type === (isQuiz ? "quiz" : "exercise"))}
+                  className="top-1 right-1"
+                />
+              )}
               <div className="flex items-center gap-3">
                 <div className={cn(
                   "w-9 h-9 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-sm font-bold transition-colors shadow-sm",

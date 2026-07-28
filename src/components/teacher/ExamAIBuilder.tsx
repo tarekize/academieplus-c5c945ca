@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,10 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Sparkles, Share2, Eye } from "lucide-react";
+import { Loader2, Sparkles, Share2, Eye, History, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import { saveTeacherContent, assignContent, getTrimesterOptions, GeneratedItem } from "@/lib/teacherContent";
+import { TeacherContentSessionRow, saveTeacherContentSession } from "@/lib/teacherContentSessions";
+import TeacherContentSessionHistory from "./TeacherContentSessionHistory";
 import SendContentDialog from "./SendContentDialog";
 import DocumentImportButton from "@/components/DocumentImportButton";
 import GeneratedItemPreviewDialog from "@/components/GeneratedItemPreviewDialog";
@@ -48,6 +50,10 @@ export default function ExamAIBuilder({ teacherId }: Props) {
   const [sendOpen, setSendOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [previewIdx, setPreviewIdx] = useState<number | null>(null);
+
+  const [showHistory, setShowHistory] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const sessionSaveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -179,6 +185,7 @@ export default function ExamAIBuilder({ teacherId }: Props) {
       await assignContent({ contentId: id, assignedBy: teacherId, classIds });
       toast.success("Examen partagé aux classes sélectionnées");
       resetForm();
+      setSessionId(null);
     } catch (e: any) {
       toast.error(e.message || "Erreur lors du partage");
     } finally {
@@ -194,11 +201,75 @@ export default function ExamAIBuilder({ teacherId }: Props) {
     setSendOpen(true);
   };
 
+  // Sauvegarde automatique (débouncée) de la session dès qu'un exercice a du
+  // contenu, pour la retrouver plus tard dans l'historique (bouton "Historique").
+  useEffect(() => {
+    if (!level || !rows.some((r) => r.statement.trim())) return;
+    if (sessionSaveTimeout.current) clearTimeout(sessionSaveTimeout.current);
+    sessionSaveTimeout.current = setTimeout(() => {
+      const sessionTitle = `Examen · ${getSchoolLevelLabel(level)}${title ? ` · ${title}` : ""}`;
+      saveTeacherContentSession({
+        id: sessionId, teacherId, contentType: "exam", title: sessionTitle,
+        state: { level, filiere, title, trimester, count, rows },
+      })
+        .then((id) => setSessionId(id))
+        .catch((err) => console.error("Error saving teacher content session:", err));
+    }, 1500);
+    return () => { if (sessionSaveTimeout.current) clearTimeout(sessionSaveTimeout.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [level, filiere, title, trimester, count, rows]);
+
+  const loadSession = (session: TeacherContentSessionRow) => {
+    const s = session.state || {};
+    setLevel(s.level || "");
+    setFiliere(s.filiere || "");
+    setTitle(s.title || "");
+    setTrimester(s.trimester || "");
+    setCount(s.count || 3);
+    setRows(s.rows && s.rows.length > 0 ? s.rows : Array.from({ length: 3 }, emptyRow));
+    setSessionId(session.id);
+    setShowHistory(false);
+  };
+
+  const startNewSession = () => {
+    setSessionId(null);
+    setLevel(""); setFiliere("");
+    resetForm();
+    setShowHistory(false);
+  };
+
+  if (showHistory) {
+    return (
+      <Card>
+        <CardContent className="p-0 h-[60vh]">
+          <TeacherContentSessionHistory
+            teacherId={teacherId}
+            contentType="exam"
+            activeSessionId={sessionId}
+            onSelect={loadSession}
+            onNew={startNewSession}
+            onClose={() => setShowHistory(false)}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardContent className="p-4 space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-          <Sparkles className="h-4 w-4" /> Générateur d'examen par IA
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+            <Sparkles className="h-4 w-4" /> Générateur d'examen par IA
+          </div>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" onClick={() => setShowHistory(true)} className="h-8 gap-1 text-xs text-muted-foreground hover:text-primary rounded-xl">
+              <History className="h-3.5 w-3.5" /> Historique
+            </Button>
+            <Button variant="ghost" size="sm" onClick={startNewSession} className="h-8 gap-1 text-xs text-muted-foreground hover:text-primary rounded-xl">
+              <Plus className="h-3.5 w-3.5" /> Nouveau
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">

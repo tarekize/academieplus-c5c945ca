@@ -942,7 +942,7 @@ const Cours = () => {
                           navigate(`${buildCoursPath(chapter.id)}${qs ? `?${qs}` : ""}`);
                         }}
                       >
-                        <TeacherContentRedDot show={!canManage && hasUnreadForChapter(chapter.id)} />
+                        <TeacherContentRedDot show={!canManage && hasUnreadForChapter(chapter.id)} className="top-2 right-2" />
                         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         <CardHeader className="relative pb-2">
                           <CardTitle className="text-lg flex items-center gap-3">

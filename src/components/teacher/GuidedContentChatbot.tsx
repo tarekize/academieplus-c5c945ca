@@ -5,13 +5,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Bot, Loader2, Send, Sparkles, ChevronLeft, Eye, CheckCircle2 } from "lucide-react";
+import { Bot, Loader2, Send, Sparkles, ChevronLeft, Eye, CheckCircle2, History, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import {
   ContentType, CONTENT_TYPE_LABELS, GeneratedItem,
   generateTeacherContent, saveTeacherContent, assignContent,
 } from "@/lib/teacherContent";
+import { TeacherContentSessionRow, saveTeacherContentSession } from "@/lib/teacherContentSessions";
+import TeacherContentSessionHistory from "./TeacherContentSessionHistory";
 import SendContentDialog from "./SendContentDialog";
 import DocumentImportButton from "@/components/DocumentImportButton";
 import GeneratedItemPreviewDialog from "@/components/GeneratedItemPreviewDialog";
@@ -68,10 +70,58 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
   const [previewIdx, setPreviewIdx] = useState<number | null>(null);
   const [genProgress, setGenProgress] = useState<{ done: number; total: number } | null>(null);
 
+  const [showHistory, setShowHistory] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [step, items]);
+
+  // Sauvegarde automatique de la session dès qu'un résultat existe, pour
+  // pouvoir la retrouver plus tard dans l'historique (bouton "Historique").
+  useEffect(() => {
+    if (step !== "results" || items.length === 0) return;
+    const selectedChapterTitles = chapters.filter((c) => selectedChapterIds.includes(c.id)).map((c) => c.title);
+    const title = `${CONTENT_TYPE_LABELS[contentType]} · ${getSchoolLevelLabel(level)}${selectedChapterTitles.length ? ` · ${selectedChapterTitles.slice(0, 2).join(", ")}${selectedChapterTitles.length > 2 ? "…" : ""}` : ""}`;
+    const state = {
+      level, filiere, chapters, lessons, selectedChapterIds, selectedLessonIds,
+      count, diffMin, diffMax, items, sentIdx, step,
+    };
+    saveTeacherContentSession({ id: sessionId, teacherId, contentType, title, state })
+      .then((id) => setSessionId(id))
+      .catch((err) => console.error("Error saving teacher content session:", err));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, items, sentIdx]);
+
+  const loadSession = (session: TeacherContentSessionRow) => {
+    const s = session.state || {};
+    setLevel(s.level || "");
+    setFiliere(s.filiere || null);
+    setChapters(s.chapters || []);
+    setLessons(s.lessons || []);
+    setSelectedChapterIds(s.selectedChapterIds || []);
+    setSelectedLessonIds(s.selectedLessonIds || []);
+    setCount(s.count || 3);
+    setDiffMin(s.diffMin ?? 1);
+    setDiffMax(s.diffMax ?? 3);
+    setItems(s.items || []);
+    setSentIdx(s.sentIdx || {});
+    setSessionId(session.id);
+    setStep("results");
+    setShowHistory(false);
+  };
+
+  const startNewSession = () => {
+    setSessionId(null);
+    setLevel(""); setFiliere(null); setFilieres([]);
+    setChapters([]); setLessons([]);
+    setSelectedChapterIds([]); setSelectedLessonIds([]);
+    setCount(3); setDiffMin(1); setDiffMax(3);
+    setItems([]); setSentIdx({});
+    setStep("level");
+    setShowHistory(false);
+  };
 
   // Load distinct levels of the teacher's classes
   useEffect(() => {
@@ -238,9 +288,34 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
   const selectedChapters = chapters.filter((c) => selectedChapterIds.includes(c.id));
   const selectedLessons = lessons.filter((l) => selectedLessonIds.includes(l.id));
 
+  if (showHistory) {
+    return (
+      <Card>
+        <CardContent className="p-0 h-[60vh]">
+          <TeacherContentSessionHistory
+            teacherId={teacherId}
+            contentType={contentType}
+            activeSessionId={sessionId}
+            onSelect={loadSession}
+            onNew={startNewSession}
+            onClose={() => setShowHistory(false)}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardContent className="p-4 space-y-4">
+        <div className="flex items-center justify-end gap-1 -mb-2">
+          <Button variant="ghost" size="sm" onClick={() => setShowHistory(true)} className="h-8 gap-1 text-xs text-muted-foreground hover:text-primary rounded-xl">
+            <History className="h-3.5 w-3.5" /> Historique
+          </Button>
+          <Button variant="ghost" size="sm" onClick={startNewSession} className="h-8 gap-1 text-xs text-muted-foreground hover:text-primary rounded-xl">
+            <Plus className="h-3.5 w-3.5" /> Nouveau
+          </Button>
+        </div>
         <div ref={scrollRef} className="space-y-4 max-h-[55vh] overflow-y-auto pr-1">
           <Bubble>Salut ! 👋 Je vais t'aider à créer des {typeLabel.toLowerCase()}s. Sur quel niveau puis-je t'aider ?</Bubble>
 
