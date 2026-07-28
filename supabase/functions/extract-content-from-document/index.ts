@@ -143,6 +143,11 @@ Les "options" et "correct_answer" doivent aussi utiliser LaTeX entre $...$ quand
 Réponds UNIQUEMENT en JSON valide de la forme :
 {"items":[{"title":"titre court","statement":"énoncé complet de l'exercice${mode === "improve" ? ", reformulé/amélioré" : ", retranscrit fidèlement"}","hint":"indice utile sans donner la réponse","expected_answer":"réponse attendue concise (si présente dans le document, sinon déduis-la de la solution)","solution":"corrigé si présent dans le document, sinon une correction détaillée que tu rédiges toi-même (voir format ci-dessous)","difficulty":2}]}
 
+Exercice à PLUSIEURS questions/parties (souvent numérotées 1), 2), 3)...) — IMPORTANT :
+Si un exercice du document comporte naturellement plusieurs questions distinctes, ne les mélange PAS dans "statement"/"expected_answer". Utilise à la place "sub_questions", "statement" devenant l'énoncé/contexte commun uniquement (sans répéter les questions) et "expected_answer" vide :
+{"title":"...","statement":"énoncé commun (contexte, données de l'exercice)","sub_questions":[{"question":"1) énoncé de cette question précise","expected_answer":"réponse attendue pour CETTE question, si disponible"},{"question":"2) ...","expected_answer":"..."}],"hint":"...","solution":"...","difficulty":2}
+N'utilise "sub_questions" que si l'exercice a vraiment plusieurs questions séparées dans le document ; pour un exercice à une seule question, garde le format simple ("statement"/"expected_answer") sans "sub_questions".
+
 Format de "solution" — OBLIGATOIRE :
 - Corrections RICHES et DÉTAILLÉES en HTML avec plusieurs étapes numérotées, JAMAIS une seule ligne.
 - Structure attendue : <p><strong>الخطوة 1 :</strong> ...</p><p>$$ formule $$</p><p><strong>الخطوة 2 :</strong> ...</p>... puis <p><strong>الاستنتاج :</strong> $$ \\boxed{résultat} $$</p>.

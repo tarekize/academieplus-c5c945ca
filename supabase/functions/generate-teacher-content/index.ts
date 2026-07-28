@@ -140,6 +140,11 @@ Les "options" et "correct_answer" doivent aussi utiliser LaTeX entre $...$ quand
 Réponds UNIQUEMENT en JSON valide de la forme :
 {"items":[{"title":"titre court","statement":"énoncé complet de l'exercice","hint":"indice utile sans donner la réponse","expected_answer":"réponse attendue concise","solution":"correction détaillée (voir format ci-dessous)","difficulty":2}]}
 
+Exercice à PLUSIEURS questions/parties (souvent numérotées 1), 2), 3)...) — IMPORTANT :
+Si un exercice comporte naturellement plusieurs questions distinctes, ne les mélange PAS dans "statement"/"expected_answer". Utilise à la place un champ "sub_questions", et laisse "statement" comme l'énoncé/contexte commun uniquement (sans répéter les questions) et "expected_answer" vide :
+{"title":"...","statement":"énoncé commun (contexte, données de l'exercice)","sub_questions":[{"question":"1) énoncé de cette question précise","expected_answer":"réponse attendue pour CETTE question"},{"question":"2) ...","expected_answer":"..."}],"hint":"...","solution":"...","difficulty":2}
+Chaque élève répondra séparément à chaque "sub_questions", avec sa propre case de réponse — donne donc bien une "expected_answer" pour CHAQUE sous-question quand c'est possible. N'utilise "sub_questions" que si l'exercice a vraiment plusieurs questions séparées ; pour un exercice à une seule question, garde le format simple ("statement"/"expected_answer") sans "sub_questions".
+
 Format de "solution" — OBLIGATOIRE :
 - Corrections RICHES et DÉTAILLÉES en HTML avec plusieurs étapes numérotées, JAMAIS une seule ligne.
 - Structure attendue : <p><strong>الخطوة 1 :</strong> ...</p><p>$$ formule $$</p><p><strong>الخطوة 2 :</strong> ...</p>... puis <p><strong>الاستنتاج :</strong> $$ \\boxed{résultat} $$</p>.

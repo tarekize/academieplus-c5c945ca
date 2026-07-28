@@ -207,6 +207,7 @@ export function MyClassContent({ userId, contentType }: Props) {
                       expectedAnswer={p.expected_answer}
                       solution={p.solution}
                       hint={p.hint}
+                      subQuestions={p.sub_questions}
                     />
                   </CardContent>
                 </Card>

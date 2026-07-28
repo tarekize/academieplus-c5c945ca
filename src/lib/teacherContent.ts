@@ -9,12 +9,20 @@ export interface ExamExerciseItem {
   answer?: string;
 }
 
+export interface ExerciseSubQuestion {
+  question: string;
+  expected_answer?: string;
+}
+
 export interface GeneratedItem {
   // exercise / exam
   title?: string;
   statement?: string;
   expected_answer?: string;
   solution?: string;
+  // exercise à plusieurs questions/parties : chacune avec sa propre réponse
+  // attendue, pour une case + un bouton "Valider" par question côté élève.
+  sub_questions?: ExerciseSubQuestion[];
   // quiz
   question?: string;
   options?: string[];
