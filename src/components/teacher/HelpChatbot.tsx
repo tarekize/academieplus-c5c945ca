@@ -29,10 +29,10 @@ interface Props {
   mode: "class" | "student";
 }
 
-interface WeakLesson { lessonId: string; title: string; chapterTitle: string; }
+interface WeakLesson { lessonId: string; title: string; chapterTitle: string; chapterId: string | null; }
 type ContentTypeSel = "exercise" | "quiz";
 interface GroupOption { letter: StudentGroupLetter; studentIds: string[]; }
-interface GenEntry extends GeneratedItem { _type: ContentTypeSel; _lessonTitle?: string; }
+interface GenEntry extends GeneratedItem { _type: ContentTypeSel; _lessonTitle?: string; _lessonId?: string; _chapterId?: string | null; }
 interface LessonPlan { exercise: number; quiz: number; }
 
 function Bubble({ children }: { children: React.ReactNode }) {
@@ -160,7 +160,7 @@ export default function HelpChatbot(props: Props) {
       for (const c of (chaps as any[]) || []) chapMap[c.id] = c.title;
 
       const w: WeakLesson[] = ((lessons as any[]) || []).map((l) => ({
-        lessonId: l.id, title: l.title, chapterTitle: chapMap[l.chapter_id] || "",
+        lessonId: l.id, title: l.title, chapterTitle: chapMap[l.chapter_id] || "", chapterId: l.chapter_id || null,
       }));
       setWeak(w);
       setSelectedLessonIds(w.map((l) => l.lessonId));
@@ -206,7 +206,7 @@ export default function HelpChatbot(props: Props) {
             chapterTitle: lesson.chapterTitle, lessonTitle: lesson.title,
             count: perLessonExercises, difficultyMin: 1, difficultyMax: 3, focusNote: focusBase,
           });
-          results.push(...gen.map((g) => ({ ...g, _type: "exercise" as const, _lessonTitle: lesson.title })));
+          results.push(...gen.map((g) => ({ ...g, _type: "exercise" as const, _lessonTitle: lesson.title, _lessonId: lesson.lessonId, _chapterId: lesson.chapterId })));
           setGenProgress((p) => p && { done: p.done + perLessonExercises, total: p.total });
         }
         if (perLessonQuizzes > 0) {
@@ -215,7 +215,7 @@ export default function HelpChatbot(props: Props) {
             chapterTitle: lesson.chapterTitle, lessonTitle: lesson.title,
             count: perLessonQuizzes, difficultyMin: 1, difficultyMax: 3, focusNote: focusBase,
           });
-          results.push(...gen.map((g) => ({ ...g, _type: "quiz" as const, _lessonTitle: lesson.title })));
+          results.push(...gen.map((g) => ({ ...g, _type: "quiz" as const, _lessonTitle: lesson.title, _lessonId: lesson.lessonId, _chapterId: lesson.chapterId })));
           setGenProgress((p) => p && { done: p.done + perLessonQuizzes, total: p.total });
         }
       }
@@ -291,7 +291,7 @@ export default function HelpChatbot(props: Props) {
           chapterTitle: job.lesson.chapterTitle, lessonTitle: job.lesson.title,
           count: 1, difficultyMin: 1, difficultyMax: 3, focusNote: focus,
         });
-        results.push(...gen.map((g) => ({ ...g, _type: job.type, _lessonTitle: job.lesson.title })));
+        results.push(...gen.map((g) => ({ ...g, _type: job.type, _lessonTitle: job.lesson.title, _lessonId: job.lesson.lessonId, _chapterId: job.lesson.chapterId })));
         setGenProgress((p) => p && { done: p.done + 1, total: p.total });
       }
       if (results.length === 0) { toast.error("Aucun contenu généré."); setPhase("chooseApproach"); return; }
@@ -324,6 +324,7 @@ export default function HelpChatbot(props: Props) {
     try {
       const id = await saveTeacherContent({
         teacherId, contentType: it._type,
+        chapterId: it._chapterId, lessonId: it._lessonId,
         schoolLevel,
         title: it.title || it.question?.slice(0, 60),
         payload: it, difficulty: it.difficulty, source: "ai",

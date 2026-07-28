@@ -164,8 +164,13 @@ export default function ExamAIBuilder({ teacherId }: Props) {
 
     setSaving(true);
     try {
+      // Un examen regroupe plusieurs exercices, potentiellement de chapitres différents :
+      // on garde le chapitre du premier exercice comme repère pour le point rouge
+      // "matière → chapitre → examen" (l'examen n'est pas rattaché à un seul chapitre en base).
+      const proxyChapterId = rows.find((r) => r.chapter_id && r.statement.trim())?.chapter_id || null;
       const id = await saveTeacherContent({
         teacherId, contentType: "exam",
+        chapterId: proxyChapterId,
         schoolLevel: level, filiere: filiere || null,
         title: title || validExercises[0].statement.slice(0, 60),
         payload: { title: title || undefined, exercises: validExercises, trimester: Number(trimester) },

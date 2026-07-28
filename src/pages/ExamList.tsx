@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import ExerciseAnswerBlock from "@/components/course/ExerciseAnswerBlock";
 import DocumentImportButton from "@/components/DocumentImportButton";
 import { GeneratedItem } from "@/lib/teacherContent";
+import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
+import { TeacherContentRedDot } from "@/components/TeacherContentRedDot";
 import {
   Dialog,
   DialogContent,
@@ -86,6 +88,7 @@ const ExamList = () => {
   const subject = searchParams.get("subject") || "math";
   const trimester = parseInt(searchParams.get("trimester") || "1");
   const { user: authUser } = useAuth();
+  const { items: unreadItems, markRead } = useUnreadTeacherContent(authUser?.id);
 
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
@@ -667,6 +670,7 @@ const ExamList = () => {
                     transition={{ duration: 0.3, delay: index * 0.05 }}
                     className="group relative rounded-2xl border bg-card hover:shadow-lg transition-all duration-300 overflow-hidden"
                   >
+                    <TeacherContentRedDot show={unreadItems.some((it) => it.content_id === exam.id)} className="top-2 right-2" />
                     <div className="flex items-center gap-4 p-5 md:p-6">
                       <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-sm">
                         <GraduationCap className="h-5 w-5 text-white" />
@@ -689,7 +693,7 @@ const ExamList = () => {
 
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <Button
-                          onClick={() => setViewTeacherExam(exam)}
+                          onClick={() => { setViewTeacherExam(exam); markRead([exam.id]); }}
                           variant="outline"
                           className="gap-2 rounded-xl"
                           size="sm"

@@ -15,6 +15,8 @@ import { MarkdownSolution } from "./MarkdownSolution";
 import { MathKeyboard } from "./MathKeyboard";
 import { cleanMathStatement, statementHasMath } from "@/lib/mathStatement";
 import { MyClassContent } from "./MyClassContent";
+import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
+import { TeacherContentRedDot } from "@/components/TeacherContentRedDot";
 
 export interface DBQuizQuestion {
   id: string;
@@ -83,6 +85,8 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [inClass, setInClass] = useState(false);
+  const effectiveUserId = propUserId || userId;
+  const { hasForLesson: hasUnreadForLesson, items: unreadItems, markRead } = useUnreadTeacherContent(effectiveUserId);
 
   // Handled inside unified effect below
 
@@ -235,6 +239,15 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
       supabase.removeChannel(channel);
     };
   }, [propUserId]);
+
+  // Point rouge : ouvrir l'onglet "Ma classe" équivaut à consulter le contenu
+  // envoyé par l'enseignant pour CETTE leçon — on ne marque lu que ce qui lui
+  // est rattaché, pour ne pas éteindre par erreur le point d'autres leçons.
+  useEffect(() => {
+    if (activeStep !== "maclasse" || !lessonId) return;
+    const toMark = unreadItems.filter((it) => it.lesson_id === lessonId && it.content_type !== "exam").map((it) => it.content_id);
+    if (toMark.length > 0) markRead(toMark);
+  }, [activeStep, lessonId, unreadItems, markRead]);
 
   useEffect(() => {
     const loadProgress = async () => {
@@ -692,6 +705,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                     : "hover:bg-background/60 text-muted-foreground hover:text-foreground hover:shadow-sm"
               )}
             >
+              {step.id === "maclasse" && <TeacherContentRedDot show={hasUnreadForLesson(lessonId || "")} className="top-1 right-1" />}
               <div className="flex items-center gap-3">
                 <div className={cn(
                   "w-9 h-9 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-sm font-bold transition-colors shadow-sm",

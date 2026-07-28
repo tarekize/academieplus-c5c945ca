@@ -26,6 +26,8 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { Capacitor } from "@capacitor/core";
 import { SUBJECTS } from "@/lib/subjects";
 import { useArabicKeyboardField } from "@/components/course/ArabicKeyboard";
+import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
+import { TeacherContentRedDot } from "@/components/TeacherContentRedDot";
 
 // Static subject data dérivée du catalogue partagé (src/lib/subjects.ts)
 const staticSubjects: Record<string, { id: string; name: string; icon: string }> =
@@ -111,6 +113,7 @@ const Cours = () => {
   const [activeActivity, setActiveActivity] = useState<string | null>(null);
   const [canManage, setCanManage] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const { hasForChapter: hasUnreadForChapter, hasExamFor: hasUnreadExam } = useUnreadTeacherContent(canManage ? null : profile?.id);
   const [pendingValidationCounts, setPendingValidationCounts] = useState<Record<string, number>>({});
   const [filiereId, setFiliereId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -574,9 +577,10 @@ const Cours = () => {
                   )}
                   <Button
                     variant="outline"
-                    className="rounded-full gap-2 border-accent/30 bg-accent/5 text-accent hover:bg-accent hover:text-accent-foreground hover:border-accent hover:shadow-lg hover:shadow-accent/25 active:scale-95 transition-all duration-300"
+                    className="relative rounded-full gap-2 border-accent/30 bg-accent/5 text-accent hover:bg-accent hover:text-accent-foreground hover:border-accent hover:shadow-lg hover:shadow-accent/25 active:scale-95 transition-all duration-300"
                     onClick={() => navigate(`/exams?niveau=${schoolLevel}&subject=${subjectId || "math"}${adminFiliere ? `&filiere=${adminFiliere}` : ''}`)}
                   >
+                    <TeacherContentRedDot show={!canManage && hasUnreadExam(schoolLevel, subjectId || "math")} className="-top-1 -right-1" />
                     <FileText className="h-4 w-4" />
                     الاختبارات
                   </Button>
@@ -938,6 +942,7 @@ const Cours = () => {
                           navigate(`${buildCoursPath(chapter.id)}${qs ? `?${qs}` : ""}`);
                         }}
                       >
+                        <TeacherContentRedDot show={!canManage && hasUnreadForChapter(chapter.id)} />
                         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         <CardHeader className="relative pb-2">
                           <CardTitle className="text-lg flex items-center gap-3">

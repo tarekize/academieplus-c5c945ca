@@ -18,6 +18,8 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import StudentAnnouncementsBanner from "@/components/dashboard/StudentAnnouncementsBanner";
 import StudentAssignedContent from "@/components/dashboard/StudentAssignedContent";
 import { SUBJECTS, type SubjectDef } from "@/lib/subjects";
+import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
+import { TeacherContentRedDot } from "@/components/TeacherContentRedDot";
 
 interface Profile {
   id: string;
@@ -90,6 +92,7 @@ const ListeCours = () => {
   // est la seule source de vérité pour ces deux étapes de navigation.
   const { matiere: selectedSubject = null, niveau: selectedLevel = null } = useParams<{ matiere?: string; niveau?: string }>();
   const { user, roles, loading: authLoading } = useAuth();
+  const { hasForSubject: hasUnreadForSubject } = useUnreadTeacherContent(user?.id);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -540,6 +543,7 @@ const ListeCours = () => {
                         }`}
                       style={{ animationDelay: `${index * 60}ms` }}
                     >
+                      <TeacherContentRedDot show={hasUnreadForSubject(subject.id)} className="top-2 right-2" />
                       <div className="h-1.5 w-full" style={{ backgroundColor: subject.color }} />
                       <div className="flex flex-col items-center text-center gap-3 p-6">
                         <div

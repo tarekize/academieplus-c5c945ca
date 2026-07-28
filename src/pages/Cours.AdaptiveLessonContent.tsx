@@ -19,6 +19,8 @@ import { LessonActivityTabs } from "@/components/course/LessonActivityTabs";
 import { ChapterRevision } from "@/components/course/ChapterRevision";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
+import { TeacherContentRedDot } from "@/components/TeacherContentRedDot";
 import {
     Sheet,
     SheetContent,
@@ -49,6 +51,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
     const [tocOpen, setTocOpen] = useState(false);
     const [pendingLessonIds, setPendingLessonIds] = useState<Set<string>>(new Set());
     const isNativeApp = Capacitor.isNativePlatform();
+    const { hasForLesson: hasUnreadForLesson } = useUnreadTeacherContent(canManage ? null : userId);
 
     // Reset when chapter changes
     useEffect(() => {
@@ -275,9 +278,10 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                         key={lesson.id}
                         variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
                         transition={{ duration: 0.25, ease: "easeOut" }}
-                        className="group w-full text-right p-4 border border-border/60 rounded-2xl bg-card/60 hover:bg-violet/5 hover:border-violet/30 hover:shadow-md transition-all duration-300 cursor-pointer flex items-center gap-3 active:scale-[0.99]"
+                        className="group relative w-full text-right p-4 border border-border/60 rounded-2xl bg-card/60 hover:bg-violet/5 hover:border-violet/30 hover:shadow-md transition-all duration-300 cursor-pointer flex items-center gap-3 active:scale-[0.99]"
                         onClick={() => handleLessonClick(lesson)}
                     >
+                        <TeacherContentRedDot show={hasUnreadForLesson(lesson.id)} className="top-2 right-2" />
                         <span className="w-9 h-9 rounded-xl bg-[image:var(--gradient-violet)] flex items-center justify-center text-white text-sm font-bold shrink-0 transition-transform duration-300 group-hover:scale-110">
                             {idx + 1}
                         </span>

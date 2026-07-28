@@ -71,6 +71,7 @@ export async function saveTeacherContent(params: {
   lessonId?: string | null;
   schoolLevel?: string | null;
   filiere?: string | null;
+  subject?: string | null;
   title?: string | null;
   payload: GeneratedItem;
   difficulty?: number;
@@ -85,6 +86,7 @@ export async function saveTeacherContent(params: {
       lesson_id: params.lessonId ?? null,
       school_level: (params.schoolLevel as any) ?? null,
       filiere: params.filiere ?? null,
+      subject: params.subject ?? "math",
       title: params.title ?? params.payload.title ?? null,
       payload: params.payload,
       difficulty: params.difficulty ?? params.payload.difficulty ?? 3,
