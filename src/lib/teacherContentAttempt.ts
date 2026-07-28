@@ -34,7 +34,10 @@ export async function recordTeacherContentAttempt(
     errors: (existing?.errors || 0) + (patch.errorDelta || 0),
     hints_used: (existing?.hints_used || 0) + (patch.hintDelta || 0),
     completed: patch.completed ?? existing?.completed ?? false,
-    is_correct: patch.isCorrect ?? existing?.is_correct ?? null,
+    // isCorrect peut être explicitement remis à null (réponse en attente de
+    // correction manuelle) — "??" ne distingue pas "non fourni" de "remis à
+    // null" volontairement, d'où la vérification explicite ici.
+    is_correct: patch.isCorrect !== undefined ? patch.isCorrect : (existing?.is_correct ?? null),
     last_answer: patch.answer ?? existing?.last_answer ?? null,
   };
 

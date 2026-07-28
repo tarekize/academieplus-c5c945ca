@@ -10,7 +10,7 @@ import { cleanMathStatement } from "@/lib/mathStatement";
 import { ContentType } from "@/lib/teacherContent";
 import {
   FileText, Target, ClipboardList, ChevronLeft, ChevronRight,
-  CheckCircle2, XCircle, Eye, EyeOff, Pencil, Users, AlertCircle, Lightbulb, Repeat,
+  CheckCircle2, XCircle, Eye, EyeOff, Pencil, Users, AlertCircle, Lightbulb, Repeat, Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -127,6 +127,20 @@ export default function ClassContentTracking({ open, onOpenChange, teacherId, cl
     return () => { active = false; };
   }, [selected, roster]);
 
+  const gradeAttempt = async (studentId: string, isCorrect: boolean) => {
+    if (!selected) return;
+    setStatusByStudent((prev) => ({
+      ...prev,
+      [studentId]: { ...prev[studentId], status: "answered", isCorrect } as StudentDetail,
+    }));
+    const { error } = await (supabase as any)
+      .from("teacher_content_attempts")
+      .update({ is_correct: isCorrect })
+      .eq("content_id", selected.id)
+      .eq("student_id", studentId);
+    if (error) console.error("Error grading attempt:", error);
+  };
+
   const goBack = () => {
     if (selected) { setSelected(null); return; }
     if (contentType) { setContentType(null); return; }
@@ -239,7 +253,9 @@ export default function ClassContentTracking({ open, onOpenChange, teacherId, cl
                     <div key={s.id} className="border rounded-lg p-3 space-y-2">
                       <div className="flex items-center justify-between gap-3">
                         <span className="font-medium text-sm truncate">{fullName(s)}</span>
-                        {status === "answered" ? (
+                        {status === "answered" && d?.isCorrect === null ? (
+                          <span className="flex items-center gap-1 text-xs font-medium text-amber-600 shrink-0"><Clock className="h-3.5 w-3.5" /> En attente de correction</span>
+                        ) : status === "answered" ? (
                           <span className={cn("flex items-center gap-1 text-xs font-medium shrink-0", d?.isCorrect === false ? "text-red-500" : "text-emerald-600")}>
                             {d?.isCorrect === false ? <XCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
                             A répondu
@@ -261,6 +277,17 @@ export default function ClassContentTracking({ open, onOpenChange, teacherId, cl
                             <span className="flex items-center gap-1 text-amber-500"><Lightbulb className="h-3 w-3" /> {d?.hintsUsed} indice{(d?.hintsUsed || 0) > 1 ? "s" : ""}</span>
                             <span className="flex items-center gap-1 text-blue-500"><Repeat className="h-3 w-3" /> {d?.attempts} tentative{(d?.attempts || 0) > 1 ? "s" : ""}</span>
                           </div>
+                          {d?.isCorrect === null && (
+                            <div className="flex items-center gap-2 pt-1">
+                              <span className="text-[11px] text-muted-foreground">Pas de correction fournie — corrige toi-même :</span>
+                              <Button size="sm" variant="outline" className="h-7 gap-1 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/10" onClick={() => gradeAttempt(s.id, true)}>
+                                <CheckCircle2 className="h-3.5 w-3.5" /> Correct
+                              </Button>
+                              <Button size="sm" variant="outline" className="h-7 gap-1 text-red-500 border-red-500/30 hover:bg-red-500/10" onClick={() => gradeAttempt(s.id, false)}>
+                                <XCircle className="h-3.5 w-3.5" /> Incorrect
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
