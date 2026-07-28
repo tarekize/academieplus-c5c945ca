@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Bot, Loader2, Send, Sparkles, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { getSchoolLevelLabel } from "@/lib/validation";
@@ -13,6 +15,7 @@ import {
 } from "@/lib/teacherContent";
 import SendContentDialog from "./SendContentDialog";
 import DocumentImportButton from "@/components/DocumentImportButton";
+import RichContentField from "@/components/course/RichContentField";
 
 type Step = "greeting" | "level" | "filiere" | "chapter" | "lesson" | "count" | "difficulty" | "generating" | "results";
 
@@ -171,6 +174,12 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
     setStep("results");
   };
 
+  // Édition directe/LaTeX du contenu généré avant envoi — même possibilité que
+  // côté pédago (RichContentField), plutôt que du texte figé non modifiable.
+  const updateItem = (idx: number, patch: Partial<GeneratedItem>) => {
+    setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
+  };
+
   return (
     <Card>
       <CardContent className="p-4 space-y-4">
@@ -317,8 +326,8 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
               <Bubble>Voici {items.length} {typeLabel.toLowerCase()}{items.length > 1 ? "s" : ""}. Clique sur « Envoyer » pour les diffuser aux classes.</Bubble>
               <div className="space-y-3 pl-2">
                 {items.map((it, idx) => (
-                  <Card key={idx} className="border-primary/20">
-                    <CardContent className="p-4 space-y-2">
+                  <Card key={idx} className={sentIdx[idx] ? "border-border" : "border-primary/20"}>
+                    <CardContent className="p-4 space-y-3">
                       <div className="flex items-start justify-between gap-2">
                         <p className="font-semibold text-sm">
                           {typeLabel} {idx + 1}
@@ -332,15 +341,77 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
                           <Send className="h-3.5 w-3.5" /> {sentIdx[idx] ? "Envoyé" : "Envoyer"}
                         </Button>
                       </div>
-                      {it.title && <p className="font-medium text-sm">{it.title}</p>}
-                      {it.statement && <p className="text-sm whitespace-pre-wrap">{it.statement}</p>}
-                      {it.question && <p className="text-sm whitespace-pre-wrap">{it.question}</p>}
-                      {it.options && (
-                        <ul className="text-sm list-disc list-inside text-muted-foreground">
-                          {it.options.map((o, i) => <li key={i}>{o}</li>)}
-                        </ul>
-                      )}
-                      {it.hint && <p className="text-xs text-amber-700 dark:text-amber-400">💡 Indice : {it.hint}</p>}
+
+                      <fieldset disabled={sentIdx[idx]} className="space-y-3 disabled:opacity-70">
+                        {typeof it.title === "string" && (
+                          <Input
+                            value={it.title}
+                            onChange={(e) => updateItem(idx, { title: e.target.value })}
+                            placeholder="Titre"
+                            className="text-sm font-medium"
+                          />
+                        )}
+                        {typeof it.statement === "string" && (
+                          <RichContentField label="Énoncé" value={it.statement} onChange={(v) => updateItem(idx, { statement: v })} minHeight={90} />
+                        )}
+                        {typeof it.question === "string" && (
+                          <RichContentField label="Question" value={it.question} onChange={(v) => updateItem(idx, { question: v })} minHeight={90} />
+                        )}
+                        {Array.isArray(it.options) && (
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground">Options</label>
+                            {it.options.map((o, i) => (
+                              <Input
+                                key={i}
+                                value={o}
+                                onChange={(e) => {
+                                  const nextOptions = [...(it.options || [])];
+                                  nextOptions[i] = e.target.value;
+                                  updateItem(idx, { options: nextOptions });
+                                }}
+                                placeholder={`Option ${i + 1}`}
+                                className="text-sm"
+                              />
+                            ))}
+                          </div>
+                        )}
+                        {typeof it.correct_answer === "string" && (
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground">Bonne réponse</label>
+                            <Input
+                              value={it.correct_answer}
+                              onChange={(e) => updateItem(idx, { correct_answer: e.target.value })}
+                              className="text-sm"
+                            />
+                          </div>
+                        )}
+                        {typeof it.expected_answer === "string" && (
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground">Réponse attendue</label>
+                            <Input
+                              value={it.expected_answer}
+                              onChange={(e) => updateItem(idx, { expected_answer: e.target.value })}
+                              className="text-sm"
+                            />
+                          </div>
+                        )}
+                        {typeof it.solution === "string" && (
+                          <RichContentField label="Solution" value={it.solution} onChange={(v) => updateItem(idx, { solution: v })} minHeight={110} />
+                        )}
+                        {typeof it.explanation === "string" && (
+                          <RichContentField label="Explication" value={it.explanation} onChange={(v) => updateItem(idx, { explanation: v })} minHeight={90} />
+                        )}
+                        {typeof it.hint === "string" && (
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground">💡 Indice</label>
+                            <Textarea
+                              value={it.hint}
+                              onChange={(e) => updateItem(idx, { hint: e.target.value })}
+                              className="text-sm min-h-[50px]"
+                            />
+                          </div>
+                        )}
+                      </fieldset>
                     </CardContent>
                   </Card>
                 ))}
@@ -354,8 +425,17 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
           )}
         </div>
 
-        <div className="pt-2 border-t border-border flex justify-center">
-          <DocumentImportButton contentType={contentType} onExtracted={handleDocumentExtracted} />
+        <div className="pt-2 border-t border-border flex flex-col items-center gap-1.5">
+          {level ? (
+            <DocumentImportButton contentType={contentType} onExtracted={handleDocumentExtracted} />
+          ) : (
+            // school_level est obligatoire pour enregistrer le contenu (colonne
+            // NOT NULL) — sans niveau choisi, l'envoi plantait avec une erreur
+            // Postgres brute ("invalid input value for enum school_level: ''").
+            // On bloque donc l'import tant que le niveau n'est pas encore choisi,
+            // au lieu de laisser échouer l'envoi plus tard.
+            <p className="text-xs text-muted-foreground">Choisis d'abord un niveau ci-dessus pour pouvoir importer un document.</p>
+          )}
         </div>
       </CardContent>
 

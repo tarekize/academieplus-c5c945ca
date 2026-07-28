@@ -113,6 +113,8 @@ function buildSystemPrompt(contentType: Body["contentType"]): string {
 Ta mission : EXTRAIRE ${kindLabel} déjà présents dans ce document — n'invente RIEN, ne complète pas un énoncé incomplet, n'ajoute aucun exercice qui n'est pas dans le document. Si le document ne contient aucun exercice/question exploitable, réponds avec une liste "items" vide.
 IMPORTANT — Langue : rédige la totalité du contenu extrait (énoncés, options, réponses, indices, explications) EXCLUSIVEMENT en arabe (اللغة العربية), même si le document source est en français — traduis fidèlement, sans changer le sens ni les valeurs numériques.
 
+RÈGLE ABSOLUE — AUCUN DIALOGUE : tu n'es PAS dans une conversation avec l'utilisateur, il ne verra jamais ta réponse brute et ne peut pas te répondre. Ne pose donc JAMAIS de question, ne demande JAMAIS de clarification ni de confirmation (ex: "veux-tu exactement les mêmes exercices ou que je les améliore ?"), n'explique pas ce que tu vas faire. Décide seul, silencieusement, et applique systématiquement ce choix par défaut : retranscris fidèlement les exercices tels qu'ils sont dans le document, SANS les améliorer, SANS changer leur difficulté ni leur énoncé — la seule adaptation autorisée est la traduction vers l'arabe et la mise en forme LaTeX déjà exigées ci-dessus. Ta toute première caractère de réponse doit être "{" et rien d'autre avant.
+
 FORMAT MATHÉMATIQUE OBLIGATOIRE : TOUTES les expressions mathématiques (variables, fonctions, fractions, puissances, indices, limites, racines, symboles ∞, ≤, ≥, ≠, ±, →, etc.) DOIVENT être réécrites en LaTeX entre délimiteurs $...$ (ou $$...$$ pour une formule isolée), pour le rendu KaTeX côté client — même si le document source ne les avait pas en LaTeX.
 - Fractions : \\frac{a}{b} (JAMAIS a/b en texte brut).
 - Puissances : x^{n} (JAMAIS x^n ni x**n). Indices : x_{n}. Racines : \\sqrt{x}.
@@ -125,7 +127,8 @@ function buildUserPrompt(contentType: Body["contentType"]): string {
 Si le document contient des exercices ouverts (pas de choix multiple), transforme chacun en QCM à 4 options plausibles seulement si un énoncé à choix explicite existe déjà dans le document — sinon ignore-le.
 Réponds UNIQUEMENT en JSON valide de la forme :
 {"items":[{"question":"...","options":["A","B","C","D"],"correct_answer":"la bonne option exacte (texte identique à l'une des options)","hint":"indice utile sans donner la réponse","explanation":"explication de la correction","difficulty":1}]}
-Les "options" et "correct_answer" doivent aussi utiliser LaTeX entre $...$ quand elles contiennent des maths. "difficulty" est une estimation de 1 (facile) à 5 (avancé) basée sur le contenu réel de la question.`;
+Les "options" et "correct_answer" doivent aussi utiliser LaTeX entre $...$ quand elles contiennent des maths. "difficulty" est une estimation de 1 (facile) à 5 (avancé) basée sur le contenu réel de la question.
+⚠️ Réponds directement par l'objet JSON, sans aucune question ni texte avant/après.`;
   }
   return `Extrais du document ci-joint tous les ${contentType === "exam" ? "exercices d'examen" : "exercices"} qu'il contient (aucune limite de nombre, prends-les tous).
 Réponds UNIQUEMENT en JSON valide de la forme :
@@ -134,7 +137,8 @@ Réponds UNIQUEMENT en JSON valide de la forme :
 Format de "solution" — OBLIGATOIRE :
 - Corrections RICHES et DÉTAILLÉES en HTML avec plusieurs étapes numérotées, JAMAIS une seule ligne.
 - Structure attendue : <p><strong>الخطوة 1 :</strong> ...</p><p>$$ formule $$</p><p><strong>الخطوة 2 :</strong> ...</p>... puis <p><strong>الاستنتاج :</strong> $$ \\boxed{résultat} $$</p>.
-- "difficulty" est une estimation de 1 (facile) à 5 (avancé) basée sur le contenu réel de l'exercice.`;
+- "difficulty" est une estimation de 1 (facile) à 5 (avancé) basée sur le contenu réel de l'exercice.
+⚠️ Réponds directement par l'objet JSON, sans aucune question ni texte avant/après.`;
 }
 
 async function callGemini(systemPrompt: string, userParts: any[]): Promise<{ text: string; usage: AiUsage | null }> {
