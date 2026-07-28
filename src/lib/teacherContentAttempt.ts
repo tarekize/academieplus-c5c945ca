@@ -48,7 +48,29 @@ export async function recordTeacherContentAttempt(
   }
 }
 
-/** Normalise une réponse pour une comparaison souple (minuscules, sans espaces). */
+/**
+ * Normalise une réponse pour une comparaison souple : les réponses attendues
+ * générées par l'IA sont écrites en LaTeX ($3$, \boxed{3}...) alors que
+ * l'élève tape du texte brut ("3") — sans ce nettoyage, une réponse
+ * juste au fond était marquée fausse à cause du seul habillage LaTeX.
+ * (Même logique que normalizeAnswer() dans LessonRemediation.tsx.)
+ */
 export function normalizeAnswer(s: string): string {
-  return (s || "").toLowerCase().replace(/\s+/g, "").trim();
+  let v = (s || "").replace(/\$/g, "").toLowerCase().trim();
+
+  // Canonicalise les représentations de l'infini (∞, \infty, infty, inf).
+  v = v
+    .replace(/∞/g, "infinity")
+    .replace(/\\infty/g, "infinity")
+    .replace(/\binfty\b/g, "infinity")
+    .replace(/\binf\b/g, "infinity");
+
+  // Retire les commandes LaTeX restantes (\boxed, \frac, \to...) en gardant leur nom.
+  v = v.replace(/\\[a-zA-Z]+/g, (m) => m.slice(1));
+
+  v = v.replace(/[{}\s]/g, "").replace(/,/g, ".").trim();
+
+  if (v === "infinity") v = "+infinity";
+
+  return v;
 }
