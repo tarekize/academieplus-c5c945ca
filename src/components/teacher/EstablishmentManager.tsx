@@ -296,27 +296,40 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
           <Button variant="ghost" size="sm" onClick={() => setDetailStudent(null)} className="-ml-2 gap-1.5 rounded-xl text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Retour à la classe
           </Button>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <Avatar className="h-11 w-11 ring-2 ring-primary/15">
-                <AvatarImage src={detailStudent.avatar_url || undefined} />
-                <AvatarFallback className="bg-primary/10 text-primary font-semibold">{sInitials || "?"}</AvatarFallback>
-              </Avatar>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">{sName}</h1>
-                {detailStudent.school_level && (
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    {getSchoolLevelLabel(detailStudent.school_level)}
-                    {detailStudent.filiere ? ` · ${detailStudent.filiere}` : ""}
-                  </p>
-                )}
-              </div>
+          <div className="flex items-center gap-3.5">
+            <Avatar className="h-11 w-11 ring-2 ring-primary/15">
+              <AvatarImage src={detailStudent.avatar_url || undefined} />
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold">{sInitials || "?"}</AvatarFallback>
+            </Avatar>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">{sName}</h1>
+              {detailStudent.school_level && (
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  {getSchoolLevelLabel(detailStudent.school_level)}
+                  {detailStudent.filiere ? ` · ${detailStudent.filiere}` : ""}
+                </p>
+              )}
             </div>
-            <Button className="gap-2 rounded-xl shrink-0" onClick={() => setHelpOpen(true)}>
-              <HeartHandshake className="h-4 w-4" /> Aider l'élève
-            </Button>
           </div>
         </div>
+
+        {/* CTA principale de l'écran — trop discrète en petit bouton coin haut-droit
+            à côté du retour, elle passait inaperçue. Bandeau centré pleine largeur,
+            impossible à manquer. */}
+        <button
+          type="button"
+          onClick={() => setHelpOpen(true)}
+          className="group relative w-full overflow-hidden rounded-2xl bg-[image:var(--gradient-accent)] px-6 py-5 text-center shadow-[var(--shadow-elegant)] transition-transform duration-300 hover:scale-[1.01]"
+        >
+          <div className="absolute -left-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" aria-hidden />
+          <div className="absolute -right-8 -bottom-10 h-28 w-28 rounded-full bg-white/10 blur-2xl" aria-hidden />
+          <div className="relative flex flex-col items-center gap-1.5 text-white">
+            <HeartHandshake className="h-7 w-7 transition-transform duration-300 group-hover:scale-110" />
+            <span className="text-lg font-bold">Aider {sName}</span>
+            <span className="text-sm text-white/85">Détecter ses lacunes et générer un accompagnement personnalisé avec l'IA</span>
+          </div>
+        </button>
+
         <StudentDashboardContent
           userId={detailStudent.id}
           profile={{
@@ -347,24 +360,36 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
           <Button variant="ghost" size="sm" onClick={() => setSelectedClass(null)} className="-ml-2 gap-1.5 rounded-xl text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Mes classes
           </Button>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-500/10">
-                <BookOpen className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">{selectedClass.name}</h1>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  {getSchoolLevelLabel(selectedClass.school_level || "")}
-                  {selectedClass.filiere ? ` · ${selectedClass.filiere}` : ""}
-                </p>
-              </div>
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-500/10">
+              <BookOpen className="h-5 w-5 text-blue-600" />
             </div>
-            <Button className="gap-2 rounded-xl shrink-0" onClick={() => setHelpOpen(true)}>
-              <HeartHandshake className="h-4 w-4" /> Aider les élèves
-            </Button>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">{selectedClass.name}</h1>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                {getSchoolLevelLabel(selectedClass.school_level || "")}
+                {selectedClass.filiere ? ` · ${selectedClass.filiere}` : ""}
+              </p>
+            </div>
           </div>
         </div>
+
+        {/* CTA principale de l'écran — trop discrète en petit bouton coin haut-droit
+            à côté du retour, elle passait inaperçue. Bandeau centré pleine largeur,
+            impossible à manquer. */}
+        <button
+          type="button"
+          onClick={() => setHelpOpen(true)}
+          className="group relative w-full overflow-hidden rounded-2xl bg-[image:var(--gradient-accent)] px-6 py-5 text-center shadow-[var(--shadow-elegant)] transition-transform duration-300 hover:scale-[1.01]"
+        >
+          <div className="absolute -left-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" aria-hidden />
+          <div className="absolute -right-8 -bottom-10 h-28 w-28 rounded-full bg-white/10 blur-2xl" aria-hidden />
+          <div className="relative flex flex-col items-center gap-1.5 text-white">
+            <HeartHandshake className="h-7 w-7 transition-transform duration-300 group-hover:scale-110" />
+            <span className="text-lg font-bold">Aider les élèves</span>
+            <span className="text-sm text-white/85">Détecter les lacunes de la classe et générer un accompagnement personnalisé avec l'IA</span>
+          </div>
+        </button>
 
         {selectedClass.join_code && (
           <Card className="overflow-hidden rounded-2xl border-border/60">
