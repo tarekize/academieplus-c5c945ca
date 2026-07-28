@@ -11,8 +11,9 @@ import {
 import { Loader2, Sparkles, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { getSchoolLevelLabel } from "@/lib/validation";
-import { saveTeacherContent, assignContent, getTrimesterOptions } from "@/lib/teacherContent";
+import { saveTeacherContent, assignContent, getTrimesterOptions, GeneratedItem } from "@/lib/teacherContent";
 import SendContentDialog from "./SendContentDialog";
+import DocumentImportButton from "@/components/DocumentImportButton";
 
 interface ChapterRow { id: string; title: string; }
 interface FiliereRow { id: string; code: string; name: string; name_ar: string | null; }
@@ -123,6 +124,27 @@ export default function ExamAIBuilder({ teacherId }: Props) {
       updateRow(index, "generating", false);
       toast.error(e.message || "Échec de la génération");
     }
+  };
+
+  const handleDocumentExtracted = (extracted: GeneratedItem[]) => {
+    const newRows: AIExerciseRow[] = extracted
+      .filter((it) => it.statement?.trim())
+      .map((it) => ({
+        chapter_id: "",
+        statement: it.statement || "",
+        solution: it.solution || "",
+        answer: it.expected_answer || "",
+        generating: false,
+      }));
+    if (newRows.length === 0) return;
+    setRows((prev) => {
+      // Les lignes vides pré-créées par changeCount (aucun énoncé) sont
+      // remplacées plutôt que gardées à côté des lignes importées.
+      const kept = prev.filter((r) => r.statement.trim());
+      const next = [...kept, ...newRows];
+      setCount(next.length);
+      return next;
+    });
   };
 
   const resetForm = () => {
@@ -276,10 +298,13 @@ export default function ExamAIBuilder({ teacherId }: Props) {
           ))}
         </div>
 
-        <Button className="gap-2" disabled={saving} onClick={handleShareClick}>
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
-          Partager l'examen
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button className="gap-2" disabled={saving} onClick={handleShareClick}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+            Partager l'examen
+          </Button>
+          <DocumentImportButton contentType="exam" onExtracted={handleDocumentExtracted} />
+        </div>
       </CardContent>
 
       <SendContentDialog

@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { cn } from "@/lib/utils";
 import ExerciseAnswerBlock from "@/components/course/ExerciseAnswerBlock";
+import DocumentImportButton from "@/components/DocumentImportButton";
+import { GeneratedItem } from "@/lib/teacherContent";
 import {
   Dialog,
   DialogContent,
@@ -379,6 +381,23 @@ const ExamList = () => {
       updateAiRow(index, "generating", false);
       toast.error("Erreur", { description: e.message || "فشل التوليد" });
     }
+  };
+
+  const handleDocumentExtracted = (extracted: GeneratedItem[]) => {
+    const newRows: AIExerciseRow[] = extracted
+      .filter((it) => it.statement?.trim())
+      .map((it) => ({
+        chapter_id: "",
+        statement: it.statement || "",
+        solution: it.solution || "",
+        answer: it.expected_answer || "",
+        generating: false,
+      }));
+    if (newRows.length === 0) return;
+    setAiRows((prev) => {
+      const kept = prev.filter((r) => r.statement.trim());
+      return [...kept, ...newRows];
+    });
   };
 
   const shareAiExam = async () => {
@@ -851,6 +870,7 @@ const ExamList = () => {
             <DialogClose asChild>
               <Button variant="outline" className="rounded-xl">إلغاء</Button>
             </DialogClose>
+            <DocumentImportButton contentType="exam" onExtracted={handleDocumentExtracted} className="rounded-xl" />
             <Button onClick={shareAiExam} disabled={aiSaving} className="rounded-xl gap-2">
               {aiSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
               <span dir="rtl">مشاركة الاختبار</span>

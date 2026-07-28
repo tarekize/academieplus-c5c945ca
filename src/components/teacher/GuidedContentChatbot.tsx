@@ -12,6 +12,7 @@ import {
   generateTeacherContent, saveTeacherContent, assignContent,
 } from "@/lib/teacherContent";
 import SendContentDialog from "./SendContentDialog";
+import DocumentImportButton from "@/components/DocumentImportButton";
 
 type Step = "greeting" | "level" | "filiere" | "chapter" | "lesson" | "count" | "difficulty" | "generating" | "results";
 
@@ -162,6 +163,13 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
   };
 
   const typeLabel = CONTENT_TYPE_LABELS[contentType];
+
+  const handleDocumentExtracted = (extracted: GeneratedItem[]) => {
+    // Ajoute à la suite des items déjà là (générés ou déjà importés) — les index
+    // existants dans sentIdx restent valides puisqu'on ajoute en fin de liste.
+    setItems((prev) => [...prev, ...extracted]);
+    setStep("results");
+  };
 
   return (
     <Card>
@@ -344,6 +352,10 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
               </div>
             </>
           )}
+        </div>
+
+        <div className="pt-2 border-t border-border flex justify-center">
+          <DocumentImportButton contentType={contentType} onExtracted={handleDocumentExtracted} />
         </div>
       </CardContent>
 

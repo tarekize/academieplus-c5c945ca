@@ -20,6 +20,8 @@ import { Plus, Pencil, Trash2, Loader2, Sparkles, Send, CheckCircle2, XCircle, C
 import { toast } from "sonner";
 import RichContentField from "./RichContentField";
 import { extractFunctionErrorMessage } from "@/lib/edgeFunctionError";
+import DocumentImportButton from "@/components/DocumentImportButton";
+import { GeneratedItem } from "@/lib/teacherContent";
 
 export type ItemType = "exercise" | "quiz";
 export type ItemStatus = "draft" | "pending" | "approved" | "rejected";
@@ -472,6 +474,75 @@ export function DeleteExerciseButton({ exerciseId, onDeleted }: { exerciseId: st
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+// ---- Import from document (extraction IA, pas de génération) ----
+/** Insère les items extraits d'un document dans chapter_exercises/chapter_quizzes,
+ * même logique de statut que bulk-gen-terminale-gemini : le contenu IA d'un pédago
+ * reste en 'draft' (à envoyer pour validation), celui d'un admin est auto-approuvé. */
+export function ImportFromDocumentButton({
+  chapterId,
+  lessonId,
+  itemType,
+  isAdmin,
+  onImported,
+}: {
+  chapterId: string;
+  lessonId: string;
+  itemType: ItemType;
+  isAdmin: boolean;
+  onImported: () => void;
+}) {
+  const insertItems = async (items: GeneratedItem[]) => {
+    const status = isAdmin ? "approved" : "draft";
+    if (itemType === "exercise") {
+      const rows = items
+        .filter((it) => it.statement?.trim())
+        .map((it, i) => ({
+          chapter_id: chapterId,
+          lesson_id: lessonId,
+          title: (it.title || `تمرين ${i + 1}`).slice(0, 300),
+          statement: it.statement || "",
+          expected_answer: it.expected_answer || "",
+          accepted_answers: [] as string[],
+          solution: it.solution || "",
+          hint: it.hint || "",
+          difficulty: Math.min(5, Math.max(1, it.difficulty || 2)),
+          status,
+        }));
+      if (rows.length === 0) { toast.error("Aucun exercice exploitable dans ce document."); return; }
+      const { error } = await supabase.from("chapter_exercises").insert(rows);
+      if (error) throw error;
+    } else {
+      const rows = items
+        .filter((it) => it.question?.trim())
+        .map((it) => ({
+          chapter_id: chapterId,
+          lesson_id: lessonId,
+          question: it.question || "",
+          options: Array.isArray(it.options) ? it.options : [],
+          correct_answer: it.correct_answer || "",
+          explanation: it.explanation || "",
+          hint: it.hint || "",
+          difficulty: Math.min(5, Math.max(1, it.difficulty || 2)),
+          status,
+        }));
+      if (rows.length === 0) { toast.error("Aucune question exploitable dans ce document."); return; }
+      const { error } = await supabase.from("chapter_quizzes").insert(rows);
+      if (error) throw error;
+    }
+    onImported();
+  };
+
+  return (
+    <DocumentImportButton
+      contentType={itemType}
+      label="Importer depuis un document"
+      onExtracted={(items) => {
+        insertItems(items).catch((e: any) => toast.error(e.message || "Erreur lors de l'import"));
+      }}
+    />
   );
 }
 

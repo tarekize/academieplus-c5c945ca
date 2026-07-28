@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, PenTool, ChevronLeft, Eye, Lightbulb, Plus, Pencil, Trash2 } from "lucide-react";
 import {
   QuizFormDialog, DeleteQuizButton, ExerciseFormDialog, DeleteExerciseButton, GenerateQuizExercisesButton,
-  StatusBadge, SubmitItemButton, SubmitAllDraftsButton, ReviewActionButtons,
+  StatusBadge, SubmitItemButton, SubmitAllDraftsButton, ReviewActionButtons, ImportFromDocumentButton,
 } from "./QuizExerciseCRUD";
 
 interface DBQuiz {
@@ -193,12 +193,21 @@ export function LessonEditorActivities({
           </div>
         </div>
         {lessonId && (
-          <GenerateQuizExercisesButton
-            chapterId={chapterId}
-            lessonId={lessonId}
-            lockedContentType={isExercises ? "exercises" : "quizzes"}
-            onGenerated={fetchData}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <GenerateQuizExercisesButton
+              chapterId={chapterId}
+              lessonId={lessonId}
+              lockedContentType={isExercises ? "exercises" : "quizzes"}
+              onGenerated={fetchData}
+            />
+            <ImportFromDocumentButton
+              chapterId={chapterId}
+              lessonId={lessonId}
+              itemType={isExercises ? "exercise" : "quiz"}
+              isAdmin={isAdmin}
+              onImported={fetchData}
+            />
+          </div>
         )}
       </div>
 
