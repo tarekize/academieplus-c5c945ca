@@ -10,7 +10,7 @@ import { cleanMathStatement } from "@/lib/mathStatement";
 import { ContentType } from "@/lib/teacherContent";
 import {
   FileText, Target, ClipboardList, ChevronLeft, ChevronRight,
-  CheckCircle2, Eye, EyeOff, Pencil, Users,
+  CheckCircle2, XCircle, Eye, EyeOff, Pencil, Users, AlertCircle, Lightbulb, Repeat,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +18,14 @@ interface RosterStudent { id: string; first_name: string | null; last_name: stri
 interface ContentRow { id: string; content_type: string; title: string | null; payload: any; difficulty: number | null; created_at: string; }
 
 type StudentStatus = "answered" | "seen" | "unseen";
+interface StudentDetail {
+  status: StudentStatus;
+  isCorrect: boolean | null;
+  lastAnswer: string | null;
+  errors: number;
+  hintsUsed: number;
+  attempts: number;
+}
 
 const TYPE_OPTIONS: { key: ContentType; label: string; icon: any }[] = [
   { key: "exercise", label: "Exercices", icon: FileText },
@@ -47,7 +55,7 @@ export default function ClassContentTracking({ open, onOpenChange, teacherId, cl
   const [items, setItems] = useState<ContentRow[]>([]);
   const [selected, setSelected] = useState<ContentRow | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
-  const [statusByStudent, setStatusByStudent] = useState<Record<string, StudentStatus>>({});
+  const [statusByStudent, setStatusByStudent] = useState<Record<string, StudentDetail>>({});
 
   useEffect(() => {
     if (!open) { setContentType(null); setSelected(null); setItems([]); }
@@ -92,14 +100,26 @@ export default function ClassContentTracking({ open, onOpenChange, teacherId, cl
       const rosterIds = roster.map((r) => r.id);
       const [{ data: reads }, { data: attempts }] = await Promise.all([
         (supabase as any).from("teacher_content_reads").select("student_id").eq("content_id", selected.id).in("student_id", rosterIds),
-        (supabase as any).from("teacher_content_attempts").select("student_id, completed").eq("content_id", selected.id).in("student_id", rosterIds),
+        (supabase as any).from("teacher_content_attempts")
+          .select("student_id, completed, is_correct, last_answer, errors, hints_used, attempts")
+          .eq("content_id", selected.id).in("student_id", rosterIds),
       ]);
       if (!active) return;
       const seenIds = new Set(((reads as any[]) || []).map((r) => r.student_id));
-      const answeredIds = new Set(((attempts as any[]) || []).filter((a) => a.completed).map((a) => a.student_id));
-      const map: Record<string, StudentStatus> = {};
+      const attemptByStudent: Record<string, any> = {};
+      for (const a of (attempts as any[]) || []) attemptByStudent[a.student_id] = a;
+      const map: Record<string, StudentDetail> = {};
       for (const s of roster) {
-        map[s.id] = answeredIds.has(s.id) ? "answered" : seenIds.has(s.id) ? "seen" : "unseen";
+        const a = attemptByStudent[s.id];
+        const answered = !!a?.completed;
+        map[s.id] = {
+          status: answered ? "answered" : seenIds.has(s.id) ? "seen" : "unseen",
+          isCorrect: a?.is_correct ?? null,
+          lastAnswer: a?.last_answer ?? null,
+          errors: a?.errors || 0,
+          hintsUsed: a?.hints_used || 0,
+          attempts: a?.attempts || 0,
+        };
       }
       setStatusByStudent(map);
       setLoadingDetail(false);
@@ -114,7 +134,7 @@ export default function ClassContentTracking({ open, onOpenChange, teacherId, cl
   };
 
   const statusCounts = roster.reduce(
-    (acc, s) => { acc[statusByStudent[s.id] || "unseen"]++; return acc; },
+    (acc, s) => { acc[statusByStudent[s.id]?.status || "unseen"]++; return acc; },
     { answered: 0, seen: 0, unseen: 0 } as Record<StudentStatus, number>
   );
 
@@ -213,16 +233,35 @@ export default function ClassContentTracking({ open, onOpenChange, teacherId, cl
                 {roster.length === 0 ? (
                   <p className="text-center text-muted-foreground py-6 text-sm flex items-center justify-center gap-2"><Users className="h-4 w-4" /> Aucun élève dans cette classe.</p>
                 ) : roster.map((s) => {
-                  const status = statusByStudent[s.id] || "unseen";
+                  const d = statusByStudent[s.id];
+                  const status = d?.status || "unseen";
                   return (
-                    <div key={s.id} className="flex items-center justify-between gap-3 border rounded-lg p-3">
-                      <span className="font-medium text-sm truncate">{fullName(s)}</span>
-                      {status === "answered" ? (
-                        <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 shrink-0"><CheckCircle2 className="h-3.5 w-3.5" /> A répondu</span>
-                      ) : status === "seen" ? (
-                        <span className="flex items-center gap-1 text-xs font-medium text-amber-600 shrink-0"><Eye className="h-3.5 w-3.5" /> Vu, pas répondu</span>
-                      ) : (
-                        <span className="flex items-center gap-1 text-xs font-medium text-muted-foreground shrink-0"><EyeOff className="h-3.5 w-3.5" /> Pas vu</span>
+                    <div key={s.id} className="border rounded-lg p-3 space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-medium text-sm truncate">{fullName(s)}</span>
+                        {status === "answered" ? (
+                          <span className={cn("flex items-center gap-1 text-xs font-medium shrink-0", d?.isCorrect === false ? "text-red-500" : "text-emerald-600")}>
+                            {d?.isCorrect === false ? <XCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                            A répondu
+                          </span>
+                        ) : status === "seen" ? (
+                          <span className="flex items-center gap-1 text-xs font-medium text-amber-600 shrink-0"><Eye className="h-3.5 w-3.5" /> Vu, pas répondu</span>
+                        ) : (
+                          <span className="flex items-center gap-1 text-xs font-medium text-muted-foreground shrink-0"><EyeOff className="h-3.5 w-3.5" /> Pas vu</span>
+                        )}
+                      </div>
+                      {status === "answered" && (
+                        <div className="bg-muted/50 rounded-md p-2 space-y-1.5">
+                          <div dir="rtl" className="text-sm">
+                            <span className="text-xs text-muted-foreground">إجابته : </span>
+                            <HtmlWithMath htmlContent={cleanMathStatement(d?.lastAnswer || "—")} className="inline" />
+                          </div>
+                          <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground">
+                            <span className="flex items-center gap-1 text-red-500"><AlertCircle className="h-3 w-3" /> {d?.errors} erreur{(d?.errors || 0) > 1 ? "s" : ""}</span>
+                            <span className="flex items-center gap-1 text-amber-500"><Lightbulb className="h-3 w-3" /> {d?.hintsUsed} indice{(d?.hintsUsed || 0) > 1 ? "s" : ""}</span>
+                            <span className="flex items-center gap-1 text-blue-500"><Repeat className="h-3 w-3" /> {d?.attempts} tentative{(d?.attempts || 0) > 1 ? "s" : ""}</span>
+                          </div>
+                        </div>
                       )}
                     </div>
                   );
