@@ -1,8 +1,9 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FileUp, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { FileUp, Loader2, Copy, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { fileToDocumentParts, extractContentFromDocument } from "@/lib/documentExtraction";
+import { fileToDocumentParts, extractContentFromDocument, ExtractMode } from "@/lib/documentExtraction";
 import { GeneratedItem } from "@/lib/teacherContent";
 
 interface Props {
@@ -29,12 +30,14 @@ export default function DocumentImportButton({
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
+  const [modeDialogOpen, setModeDialogOpen] = useState(false);
+  const modeRef = useRef<ExtractMode>("exact");
 
   const handleFile = async (file: File) => {
     setLoading(true);
     try {
       const parts = await fileToDocumentParts(file);
-      const items = await extractContentFromDocument(contentType, parts);
+      const items = await extractContentFromDocument(contentType, parts, modeRef.current);
       if (items.length === 0) {
         toast.error("Aucun contenu exploitable trouvé dans ce document.");
         return;
@@ -48,6 +51,12 @@ export default function DocumentImportButton({
     }
   };
 
+  const pickMode = (mode: ExtractMode) => {
+    modeRef.current = mode;
+    setModeDialogOpen(false);
+    inputRef.current?.click();
+  };
+
   return (
     <>
       <Button
@@ -56,7 +65,7 @@ export default function DocumentImportButton({
         size={size}
         className={className}
         disabled={loading}
-        onClick={() => inputRef.current?.click()}
+        onClick={() => setModeDialogOpen(true)}
       >
         {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileUp className="h-4 w-4 mr-2" />}
         {label}
@@ -72,6 +81,39 @@ export default function DocumentImportButton({
           if (file) handleFile(file);
         }}
       />
+
+      <Dialog open={modeDialogOpen} onOpenChange={setModeDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Comment veux-tu utiliser le document ?</DialogTitle>
+            <DialogDescription>Ce choix s'applique à tout le document que tu vas importer.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => pickMode("exact")}
+              className="w-full text-left p-3 rounded-xl border hover:border-primary/50 hover:bg-primary/5 transition-colors flex items-start gap-3"
+            >
+              <Copy className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-sm">Exactement les mêmes</p>
+                <p className="text-xs text-muted-foreground">L'IA retranscrit fidèlement le contenu du document, sans rien changer.</p>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => pickMode("improve")}
+              className="w-full text-left p-3 rounded-xl border hover:border-primary/50 hover:bg-primary/5 transition-colors flex items-start gap-3"
+            >
+              <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-sm">Version équivalente, améliorée par l'IA</p>
+                <p className="text-xs text-muted-foreground">L'IA s'inspire du document pour créer des exercices équivalents, reformulés/améliorés.</p>
+              </div>
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

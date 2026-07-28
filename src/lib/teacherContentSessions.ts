@@ -1,16 +1,21 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ContentType } from "@/lib/teacherContent";
 
+/** "help" = sessions de l'assistant "Aider les élèves" (HelpChatbot), qui
+ * mélange exercices et quiz dans une même session — bucket séparé des types
+ * mono-contenu de teacherContent.ts pour ne pas mélanger les historiques. */
+export type SessionContentType = ContentType | "help";
+
 export interface TeacherContentSessionRow {
   id: string;
-  content_type: ContentType;
+  content_type: SessionContentType;
   title: string;
   state: Record<string, any>;
   created_at: string;
   updated_at: string;
 }
 
-export async function listTeacherContentSessions(teacherId: string, contentType: ContentType): Promise<TeacherContentSessionRow[]> {
+export async function listTeacherContentSessions(teacherId: string, contentType: SessionContentType): Promise<TeacherContentSessionRow[]> {
   const { data, error } = await (supabase as any)
     .from("teacher_content_sessions")
     .select("id, content_type, title, state, created_at, updated_at")
@@ -24,7 +29,7 @@ export async function listTeacherContentSessions(teacherId: string, contentType:
 export async function saveTeacherContentSession(params: {
   id?: string | null;
   teacherId: string;
-  contentType: ContentType;
+  contentType: SessionContentType;
   title: string;
   state: Record<string, any>;
 }): Promise<string> {

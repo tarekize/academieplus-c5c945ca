@@ -9,12 +9,14 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Bot, Loader2, Send, Sparkles, Eye, CheckCircle2 } from "lucide-react";
+import { Bot, Loader2, Send, Sparkles, Eye, CheckCircle2, History, Plus } from "lucide-react";
 import { toast } from "sonner";
 import {
   GeneratedItem, generateTeacherContent, saveTeacherContent, assignContent,
 } from "@/lib/teacherContent";
 import { computeStudentGroup, GROUP_INFO, GROUP_ORDER, type StudentGroupLetter } from "@/lib/studentGrouping";
+import { TeacherContentSessionRow, saveTeacherContentSession } from "@/lib/teacherContentSessions";
+import TeacherContentSessionHistory from "./TeacherContentSessionHistory";
 import LessonMarkdown from "@/components/course/LessonMarkdown";
 import RichContentField from "@/components/course/RichContentField";
 
@@ -91,12 +93,52 @@ export default function HelpChatbot(props: Props) {
   const [sent, setSent] = useState<Record<number, boolean>>({});
   const [previewIdx, setPreviewIdx] = useState<number | null>(null);
 
+  const [showHistory, setShowHistory] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
   const selectedLessons = weak.filter((w) => selectedLessonIds.includes(w.lessonId));
   const targetStudentIds = mode === "class" ? (selectedGroup?.studentIds || []) : (studentId ? [studentId] : []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [phase, items, itemPos, lessonIdx]);
+
+  // Sauvegarde automatique de la session dès qu'un résultat existe, pour la
+  // retrouver plus tard dans l'historique (bouton "Historique").
+  useEffect(() => {
+    if (phase !== "results" || items.length === 0) return;
+    const title = `Aide · ${mode === "class" ? `Groupe ${selectedGroup?.letter ?? ""}` : targetName}${weak.length ? ` · ${selectedLessons.slice(0, 2).map((l) => l.title).join(", ")}${selectedLessons.length > 2 ? "…" : ""}` : ""}`;
+    const state = {
+      selectedGroup, weak, selectedLessonIds, types, approach,
+      aiExerciseCount, aiQuizCount, items, sent,
+    };
+    saveTeacherContentSession({ id: sessionId, teacherId, contentType: "help", title, state })
+      .then((id) => setSessionId(id))
+      .catch((err) => console.error("Error saving teacher content session:", err));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, items, sent]);
+
+  const loadSession = (session: TeacherContentSessionRow) => {
+    const s = session.state || {};
+    setSelectedGroup(s.selectedGroup || null);
+    setWeak(s.weak || []);
+    setSelectedLessonIds(s.selectedLessonIds || []);
+    setTypes(s.types || ["exercise", "quiz"]);
+    setApproach(s.approach || null);
+    setAiExerciseCount(s.aiExerciseCount || 4);
+    setAiQuizCount(s.aiQuizCount || 4);
+    setItems(s.items || []);
+    setSent(s.sent || {});
+    setSessionId(session.id);
+    setPhase("results");
+    setShowHistory(false);
+  };
+
+  const startNewSession = () => {
+    setSessionId(null);
+    restart();
+    setShowHistory(false);
+  };
 
   // --- Étape 1 (mode classe) : calcule les groupes A/B/C/D de la classe ---
   useEffect(() => {
@@ -348,9 +390,34 @@ export default function HelpChatbot(props: Props) {
     setSent({});
   };
 
+  if (showHistory) {
+    return (
+      <Card>
+        <CardContent className="p-0 h-[60vh]">
+          <TeacherContentSessionHistory
+            teacherId={teacherId}
+            contentType="help"
+            activeSessionId={sessionId}
+            onSelect={loadSession}
+            onNew={startNewSession}
+            onClose={() => setShowHistory(false)}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardContent className="p-4">
+        <div className="flex items-center justify-end gap-1 mb-2">
+          <Button variant="ghost" size="sm" onClick={() => setShowHistory(true)} className="h-8 gap-1 text-xs text-muted-foreground hover:text-primary rounded-xl">
+            <History className="h-3.5 w-3.5" /> Historique
+          </Button>
+          <Button variant="ghost" size="sm" onClick={startNewSession} className="h-8 gap-1 text-xs text-muted-foreground hover:text-primary rounded-xl">
+            <Plus className="h-3.5 w-3.5" /> Nouveau
+          </Button>
+        </div>
         <div ref={scrollRef} className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
           {(phase === "loadingGroups" || phase === "analyzing") && (
             <Bubble><span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Analyse des performances…</span></Bubble>

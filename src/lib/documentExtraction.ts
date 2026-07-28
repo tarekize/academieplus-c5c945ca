@@ -11,6 +11,10 @@ export const MAX_DOCUMENT_SIZE = 20 * 1024 * 1024; // 20 Mo
 const ACCEPTED_EXTENSIONS = ["pdf", "docx", "png", "jpg", "jpeg", "webp"];
 
 export type DocumentPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
+/** "exact" = retranscrit fidèlement le document ; "improve" = génère des exercices
+ * équivalents mais reformulés/améliorés par l'IA. Choisi une fois par l'utilisateur
+ * avant l'import (pas de question posée par l'IA en cours de génération). */
+export type ExtractMode = "exact" | "improve";
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -52,9 +56,10 @@ export async function fileToDocumentParts(file: File): Promise<DocumentPart[]> {
 export async function extractContentFromDocument(
   contentType: "exercise" | "quiz" | "exam",
   parts: DocumentPart[],
+  mode: ExtractMode = "exact",
 ): Promise<GeneratedItem[]> {
   const { data, error } = await supabase.functions.invoke("extract-content-from-document", {
-    body: { contentType, parts },
+    body: { contentType, parts, mode },
   });
   if (error) throw new Error(await extractFunctionErrorMessage(error));
   if ((data as any)?.error) throw new Error((data as any).error);

@@ -5,12 +5,11 @@ import { MessageCircle, Trash2, Plus, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ContentType } from "@/lib/teacherContent";
-import { TeacherContentSessionRow, listTeacherContentSessions, deleteTeacherContentSession } from "@/lib/teacherContentSessions";
+import { TeacherContentSessionRow, SessionContentType, listTeacherContentSessions, deleteTeacherContentSession } from "@/lib/teacherContentSessions";
 
 interface Props {
   teacherId: string;
-  contentType: ContentType;
+  contentType: SessionContentType;
   activeSessionId: string | null;
   onSelect: (session: TeacherContentSessionRow) => void;
   onNew: () => void;

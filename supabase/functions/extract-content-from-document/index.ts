@@ -102,18 +102,24 @@ function toGeminiParts(parts: ContentPart[]): any[] {
   return out;
 }
 
+type ExtractMode = "exact" | "improve";
+
 interface Body {
   contentType: "exercise" | "quiz" | "exam";
   parts: ContentPart[];
+  mode?: ExtractMode;
 }
 
-function buildSystemPrompt(contentType: Body["contentType"]): string {
+function buildSystemPrompt(contentType: Body["contentType"], mode: ExtractMode): string {
   const kindLabel = contentType === "quiz" ? "des questions à choix multiple (QCM)" : "des exercices";
+  const modeInstruction = mode === "improve"
+    ? `Ta mission : à partir de ${kindLabel} déjà présents dans ce document, crée une VERSION ÉQUIVALENTE mais reformulée/améliorée par toi-même — même(s) notion(s), même niveau de difficulté approximatif, mais énoncé(s) reformulé(s), valeurs numériques changées ou présentation améliorée. Ce n'est pas une copie : chaque item généré doit être clairement différent de l'original tout en restant sur le même sujet. Si le document ne contient aucun exercice/question exploitable comme point de départ, réponds avec une liste "items" vide.`
+    : `Ta mission : EXTRAIRE ${kindLabel} déjà présents dans ce document — n'invente RIEN, ne complète pas un énoncé incomplet, n'ajoute aucun exercice qui n'est pas dans le document. Si le document ne contient aucun exercice/question exploitable, réponds avec une liste "items" vide.`;
   return `Tu es un professeur de mathématiques algérien expert. Un document (PDF, image ou texte extrait d'un fichier Word) t'est fourni.
-Ta mission : EXTRAIRE ${kindLabel} déjà présents dans ce document — n'invente RIEN, ne complète pas un énoncé incomplet, n'ajoute aucun exercice qui n'est pas dans le document. Si le document ne contient aucun exercice/question exploitable, réponds avec une liste "items" vide.
-IMPORTANT — Langue : rédige la totalité du contenu extrait (énoncés, options, réponses, indices, explications) EXCLUSIVEMENT en arabe (اللغة العربية), même si le document source est en français — traduis fidèlement, sans changer le sens ni les valeurs numériques.
+${modeInstruction}
+IMPORTANT — Langue : rédige la totalité du contenu ${mode === "improve" ? "généré" : "extrait"} (énoncés, options, réponses, indices, explications) EXCLUSIVEMENT en arabe (اللغة العربية), même si le document source est en français — traduis fidèlement, sans changer le sens ni les valeurs numériques${mode === "improve" ? " d'origine (tu peux en revanche changer les valeurs pour créer une variante)" : ""}.
 
-RÈGLE ABSOLUE — AUCUN DIALOGUE : tu n'es PAS dans une conversation avec l'utilisateur, il ne verra jamais ta réponse brute et ne peut pas te répondre. Ne pose donc JAMAIS de question, ne demande JAMAIS de clarification ni de confirmation (ex: "veux-tu exactement les mêmes exercices ou que je les améliore ?"), n'explique pas ce que tu vas faire. Décide seul, silencieusement, et applique systématiquement ce choix par défaut : retranscris fidèlement les exercices tels qu'ils sont dans le document, SANS les améliorer, SANS changer leur difficulté ni leur énoncé — la seule adaptation autorisée est la traduction vers l'arabe et la mise en forme LaTeX déjà exigées ci-dessus. Ta toute première caractère de réponse doit être "{" et rien d'autre avant.
+RÈGLE ABSOLUE — AUCUN DIALOGUE : tu n'es PAS dans une conversation avec l'utilisateur, il ne verra jamais ta réponse brute et ne peut pas te répondre. L'utilisateur a déjà choisi à l'avance, via l'interface, entre "exactement les mêmes" et "version améliorée" — applique ce choix (rappelé ci-dessus) sans jamais poser de question, sans demander de clarification ni de confirmation, sans expliquer ce que tu vas faire. Ta toute première caractère de réponse doit être "{" et rien d'autre avant.
 
 FORMAT MATHÉMATIQUE OBLIGATOIRE : TOUTES les expressions mathématiques (variables, fonctions, fractions, puissances, indices, limites, racines, symboles ∞, ≤, ≥, ≠, ±, →, etc.) DOIVENT être réécrites en LaTeX entre délimiteurs $...$ (ou $$...$$ pour une formule isolée), pour le rendu KaTeX côté client — même si le document source ne les avait pas en LaTeX.
 - Fractions : \\frac{a}{b} (JAMAIS a/b en texte brut).
@@ -121,18 +127,21 @@ FORMAT MATHÉMATIQUE OBLIGATOIRE : TOUTES les expressions mathématiques (variab
 - Symboles : \\infty, \\to, \\lim_{x \\to +\\infty}, \\leq, \\geq, \\neq, \\pm, \\cdot, \\times.`;
 }
 
-function buildUserPrompt(contentType: Body["contentType"]): string {
+function buildUserPrompt(contentType: Body["contentType"], mode: ExtractMode): string {
+  const action = mode === "improve"
+    ? "en t'inspirant du document ci-joint, crée une version équivalente reformulée/améliorée de"
+    : "extrais fidèlement du document ci-joint";
   if (contentType === "quiz") {
-    return `Extrais du document ci-joint toutes les questions à choix multiple qu'il contient (aucune limite de nombre, prends-les toutes).
+    return `Sers-toi du document ci-joint : ${action} toutes les questions à choix multiple qu'il contient (aucune limite de nombre, traite-les toutes).
 Si le document contient des exercices ouverts (pas de choix multiple), transforme chacun en QCM à 4 options plausibles seulement si un énoncé à choix explicite existe déjà dans le document — sinon ignore-le.
 Réponds UNIQUEMENT en JSON valide de la forme :
 {"items":[{"question":"...","options":["A","B","C","D"],"correct_answer":"la bonne option exacte (texte identique à l'une des options)","hint":"indice utile sans donner la réponse","explanation":"explication de la correction","difficulty":1}]}
 Les "options" et "correct_answer" doivent aussi utiliser LaTeX entre $...$ quand elles contiennent des maths. "difficulty" est une estimation de 1 (facile) à 5 (avancé) basée sur le contenu réel de la question.
 ⚠️ Réponds directement par l'objet JSON, sans aucune question ni texte avant/après.`;
   }
-  return `Extrais du document ci-joint tous les ${contentType === "exam" ? "exercices d'examen" : "exercices"} qu'il contient (aucune limite de nombre, prends-les tous).
+  return `Sers-toi du document ci-joint : ${action} tous les ${contentType === "exam" ? "exercices d'examen" : "exercices"} qu'il contient (aucune limite de nombre, traite-les tous).
 Réponds UNIQUEMENT en JSON valide de la forme :
-{"items":[{"title":"titre court","statement":"énoncé complet de l'exercice, retranscrit fidèlement","hint":"indice utile sans donner la réponse","expected_answer":"réponse attendue concise (si présente dans le document, sinon déduis-la de la solution)","solution":"corrigé si présent dans le document, sinon une correction détaillée que tu rédiges toi-même (voir format ci-dessous)","difficulty":2}]}
+{"items":[{"title":"titre court","statement":"énoncé complet de l'exercice${mode === "improve" ? ", reformulé/amélioré" : ", retranscrit fidèlement"}","hint":"indice utile sans donner la réponse","expected_answer":"réponse attendue concise (si présente dans le document, sinon déduis-la de la solution)","solution":"corrigé si présent dans le document, sinon une correction détaillée que tu rédiges toi-même (voir format ci-dessous)","difficulty":2}]}
 
 Format de "solution" — OBLIGATOIRE :
 - Corrections RICHES et DÉTAILLÉES en HTML avec plusieurs étapes numérotées, JAMAIS une seule ligne.
@@ -231,8 +240,9 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = buildSystemPrompt(body.contentType);
-    const userParts = [{ text: sanitizeForGemini(buildUserPrompt(body.contentType)) }, ...toGeminiParts(body.parts)];
+    const mode: ExtractMode = body.mode === "improve" ? "improve" : "exact";
+    const systemPrompt = buildSystemPrompt(body.contentType, mode);
+    const userParts = [{ text: sanitizeForGemini(buildUserPrompt(body.contentType, mode)) }, ...toGeminiParts(body.parts)];
 
     const { text: rawContent, usage } = await callGemini(systemPrompt, userParts);
     if (!rawContent.trim()) throw new Error("Réponse IA vide");
