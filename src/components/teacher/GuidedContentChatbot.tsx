@@ -252,13 +252,13 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
     }
   };
 
-  const handleSend = async (classIds: string[]) => {
+  const handleSend = async (classIds: string[], chapterId: string | null, lessonId: string | null) => {
     if (sendIndex === null) return;
     const item = items[sendIndex];
     try {
       const id = await saveTeacherContent({
         teacherId, contentType,
-        chapterId: item._chapterId, lessonId: item._lessonId,
+        chapterId: chapterId ?? item._chapterId, lessonId: lessonId ?? item._lessonId,
         schoolLevel: level, filiere: filiere?.code || null, title: item.title || item.question?.slice(0, 60),
         payload: item, difficulty: item.difficulty, source: "ai",
       });
@@ -560,6 +560,10 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
         teacherId={teacherId}
         schoolLevel={level}
         onConfirm={handleSend}
+        requireLesson
+        chapters={chapters}
+        defaultChapterId={sendIndex !== null ? items[sendIndex]?._chapterId : null}
+        defaultLessonId={sendIndex !== null ? items[sendIndex]?._lessonId : null}
       />
 
       <GeneratedItemPreviewDialog

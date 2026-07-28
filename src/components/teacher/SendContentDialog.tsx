@@ -16,25 +16,41 @@ interface ClassOption {
   filiere: string | null;
 }
 
+interface ChapterOption { id: string; title: string; }
+interface LessonOption { id: string; title: string; chapter_id: string; }
+
 interface SendContentDialogProps {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   teacherId: string;
   schoolLevel?: string | null;
-  onConfirm: (classIds: string[]) => Promise<void> | void;
+  onConfirm: (classIds: string[], chapterId: string | null, lessonId: string | null) => Promise<void> | void;
+  /** Exercice/quiz : impose de choisir chapitre puis leçon avant l'envoi (pas
+   * pertinent pour un examen, qui peut couvrir plusieurs chapitres). */
+  requireLesson?: boolean;
+  chapters?: ChapterOption[];
+  defaultChapterId?: string | null;
+  defaultLessonId?: string | null;
 }
 
 export default function SendContentDialog({
   open, onOpenChange, teacherId, schoolLevel, onConfirm,
+  requireLesson, chapters = [], defaultChapterId, defaultLessonId,
 }: SendContentDialogProps) {
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [chapterId, setChapterId] = useState<string | null>(null);
+  const [lessonId, setLessonId] = useState<string | null>(null);
+  const [chapterLessons, setChapterLessons] = useState<LessonOption[]>([]);
+  const [loadingLessons, setLoadingLessons] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setSelected({});
+    setChapterId(defaultChapterId || null);
+    setLessonId(defaultLessonId || null);
     (async () => {
       setLoading(true);
       let q = supabase
@@ -46,7 +62,28 @@ export default function SendContentDialog({
       setClasses((data as ClassOption[]) || []);
       setLoading(false);
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, teacherId, schoolLevel]);
+
+  // Récupère les leçons du chapitre choisi à la volée : l'appelant ne les a
+  // pas forcément déjà en mémoire (ex. contenu importé depuis un document,
+  // qui n'est jamais passé par l'étape "choix du chapitre" de l'assistant).
+  useEffect(() => {
+    if (!open || !requireLesson || !chapterId) { setChapterLessons([]); return; }
+    let active = true;
+    (async () => {
+      setLoadingLessons(true);
+      const { data } = await supabase
+        .from("lessons")
+        .select("id, title, chapter_id")
+        .eq("chapter_id", chapterId)
+        .order("order_index");
+      if (!active) return;
+      setChapterLessons((data as LessonOption[]) || []);
+      setLoadingLessons(false);
+    })();
+    return () => { active = false; };
+  }, [open, requireLesson, chapterId]);
 
   const toggle = (id: string) => setSelected((s) => ({ ...s, [id]: !s[id] }));
 
@@ -56,9 +93,17 @@ export default function SendContentDialog({
       toast.error("Sélectionnez au moins une classe.");
       return;
     }
+    if (requireLesson && !chapterId) {
+      toast.error("Choisissez le chapitre.");
+      return;
+    }
+    if (requireLesson && !lessonId) {
+      toast.error("Choisissez la leçon.");
+      return;
+    }
     setSending(true);
     try {
-      await onConfirm(ids);
+      await onConfirm(ids, chapterId, lessonId);
       onOpenChange(false);
     } finally {
       setSending(false);
@@ -75,7 +120,7 @@ export default function SendContentDialog({
             {schoolLevel ? ` (niveau ${getSchoolLevelLabel(schoolLevel)})` : ""}.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-2 space-y-2 max-h-[50vh] overflow-y-auto">
+        <div className="py-2 space-y-4 max-h-[60vh] overflow-y-auto">
           {loading ? (
             <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
           ) : classes.length === 0 ? (
@@ -83,17 +128,64 @@ export default function SendContentDialog({
               Aucune classe correspondante pour ce niveau.
             </p>
           ) : (
-            classes.map((c) => (
-              <label key={c.id} className="flex items-center gap-3 rounded-lg border p-3 cursor-pointer hover:bg-muted/40">
-                <Checkbox checked={!!selected[c.id]} onCheckedChange={() => toggle(c.id)} />
-                <div>
-                  <p className="font-medium text-sm">{c.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {getSchoolLevelLabel(c.school_level || "")}{c.filiere ? ` · ${c.filiere}` : ""}
-                  </p>
+            <div className="space-y-2">
+              {classes.map((c) => (
+                <label key={c.id} className="flex items-center gap-3 rounded-lg border p-3 cursor-pointer hover:bg-muted/40">
+                  <Checkbox checked={!!selected[c.id]} onCheckedChange={() => toggle(c.id)} />
+                  <div>
+                    <p className="font-medium text-sm">{c.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {getSchoolLevelLabel(c.school_level || "")}{c.filiere ? ` · ${c.filiere}` : ""}
+                    </p>
+                  </div>
+                </label>
+              ))}
+            </div>
+          )}
+
+          {requireLesson && (
+            <div className="space-y-3 pt-1 border-t">
+              <div className="space-y-1.5 pt-3">
+                <p className="text-xs font-semibold text-muted-foreground">Chapitre *</p>
+                {chapters.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Aucun chapitre disponible.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5">
+                    {chapters.map((ch) => (
+                      <Button
+                        key={ch.id} type="button" size="sm"
+                        variant={chapterId === ch.id ? "default" : "outline"}
+                        onClick={() => { setChapterId(ch.id); setLessonId(null); }}
+                      >
+                        {ch.title}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {chapterId && (
+                <div className="space-y-1.5">
+                  <p className="text-xs font-semibold text-muted-foreground">Leçon *</p>
+                  {loadingLessons ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  ) : chapterLessons.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">Aucune leçon pour ce chapitre.</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {chapterLessons.map((ls) => (
+                        <Button
+                          key={ls.id} type="button" size="sm"
+                          variant={lessonId === ls.id ? "default" : "outline"}
+                          onClick={() => setLessonId(ls.id)}
+                        >
+                          {ls.title}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </label>
-            ))
+              )}
+            </div>
           )}
         </div>
         <DialogFooter>

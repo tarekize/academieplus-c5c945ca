@@ -241,14 +241,17 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   }, [propUserId]);
 
   // Point rouge : ouvrir l'onglet "Ma classe" équivaut à consulter le contenu
-  // envoyé par l'enseignant pour CETTE leçon — on ne marque lu que ce qui lui
-  // est rattaché, pour ne pas éteindre par erreur le point d'autres leçons.
+  // envoyé par l'enseignant. MyClassContent affiche TOUT le contenu assigné
+  // à l'élève de ce type (pas seulement celui de la leçon courante), donc on
+  // marque lu tout ce qui est réellement affiché — filtrer par lesson_id ici
+  // laissait des exercices marqués "pas vu" alors que l'élève les avait sous
+  // les yeux (ex. contenu importé sans lesson_id, ou leçon différente).
   useEffect(() => {
-    if (activeStep !== "maclasse" || !lessonId) return;
+    if (activeStep !== "maclasse") return;
     const wantedType = activeSection === "quiz" ? "quiz" : "exercise";
-    const toMark = unreadItems.filter((it) => it.lesson_id === lessonId && it.content_type === wantedType).map((it) => it.content_id);
+    const toMark = unreadItems.filter((it) => it.content_type === wantedType).map((it) => it.content_id);
     if (toMark.length > 0) markRead(toMark);
-  }, [activeStep, activeSection, lessonId, unreadItems, markRead]);
+  }, [activeStep, activeSection, unreadItems, markRead]);
 
   useEffect(() => {
     const loadProgress = async () => {
