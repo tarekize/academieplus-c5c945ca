@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Loader2, Users, Target, AlertTriangle, TrendingUp, ChevronRight, Trash2, RefreshCw } from "lucide-react";
+import { Loader2, Users, Target, AlertTriangle, TrendingUp, ChevronRight, Trash2, RefreshCw, ClipboardCheck } from "lucide-react";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import { toast } from "sonner";
+import ClassContentTracking from "./ClassContentTracking";
 
 export interface ClassRow {
   id: string;
@@ -81,15 +82,17 @@ interface ClassProgressViewProps {
   classRow: ClassRow;
   onOpenStudentDetail: (student: StudentProfile) => void;
   readOnly?: boolean;
+  teacherId?: string;
 }
 
-export default function ClassProgressView({ classRow, onOpenStudentDetail, readOnly }: ClassProgressViewProps) {
+export default function ClassProgressView({ classRow, onOpenStudentDetail, readOnly, teacherId }: ClassProgressViewProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [students, setStudents] = useState<ComputedStudent[]>([]);
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
+  const [trackingOpen, setTrackingOpen] = useState(false);
 
   const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true); else setLoading(true);
@@ -331,16 +334,29 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
         <CardHeader>
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <CardTitle className="text-lg">Grille de progression — élèves × notions</CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              onClick={() => fetchData(true)}
-              disabled={refreshing}
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
-              Rafraîchir
-            </Button>
+            <div className="flex items-center gap-2">
+              {!readOnly && teacherId && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setTrackingOpen(true)}
+                >
+                  <ClipboardCheck className="h-3.5 w-3.5" />
+                  Suivi de la classe
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => fetchData(true)}
+                disabled={refreshing}
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+                Rafraîchir
+              </Button>
+            </div>
           </div>
           <div className="flex flex-wrap gap-3 text-xs pt-2">
             <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-blue-600" /> Maîtrisé &gt;75%</span>
@@ -485,6 +501,16 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
           })()}
         </CardContent>
       </Card>
+
+      {!readOnly && teacherId && (
+        <ClassContentTracking
+          open={trackingOpen}
+          onOpenChange={setTrackingOpen}
+          teacherId={teacherId}
+          classId={classRow.id}
+          roster={students.map((s) => s.profile)}
+        />
+      )}
     </div>
   );
 }

@@ -455,6 +455,7 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
           key={selectedClass.id}
           classRow={selectedClass}
           onOpenStudentDetail={(s) => setDetailStudent(s as DetailStudent)}
+          teacherId={teacherId}
         />
         <HelpDialog
           open={helpOpen} onOpenChange={setHelpOpen} teacherId={teacherId}

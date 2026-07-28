@@ -1,12 +1,9 @@
-import { useState } from "react";
-import { Sparkles, History, FileText, Target, ClipboardList, Lock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { FileText, Target, ClipboardList, Lock } from "lucide-react";
 import { ContentType, CONTENT_TYPE_LABELS } from "@/lib/teacherContent";
 import { useTeacherEstablishmentStatus } from "@/hooks/useTeacherEstablishmentStatus";
 import TeacherPageHeader from "./TeacherPageHeader";
 import GuidedContentChatbot from "./GuidedContentChatbot";
 import ExamAIBuilder from "./ExamAIBuilder";
-import TeacherContentHistory from "./TeacherContentHistory";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface Props {
@@ -27,13 +24,7 @@ const CONTENT_TYPE_STYLE: Record<ContentType, string> = {
   exam: "bg-purple-500/10 text-purple-600",
 };
 
-const MODES = [
-  { key: "ai", label: "Assistant IA", icon: Sparkles },
-  { key: "history", label: "Historique", icon: History },
-] as const;
-
 export default function TeacherContentSpace({ teacherId, contentType, onBack }: Props) {
-  const [mode, setMode] = useState<"ai" | "history">("ai");
   const label = CONTENT_TYPE_LABELS[contentType];
   const { hasActiveEstablishment } = useTeacherEstablishmentStatus(teacherId);
   // false seulement une fois qu'on sait avec certitude qu'aucun établissement
@@ -48,32 +39,9 @@ export default function TeacherContentSpace({ teacherId, contentType, onBack }: 
         title={`${label}s`}
         description={`Créez vos ${label.toLowerCase()}s avec l'assistant IA.`}
         onBack={onBack}
-        action={
-          <div className="inline-flex items-center gap-1 rounded-2xl bg-muted p-1">
-            {MODES.map((m) => {
-              const Icon = m.icon;
-              const active = mode === m.key;
-              return (
-                <button
-                  key={m.key}
-                  onClick={() => setMode(m.key)}
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium transition-all",
-                    active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{m.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        }
       />
 
-      {mode === "history" ? (
-        <TeacherContentHistory key={contentType} teacherId={teacherId} contentType={contentType} />
-      ) : aiLocked ? (
+      {aiLocked ? (
         <Card className="border-dashed">
           <CardContent className="py-16 text-center space-y-3">
             <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
