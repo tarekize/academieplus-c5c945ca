@@ -8,12 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Sparkles, Share2 } from "lucide-react";
+import { Loader2, Sparkles, Share2, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import { saveTeacherContent, assignContent, getTrimesterOptions, GeneratedItem } from "@/lib/teacherContent";
 import SendContentDialog from "./SendContentDialog";
 import DocumentImportButton from "@/components/DocumentImportButton";
+import GeneratedItemPreviewDialog from "@/components/GeneratedItemPreviewDialog";
 
 interface ChapterRow { id: string; title: string; }
 interface FiliereRow { id: string; code: string; name: string; name_ar: string | null; }
@@ -46,6 +47,7 @@ export default function ExamAIBuilder({ teacherId }: Props) {
 
   const [sendOpen, setSendOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [previewIdx, setPreviewIdx] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -275,6 +277,11 @@ export default function ExamAIBuilder({ teacherId }: Props) {
                     {row.generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                     Générer
                   </Button>
+                  {row.statement.trim() && (
+                    <Button size="sm" variant="outline" className="gap-1.5 whitespace-nowrap" onClick={() => setPreviewIdx(idx)}>
+                      <Eye className="h-4 w-4" /> Visualiser
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -313,6 +320,22 @@ export default function ExamAIBuilder({ teacherId }: Props) {
         teacherId={teacherId}
         schoolLevel={level}
         onConfirm={doShare}
+      />
+
+      <GeneratedItemPreviewDialog
+        open={previewIdx !== null}
+        onOpenChange={(o) => !o && setPreviewIdx(null)}
+        item={previewIdx !== null ? {
+          statement: rows[previewIdx].statement,
+          solution: rows[previewIdx].solution,
+          expected_answer: rows[previewIdx].answer,
+        } : null}
+        onChange={(patch) => {
+          if (previewIdx === null) return;
+          if (typeof patch.statement === "string") updateRow(previewIdx, "statement", patch.statement);
+          if (typeof patch.solution === "string") updateRow(previewIdx, "solution", patch.solution);
+          if (typeof patch.expected_answer === "string") updateRow(previewIdx, "answer", patch.expected_answer);
+        }}
       />
     </Card>
   );
