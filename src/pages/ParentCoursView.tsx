@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { courseService } from "@/services/courseService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, GraduationCap, BookOpen, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -158,7 +157,6 @@ const ParentCoursView = () => {
             <h1 className="font-display text-2xl font-extrabold">Mathématiques</h1>
             <span className="text-sm text-muted-foreground">{chapters.length} chapitres</span>
           </div>
-          <Progress value={0} className="h-2" />
         </div>
 
         {/* Grid view */}
