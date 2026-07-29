@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,16 +29,17 @@ export type ItemStatus = "draft" | "pending" | "approved" | "rejected";
 
 /** Badge d'état de validation — rien pour "approved" (état normal, publié). */
 export function StatusBadge({ status, rejectionReason }: { status?: string; rejectionReason?: string | null }) {
+  const { t } = useTranslation();
   if (!status || status === "approved") return null;
   if (status === "draft") {
-    return <Badge variant="secondary" className="gap-1 w-fit"><FileEdit className="h-3 w-3" /> مسودة (لم ترسل بعد)</Badge>;
+    return <Badge variant="secondary" className="gap-1 w-fit"><FileEdit className="h-3 w-3" /> {t("quizExerciseCRUD.statusDraft")}</Badge>;
   }
   if (status === "pending") {
-    return <Badge className="bg-warning hover:bg-warning text-warning-foreground gap-1 w-fit"><Clock className="h-3 w-3" /> بانتظار المصادقة</Badge>;
+    return <Badge className="bg-warning hover:bg-warning text-warning-foreground gap-1 w-fit"><Clock className="h-3 w-3" /> {t("quizExerciseCRUD.statusPending")}</Badge>;
   }
   return (
     <div className="flex flex-col gap-1">
-      <Badge variant="destructive" className="gap-1 w-fit"><XCircle className="h-3 w-3" /> مرفوض</Badge>
+      <Badge variant="destructive" className="gap-1 w-fit"><XCircle className="h-3 w-3" /> {t("quizExerciseCRUD.statusRejected")}</Badge>
       {rejectionReason && <span className="text-xs text-destructive">{rejectionReason}</span>}
     </div>
   );
@@ -45,16 +47,17 @@ export function StatusBadge({ status, rejectionReason }: { status?: string; reje
 
 /** Pédago : envoie un item (brouillon ou refusé, corrigé) à l'admin pour validation. */
 export function SubmitItemButton({ itemType, itemId, onSubmitted }: { itemType: ItemType; itemId: string; onSubmitted: () => void }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const handleSubmit = async () => {
     setLoading(true);
     try {
       const { error } = await supabase.rpc("submit_chapter_item_for_review" as any, { p_item_type: itemType, p_item_id: itemId });
       if (error) throw error;
-      toast.success("تم الإرسال للمراجعة");
+      toast.success(t("quizExerciseCRUD.submitSent"));
       onSubmitted();
     } catch (e: any) {
-      toast.error(e.message || "خطأ في الإرسال");
+      toast.error(e.message || t("quizExerciseCRUD.submitError"));
     } finally {
       setLoading(false);
     }
@@ -62,15 +65,16 @@ export function SubmitItemButton({ itemType, itemId, onSubmitted }: { itemType: 
   return (
     <Button size="sm" variant="outline" className="gap-1" onClick={handleSubmit} disabled={loading}>
       {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-      إرسال للمراجعة
+      {t("quizExerciseCRUD.submitForReview")}
     </Button>
   );
 }
 
-/** Pédago : envoie en une fois tous les brouillons/refusés d'un niveau (تمارين ou أسئلة). */
+/** Pédago : envoie en une fois tous les brouillons/refusés d'un niveau (exercices ou quiz). */
 export function SubmitAllDraftsButton({ itemType, chapterId, lessonId, count, onSubmitted }: {
   itemType: ItemType; chapterId: string; lessonId?: string; count: number; onSubmitted: () => void;
 }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   if (count === 0) return null;
   const handleClick = async () => {
@@ -80,10 +84,10 @@ export function SubmitAllDraftsButton({ itemType, chapterId, lessonId, count, on
         p_item_type: itemType, p_chapter_id: chapterId, p_lesson_id: lessonId ?? null,
       });
       if (error) throw error;
-      toast.success(`تم إرسال ${data} عنصر للمراجعة`);
+      toast.success(t("quizExerciseCRUD.submitAllSent", { count: data }));
       onSubmitted();
     } catch (e: any) {
-      toast.error(e.message || "خطأ في الإرسال");
+      toast.error(e.message || t("quizExerciseCRUD.submitError"));
     } finally {
       setLoading(false);
     }
@@ -91,26 +95,28 @@ export function SubmitAllDraftsButton({ itemType, chapterId, lessonId, count, on
   return (
     <Button size="sm" variant="outline" className="gap-1" onClick={handleClick} disabled={loading}>
       {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-      إرسال الكل للمراجعة ({count})
+      {t("quizExerciseCRUD.submitAll", { count })}
     </Button>
   );
 }
 
 /** Admin : accepte (publie aux élèves) ou refuse (motif optionnel) un item en attente. */
 export function ReviewActionButtons({ itemType, itemId, onReviewed }: { itemType: ItemType; itemId: string; onReviewed: () => void }) {
+  const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [reason, setReason] = useState("");
+  const dir = i18n.language === "ar" ? "rtl" : "ltr";
 
   const approve = async () => {
     setLoading(true);
     try {
       const { error } = await supabase.rpc("approve_chapter_item" as any, { p_item_type: itemType, p_item_id: itemId });
       if (error) throw error;
-      toast.success("تم القبول ونشره للطلاب");
+      toast.success(t("quizExerciseCRUD.approveSuccess"));
       onReviewed();
     } catch (e: any) {
-      toast.error(e.message || "خطأ في القبول");
+      toast.error(e.message || t("quizExerciseCRUD.approveError"));
     } finally {
       setLoading(false);
     }
@@ -121,12 +127,12 @@ export function ReviewActionButtons({ itemType, itemId, onReviewed }: { itemType
     try {
       const { error } = await supabase.rpc("reject_chapter_item" as any, { p_item_type: itemType, p_item_id: itemId, p_reason: reason.trim() || null });
       if (error) throw error;
-      toast.success("تم الرفض");
+      toast.success(t("quizExerciseCRUD.rejectSuccess"));
       setRejectOpen(false);
       setReason("");
       onReviewed();
     } catch (e: any) {
-      toast.error(e.message || "خطأ في الرفض");
+      toast.error(e.message || t("quizExerciseCRUD.rejectError"));
     } finally {
       setLoading(false);
     }
@@ -137,27 +143,27 @@ export function ReviewActionButtons({ itemType, itemId, onReviewed }: { itemType
       <div className="flex gap-1.5">
         <Button size="sm" onClick={approve} disabled={loading} className="gap-1 bg-green-600 hover:bg-green-700">
           {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
-          قبول
+          {t("quizExerciseCRUD.approve")}
         </Button>
         <Button size="sm" variant="destructive" onClick={() => setRejectOpen(true)} disabled={loading} className="gap-1">
-          <XCircle className="h-3 w-3" /> رفض
+          <XCircle className="h-3 w-3" /> {t("quizExerciseCRUD.reject")}
         </Button>
       </div>
       <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle dir="rtl">سبب الرفض (اختياري)</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle dir={dir}>{t("quizExerciseCRUD.rejectReasonTitle")}</DialogTitle></DialogHeader>
           <Textarea
-            dir="rtl"
+            dir={dir}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="اشرح للمعلم سبب الرفض حتى يتمكن من التصحيح..."
+            placeholder={t("quizExerciseCRUD.rejectReasonPlaceholder")}
             className="min-h-[100px]"
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectOpen(false)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setRejectOpen(false)}>{t("app.cancel")}</Button>
             <Button variant="destructive" onClick={reject} disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-              تأكيد الرفض
+              {t("quizExerciseCRUD.rejectConfirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -175,6 +181,8 @@ interface QuizFormProps {
 }
 
 export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormProps) {
+  const { t, i18n } = useTranslation();
+  const dir = i18n.language === "ar" ? "rtl" : "ltr";
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [question, setQuestion] = useState(quiz?.question || "");
@@ -187,7 +195,7 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
 
   const handleSubmit = async () => {
     if (!question.trim() || !correctAnswer.trim()) {
-      toast.error("السؤال والإجابة الصحيحة مطلوبان");
+      toast.error(t("quizExerciseCRUD.quiz.validationError"));
       return;
     }
     setLoading(true);
@@ -202,7 +210,7 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
           difficulty: difficulty,
         }).eq("id", quiz.id);
         if (error) throw error;
-        toast.success("تم تعديل السؤال");
+        toast.success(t("quizExerciseCRUD.quiz.updateSuccess"));
       } else {
         const { error } = await supabase.from("chapter_quizzes").insert({
           chapter_id: chapterId,
@@ -215,7 +223,7 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
           difficulty: difficulty,
         });
         if (error) throw error;
-        toast.success("تمت إضافة السؤال");
+        toast.success(t("quizExerciseCRUD.quiz.addSuccess"));
       }
       setOpen(false);
       onSaved();
@@ -242,52 +250,52 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
         {isEdit ? (
           <Button variant="ghost" size="icon" className="h-7 w-7"><Pencil className="h-3 w-3" /></Button>
         ) : (
-          <Button variant="outline" size="sm" className="gap-1"><Plus className="h-3 w-3" />سؤال جديد</Button>
+          <Button variant="outline" size="sm" className="gap-1"><Plus className="h-3 w-3" />{t("quizExerciseCRUD.quiz.newButton")}</Button>
         )}
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle dir="rtl">{isEdit ? "تعديل السؤال" : "سؤال جديد"}</DialogTitle></DialogHeader>
-        <div className="space-y-3 py-2" dir="rtl">
-          <RichContentField label="نص السؤال" value={question} onChange={setQuestion} minHeight={120} />
+        <DialogHeader><DialogTitle dir={dir}>{isEdit ? t("quizExerciseCRUD.quiz.editTitle") : t("quizExerciseCRUD.quiz.newTitle")}</DialogTitle></DialogHeader>
+        <div className="space-y-3 py-2" dir={dir}>
+          <RichContentField label={t("quizExerciseCRUD.quiz.questionLabel")} value={question} onChange={setQuestion} minHeight={120} />
           <div className="space-y-2">
-            <label className="text-sm font-medium">الخيارات</label>
+            <label className="text-sm font-medium">{t("quizExerciseCRUD.quiz.optionsLabel")}</label>
             {options.map((opt, i) => (
               <Input key={i} value={opt} onChange={(e) => { const n = [...options]; n[i] = e.target.value; setOptions(n); }}
-                placeholder={`الخيار ${i + 1}`} />
+                placeholder={t("quizExerciseCRUD.quiz.optionPlaceholder", { n: i + 1 })} />
             ))}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium">الإجابة الصحيحة</label>
-              <Input value={correctAnswer} onChange={(e) => setCorrectAnswer(e.target.value)} placeholder="الإجابة الصحيحة" />
+              <label className="text-sm font-medium">{t("quizExerciseCRUD.quiz.correctAnswerLabel")}</label>
+              <Input value={correctAnswer} onChange={(e) => setCorrectAnswer(e.target.value)} placeholder={t("quizExerciseCRUD.quiz.correctAnswerPlaceholder")} />
             </div>
             <div>
-              <label className="text-sm font-medium">مستوى الصعوبة</label>
+              <label className="text-sm font-medium">{t("quizExerciseCRUD.quiz.difficultyLabel")}</label>
               <Select value={difficulty.toString()} onValueChange={(v) => setDifficulty(parseInt(v))}>
                 <SelectTrigger>
-                  <SelectValue placeholder="اختر الصعوبة" />
+                  <SelectValue placeholder={t("quizExerciseCRUD.quiz.difficultyPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">1 - سهل جداً</SelectItem>
-                  <SelectItem value="2">2 - سهل</SelectItem>
-                  <SelectItem value="3">3 - متوسط</SelectItem>
-                  <SelectItem value="4">4 - صعب</SelectItem>
-                  <SelectItem value="5">5 - صعب جداً</SelectItem>
+                  <SelectItem value="1">{t("quizExerciseCRUD.quiz.difficulty1")}</SelectItem>
+                  <SelectItem value="2">{t("quizExerciseCRUD.quiz.difficulty2")}</SelectItem>
+                  <SelectItem value="3">{t("quizExerciseCRUD.quiz.difficulty3")}</SelectItem>
+                  <SelectItem value="4">{t("quizExerciseCRUD.quiz.difficulty4")}</SelectItem>
+                  <SelectItem value="5">{t("quizExerciseCRUD.quiz.difficulty5")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-          <RichContentField label="الشرح" value={explanation} onChange={setExplanation} minHeight={100} />
+          <RichContentField label={t("quizExerciseCRUD.quiz.explanationLabel")} value={explanation} onChange={setExplanation} minHeight={100} />
           <div>
-            <label className="text-sm font-medium">💡 مساعدة (Hint) — يظهر للتلميذ عند الطلب</label>
-            <Textarea value={hint} onChange={(e) => setHint(e.target.value)} placeholder="فكرة أو تلميح يساعد التلميذ على الوصول للجواب..." />
+            <label className="text-sm font-medium">{t("quizExerciseCRUD.quiz.hintLabel")}</label>
+            <Textarea value={hint} onChange={(e) => setHint(e.target.value)} placeholder={t("quizExerciseCRUD.quiz.hintPlaceholder")} />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>{t("app.cancel")}</Button>
           <Button onClick={handleSubmit} disabled={loading}>
             {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {isEdit ? "تعديل" : "إضافة"}
+            {isEdit ? t("app.edit") : t("app.add")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -296,13 +304,14 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
 }
 
 export function DeleteQuizButton({ quizId, onDeleted }: { quizId: string; onDeleted: () => void }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const handleDelete = async () => {
     setLoading(true);
     try {
       const { error } = await supabase.from("chapter_quizzes").delete().eq("id", quizId);
       if (error) throw error;
-      toast.success("تم حذف السؤال");
+      toast.success(t("quizExerciseCRUD.quiz.deleteSuccess"));
       onDeleted();
     } catch (e: any) { toast.error(e.message); } finally { setLoading(false); }
   };
@@ -312,13 +321,13 @@ export function DeleteQuizButton({ quizId, onDeleted }: { quizId: string; onDele
         <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"><Trash2 className="h-3 w-3" /></Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
-        <AlertDialogHeader><AlertDialogTitle>حذف السؤال؟</AlertDialogTitle>
-          <AlertDialogDescription>هذا الإجراء لا يمكن التراجع عنه.</AlertDialogDescription>
+        <AlertDialogHeader><AlertDialogTitle>{t("quizExerciseCRUD.quiz.deleteConfirmTitle")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("quizExerciseCRUD.quiz.deleteConfirmDescription")}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>إلغاء</AlertDialogCancel>
+          <AlertDialogCancel>{t("app.cancel")}</AlertDialogCancel>
           <AlertDialogAction onClick={handleDelete} disabled={loading} className="bg-destructive text-destructive-foreground">
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "حذف"}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("app.delete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -335,6 +344,8 @@ interface ExerciseFormProps {
 }
 
 export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: ExerciseFormProps) {
+  const { t, i18n } = useTranslation();
+  const dir = i18n.language === "ar" ? "rtl" : "ltr";
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState(exercise?.title || "");
@@ -348,7 +359,7 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
 
   const handleSubmit = async () => {
     if (!title.trim() || !statement.trim()) {
-      toast.error("العنوان والتمرين مطلوبان");
+      toast.error(t("quizExerciseCRUD.exercise.validationError"));
       return;
     }
     setLoading(true);
@@ -365,11 +376,11 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
       if (isEdit) {
         const { error } = await supabase.from("chapter_exercises").update(data).eq("id", exercise.id);
         if (error) throw error;
-        toast.success("تم تعديل التمرين");
+        toast.success(t("quizExerciseCRUD.exercise.updateSuccess"));
       } else {
         const { error } = await supabase.from("chapter_exercises").insert({ chapter_id: chapterId, lesson_id: lessonId ?? null, ...data });
         if (error) throw error;
-        toast.success("تمت إضافة التمرين");
+        toast.success(t("quizExerciseCRUD.exercise.addSuccess"));
       }
       setOpen(false);
       onSaved();
@@ -392,53 +403,53 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
         {isEdit ? (
           <Button variant="ghost" size="icon" className="h-7 w-7"><Pencil className="h-3 w-3" /></Button>
         ) : (
-          <Button variant="outline" size="sm" className="gap-1"><Plus className="h-3 w-3" />تمرين جديد</Button>
+          <Button variant="outline" size="sm" className="gap-1"><Plus className="h-3 w-3" />{t("quizExerciseCRUD.exercise.newButton")}</Button>
         )}
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle dir="rtl">{isEdit ? "تعديل التمرين" : "تمرين جديد"}</DialogTitle></DialogHeader>
-        <div className="space-y-3 py-2" dir="rtl">
+        <DialogHeader><DialogTitle dir={dir}>{isEdit ? t("quizExerciseCRUD.exercise.editTitle") : t("quizExerciseCRUD.exercise.newTitle")}</DialogTitle></DialogHeader>
+        <div className="space-y-3 py-2" dir={dir}>
           <div>
-            <label className="text-sm font-medium">العنوان</label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="عنوان التمرين" />
+            <label className="text-sm font-medium">{t("quizExerciseCRUD.exercise.titleLabel")}</label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("quizExerciseCRUD.exercise.titlePlaceholder")} />
           </div>
-          <RichContentField label="نص التمرين" value={statement} onChange={setStatement} minHeight={120} />
+          <RichContentField label={t("quizExerciseCRUD.exercise.statementLabel")} value={statement} onChange={setStatement} minHeight={120} />
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium">الإجابة المتوقعة</label>
-              <Input value={expectedAnswer} onChange={(e) => setExpectedAnswer(e.target.value)} placeholder="الإجابة" />
+              <label className="text-sm font-medium">{t("quizExerciseCRUD.exercise.expectedAnswerLabel")}</label>
+              <Input value={expectedAnswer} onChange={(e) => setExpectedAnswer(e.target.value)} placeholder={t("quizExerciseCRUD.exercise.expectedAnswerPlaceholder")} />
             </div>
             <div>
-              <label className="text-sm font-medium">مستوى الصعوبة</label>
+              <label className="text-sm font-medium">{t("quizExerciseCRUD.quiz.difficultyLabel")}</label>
               <Select value={difficulty.toString()} onValueChange={(v) => setDifficulty(parseInt(v))}>
                 <SelectTrigger>
-                  <SelectValue placeholder="اختر الصعوبة" />
+                  <SelectValue placeholder={t("quizExerciseCRUD.quiz.difficultyPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">1 - سهل جداً</SelectItem>
-                  <SelectItem value="2">2 - سهل</SelectItem>
-                  <SelectItem value="3">3 - متوسط</SelectItem>
-                  <SelectItem value="4">4 - صعب</SelectItem>
-                  <SelectItem value="5">5 - صعب جداً</SelectItem>
+                  <SelectItem value="1">{t("quizExerciseCRUD.quiz.difficulty1")}</SelectItem>
+                  <SelectItem value="2">{t("quizExerciseCRUD.quiz.difficulty2")}</SelectItem>
+                  <SelectItem value="3">{t("quizExerciseCRUD.quiz.difficulty3")}</SelectItem>
+                  <SelectItem value="4">{t("quizExerciseCRUD.quiz.difficulty4")}</SelectItem>
+                  <SelectItem value="5">{t("quizExerciseCRUD.quiz.difficulty5")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium">إجابات مقبولة (مفصولة بفواصل)</label>
-            <Input value={acceptedAnswers} onChange={(e) => setAcceptedAnswers(e.target.value)} placeholder="إجابة1, إجابة2" />
+            <label className="text-sm font-medium">{t("quizExerciseCRUD.exercise.acceptedAnswersLabel")}</label>
+            <Input value={acceptedAnswers} onChange={(e) => setAcceptedAnswers(e.target.value)} placeholder={t("quizExerciseCRUD.exercise.acceptedAnswersPlaceholder")} />
           </div>
-          <RichContentField label="الحل المفصل" value={solution} onChange={setSolution} minHeight={140} />
+          <RichContentField label={t("quizExerciseCRUD.exercise.solutionLabel")} value={solution} onChange={setSolution} minHeight={140} />
           <div>
-            <label className="text-sm font-medium">💡 مساعدة (Hint) — يظهر للتلميذ عند الطلب</label>
-            <Textarea value={hint} onChange={(e) => setHint(e.target.value)} placeholder="فكرة أو تلميح يساعد التلميذ على الوصول للجواب..." className="min-h-[60px]" />
+            <label className="text-sm font-medium">{t("quizExerciseCRUD.quiz.hintLabel")}</label>
+            <Textarea value={hint} onChange={(e) => setHint(e.target.value)} placeholder={t("quizExerciseCRUD.quiz.hintPlaceholder")} className="min-h-[60px]" />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>{t("app.cancel")}</Button>
           <Button onClick={handleSubmit} disabled={loading}>
             {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {isEdit ? "تعديل" : "إضافة"}
+            {isEdit ? t("app.edit") : t("app.add")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -447,13 +458,14 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
 }
 
 export function DeleteExerciseButton({ exerciseId, onDeleted }: { exerciseId: string; onDeleted: () => void }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const handleDelete = async () => {
     setLoading(true);
     try {
       const { error } = await supabase.from("chapter_exercises").delete().eq("id", exerciseId);
       if (error) throw error;
-      toast.success("تم حذف التمرين");
+      toast.success(t("quizExerciseCRUD.exercise.deleteSuccess"));
       onDeleted();
     } catch (e: any) { toast.error(e.message); } finally { setLoading(false); }
   };
@@ -463,13 +475,13 @@ export function DeleteExerciseButton({ exerciseId, onDeleted }: { exerciseId: st
         <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"><Trash2 className="h-3 w-3" /></Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
-        <AlertDialogHeader><AlertDialogTitle>حذف التمرين؟</AlertDialogTitle>
-          <AlertDialogDescription>هذا الإجراء لا يمكن التراجع عنه.</AlertDialogDescription>
+        <AlertDialogHeader><AlertDialogTitle>{t("quizExerciseCRUD.exercise.deleteConfirmTitle")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("quizExerciseCRUD.exercise.deleteConfirmDescription")}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>إلغاء</AlertDialogCancel>
+          <AlertDialogCancel>{t("app.cancel")}</AlertDialogCancel>
           <AlertDialogAction onClick={handleDelete} disabled={loading} className="bg-destructive text-destructive-foreground">
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "حذف"}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("app.delete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -494,6 +506,7 @@ export function ImportFromDocumentButton({
   isAdmin: boolean;
   onImported: () => void;
 }) {
+  const { t } = useTranslation();
   const insertItems = async (items: GeneratedItem[]) => {
     const status = isAdmin ? "approved" : "draft";
     if (itemType === "exercise") {
@@ -502,7 +515,7 @@ export function ImportFromDocumentButton({
         .map((it, i) => ({
           chapter_id: chapterId,
           lesson_id: lessonId,
-          title: (it.title || `تمرين ${i + 1}`).slice(0, 300),
+          title: (it.title || t("quizExerciseCRUD.import.defaultExerciseTitle", { n: i + 1 })).slice(0, 300),
           statement: it.statement || "",
           expected_answer: it.expected_answer || "",
           accepted_answers: [] as string[],
@@ -511,7 +524,7 @@ export function ImportFromDocumentButton({
           difficulty: Math.min(5, Math.max(1, it.difficulty || 2)),
           status,
         }));
-      if (rows.length === 0) { toast.error("Aucun exercice exploitable dans ce document."); return; }
+      if (rows.length === 0) { toast.error(t("quizExerciseCRUD.import.noExercise")); return; }
       const { error } = await supabase.from("chapter_exercises").insert(rows);
       if (error) throw error;
     } else {
@@ -528,7 +541,7 @@ export function ImportFromDocumentButton({
           difficulty: Math.min(5, Math.max(1, it.difficulty || 2)),
           status,
         }));
-      if (rows.length === 0) { toast.error("Aucune question exploitable dans ce document."); return; }
+      if (rows.length === 0) { toast.error(t("quizExerciseCRUD.import.noQuiz")); return; }
       const { error } = await supabase.from("chapter_quizzes").insert(rows);
       if (error) throw error;
     }
@@ -538,9 +551,9 @@ export function ImportFromDocumentButton({
   return (
     <DocumentImportButton
       contentType={itemType}
-      label="Importer depuis un document"
+      label={t("quizExerciseCRUD.import.buttonLabel")}
       onExtracted={(items) => {
-        insertItems(items).catch((e: any) => toast.error(e.message || "Erreur lors de l'import"));
+        insertItems(items).catch((e: any) => toast.error(e.message || t("quizExerciseCRUD.import.error")));
       }}
     />
   );
@@ -559,10 +572,12 @@ export function GenerateQuizExercisesButton({
   chapterId: string;
   lessonId: string;
   onGenerated: () => void;
-  /** Si fourni, verrouille le type de contenu généré (بدون سؤال) — utilisé quand le bouton
-   * est déclenché depuis l'onglet "تمارين" ou l'onglet "اسئله متعدده الاختيارات". */
+  /** Si fourni, verrouille le type de contenu généré (sans poser la question) — utilisé quand
+   * le bouton est déclenché depuis l'onglet "Exercices" ou l'onglet "QCM". */
   lockedContentType?: ContentType;
 }) {
+  const { t, i18n } = useTranslation();
+  const dir = i18n.language === "ar" ? "rtl" : "ltr";
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [mode, setMode] = useState<"add" | "replace">("add");
@@ -577,22 +592,22 @@ export function GenerateQuizExercisesButton({
   const toggleSection = (s: Section) => {
     setSections((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
   };
-  const toggleContentType = (t: ContentType) => {
+  const toggleContentType = (type: ContentType) => {
     if (lockedContentType) return;
-    setContentTypes((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
+    setContentTypes((prev) => (prev.includes(type) ? prev.filter((x) => x !== type) : [...prev, type]));
   };
 
   const handleGenerate = async () => {
     if (sections.length === 0) {
-      toast.error("اختر مكان توليد الأسئلة (اكتشف أو افهم) على الأقل");
+      toast.error(t("quizExerciseCRUD.generate.sectionsRequired"));
       return;
     }
     if (contentTypes.length === 0) {
-      toast.error("اختر تمارين أو أسئلة على الأقل");
+      toast.error(t("quizExerciseCRUD.generate.typesRequired"));
       return;
     }
     if (difficultyMin > difficultyMax) {
-      toast.error("المستوى الأدنى يجب أن يكون أصغر أو يساوي المستوى الأقصى");
+      toast.error(t("quizExerciseCRUD.generate.difficultyRangeError"));
       return;
     }
     setLoading(true);
@@ -610,99 +625,103 @@ export function GenerateQuizExercisesButton({
         },
       });
       if (error) throw new Error(await extractFunctionErrorMessage(error));
-      if (data?.success === false) throw new Error(data.error || "خطأ في التوليد");
+      if (data?.success === false) throw new Error(data.error || t("quizExerciseCRUD.generate.genericError"));
       if (data?.error) throw new Error(data.error);
       const quizCount = data?.inserted_quizzes ?? 0;
       const exerciseCount = data?.inserted_exercises ?? 0;
-      toast.success(`تم إنشاء ${exerciseCount} تمارين و ${quizCount} أسئلة بنجاح`);
+      toast.success(t("quizExerciseCRUD.generate.successMessage", { exercises: exerciseCount, quizzes: quizCount }));
       setOpenDialog(false);
       onGenerated();
     } catch (err: any) {
-      toast.error(err.message || "خطأ في التوليد");
+      toast.error(err.message || t("quizExerciseCRUD.generate.genericError"));
     } finally {
       setLoading(false);
     }
   };
 
-  const typeLabel = lockedContentType === "exercises" ? "تمارين فقط" : lockedContentType === "quizzes" ? "أسئلة اختيار من متعدد فقط" : null;
+  const typeLabel = lockedContentType === "exercises"
+    ? t("quizExerciseCRUD.generate.exercisesOnly")
+    : lockedContentType === "quizzes"
+      ? t("quizExerciseCRUD.generate.quizzesOnly")
+      : null;
 
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-1">
           <Sparkles className="h-3 w-3" />
-          توليد بالذكاء الاصطناعي
+          {t("quizExerciseCRUD.generate.buttonLabel")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle dir="rtl">توليد الأسئلة والتمارين بالذكاء الاصطناعي</DialogTitle>
+          <DialogTitle dir={dir}>{t("quizExerciseCRUD.generate.dialogTitle")}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-5 py-2" dir="rtl">
+        <div className="space-y-5 py-2" dir={dir}>
           {/* Ajouter / Remplacer */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">كيفية الإضافة</Label>
+            <Label className="text-sm font-medium">{t("quizExerciseCRUD.generate.modeLabel")}</Label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 className={`p-2.5 border-2 rounded-lg text-sm transition-all ${mode === "add" ? "border-primary bg-primary/5 font-medium" : "border-border hover:border-primary/50"}`}
                 onClick={() => setMode("add")}
               >
-                إضافة إلى الموجود
+                {t("quizExerciseCRUD.generate.modeAdd")}
               </button>
               <button
                 type="button"
                 className={`p-2.5 border-2 rounded-lg text-sm transition-all ${mode === "replace" ? "border-destructive bg-destructive/5 font-medium text-destructive" : "border-border hover:border-destructive/50"}`}
                 onClick={() => setMode("replace")}
               >
-                استبدال الموجود
+                {t("quizExerciseCRUD.generate.modeReplace")}
               </button>
             </div>
           </div>
 
           {/* Emplacement : Découvrir / Comprendre */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">أين تريد وضع الأسئلة؟</Label>
+            <Label className="text-sm font-medium">{t("quizExerciseCRUD.generate.placementLabel")}</Label>
             <div className="flex gap-4">
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <Checkbox checked={sections.includes("discover")} onCheckedChange={() => toggleSection("discover")} />
-                اكتشف (Découvrir)
+                {t("quizExerciseCRUD.generate.discoverOption")}
               </label>
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <Checkbox checked={sections.includes("understand")} onCheckedChange={() => toggleSection("understand")} />
-                افهم (Comprendre)
+                {t("quizExerciseCRUD.generate.understandOption")}
               </label>
             </div>
             {sections.length === 2 && (
-              <p className="text-xs text-muted-foreground">سيتم توزيع العدد على المرحلتين معاً</p>
+              <p className="text-xs text-muted-foreground">{t("quizExerciseCRUD.generate.bothSectionsHint")}</p>
             )}
           </div>
 
           {/* Type : Exercices / Quiz */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">ماذا تريد أن تولّد؟</Label>
+            <Label className="text-sm font-medium">{t("quizExerciseCRUD.generate.typeLabel")}</Label>
             {typeLabel ? (
               <p className="text-sm px-3 py-2 rounded-md bg-muted font-medium">{typeLabel}</p>
             ) : (
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 text-sm cursor-pointer">
                   <Checkbox checked={contentTypes.includes("exercises")} onCheckedChange={() => toggleContentType("exercises")} />
-                  تمارين
+                  {t("quizExerciseCRUD.generate.exercisesOption")}
                 </label>
                 <label className="flex items-center gap-2 text-sm cursor-pointer">
                   <Checkbox checked={contentTypes.includes("quizzes")} onCheckedChange={() => toggleContentType("quizzes")} />
-                  أسئلة اختيار من متعدد
+                  {t("quizExerciseCRUD.generate.quizzesOption")}
                 </label>
               </div>
             )}
             {contentTypes.length === 2 && (
-              <p className="text-xs text-muted-foreground">سيتم توليد نفس العدد لكل من التمارين والأسئلة</p>
+              <p className="text-xs text-muted-foreground">{t("quizExerciseCRUD.generate.bothTypesHint")}</p>
             )}
           </div>
 
           {/* Nombre */}
           <div>
-            <Label className="text-sm font-medium">كم عدد الأسئلة/التمارين؟</Label>
+            <Label className="text-sm font-medium">{t("quizExerciseCRUD.generate.countLabel")}</Label>
             <Input
               type="number"
               min={1}
@@ -715,7 +734,7 @@ export function GenerateQuizExercisesButton({
           {/* Niveau min / max */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-sm font-medium">المستوى الأدنى</Label>
+              <Label className="text-sm font-medium">{t("quizExerciseCRUD.generate.minDifficultyLabel")}</Label>
               <Select value={difficultyMin.toString()} onValueChange={(v) => setDifficultyMin(parseInt(v))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -724,7 +743,7 @@ export function GenerateQuizExercisesButton({
               </Select>
             </div>
             <div>
-              <Label className="text-sm font-medium">المستوى الأقصى</Label>
+              <Label className="text-sm font-medium">{t("quizExerciseCRUD.generate.maxDifficultyLabel")}</Label>
               <Select value={difficultyMax.toString()} onValueChange={(v) => setDifficultyMax(parseInt(v))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -735,7 +754,7 @@ export function GenerateQuizExercisesButton({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpenDialog(false)}>إلغاء</Button>
+          <Button variant="outline" onClick={() => setOpenDialog(false)}>{t("app.cancel")}</Button>
           <Button
             onClick={handleGenerate}
             disabled={loading}
@@ -744,12 +763,12 @@ export function GenerateQuizExercisesButton({
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                جاري التوليد...
+                {t("quizExerciseCRUD.generate.generating")}
               </>
             ) : (
               <>
                 <Sparkles className="h-4 w-4 mr-2" />
-                توليد
+                {t("quizExerciseCRUD.generate.generateButton")}
               </>
             )}
           </Button>
