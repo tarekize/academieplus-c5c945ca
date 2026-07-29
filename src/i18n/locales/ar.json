@@ -417,7 +417,12 @@
     "previousChapter": "الفصل السابق",
     "nextChapter": "الفصل التالي",
     "noContentAvailable": "المحتوى غير متوفر",
-    "noContentForLesson": "لا يوجد محتوى متاح لهذا الدرس."
+    "noContentForLesson": "لا يوجد محتوى متاح لهذا الدرس.",
+    "exams": "الاختبارات",
+    "backToLesson": "العودة للدرس",
+    "revisionQuizCardLabel": "بطاقة {{number}}",
+    "showAnswer": "عرض الإجابة",
+    "noRevisionCards": "لا توجد بطاقات مراجعة. قم بإضافة أسئلة أولاً."
   },
   "notFound": {
     "description": "هذه الصفحة غير موجودة.",

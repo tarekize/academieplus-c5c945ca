@@ -26,6 +26,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { Capacitor } from "@capacitor/core";
 import { SUBJECTS } from "@/lib/subjects";
 import { localizedText } from "@/lib/utils";
+import { resolveLocalizedTexts } from "@/lib/autoTranslate";
 import { useArabicKeyboardField } from "@/components/course/ArabicKeyboard";
 import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
 import { TeacherContentRedDot } from "@/components/TeacherContentRedDot";
@@ -48,6 +49,9 @@ interface Lesson {
   id: string;
   title: string;
   titleAr: string;
+  /** Titre à afficher dans la langue active : le vrai titre s'il existe,
+   * sinon une traduction automatique (affichage uniquement, jamais stockée). */
+  displayTitle: string;
   content?: string;
 }
 
@@ -55,6 +59,8 @@ interface Chapter {
   id: string;
   title: string;
   titleAr: string;
+  /** Voir Lesson.displayTitle. */
+  displayTitle: string;
   description: string | null;
   order_index: number;
   content: string;
@@ -141,6 +147,41 @@ const Cours = () => {
 
 
 
+  // Traduction à la volée (affichage seulement, jamais écrite en base) des
+  // titres de chapitre/leçon qui n'existent que dans l'autre langue : ne
+  // fait rien (et n'appelle jamais l'IA) pour un chapitre déjà bilingue.
+  const resolveMissingTranslations = useCallback(async (chaptersSnapshot: Chapter[], lang: "fr" | "ar") => {
+    const pairs: { fr?: string | null; ar?: string | null }[] = [];
+    // Position (dans `pairs`) du titre de chaque chapitre et de ses leçons,
+    // pour pouvoir reventiler `resolved` (tableau à plat) sur la bonne
+    // leçon/chapitre une fois la traduction revenue.
+    const chapterOffsets = new Map<string, number>();
+    for (const ch of chaptersSnapshot) {
+      chapterOffsets.set(ch.id, pairs.length);
+      pairs.push({ fr: ch.title, ar: ch.titleAr });
+      for (const l of ch.lessons || []) {
+        pairs.push({ fr: l.title, ar: l.titleAr });
+      }
+    }
+    if (pairs.length === 0) return;
+
+    const resolved = await resolveLocalizedTexts(pairs, lang);
+
+    setChapters((prev) =>
+      prev.map((ch) => {
+        const offset = chapterOffsets.get(ch.id);
+        if (offset === undefined) return ch;
+        const chapterDisplayTitle = resolved[offset] ?? ch.displayTitle;
+        const updatedLessons = (ch.lessons || []).map((l, li) => ({
+          ...l,
+          displayTitle: resolved[offset + 1 + li] ?? l.displayTitle,
+        }));
+        const content = `<h2>${chapterDisplayTitle}</h2>${ch.description ? `<p>${ch.description}</p>` : ""}`;
+        return { ...ch, displayTitle: chapterDisplayTitle, content, lessons: updatedLessons };
+      })
+    );
+  }, []);
+
   const fetchCourse = useCallback(async () => {
     try {
       const {
@@ -206,6 +247,7 @@ const Cours = () => {
           id: ch.id,
           title: ch.title,
           titleAr: ch.title_ar || ch.title,
+          displayTitle: localizedText(i18n.language, ch.title, ch.title_ar),
           description: ch.description || null,
           order_index: ch.order_index,
           content: `<h2>${localizedText(i18n.language, ch.title, ch.title_ar)}</h2>${ch.description ? `<p>${ch.description}</p>` : ""}`,
@@ -213,11 +255,13 @@ const Cours = () => {
             id: l.id,
             title: l.title,
             titleAr: l.title_ar || l.title,
+            displayTitle: localizedText(i18n.language, l.title, l.title_ar),
             content: l.content || "",
           })),
         }));
 
         setChapters(mappedChapters);
+        resolveMissingTranslations(mappedChapters, i18n.language as "fr" | "ar");
 
         // Notification admin : compter, par chapitre, les leçons dont une
         // version attend une validation + les exercices/quiz IA en attente
@@ -267,7 +311,7 @@ const Cours = () => {
     } finally {
       setLoading(false);
     }
-  }, [subjectId, adminNiveau, adminFiliere, navigate, i18n.language]);
+  }, [subjectId, adminNiveau, adminFiliere, navigate, i18n.language, resolveMissingTranslations]);
 
   useEffect(() => {
     if (!chapters.length) return;
@@ -410,13 +454,13 @@ const Cours = () => {
     if (!activeChapter) return;
 
     try {
-      const content = activeChapter.content?.replace(/<[^>]*>/g, '') || 'Contenu non disponible';
+      const content = activeChapter.content?.replace(/<[^>]*>/g, '') || t("cours.noContentAvailable");
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
         toast.error(t("cours.errorTitle"), { description: t("cours.popupBlocked") });
         return;
       }
-      printWindow.document.write(`<!DOCTYPE html><html><head><title>${activeChapter.title}</title><style>body{font-family:Arial,sans-serif;padding:40px;color:#333}h1{font-size:24px;border-bottom:2px solid #333;padding-bottom:10px}</style></head><body><h1>${activeChapter.title}</h1><p style="line-height:1.6;white-space:pre-wrap">${content}</p><script>window.onload=function(){window.print()}<\/script></body></html>`);
+      printWindow.document.write(`<!DOCTYPE html><html><head><title>${activeChapter.displayTitle}</title><style>body{font-family:Arial,sans-serif;padding:40px;color:#333}h1{font-size:24px;border-bottom:2px solid #333;padding-bottom:10px}</style></head><body><h1>${activeChapter.displayTitle}</h1><p style="line-height:1.6;white-space:pre-wrap">${content}</p><script>window.onload=function(){window.print()}<\/script></body></html>`);
       printWindow.document.close();
 
       toast.success(t("cours.pdfDownloaded"), {
@@ -495,7 +539,7 @@ const Cours = () => {
         {activeActivity === "quiz" && activeChapter && (
           <ChapterMathQuiz
             questions={dbQuizzes}
-            chapterTitle={activeChapter.title}
+            chapterTitle={activeChapter.displayTitle}
             chapterId={activeChapter.id}
             onClose={() => setActiveActivity(null)}
             canManage={canManage}
@@ -506,7 +550,7 @@ const Cours = () => {
         {activeActivity === "exercises" && activeChapter && (
           <ChapterMathExercises
             exercises={dbExercises}
-            chapterTitle={activeChapter.title}
+            chapterTitle={activeChapter.displayTitle}
             chapterId={activeChapter.id}
             onClose={() => setActiveActivity(null)}
             canManage={canManage}
@@ -517,10 +561,10 @@ const Cours = () => {
         {activeActivity === "revision" && activeChapter && (
           <div className="max-w-2xl mx-auto space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-xl font-extrabold" dir="rtl">مراجعة - {activeChapter.title}</h2>
+              <h2 className="font-display text-xl font-extrabold">{t("cours.revisionLabel")} - {activeChapter.displayTitle}</h2>
               <Button variant="outline" onClick={() => setActiveActivity(null)}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                العودة للدرس
+                <ArrowLeft className="h-4 w-4 mr-2 rtl:rotate-180" />
+                {t("cours.backToLesson")}
               </Button>
             </div>
             {dbQuizzes.length > 0 ? (
@@ -528,12 +572,12 @@ const Cours = () => {
                 {dbQuizzes.map((q, idx) => (
                   <Card key={q.id} className="glass-card border-0 animate-pop-in">
                     <CardContent className="p-6">
-                      <p className="text-sm font-semibold text-violet mb-1" dir="rtl">بطاقة {idx + 1}</p>
-                      <p className="text-lg font-medium mb-3" dir="rtl">{q.question}</p>
+                      <p className="text-sm font-semibold text-violet mb-1">{t("cours.revisionQuizCardLabel", { number: idx + 1 })}</p>
+                      <p className="text-lg font-medium mb-3">{q.question}</p>
                       <details className="cursor-pointer">
-                        <summary className="text-primary text-sm font-semibold" dir="rtl">عرض الإجابة</summary>
-                        <p className="mt-2 p-3 bg-mint/10 rounded-lg" dir="rtl">{q.correct_answer}</p>
-                        {q.explanation && <p className="mt-1 text-sm text-muted-foreground" dir="rtl">{q.explanation}</p>}
+                        <summary className="text-primary text-sm font-semibold">{t("cours.showAnswer")}</summary>
+                        <p className="mt-2 p-3 bg-mint/10 rounded-lg">{q.correct_answer}</p>
+                        {q.explanation && <p className="mt-1 text-sm text-muted-foreground">{q.explanation}</p>}
                       </details>
                     </CardContent>
                   </Card>
@@ -542,7 +586,7 @@ const Cours = () => {
             ) : (
               <Card className="glass-card border-0">
                 <CardContent className="p-8 text-center">
-                  <p className="text-muted-foreground" dir="rtl">لا توجد بطاقات مراجعة. قم بإضافة أسئلة أولاً.</p>
+                  <p className="text-muted-foreground">{t("cours.noRevisionCards")}</p>
                 </CardContent>
               </Card>
             )}
@@ -576,7 +620,7 @@ const Cours = () => {
                       className="rounded-full gap-2 active:scale-95 transition-transform"
                       onClick={() => navigate(`/liste-matieres/${subjectId || "math"}/niveaux`)}
                     >
-                      <ArrowLeft className="h-4 w-4" />
+                      <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
                       {t("cours.backToLevels")}
                     </Button>
                   )}
@@ -587,7 +631,7 @@ const Cours = () => {
                   >
                     <TeacherContentRedDot show={!canManage && hasUnreadExam(schoolLevel, subjectId || "math")} className="-top-1 -right-1" />
                     <FileText className="h-4 w-4" />
-                    الاختبارات
+                    {t("cours.exams")}
                   </Button>
                 </div>
               </div>
@@ -847,7 +891,7 @@ const Cours = () => {
                   // Chapter with no lessons
                   if (chapterTitleResult.match && (!chapter.lessons || chapter.lessons.length === 0)) {
                     results.push({
-                      lesson: { id: chapter.id, title: chapter.title, titleAr: chapter.titleAr },
+                      lesson: { id: chapter.id, title: chapter.title, titleAr: chapter.titleAr, displayTitle: chapter.displayTitle },
                       chapter, chapterIndex,
                       score: chapterTitleResult.score,
                       matchSource: 'chapter-title',
@@ -891,12 +935,12 @@ const Cours = () => {
                             <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">
                               <BookOpen className="h-4 w-4" />
                             </span>
-                            <span className="flex-1">{localizedText(i18n.language, lesson.title, lesson.titleAr)}</span>
+                            <span className="flex-1">{lesson.displayTitle}</span>
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
                           <p className="text-xs text-muted-foreground mb-1">
-                            📖 {localizedText(i18n.language, chapter.title, chapter.titleAr)}
+                            📖 {chapter.displayTitle}
                           </p>
                           {matchSource === 'lesson-content' && snippet && (
                             <p className="text-xs text-muted-foreground/80 italic line-clamp-2">
@@ -956,13 +1000,13 @@ const Cours = () => {
                             <span className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold bg-gradient-to-br shrink-0 transition-transform duration-300 group-hover:scale-110 ${badgePalette[index % badgePalette.length]}`}>
                               {index + 1}
                             </span>
-                            <span className="flex-1">{localizedText(i18n.language, chapter.title, chapter.titleAr)}</span>
+                            <span className="flex-1">{chapter.displayTitle}</span>
                             {progress[chapter.id] && (
                               <Check className="h-5 w-5 text-green-500 shrink-0" />
                             )}
                             {isAdmin && !!pendingValidationCounts[chapter.id] && (
                               <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white shrink-0 animate-pulse">
-                                {pendingValidationCounts[chapter.id]} بانتظار المصادقة
+                                {pendingValidationCounts[chapter.id]} {t("quizExerciseCRUD.statusPending")}
                               </span>
                             )}
                             {canManage && (

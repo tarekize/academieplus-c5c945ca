@@ -16,7 +16,7 @@ import { injectHeaderIds } from "@/lib/toc-utils";
 import { LessonActivityTabs } from "@/components/course/LessonActivityTabs";
 import { ChapterRevision } from "@/components/course/ChapterRevision";
 import { Sparkles } from "lucide-react";
-import { cn, localizedText } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
 import { TeacherContentRedDot } from "@/components/TeacherContentRedDot";
@@ -38,7 +38,7 @@ import {
 
 export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel, showActivityCards, initialLessonId, onInitialLessonHandled, onBackToChapters, onBackToLessons, readOnly }: any) {
     const navigate = useNavigate();
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const [selectedLesson, setSelectedLesson] = useState<any>(null);
     const [lessonContent, setLessonContent] = useState<string>("");
     const [loadingContent, setLoadingContent] = useState(false);
@@ -181,7 +181,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                         <BreadcrumbSeparator />
                         <BreadcrumbItem>
                             {!selectedLesson ? (
-                                <BreadcrumbPage>{localizedText(i18n.language, chapter.title, chapter.titleAr)}</BreadcrumbPage>
+                                <BreadcrumbPage>{chapter.displayTitle}</BreadcrumbPage>
                             ) : (
                                 <BreadcrumbLink asChild>
                                     <button
@@ -189,7 +189,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                         className="cursor-pointer hover:text-primary transition-colors"
                                         onClick={handleBackToList}
                                     >
-                                        {localizedText(i18n.language, chapter.title, chapter.titleAr)}
+                                        {chapter.displayTitle}
                                     </button>
                                 </BreadcrumbLink>
                             )}
@@ -199,7 +199,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                 <BreadcrumbSeparator />
                                 <BreadcrumbItem>
                                     {!activeSectionLabel ? (
-                                        <BreadcrumbPage>{localizedText(i18n.language, selectedLesson.title, selectedLesson.titleAr)}</BreadcrumbPage>
+                                        <BreadcrumbPage>{selectedLesson.displayTitle}</BreadcrumbPage>
                                     ) : (
                                         <BreadcrumbLink asChild>
                                             <button
@@ -211,7 +211,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                                     setActivityResetKey(k => k + 1);
                                                 }}
                                             >
-                                                {localizedText(i18n.language, selectedLesson.title, selectedLesson.titleAr)}
+                                                {selectedLesson.displayTitle}
                                             </button>
                                         </BreadcrumbLink>
                                     )}
@@ -273,7 +273,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                             {idx + 1}
                         </span>
                         <div className="flex-1 min-w-0">
-                            <p className="font-medium text-base truncate">{localizedText(i18n.language, lesson.title, lesson.titleAr)}</p>
+                            <p className="font-medium text-base truncate">{lesson.displayTitle}</p>
                         </div>
                         {pendingLessonIds.has(lesson.id) && (
                             isAdmin ? (
@@ -344,9 +344,9 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                         dbQuizzes={dbQuizzes}
                         dbExercises={dbExercises}
                         chapterId={chapter.id}
-                        chapterTitle={localizedText(i18n.language, chapter.title, chapter.titleAr)}
+                        chapterTitle={chapter.displayTitle}
                         lessonId={selectedLesson.id}
-                        lessonTitle={localizedText(i18n.language, selectedLesson.title, selectedLesson.titleAr)}
+                        lessonTitle={selectedLesson.displayTitle}
                         readOnly={readOnly}
                         userId={userId}
                         schoolLevel={schoolLevel}
@@ -373,7 +373,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                         <Card className="flex-1 min-w-0 glass-card border-0">
                             <CardContent className="p-6">
                                 <div className="mb-4 flex items-start justify-between gap-3">
-                                    <h2 className="font-display text-xl font-extrabold min-w-0 flex-1">{localizedText(i18n.language, selectedLesson?.title, selectedLesson?.titleAr)}</h2>
+                                    <h2 className="font-display text-xl font-extrabold min-w-0 flex-1">{selectedLesson?.displayTitle}</h2>
                                     {lessonContent && !isNativeApp && (
                                         <Sheet open={tocOpen} onOpenChange={setTocOpen}>
                                             <SheetTrigger asChild>

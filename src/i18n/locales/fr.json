@@ -411,7 +411,12 @@
     "previousChapter": "Chapitre précédent",
     "nextChapter": "Chapitre suivant",
     "noContentAvailable": "Contenu non disponible",
-    "noContentForLesson": "Aucun contenu disponible pour cette leçon."
+    "noContentForLesson": "Aucun contenu disponible pour cette leçon.",
+    "exams": "Examens",
+    "backToLesson": "Retour à la leçon",
+    "revisionQuizCardLabel": "Fiche {{number}}",
+    "showAnswer": "Afficher la réponse",
+    "noRevisionCards": "Aucune fiche de révision. Ajoutez d'abord des questions."
   },
   "notFound": {
     "description": "Cette page n'existe pas ou plus.",

@@ -8,13 +8,13 @@ import { toast } from "sonner";
 import { MarkdownSolution } from "@/components/course/MarkdownSolution";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { localizedText } from "@/lib/utils";
 
 interface ChapterRevisionProps {
   chapter: {
     id: string;
     title: string;
     titleAr?: string;
+    displayTitle?: string;
     lessons?: ChapterLesson[];
   };
   onBack: () => void;
@@ -38,7 +38,7 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
   const { t, i18n } = useTranslation();
   const dir = i18n.language === "ar" ? "rtl" : "ltr";
   const dateLocale = i18n.language === "ar" ? "ar" : "fr";
-  const chapterTitle = localizedText(i18n.language, chapter.title, chapter.titleAr);
+  const chapterTitle = chapter.displayTitle || chapter.title;
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState<string>("");
   const [isInitializing, setIsInitializing] = useState(true);
