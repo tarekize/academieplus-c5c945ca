@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button";
 import LessonMarkdown from "@/components/course/LessonMarkdown";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import { LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
-import { EnrichChapterButton } from "@/components/course/EnrichChapterButton";
-import { CompleteChapterActivitiesButton } from "@/components/course/CompleteChapterActivitiesButton";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, PenTool, BookOpen, ArrowLeft, ChevronLeft } from "lucide-react";
@@ -250,19 +248,6 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                 <h3 className="font-display text-lg font-extrabold">الدروس - Leçons</h3>
                 {canManage && (
                     <div className="flex items-center gap-2 flex-wrap">
-                        <EnrichChapterButton
-                            chapterId={chapter.id}
-                            chapterTitle={chapter.titleAr || chapter.title}
-                            lessonsCount={chapter.lessons?.length || 0}
-                            lessons={chapter.lessons || []}
-                            onDone={fetchCourse}
-                        />
-                        <CompleteChapterActivitiesButton
-                            chapterId={chapter.id}
-                            chapterTitleAr={chapter.titleAr || chapter.title}
-                            lessons={chapter.lessons || []}
-                            onDone={() => { fetchCourse?.(); fetchQuizExercises?.(null); }}
-                        />
                         <LessonFormDialog chapterId={chapter.id} onSaved={fetchCourse} />
                     </div>
                 )}
