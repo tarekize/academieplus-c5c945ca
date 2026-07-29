@@ -27,6 +27,7 @@ import {
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useArabicKeyboardField } from "@/components/course/ArabicKeyboard";
+import { logPedagoActivity } from "@/lib/pedagoActivityLog";
 
 interface PedagoChapterFormProps {
   schoolLevel: string;
@@ -69,6 +70,15 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
 
         if (error) throw error;
         toast.success(t("pedagoCRUD.chapter.updateSuccess"));
+        logPedagoActivity({
+          action: "update",
+          entityType: "chapter",
+          entityId: chapter.id,
+          entityTitle: titleFrValue || titleValue,
+          chapterId: chapter.id,
+          subject,
+          schoolLevel,
+        });
       } else {
         // Get max order_index
         const { data: existing } = await supabase
@@ -91,9 +101,18 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
           filiere_id: filiereId || null,
         };
 
-        const { error } = await supabase.from("chapters").insert(insertData);
+        const { data: inserted, error } = await supabase.from("chapters").insert(insertData).select("id").single();
         if (error) throw error;
         toast.success(t("pedagoCRUD.chapter.addSuccess"));
+        logPedagoActivity({
+          action: "create",
+          entityType: "chapter",
+          entityId: inserted?.id,
+          entityTitle: titleFrValue || titleValue,
+          chapterId: inserted?.id,
+          subject,
+          schoolLevel,
+        });
       }
 
       setOpen(false);
@@ -184,7 +203,15 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
   );
 }
 
-export function DeleteChapterButton({ chapterId, onDeleted }: { chapterId: string; onDeleted: () => void }) {
+interface DeleteChapterButtonProps {
+  chapterId: string;
+  onDeleted: () => void;
+  title?: string;
+  subject?: string;
+  schoolLevel?: string;
+}
+
+export function DeleteChapterButton({ chapterId, onDeleted, title, subject, schoolLevel }: DeleteChapterButtonProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
@@ -196,6 +223,14 @@ export function DeleteChapterButton({ chapterId, onDeleted }: { chapterId: strin
       const { error } = await supabase.from("chapters").delete().eq("id", chapterId);
       if (error) throw error;
       toast.success(t("pedagoCRUD.chapter.deleteSuccess"));
+      logPedagoActivity({
+        action: "delete",
+        entityType: "chapter",
+        entityId: chapterId,
+        entityTitle: title,
+        subject,
+        schoolLevel,
+      });
       onDeleted();
     } catch (error: any) {
       toast.error(error.message || t("pedagoCRUD.chapter.deleteError"));
@@ -262,6 +297,13 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
           .eq("id", lesson.id);
         if (error) throw error;
         toast.success(t("pedagoCRUD.lesson.updateSuccess"));
+        logPedagoActivity({
+          action: "update",
+          entityType: "lesson",
+          entityId: lesson.id,
+          entityTitle: titleFrValue || titleValue,
+          chapterId,
+        });
       } else {
         const { data: existing } = await supabase
           .from("lessons")
@@ -272,14 +314,21 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
 
         const nextIndex = (existing?.[0]?.order_index ?? -1) + 1;
 
-        const { error } = await supabase.from("lessons").insert({
+        const { data: inserted, error } = await supabase.from("lessons").insert({
           chapter_id: chapterId,
           title: titleFrValue || titleValue,
           title_ar: titleValue,
           order_index: nextIndex,
-        });
+        }).select("id").single();
         if (error) throw error;
         toast.success(t("pedagoCRUD.lesson.addSuccess"));
+        logPedagoActivity({
+          action: "create",
+          entityType: "lesson",
+          entityId: inserted?.id,
+          entityTitle: titleFrValue || titleValue,
+          chapterId,
+        });
       }
 
       setOpen(false);
@@ -354,7 +403,14 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
   );
 }
 
-export function DeleteLessonButton({ lessonId, onDeleted }: { lessonId: string; onDeleted: () => void }) {
+interface DeleteLessonButtonProps {
+  lessonId: string;
+  onDeleted: () => void;
+  chapterId?: string;
+  title?: string;
+}
+
+export function DeleteLessonButton({ lessonId, onDeleted, chapterId, title }: DeleteLessonButtonProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
@@ -364,6 +420,13 @@ export function DeleteLessonButton({ lessonId, onDeleted }: { lessonId: string; 
       const { error } = await supabase.from("lessons").delete().eq("id", lessonId);
       if (error) throw error;
       toast.success(t("pedagoCRUD.lesson.deleteSuccess"));
+      logPedagoActivity({
+        action: "delete",
+        entityType: "lesson",
+        entityId: lessonId,
+        entityTitle: title,
+        chapterId,
+      });
       onDeleted();
     } catch (error: any) {
       toast.error(error.message || t("pedagoCRUD.lesson.deleteError"));

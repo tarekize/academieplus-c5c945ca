@@ -18,6 +18,8 @@ export interface Chapter {
   title_ar: string | null;
   order_index: number;
   description: string | null;
+  status?: string;
+  rejection_reason?: string | null;
   lessons: Lesson[];
 }
 
@@ -64,6 +66,8 @@ export const courseService = {
         title_ar,
         order_index,
         description,
+        status,
+        rejection_reason,
         lessons (
           id,
           title,

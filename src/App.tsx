@@ -25,6 +25,8 @@ const Admin = lazy(() => import("./pages/Admin"));
 const AdminAbonnements = lazy(() => import("./pages/AdminAbonnements"));
 const AdminContrats = lazy(() => import("./pages/AdminContrats"));
 const AdminNotifications = lazy(() => import("./pages/AdminNotifications"));
+const AdminValidation = lazy(() => import("./pages/AdminValidation"));
+const PedagoActivity = lazy(() => import("./pages/PedagoActivity"));
 const AdminTokenUsage = lazy(() => import("./pages/AdminTokenUsage"));
 const Factures = lazy(() => import("./pages/Factures"));
 const MesInformations = lazy(() => import("./pages/MesInformations"));
@@ -144,6 +146,16 @@ const App = () => (
               <Route path="/admin/notifications" element={
                 <ProtectedRoute requireAdmin>
                   <AdminNotifications />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/validation" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminValidation />
+                </ProtectedRoute>
+              } />
+              <Route path="/pedago/activite" element={
+                <ProtectedRoute allowedRoles={['pedago']}>
+                  <PedagoActivity />
                 </ProtectedRoute>
               } />
               <Route path="/rejoindre/:code" element={<JoinClass />} />

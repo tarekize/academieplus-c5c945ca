@@ -12,6 +12,7 @@ import { useArabicKeyboardField } from '@/components/course/ArabicKeyboard';
 import { TableOfContents } from '@/components/course/TableOfContents';
 import { injectHeaderIds } from '@/lib/toc-utils';
 import { LessonEditorActivities } from '@/components/course/LessonEditorActivities';
+import { logPedagoActivity } from '@/lib/pedagoActivityLog';
 import { AdminAssistantPanel } from '@/components/admin/AdminAssistantPanel';
 import {
   AlertDialog,
@@ -245,6 +246,16 @@ export default function LessonEditor() {
       } else {
         toast.success('Envoyé pour validation', { description: `Version ${(version as any).version_number} envoyée à l'administrateur.` });
       }
+
+      logPedagoActivity({
+        action: 'update',
+        entityType: 'lesson_content',
+        entityId: lessonId,
+        entityTitle: lesson?.title,
+        chapterId: lesson?.chapter_id,
+        subject: lesson?.subject,
+        schoolLevel: lesson?.school_level,
+      });
     } catch (err: any) {
       console.error(err);
       toast.error('Erreur', { description: err.message || 'Impossible d\'envoyer les modifications' });

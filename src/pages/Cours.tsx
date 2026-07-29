@@ -17,6 +17,7 @@ import ChatBot from "@/components/ChatBot";
 import ITSRecommendations from "@/components/its/ITSRecommendations";
 import { useChapterCompletion } from "@/hooks/useChapterCompletion";
 import { ChapterFormDialog, DeleteChapterButton, LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
+import { StatusBadge, ReviewActionButtons, SubmitItemButton } from "@/components/course/QuizExerciseCRUD";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { Rnd } from 'react-rnd';
@@ -64,6 +65,8 @@ interface Chapter {
   description: string | null;
   order_index: number;
   content: string;
+  status?: string;
+  rejectionReason?: string | null;
   lessons?: Lesson[];
 }
 
@@ -251,6 +254,8 @@ const Cours = () => {
           description: ch.description || null,
           order_index: ch.order_index,
           content: `<h2>${localizedText(i18n.language, ch.title, ch.title_ar)}</h2>${ch.description ? `<p>${ch.description}</p>` : ""}`,
+          status: (ch as any).status,
+          rejectionReason: (ch as any).rejection_reason,
           lessons: ch.lessons.map((l) => ({
             id: l.id,
             title: l.title,
@@ -1018,7 +1023,7 @@ const Cours = () => {
                                   onSaved={fetchCourse}
                                   chapter={{ id: chapter.id, title: chapter.title, title_ar: chapter.titleAr, description: chapter.description, order_index: chapter.order_index }}
                                 />
-                                <DeleteChapterButton chapterId={chapter.id} onDeleted={fetchCourse} />
+                                <DeleteChapterButton chapterId={chapter.id} onDeleted={fetchCourse} title={chapter.displayTitle} subject={subjectId || "math"} schoolLevel={schoolLevel} />
                               </div>
                             )}
                           </CardTitle>
@@ -1027,6 +1032,17 @@ const Cours = () => {
                           <p className="text-sm text-muted-foreground line-clamp-2 ml-[52px]">
                             {chapter.content?.replace(/<[^>]*>/g, '').substring(0, 100)}...
                           </p>
+                          {canManage && chapter.status && chapter.status !== "approved" && (
+                            <div className="mt-3 ml-[52px] flex flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                              <StatusBadge status={chapter.status} rejectionReason={chapter.rejectionReason} />
+                              {isAdmin && chapter.status === "pending" && (
+                                <ReviewActionButtons itemType="chapter" itemId={chapter.id} onReviewed={fetchCourse} />
+                              )}
+                              {!isAdmin && chapter.status === "rejected" && (
+                                <SubmitItemButton itemType="chapter" itemId={chapter.id} onSubmitted={fetchCourse} />
+                              )}
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     </motion.div>

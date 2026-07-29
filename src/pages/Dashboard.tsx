@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, GraduationCap, BarChart3, CreditCard, FileText, Cpu, Bell } from "lucide-react";
+import { Users, GraduationCap, BarChart3, CreditCard, FileText, Cpu, Bell, ClipboardCheck, History } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
@@ -78,6 +78,7 @@ const Dashboard = () => {
   const fullName = getFullName(profile);
   const isAdmin = roles.includes('admin');
   const isStudent = roles.includes('student');
+  const isPedago = roles.includes('pedago');
 
   return (
     <div className={cn("min-h-screen", isStudent ? "student-shell" : "bg-background")}>
@@ -166,7 +167,25 @@ const Dashboard = () => {
                       description={t("dashboard.notificationsDesc")}
                       onClick={() => navigate("/admin/notifications")}
                     />
+                    <DashboardTile
+                      icon={ClipboardCheck}
+                      iconBg="bg-orange-500/10"
+                      iconText="text-orange-600"
+                      title={t("dashboard.validation")}
+                      description={t("dashboard.validationDesc")}
+                      onClick={() => navigate("/admin/validation")}
+                    />
                   </>
+                )}
+                {isPedago && (
+                  <DashboardTile
+                    icon={History}
+                    iconBg="bg-teal-500/10"
+                    iconText="text-teal-600"
+                    title={t("dashboard.activity")}
+                    description={t("dashboard.activityDesc")}
+                    onClick={() => navigate("/pedago/activite")}
+                  />
                 )}
                 <DashboardTile
                   icon={GraduationCap}

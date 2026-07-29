@@ -24,7 +24,7 @@ import { extractFunctionErrorMessage } from "@/lib/edgeFunctionError";
 import DocumentImportButton from "@/components/DocumentImportButton";
 import { GeneratedItem } from "@/lib/teacherContent";
 
-export type ItemType = "exercise" | "quiz";
+export type ItemType = "exercise" | "quiz" | "chapter";
 export type ItemStatus = "draft" | "pending" | "approved" | "rejected";
 
 /** Badge d'état de validation — rien pour "approved" (état normal, publié). */

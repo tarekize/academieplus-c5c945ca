@@ -294,7 +294,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                     onSaved={fetchCourse}
                                     lesson={{ id: lesson.id, title: lesson.title, title_ar: lesson.titleAr !== lesson.title ? lesson.titleAr : null }}
                                 />
-                                <DeleteLessonButton lessonId={lesson.id} onDeleted={fetchCourse} />
+                                <DeleteLessonButton lessonId={lesson.id} onDeleted={fetchCourse} chapterId={chapter.id} title={lesson.displayTitle} />
                             </div>
                         )}
                     </motion.div>

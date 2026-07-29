@@ -409,8 +409,16 @@ export type Database = {
           filiere_id: string | null
           id: string
           order_index: number
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewed_by_name: string | null
           school_level: Database["public"]["Enums"]["school_level"]
+          status: string
           subject: string
+          submitted_at: string | null
+          submitted_by: string | null
+          submitted_by_name: string | null
           title: string
           title_ar: string | null
           updated_at: string
@@ -421,8 +429,16 @@ export type Database = {
           filiere_id?: string | null
           id?: string
           order_index?: number
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewed_by_name?: string | null
           school_level: Database["public"]["Enums"]["school_level"]
+          status?: string
           subject?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          submitted_by_name?: string | null
           title: string
           title_ar?: string | null
           updated_at?: string
@@ -433,8 +449,16 @@ export type Database = {
           filiere_id?: string | null
           id?: string
           order_index?: number
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewed_by_name?: string | null
           school_level?: Database["public"]["Enums"]["school_level"]
+          status?: string
           subject?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          submitted_by_name?: string | null
           title?: string
           title_ar?: string | null
           updated_at?: string
@@ -990,6 +1014,56 @@ export type Database = {
             columns: ["period_id"]
             isOneToOne: false
             referencedRelation: "subscription_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pedago_activity_log: {
+        Row: {
+          action: string
+          chapter_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_title: string | null
+          entity_type: string
+          id: string
+          school_level: Database["public"]["Enums"]["school_level"] | null
+          subject: string | null
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          action: string
+          chapter_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_title?: string | null
+          entity_type: string
+          id?: string
+          school_level?: Database["public"]["Enums"]["school_level"] | null
+          subject?: string | null
+          user_id?: string
+          user_name?: string
+        }
+        Update: {
+          action?: string
+          chapter_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_title?: string | null
+          entity_type?: string
+          id?: string
+          school_level?: Database["public"]["Enums"]["school_level"] | null
+          subject?: string | null
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedago_activity_log_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
             referencedColumns: ["id"]
           },
         ]
