@@ -1,7 +1,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import { AppHeader } from "@/components/layout/AppHeader";
 import {
   BookOpen,
   FileEdit,
@@ -20,6 +20,7 @@ export default function DashboardEditorial() {
 
   return (
     <div className="min-h-screen pro-shell">
+      <AppHeader />
       <div className="container mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="flex justify-between items-center flex-wrap gap-4">
@@ -34,7 +35,6 @@ export default function DashboardEditorial() {
             </p>
           </div>
           <div className="flex gap-2 items-center">
-            <LanguageToggle />
             <Link to="/editorial/equipe">
               <Button variant="outline">
                 <Users className="h-4 w-4 mr-2" />

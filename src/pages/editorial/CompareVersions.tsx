@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft } from "lucide-react";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 interface Version {
   id: number;
@@ -25,6 +26,7 @@ export default function CompareVersions() {
 
   return (
     <div className="min-h-screen pro-shell">
+      <AppHeader />
       <div className="container mx-auto p-6">
         {/* Header */}
         <div className="mb-6">

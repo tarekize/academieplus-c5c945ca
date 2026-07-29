@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, BookOpen } from "lucide-react";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 export default function PreviewCours() {
   const { id } = useParams();
@@ -11,6 +12,7 @@ export default function PreviewCours() {
 
   return (
     <div className="min-h-screen pro-shell">
+      <AppHeader />
       <div className="max-w-4xl mx-auto p-6">
         <Button variant="ghost" onClick={() => navigate('/editorial')} className="mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />

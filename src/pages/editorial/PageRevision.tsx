@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Eye } from "lucide-react";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 export default function PageRevision() {
   const navigate = useNavigate();
@@ -9,7 +10,9 @@ export default function PageRevision() {
   // This feature requires the 'cours' table which is not in the database
 
   return (
-    <div className="min-h-screen pro-shell container mx-auto p-6">
+    <div className="min-h-screen pro-shell">
+      <AppHeader />
+      <div className="container mx-auto p-6">
       <div className="mb-8">
         <Button variant="ghost" onClick={() => navigate('/editorial')} className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -36,6 +39,7 @@ export default function PageRevision() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

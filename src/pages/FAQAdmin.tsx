@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Plus, Trash2, Edit } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 // Static FAQ items since the table doesn't exist in the database
 interface FAQItem {
@@ -102,7 +103,9 @@ const FAQAdmin = () => {
   };
 
   return (
-    <div className="min-h-screen pro-shell container mx-auto p-6 space-y-6">
+    <div className="min-h-screen pro-shell">
+      <AppHeader />
+      <div className="container mx-auto p-6 space-y-6">
       <h1 className="font-display text-3xl font-extrabold">Gestion des FAQ</h1>
 
       <Card>
@@ -251,6 +254,7 @@ const FAQAdmin = () => {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };

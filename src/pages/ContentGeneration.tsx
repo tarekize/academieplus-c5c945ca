@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Sparkles, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { AppHeader } from '@/components/layout/AppHeader';
 
 const SCHOOL_LEVELS = [
   { value: 'all', label: 'Tous les niveaux' },
@@ -97,6 +98,7 @@ export default function ContentGeneration() {
 
   return (
     <div className="min-h-screen pro-shell">
+      <AppHeader />
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <Button variant="ghost" onClick={() => navigate(-1 as any)} className="mb-6">
           <ArrowLeft className="h-4 w-4 mr-2" />

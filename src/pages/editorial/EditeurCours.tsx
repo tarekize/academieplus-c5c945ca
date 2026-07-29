@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 export default function EditeurCours() {
   const { id } = useParams();
@@ -12,6 +13,7 @@ export default function EditeurCours() {
 
   return (
     <div className="min-h-screen pro-shell">
+      <AppHeader />
       <div className="container mx-auto p-6">
         <Button variant="ghost" onClick={() => navigate('/editorial')} className="mb-6">
           <ArrowLeft className="h-4 w-4 mr-2" />

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Trash2, Shield } from "lucide-react";
 import { toast } from "sonner";
+import { AppHeader } from "@/components/layout/AppHeader";
 import {
   Select,
   SelectContent,
@@ -223,6 +224,7 @@ export default function GestionEquipe() {
 
   return (
     <div className="min-h-screen pro-shell">
+      <AppHeader />
       <div className="container mx-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

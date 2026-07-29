@@ -18,6 +18,7 @@ import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import { toast } from "sonner";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 interface RemediationExercise {
   title: string;
@@ -398,6 +399,7 @@ export default function LessonRemediation() {
 
   return (
     <div className="min-h-screen student-shell" dir="rtl">
+      <AppHeader />
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
         {/* Top bar */}
         <div className="flex items-center justify-between gap-2">

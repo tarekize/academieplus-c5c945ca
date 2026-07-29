@@ -14,6 +14,7 @@ import { injectHeaderIds } from '@/lib/toc-utils';
 import { LessonEditorActivities } from '@/components/course/LessonEditorActivities';
 import { logPedagoActivity } from '@/lib/pedagoActivityLog';
 import { AdminAssistantPanel } from '@/components/admin/AdminAssistantPanel';
+import { AppHeader } from '@/components/layout/AppHeader';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -403,6 +404,7 @@ export default function LessonEditor() {
 
   return (
     <div className="min-h-screen pro-shell">
+      <AppHeader />
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Modern Header / Breadcrumb */}
         <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-lg border border-primary/10 mb-6">

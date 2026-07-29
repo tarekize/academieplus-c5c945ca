@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import Header from "@/components/Header";
+import { AppHeader } from "@/components/layout/AppHeader";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -137,8 +137,8 @@ const MesDonneesPersonnelles = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-      
+      <AppHeader />
+
       <main className="flex-1 bg-gradient-to-br from-background via-accent/10 to-background py-16">
         <div className="container mx-auto px-4 max-w-6xl">
           <motion.div
