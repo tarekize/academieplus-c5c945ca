@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import {
     Send, Loader2, Sparkles, Wand2, X, Copy, CheckCheck,
     ArrowLeft, Wand, PencilLine, MessageCircle, ListTree, Paperclip, FileText,
-    Maximize2, Minimize2, Minus,
+    Maximize2, Minus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -214,9 +214,15 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     // Taille du panneau : réduit à une bulle flottante (la conversation reste
-    // intacte en arrière-plan) ou élargi pour plus de confort de lecture.
+    // intacte en arrière-plan), ou largeur ajustable librement par
+    // glisser-déposer de la poignée sur le bord gauche (pas juste un aller-
+    // retour entre deux tailles fixes) — la largeur choisie reste d'une
+    // ouverture à l'autre tant qu'on ne quitte pas la page.
     const [isMinimized, setIsMinimized] = useState(false);
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [panelWidth, setPanelWidth] = useState(450);
+    const [isResizing, setIsResizing] = useState(false);
+    const panelWidthRef = useRef(panelWidth);
+    panelWidthRef.current = panelWidth;
 
     // Choix du flux guidé (leçon vide)
     const [structureChoice, setStructureChoice] = useState<StructureChoice | null>(null);
@@ -256,9 +262,54 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             setAttachedDoc(null);
             setDocProcessing(false);
             setIsMinimized(false);
-            setIsExpanded(false);
         }
     }, [open]);
+
+    const MIN_PANEL_WIDTH = 380;
+    const PREVIEW_MIN_WIDTH = 900;
+    const getMaxPanelWidth = () => Math.max(MIN_PANEL_WIDTH, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 80);
+
+    // L'étape "aperçu" (rendu + chat côte à côte) a besoin d'un minimum de
+    // place ; on élargit seulement si l'utilisateur n'avait pas déjà choisi
+    // plus grand, jamais on ne rétrécit une largeur qu'il a réglée lui-même.
+    useEffect(() => {
+        if (step === 'preview') {
+            setPanelWidth(w => Math.min(getMaxPanelWidth(), Math.max(w, PREVIEW_MIN_WIDTH)));
+        }
+    }, [step]);
+
+    // Reclampe si la fenêtre est redimensionnée (ex: rotation d'écran) pour
+    // que le panneau ne déborde jamais du viewport.
+    useEffect(() => {
+        const onWindowResize = () => {
+            setPanelWidth(w => Math.min(getMaxPanelWidth(), Math.max(MIN_PANEL_WIDTH, w)));
+        };
+        window.addEventListener('resize', onWindowResize);
+        return () => window.removeEventListener('resize', onWindowResize);
+    }, []);
+
+    const handleResizeStart = (e: React.PointerEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        (e.target as HTMLDivElement).setPointerCapture(e.pointerId);
+        setIsResizing(true);
+        const startX = e.clientX;
+        const startWidth = panelWidthRef.current;
+        const maxWidth = getMaxPanelWidth();
+
+        const onMove = (ev: PointerEvent) => {
+            // Le panneau est ancré au bord droit : glisser vers la gauche
+            // (startX - clientX > 0) l'agrandit, vers la droite le réduit.
+            const nextWidth = Math.min(maxWidth, Math.max(MIN_PANEL_WIDTH, startWidth + (startX - ev.clientX)));
+            setPanelWidth(nextWidth);
+        };
+        const onUp = () => {
+            setIsResizing(false);
+            window.removeEventListener('pointermove', onMove);
+            window.removeEventListener('pointerup', onUp);
+        };
+        window.addEventListener('pointermove', onMove);
+        window.addEventListener('pointerup', onUp);
+    };
 
     useEffect(() => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -624,10 +675,29 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
     }
 
     return (
-        <div className={cn(
-            'fixed inset-y-0 right-0 bg-background border-l shadow-2xl z-50 flex flex-col transition-[width] duration-300',
-            step === 'preview' || isExpanded ? 'w-full lg:w-[900px]' : 'w-full sm:w-[450px]',
-        )}>
+        <div
+            style={{ '--panel-w': `${panelWidth}px` } as React.CSSProperties}
+            className={cn(
+                'fixed inset-y-0 right-0 bg-background border-l shadow-2xl z-50 flex flex-col',
+                !isResizing && 'transition-[width] duration-300',
+                'w-full sm:w-[var(--panel-w)]',
+            )}
+        >
+            {/* Poignée de redimensionnement : glisser pour ajuster librement la
+                largeur du panneau (admin et pédago), au lieu d'un simple
+                aller-retour entre deux tailles fixes. Masquée sur mobile où le
+                panneau occupe déjà toute la largeur. */}
+            <div
+                onPointerDown={handleResizeStart}
+                className="hidden sm:flex absolute left-0 top-0 bottom-0 w-3 -translate-x-1/2 z-10 items-center justify-center cursor-ew-resize touch-none group"
+                title="اسحب لتغيير حجم اللوحة"
+            >
+                <div className={cn(
+                    'h-16 w-1.5 rounded-full transition-colors',
+                    isResizing ? 'bg-primary' : 'bg-border group-hover:bg-primary/60',
+                )} />
+            </div>
+
             <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
                 <div className="flex items-center gap-2 text-primary font-semibold">
                     {step !== 'entry' && (
@@ -645,16 +715,6 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                     <span dir="rtl">المساعد التحريري للذكاء الاصطناعي</span>
                 </div>
                 <div className="flex items-center gap-1">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setIsExpanded(v => !v)}
-                        className="hidden sm:inline-flex h-8 w-8 rounded-full"
-                        title={isExpanded ? 'تصغير العرض' : 'توسيع العرض'}
-                        aria-label={isExpanded ? 'تصغير العرض' : 'توسيع العرض'}
-                    >
-                        {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                    </Button>
                     <Button
                         variant="ghost"
                         size="icon"
