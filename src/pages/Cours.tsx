@@ -24,16 +24,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Capacitor } from "@capacitor/core";
-import { SUBJECTS } from "@/lib/subjects";
 import { localizedText } from "@/lib/utils";
 import { resolveLocalizedTexts } from "@/lib/autoTranslate";
 import { useArabicKeyboardField } from "@/components/course/ArabicKeyboard";
 import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
 import { TeacherContentRedDot } from "@/components/TeacherContentRedDot";
-
-// Static subject data dérivée du catalogue partagé (src/lib/subjects.ts)
-const staticSubjects: Record<string, { id: string; name: string; icon: string }> =
-  Object.fromEntries(SUBJECTS.map((s) => [s.id, { id: s.id, name: s.name, icon: s.icon }]));
 
 interface Profile {
   id: string;
@@ -134,8 +129,6 @@ const Cours = () => {
   const [dbExercises, setDbExercises] = useState<DBExercise[]>([]);
   const [contentResetKey, setContentResetKey] = useState(0);
   const lastSyncedLessonParamRef = useRef<string | null>(null);
-
-  const subject = subjectId ? staticSubjects[subjectId] || { id: subjectId, name: subjectId, icon: "📖" } : null;
 
   // Reset chat when chapter changes
   useEffect(() => {
@@ -513,25 +506,6 @@ const Cours = () => {
       <AppHeader />
 
       <main className={`container mx-auto px-4 py-8 transition-all duration-300 ${!canManage ? 'pb-28' : ''} ${isChatOpen ? 'lg:pr-[420px] blur-[2px] saturate-75 opacity-80' : ''}`}>
-
-        {/* Subject hero + progress */}
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="relative mb-6"
-        >
-          <div className="glass-card p-5 md:p-7">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-[image:var(--gradient-violet)] flex items-center justify-center text-2xl shadow-md shrink-0">
-                {subject?.icon || "📖"}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h1 className="font-display text-xl md:text-2xl font-extrabold text-foreground truncate">{subject?.name || "Cours"}</h1>
-              </div>
-            </div>
-          </div>
-        </motion.div>
 
         {/* Active activity view */}
         {activeActivity === "quiz" && activeChapter && (
