@@ -1,11 +1,15 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { logTokenUsageAsync, extractGeminiUsage, extractOpenAiCompatUsage, type AiUsage, type RoleGroup } from "../_shared/tokenLogger.ts";
 
 // Traduction à la volée (affichage uniquement) des titres de chapitre/leçon
 // qui n'existent que dans une seule langue en base — jamais écrite en base,
 // utilisée seulement pour l'affichage côté client quand la langue
 // d'interface choisie n'a pas de titre correspondant stocké.
+//
+// Utilise MyMemory Translation API (api.mymemory.translated.net) : gratuit,
+// sans clé, sans compte de facturation, pas d'IA — juste un appel HTTP.
+// Limite ~5000 mots/jour par IP en anonyme, largement suffisant pour des
+// titres de chapitres/leçons.
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
@@ -13,69 +17,22 @@ const corsHeaders = {
 
 const MAX_TEXTS_PER_CALL = 50;
 
-async function callAIWithFallback(messages: any[]): Promise<{ text: string; usage: AiUsage | null }> {
-  const openrouterKey = Deno.env.get("OPENROUTER_API_KEY");
-  const lovableKey = Deno.env.get("LOVABLE_API_KEY");
-  const geminiKey = Deno.env.get("GEMINI_API_KEY");
-
-  if (openrouterKey) {
-    try {
-      const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${openrouterKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://academieplus.app",
-          "X-Title": "AcademiePlus",
-        },
-        body: JSON.stringify({ model: "google/gemini-2.5-flash", messages }),
-      });
-      if (resp.ok) {
-        const result = await resp.json();
-        return { text: result.choices?.[0]?.message?.content || "", usage: extractOpenAiCompatUsage(result) };
-      }
-      console.error("OpenRouter failed:", resp.status);
-    } catch (e) { console.error("OpenRouter error:", e); }
+async function translateOne(text: string, source: "fr" | "ar", target: "fr" | "ar"): Promise<string> {
+  if (!text.trim()) return text;
+  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${source}|${target}`;
+  const resp = await fetch(url);
+  if (!resp.ok) {
+    console.error("MyMemory request failed:", resp.status);
+    return text;
   }
-
-  if (lovableKey) {
-    try {
-      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${lovableKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ model: "google/gemini-3-flash-preview", messages }),
-      });
-      if (resp.ok) {
-        const result = await resp.json();
-        return { text: result.choices?.[0]?.message?.content || "", usage: extractOpenAiCompatUsage(result) };
-      }
-      console.error("Lovable AI failed:", resp.status);
-    } catch (e) { console.error("Lovable AI error:", e); }
+  const data = await resp.json();
+  const translated = data?.responseData?.translatedText;
+  // MyMemory renvoie parfois un message d'erreur textuel (quota dépassé, etc.)
+  // à la place d'une vraie traduction : dans ce cas on garde le texte d'origine.
+  if (typeof translated !== "string" || !translated.trim() || /MYMEMORY WARNING/i.test(translated)) {
+    return text;
   }
-
-  if (geminiKey) {
-    try {
-      const contents = messages.map((m: any) => ({
-        role: m.role === "system" ? "user" : m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-      }));
-      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents }),
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        return { text: data?.candidates?.[0]?.content?.parts?.[0]?.text || "", usage: extractGeminiUsage(data) };
-      }
-      console.error("Gemini direct failed:", resp.status);
-    } catch (e) { console.error("Gemini error:", e); }
-  }
-
-  throw new Error("Tous les services IA sont indisponibles.");
+  return translated;
 }
 
 serve(async (req) => {
@@ -84,7 +41,6 @@ serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -125,50 +81,13 @@ serve(async (req) => {
       });
     }
 
-    const targetLabel = targetLang === "fr" ? "français" : "arabe";
-    const prompt = `Traduis chacun des textes suivants vers le ${targetLabel}. Ce sont des titres de chapitres ou de leçons de mathématiques du programme scolaire algérien : garde le vocabulaire mathématique précis et le style concis d'un titre. Réponds UNIQUEMENT avec un tableau JSON de chaînes de caractères, dans le même ordre et de la même longueur que la liste fournie, sans aucun texte, explication ou balise de code autour.
+    // On ne traduit qu'entre fr et ar, dans un sens : la source est
+    // toujours l'autre langue que la cible demandée.
+    const source: "fr" | "ar" = targetLang === "fr" ? "ar" : "fr";
 
-Textes à traduire (JSON) :
-${JSON.stringify(texts)}`;
-
-    const messages = [
-      {
-        role: "system",
-        content: "Tu es un traducteur professionnel français-arabe spécialisé dans le vocabulaire mathématique scolaire. Tu réponds uniquement avec un tableau JSON de chaînes, rien d'autre.",
-      },
-      { role: "user", content: prompt },
-    ];
-
-    const { text: raw, usage } = await callAIWithFallback(messages);
-    const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-
-    let translations: unknown;
-    try {
-      translations = JSON.parse(cleaned);
-    } catch {
-      translations = null;
-    }
-
-    if (!Array.isArray(translations) || translations.length !== texts.length || !translations.every((t) => typeof t === "string")) {
-      // Repli : si l'IA n'a pas renvoyé un tableau exploitable, on renvoie les
-      // textes d'origine plutôt que d'échouer — l'appelant affichera alors le
-      // texte de repli habituel (autre langue) au lieu d'une traduction.
-      translations = texts;
-    }
-
-    if (usage) {
-      const { data: roleRows } = await userClient.from("user_roles").select("role").eq("user_id", user.id);
-      const roleGroup = ((roleRows ?? [])[0]?.role || "other") as RoleGroup;
-      logTokenUsageAsync({
-        supabaseUrl: SUPABASE_URL,
-        serviceRoleKey: SUPABASE_SERVICE_ROLE_KEY,
-        userId: user.id,
-        roleGroup,
-        functionName: "translate-text",
-        inputTokens: usage.inputTokens,
-        outputTokens: usage.outputTokens,
-      });
-    }
+    const translations = await Promise.all(
+      texts.map((text: string) => translateOne(text, source, targetLang).catch(() => text))
+    );
 
     return new Response(JSON.stringify({ translations }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

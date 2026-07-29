@@ -4,9 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
  * Traduction à la volée, affichage uniquement — ne modifie jamais les
  * données d'origine ni la base. Sert de secours quand un chapitre/leçon n'a
  * de titre que dans une seule langue : plutôt que d'afficher l'autre langue
- * telle quelle, on la traduit via l'IA déjà utilisée ailleurs dans l'app
- * (edge function translate-text — OpenRouter/Lovable AI/Gemini, mêmes clés
- * que le reste du projet, aucun nouveau service à payer), avec mise en
+ * telle quelle, on la traduit via un service gratuit, sans clé ni IA
+ * (edge function translate-text — MyMemory Translation API), avec mise en
  * cache (mémoire + localStorage) pour ne jamais retraduire deux fois le
  * même texte.
  */
