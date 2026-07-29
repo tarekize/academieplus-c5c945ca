@@ -394,7 +394,12 @@
     "matchChapter": "Chapitre",
     "matchLessonTitle": "Titre leçon",
     "matchContent": "Contenu",
-    "searchPlaceholder": "Rechercher un chapitre ou une leçon..."
+    "searchPlaceholder": "Rechercher un chapitre ou une leçon...",
+    "breadcrumbChapters": "Chapitres",
+    "exercisesLabel": "Exercices",
+    "quizLabel": "Questions à choix multiples",
+    "revisionLabel": "Révision",
+    "lessonsHeading": "Leçons"
   },
   "notFound": {
     "description": "Cette page n'existe pas ou plus.",
@@ -428,5 +433,48 @@
     "viewCoursesDesc": "Consultez les cours par niveau",
     "myCourses": "Mes Cours",
     "myCoursesDesc": "Accédez à vos cours et leçons"
+  },
+  "pedagoCRUD": {
+    "titleRequired": "Le titre est requis.",
+    "chapter": {
+      "addButton": "Ajouter un chapitre",
+      "editAria": "Modifier le chapitre",
+      "editTitle": "Modifier le chapitre",
+      "newTitle": "Nouveau chapitre",
+      "editDescription": "Modifiez les informations du chapitre.",
+      "newDescription": "Ajoutez un nouveau chapitre au programme.",
+      "titleArLabel": "Titre (arabe) *",
+      "titleArPlaceholder": "العنوان بالعربية",
+      "titleFrLabel": "Titre (français)",
+      "titleFrPlaceholder": "Titre en français (optionnel)",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Description du chapitre...",
+      "updateSuccess": "Chapitre modifié avec succès",
+      "addSuccess": "Chapitre ajouté avec succès",
+      "saveError": "Erreur lors de l'enregistrement",
+      "deleteAria": "Supprimer le chapitre",
+      "deleteConfirmTitle": "Supprimer le chapitre ?",
+      "deleteConfirmDescription": "Cette action est irréversible. Toutes les leçons associées seront également supprimées.",
+      "deleteSuccess": "Chapitre supprimé",
+      "deleteError": "Erreur lors de la suppression"
+    },
+    "lesson": {
+      "addButton": "Leçon",
+      "editAria": "Modifier la leçon",
+      "editTitle": "Modifier la leçon",
+      "newTitle": "Nouvelle leçon",
+      "titleArLabel": "Titre (arabe) *",
+      "titleArPlaceholder": "العنوان بالعربية",
+      "titleFrLabel": "Titre (français)",
+      "titleFrPlaceholder": "Titre en français (optionnel)",
+      "updateSuccess": "Leçon modifiée avec succès",
+      "addSuccess": "Leçon ajoutée avec succès",
+      "saveError": "Erreur lors de l'enregistrement",
+      "deleteAria": "Supprimer la leçon",
+      "deleteConfirmTitle": "Supprimer la leçon ?",
+      "deleteConfirmDescription": "Cette action est irréversible.",
+      "deleteSuccess": "Leçon supprimée",
+      "deleteError": "Erreur lors de la suppression"
+    }
   }
 }

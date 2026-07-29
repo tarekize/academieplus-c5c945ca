@@ -400,7 +400,12 @@
     "matchChapter": "فصل",
     "matchLessonTitle": "عنوان الدرس",
     "matchContent": "المحتوى",
-    "searchPlaceholder": "ابحث عن فصل أو درس..."
+    "searchPlaceholder": "ابحث عن فصل أو درس...",
+    "breadcrumbChapters": "الفصول",
+    "exercisesLabel": "تمارين",
+    "quizLabel": "أسئلة متعددة الاختيارات",
+    "revisionLabel": "مراجعة",
+    "lessonsHeading": "الدروس"
   },
   "notFound": {
     "description": "هذه الصفحة غير موجودة.",
@@ -434,5 +439,48 @@
     "viewCoursesDesc": "اطّلع على الدروس حسب المستوى",
     "myCourses": "دروسي",
     "myCoursesDesc": "ادخل إلى دروسك وحصصك"
+  },
+  "pedagoCRUD": {
+    "titleRequired": "العنوان مطلوب.",
+    "chapter": {
+      "addButton": "إضافة فصل",
+      "editAria": "تعديل الفصل",
+      "editTitle": "تعديل الفصل",
+      "newTitle": "فصل جديد",
+      "editDescription": "عدّل معلومات الفصل.",
+      "newDescription": "أضف فصلاً جديداً إلى البرنامج.",
+      "titleArLabel": "العنوان (بالعربية) *",
+      "titleArPlaceholder": "العنوان بالعربية",
+      "titleFrLabel": "العنوان (بالفرنسية)",
+      "titleFrPlaceholder": "العنوان بالفرنسية (اختياري)",
+      "descriptionLabel": "الوصف",
+      "descriptionPlaceholder": "وصف الفصل...",
+      "updateSuccess": "تم تعديل الفصل بنجاح",
+      "addSuccess": "تمت إضافة الفصل بنجاح",
+      "saveError": "خطأ أثناء الحفظ",
+      "deleteAria": "حذف الفصل",
+      "deleteConfirmTitle": "حذف الفصل؟",
+      "deleteConfirmDescription": "هذا الإجراء نهائي. سيتم أيضاً حذف جميع الدروس المرتبطة به.",
+      "deleteSuccess": "تم حذف الفصل",
+      "deleteError": "خطأ أثناء الحذف"
+    },
+    "lesson": {
+      "addButton": "درس",
+      "editAria": "تعديل الدرس",
+      "editTitle": "تعديل الدرس",
+      "newTitle": "درس جديد",
+      "titleArLabel": "العنوان (بالعربية) *",
+      "titleArPlaceholder": "العنوان بالعربية",
+      "titleFrLabel": "العنوان (بالفرنسية)",
+      "titleFrPlaceholder": "العنوان بالفرنسية (اختياري)",
+      "updateSuccess": "تم تعديل الدرس بنجاح",
+      "addSuccess": "تمت إضافة الدرس بنجاح",
+      "saveError": "خطأ أثناء الحفظ",
+      "deleteAria": "حذف الدرس",
+      "deleteConfirmTitle": "حذف الدرس؟",
+      "deleteConfirmDescription": "هذا الإجراء نهائي.",
+      "deleteSuccess": "تم حذف الدرس",
+      "deleteError": "خطأ أثناء الحذف"
+    }
   }
 }

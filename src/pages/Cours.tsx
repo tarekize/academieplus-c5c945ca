@@ -25,6 +25,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Capacitor } from "@capacitor/core";
 import { SUBJECTS } from "@/lib/subjects";
+import { localizedText } from "@/lib/utils";
 import { useArabicKeyboardField } from "@/components/course/ArabicKeyboard";
 import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
 import { TeacherContentRedDot } from "@/components/TeacherContentRedDot";
@@ -53,6 +54,8 @@ interface Lesson {
 interface Chapter {
   id: string;
   title: string;
+  titleAr: string;
+  description: string | null;
   order_index: number;
   content: string;
   lessons?: Lesson[];
@@ -77,7 +80,7 @@ const Cours = () => {
       ? `/cours/${subjectId}${niveauSegment}/chapitres/${chapitreId}/lecons`
       : `/cours/${subjectId}${niveauSegment}/chapitres`;
   }, [subjectId, niveauParam]);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [needsProfileCompletion, setNeedsProfileCompletion] = useState(false);
   const [schoolLevel, setSchoolLevel] = useState<string>("");
@@ -201,12 +204,14 @@ const Cours = () => {
         // Map database chapters to component format
         const mappedChapters: Chapter[] = dbChapters.map((ch) => ({
           id: ch.id,
-          title: ch.title_ar || ch.title,
+          title: ch.title,
+          titleAr: ch.title_ar || ch.title,
+          description: ch.description || null,
           order_index: ch.order_index,
-          content: `<h2>${ch.title_ar || ch.title}</h2>${ch.description ? `<p>${ch.description}</p>` : ""}`,
+          content: `<h2>${localizedText(i18n.language, ch.title, ch.title_ar)}</h2>${ch.description ? `<p>${ch.description}</p>` : ""}`,
           lessons: ch.lessons.map((l) => ({
             id: l.id,
-            title: l.title_ar || l.title,
+            title: l.title,
             titleAr: l.title_ar || l.title,
             content: l.content || "",
           })),
@@ -262,7 +267,7 @@ const Cours = () => {
     } finally {
       setLoading(false);
     }
-  }, [subjectId, adminNiveau, adminFiliere, navigate]);
+  }, [subjectId, adminNiveau, adminFiliere, navigate, i18n.language]);
 
   useEffect(() => {
     if (!chapters.length) return;
@@ -808,7 +813,9 @@ const Cours = () => {
                 const results: SearchResult[] = [];
 
                 chapters.forEach((chapter, chapterIndex) => {
-                  const chapterTitleResult = phraseSearch(chapter.title, keywords);
+                  const chapterTitleFrResult = phraseSearch(chapter.title, keywords);
+                  const chapterTitleArResult = phraseSearch(chapter.titleAr, keywords);
+                  const chapterTitleResult = chapterTitleArResult.score > chapterTitleFrResult.score ? chapterTitleArResult : chapterTitleFrResult;
 
                   chapter.lessons?.forEach(lesson => {
                     const titleFr = phraseSearch(lesson.title, keywords);
@@ -840,7 +847,7 @@ const Cours = () => {
                   // Chapter with no lessons
                   if (chapterTitleResult.match && (!chapter.lessons || chapter.lessons.length === 0)) {
                     results.push({
-                      lesson: { id: chapter.id, title: chapter.title, titleAr: '' },
+                      lesson: { id: chapter.id, title: chapter.title, titleAr: chapter.titleAr },
                       chapter, chapterIndex,
                       score: chapterTitleResult.score,
                       matchSource: 'chapter-title',
@@ -884,12 +891,12 @@ const Cours = () => {
                             <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">
                               <BookOpen className="h-4 w-4" />
                             </span>
-                            <span className="flex-1">{lesson.titleAr || lesson.title}</span>
+                            <span className="flex-1">{localizedText(i18n.language, lesson.title, lesson.titleAr)}</span>
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
                           <p className="text-xs text-muted-foreground mb-1">
-                            📖 {chapter.title}
+                            📖 {localizedText(i18n.language, chapter.title, chapter.titleAr)}
                           </p>
                           {matchSource === 'lesson-content' && snippet && (
                             <p className="text-xs text-muted-foreground/80 italic line-clamp-2">
@@ -949,7 +956,7 @@ const Cours = () => {
                             <span className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold bg-gradient-to-br shrink-0 transition-transform duration-300 group-hover:scale-110 ${badgePalette[index % badgePalette.length]}`}>
                               {index + 1}
                             </span>
-                            <span className="flex-1">{chapter.title}</span>
+                            <span className="flex-1">{localizedText(i18n.language, chapter.title, chapter.titleAr)}</span>
                             {progress[chapter.id] && (
                               <Check className="h-5 w-5 text-green-500 shrink-0" />
                             )}
@@ -965,7 +972,7 @@ const Cours = () => {
                                   filiereId={filiereId}
                                   subject={subjectId || "math"}
                                   onSaved={fetchCourse}
-                                  chapter={{ id: chapter.id, title: chapter.title.split(' - ')[0], title_ar: chapter.title.includes(' - ') ? chapter.title.split(' - ')[1] : null, description: null, order_index: chapter.order_index }}
+                                  chapter={{ id: chapter.id, title: chapter.title, title_ar: chapter.titleAr, description: chapter.description, order_index: chapter.order_index }}
                                 />
                                 <DeleteChapterButton chapterId={chapter.id} onDeleted={fetchCourse} />
                               </div>
