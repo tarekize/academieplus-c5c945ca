@@ -163,6 +163,8 @@ const Auth = () => {
           navigate("/dashboard");
         } else if (roleData.role === 'etablissement') {
           navigate("/etablissement-dashboard");
+        } else if (roleData.role === 'pedago') {
+          navigate("/liste-matieres");
         } else {
           navigate("/cours/math/chapitres");
         }
