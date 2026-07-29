@@ -147,8 +147,8 @@ function InlineLessonEditorInner({
   const handleInput = useCallback(() => {
     setIsEmpty(!ref.current?.textContent?.trim());
     // Signale immédiatement qu'il y a une modification en cours (pour que
-    // les boutons "Envoyer pour validation" / "Enregistrer le brouillon"
-    // apparaissent dès la frappe), sans synchroniser le HTML complet vers le
+    // les boutons "Envoyer pour validation" / "Enregistrer" apparaissent dès
+    // la frappe), sans synchroniser le HTML complet vers le
     // parent à chaque caractère — ça, c'est toujours `persist()` (au blur ou
     // via un bouton de la barre d'outils) qui s'en charge, cf. commentaire
     // plus haut sur `frozenHtml`.

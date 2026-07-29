@@ -166,9 +166,6 @@ export default function LessonEditor() {
       // types générés) : brouillon éventuel + dernière version soumise.
       const draft = (data as any).draft_content as string | null;
       setHasDraft(!!draft);
-      setContent(draft ?? data.content ?? '');
-      setIsDirty(!!draft);
-      setContentVersion(v => v + 1);
 
       const { data: latest } = await supabase
         .from('lesson_versions' as any)
@@ -177,7 +174,21 @@ export default function LessonEditor() {
         .order('version_number', { ascending: false })
         .limit(1)
         .maybeSingle();
-      setLatestVersion((latest as any) || null);
+      const latestVersionRow = (latest as any) || null;
+      setLatestVersion(latestVersionRow);
+
+      // Pour le pédago (pas l'admin, qui publie directement), tant que sa
+      // dernière soumission n'est pas encore approuvée, on affiche CETTE
+      // copie (pending : en lecture seule en attendant l'admin ; rejected :
+      // éditable directement) plutôt que d'écraser silencieusement l'écran
+      // par l'ancien contenu publié — sans quoi le pédago perdait de vue ce
+      // qu'il venait d'envoyer/faire refuser.
+      const isPedagoAwaitingOrRejected = !userRoles.includes('admin') && (latestVersionRow?.status === 'pending' || latestVersionRow?.status === 'rejected');
+      const isPedagoRejected = !userRoles.includes('admin') && latestVersionRow?.status === 'rejected';
+      const effectiveContent = draft ?? (isPedagoAwaitingOrRejected ? latestVersionRow.content : null) ?? data.content ?? '';
+      setContent(effectiveContent);
+      setIsDirty(!!draft || isPedagoRejected);
+      setContentVersion(v => v + 1);
     } catch (err) {
       console.error(err);
       toast.error('Erreur', { description: 'Impossible de charger la leçon' });
@@ -369,6 +380,10 @@ export default function LessonEditor() {
     toast('Contenu marqué pour suppression (Brouillon)', { description: 'Cliquez sur "Envoyer les modifications" pour publier la suppression.' });
   };
 
+  // Le pédago ne peut pas modifier la copie tant que l'admin n'a pas
+  // répondu à la version envoyée ; l'admin, lui, publie toujours directement.
+  const locked = !isAdmin && latestVersion?.status === 'pending';
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -441,45 +456,50 @@ export default function LessonEditor() {
                         <History className="h-4 w-4 mr-2" />
                         الإصدارات السابقة
                       </Button>
-                      <Button variant="outline" onClick={toggleLatexMode}>
-                        {latexMode ? <PenLine className="h-4 w-4 mr-2" /> : <FileCode className="h-4 w-4 mr-2" />}
-                        {latexMode ? 'Retour à l\'édition directe' : 'Modifier en LaTeX'}
-                      </Button>
-                      <Button variant="secondary" onClick={handleGenerateAI} disabled={generating}>
-                        {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                        {generating ? 'Génération...' : 'Généré avec IA'}
-                      </Button>
-                      {lesson.content && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive">
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Supprimer le contenu
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Cette action supprimera tout le contenu de cette leçon. Cette action est irréversible.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Annuler</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                      {!locked && (
+                        <>
+                          <Button variant="outline" onClick={toggleLatexMode}>
+                            {latexMode ? <PenLine className="h-4 w-4 mr-2" /> : <FileCode className="h-4 w-4 mr-2" />}
+                            {latexMode ? 'Retour à l\'édition directe' : 'Modifier en LaTeX'}
+                          </Button>
+                          <Button variant="secondary" onClick={handleGenerateAI} disabled={generating}>
+                            {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                            {generating ? 'Génération...' : 'Généré avec IA'}
+                          </Button>
+                          {lesson.content && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="destructive">
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Supprimer le contenu
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Cette action supprimera tout le contenu de cette leçon. Cette action est irréversible.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </>
                       )}
                     </div>
 
                     {/* Rangée dédiée : évite que ces boutons ne réorganisent la
                         rangée ci-dessus à chaque fois qu'ils apparaissent/disparaissent. */}
-                    {isDirty && (
+                    {!locked && isDirty && (
                       <div className="flex items-center gap-2 flex-wrap mt-2 pt-2 border-t border-border/40">
                         <Button
                           onClick={handlePublish}
-                          disabled={publishing || savingDraft}
+                          disabled={publishing || savingDraft || (!isAdmin && !hasDraft)}
+                          title={!isAdmin && !hasDraft ? 'Enregistrez d\'abord vos modifications' : undefined}
                           className="bg-green-600 hover:bg-green-700"
                         >
                           <Send className="h-4 w-4 mr-2" />
@@ -487,7 +507,7 @@ export default function LessonEditor() {
                         </Button>
                         <Button variant="outline" onClick={handleSaveDraft} disabled={savingDraft || publishing}>
                           {savingDraft ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                          {savingDraft ? 'Enregistrement...' : 'Enregistrer le brouillon'}
+                          {savingDraft ? 'Enregistrement...' : 'Enregistrer'}
                         </Button>
                         <Button variant="outline" onClick={handleDiscard} disabled={publishing || savingDraft}>
                           <Undo2 className="h-4 w-4 mr-2" />
@@ -516,9 +536,25 @@ export default function LessonEditor() {
                           <XCircle className="h-3 w-3" /> مرفوض
                         </Badge>
                       )}
-                      {latestVersion.status === 'rejected' && latestVersion.rejection_reason && (
-                        <span className="text-muted-foreground">— {latestVersion.rejection_reason}</span>
-                      )}
+                    </div>
+                  )}
+
+                  {/* Motif de refus : dans son propre bloc pleine largeur (pas dans la
+                      rangée de badges ci-dessus) avec retour à la ligne forcé, pour
+                      rester lisible même sans espaces (URL, texte collé...). */}
+                  {latestVersion?.status === 'rejected' && latestVersion.rejection_reason && (
+                    <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+                      <p className="font-medium text-destructive mb-1">Motif du refus :</p>
+                      <p className="text-destructive/90 whitespace-pre-wrap break-words">{latestVersion.rejection_reason}</p>
+                    </div>
+                  )}
+
+                  {/* Verrou pédago : une version est en attente de décision, la copie
+                      n'est pas modifiable tant que l'admin n'a pas répondu. */}
+                  {locked && (
+                    <div className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-md text-sm text-warning-foreground flex items-start gap-2">
+                      <Clock className="h-4 w-4 shrink-0 mt-0.5" />
+                      <span>Votre version est en attente de validation par l'administrateur. Vous ne pourrez modifier ce contenu qu'après sa réponse.</span>
                     </div>
                   )}
 
@@ -547,13 +583,13 @@ export default function LessonEditor() {
                   )}
 
                   {/* Indicateur de modifications non publiées */}
-                  {isDirty && (
+                  {!locked && isDirty && (
                     <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md text-sm text-yellow-800 dark:text-yellow-200">
                       {hasDraft
                         ? '📝 Brouillon enregistré. Les élèves ne verront ces changements qu\'après validation.'
                         : isAdmin
                           ? '⚠️ Vous avez des modifications non publiées. Les autres utilisateurs ne verront ces changements qu\'après avoir cliqué sur "Envoyer les modifications".'
-                          : '⚠️ Vous avez des modifications non envoyées. Elles ne seront visibles par les élèves qu\'après validation par un administrateur.'}
+                          : '⚠️ Cliquez sur "Enregistrer" pour sauvegarder vos modifications, puis sur "Envoyer pour validation" pour les soumettre à l\'administrateur.'}
                     </div>
                   )}
                 </>
@@ -565,7 +601,7 @@ export default function LessonEditor() {
                   <CardTitle>Contenu du cours</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {canManage ? (
+                  {canManage && !locked ? (
                     latexMode ? (
                       <LessonSourceEditor
                         content={content}
@@ -656,7 +692,7 @@ export default function LessonEditor() {
                       {new Date(v.created_at).toLocaleString('ar')} — {v.created_by_name}
                     </div>
                     {v.status === "rejected" && v.rejection_reason && (
-                      <div className="text-xs text-destructive mt-1">— {v.rejection_reason}</div>
+                      <div className="text-xs text-destructive mt-1 whitespace-pre-wrap break-words">— {v.rejection_reason}</div>
                     )}
                     {v.status === "approved" && v.reviewed_by_name && (
                       <div className="text-xs text-muted-foreground mt-0.5">قبِلها: {v.reviewed_by_name}</div>
