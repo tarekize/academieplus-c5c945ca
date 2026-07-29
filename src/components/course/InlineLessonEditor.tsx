@@ -13,11 +13,7 @@ import { sanitizeLessonHtml } from '@/lib/sanitizeHtml';
 import { lessonSchema, convertPedagoBlocks } from '@/lib/lessonBlocks';
 import { uploadLessonImage } from '@/lib/lessonMedia';
 import { cn } from '@/lib/utils';
-import {
-  Bold, Italic, Heading1, Heading2, Heading3, List, ListOrdered,
-  Sigma, FunctionSquare, BookMarked, Scale, PenLine,
-  Table2, ImagePlus, Minus, Palette, Loader2, Plus,
-} from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 
 // Même palette que LessonSourceEditor (LaTeX) : classes CSS fixes définies
 // dans index.css sous .lesson-markdown, pas du Tailwind arbitraire.
@@ -577,20 +573,21 @@ function InlineLessonEditorInner({
     <Button
       type="button"
       variant="ghost"
-      size="icon"
-      className="h-8 w-8 shrink-0"
+      size="sm"
+      className="h-8 px-2 md:w-full justify-center whitespace-nowrap text-xs font-semibold shrink-0"
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
       title={title}
       aria-label={title}
       disabled={disabled}
+      dir="rtl"
     >
       {children}
     </Button>
   );
 
   const toolbar = (
-    <div className="flex md:flex-col flex-row flex-wrap md:flex-nowrap items-center gap-0.5 p-1.5 bg-muted/50 border rounded-lg shrink-0 md:self-start md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:overflow-y-auto">
+    <div className="flex md:flex-col flex-row flex-wrap md:flex-nowrap items-center gap-1 p-1.5 bg-muted/50 border rounded-lg shrink-0 md:w-36 md:self-start md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:overflow-y-auto">
       <input
         ref={imageInputRef}
         type="file"
@@ -598,60 +595,41 @@ function InlineLessonEditorInner({
         className="hidden"
         onChange={handleImageSelected}
       />
-      <ToolBtn onClick={() => toggleInlineStyle('bold')} title="Gras">
-        <Bold className="h-4 w-4" />
-      </ToolBtn>
-      <ToolBtn onClick={() => toggleInlineStyle('italic')} title="Italique">
-        <Italic className="h-4 w-4" />
-      </ToolBtn>
+      {/* Les libellés des boutons sont en arabe (langue de travail du
+          pédagogue), mais le texte inséré dans le contenu (titres, blocs
+          Définition/Propriété/Exemple...) reste en français : ce sont deux
+          paramètres distincts passés à insertHeading/insertBlock, jamais le
+          libellé du bouton lui-même. */}
+      <ToolBtn onClick={() => toggleInlineStyle('bold')} title="Gras">غامق</ToolBtn>
+      <ToolBtn onClick={() => toggleInlineStyle('italic')} title="Italique">مائل</ToolBtn>
 
-      <Separator orientation="horizontal" className="hidden md:block w-6 my-1" />
+      <Separator orientation="horizontal" className="hidden md:block w-full my-1" />
       <Separator orientation="vertical" className="md:hidden h-6 mx-1" />
 
-      <ToolBtn onClick={() => insertHeading(1, 'Titre')} title="Titre">
-        <Heading1 className="h-4 w-4" />
-      </ToolBtn>
-      <ToolBtn onClick={() => insertHeading(2, 'Sous-titre')} title="Sous-titre">
-        <Heading2 className="h-4 w-4" />
-      </ToolBtn>
-      <ToolBtn onClick={() => insertHeading(3, 'Sous-sous-titre')} title="Sous-sous-titre">
-        <Heading3 className="h-4 w-4" />
-      </ToolBtn>
+      <ToolBtn onClick={() => insertHeading(1, 'Titre')} title="Titre (numéroté automatiquement : 1, 2, 3...)">عنوان 1</ToolBtn>
+      <ToolBtn onClick={() => insertHeading(2, 'Sous-titre')} title="Sous-titre (numéroté automatiquement : 1.1, 1.2...)">عنوان 2</ToolBtn>
+      <ToolBtn onClick={() => insertHeading(3, 'Sous-sous-titre')} title="Sous-sous-titre (numéroté automatiquement : 1.1.1...)">عنوان 3</ToolBtn>
 
-      <Separator orientation="horizontal" className="hidden md:block w-6 my-1" />
+      <Separator orientation="horizontal" className="hidden md:block w-full my-1" />
       <Separator orientation="vertical" className="md:hidden h-6 mx-1" />
 
-      <ToolBtn onClick={() => insertHtmlAtCursor('<ul><li>élément</li></ul>')} title="Liste à puces">
-        <List className="h-4 w-4" />
-      </ToolBtn>
-      <ToolBtn onClick={() => insertHtmlAtCursor('<ol><li>élément</li></ol>')} title="Liste numérotée">
-        <ListOrdered className="h-4 w-4" />
-      </ToolBtn>
+      <ToolBtn onClick={() => insertHtmlAtCursor('<ul><li>élément</li></ul>')} title="Liste à puces">قائمة نقطية</ToolBtn>
+      <ToolBtn onClick={() => insertHtmlAtCursor('<ol><li>élément</li></ol>')} title="Liste numérotée">قائمة مرقمة</ToolBtn>
 
-      <Separator orientation="horizontal" className="hidden md:block w-6 my-1" />
+      <Separator orientation="horizontal" className="hidden md:block w-full my-1" />
       <Separator orientation="vertical" className="md:hidden h-6 mx-1" />
 
-      <ToolBtn onClick={() => insertLatex(false)} title="Formule LaTeX en ligne ($...$)">
-        <Sigma className="h-4 w-4" />
-      </ToolBtn>
-      <ToolBtn onClick={() => insertLatex(true)} title="Formule LaTeX en bloc ($$...$$)">
-        <FunctionSquare className="h-4 w-4" />
-      </ToolBtn>
+      <ToolBtn onClick={() => insertLatex(false)} title="Formule LaTeX en ligne ($...$)">صيغة</ToolBtn>
+      <ToolBtn onClick={() => insertLatex(true)} title="Formule LaTeX en bloc ($$...$$)">معادلة</ToolBtn>
 
-      <Separator orientation="horizontal" className="hidden md:block w-6 my-1" />
+      <Separator orientation="horizontal" className="hidden md:block w-full my-1" />
       <Separator orientation="vertical" className="md:hidden h-6 mx-1" />
 
-      <ToolBtn onClick={() => insertBlock('block-definition', 'Définition', 'Énoncé de la définition...')} title="Bloc Définition">
-        <BookMarked className="h-4 w-4" />
-      </ToolBtn>
-      <ToolBtn onClick={() => insertBlock('block-property', 'Propriété', 'Énoncé de la propriété...')} title="Bloc Propriété">
-        <Scale className="h-4 w-4" />
-      </ToolBtn>
-      <ToolBtn onClick={() => insertBlock('block-example', 'Exemple', "Énoncé de l'exemple...")} title="Bloc Exemple">
-        <PenLine className="h-4 w-4" />
-      </ToolBtn>
+      <ToolBtn onClick={() => insertBlock('block-definition', 'Définition', 'Énoncé de la définition...')} title="Bloc Définition">تعريف</ToolBtn>
+      <ToolBtn onClick={() => insertBlock('block-property', 'Propriété', 'Énoncé de la propriété...')} title="Bloc Propriété">خاصية</ToolBtn>
+      <ToolBtn onClick={() => insertBlock('block-example', 'Exemple', "Énoncé de l'exemple...")} title="Bloc Exemple">مثال</ToolBtn>
 
-      <Separator orientation="horizontal" className="hidden md:block w-6 my-1" />
+      <Separator orientation="horizontal" className="hidden md:block w-full my-1" />
       <Separator orientation="vertical" className="md:hidden h-6 mx-1" />
 
       <Popover open={tablePopoverOpen} onOpenChange={setTablePopoverOpen}>
@@ -659,8 +637,8 @@ function InlineLessonEditorInner({
           <Button
             type="button"
             variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0"
+            size="sm"
+            className="h-8 px-2 md:w-full justify-center whitespace-nowrap text-xs font-semibold shrink-0"
             onMouseDown={(e) => {
               e.preventDefault();
               const ctx = getTableContext();
@@ -677,8 +655,9 @@ function InlineLessonEditorInner({
             }}
             title="Tableau"
             aria-label="Tableau"
+            dir="rtl"
           >
-            <Table2 className="h-4 w-4" />
+            جدول
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-64 p-3" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
@@ -752,24 +731,23 @@ function InlineLessonEditorInner({
         </PopoverContent>
       </Popover>
       <ToolBtn onClick={insertImage} title="Ajouter une image depuis l'appareil" disabled={uploadingImage}>
-        {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+        {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'صورة'}
       </ToolBtn>
-      <ToolBtn onClick={insertHorizontalRule} title="Ajouter une ligne de séparation">
-        <Minus className="h-4 w-4" />
-      </ToolBtn>
+      <ToolBtn onClick={insertHorizontalRule} title="Ajouter une ligne de séparation">خط فاصل</ToolBtn>
 
       <Popover>
         <PopoverTrigger asChild>
           <Button
             type="button"
             variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0"
+            size="sm"
+            className="h-8 px-2 md:w-full justify-center whitespace-nowrap text-xs font-semibold shrink-0"
             onMouseDown={(e) => e.preventDefault()}
             title="Couleur du texte"
             aria-label="Couleur du texte"
+            dir="rtl"
           >
-            <Palette className="h-4 w-4" />
+            لون
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-2" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>

@@ -305,6 +305,11 @@ All colors MUST be HSL.
   font-size: 1.05rem;
   line-height: 2;
   color: hsl(var(--foreground));
+  /* Numérotation hiérarchique automatique des titres (1, 1.1, 1.1.1...) :
+     purement visuelle (compteurs CSS), jamais stockée dans le HTML — les
+     numéros restent donc toujours corrects même si des titres sont insérés,
+     supprimés ou réordonnés, sans logique de recalcul côté JS. */
+  counter-reset: lesson-h1;
 }
 
 .lesson-markdown h1,
@@ -317,9 +322,23 @@ All colors MUST be HSL.
   margin-bottom: 0.8em;
   line-height: 1.4;
 }
-.lesson-markdown h1 { font-size: 1.9rem; border-bottom: 3px solid hsl(var(--primary) / 0.3); padding-bottom: .4em; }
-.lesson-markdown h2 { font-size: 1.5rem; border-right: 4px solid hsl(var(--primary)); padding-right: .6em; }
-.lesson-markdown h3 { font-size: 1.2rem; color: hsl(var(--primary) / 0.85); }
+.lesson-markdown h1 {
+  font-size: 1.9rem; border-bottom: 3px solid hsl(var(--primary) / 0.3); padding-bottom: .4em;
+  counter-increment: lesson-h1;
+  counter-reset: lesson-h2;
+}
+.lesson-markdown h2 {
+  font-size: 1.5rem; border-right: 4px solid hsl(var(--primary)); padding-right: .6em;
+  counter-increment: lesson-h2;
+  counter-reset: lesson-h3;
+}
+.lesson-markdown h3 {
+  font-size: 1.2rem; color: hsl(var(--primary) / 0.85);
+  counter-increment: lesson-h3;
+}
+.lesson-markdown h1::before { content: counter(lesson-h1) ". "; }
+.lesson-markdown h2::before { content: counter(lesson-h1) "." counter(lesson-h2) " "; }
+.lesson-markdown h3::before { content: counter(lesson-h1) "." counter(lesson-h2) "." counter(lesson-h3) " "; }
 
 .lesson-markdown p { margin: 0.8em 0; }
 .lesson-markdown ul, .lesson-markdown ol { padding-right: 1.6em; padding-left: 0; }
