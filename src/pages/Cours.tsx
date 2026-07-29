@@ -8,7 +8,6 @@ import { ChapterMathQuiz, DBQuizQuestion } from "@/components/course/ChapterMath
 import { ChapterMathExercises, DBExercise } from "@/components/course/ChapterMathExercises";
 
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, GraduationCap, MessageCircle, X, BookOpen, Play, PenTool, Brain, Download, Check, Search, BarChart3, FileText, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -530,12 +529,6 @@ const Cours = () => {
               <div className="flex-1 min-w-0">
                 <h1 className="font-display text-xl md:text-2xl font-extrabold text-foreground truncate">{subject?.name || "Cours"}</h1>
               </div>
-            </div>
-            <div className="mt-4">
-              <Progress
-                value={(Object.values(progress).filter(Boolean).length / chapters.length) * 100}
-                className="h-2.5"
-              />
             </div>
           </div>
         </motion.div>
