@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import {
     Send, Loader2, Sparkles, Wand2, X, Copy, CheckCheck,
     ArrowLeft, Wand, PencilLine, MessageCircle, ListTree, Paperclip, FileText,
+    Maximize2, Minimize2, Minus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -212,6 +213,11 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
     const scrollRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+    // Taille du panneau : réduit à une bulle flottante (la conversation reste
+    // intacte en arrière-plan) ou élargi pour plus de confort de lecture.
+    const [isMinimized, setIsMinimized] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
+
     // Choix du flux guidé (leçon vide)
     const [structureChoice, setStructureChoice] = useState<StructureChoice | null>(null);
     const [customSections, setCustomSections] = useState('');
@@ -249,6 +255,8 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
             setConcepts({ definition: true, properties: true, methodology: true, exercises: true });
             setAttachedDoc(null);
             setDocProcessing(false);
+            setIsMinimized(false);
+            setIsExpanded(false);
         }
     }, [open]);
 
@@ -599,10 +607,26 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
 
     if (!open) return null;
 
+    // Réduit à une bulle flottante : la conversation/l'étape en cours reste
+    // intacte, seul l'affichage change (pas de démontage du composant).
+    if (isMinimized) {
+        return (
+            <button
+                onClick={() => setIsMinimized(false)}
+                className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-primary text-primary-foreground shadow-2xl px-4 py-3 hover:scale-105 transition-transform"
+                title="فتح المساعد التحريري"
+            >
+                <Wand2 className="w-5 h-5" />
+                <span className="text-sm font-medium" dir="rtl">المساعد التحريري</span>
+                <Maximize2 className="w-4 h-4 opacity-80" />
+            </button>
+        );
+    }
+
     return (
         <div className={cn(
             'fixed inset-y-0 right-0 bg-background border-l shadow-2xl z-50 flex flex-col transition-[width] duration-300',
-            step === 'preview' ? 'w-full lg:w-[900px]' : 'w-full sm:w-[450px]',
+            step === 'preview' || isExpanded ? 'w-full lg:w-[900px]' : 'w-full sm:w-[450px]',
         )}>
             <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
                 <div className="flex items-center gap-2 text-primary font-semibold">
@@ -620,9 +644,31 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                     <Wand2 className="w-5 h-5" />
                     <span dir="rtl">المساعد التحريري للذكاء الاصطناعي</span>
                 </div>
-                <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 rounded-full">
-                    <X className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsExpanded(v => !v)}
+                        className="hidden sm:inline-flex h-8 w-8 rounded-full"
+                        title={isExpanded ? 'تصغير العرض' : 'توسيع العرض'}
+                        aria-label={isExpanded ? 'تصغير العرض' : 'توسيع العرض'}
+                    >
+                        {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsMinimized(true)}
+                        className="h-8 w-8 rounded-full"
+                        title="تصغير إلى شريط"
+                        aria-label="تصغير إلى شريط"
+                    >
+                        <Minus className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 rounded-full">
+                        <X className="w-4 h-4" />
+                    </Button>
+                </div>
             </div>
 
             {/* --- Étape d'entrée : détecte leçon vide / non vide --- */}
@@ -650,11 +696,11 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
 
                         {isEmpty ? (
                             <div className="flex flex-col gap-2">
-                                <Button className="justify-start gap-2 h-auto py-3" onClick={() => setStep('guided-structure')}>
+                                <Button className="justify-start gap-2 h-auto py-3 whitespace-normal" onClick={() => setStep('guided-structure')}>
                                     <Wand className="h-4 w-4 shrink-0" />
                                     <span className="text-right flex-1">🪄 إنشاء درس خطوة بخطوة (موجّه)</span>
                                 </Button>
-                                <Button variant="outline" className="justify-start gap-2 h-auto py-3" onClick={() => setStep('chat')}>
+                                <Button variant="outline" className="justify-start gap-2 h-auto py-3 whitespace-normal" onClick={() => setStep('chat')}>
                                     <PencilLine className="h-4 w-4 shrink-0" />
                                     <span className="text-right flex-1">✍️ كتابة طلب حر</span>
                                 </Button>
@@ -662,17 +708,17 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                         ) : (
                             <div className="flex flex-col gap-2">
                                 <Button
-                                    className="justify-start gap-2 h-auto py-3"
+                                    className="justify-start gap-2 h-auto py-3 whitespace-normal"
                                     onClick={() => goChatWithPrefill(`أثرِ وأعد هيكلة درس "${titleLabel}" مع تحسين الوضوح والتدرج التربوي وإكمال الأجزاء القصيرة جداً.`)}
                                 >
                                     <ListTree className="h-4 w-4 shrink-0" />
                                     <span className="text-right flex-1">📈 إثراء أو إعادة هيكلة الدرس الحالي</span>
                                 </Button>
-                                <Button variant="outline" className="justify-start gap-2 h-auto py-3" onClick={() => setStep('targeted-choice')}>
+                                <Button variant="outline" className="justify-start gap-2 h-auto py-3 whitespace-normal" onClick={() => setStep('targeted-choice')}>
                                     <Sparkles className="h-4 w-4 shrink-0" />
                                     <span className="text-right flex-1">🎯 إضافة عنصر محدد (مثال، تمرين، منهجية)</span>
                                 </Button>
-                                <Button variant="outline" className="justify-start gap-2 h-auto py-3" onClick={() => setStep('chat')}>
+                                <Button variant="outline" className="justify-start gap-2 h-auto py-3 whitespace-normal" onClick={() => setStep('chat')}>
                                     <MessageCircle className="h-4 w-4 shrink-0" />
                                     <span className="text-right flex-1">💬 التحدث بحرية مع المساعد</span>
                                 </Button>
@@ -681,7 +727,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
 
                         <Button
                             variant="ghost"
-                            className="justify-center gap-2 h-auto py-3 border border-dashed text-muted-foreground"
+                            className="justify-center gap-2 h-auto py-3 whitespace-normal border border-dashed text-muted-foreground"
                             onClick={() => fileInputRef.current?.click()}
                             disabled={docProcessing}
                         >
@@ -715,11 +761,11 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                             <>
                                 <p className="text-sm">الدرس فارغ حالياً. ماذا تريد أن تفعل بهذا المستند؟</p>
                                 <div className="flex flex-col gap-2">
-                                    <Button className="justify-start gap-2 h-auto py-3" onClick={() => runDocumentBasedGeneration('absent-generate')}>
+                                    <Button className="justify-start gap-2 h-auto py-3 whitespace-normal" onClick={() => runDocumentBasedGeneration('absent-generate')}>
                                         <Wand className="h-4 w-4 shrink-0" />
                                         <span className="text-right flex-1">🪄 توليد الدرس من هذا المستند مع تحسينات الذكاء الاصطناعي (ليس مطابقاً 100%)</span>
                                     </Button>
-                                    <Button variant="outline" className="justify-start gap-2 h-auto py-3" onClick={() => runDocumentBasedGeneration('absent-exact')}>
+                                    <Button variant="outline" className="justify-start gap-2 h-auto py-3 whitespace-normal" onClick={() => runDocumentBasedGeneration('absent-exact')}>
                                         <ListTree className="h-4 w-4 shrink-0" />
                                         <span className="text-right flex-1">📋 استرجاع محتوى المستند كما هو تماماً، دون أي تغيير</span>
                                     </Button>
@@ -729,11 +775,11 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                             <>
                                 <p className="text-sm">الدرس يحتوي على محتوى بالفعل. ماذا تريد أن تفعل بهذا المستند؟</p>
                                 <div className="flex flex-col gap-2">
-                                    <Button className="justify-start gap-2 h-auto py-3" onClick={() => runDocumentBasedGeneration('present-improve')}>
+                                    <Button className="justify-start gap-2 h-auto py-3 whitespace-normal" onClick={() => runDocumentBasedGeneration('present-improve')}>
                                         <Sparkles className="h-4 w-4 shrink-0" />
                                         <span className="text-right flex-1">📈 تحسين المحتوى الحالي بالاستناد إلى هذا المستند</span>
                                     </Button>
-                                    <Button variant="outline" className="justify-start gap-2 h-auto py-3" onClick={() => runDocumentBasedGeneration('present-replace')}>
+                                    <Button variant="outline" className="justify-start gap-2 h-auto py-3 whitespace-normal" onClick={() => runDocumentBasedGeneration('present-replace')}>
                                         <ListTree className="h-4 w-4 shrink-0" />
                                         <span className="text-right flex-1">🔄 استبدال كل المحتوى الحالي والاعتماد فقط على هذا المستند</span>
                                     </Button>
@@ -754,13 +800,13 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                     <div className="flex flex-col gap-4" dir="rtl">
                         <p className="text-sm text-muted-foreground">ما نوع العنصر الذي تريد إضافته؟</p>
                         <div className="flex flex-col gap-2">
-                            <Button variant="outline" className="justify-start h-auto py-3" onClick={() => goChatWithPrefill('أضف مثالاً مفصلاً حول القسم ')}>
+                            <Button variant="outline" className="justify-start h-auto py-3 whitespace-normal" onClick={() => goChatWithPrefill('أضف مثالاً مفصلاً حول القسم ')}>
                                 ➕ مثال
                             </Button>
-                            <Button variant="outline" className="justify-start h-auto py-3" onClick={() => goChatWithPrefill('أضف تمريناً إضافياً حول ')}>
+                            <Button variant="outline" className="justify-start h-auto py-3 whitespace-normal" onClick={() => goChatWithPrefill('أضف تمريناً إضافياً حول ')}>
                                 📝 تمرين
                             </Button>
-                            <Button variant="outline" className="justify-start h-auto py-3" onClick={() => goChatWithPrefill('أضف منهجية/تقنية حل لـ ')}>
+                            <Button variant="outline" className="justify-start h-auto py-3 whitespace-normal" onClick={() => goChatWithPrefill('أضف منهجية/تقنية حل لـ ')}>
                                 🔧 منهجية
                             </Button>
                         </div>
