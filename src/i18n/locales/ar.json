@@ -405,7 +405,19 @@
     "exercisesLabel": "تمارين",
     "quizLabel": "أسئلة متعددة الاختيارات",
     "revisionLabel": "مراجعة",
-    "lessonsHeading": "الدروس"
+    "lessonsHeading": "الدروس",
+    "pendingReviewPedago": "قيد المراجعة",
+    "tableOfContents": "فهرس المحتويات",
+    "revisionSubtitle": "بطاقات المراجعة (ملخص تخطيطي للفصل بالذكاء الاصطناعي)",
+    "revisionSubtitleShort": "بطاقات المراجعة",
+    "quizCount": "{{count}} أسئلة",
+    "exercisesCount": "{{count}} تمارين",
+    "previousLesson": "الدرس السابق",
+    "nextLesson": "الدرس التالي",
+    "previousChapter": "الفصل السابق",
+    "nextChapter": "الفصل التالي",
+    "noContentAvailable": "المحتوى غير متوفر",
+    "noContentForLesson": "لا يوجد محتوى متاح لهذا الدرس."
   },
   "notFound": {
     "description": "هذه الصفحة غير موجودة.",
@@ -580,5 +592,24 @@
       "generating": "جاري التوليد...",
       "generateButton": "توليد"
     }
+  },
+  "chapterRevision": {
+    "noLessonsTitle": "لا توجد دروس",
+    "noLessonsDescription": "هذا الفصل لا يحتوي على أي درس.",
+    "loginRequired": "يجب تسجيل الدخول",
+    "saveError": "تعذر حفظ بطاقة المراجعة",
+    "generateSuccess": "✅ تم إنشاء بطاقة المراجعة",
+    "generateError": "خطأ في توليد بطاقة المراجعة",
+    "tryAgain": "حاول مرة أخرى",
+    "back": "العودة",
+    "cardTitle": "بطاقة المراجعة - {{chapterTitle}}",
+    "history": "السجل",
+    "generatePrompt": "اضغط على الزر لتوليد بطاقة مراجعة شاملة لكل دروس هذا الفصل بواسطة الذكاء الاصطناعي.",
+    "generateButton": "توليد بطاقة المراجعة بالذكاء الاصطناعي",
+    "generating": "يتم الآن إنشاء بطاقة مراجعة تخطيطية لكل دروس الفصل...",
+    "regenerate": "إعادة التوليد",
+    "historyDialogTitle": "سجل بطاقات المراجعة",
+    "backToHistory": "العودة للسجل",
+    "historyCardLabel": "بطاقة #{{number}}"
   }
 }

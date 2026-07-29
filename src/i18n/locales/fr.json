@@ -399,7 +399,19 @@
     "exercisesLabel": "Exercices",
     "quizLabel": "Questions à choix multiples",
     "revisionLabel": "Révision",
-    "lessonsHeading": "Leçons"
+    "lessonsHeading": "Leçons",
+    "pendingReviewPedago": "En cours de révision",
+    "tableOfContents": "Table des matières",
+    "revisionSubtitle": "Fiches de révision (résumé schématique du chapitre par IA)",
+    "revisionSubtitleShort": "Fiches de révision",
+    "quizCount": "{{count}} question(s)",
+    "exercisesCount": "{{count}} exercice(s)",
+    "previousLesson": "Leçon précédente",
+    "nextLesson": "Leçon suivante",
+    "previousChapter": "Chapitre précédent",
+    "nextChapter": "Chapitre suivant",
+    "noContentAvailable": "Contenu non disponible",
+    "noContentForLesson": "Aucun contenu disponible pour cette leçon."
   },
   "notFound": {
     "description": "Cette page n'existe pas ou plus.",
@@ -574,5 +586,24 @@
       "generating": "Génération en cours...",
       "generateButton": "Générer"
     }
+  },
+  "chapterRevision": {
+    "noLessonsTitle": "Aucune leçon",
+    "noLessonsDescription": "Ce chapitre ne contient aucune leçon.",
+    "loginRequired": "Connexion requise",
+    "saveError": "Impossible d'enregistrer la fiche de révision",
+    "generateSuccess": "✅ Fiche de révision créée",
+    "generateError": "Erreur lors de la génération de la fiche de révision",
+    "tryAgain": "Réessayez",
+    "back": "Retour",
+    "cardTitle": "Fiche de révision - {{chapterTitle}}",
+    "history": "Historique",
+    "generatePrompt": "Cliquez sur le bouton pour générer une fiche de révision complète de toutes les leçons de ce chapitre par IA.",
+    "generateButton": "Générer la fiche de révision par IA",
+    "generating": "Génération en cours d'une fiche de révision schématique pour toutes les leçons du chapitre...",
+    "regenerate": "Régénérer",
+    "historyDialogTitle": "Historique des fiches de révision",
+    "backToHistory": "Retour à l'historique",
+    "historyCardLabel": "Fiche #{{number}}"
   }
 }

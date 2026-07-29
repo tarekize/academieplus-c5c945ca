@@ -278,11 +278,11 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                         {pendingLessonIds.has(lesson.id) && (
                             isAdmin ? (
                                 <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white shrink-0 animate-pulse">
-                                    بانتظار المصادقة
+                                    {t("quizExerciseCRUD.statusPending")}
                                 </span>
                             ) : (
                                 <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning px-2.5 py-1 text-xs font-semibold shrink-0">
-                                    قيد المراجعة
+                                    {t("cours.pendingReviewPedago")}
                                 </span>
                             )
                         )}
@@ -312,10 +312,10 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                     </span>
                     <div className="flex-1">
                         <p className="font-bold text-base flex items-center gap-2">
-                            Révision
+                            {t("cours.revisionLabel")}
                             <Sparkles className="h-4 w-4 text-mint" />
                         </p>
-                        <p className="text-sm text-muted-foreground">Fiches de révision (résumé schématique du chapitre par IA)</p>
+                        <p className="text-sm text-muted-foreground">{t("cours.revisionSubtitle")}</p>
                     </div>
                     <ChevronLeft className="h-4 w-4 text-mint/70 shrink-0 transition-transform duration-300 group-hover:-translate-x-1" />
                 </motion.div>
@@ -381,16 +381,16 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                                     variant="outline"
                                                     size="sm"
                                                     className="fixed right-4 top-20 z-50 lg:hidden shrink-0 gap-2 rounded-full border-primary/20 bg-primary/5 px-4 py-3 text-primary shadow-xl shadow-primary/10 backdrop-blur-md hover:bg-primary hover:text-primary-foreground"
-                                                    aria-label="فهرس المحتويات"
+                                                    aria-label={t("cours.tableOfContents")}
                                                 >
-                                                    <span>فهرس المحتويات</span>
+                                                    <span>{t("cours.tableOfContents")}</span>
                                                 </Button>
                                             </SheetTrigger>
                                             <SheetContent side="bottom" className="h-[82vh] rounded-t-3xl border-t p-0">
                                                 <div className="flex h-full flex-col p-5">
                                                     <SheetHeader className="text-right sm:text-right">
                                                         <SheetTitle className="flex items-center gap-2 justify-end text-right">
-                                                            <span>فهرس المحتويات</span>
+                                                            <span>{t("cours.tableOfContents")}</span>
                                                         </SheetTitle>
                                                     </SheetHeader>
                                                     <div className="mt-4 min-h-0 flex-1 overflow-hidden">
@@ -413,16 +413,16 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                                 variant="outline"
                                                 size="sm"
                                                 className="fixed right-4 top-20 z-50 shrink-0 gap-2 rounded-full border-primary/20 bg-primary/5 px-4 py-3 text-primary shadow-xl shadow-primary/10 backdrop-blur-md hover:bg-primary hover:text-primary-foreground"
-                                                aria-label="فهرس المحتويات"
+                                                aria-label={t("cours.tableOfContents")}
                                             >
-                                                <span>فهرس المحتويات</span>
+                                                <span>{t("cours.tableOfContents")}</span>
                                             </Button>
                                         </SheetTrigger>
                                         <SheetContent side="bottom" className="h-[82vh] rounded-t-3xl border-t p-0">
                                             <div className="flex h-full flex-col p-5">
                                                 <SheetHeader className="text-right sm:text-right">
                                                     <SheetTitle className="flex items-center gap-2 justify-end text-right">
-                                                        <span>فهرس المحتويات</span>
+                                                        <span>{t("cours.tableOfContents")}</span>
                                                     </SheetTitle>
                                                 </SheetHeader>
                                                 <div className="mt-4 min-h-0 flex-1 overflow-hidden">
@@ -446,7 +446,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                     </div>
                                 ) : (
                                     <p className="text-center text-muted-foreground py-12">
-                                        Aucun contenu disponible pour cette leçon.
+                                        {t("cours.noContentForLesson")}
                                     </p>
                                 )}
                             </CardContent>
@@ -463,7 +463,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
     // Fallback if no lessons
     const renderNoLesson = () => (
         <div className="prose prose-sm dark:prose-invert max-w-none mb-4">
-            <HtmlWithMath htmlContent={chapter.content || "<p>Contenu non disponible</p>"} />
+            <HtmlWithMath htmlContent={chapter.content || `<p>${t("cours.noContentAvailable")}</p>`} />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <Card className="group rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 active:scale-[0.99]" onClick={() => onActivitySelect?.("quiz")}>
                     <CardContent className="p-6 flex items-center gap-4">
@@ -471,8 +471,8 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                             <Brain className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-semibold" dir="rtl">اسئله متعدده الاختيارات</h3>
-                            <p className="text-sm text-muted-foreground" dir="rtl">{dbQuizzes.length} أسئلة</p>
+                            <h3 className="font-semibold">{t("cours.quizLabel")}</h3>
+                            <p className="text-sm text-muted-foreground">{t("cours.quizCount", { count: dbQuizzes.length })}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -482,8 +482,8 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                             <PenTool className="h-6 w-6 text-accent-foreground" />
                         </div>
                         <div>
-                            <h3 className="font-semibold" dir="rtl">تمارين</h3>
-                            <p className="text-sm text-muted-foreground" dir="rtl">{dbExercises.length} تمارين</p>
+                            <h3 className="font-semibold">{t("cours.exercisesLabel")}</h3>
+                            <p className="text-sm text-muted-foreground">{t("cours.exercisesCount", { count: dbExercises.length })}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -493,8 +493,8 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                             <BookOpen className="h-6 w-6 text-green-500" />
                         </div>
                         <div>
-                            <h3 className="font-semibold">Révision</h3>
-                            <p className="text-sm text-muted-foreground">Fiches de révision</p>
+                            <h3 className="font-semibold">{t("cours.revisionLabel")}</h3>
+                            <p className="text-sm text-muted-foreground">{t("cours.revisionSubtitleShort")}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -510,8 +510,8 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                         <Brain className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                        <h3 className="font-semibold" dir="rtl">اسئله متعدده الاختيارات</h3>
-                        <p className="text-sm text-muted-foreground" dir="rtl">{dbQuizzes.length} أسئلة</p>
+                        <h3 className="font-semibold">{t("cours.quizLabel")}</h3>
+                        <p className="text-sm text-muted-foreground">{t("cours.quizCount", { count: dbQuizzes.length })}</p>
                     </div>
                 </CardContent>
             </Card>
@@ -521,8 +521,8 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                         <PenTool className="h-6 w-6 text-accent-foreground" />
                     </div>
                     <div>
-                        <h3 className="font-semibold" dir="rtl">تمارين</h3>
-                        <p className="text-sm text-muted-foreground" dir="rtl">{dbExercises.length} تمارين</p>
+                        <h3 className="font-semibold">{t("cours.exercisesLabel")}</h3>
+                        <p className="text-sm text-muted-foreground">{t("cours.exercisesCount", { count: dbExercises.length })}</p>
                     </div>
                 </CardContent>
             </Card>
@@ -532,8 +532,8 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                         <BookOpen className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                        <h3 className="font-semibold">Révision</h3>
-                        <p className="text-sm text-muted-foreground">Fiches de révision</p>
+                        <h3 className="font-semibold">{t("cours.revisionLabel")}</h3>
+                        <p className="text-sm text-muted-foreground">{t("cours.revisionSubtitleShort")}</p>
                     </div>
                 </CardContent>
             </Card>
@@ -567,8 +567,8 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                 scrollToTop();
                             }}
                         >
-                            <ArrowLeft className="h-4 w-4" />
-                            Leçon précédente
+                            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+                            {t("cours.previousLesson")}
                         </Button>
                     ) : (
                         <div /> // Spacer for alignment
@@ -584,8 +584,8 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                 scrollToTop();
                             }}
                         >
-                            Leçon suivante
-                            <ArrowLeft className="h-4 w-4 rotate-180" />
+                            {t("cours.nextLesson")}
+                            <ArrowLeft className="h-4 w-4 rotate-180 rtl:rotate-0" />
                         </Button>
                     ) : currentChapterIndex < chapters.length - 1 ? (
                         // When on last lesson, show "Chapter next" button
@@ -596,8 +596,8 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                 scrollToTop();
                             }}
                         >
-                            Chapitre suivant
-                            <ArrowLeft className="h-4 w-4 rotate-180" />
+                            {t("cours.nextChapter")}
+                            <ArrowLeft className="h-4 w-4 rotate-180 rtl:rotate-0" />
                         </Button>
                     ) : null}
                 </div>
@@ -613,16 +613,16 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                     onClick={() => handleChapterChange("prev")}
                     disabled={currentChapterIndex === 0}
                 >
-                    <ArrowLeft className="h-4 w-4" />
-                    Chapitre précédent
+                    <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+                    {t("cours.previousChapter")}
                 </Button>
                 <Button
                     className="rounded-full gap-2 shadow-md hover:shadow-lg active:scale-95 transition-all disabled:opacity-40"
                     onClick={() => handleChapterChange("next")}
                     disabled={currentChapterIndex === chapters.length - 1}
                 >
-                    Chapitre suivant
-                    <ArrowLeft className="h-4 w-4 rotate-180" />
+                    {t("cours.nextChapter")}
+                    <ArrowLeft className="h-4 w-4 rotate-180 rtl:rotate-0" />
                 </Button>
             </div>
         );
