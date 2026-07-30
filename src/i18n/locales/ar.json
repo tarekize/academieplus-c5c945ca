@@ -502,6 +502,15 @@
       "deleteConfirmDescription": "هذا الإجراء نهائي.",
       "deleteSuccess": "تم حذف الدرس",
       "deleteError": "خطأ أثناء الحذف"
+    },
+    "deletion": {
+      "needsValidationNotice": "هذا العنصر منشور بالفعل: سيتم إرسال طلب الحذف إلى المدير للمصادقة عليه.",
+      "requestSent": "تم إرسال طلب الحذف إلى المدير",
+      "pending": "الحذف بانتظار المصادقة",
+      "approveAria": "تأكيد الحذف",
+      "rejectAria": "إلغاء طلب الحذف",
+      "approveSuccess": "تم تأكيد الحذف",
+      "rejectSuccess": "تم إلغاء طلب الحذف"
     }
   },
   "quizExerciseCRUD": {

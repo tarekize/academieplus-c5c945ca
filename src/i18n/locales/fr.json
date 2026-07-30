@@ -496,6 +496,15 @@
       "deleteConfirmDescription": "Cette action est irréversible.",
       "deleteSuccess": "Leçon supprimée",
       "deleteError": "Erreur lors de la suppression"
+    },
+    "deletion": {
+      "needsValidationNotice": "Cet élément est déjà publié : la suppression sera envoyée à l'administrateur pour validation.",
+      "requestSent": "Demande de suppression envoyée à l'administrateur",
+      "pending": "Suppression en attente",
+      "approveAria": "Confirmer la suppression",
+      "rejectAria": "Annuler la demande de suppression",
+      "approveSuccess": "Suppression confirmée",
+      "rejectSuccess": "Demande de suppression annulée"
     }
   },
   "quizExerciseCRUD": {

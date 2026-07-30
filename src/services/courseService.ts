@@ -12,6 +12,7 @@ export interface Lesson {
   video_url: string | null;
   status?: string;
   rejection_reason?: string | null;
+  deletion_requested?: boolean;
 }
 
 export interface Chapter {
@@ -22,6 +23,7 @@ export interface Chapter {
   description: string | null;
   status?: string;
   rejection_reason?: string | null;
+  deletion_requested?: boolean;
   lessons: Lesson[];
 }
 
@@ -70,6 +72,7 @@ export const courseService = {
         description,
         status,
         rejection_reason,
+        deletion_requested,
         lessons (
           id,
           title,
@@ -78,7 +81,8 @@ export const courseService = {
           content,
           video_url,
           status,
-          rejection_reason
+          rejection_reason,
+          deletion_requested
         )
       `)
       .eq("school_level", schoolLevel)

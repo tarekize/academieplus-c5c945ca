@@ -6,13 +6,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, ClipboardCheck, BookOpen, FileText, FilePlus2, PenTool, Brain, Loader2, ArrowRight,
-  History, CheckCircle2, XCircle,
+  History, CheckCircle2, XCircle, Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ExpandableText } from "@/components/ui/expandable-text";
 
-type ItemType = "chapter" | "lesson" | "lesson_creation" | "exercise" | "quiz";
+type ItemType = "chapter" | "lesson" | "lesson_creation" | "exercise" | "quiz" | "chapter_deletion" | "lesson_deletion";
 
 interface PendingItem {
   id: string;
@@ -45,6 +45,8 @@ const ITEM_TYPE_META: Record<ItemType, { label: string; icon: typeof BookOpen; c
   lesson: { label: "Contenu de leçon", icon: FileText, color: "bg-indigo-500/10 text-indigo-600" },
   exercise: { label: "Exercice", icon: PenTool, color: "bg-amber-500/10 text-amber-600" },
   quiz: { label: "Quiz", icon: Brain, color: "bg-emerald-500/10 text-emerald-600" },
+  chapter_deletion: { label: "Suppression de chapitre", icon: Trash2, color: "bg-red-500/10 text-red-600" },
+  lesson_deletion: { label: "Suppression de leçon", icon: Trash2, color: "bg-orange-500/10 text-orange-600" },
 };
 
 export default function AdminValidation() {
@@ -151,7 +153,7 @@ export default function AdminValidation() {
                           <p className="text-xs text-muted-foreground truncate">
                             {item.subject} · {item.school_level}
                             {item.filiere_name ? ` · ${item.filiere_name}` : ""}
-                            {item.item_type !== "chapter" && item.item_type !== "lesson_creation" ? ` · ${item.chapter_title}` : ""}
+                            {!(["chapter","lesson_creation","chapter_deletion"] as ItemType[]).includes(item.item_type) ? ` · ${item.chapter_title}` : ""}
                           </p>
                         </div>
                       </div>
@@ -212,7 +214,7 @@ export default function AdminValidation() {
                         <p className="text-xs text-muted-foreground truncate">
                           {item.subject} · {item.school_level}
                           {item.filiere_name ? ` · ${item.filiere_name}` : ""}
-                          {item.item_type !== "chapter" && item.item_type !== "lesson_creation" ? ` · ${item.chapter_title}` : ""}
+                          {!(["chapter","lesson_creation","chapter_deletion"] as ItemType[]).includes(item.item_type) ? ` · ${item.chapter_title}` : ""}
                         </p>
                         {!approved && item.rejection_reason && (
                           <ExpandableText

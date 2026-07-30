@@ -24,10 +24,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Clock, Check, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useArabicKeyboardField } from "@/components/course/ArabicKeyboard";
 import { logPedagoActivity } from "@/lib/pedagoActivityLog";
+import { cn } from "@/lib/utils";
 
 interface PedagoChapterFormProps {
   schoolLevel: string;
@@ -209,31 +211,115 @@ interface DeleteChapterButtonProps {
   title?: string;
   subject?: string;
   schoolLevel?: string;
+  /** Statut actuel du chapitre : une suppression demandée par un pédago sur un
+   * chapitre 'approved' (publié) n'est pas immédiate, voir DeleteItemButton. */
+  status?: string;
+  deletionRequested?: boolean;
+  isAdmin?: boolean;
 }
 
-export function DeleteChapterButton({ chapterId, onDeleted, title, subject, schoolLevel }: DeleteChapterButtonProps) {
+export function DeleteChapterButton({ chapterId, onDeleted, title, subject, schoolLevel, status, deletionRequested, isAdmin }: DeleteChapterButtonProps) {
+  return (
+    <DeleteItemButton
+      itemType="chapter"
+      itemId={chapterId}
+      onDeleted={onDeleted}
+      status={status}
+      deletionRequested={deletionRequested}
+      isAdmin={isAdmin}
+      onLogActivity={() => logPedagoActivity({ action: "delete", entityType: "chapter", entityId: chapterId, entityTitle: title, subject, schoolLevel })}
+    />
+  );
+}
+
+interface DeleteItemButtonProps {
+  itemType: "chapter" | "lesson";
+  itemId: string;
+  onDeleted: () => void;
+  status?: string;
+  deletionRequested?: boolean;
+  isAdmin?: boolean;
+  onLogActivity?: () => void;
+}
+
+/** Bouton de suppression partagé chapitre/leçon : un admin (ou un pédago sur
+ * un élément jamais publié) supprime immédiatement. Un pédago qui supprime un
+ * élément publié ('approved') envoie une demande à l'admin au lieu de
+ * supprimer : l'élément reste intact et visible des élèves jusqu'à décision.
+ * Une fois la demande envoyée, le pédago voit un badge "en attente" ; l'admin
+ * voit à la place deux actions Confirmer/Annuler. */
+function DeleteItemButton({ itemType, itemId, onDeleted, status, deletionRequested, isAdmin, onLogActivity }: DeleteItemButtonProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+  const isChapter = itemType === "chapter";
+  const labels = isChapter ? {
+    aria: t("pedagoCRUD.chapter.deleteAria"),
+    confirmTitle: t("pedagoCRUD.chapter.deleteConfirmTitle"),
+    confirmDescription: t("pedagoCRUD.chapter.deleteConfirmDescription"),
+    error: t("pedagoCRUD.chapter.deleteError"),
+  } : {
+    aria: t("pedagoCRUD.lesson.deleteAria"),
+    confirmTitle: t("pedagoCRUD.lesson.deleteConfirmTitle"),
+    confirmDescription: t("pedagoCRUD.lesson.deleteConfirmDescription"),
+    error: t("pedagoCRUD.lesson.deleteError"),
+  };
+
+  if (deletionRequested) {
+    if (isAdmin) {
+      const approve = async () => {
+        setLoading(true);
+        try {
+          const { error } = await supabase.rpc("approve_item_deletion" as any, { p_item_type: itemType, p_item_id: itemId });
+          if (error) throw error;
+          toast.success(t("pedagoCRUD.deletion.approveSuccess"));
+          onDeleted();
+        } catch (e: any) {
+          toast.error(e.message || labels.error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      const reject = async () => {
+        setLoading(true);
+        try {
+          const { error } = await supabase.rpc("reject_item_deletion" as any, { p_item_type: itemType, p_item_id: itemId });
+          if (error) throw error;
+          toast.success(t("pedagoCRUD.deletion.rejectSuccess"));
+          onDeleted();
+        } catch (e: any) {
+          toast.error(e.message || labels.error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      return (
+        <div className="flex gap-1">
+          <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600 hover:text-green-700" disabled={loading} onClick={approve} aria-label={t("pedagoCRUD.deletion.approveAria")} title={t("pedagoCRUD.deletion.approveAria")}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+          </Button>
+          <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" disabled={loading} onClick={reject} aria-label={t("pedagoCRUD.deletion.rejectAria")} title={t("pedagoCRUD.deletion.rejectAria")}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      );
+    }
+    return (
+      <Badge variant="secondary" className="badge-status-pending gap-1 shrink-0">
+        <Clock className="h-3 w-3" /> {t("pedagoCRUD.deletion.pending")}
+      </Badge>
+    );
+  }
 
   const handleDelete = async () => {
     setLoading(true);
     try {
-      // Delete lessons first
-      await supabase.from("lessons").delete().eq("chapter_id", chapterId);
-      const { error } = await supabase.from("chapters").delete().eq("id", chapterId);
+      const { data, error } = await supabase.rpc("request_item_deletion" as any, { p_item_type: itemType, p_item_id: itemId });
       if (error) throw error;
-      toast.success(t("pedagoCRUD.chapter.deleteSuccess"));
-      logPedagoActivity({
-        action: "delete",
-        entityType: "chapter",
-        entityId: chapterId,
-        entityTitle: title,
-        subject,
-        schoolLevel,
-      });
+      onLogActivity?.();
+      toast.success(data === false ? t("pedagoCRUD.deletion.requestSent") : t(isChapter ? "pedagoCRUD.chapter.deleteSuccess" : "pedagoCRUD.lesson.deleteSuccess"));
       onDeleted();
     } catch (error: any) {
-      toast.error(error.message || t("pedagoCRUD.chapter.deleteError"));
+      toast.error(error.message || labels.error);
     } finally {
       setLoading(false);
     }
@@ -242,15 +328,18 @@ export function DeleteChapterButton({ chapterId, onDeleted, title, subject, scho
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" aria-label={t("pedagoCRUD.chapter.deleteAria")}>
-          <Trash2 className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className={cn("h-8 w-8 text-destructive hover:text-destructive", !isChapter && "h-7 w-7")} aria-label={labels.aria}>
+          <Trash2 className={cn("h-4 w-4", !isChapter && "h-3 w-3")} />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{t("pedagoCRUD.chapter.deleteConfirmTitle")}</AlertDialogTitle>
+          <AlertDialogTitle>{labels.confirmTitle}</AlertDialogTitle>
           <AlertDialogDescription>
-            {t("pedagoCRUD.chapter.deleteConfirmDescription")}
+            {labels.confirmDescription}
+            {status === "approved" && !isAdmin && (
+              <span className="block mt-2 font-medium text-foreground">{t("pedagoCRUD.deletion.needsValidationNotice")}</span>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -408,52 +497,21 @@ interface DeleteLessonButtonProps {
   onDeleted: () => void;
   chapterId?: string;
   title?: string;
+  status?: string;
+  deletionRequested?: boolean;
+  isAdmin?: boolean;
 }
 
-export function DeleteLessonButton({ lessonId, onDeleted, chapterId, title }: DeleteLessonButtonProps) {
-  const { t } = useTranslation();
-  const [loading, setLoading] = useState(false);
-
-  const handleDelete = async () => {
-    setLoading(true);
-    try {
-      const { error } = await supabase.from("lessons").delete().eq("id", lessonId);
-      if (error) throw error;
-      toast.success(t("pedagoCRUD.lesson.deleteSuccess"));
-      logPedagoActivity({
-        action: "delete",
-        entityType: "lesson",
-        entityId: lessonId,
-        entityTitle: title,
-        chapterId,
-      });
-      onDeleted();
-    } catch (error: any) {
-      toast.error(error.message || t("pedagoCRUD.lesson.deleteError"));
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export function DeleteLessonButton({ lessonId, onDeleted, chapterId, title, status, deletionRequested, isAdmin }: DeleteLessonButtonProps) {
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" aria-label={t("pedagoCRUD.lesson.deleteAria")}>
-          <Trash2 className="h-3 w-3" />
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t("pedagoCRUD.lesson.deleteConfirmTitle")}</AlertDialogTitle>
-          <AlertDialogDescription>{t("pedagoCRUD.lesson.deleteConfirmDescription")}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>{t("app.cancel")}</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete} disabled={loading} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("app.delete")}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <DeleteItemButton
+      itemType="lesson"
+      itemId={lessonId}
+      onDeleted={onDeleted}
+      status={status}
+      deletionRequested={deletionRequested}
+      isAdmin={isAdmin}
+      onLogActivity={() => logPedagoActivity({ action: "delete", entityType: "lesson", entityId: lessonId, entityTitle: title, chapterId })}
+    />
   );
 }

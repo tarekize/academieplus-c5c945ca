@@ -50,6 +50,7 @@ interface Lesson {
   content?: string;
   status?: string;
   rejectionReason?: string | null;
+  deletionRequested?: boolean;
 }
 
 interface Chapter {
@@ -63,6 +64,7 @@ interface Chapter {
   content: string;
   status?: string;
   rejectionReason?: string | null;
+  deletionRequested?: boolean;
   lessons?: Lesson[];
 }
 
@@ -250,6 +252,7 @@ const Cours = () => {
           content: `<h2>${localizedText(i18n.language, ch.title, ch.title_ar)}</h2>${ch.description ? `<p>${ch.description}</p>` : ""}`,
           status: (ch as any).status,
           rejectionReason: (ch as any).rejection_reason,
+          deletionRequested: (ch as any).deletion_requested,
           lessons: ch.lessons.map((l) => ({
             id: l.id,
             title: l.title,
@@ -258,6 +261,7 @@ const Cours = () => {
             content: l.content || "",
             status: (l as any).status,
             rejectionReason: (l as any).rejection_reason,
+            deletionRequested: (l as any).deletion_requested,
           })),
         }));
 
@@ -994,7 +998,16 @@ const Cours = () => {
                                   onSaved={fetchCourse}
                                   chapter={{ id: chapter.id, title: chapter.title, title_ar: chapter.titleAr, description: chapter.description, order_index: chapter.order_index }}
                                 />
-                                <DeleteChapterButton chapterId={chapter.id} onDeleted={fetchCourse} title={chapter.displayTitle} subject={subjectId || "math"} schoolLevel={schoolLevel} />
+                                <DeleteChapterButton
+                                  chapterId={chapter.id}
+                                  onDeleted={fetchCourse}
+                                  title={chapter.displayTitle}
+                                  subject={subjectId || "math"}
+                                  schoolLevel={schoolLevel}
+                                  status={chapter.status}
+                                  deletionRequested={chapter.deletionRequested}
+                                  isAdmin={isAdmin}
+                                />
                               </div>
                             )}
                           </CardTitle>

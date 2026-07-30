@@ -296,7 +296,15 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                         onSaved={fetchCourse}
                                         lesson={{ id: lesson.id, title: lesson.title, title_ar: lesson.titleAr !== lesson.title ? lesson.titleAr : null }}
                                     />
-                                    <DeleteLessonButton lessonId={lesson.id} onDeleted={fetchCourse} chapterId={chapter.id} title={lesson.displayTitle} />
+                                    <DeleteLessonButton
+                                        lessonId={lesson.id}
+                                        onDeleted={fetchCourse}
+                                        chapterId={chapter.id}
+                                        title={lesson.displayTitle}
+                                        status={lesson.status}
+                                        deletionRequested={lesson.deletionRequested}
+                                        isAdmin={isAdmin}
+                                    />
                                 </div>
                             )}
                         </div>
