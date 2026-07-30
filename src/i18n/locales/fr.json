@@ -516,6 +516,8 @@
     "rejectConfirm": "Confirmer le refus",
     "rejectSuccess": "Refusé",
     "rejectError": "Erreur lors du refus",
+    "showMore": "Voir plus",
+    "showLess": "Voir moins",
     "quiz": {
       "newButton": "Nouvelle question",
       "editTitle": "Modifier la question",

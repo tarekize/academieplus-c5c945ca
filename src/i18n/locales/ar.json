@@ -522,6 +522,8 @@
     "rejectConfirm": "تأكيد الرفض",
     "rejectSuccess": "تم الرفض",
     "rejectError": "خطأ في الرفض",
+    "showMore": "عرض المزيد",
+    "showLess": "عرض أقل",
     "quiz": {
       "newButton": "سؤال جديد",
       "editTitle": "تعديل السؤال",

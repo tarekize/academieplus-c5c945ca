@@ -23,6 +23,7 @@ import RichContentField from "./RichContentField";
 import { extractFunctionErrorMessage } from "@/lib/edgeFunctionError";
 import DocumentImportButton from "@/components/DocumentImportButton";
 import { GeneratedItem } from "@/lib/teacherContent";
+import { ExpandableText } from "@/components/ui/expandable-text";
 
 export type ItemType = "exercise" | "quiz" | "chapter" | "lesson_creation";
 export type ItemStatus = "draft" | "pending" | "approved" | "rejected";
@@ -38,9 +39,9 @@ export function StatusBadge({ status, rejectionReason }: { status?: string; reje
     return <Badge className="bg-warning hover:bg-warning text-warning-foreground gap-1 w-fit"><Clock className="h-3 w-3" /> {t("quizExerciseCRUD.statusPending")}</Badge>;
   }
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 max-w-xs">
       <Badge variant="destructive" className="gap-1 w-fit"><XCircle className="h-3 w-3" /> {t("quizExerciseCRUD.statusRejected")}</Badge>
-      {rejectionReason && <span className="text-xs text-destructive">{rejectionReason}</span>}
+      {rejectionReason && <ExpandableText text={rejectionReason} className="text-xs text-destructive" />}
     </div>
   );
 }

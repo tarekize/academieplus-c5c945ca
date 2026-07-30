@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { ExpandableText } from "@/components/ui/expandable-text";
 
 type ItemType = "chapter" | "lesson" | "lesson_creation" | "exercise" | "quiz";
 
@@ -214,7 +215,10 @@ export default function AdminValidation() {
                           {item.item_type !== "chapter" && item.item_type !== "lesson_creation" ? ` · ${item.chapter_title}` : ""}
                         </p>
                         {!approved && item.rejection_reason && (
-                          <p className="text-xs text-destructive mt-1">« {item.rejection_reason} »</p>
+                          <ExpandableText
+                            text={`« ${item.rejection_reason} »`}
+                            className="text-xs text-destructive mt-1"
+                          />
                         )}
                       </div>
                     </div>
