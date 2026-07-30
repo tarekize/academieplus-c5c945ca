@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { WelcomeBanner } from "@/components/layout/WelcomeBanner";
 
 interface Profile {
   id: string;
@@ -95,23 +96,18 @@ const Dashboard = () => {
           {!isStudent && (
             <>
               {/* Welcome banner */}
-              <div className="relative overflow-hidden mb-8 rounded-3xl bg-[image:var(--gradient-primary)] px-6 py-7 sm:px-8 sm:py-8 text-primary-foreground shadow-[var(--shadow-elegant)]">
-                <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" aria-hidden />
-                <div className="absolute right-6 bottom-0 h-20 w-20 rounded-full bg-white/10" aria-hidden />
-                <div className="relative">
-                  <p className="text-primary-foreground/75 text-sm font-medium uppercase tracking-wide">
-                    {isAdmin ? t("dashboard.adminSpace") : t("nav.dashboard")}
-                  </p>
-                  <h1 className="text-2xl sm:text-3xl font-bold mt-1">{t("dashboard.hello", { name: fullName })}</h1>
-                </div>
-              </div>
+              <WelcomeBanner
+                className="mb-8"
+                eyebrow={isAdmin ? t("dashboard.adminSpace") : t("nav.dashboard")}
+                title={t("dashboard.hello", { name: fullName })}
+              />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {roles.includes('parent') && (
                   <DashboardTile
                     icon={Users}
-                    iconBg="bg-blue-500/10"
-                    iconText="text-blue-600"
+                    iconBg="bg-primary/10"
+                    iconText="text-primary"
                     title={t("dashboard.myChildren")}
                     description={t("dashboard.myChildrenDesc")}
                     onClick={() => navigate("/mes-informations")}
@@ -137,32 +133,32 @@ const Dashboard = () => {
                     />
                     <DashboardTile
                       icon={CreditCard}
-                      iconBg="bg-emerald-500/10"
-                      iconText="text-emerald-600"
+                      iconBg="bg-violet/10"
+                      iconText="text-violet"
                       title={t("dashboard.subscriptions")}
                       description={t("dashboard.subscriptionsDesc")}
                       onClick={() => navigate("/admin/abonnements")}
                     />
                     <DashboardTile
                       icon={FileText}
-                      iconBg="bg-indigo-500/10"
-                      iconText="text-indigo-600"
+                      iconBg="bg-mint/10"
+                      iconText="text-mint"
                       title={t("dashboard.contracts")}
                       description={t("dashboard.contractsDesc")}
                       onClick={() => navigate("/admin/contrats")}
                     />
                     <DashboardTile
                       icon={Cpu}
-                      iconBg="bg-teal-500/10"
-                      iconText="text-teal-600"
+                      iconBg="bg-info/10"
+                      iconText="text-info"
                       title={t("dashboard.aiUsage")}
                       description={t("dashboard.aiUsageDesc")}
                       onClick={() => navigate("/admin/token-usage")}
                     />
                     <DashboardTile
                       icon={Bell}
-                      iconBg="bg-rose-500/10"
-                      iconText="text-rose-600"
+                      iconBg="bg-coral/10"
+                      iconText="text-coral"
                       title={t("dashboard.notifications")}
                       description={t("dashboard.notificationsDesc")}
                       onClick={() => navigate("/admin/notifications")}
@@ -180,8 +176,8 @@ const Dashboard = () => {
                 {isPedago && (
                   <DashboardTile
                     icon={History}
-                    iconBg="bg-teal-500/10"
-                    iconText="text-teal-600"
+                    iconBg="bg-amber/10"
+                    iconText="text-amber"
                     title={t("dashboard.activity")}
                     description={t("dashboard.activityDesc")}
                     onClick={() => navigate("/pedago/activite")}
