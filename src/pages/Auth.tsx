@@ -160,7 +160,9 @@ const Auth = () => {
         } else if (roleData.role === 'teacher') {
           navigate("/teacher-dashboard");
         } else if (roleData.role === 'admin') {
-          navigate("/dashboard");
+          // Priorise la validation du contenu pédago en attente sur le dashboard générique.
+          const { data: pendingItems } = await supabase.rpc('admin_pending_content_items' as any);
+          navigate(Array.isArray(pendingItems) && pendingItems.length > 0 ? "/admin/validation" : "/dashboard");
         } else if (roleData.role === 'etablissement') {
           navigate("/etablissement-dashboard");
         } else if (roleData.role === 'pedago') {
