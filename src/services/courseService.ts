@@ -10,6 +10,8 @@ export interface Lesson {
   order_index: number;
   content: string | null;
   video_url: string | null;
+  status?: string;
+  rejection_reason?: string | null;
 }
 
 export interface Chapter {
@@ -74,7 +76,9 @@ export const courseService = {
           title_ar,
           order_index,
           content,
-          video_url
+          video_url,
+          status,
+          rejection_reason
         )
       `)
       .eq("school_level", schoolLevel)

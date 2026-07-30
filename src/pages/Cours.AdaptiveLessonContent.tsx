@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import LessonMarkdown from "@/components/course/LessonMarkdown";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import { LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
+import { StatusBadge, ReviewActionButtons, SubmitItemButton } from "@/components/course/QuizExerciseCRUD";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, PenTool, BookOpen, ArrowLeft, ChevronLeft } from "lucide-react";
@@ -265,36 +266,49 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                         key={lesson.id}
                         variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
                         transition={{ duration: 0.25, ease: "easeOut" }}
-                        className="group relative w-full text-right p-4 border border-border/60 rounded-2xl bg-card/60 hover:bg-violet/5 hover:border-violet/30 hover:shadow-md transition-all duration-300 cursor-pointer flex items-center gap-3 active:scale-[0.99]"
+                        className="group relative w-full text-right p-4 border border-border/60 rounded-2xl bg-card/60 hover:bg-violet/5 hover:border-violet/30 hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col gap-2 active:scale-[0.99]"
                         onClick={() => handleLessonClick(lesson)}
                     >
                         <TeacherContentRedDot show={hasUnreadForLesson(lesson.id)} className="top-2 right-2" />
-                        <span className="w-9 h-9 rounded-xl bg-[image:var(--gradient-violet)] flex items-center justify-center text-white text-sm font-bold shrink-0 transition-transform duration-300 group-hover:scale-110">
-                            {idx + 1}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                            <p className="font-medium text-base truncate">{lesson.displayTitle}</p>
+                        <div className="flex items-center gap-3">
+                            <span className="w-9 h-9 rounded-xl bg-[image:var(--gradient-violet)] flex items-center justify-center text-white text-sm font-bold shrink-0 transition-transform duration-300 group-hover:scale-110">
+                                {idx + 1}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-medium text-base truncate">{lesson.displayTitle}</p>
+                            </div>
+                            {pendingLessonIds.has(lesson.id) && (
+                                isAdmin ? (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white shrink-0 animate-pulse">
+                                        {t("quizExerciseCRUD.statusPending")}
+                                    </span>
+                                ) : (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning px-2.5 py-1 text-xs font-semibold shrink-0">
+                                        {t("cours.pendingReviewPedago")}
+                                    </span>
+                                )
+                            )}
+                            <ChevronLeft className="h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-300 group-hover:-translate-x-1 rtl:group-hover:translate-x-1" />
+                            {canManage && (
+                                <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                                    <LessonFormDialog
+                                        chapterId={chapter.id}
+                                        onSaved={fetchCourse}
+                                        lesson={{ id: lesson.id, title: lesson.title, title_ar: lesson.titleAr !== lesson.title ? lesson.titleAr : null }}
+                                    />
+                                    <DeleteLessonButton lessonId={lesson.id} onDeleted={fetchCourse} chapterId={chapter.id} title={lesson.displayTitle} />
+                                </div>
+                            )}
                         </div>
-                        {pendingLessonIds.has(lesson.id) && (
-                            isAdmin ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white shrink-0 animate-pulse">
-                                    {t("quizExerciseCRUD.statusPending")}
-                                </span>
-                            ) : (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning px-2.5 py-1 text-xs font-semibold shrink-0">
-                                    {t("cours.pendingReviewPedago")}
-                                </span>
-                            )
-                        )}
-                        <ChevronLeft className="h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-300 group-hover:-translate-x-1 rtl:group-hover:translate-x-1" />
-                        {canManage && (
-                            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                                <LessonFormDialog
-                                    chapterId={chapter.id}
-                                    onSaved={fetchCourse}
-                                    lesson={{ id: lesson.id, title: lesson.title, title_ar: lesson.titleAr !== lesson.title ? lesson.titleAr : null }}
-                                />
-                                <DeleteLessonButton lessonId={lesson.id} onDeleted={fetchCourse} chapterId={chapter.id} title={lesson.displayTitle} />
+                        {canManage && lesson.status && lesson.status !== "approved" && (
+                            <div className="ms-12 flex flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                <StatusBadge status={lesson.status} rejectionReason={lesson.rejectionReason} />
+                                {isAdmin && lesson.status === "pending" && (
+                                    <ReviewActionButtons itemType="lesson_creation" itemId={lesson.id} onReviewed={fetchCourse} />
+                                )}
+                                {!isAdmin && lesson.status === "rejected" && (
+                                    <SubmitItemButton itemType="lesson_creation" itemId={lesson.id} onSubmitted={fetchCourse} />
+                                )}
                             </div>
                         )}
                     </motion.div>

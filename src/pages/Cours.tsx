@@ -48,6 +48,8 @@ interface Lesson {
    * sinon une traduction automatique (affichage uniquement, jamais stockée). */
   displayTitle: string;
   content?: string;
+  status?: string;
+  rejectionReason?: string | null;
 }
 
 interface Chapter {
@@ -254,6 +256,8 @@ const Cours = () => {
             titleAr: l.title_ar || l.title,
             displayTitle: localizedText(i18n.language, l.title, l.title_ar),
             content: l.content || "",
+            status: (l as any).status,
+            rejectionReason: (l as any).rejection_reason,
           })),
         }));
 
