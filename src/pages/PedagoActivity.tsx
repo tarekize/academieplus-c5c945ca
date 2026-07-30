@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, History, Plus, Pencil, Trash2, Loader2, BookOpen, FileText } from "lucide-react";
+import { History, Plus, Pencil, Trash2, Loader2, BookOpen, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 interface ActivityRow {
   id: string;
@@ -52,26 +52,13 @@ export default function PedagoActivity() {
 
   return (
     <div className="min-h-screen pro-shell">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/dashboard")} className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" /> Retour
-            </Button>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/10">
-                <History className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="font-display text-2xl font-extrabold">Mon activité</h1>
-                <p className="text-sm text-muted-foreground">
-                  Historique de vos ajouts, modifications et suppressions de chapitres, leçons et contenus
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        title="Mon activité"
+        subtitle="Historique de vos ajouts, modifications et suppressions"
+        titleIcon={History}
+        onBack={() => navigate("/dashboard")}
+        showProfileMenu={false}
+      />
 
       <main className="container mx-auto px-4 py-8">
         {loading ? (
