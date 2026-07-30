@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSessionState } from "@/hooks/useSessionState";
@@ -14,8 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import QRCode from "react-qr-code";
 import {
-  GraduationCap,
-  LogOut,
   Loader2,
   Users,
   School,
@@ -37,6 +34,8 @@ import { toast } from "sonner";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import ClassProgressView, { ClassRow } from "@/components/teacher/ClassProgressView";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
+import { AppHeader } from "@/components/layout/AppHeader";
+import { WelcomeBanner } from "@/components/layout/WelcomeBanner";
 
 interface Teacher {
   id: string;
@@ -351,11 +350,6 @@ const EtablissementDashboard = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
   const getFullName = (p: { first_name: string | null; last_name: string | null } | undefined) => {
     if (!p) return "Utilisateur inconnu";
     return [p.first_name, p.last_name].filter(Boolean).join(" ") || "Utilisateur";
@@ -366,7 +360,7 @@ const EtablissementDashboard = () => {
       return <Badge className="bg-green-100 text-green-700 border-green-200 gap-1"><CheckCircle className="h-3 w-3" />Résolu</Badge>;
     if (status === "rejected")
       return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" />Rejeté</Badge>;
-    return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" />En attente</Badge>;
+    return <Badge variant="secondary" className="badge-status-pending gap-1"><Clock className="h-3 w-3" />En attente</Badge>;
   };
 
   const pendingCount = reclamations.filter((r) => r.status === "pending").length;
@@ -382,30 +376,11 @@ const EtablissementDashboard = () => {
   }
 
   const renderHeader = () => (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
-              <GraduationCap className="h-5 w-5 text-white" />
-            </div>
-            <span className="font-semibold hidden sm:block">Espace Établissement</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <LanguageToggle />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="gap-2 rounded-xl text-muted-foreground hover:text-foreground"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Déconnexion</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-    </header>
+    <AppHeader
+      title="Espace Établissement"
+      showProfileMenu={false}
+      onLogoClick={() => { setSelectedClass(null); setDetailStudent(null); }}
+    />
   );
 
   // --- Vue détail élève (lecture seule) : accessible depuis la grille de progression
@@ -414,13 +389,13 @@ const EtablissementDashboard = () => {
     return (
       <div className="min-h-screen pro-shell">
         {renderHeader()}
-        <main className="container mx-auto px-4 pt-20 pb-12">
+        <main className="container mx-auto px-4 pt-6 pb-12">
           <div className="max-w-5xl mx-auto space-y-6">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setDetailStudent(null)}
-              className="gap-2 -ml-2 rounded-xl text-muted-foreground hover:text-foreground"
+              className="gap-2 -ms-2 rounded-xl text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
             >
               <ArrowLeft className="h-4 w-4" /> Retour
             </Button>
@@ -449,13 +424,13 @@ const EtablissementDashboard = () => {
     return (
       <div className="min-h-screen pro-shell">
         {renderHeader()}
-        <main className="container mx-auto px-4 pt-20 pb-12">
+        <main className="container mx-auto px-4 pt-6 pb-12">
           <div className="max-w-5xl mx-auto space-y-6">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSelectedClass(null)}
-              className="gap-2 -ml-2 rounded-xl text-muted-foreground hover:text-foreground"
+              className="gap-2 -ms-2 rounded-xl text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
             >
               <ArrowLeft className="h-4 w-4" /> Retour
             </Button>
@@ -482,14 +457,14 @@ const EtablissementDashboard = () => {
     <div className="min-h-screen pro-shell">
       {renderHeader()}
 
-      <main className="container mx-auto px-4 pt-20 pb-12">
+      <main className="container mx-auto px-4 pt-6 pb-12">
         <div className="max-w-5xl mx-auto space-y-6">
           {/* Welcome banner */}
-          <div className="rounded-2xl bg-[image:var(--gradient-primary)] px-6 py-5 text-primary-foreground shadow-[var(--shadow-elegant)]">
-            <p className="text-primary-foreground/70 text-sm font-medium">Espace Établissement</p>
-            <h1 className="font-display text-2xl font-extrabold mt-0.5">Tableau de bord</h1>
-            <p className="text-primary-foreground/70 text-sm mt-1">Suivi des enseignants, classes et réclamations</p>
-          </div>
+          <WelcomeBanner
+            eyebrow="Espace Établissement"
+            title="Tableau de bord"
+            subtitle="Suivi des enseignants, classes et réclamations"
+          />
 
           {/* Establishment code & QR — shared with teachers so they can register */}
           <Card className="rounded-2xl border-border/50 overflow-hidden">
@@ -505,7 +480,7 @@ const EtablissementDashboard = () => {
                   <div className="bg-white p-3 rounded-xl border border-border/50 flex-shrink-0">
                     <QRCode value={establishmentCode} size={120} />
                   </div>
-                  <div className="flex-1 w-full space-y-3 text-center sm:text-left">
+                  <div className="flex-1 w-full space-y-3 text-center sm:text-start">
                     <p className="text-sm text-muted-foreground">
                       Communiquez ce code (ou le QR code) à vos enseignants. Ils doivent le saisir lors de
                       la création de leur compte « Enseignant » — sans ce code, le compte ne peut pas être créé.
@@ -533,8 +508,8 @@ const EtablissementDashboard = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="rounded-2xl border-border/50">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <Users className="h-5 w-5 text-blue-600" />
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Users className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{teachers.length}</p>
@@ -544,8 +519,8 @@ const EtablissementDashboard = () => {
             </Card>
             <Card className="rounded-2xl border-border/50">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                  <School className="h-5 w-5 text-emerald-600" />
+                <div className="h-10 w-10 rounded-xl bg-mint/10 flex items-center justify-center flex-shrink-0">
+                  <School className="h-5 w-5 text-mint" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{totalClasses}</p>
@@ -555,8 +530,8 @@ const EtablissementDashboard = () => {
             </Card>
             <Card className="rounded-2xl border-border/50">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
-                  <BookOpen className="h-5 w-5 text-purple-600" />
+                <div className="h-10 w-10 rounded-xl bg-violet/10 flex items-center justify-center flex-shrink-0">
+                  <BookOpen className="h-5 w-5 text-violet" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{totalStudents}</p>
@@ -566,8 +541,8 @@ const EtablissementDashboard = () => {
             </Card>
             <Card className="rounded-2xl border-border/50">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-                  <AlertCircle className="h-5 w-5 text-red-600" />
+                <div className="h-10 w-10 rounded-xl bg-coral/10 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="h-5 w-5 text-coral" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{pendingCount}</p>
@@ -607,13 +582,13 @@ const EtablissementDashboard = () => {
                   {teachers.map((teacher) => (
                     <Card key={teacher.id} className="rounded-2xl border-border/50 overflow-hidden">
                       <button
-                        className="w-full text-left"
+                        className="w-full text-start hover:bg-muted/40 active:scale-[0.99] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl"
                         onClick={() => setExpandedTeacher(expandedTeacher === teacher.id ? null : teacher.id)}
                       >
                         <CardContent className="p-4 flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-                              <Users className="h-5 w-5 text-blue-600" />
+                            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <Users className="h-5 w-5 text-primary" />
                             </div>
                             <div>
                               <p className="font-semibold">{getFullName(teacher)}</p>
@@ -649,7 +624,7 @@ const EtablissementDashboard = () => {
                                       subject: cls.subject || "math",
                                     })
                                   }
-                                  className="text-left bg-card rounded-xl border border-border/50 p-3 hover:border-primary/50 hover:shadow-sm transition-all"
+                                  className="text-start bg-card rounded-xl border border-border/50 p-3 hover:border-primary/50 hover:shadow-sm active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                 >
                                   <div className="flex items-start justify-between gap-2 mb-1">
                                     <p className="font-medium text-sm">{cls.name}</p>
@@ -706,12 +681,12 @@ const EtablissementDashboard = () => {
                   </SelectContent>
                 </Select>
                 <div className="relative flex-1 min-w-[200px]">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Rechercher un élève..."
                     value={searchStudent}
                     onChange={(e) => setSearchStudent(e.target.value)}
-                    className="pl-9 rounded-xl"
+                    className="ps-9 rounded-xl"
                   />
                 </div>
               </div>
