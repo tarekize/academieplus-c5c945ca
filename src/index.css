@@ -678,6 +678,18 @@ All colors MUST be HSL.
   color: hsl(0 0% 100% / 0.85);
 }
 
+/* Badge de statut "En attente" : bg-secondary/text-secondary-foreground par
+   défaut ne porte aucune information de statut (gris neutre). Ce ton ambré
+   est calibré pour un ratio de contraste texte/fond ≥ 4.5:1 (AA). */
+.badge-status-pending {
+  background: hsl(var(--warning) / 0.15);
+  color: hsl(38 92% 28%);
+}
+.dark .badge-status-pending {
+  background: hsl(var(--warning) / 0.18);
+  color: hsl(38 90% 72%);
+}
+
 /* === Chatbot: force LTR rendering for math formulas inside RTL (Arabic) messages === */
 [dir="rtl"] .katex,
 [dir="rtl"] .katex-display,
