@@ -87,6 +87,10 @@ export default function AdminValidation() {
     if ((item.item_type === "exercise" || item.item_type === "quiz") && item.lesson_id) {
       return `/lecon/${item.lesson_id}`;
     }
+    // Suppression de chapitre : rester sur la grille (ne pas entrer dans le
+    // chapitre qu'on s'apprête peut-être à supprimer) — le chapitre visé y
+    // est entouré en rouge (chapter.deletionRequested).
+    if (item.item_type === "chapter_deletion") return `/cours/${item.subject}/${item.school_level}/chapitres${filiereQs}`;
     return `/cours/${item.subject}/${item.school_level}/chapitres/${item.chapter_id}/lecons${filiereQs}`;
   };
 

@@ -962,7 +962,7 @@ const Cours = () => {
                       transition={{ duration: 0.3, ease: "easeOut" }}
                     >
                       <Card
-                        className={`group relative overflow-hidden rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 active:scale-[0.99] ${progress[chapter.id] ? 'border-green-500/40 bg-green-500/5' : ''}`}
+                        className={`group relative overflow-hidden rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 active:scale-[0.99] ${progress[chapter.id] ? 'border-green-500/40 bg-green-500/5' : ''} ${canManage && chapter.deletionRequested ? 'ring-2 ring-destructive border-destructive/50' : ''}`}
                         onClick={() => {
                           setActiveChapter(chapter);
                           setActiveChapterIndex(index);

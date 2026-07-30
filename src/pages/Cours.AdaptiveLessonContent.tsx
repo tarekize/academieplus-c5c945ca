@@ -266,7 +266,10 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                         key={lesson.id}
                         variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
                         transition={{ duration: 0.25, ease: "easeOut" }}
-                        className="group relative w-full text-right p-4 border border-border/60 rounded-2xl bg-card/60 hover:bg-violet/5 hover:border-violet/30 hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col gap-2 active:scale-[0.99]"
+                        className={cn(
+                            "group relative w-full text-right p-4 border border-border/60 rounded-2xl bg-card/60 hover:bg-violet/5 hover:border-violet/30 hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col gap-2 active:scale-[0.99]",
+                            canManage && lesson.deletionRequested && "ring-2 ring-destructive border-destructive/50",
+                        )}
                         onClick={() => handleLessonClick(lesson)}
                     >
                         <TeacherContentRedDot show={hasUnreadForLesson(lesson.id)} className="top-2 right-2" />
