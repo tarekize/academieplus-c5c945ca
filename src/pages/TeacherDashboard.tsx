@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { GraduationCap, LogOut, Loader2 } from "lucide-react";
+import { GraduationCap, Loader2 } from "lucide-react";
 import { useTeacherEstablishmentStatus } from "@/hooks/useTeacherEstablishmentStatus";
+import { AppHeader } from "@/components/layout/AppHeader";
+import { WelcomeBanner } from "@/components/layout/WelcomeBanner";
 
 import TeacherHome, { TeacherSection, TEACHER_SECTIONS } from "@/components/teacher/TeacherHome";
 import EstablishmentManager from "@/components/teacher/EstablishmentManager";
@@ -71,11 +71,6 @@ const TeacherDashboard = () => {
     if (!user) navigate("/auth");
   }, [user, authLoading, navigate]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
   if (authLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -93,70 +88,39 @@ const TeacherDashboard = () => {
 
   return (
     <div className="min-h-screen pro-shell">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <button
-              className="flex items-center gap-2.5 hover:opacity-80 transition-opacity min-w-0"
-              onClick={() => setSection(null)}
-            >
-              <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
-                <GraduationCap className="h-5 w-5 text-white" />
-              </div>
-              <span className="font-semibold hidden sm:flex items-center gap-1.5 min-w-0">
-                <span>Espace Enseignant</span>
-                {activeMeta && (
-                  <>
-                    <span className="text-muted-foreground/50">/</span>
-                    <span className="text-muted-foreground truncate">{activeMeta.label}</span>
-                  </>
-                )}
-              </span>
-            </button>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setSection("profil")}
-                className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 hover:bg-muted transition-colors"
-              >
-                <Avatar className="h-8 w-8 ring-2 ring-primary/20">
-                  <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                    {fullName.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-left hidden md:block">
-                  <p className="text-sm font-semibold leading-tight">{fullName}</p>
-                  <p className="text-xs text-muted-foreground leading-tight">Enseignant</p>
-                </div>
-              </button>
-              <LanguageToggle />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="gap-2 rounded-xl text-muted-foreground hover:text-foreground"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Déconnexion</span>
-              </Button>
+      <AppHeader
+        title="Espace Enseignant"
+        subtitle={activeMeta?.label}
+        onLogoClick={() => setSection(null)}
+        showProfileMenu={false}
+        actions={
+          <button
+            type="button"
+            onClick={() => setSection("profil")}
+            className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 hover:bg-muted active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Avatar className="h-8 w-8 ring-2 ring-primary/20">
+              <AvatarImage src={profile?.avatar_url || undefined} />
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                {fullName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="text-start hidden md:block">
+              <p className="text-sm font-semibold leading-tight">{fullName}</p>
+              <p className="text-xs text-muted-foreground leading-tight">Enseignant</p>
             </div>
-          </div>
-        </div>
-      </header>
+          </button>
+        }
+      />
 
-      <main className="container mx-auto px-4 pt-20 pb-12">
+      <main className="container mx-auto px-4 pt-6 pb-12">
         {section === null && (
           <div className="space-y-8 max-w-4xl mx-auto">
-            <div className="relative overflow-hidden rounded-3xl bg-[image:var(--gradient-primary)] px-6 py-7 sm:px-8 sm:py-8 text-primary-foreground shadow-[var(--shadow-elegant)]">
-              <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" aria-hidden />
-              <div className="absolute right-6 bottom-0 h-20 w-20 rounded-full bg-white/10" aria-hidden />
-              <div className="relative">
-                <p className="text-primary-foreground/75 text-sm font-medium uppercase tracking-wide">Espace Enseignant</p>
-                <h1 className="font-display text-2xl sm:text-3xl font-extrabold mt-1">Bienvenue dans votre espace</h1>
-                <p className="text-primary-foreground/80 text-sm mt-1.5">Que souhaitez-vous faire aujourd'hui ?</p>
-              </div>
-            </div>
+            <WelcomeBanner
+              eyebrow="Espace Enseignant"
+              title="Bienvenue dans votre espace"
+              subtitle="Que souhaitez-vous faire aujourd'hui ?"
+            />
             <TeacherHome onSelect={setSection} hasEstablishment={hasEstablishment !== false} />
           </div>
         )}
