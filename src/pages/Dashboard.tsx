@@ -28,6 +28,7 @@ const Dashboard = () => {
   const { user, roles, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [hasPendingValidation, setHasPendingValidation] = useState(false);
 
   // La session/les rôles viennent déjà de AuthContext (chargés une seule fois
   // par session, cf. ProtectedRoute qui garde déjà cette route) : seul le
@@ -36,6 +37,16 @@ const Dashboard = () => {
     if (!user) return;
     fetchProfile(user.id);
   }, [user?.id]);
+
+  // Pastille rouge sur la tuile "Validation" : signale à l'admin qu'un
+  // pédago a du contenu (chapitre/leçon/suppression/exercice/quiz) en
+  // attente de décision.
+  useEffect(() => {
+    if (!user || !roles.includes('admin')) return;
+    supabase.rpc('admin_pending_content_items' as any).then(({ data, error }) => {
+      if (!error) setHasPendingValidation(Array.isArray(data) && data.length > 0);
+    });
+  }, [user?.id, roles]);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -170,6 +181,7 @@ const Dashboard = () => {
                       title={t("dashboard.validation")}
                       description={t("dashboard.validationDesc")}
                       onClick={() => navigate("/admin/validation")}
+                      showDot={hasPendingValidation}
                     />
                   </>
                 )}

@@ -14,6 +14,9 @@ interface DashboardTileProps {
    * `lockedDescription` à la place de `description`. */
   locked?: boolean;
   lockedDescription?: string;
+  /** Pastille rouge (coin haut-droit) signalant une action à faire (ex :
+   * validations pédago en attente). */
+  showDot?: boolean;
 }
 
 export default function DashboardTile({
@@ -25,6 +28,7 @@ export default function DashboardTile({
   onClick,
   locked = false,
   lockedDescription,
+  showDot = false,
 }: DashboardTileProps) {
   return (
     <Card
@@ -33,13 +37,19 @@ export default function DashboardTile({
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick(); }}
       className={cn(
-        "group rounded-2xl border-border/60 transition-all duration-300",
+        "group relative rounded-2xl border-border/60 transition-all duration-300",
         locked
           ? "cursor-not-allowed opacity-60"
           : "cursor-pointer hover:-translate-y-1 hover:border-transparent hover:shadow-[var(--shadow-card)]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       )}
     >
+      {showDot && (
+        <span className="absolute -top-1 -right-1 z-10 flex h-3.5 w-3.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 border-2 border-background" />
+        </span>
+      )}
       <CardContent className="flex items-start gap-4 p-6">
         <div
           className={cn(
