@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSessionState } from "@/hooks/useSessionState";
+import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +21,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  GraduationCap, UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, ArrowLeft, Plus, BookOpen, Key, Check, Calendar as CalendarIcon, FileDown, FileText, Users, RefreshCw
+  UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, Plus, BookOpen, Key, Check, Calendar as CalendarIcon, FileDown, FileText, Users, RefreshCw
 } from "lucide-react";
 import { downloadParentReportPdf, type ParentReportData } from "@/lib/parentReportPdf";
 import { toast as sonnerToast } from "sonner";
@@ -422,30 +422,12 @@ const ParentDashboard = () => {
   if (selectedChild && selectedChild.child) {
     return (
       <div className="min-h-screen pro-shell">
-        <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between h-16 gap-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedChild(null)}
-                  className="gap-2 rounded-xl shrink-0 text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
-                >
-                  <ArrowLeft className="h-4 w-4" /> Retour
-                </Button>
-                <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm shrink-0">
-                  <GraduationCap className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-lg font-bold text-foreground hidden sm:block">AcadémiePlus</span>
-              </div>
-              <p className="text-sm text-muted-foreground truncate flex-1">
-                Progression de {getChildFullName(selectedChild.child)}
-              </p>
-              <LanguageToggle />
-            </div>
-          </div>
-        </header>
+        <AppHeader
+          title={`Progression de ${getChildFullName(selectedChild.child)}`}
+          onBack={() => setSelectedChild(null)}
+          showProfileMenu={false}
+          showLogout={false}
+        />
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-7xl mx-auto">
             <StudentDashboardContent
@@ -724,7 +706,10 @@ const ParentDashboard = () => {
                             ) : <span className="text-muted-foreground">—</span>}
                           </TableCell>
                           <TableCell>
-                            <Badge variant={link.status === "active" ? "default" : "secondary"} className="rounded-full">
+                            <Badge
+                              variant={link.status === "active" ? "default" : "secondary"}
+                              className={cn("rounded-full", link.status !== "active" && "badge-status-pending")}
+                            >
                               {link.status === "active" ? "Actif" : "En attente"}
                             </Badge>
                           </TableCell>
