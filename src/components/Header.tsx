@@ -1,4 +1,4 @@
-import { GraduationCap, LogOut, Globe, Menu, X, Phone } from "lucide-react";
+import { GraduationCap, LogOut, Menu, X, Phone } from "lucide-react";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,9 +6,10 @@ import { useNavigate } from "react-router-dom";
 import { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 
 const Header = ({ minimal = false }: { minimal?: boolean }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [session, setSession] = useState<Session | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -38,10 +39,6 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) { element.scrollIntoView({ behavior: "smooth" }); setIsMenuOpen(false); }
-  };
-
-  const changeLanguage = (lang: "fr" | "ar") => {
-    i18n.changeLanguage(lang);
   };
 
   return (
@@ -81,7 +78,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
 
               {session ? (
                 <Button variant="outline" onClick={handleLogout} className="font-medium">
-                  <LogOut className="h-4 w-4 mr-2" />
+                  <LogOut className="h-4 w-4 me-2" />
                   {t("header.logout")}
                 </Button>
               ) : (
@@ -103,25 +100,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
                 </Button>
               )}
 
-              {/* Language Selector */}
-              <div className="flex items-center gap-1 ml-2 bg-secondary rounded-lg p-1">
-                <button
-                  onClick={() => changeLanguage("fr")}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                    i18n.language === "fr" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  🇫🇷 FR
-                </button>
-                <button
-                  onClick={() => changeLanguage("ar")}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                    i18n.language === "ar" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  🇩🇿 AR
-                </button>
-              </div>
+              <LanguageToggle className="ms-2" />
             </div>
           )}
 
@@ -152,7 +131,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
 
             {session ? (
               <Button variant="outline" onClick={handleLogout} className="w-full font-semibold">
-                <LogOut className="h-4 w-4 mr-2" />
+                <LogOut className="h-4 w-4 me-2" />
                 {t("header.logout")}
               </Button>
             ) : (
@@ -171,23 +150,8 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
               </Button>
             )}
 
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={() => changeLanguage("fr")}
-                className={`flex-1 py-2 rounded-lg border transition-colors ${
-                  i18n.language === "fr" ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground"
-                }`}
-              >
-                🇫🇷 Français
-              </button>
-              <button
-                onClick={() => changeLanguage("ar")}
-                className={`flex-1 py-2 rounded-lg border transition-colors ${
-                  i18n.language === "ar" ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground"
-                }`}
-              >
-                🇩🇿 العربية
-              </button>
+            <div className="flex justify-center pt-2">
+              <LanguageToggle />
             </div>
           </div>
         )}
