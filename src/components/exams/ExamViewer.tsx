@@ -7,7 +7,6 @@ import { Pencil, Eye, Trash2, Plus, Code2, PenLine, Clock, Send, CheckCircle2, X
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import { ExportPDFButton } from "@/components/course/ExportPDFButton";
 import { cleanMathStatement } from "@/lib/mathStatement";
-import { sanitizeFileName } from "@/lib/exportNodeToPdf";
 import { ExamExercise, ExamSubQuestion } from "@/lib/examTypes";
 import { normalizeAnswer } from "@/lib/teacherContentAttempt";
 import { cn } from "@/lib/utils";
@@ -195,7 +194,7 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
     <div className="space-y-4">
       {examTitle && (
         <div className="flex justify-end">
-          <ExportPDFButton targetRef={exercisesExportRef} fileName={`${sanitizeFileName(examTitle)}.pdf`} />
+          <ExportPDFButton targetRef={exercisesExportRef} title={examTitle} />
         </div>
       )}
       {mode === "student" && durationMinutes ? (

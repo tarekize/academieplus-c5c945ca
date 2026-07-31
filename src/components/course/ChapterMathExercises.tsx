@@ -8,7 +8,6 @@ import { HtmlWithMath } from "./HtmlWithMath";
 import { useTimeTracking, formatTime } from "@/hooks/useTimeTracking";
 import { ExerciseFormDialog, DeleteExerciseButton } from "./QuizExerciseCRUD";
 import { ExportPDFButton } from "./ExportPDFButton";
-import { sanitizeFileName } from "@/lib/exportNodeToPdf";
 import { supabase } from "@/integrations/supabase/client";
 import { MarkdownSolution } from "./MarkdownSolution";
 import { MathKeyboard } from "./MathKeyboard";
@@ -370,7 +369,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
           <div className="flex gap-2">
             {canManage && onRefresh && <ExerciseFormDialog chapterId={chapterId} onSaved={onRefresh} />}
             {exercises.length > 0 && (
-              <ExportPDFButton targetRef={exportRef} fileName={`${sanitizeFileName(chapterTitle)}_tamarin.pdf`} label="تصدير PDF" />
+              <ExportPDFButton targetRef={exportRef} title={`${chapterTitle} — تمارين`} label="تصدير PDF" />
             )}
             <Button variant="outline" onClick={onClose}>العودة للدرس</Button>
           </div>

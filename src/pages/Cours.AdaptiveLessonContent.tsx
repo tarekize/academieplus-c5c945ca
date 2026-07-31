@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import LessonMarkdown from "@/components/course/LessonMarkdown";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import { ExportPDFButton } from "@/components/course/ExportPDFButton";
-import { sanitizeFileName } from "@/lib/exportNodeToPdf";
 import { LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
 import { StatusBadge, ReviewActionButtons, SubmitItemButton } from "@/components/course/QuizExerciseCRUD";
 
@@ -405,7 +404,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                     {lessonContent && (
                                         <ExportPDFButton
                                             targetRef={lessonContentExportRef}
-                                            fileName={`${sanitizeFileName(selectedLesson?.displayTitle || chapter?.displayTitle || "lecon")}.pdf`}
+                                            title={selectedLesson?.displayTitle || chapter?.displayTitle || "Leçon"}
                                             label={t("cours.exportPdf")}
                                         />
                                     )}
