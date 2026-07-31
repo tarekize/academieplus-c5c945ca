@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Lightbulb, CheckCircle2, XCircle, Clock, BookOpen, Send } from "lucide-react";
 import { HtmlWithMath } from "./HtmlWithMath";
+import { MathKeyboard } from "./MathKeyboard";
 import { cleanMathStatement, splitStatementIntoQuestions } from "@/lib/mathStatement";
 import { recordTeacherContentAttempt, normalizeAnswer } from "@/lib/teacherContentAttempt";
 import { supabase } from "@/integrations/supabase/client";
@@ -94,6 +95,24 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
     return () => { supabase.removeChannel(channel); };
   }, [contentId, userId]);
 
+  /** Insère un symbole à la position du curseur dans le champ de réponse ciblé. */
+  const insertAtCursor = (elementId: string, current: string, symbol: string, apply: (value: string) => void) => {
+    const el = document.getElementById(elementId) as HTMLInputElement | null;
+    if (el) {
+      const start = el.selectionStart ?? current.length;
+      const end = el.selectionEnd ?? current.length;
+      const next = current.slice(0, start) + symbol + current.slice(end);
+      apply(next);
+      requestAnimationFrame(() => {
+        el.focus();
+        const pos = start + symbol.length;
+        el.setSelectionRange(pos, pos);
+      });
+    } else {
+      apply(current + symbol);
+    }
+  };
+
   const handleHint = () => {
     if (showHint) return;
     setShowHint(true);
@@ -157,12 +176,18 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
               <HtmlWithMath htmlContent={cleanMathStatement(p.text)} className="text-sm text-right" dir="rtl" />
               <div className="flex items-center gap-2">
                 <input
+                  id={`exo-answer-${contentId}-${i}`}
                   className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background disabled:opacity-60"
                   placeholder={`إجابة السؤال ${i + 1}...`}
                   value={subAnswers[i] || ""}
                   onChange={(e) => { setSubAnswers((prev) => prev.map((v, j) => (j === i ? e.target.value : v))); setPartChecked((prev) => { const { [i]: _, ...rest } = prev; return rest; }); }}
                   disabled={!canEdit}
                   dir="rtl" />
+                {canEdit && (
+                  <MathKeyboard
+                    onInsert={(sym) => insertAtCursor(`exo-answer-${contentId}-${i}`, subAnswers[i] || "", sym, (v) => setSubAnswers((prev) => prev.map((val, j) => (j === i ? v : val))))}
+                  />
+                )}
                 <Button
                   size="sm" variant="outline" className="shrink-0"
                   onClick={() => handleCheckPart(i)}
@@ -189,13 +214,19 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
 
       <div className="flex gap-2 items-center flex-wrap" dir="rtl">
         {!hasSubQuestions && (
-          <input
-            className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background disabled:opacity-60"
-            placeholder="أدخل إجابتك..."
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            disabled={!canEdit}
-            dir="rtl" />
+          <>
+            <input
+              id={`exo-answer-${contentId}`}
+              className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background disabled:opacity-60"
+              placeholder="أدخل إجابتك..."
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              disabled={!canEdit}
+              dir="rtl" />
+            {canEdit && (
+              <MathKeyboard onInsert={(sym) => insertAtCursor(`exo-answer-${contentId}`, answer, sym, setAnswer)} />
+            )}
+          </>
         )}
         {hint && !showHint && (
           <Button size="sm" variant="ghost" onClick={handleHint}>
