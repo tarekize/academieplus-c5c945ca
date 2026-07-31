@@ -31,8 +31,11 @@ function stripHtml(value: string): string {
 function buildExamExportHtml(exercises: ExamExercise[]): string {
   return exercises.map((ex, i) => {
     const subQ = Array.isArray(ex.sub_questions) && ex.sub_questions.length >= 2 ? ex.sub_questions : null;
+    // Le texte de chaque sous-question inclut déjà sa propre numérotation
+    // ("1. ...", "2. ...") ajoutée par l'IA — ne pas en rajouter une, sinon
+    // "1.1. 1. ..." (même rendu que dans la feuille à l'écran, voir MathText).
     const questionsHtml = subQ
-      ? subQ.map((sq, j) => `<p style="white-space:pre-wrap">${i + 1}.${j + 1}. ${stripHtml(sq.question)}</p>`).join("")
+      ? subQ.map((sq) => `<p style="white-space:pre-wrap">${stripHtml(sq.question)}</p>`).join("")
       : `<p style="white-space:pre-wrap">${stripHtml(ex.statement)}</p>`;
     return `
       <h3>Exercice ${i + 1}${ex.chapter_title ? ` — ${stripHtml(ex.chapter_title)}` : ""}</h3>

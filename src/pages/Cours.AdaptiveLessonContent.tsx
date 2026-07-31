@@ -4,11 +4,13 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import LessonMarkdown from "@/components/course/LessonMarkdown";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
+import { ExportPDFButton } from "@/components/course/ExportPDFButton";
+import { convertPedagoBlocks } from "@/lib/lessonBlocks";
 import { LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
 import { StatusBadge, ReviewActionButtons, SubmitItemButton } from "@/components/course/QuizExerciseCRUD";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Brain, PenTool, BookOpen, ArrowLeft, ChevronLeft, Download } from "lucide-react";
+import { Brain, PenTool, BookOpen, ArrowLeft, ChevronLeft } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -400,15 +402,11 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                 <div className="mb-4 flex items-start justify-between gap-3">
                                     <h2 className="font-display text-xl font-extrabold min-w-0 flex-1">{selectedLesson?.displayTitle}</h2>
                                     {lessonContent && (
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="gap-2 shrink-0"
-                                            onClick={handleDownloadPDF}
-                                        >
-                                            <Download className="h-4 w-4" />
-                                            {t("cours.exportPdf")}
-                                        </Button>
+                                        <ExportPDFButton
+                                            chapterTitle={selectedLesson?.displayTitle || chapter?.displayTitle || ""}
+                                            content={convertPedagoBlocks(lessonContent)}
+                                            label={t("cours.exportPdf")}
+                                        />
                                     )}
                                     {lessonContent && !isNativeApp && (
                                         <Sheet open={tocOpen} onOpenChange={setTocOpen}>
