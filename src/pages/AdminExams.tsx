@@ -70,7 +70,7 @@ export default function AdminExams() {
       const { data: pendingExams } = await supabase
         .from("exams" as any)
         .select("subject, school_level, filiere_id")
-        .eq("status", "pending");
+        .or("status.eq.pending,deletion_requested.eq.true");
       const set = new Set<string>();
       ((pendingExams as any[]) || []).forEach((e) => set.add(`${e.subject}|${e.school_level}|${e.filiere_id || ""}`));
       setPendingCells(set);
@@ -197,8 +197,8 @@ function AdminExamCellPanel({ cell, initialTrimester, onBack }: { cell: Selected
   // page de revue du trimestre visé dès que la liste est chargée.
   useEffect(() => {
     if (!initialTrimester || loading) return;
-    const pending = exams.find((e) => e.trimester === initialTrimester && e.status === "pending");
-    if (pending) navigate(`/admin/examens/revue/${pending.id}`);
+    const needsAttention = exams.find((e) => e.trimester === initialTrimester && (e.status === "pending" || e.deletion_requested));
+    if (needsAttention) navigate(`/admin/examens/revue/${needsAttention.id}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialTrimester, loading, exams]);
 
@@ -224,20 +224,23 @@ function AdminExamCellPanel({ cell, initialTrimester, onBack }: { cell: Selected
           <div className="space-y-3">
             {trimesters.map((t) => {
               const examsForT = exams.filter((e) => e.trimester === t).sort((a, b) => b.created_at.localeCompare(a.created_at));
-              const pending = examsForT.find((e) => e.status === "pending");
+              const needsAttention = examsForT.find((e) => e.status === "pending" || e.deletion_requested);
               const latest = examsForT[0];
               return (
                 <div key={t} className="rounded-2xl border p-4 flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-2">
-                    {pending && <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />}
+                    {needsAttention && <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />}
                     <span className="font-medium text-sm">{TRIMESTER_LABELS[t]}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {latest ? (
                       <>
                         <Badge className={EXAM_STATUS_META[latest.status].className}>{EXAM_STATUS_META[latest.status].label}</Badge>
-                        <Button size="sm" variant={pending ? "default" : "outline"} onClick={() => navigate(`/admin/examens/revue/${(pending || latest).id}`)}>
-                          {pending ? "Examiner" : "Voir"}
+                        {needsAttention?.deletion_requested && (
+                          <Badge className="bg-red-100 text-red-700 border-red-200">Suppression demandée</Badge>
+                        )}
+                        <Button size="sm" variant={needsAttention ? "default" : "outline"} onClick={() => navigate(`/admin/examens/revue/${(needsAttention || latest).id}`)}>
+                          {needsAttention ? "Examiner" : "Voir"}
                         </Button>
                       </>
                     ) : (

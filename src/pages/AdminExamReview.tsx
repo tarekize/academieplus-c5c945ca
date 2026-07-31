@@ -4,14 +4,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, FileText, Check, X } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Loader2, FileText, Check, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import ExamViewer from "@/components/exams/ExamViewer";
 import { ExamRecord, TRIMESTER_LABELS } from "@/lib/examTypes";
 
 /** Page complète (pas de pop-up) où l'admin visualise un examen envoyé par
  * un pédago — exactement la même feuille que l'élève, sans zone de réponse
- * — et le valide ou le refuse (motif obligatoire dans ce cas). */
+ * — le valide/refuse (motif obligatoire si refus), le supprime directement,
+ * ou confirme/annule une demande de suppression du pédago. */
 export default function AdminExamReview() {
   const { examId } = useParams<{ examId: string }>();
   const navigate = useNavigate();
@@ -67,6 +72,51 @@ export default function AdminExamReview() {
     }
   };
 
+  const deleteExam = async () => {
+    if (!exam) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("request_exam_deletion" as any, { p_exam_id: exam.id, p_reason: null });
+      if (error) throw error;
+      toast.success("Examen supprimé");
+      navigate("/admin/examens");
+    } catch (e: any) {
+      toast.error("Erreur", { description: e.message });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const confirmDeletion = async () => {
+    if (!exam) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("approve_exam_deletion" as any, { p_exam_id: exam.id });
+      if (error) throw error;
+      toast.success("Suppression confirmée");
+      navigate("/admin/examens");
+    } catch (e: any) {
+      toast.error("Erreur", { description: e.message });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const cancelDeletion = async () => {
+    if (!exam) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("reject_exam_deletion" as any, { p_exam_id: exam.id });
+      if (error) throw error;
+      toast.success("Demande de suppression annulée");
+      fetchExam();
+    } catch (e: any) {
+      toast.error("Erreur", { description: e.message });
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -96,6 +146,26 @@ export default function AdminExamReview() {
         showProfileMenu={false}
       />
       <main className="container mx-auto px-4 py-8 max-w-3xl space-y-4">
+        {exam.deletion_requested && (
+          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 space-y-3">
+            <p className="text-sm font-semibold text-destructive">
+              Suppression demandée par {exam.deletion_requested_by_name || "un pédagogue"}
+            </p>
+            {exam.deletion_reason && (
+              <p className="text-sm text-destructive/90 whitespace-pre-wrap break-words">
+                Motif : « {exam.deletion_reason} »
+              </p>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={cancelDeletion} disabled={busy}>Annuler la suppression</Button>
+              <Button variant="destructive" onClick={confirmDeletion} disabled={busy} className="gap-2">
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                Confirmer la suppression
+              </Button>
+            </div>
+          </div>
+        )}
+
         <ExamViewer exercises={exam.content} mode="preview" />
 
         {canDecide && (
@@ -127,6 +197,30 @@ export default function AdminExamReview() {
                 </>
               )}
             </div>
+          </div>
+        )}
+
+        {!exam.deletion_requested && (
+          <div className="border-t pt-4 flex justify-end">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" className="gap-2 text-destructive hover:text-destructive" disabled={busy}>
+                  <Trash2 className="h-4 w-4" /> Supprimer l'examen
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Supprimer cet examen ?</AlertDialogTitle>
+                  <AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={deleteExam} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Supprimer
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         )}
       </main>

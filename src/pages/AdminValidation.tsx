@@ -13,7 +13,7 @@ import { fr } from "date-fns/locale";
 import { ExpandableText } from "@/components/ui/expandable-text";
 import { TRIMESTER_LABELS } from "@/lib/examTypes";
 
-type ItemType = "chapter" | "lesson" | "lesson_creation" | "exercise" | "quiz" | "chapter_deletion" | "lesson_deletion" | "exam";
+type ItemType = "chapter" | "lesson" | "lesson_creation" | "exercise" | "quiz" | "chapter_deletion" | "lesson_deletion" | "exam" | "exam_deletion";
 
 interface PendingItem {
   id: string;
@@ -51,6 +51,7 @@ const ITEM_TYPE_META: Record<ItemType, { label: string; icon: typeof BookOpen; c
   chapter_deletion: { label: "Suppression de chapitre", icon: Trash2, color: "bg-red-500/10 text-red-600" },
   lesson_deletion: { label: "Suppression de leçon", icon: Trash2, color: "bg-orange-500/10 text-orange-600" },
   exam: { label: "Examen", icon: FileText, color: "bg-rose-500/10 text-rose-600" },
+  exam_deletion: { label: "Suppression d'examen", icon: Trash2, color: "bg-red-500/10 text-red-600" },
 };
 
 export default function AdminValidation() {
@@ -101,6 +102,9 @@ export default function AdminValidation() {
       if (item.trimester) params.set("trimester", String(item.trimester));
       return `/admin/examens?${params.toString()}`;
     }
+    // Suppression d'examen : on connaît déjà l'examen visé, direction sa
+    // page de revue (le motif et les actions Confirmer/Annuler y sont).
+    if (item.item_type === "exam_deletion") return `/admin/examens/revue/${item.id}`;
     return `/cours/${item.subject}/${item.school_level}/chapitres/${item.chapter_id}/lecons${filiereQs}`;
   };
 
@@ -167,10 +171,10 @@ export default function AdminValidation() {
                           <p className="text-xs text-muted-foreground truncate">
                             {item.subject} · {item.school_level}
                             {item.filiere_name ? ` · ${item.filiere_name}` : ""}
-                            {!(["chapter","lesson_creation","chapter_deletion","exam"] as ItemType[]).includes(item.item_type) ? ` · ${item.chapter_title}` : ""}
+                            {!(["chapter","lesson_creation","chapter_deletion","exam","exam_deletion"] as ItemType[]).includes(item.item_type) ? ` · ${item.chapter_title}` : ""}
                             {item.item_type === "exam" && item.trimester ? ` · ${TRIMESTER_LABELS[item.trimester]}` : ""}
                           </p>
-                          {(item.item_type === "chapter_deletion" || item.item_type === "lesson_deletion") && item.deletion_reason && (
+                          {(["chapter_deletion", "lesson_deletion", "exam_deletion"] as ItemType[]).includes(item.item_type) && item.deletion_reason && (
                             <ExpandableText
                               text={`Motif : « ${item.deletion_reason} »`}
                               className="text-xs text-destructive mt-1"
@@ -235,7 +239,7 @@ export default function AdminValidation() {
                         <p className="text-xs text-muted-foreground truncate">
                           {item.subject} · {item.school_level}
                           {item.filiere_name ? ` · ${item.filiere_name}` : ""}
-                          {!(["chapter","lesson_creation","chapter_deletion","exam"] as ItemType[]).includes(item.item_type) ? ` · ${item.chapter_title}` : ""}
+                          {!(["chapter","lesson_creation","chapter_deletion","exam","exam_deletion"] as ItemType[]).includes(item.item_type) ? ` · ${item.chapter_title}` : ""}
                           {item.item_type === "exam" && item.trimester ? ` · ${TRIMESTER_LABELS[item.trimester]}` : ""}
                         </p>
                         {!approved && item.rejection_reason && (

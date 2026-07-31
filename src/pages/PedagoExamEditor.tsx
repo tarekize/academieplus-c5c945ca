@@ -6,7 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Save, Send, FileText } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Loader2, Save, Send, FileText, Trash2, Clock } from "lucide-react";
 import { toast } from "sonner";
 import ExamViewer from "@/components/exams/ExamViewer";
 import DocumentImportButton from "@/components/DocumentImportButton";
@@ -28,6 +33,8 @@ export default function PedagoExamEditor() {
   const [exercises, setExercises] = useState<ExamExercise[]>([]);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   const fetchExam = async () => {
     setLoading(true);
@@ -112,6 +119,34 @@ export default function PedagoExamEditor() {
     setExercises((prev) => [...prev, ...mapped]);
   };
 
+  // Un examen publié ('approved', donc visible des élèves) ne peut pas être
+  // supprimé directement : la demande part en attente de décision admin
+  // avec un motif obligatoire. Un brouillon/refusé/soumis n'a rien à
+  // protéger : suppression immédiate.
+  const needsDeletionReason = exam?.status === "approved";
+
+  const deleteExam = async () => {
+    if (!exam) return;
+    if (needsDeletionReason && !deleteReason.trim()) {
+      toast.error("Merci de préciser un motif de suppression.");
+      return;
+    }
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase.rpc("request_exam_deletion" as any, {
+        p_exam_id: exam.id,
+        p_reason: deleteReason.trim() || null,
+      });
+      if (error) throw error;
+      toast.success(data === false ? "Demande de suppression envoyée à l'administrateur" : "Examen supprimé");
+      navigate("/pedago/examens");
+    } catch (e: any) {
+      toast.error("Erreur", { description: e.message });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -142,7 +177,12 @@ export default function PedagoExamEditor() {
       />
       <main className="container mx-auto px-4 py-8 max-w-3xl space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <Badge className={meta.className}>{meta.label}</Badge>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge className={meta.className}>{meta.label}</Badge>
+            {exam.deletion_requested && (
+              <Badge className="badge-status-pending gap-1"><Clock className="h-3 w-3" /> Suppression en attente</Badge>
+            )}
+          </div>
           {editable && (
             <DocumentImportButton contentType="exam" onExtracted={handleImported} label="Importer un document" variant="outline" />
           )}
@@ -178,6 +218,49 @@ export default function PedagoExamEditor() {
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               Soumettre à validation
             </Button>
+          </div>
+        )}
+
+        {!exam.deletion_requested && (
+          <div className="border-t pt-4 flex justify-end">
+            <AlertDialog onOpenChange={(open) => { if (!open) setDeleteReason(""); }}>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" className="gap-2 text-destructive hover:text-destructive">
+                  <Trash2 className="h-4 w-4" /> Supprimer l'examen
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Supprimer cet examen ?</AlertDialogTitle>
+                  <AlertDialogDescription asChild>
+                    <div>
+                      Cette action est irréversible.
+                      {needsDeletionReason && (
+                        <span className="block mt-2 font-medium text-foreground">
+                          Cet examen est déjà publié : la suppression sera envoyée à l'administrateur pour validation.
+                        </span>
+                      )}
+                    </div>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                {needsDeletionReason && (
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-foreground">Motif de la suppression (obligatoire)</label>
+                    <Textarea rows={3} value={deleteReason} onChange={(e) => setDeleteReason(e.target.value)} placeholder="Expliquez pourquoi cet examen doit être supprimé..." />
+                  </div>
+                )}
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={deleteExam}
+                    disabled={deleting || (needsDeletionReason && !deleteReason.trim())}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Supprimer"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         )}
       </main>

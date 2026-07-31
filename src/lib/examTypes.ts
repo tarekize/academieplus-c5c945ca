@@ -46,6 +46,11 @@ export interface ExamRecord {
   reviewed_by_name: string | null;
   reviewed_at: string | null;
   rejection_reason: string | null;
+  deletion_requested: boolean;
+  deletion_requested_by: string | null;
+  deletion_requested_by_name: string | null;
+  deletion_requested_at: string | null;
+  deletion_reason: string | null;
   created_at: string;
   updated_at: string;
 }
