@@ -1,14 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkMath from "remark-math";
-import remarkGfm from "remark-gfm";
-import rehypeKatex from "rehype-katex";
-import "katex/dist/katex.min.css";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Eye, Trash2, Plus, Code2, PenLine, Clock, Send, CheckCircle2, XCircle } from "lucide-react";
+import { Pencil, Eye, Trash2, Plus, Code2, PenLine, Clock, Send, CheckCircle2, XCircle, BookOpen, ChevronDown } from "lucide-react";
+import { HtmlWithMath } from "@/components/course/HtmlWithMath";
+import { cleanMathStatement } from "@/lib/mathStatement";
 import { ExamExercise, ExamSubQuestion } from "@/lib/examTypes";
 import { normalizeAnswer } from "@/lib/teacherContentAttempt";
 import { cn } from "@/lib/utils";
@@ -24,13 +21,38 @@ interface ExamViewerProps {
   durationMinutes?: number;
 }
 
+/** Rend un énoncé/solution qu'il soit du texte brut avec LaTeX ($...$) ou du
+ * HTML structuré (<p>, <strong>...) — les deux formats produits par l'IA de
+ * génération d'examens. HtmlWithMath détecte le format et rend le KaTeX. */
 export function MathText({ text }: { text: string }) {
   if (!text) return null;
   return (
-    <div className="prose prose-sm max-w-none dark:prose-invert">
-      <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
-        {text}
-      </ReactMarkdown>
+    <HtmlWithMath
+      htmlContent={cleanMathStatement(text)}
+      className="prose prose-sm max-w-none dark:prose-invert leading-relaxed"
+    />
+  );
+}
+
+/** Bloc dépliant pour la solution détaillée, avec un rendu (HtmlWithMath)
+ * qui gère aussi bien le LaTeX brut que le HTML structuré généré par l'IA. */
+function SolutionBox({ solution }: { solution: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-xl border border-primary/15 bg-gradient-to-br from-primary/5 to-transparent overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-sm font-semibold text-primary hover:bg-primary/5 transition-colors"
+      >
+        <span className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> Solution détaillée</span>
+        <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div className="px-3.5 pb-3.5 pt-1 border-t border-primary/10">
+          <MathText text={solution} />
+        </div>
+      )}
     </div>
   );
 }
@@ -333,12 +355,7 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes 
                   )
                 )}
 
-                {mode === "edit" && ex.solution && (
-                  <details className="rounded-xl bg-secondary/40 p-3">
-                    <summary className="text-xs font-semibold text-muted-foreground cursor-pointer">Voir la solution</summary>
-                    <div className="mt-2"><MathText text={ex.solution} /></div>
-                  </details>
-                )}
+                {mode === "edit" && ex.solution && <SolutionBox solution={ex.solution} />}
                 {mode === "edit" && !subQ && ex.answer && (
                   <p className="text-sm font-medium rounded-lg bg-primary/5 px-3 py-2">Réponse : <MathText text={ex.answer} /></p>
                 )}
@@ -353,12 +370,7 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes 
                     <p className="text-sm"><span className="font-semibold">Réponse attendue :</span> <MathText text={ex.answer} /></p>
                   </div>
                 )}
-                {mode === "student" && submitted && ex.solution && (
-                  <details className="rounded-lg bg-secondary/40 p-3 text-sm">
-                    <summary className="text-xs font-semibold text-muted-foreground cursor-pointer">Voir la solution</summary>
-                    <div className="mt-2"><MathText text={ex.solution} /></div>
-                  </details>
-                )}
+                {mode === "student" && submitted && ex.solution && <SolutionBox solution={ex.solution} />}
               </div>
             )}
           </div>
