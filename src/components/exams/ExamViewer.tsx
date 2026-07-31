@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -7,6 +7,7 @@ import { Pencil, Eye, Trash2, Plus, Code2, PenLine, Clock, Send, CheckCircle2, X
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import { ExportPDFButton } from "@/components/course/ExportPDFButton";
 import { cleanMathStatement } from "@/lib/mathStatement";
+import { sanitizeFileName } from "@/lib/exportNodeToPdf";
 import { ExamExercise, ExamSubQuestion } from "@/lib/examTypes";
 import { normalizeAnswer } from "@/lib/teacherContentAttempt";
 import { cn } from "@/lib/utils";
@@ -22,27 +23,6 @@ interface ExamViewerProps {
   durationMinutes?: number;
   /** Affiche le bouton "Exporter en PDF" (titre de l'examen requis). */
   examTitle?: string;
-}
-
-function stripHtml(value: string): string {
-  return (value || "").replace(/<[^>]*>/g, "");
-}
-
-function buildExamExportHtml(exercises: ExamExercise[]): string {
-  return exercises.map((ex, i) => {
-    const subQ = Array.isArray(ex.sub_questions) && ex.sub_questions.length >= 2 ? ex.sub_questions : null;
-    // Le texte de chaque sous-question inclut déjà sa propre numérotation
-    // ("1. ...", "2. ...") ajoutée par l'IA — ne pas en rajouter une, sinon
-    // "1.1. 1. ..." (même rendu que dans la feuille à l'écran, voir MathText).
-    const questionsHtml = subQ
-      ? subQ.map((sq) => `<p style="white-space:pre-wrap">${stripHtml(sq.question)}</p>`).join("")
-      : `<p style="white-space:pre-wrap">${stripHtml(ex.statement)}</p>`;
-    return `
-      <h3>Exercice ${i + 1}${ex.chapter_title ? ` — ${stripHtml(ex.chapter_title)}` : ""}</h3>
-      ${subQ && ex.statement ? `<p style="white-space:pre-wrap;color:#555">${stripHtml(ex.statement)}</p>` : ""}
-      ${questionsHtml}
-    `;
-  }).join("<hr style=\"margin:20px 0;border:none;border-top:1px solid #ddd\"/>");
 }
 
 /** Rend un énoncé/solution qu'il soit du texte brut avec LaTeX ($...$) ou du
@@ -141,6 +121,7 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
   const [editStyle, setEditStyle] = useState<"direct" | "latex">("direct");
   const [answers, setAnswers] = useState<string[][]>(() => makeAnswerGrid(exercises));
   const [submitted, setSubmitted] = useState(false);
+  const exercisesExportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setAnswers(makeAnswerGrid(exercises));
@@ -214,7 +195,7 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
     <div className="space-y-4">
       {examTitle && (
         <div className="flex justify-end">
-          <ExportPDFButton chapterTitle={examTitle} content={buildExamExportHtml(exercises)} />
+          <ExportPDFButton targetRef={exercisesExportRef} fileName={`${sanitizeFileName(examTitle)}.pdf`} />
         </div>
       )}
       {mode === "student" && durationMinutes ? (
@@ -230,6 +211,7 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
         </div>
       )}
 
+      <div ref={exercisesExportRef} className="space-y-4">
       {exercises.map((ex, idx) => {
         const isEditing = mode === "edit" && editingIndex === idx;
         const subQ = hasSubQuestions(ex) ? ex.sub_questions! : null;
@@ -405,6 +387,7 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
           </div>
         );
       })}
+      </div>
 
       {mode === "edit" && (
         <Button variant="outline" onClick={addExercise} className="w-full gap-2 rounded-xl border-dashed">

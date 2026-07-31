@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import LessonMarkdown from "@/components/course/LessonMarkdown";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import { ExportPDFButton } from "@/components/course/ExportPDFButton";
-import { convertPedagoBlocks } from "@/lib/lessonBlocks";
+import { sanitizeFileName } from "@/lib/exportNodeToPdf";
 import { LessonFormDialog, DeleteLessonButton } from "@/components/course/PedagoCRUD";
 import { StatusBadge, ReviewActionButtons, SubmitItemButton } from "@/components/course/QuizExerciseCRUD";
 
@@ -44,6 +44,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
     const { t } = useTranslation();
     const [selectedLesson, setSelectedLesson] = useState<any>(null);
     const [lessonContent, setLessonContent] = useState<string>("");
+    const lessonContentExportRef = useRef<HTMLDivElement>(null);
     const [loadingContent, setLoadingContent] = useState(false);
     const readingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const readingStartRef = useRef<number>(0);
@@ -403,8 +404,8 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                     <h2 className="font-display text-xl font-extrabold min-w-0 flex-1">{selectedLesson?.displayTitle}</h2>
                                     {lessonContent && (
                                         <ExportPDFButton
-                                            chapterTitle={selectedLesson?.displayTitle || chapter?.displayTitle || ""}
-                                            content={convertPedagoBlocks(lessonContent)}
+                                            targetRef={lessonContentExportRef}
+                                            fileName={`${sanitizeFileName(selectedLesson?.displayTitle || chapter?.displayTitle || "lecon")}.pdf`}
                                             label={t("cours.exportPdf")}
                                         />
                                     )}
@@ -472,10 +473,12 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                                     </div>
                                 ) : lessonContent ? (
-                                    <div className={cn(
-                                        "lesson-content-scroll overflow-x-auto overscroll-x-contain pb-2",
-                                        isNativeApp && "touch-pan-x touch-pan-y"
-                                    )}>
+                                    <div
+                                        ref={lessonContentExportRef}
+                                        className={cn(
+                                            "lesson-content-scroll overflow-x-auto overscroll-x-contain pb-2",
+                                            isNativeApp && "touch-pan-x touch-pan-y"
+                                        )}>
                                         {lessonContentNode}
                                     </div>
                                 ) : (

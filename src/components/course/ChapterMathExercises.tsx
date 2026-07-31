@@ -8,6 +8,7 @@ import { HtmlWithMath } from "./HtmlWithMath";
 import { useTimeTracking, formatTime } from "@/hooks/useTimeTracking";
 import { ExerciseFormDialog, DeleteExerciseButton } from "./QuizExerciseCRUD";
 import { ExportPDFButton } from "./ExportPDFButton";
+import { sanitizeFileName } from "@/lib/exportNodeToPdf";
 import { supabase } from "@/integrations/supabase/client";
 import { MarkdownSolution } from "./MarkdownSolution";
 import { MathKeyboard } from "./MathKeyboard";
@@ -59,6 +60,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
   const [showHint, setShowHint] = useState<Record<string, boolean>>({});
   const [hintUsed, setHintUsed] = useState<Record<string, HintUsage>>({});
   const [userId, setUserId] = useState<string | null>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
 
   const recordedRef = useRef<Record<string, boolean>>({});
   const lockTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
@@ -368,14 +370,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
           <div className="flex gap-2">
             {canManage && onRefresh && <ExerciseFormDialog chapterId={chapterId} onSaved={onRefresh} />}
             {exercises.length > 0 && (
-              <ExportPDFButton
-                chapterTitle={`${chapterTitle} — تمارين`}
-                content={exercises.map((ex, i) => `
-                  <h3>${i + 1}. ${ex.title}</h3>
-                  <p style="white-space:pre-wrap">${(ex.statement || "").replace(/<[^>]*>/g, "")}</p>
-                  ${ex.solution ? `<p style="white-space:pre-wrap;color:#555"><strong>الحل :</strong> ${ex.solution.replace(/<[^>]*>/g, "")}</p>` : ""}
-                `).join("<hr style=\"margin:20px 0;border:none;border-top:1px solid #ddd\"/>")}
-              />
+              <ExportPDFButton targetRef={exportRef} fileName={`${sanitizeFileName(chapterTitle)}_tamarin.pdf`} label="تصدير PDF" />
             )}
             <Button variant="outline" onClick={onClose}>العودة للدرس</Button>
           </div>
@@ -421,6 +416,24 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
           </div>
         )}
       </CardContent>
+
+      {/* Rendu hors-écran de tous les exercices (énoncé + solution rendus
+          exactement comme à l'écran, LaTeX inclus) : sert uniquement de
+          source à la capture html2canvas de l'export PDF, jamais visible. */}
+      <div ref={exportRef} style={{ position: "fixed", left: "-9999px", top: 0, width: 780 }} aria-hidden className="bg-white p-8" dir="rtl">
+        <h1 className="text-2xl font-bold text-center border-b pb-4 mb-6">{chapterTitle} — تمارين</h1>
+        {exercises.map((ex, i) => (
+          <div key={ex.id} className={i > 0 ? "mt-6 pt-6 border-t" : ""}>
+            <h3 className="font-bold mb-2">{i + 1}. {ex.title}</h3>
+            <HtmlWithMath htmlContent={cleanMathStatement(ex.statement)} className="text-sm text-right" dir="rtl" />
+            {ex.solution && (
+              <div className="mt-3">
+                <MarkdownSolution content={ex.solution} />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </Card>
   );
 };
