@@ -310,7 +310,7 @@ function ExamReviewDialog({ exam, onClose, onDecided }: { exam: ExamRecord; onCl
           <p className="text-xs text-muted-foreground">{TRIMESTER_LABELS[exam.trimester]} · Envoyé par {exam.submitted_by_name || "Pédagogue"}</p>
         </DialogHeader>
 
-        <ExamViewer exercises={exam.content} editable={false} />
+        <ExamViewer exercises={exam.content} mode="preview" />
 
         {canDecide && (
           <>

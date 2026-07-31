@@ -137,7 +137,7 @@ export default function ExamHistoryList({ subject, schoolLevel, filiereId, isTer
           </div>
         </div>
 
-        <ExamViewer exercises={exercises} editable={editable} onChange={editable ? setExercises : undefined} />
+        <ExamViewer exercises={exercises} mode={editable ? "edit" : "preview"} onChange={editable ? setExercises : undefined} />
 
         {editable && (
           <div className="flex flex-wrap justify-end gap-2 pt-2 border-t">

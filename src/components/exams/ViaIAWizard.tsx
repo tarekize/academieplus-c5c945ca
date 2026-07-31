@@ -306,7 +306,7 @@ export default function ViaIAWizard({ subject, schoolLevel, filiereId, isTermina
               <Input type="number" className="mt-1" value={duration} onChange={(e) => setDuration(Number(e.target.value))} />
             </div>
           </div>
-          <ExamViewer exercises={exercises} editable onChange={setExercises} />
+          <ExamViewer exercises={exercises} mode="edit" onChange={setExercises} />
           <div className="flex flex-wrap justify-end gap-2 pt-2 border-t">
             <Button variant="outline" className="gap-2" disabled={saving} onClick={saveDraft}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}

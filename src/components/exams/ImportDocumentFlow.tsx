@@ -134,7 +134,7 @@ export default function ImportDocumentFlow({ subject, schoolLevel, filiereId, is
             </div>
           </div>
           <p className="text-xs font-medium text-muted-foreground">Aperçu de validation — vérifiez le contenu extrait avant de soumettre :</p>
-          <ExamViewer exercises={exercises} editable onChange={setExercises} />
+          <ExamViewer exercises={exercises} mode="edit" onChange={setExercises} />
           <div className="flex flex-wrap justify-end gap-2 pt-2 border-t">
             <Button variant="outline" className="gap-2" disabled={saving} onClick={saveDraft}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}

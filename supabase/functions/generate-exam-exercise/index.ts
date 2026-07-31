@@ -25,7 +25,53 @@ function cleanGeneratedJson(rawContent: string): string {
   const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
   if (jsonMatch) cleaned = jsonMatch[0];
 
-  return cleaned.replace(/\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})/g, "\\\\");
+  return cleaned;
+}
+
+// Corrige les backslashes LaTeX non échappés dans les valeurs JSON générées
+// par l'IA (\frac, \right, \neq, \boxed, \times... commencent tous par une
+// lettre qui EST aussi une séquence d'échappement JSON valide — \f, \r, \n,
+// \t, \b — donc un simple JSON.parse() les interprète à tort comme
+// retour-arrière/saut de ligne/tabulation, ce qui tronque le LaTeX affiché
+// ("\frac{...}" devient un caractère de contrôle invisible suivi de
+// "rac{...}"). On ne peut pas savoir a priori si un "\n" donné est une vraie
+// séquence JSON ou du LaTeX (ex: \nabla, \neq) : on ré-échappe tout backslash
+// qui n'est PAS suivi d'un guillemet/backslash/slash, sauf s'il s'agit d'un
+// des rares mots LaTeX commençant par "n" à préserver tels quels.
+const LATEX_N_WORDS = ["nabla", "neq", "notin", "ncong", "nless", "ngtr", "nexists", "nmid"];
+function looksLikeLatexNCommand(input: string, pos: number): boolean {
+  return LATEX_N_WORDS.some((w) => input.startsWith(w, pos));
+}
+
+function fixJsonStringEscapes(input: string): string {
+  let out = "";
+  let inString = false;
+  for (let i = 0; i < input.length; i++) {
+    const c = input[i];
+    if (!inString) {
+      out += c;
+      if (c === '"') inString = true;
+      continue;
+    }
+    if (c === '"') { out += c; inString = false; continue; }
+    if (c === "\n") { out += "\\n"; continue; }
+    if (c === "\r") { out += "\\r"; continue; }
+    if (c === "\t") { out += "\\t"; continue; }
+    if (c !== "\\") { out += c; continue; }
+    const next = input[i + 1];
+    if (next === undefined) { out += "\\\\"; continue; }
+    if (next === '"' || next === "\\" || next === "/") {
+      out += "\\" + next; i++; continue;
+    }
+    if (next === "n" && !looksLikeLatexNCommand(input, i + 1)) {
+      out += "\\n"; i++; continue;
+    }
+    if (next === "u" && /^[0-9a-fA-F]{4}$/.test(input.slice(i + 2, i + 6))) {
+      out += "\\u" + input.slice(i + 2, i + 6); i += 5; continue;
+    }
+    out += "\\\\";
+  }
+  return out;
 }
 
 function normalizeText(value: string | null | undefined): string {
@@ -34,11 +80,15 @@ function normalizeText(value: string | null | undefined): string {
 
 function parseGeneratedObject(content: string): GeneratedExamExercise {
   const cleaned = cleanGeneratedJson(content);
+  // Le correctif doit s'appliquer TOUJOURS, pas seulement quand JSON.parse()
+  // échoue : \frac, \right, \neq, \boxed... commencent par b/f/n/r/t, qui sont
+  // TOUS des séquences d'échappement JSON valides (backspace/formfeed/newline/
+  // retour chariot/tabulation) — JSON.parse() réussit donc silencieusement en
+  // tronquant le LaTeX au lieu de lever une erreur qu'on pourrait rattraper.
   try {
-    return JSON.parse(cleaned) as GeneratedExamExercise;
+    return JSON.parse(fixJsonStringEscapes(cleaned)) as GeneratedExamExercise;
   } catch {
-    const withoutLatexBackslashes = cleaned.replace(/\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})/g, "");
-    return JSON.parse(withoutLatexBackslashes) as GeneratedExamExercise;
+    return JSON.parse(cleaned) as GeneratedExamExercise;
   }
 }
 

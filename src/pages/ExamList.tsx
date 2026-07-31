@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { cn } from "@/lib/utils";
 import ExerciseAnswerBlock from "@/components/course/ExerciseAnswerBlock";
+import ExamViewer from "@/components/exams/ExamViewer";
 import DocumentImportButton from "@/components/DocumentImportButton";
 import { GeneratedItem } from "@/lib/teacherContent";
 import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
@@ -899,41 +900,12 @@ const ExamList = () => {
             </div>
           </DialogHeader>
           {viewExam && (
-            <div className="space-y-4 mt-2">
-              <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-secondary px-3 py-1.5 rounded-full" dir="rtl">
-                <Clock className="h-3 w-3" />
-                المدة: {viewExam.duration_minutes} دقيقة
-              </div>
-              <div className="border-t pt-4 space-y-3">
-                {Array.isArray(viewExam.content) ? (
-                  viewExam.content.map((item: any, idx: number) => (
-                    <div key={idx} className="p-4 bg-secondary/50 rounded-xl border border-border/50">
-                      <p className="font-medium text-sm" dir="rtl">
-                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold ml-2">
-                          {idx + 1}
-                        </span>
-                        {item.statement || item.question || JSON.stringify(item)}
-                      </p>
-                      {item.options && Array.isArray(item.options) && (
-                        <div className="space-y-1.5 mt-3 mr-8" dir="rtl">
-                          {item.options.map((opt: string, oi: number) => (
-                            <div key={oi} className="flex items-center gap-2 text-sm text-muted-foreground bg-card px-3 py-2 rounded-lg">
-                              <span className="w-5 h-5 rounded-full border flex items-center justify-center text-xs font-medium">
-                                {String.fromCharCode(65 + oi)}
-                              </span>
-                              {opt}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-muted-foreground text-sm" dir="rtl">
-                    {typeof viewExam.content === "string" ? viewExam.content : JSON.stringify(viewExam.content)}
-                  </p>
-                )}
-              </div>
+            <div className="mt-2">
+              <ExamViewer
+                mode="student"
+                durationMinutes={viewExam.duration_minutes}
+                exercises={normalizeExercises(viewExam.content)}
+              />
             </div>
           )}
           <DialogFooter>

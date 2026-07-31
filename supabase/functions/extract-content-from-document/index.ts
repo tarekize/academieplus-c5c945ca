@@ -66,9 +66,17 @@ function fixJsonStringEscapes(input: string): string {
 
 function parseAiJson(rawContent: string): any {
   const cleaned = cleanGeneratedJson(rawContent);
-  try { return JSON.parse(cleaned); } catch { /* fallthrough */ }
-  const fixed = fixJsonStringEscapes(cleaned);
-  return JSON.parse(fixed);
+  // fixJsonStringEscapes() doit s'appliquer AVANT JSON.parse(), pas seulement
+  // en repli sur erreur : \frac, \right, \neq, \boxed... commencent par
+  // b/f/n/r/t, qui sont TOUS des séquences d'échappement JSON valides
+  // (backspace/formfeed/newline/retour chariot/tabulation) — JSON.parse()
+  // réussit donc silencieusement en tronquant le LaTeX au lieu de lever une
+  // erreur qu'on pourrait rattraper ici.
+  try {
+    return JSON.parse(fixJsonStringEscapes(cleaned));
+  } catch {
+    return JSON.parse(cleaned);
+  }
 }
 
 // Le contenu d'un document importé peut contenir des demi-paires UTF-16
