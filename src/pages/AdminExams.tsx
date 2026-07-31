@@ -4,11 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Loader2, FileText, ChevronLeft, Check, X } from "lucide-react";
-import { toast } from "sonner";
-import ExamViewer from "@/components/exams/ExamViewer";
+import { Loader2, FileText, ChevronLeft } from "lucide-react";
 import { ExamRecord, TRIMESTER_LABELS, trimesterOptions, EXAM_STATUS_META } from "@/lib/examTypes";
 import { SUBJECTS } from "@/lib/subjects";
 
@@ -173,9 +169,9 @@ export default function AdminExams() {
 }
 
 function AdminExamCellPanel({ cell, initialTrimester, onBack }: { cell: SelectedCell; initialTrimester: number | null; onBack: () => void }) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [exams, setExams] = useState<ExamRecord[]>([]);
-  const [reviewExam, setReviewExam] = useState<ExamRecord | null>(null);
   const isTerminale = cell.schoolLevel === "terminale";
 
   const fetchExams = async () => {
@@ -197,10 +193,12 @@ function AdminExamCellPanel({ cell, initialTrimester, onBack }: { cell: Selected
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cell.subject, cell.schoolLevel, cell.filiereId]);
 
+  // Deep-link depuis /admin/validation ("Examiner") : ouvre directement la
+  // page de revue du trimestre visé dès que la liste est chargée.
   useEffect(() => {
     if (!initialTrimester || loading) return;
     const pending = exams.find((e) => e.trimester === initialTrimester && e.status === "pending");
-    if (pending) setReviewExam(pending);
+    if (pending) navigate(`/admin/examens/revue/${pending.id}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialTrimester, loading, exams]);
 
@@ -238,7 +236,7 @@ function AdminExamCellPanel({ cell, initialTrimester, onBack }: { cell: Selected
                     {latest ? (
                       <>
                         <Badge className={EXAM_STATUS_META[latest.status].className}>{EXAM_STATUS_META[latest.status].label}</Badge>
-                        <Button size="sm" variant={pending ? "default" : "outline"} onClick={() => setReviewExam(pending || latest)}>
+                        <Button size="sm" variant={pending ? "default" : "outline"} onClick={() => navigate(`/admin/examens/revue/${(pending || latest).id}`)}>
                           {pending ? "Examiner" : "Voir"}
                         </Button>
                       </>
@@ -252,98 +250,6 @@ function AdminExamCellPanel({ cell, initialTrimester, onBack }: { cell: Selected
           </div>
         )}
       </main>
-
-      {reviewExam && (
-        <ExamReviewDialog
-          exam={reviewExam}
-          onClose={() => setReviewExam(null)}
-          onDecided={() => { setReviewExam(null); fetchExams(); }}
-        />
-      )}
     </div>
-  );
-}
-
-function ExamReviewDialog({ exam, onClose, onDecided }: { exam: ExamRecord; onClose: () => void; onDecided: () => void }) {
-  const [reason, setReason] = useState("");
-  const [showRefuse, setShowRefuse] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const canDecide = exam.status === "pending";
-
-  const approve = async () => {
-    setBusy(true);
-    try {
-      const { error } = await supabase.rpc("approve_exam" as any, { p_exam_id: exam.id });
-      if (error) throw error;
-      toast.success("Examen validé");
-      onDecided();
-    } catch (e: any) {
-      toast.error("Erreur", { description: e.message });
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const refuse = async () => {
-    if (!reason.trim()) {
-      toast.error("Merci de préciser un motif de refus.");
-      return;
-    }
-    setBusy(true);
-    try {
-      const { error } = await supabase.rpc("reject_exam" as any, { p_exam_id: exam.id, p_reason: reason.trim() });
-      if (error) throw error;
-      toast.success("Examen refusé");
-      onDecided();
-    } catch (e: any) {
-      toast.error("Erreur", { description: e.message });
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[88vh] overflow-y-auto rounded-2xl">
-        <DialogHeader>
-          <DialogTitle>{exam.title_ar || exam.title}</DialogTitle>
-          <p className="text-xs text-muted-foreground">{TRIMESTER_LABELS[exam.trimester]} · Envoyé par {exam.submitted_by_name || "Pédagogue"}</p>
-        </DialogHeader>
-
-        <ExamViewer exercises={exam.content} mode="preview" />
-
-        {canDecide && (
-          <>
-            {showRefuse && (
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-destructive">Motif du refus (obligatoire)</label>
-                <Textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Expliquez pourquoi cet examen est refusé..." />
-              </div>
-            )}
-            <DialogFooter className="gap-2">
-              {showRefuse ? (
-                <>
-                  <Button variant="outline" onClick={() => setShowRefuse(false)} disabled={busy}>Annuler</Button>
-                  <Button variant="destructive" onClick={refuse} disabled={busy} className="gap-2">
-                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
-                    Confirmer le refus
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="outline" onClick={() => setShowRefuse(true)} disabled={busy} className="gap-2">
-                    <X className="h-4 w-4" /> Refuser
-                  </Button>
-                  <Button onClick={approve} disabled={busy} className="gap-2">
-                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                    Accepter
-                  </Button>
-                </>
-              )}
-            </DialogFooter>
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
   );
 }

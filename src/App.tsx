@@ -28,7 +28,10 @@ const AdminNotifications = lazy(() => import("./pages/AdminNotifications"));
 const AdminValidation = lazy(() => import("./pages/AdminValidation"));
 const PedagoActivity = lazy(() => import("./pages/PedagoActivity"));
 const PedagoExams = lazy(() => import("./pages/PedagoExams"));
+const PedagoExamEditor = lazy(() => import("./pages/PedagoExamEditor"));
 const AdminExams = lazy(() => import("./pages/AdminExams"));
+const AdminExamReview = lazy(() => import("./pages/AdminExamReview"));
+const ExamTake = lazy(() => import("./pages/ExamTake"));
 const AdminTokenUsage = lazy(() => import("./pages/AdminTokenUsage"));
 const Factures = lazy(() => import("./pages/Factures"));
 const MesInformations = lazy(() => import("./pages/MesInformations"));
@@ -165,9 +168,24 @@ const App = () => (
                   <PedagoExams />
                 </ProtectedRoute>
               } />
+              <Route path="/pedago/examens/:examId" element={
+                <ProtectedRoute allowedRoles={['pedago']}>
+                  <PedagoExamEditor />
+                </ProtectedRoute>
+              } />
               <Route path="/admin/examens" element={
                 <ProtectedRoute requireAdmin>
                   <AdminExams />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/examens/revue/:examId" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminExamReview />
+                </ProtectedRoute>
+              } />
+              <Route path="/exams/:examId/prendre" element={
+                <ProtectedRoute allowedRoles={['student','admin','pedago']}>
+                  <ExamTake />
                 </ProtectedRoute>
               } />
               <Route path="/rejoindre/:code" element={<JoinClass />} />

@@ -10,10 +10,16 @@ const corsHeaders = {
 const RATE_LIMIT_WINDOW_SECONDS = 60;
 const RATE_LIMIT_MAX_REQUESTS = 20;
 
+interface GeneratedSubQuestion {
+  question: string;
+  expected_answer?: string;
+}
+
 interface GeneratedExamExercise {
   statement: string;
   solution: string;
   answer: string;
+  sub_questions?: GeneratedSubQuestion[];
 }
 
 function cleanGeneratedJson(rawContent: string): string {
@@ -98,6 +104,17 @@ const EXAM_EXERCISE_RESPONSE_SCHEMA = {
   type: "OBJECT",
   properties: {
     statement: { type: "STRING" },
+    sub_questions: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          question: { type: "STRING" },
+          expected_answer: { type: "STRING" },
+        },
+        required: ["question"],
+      },
+    },
     solution: { type: "STRING" },
     answer: { type: "STRING" },
   },
@@ -237,6 +254,19 @@ serve(async (req) => {
   "answer": "الإجابة النهائية المختصرة"
 }
 
+تمرين بعدة أسئلة منفصلة (مهم جداً) :
+إذا كان التمرين يتضمن طبيعياً عدة أسئلة مستقلة (مثال: "1. أحسب النهايات"، "2. أدرس قابلية الاشتقاق"، "3. استنتج...")، فلا تكتبها كلها داخل "statement" مع إجابة واحدة في "answer". استعمل بدل ذلك "sub_questions" : "statement" يصبح المعطيات/السياق المشترك فقط (دون تكرار الأسئلة)، و"answer" يبقى فارغاً "" :
+{
+  "statement": "معطيات/سياق التمرين المشترك فقط",
+  "sub_questions": [
+    {"question": "1. نص السؤال الأول", "expected_answer": "الإجابة المتوقعة لهذا السؤال بالضبط"},
+    {"question": "2. نص السؤال الثاني", "expected_answer": "..."}
+  ],
+  "solution": "...",
+  "answer": ""
+}
+لا تستعمل "sub_questions" إلا إذا كان التمرين يحتوي فعلاً على أسئلة منفصلة قابلة للفصل ؛ لتمرين بسؤال واحد فقط، اترك "sub_questions" فارغاً واستعمل "statement"/"answer" كالمعتاد.
+
 شروط مهمة:
 - جميع النصوص بالعربية.
 - التمرين يجب أن يكون مناسباً لمستوى الصعوبة "${diffLabel}" ومطابقاً لبرنامج فصل "${chapterTitle}" فقط.
@@ -260,13 +290,21 @@ FORMAT MATHÉMATIQUE OBLIGATOIRE : TOUTES les expressions mathématiques (variab
     if (!rawContent.trim()) throw new Error("Empty AI response");
 
     const parsed = parseGeneratedObject(rawContent);
+    const subQuestions = Array.isArray(parsed.sub_questions)
+      ? parsed.sub_questions
+          .map((q) => ({ question: normalizeText(q?.question), expected_answer: normalizeText(q?.expected_answer) }))
+          .filter((q) => q.question)
+      : [];
     const exercise: GeneratedExamExercise = {
       statement: normalizeText(parsed.statement),
       solution: normalizeText(parsed.solution),
       answer: normalizeText(parsed.answer),
+      ...(subQuestions.length >= 2 ? { sub_questions: subQuestions } : {}),
     };
 
-    if (!exercise.statement) throw new Error("Generated exercise missing statement");
+    if (!exercise.statement && !(exercise.sub_questions && exercise.sub_questions.length)) {
+      throw new Error("Generated exercise missing statement");
+    }
 
     try {
       const { userId: callerUserId, roleGroup: callerRoleGroup } = await resolveCallerRoleGroup(

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Sparkles, FileUp, History, ChevronLeft } from "lucide-react";
@@ -23,10 +24,14 @@ type Screen = "menu" | "ai" | "import" | "history";
 export default function ExamCellDialog({
   open, onOpenChange, subject, subjectName, schoolLevel, levelName, filiereId, filiereName, isTerminale,
 }: ExamCellDialogProps) {
+  const navigate = useNavigate();
   const [screen, setScreen] = useState<Screen>("menu");
 
   const close = () => { onOpenChange(false); setTimeout(() => setScreen("menu"), 200); };
   const backToMenu = () => setScreen("menu");
+  // Ferme la pop-up et redirige vers la page complète de l'examen (créé ou
+  // repris depuis l'historique) — jamais affiché dans la pop-up elle-même.
+  const openExamPage = (examId: string) => { close(); navigate(`/pedago/examens/${examId}`); };
 
   const screenTitle: Record<Screen, string> = {
     menu: "Examens",
@@ -104,7 +109,7 @@ export default function ExamCellDialog({
             schoolLevel={schoolLevel}
             filiereId={filiereId}
             isTerminale={isTerminale}
-            onDone={close}
+            onCreated={openExamPage}
           />
         )}
 
@@ -114,7 +119,7 @@ export default function ExamCellDialog({
             schoolLevel={schoolLevel}
             filiereId={filiereId}
             isTerminale={isTerminale}
-            onDone={close}
+            onCreated={openExamPage}
           />
         )}
 
@@ -124,7 +129,7 @@ export default function ExamCellDialog({
             schoolLevel={schoolLevel}
             filiereId={filiereId}
             isTerminale={isTerminale}
-            onChanged={() => {}}
+            onOpenExam={openExamPage}
           />
         )}
       </DialogContent>

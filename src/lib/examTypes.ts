@@ -1,10 +1,22 @@
 // Types partagés pour le module Examens (grille Pédago, wizard IA, import de
 // document, historique, revue admin). `content` sur la table `exams` est un
 // tableau de ExamExercise.
+export interface ExamSubQuestion {
+  question: string;
+  expected_answer?: string;
+}
+
 export interface ExamExercise {
+  /** Énoncé complet (exercice à une seule question), ou énoncé/contexte
+   * commun uniquement quand `sub_questions` est renseigné (>= 2 éléments). */
   statement: string;
   solution: string;
+  /** Réponse finale (utilisée seulement si `sub_questions` est absent/< 2). */
   answer: string;
+  /** Quand un exercice comporte plusieurs questions distinctes, une zone de
+   * réponse est affichée pour CHAQUE question plutôt qu'une seule pour tout
+   * l'exercice (chacune notée indépendamment via sa propre expected_answer). */
+  sub_questions?: ExamSubQuestion[];
   chapter_id?: string | null;
   chapter_title?: string | null;
   difficulty?: number | null;

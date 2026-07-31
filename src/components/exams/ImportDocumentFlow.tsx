@@ -1,92 +1,65 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader2, Save, Send, Star, Award } from "lucide-react";
+import { Loader2, Star, Award } from "lucide-react";
 import { toast } from "sonner";
 import DocumentImportButton from "@/components/DocumentImportButton";
-import ExamViewer from "./ExamViewer";
 import { ExamExercise, trimesterOptions, TRIMESTER_LABELS } from "@/lib/examTypes";
 import { GeneratedItem } from "@/lib/teacherContent";
-import { logPedagoActivity } from "@/lib/pedagoActivityLog";
 
 interface ImportDocumentFlowProps {
   subject: string;
   schoolLevel: string;
   filiereId: string | null;
   isTerminale: boolean;
-  onDone: () => void;
+  /** Le brouillon vient d'être enregistré : le parent ferme la pop-up et
+   * redirige vers la page complète d'édition de cet examen, où l'aperçu de
+   * validation du contenu importé se fait. */
+  onCreated: (examId: string) => void;
 }
 
 /** Import d'un document (PDF/Word/image) : l'IA extrait fidèlement les
  * exercices déjà présents (mode "Exactement les mêmes" de
- * DocumentImportButton, sans reformulation), puis un aperçu permet de
- * valider/ajuster le contenu avant d'enregistrer le brouillon. */
-export default function ImportDocumentFlow({ subject, schoolLevel, filiereId, isTerminale, onDone }: ImportDocumentFlowProps) {
+ * DocumentImportButton, sans reformulation). */
+export default function ImportDocumentFlow({ subject, schoolLevel, filiereId, isTerminale, onCreated }: ImportDocumentFlowProps) {
   const [trimester, setTrimester] = useState<number | null>(null);
-  const [exercises, setExercises] = useState<ExamExercise[]>([]);
-  const [examId, setExamId] = useState<string | null>(null);
-  const [title, setTitle] = useState("");
-  const [duration, setDuration] = useState(60);
   const [saving, setSaving] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
-  const handleExtracted = (items: GeneratedItem[]) => {
+  const handleExtracted = async (items: GeneratedItem[]) => {
     const mapped: ExamExercise[] = items
-      .filter((it) => (it.statement || "").trim())
-      .map((it) => ({ statement: it.statement || "", solution: it.solution || "", answer: it.expected_answer || "" }));
-    if (mapped.length === 0) return;
-    setExercises((prev) => [...prev, ...mapped]);
-    if (!title) setTitle(`Examen — ${TRIMESTER_LABELS[trimester || 1]}`);
-  };
+      .filter((it) => (it.statement || "").trim() || (it.sub_questions && it.sub_questions.length >= 2))
+      .map((it) => ({
+        statement: it.statement || "",
+        solution: it.solution || "",
+        answer: it.expected_answer || "",
+        sub_questions: it.sub_questions && it.sub_questions.length >= 2 ? it.sub_questions : undefined,
+      }));
+    if (mapped.length === 0) {
+      toast.error("Aucun contenu exploitable trouvé dans ce document.");
+      return;
+    }
 
-  const saveDraft = async (): Promise<string | null> => {
     setSaving(true);
     try {
+      const title = `Examen — ${TRIMESTER_LABELS[trimester || 1]}`;
       const { data, error } = await supabase.rpc("save_exam_draft" as any, {
-        p_exam_id: examId,
+        p_exam_id: null,
         p_subject: subject,
         p_school_level: schoolLevel,
         p_filiere_id: filiereId,
         p_trimester: trimester,
         p_title: title,
         p_title_ar: title,
-        p_duration_minutes: duration,
-        p_content: exercises,
+        p_duration_minutes: 60,
+        p_content: mapped,
         p_chapter_ids: null,
         p_source: "import",
       });
       if (error) throw error;
-      setExamId(data as string);
-      toast.success("Brouillon enregistré");
-      return data as string;
+      onCreated(data as string);
     } catch (e: any) {
       toast.error("Erreur", { description: e.message });
-      return null;
     } finally {
       setSaving(false);
-    }
-  };
-
-  const submit = async () => {
-    if (exercises.length === 0) {
-      toast.error("Importez au moins un exercice avant de soumettre.");
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const id = examId || (await saveDraft());
-      if (!id) return;
-      const { error } = await supabase.rpc("submit_exam_for_review" as any, { p_exam_id: id });
-      if (error) throw error;
-      logPedagoActivity({ action: "update", entityType: "exam", entityId: id, entityTitle: title, subject, schoolLevel });
-      toast.success("Examen envoyé pour validation");
-      onDone();
-    } catch (e: any) {
-      toast.error("Erreur", { description: e.message });
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -112,41 +85,21 @@ export default function ImportDocumentFlow({ subject, schoolLevel, filiereId, is
     );
   }
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          Importez un document : le contenu est retranscrit fidèlement (choisissez "Exactement les mêmes"), puis validez l'aperçu ci-dessous.
-        </p>
-        <DocumentImportButton contentType="exam" onExtracted={handleExtracted} label="Importer un document" />
+  if (saving) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Enregistrement du brouillon…</p>
       </div>
+    );
+  }
 
-      {exercises.length > 0 && (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs text-muted-foreground">Titre de l'examen</Label>
-              <Input className="mt-1" value={title} onChange={(e) => setTitle(e.target.value)} />
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Durée (minutes)</Label>
-              <Input type="number" className="mt-1" value={duration} onChange={(e) => setDuration(Number(e.target.value))} />
-            </div>
-          </div>
-          <p className="text-xs font-medium text-muted-foreground">Aperçu de validation — vérifiez le contenu extrait avant de soumettre :</p>
-          <ExamViewer exercises={exercises} mode="edit" onChange={setExercises} />
-          <div className="flex flex-wrap justify-end gap-2 pt-2 border-t">
-            <Button variant="outline" className="gap-2" disabled={saving} onClick={saveDraft}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Enregistrer le brouillon
-            </Button>
-            <Button className="gap-2" disabled={submitting} onClick={submit}>
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              Soumettre à validation
-            </Button>
-          </div>
-        </>
-      )}
+  return (
+    <div className="space-y-4 text-center py-6">
+      <p className="text-sm text-muted-foreground">
+        Importez le document de l'examen : le contenu est retranscrit fidèlement (choisissez "Exactement les mêmes"). Vous pourrez valider l'aperçu sur la page suivante.
+      </p>
+      <DocumentImportButton contentType="exam" onExtracted={handleExtracted} label="Importer un document" className="mx-auto" />
     </div>
   );
 }

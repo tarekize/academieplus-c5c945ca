@@ -9,7 +9,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { cn } from "@/lib/utils";
 import ExerciseAnswerBlock from "@/components/course/ExerciseAnswerBlock";
-import ExamViewer from "@/components/exams/ExamViewer";
 import DocumentImportButton from "@/components/DocumentImportButton";
 import { GeneratedItem } from "@/lib/teacherContent";
 import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
@@ -96,7 +95,6 @@ const ExamList = () => {
   const [canManage, setCanManage] = useState(false);
   const [editExam, setEditExam] = useState<Exam | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [viewExam, setViewExam] = useState<Exam | null>(null);
   const [chapters, setChapters] = useState<ChapterOption[]>([]);
 
   // Source tab: official (pédago/admin) exams vs exams sent by a teacher
@@ -621,7 +619,7 @@ const ExamList = () => {
                           </>
                         ) : (
                           <Button
-                            onClick={() => setViewExam(exam)}
+                            onClick={() => navigate(`/exams/${exam.id}/prendre`)}
                             className="gap-2 rounded-xl shadow-sm"
                             size="sm"
                           >
@@ -879,37 +877,6 @@ const ExamList = () => {
               {aiSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
               <span dir="rtl">مشاركة الاختبار</span>
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* View Exam Dialog (Student) */}
-      <Dialog open={!!viewExam} onOpenChange={(open) => !open && setViewExam(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl">
-          <DialogHeader>
-            <div className="flex items-center gap-3" dir="rtl">
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${trimesterColors[trimester]} flex items-center justify-center`}>
-                <FileText className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <DialogTitle dir="rtl">{viewExam?.title_ar || viewExam?.title}</DialogTitle>
-                {viewExam?.description && (
-                  <p className="text-xs text-muted-foreground mt-0.5">{viewExam.description}</p>
-                )}
-              </div>
-            </div>
-          </DialogHeader>
-          {viewExam && (
-            <div className="mt-2">
-              <ExamViewer
-                mode="student"
-                durationMinutes={viewExam.duration_minutes}
-                exercises={normalizeExercises(viewExam.content)}
-              />
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={() => setViewExam(null)}>إغلاق</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

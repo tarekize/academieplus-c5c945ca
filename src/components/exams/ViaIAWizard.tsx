@@ -6,11 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Sparkles, ChevronRight, ChevronLeft, Award, Star, Send, Save } from "lucide-react";
+import { Loader2, Sparkles, ChevronRight, ChevronLeft, Award, Star } from "lucide-react";
 import { toast } from "sonner";
-import ExamViewer from "./ExamViewer";
 import { ExamExercise, trimesterOptions, TRIMESTER_LABELS } from "@/lib/examTypes";
-import { logPedagoActivity } from "@/lib/pedagoActivityLog";
 
 interface ChapterOption {
   id: string;
@@ -22,14 +20,16 @@ interface ViaIAWizardProps {
   schoolLevel: string;
   filiereId: string | null;
   isTerminale: boolean;
-  onDone: () => void;
+  /** Le brouillon vient d'être enregistré : le parent ferme la pop-up et
+   * redirige vers la page complète d'édition de cet examen. */
+  onCreated: (examId: string) => void;
 }
 
-type Step = "trimester" | "chapters" | "params" | "difficulty" | "generating" | "review";
+type Step = "trimester" | "chapters" | "params" | "difficulty" | "generating";
 
 const DIFFICULTY_LABELS: Record<number, string> = { 1: "Facile", 2: "Moyen", 3: "Difficile" };
 
-export default function ViaIAWizard({ subject, schoolLevel, filiereId, isTerminale, onDone }: ViaIAWizardProps) {
+export default function ViaIAWizard({ subject, schoolLevel, filiereId, isTerminale, onCreated }: ViaIAWizardProps) {
   const [step, setStep] = useState<Step>("trimester");
   const [trimester, setTrimester] = useState<number | null>(null);
   const [chapters, setChapters] = useState<ChapterOption[]>([]);
@@ -39,12 +39,6 @@ export default function ViaIAWizard({ subject, schoolLevel, filiereId, isTermina
   const [chatInstructions, setChatInstructions] = useState("");
   const [difficultyPerChapter, setDifficultyPerChapter] = useState<Record<string, number>>({});
   const [progress, setProgress] = useState({ done: 0, total: 0 });
-  const [exercises, setExercises] = useState<ExamExercise[]>([]);
-  const [examId, setExamId] = useState<string | null>(null);
-  const [title, setTitle] = useState("");
-  const [duration, setDuration] = useState(60);
-  const [saving, setSaving] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (step !== "chapters" || chapters.length > 0) return;
@@ -92,11 +86,12 @@ export default function ViaIAWizard({ subject, schoolLevel, filiereId, isTermina
         });
         if (error) throw error;
         const ex = data?.exercise;
-        if (ex?.statement) {
+        if (ex?.statement || (Array.isArray(ex?.sub_questions) && ex.sub_questions.length >= 2)) {
           results.push({
-            statement: ex.statement,
+            statement: ex.statement || "",
             solution: ex.solution || "",
             answer: ex.answer || "",
+            sub_questions: Array.isArray(ex?.sub_questions) && ex.sub_questions.length >= 2 ? ex.sub_questions : undefined,
             chapter_id: job.chapterId,
             chapter_title: job.chapterTitle,
             difficulty: job.difficulty,
@@ -107,60 +102,31 @@ export default function ViaIAWizard({ subject, schoolLevel, filiereId, isTermina
       }
       setProgress((p) => ({ ...p, done: p.done + 1 }));
     }
-    setExercises(results);
-    setTitle(`Examen — ${TRIMESTER_LABELS[trimester || 1]}`);
-    setStep("review");
     if (results.length === 0) {
       toast.error("Aucun exercice n'a pu être généré. Réessayez.");
+      setStep("difficulty");
+      return;
     }
-  };
 
-  const saveDraft = async (): Promise<string | null> => {
-    setSaving(true);
     try {
       const { data, error } = await supabase.rpc("save_exam_draft" as any, {
-        p_exam_id: examId,
+        p_exam_id: null,
         p_subject: subject,
         p_school_level: schoolLevel,
         p_filiere_id: filiereId,
         p_trimester: trimester,
-        p_title: title,
-        p_title_ar: title,
-        p_duration_minutes: duration,
-        p_content: exercises,
+        p_title: `Examen — ${TRIMESTER_LABELS[trimester || 1]}`,
+        p_title_ar: `Examen — ${TRIMESTER_LABELS[trimester || 1]}`,
+        p_duration_minutes: 60,
+        p_content: results,
         p_chapter_ids: selectedChapterIds,
         p_source: "ai",
       });
       if (error) throw error;
-      setExamId(data as string);
-      toast.success("Brouillon enregistré");
-      return data as string;
+      onCreated(data as string);
     } catch (e: any) {
       toast.error("Erreur", { description: e.message });
-      return null;
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const submit = async () => {
-    if (exercises.length === 0) {
-      toast.error("Ajoutez au moins un exercice avant de soumettre.");
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const id = examId || (await saveDraft());
-      if (!id) return;
-      const { error } = await supabase.rpc("submit_exam_for_review" as any, { p_exam_id: id });
-      if (error) throw error;
-      logPedagoActivity({ action: "update", entityType: "exam", entityId: id, entityTitle: title, subject, schoolLevel });
-      toast.success("Examen envoyé pour validation");
-      onDone();
-    } catch (e: any) {
-      toast.error("Erreur", { description: e.message });
-    } finally {
-      setSubmitting(false);
+      setStep("difficulty");
     }
   };
 
@@ -291,32 +257,6 @@ export default function ViaIAWizard({ subject, schoolLevel, filiereId, isTermina
         <div className="flex flex-col items-center justify-center py-12 gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">Génération en cours… {progress.done}/{progress.total}</p>
-        </div>
-      )}
-
-      {step === "review" && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs text-muted-foreground">Titre de l'examen</Label>
-              <Input className="mt-1" value={title} onChange={(e) => setTitle(e.target.value)} />
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Durée (minutes)</Label>
-              <Input type="number" className="mt-1" value={duration} onChange={(e) => setDuration(Number(e.target.value))} />
-            </div>
-          </div>
-          <ExamViewer exercises={exercises} mode="edit" onChange={setExercises} />
-          <div className="flex flex-wrap justify-end gap-2 pt-2 border-t">
-            <Button variant="outline" className="gap-2" disabled={saving} onClick={saveDraft}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Enregistrer le brouillon
-            </Button>
-            <Button className="gap-2" disabled={submitting} onClick={submit}>
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              Soumettre à validation
-            </Button>
-          </div>
         </div>
       )}
     </div>
