@@ -206,7 +206,7 @@ export default function PedagoExamEditor() {
           </div>
         </div>
 
-        <ExamViewer exercises={exercises} mode={editable ? "edit" : "preview"} onChange={editable ? setExercises : undefined} />
+        <ExamViewer exercises={exercises} mode={editable ? "edit" : "preview"} onChange={editable ? setExercises : undefined} examTitle={title || exam.title} />
 
         {editable && (
           <div className="flex flex-wrap justify-end gap-2 pt-2 border-t sticky bottom-0 bg-background py-3">

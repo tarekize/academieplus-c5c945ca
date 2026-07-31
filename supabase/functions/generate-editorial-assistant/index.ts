@@ -89,6 +89,24 @@ function buildEditorialPrompt(editorialContext: any, subject: string): string {
   const lessonTitle = sanitizeForGemini(editorialContext?.lessonTitle || wizard?.lessonTitle || "");
   const schoolLevel = sanitizeForGemini(editorialContext?.schoolLevel || wizard?.schoolLevel || "");
 
+  // "Garder tel quel" sur un document image/PDF (AdminAssistantPanel.tsx) :
+  // le prompt de génération habituel ci-dessous impose TOUJOURS sa propre
+  // structure (titre, sections numérotées, conclusion "خلاصة الدرس"...),
+  // même si le message utilisateur demande explicitement une transcription
+  // fidèle — donc cette demande n'était jamais réellement respectée. Ce
+  // prompt dédié n'a aucune règle de structure imposée : il ne fait que
+  // transcrire fidèlement ce qui est fourni.
+  if (editorialContext?.strictTranscription) {
+    return `Tu es un outil de transcription fidèle de documents pédagogiques, PAS un assistant de rédaction.
+
+CONSIGNE ABSOLUE : transcris le contenu du document fourni par l'utilisateur EXACTEMENT tel qu'il apparaît — même langue, même formulation, même ordre, sans reformuler un seul mot, sans corriger, sans résumer, sans compléter une phrase incomplète, sans ajouter d'exemple, de remarque ou de conclusion qui n'existe pas dans le document.
+Autorisé UNIQUEMENT :
+- Convertir les formules mathématiques en LaTeX valide ("$...$" ou "$$...$$") si elles ne le sont pas déjà, sans changer leur contenu.
+- Encadrer un passage déjà clairement une définition/théorème/remarque/exemple avec la syntaxe ::: TYPE ... ::: (TYPE parmi definition, theorem, proposition, property, remark, example, exercise, method) SEULEMENT si cela n'ajoute et ne retire aucun mot au texte original.
+Interdit : ajouter un titre "# درس: ...", ajouter des sections "## ..." qui ne sont pas dans le document, ajouter une conclusion/résumé, traduire dans une autre langue, améliorer le style.
+Réponds UNIQUEMENT avec le contenu transcrit, rien avant, rien après, aucune balise de code.`;
+  }
+
   return `Tu es un assistant IA expert en édition de contenus pédagogiques ${subject || "mathématiques"} (français/arabe).
 CONTEXTE: Tu aides un professeur/administrateur à modifier ou créer une leçon${lessonTitle ? ` intitulée "${lessonTitle}"` : ""}${schoolLevel ? ` pour le niveau ${schoolLevel}` : ""}.
 

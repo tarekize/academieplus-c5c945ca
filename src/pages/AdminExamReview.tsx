@@ -166,7 +166,7 @@ export default function AdminExamReview() {
           </div>
         )}
 
-        <ExamViewer exercises={exam.content} mode="preview" />
+        <ExamViewer exercises={exam.content} mode="preview" examTitle={exam.title_ar || exam.title} />
 
         {canDecide && (
           <div className="space-y-3 border-t pt-4 sticky bottom-0 bg-background pb-3">

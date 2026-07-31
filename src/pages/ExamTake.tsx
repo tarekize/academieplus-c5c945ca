@@ -68,7 +68,7 @@ export default function ExamTake() {
     <div className="min-h-screen student-shell">
       <AppHeader title={exam.title_ar || exam.title} titleIcon={FileText} onBack={() => navigate(-1)} />
       <main className="container mx-auto px-4 py-8 max-w-3xl">
-        <ExamViewer mode="student" durationMinutes={exam.duration_minutes} exercises={normalizeExercises(exam.content)} />
+        <ExamViewer mode="student" durationMinutes={exam.duration_minutes} exercises={normalizeExercises(exam.content)} examTitle={exam.title_ar || exam.title} />
       </main>
     </div>
   );

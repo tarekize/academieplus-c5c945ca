@@ -2,10 +2,31 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { List } from "lucide-react";
 
+type BlockKind = "block-definition" | "block-property" | "block-remark" | "block-example" | "block-graphic";
+
 interface TocItem {
     id: string;
     text: string;
     level: number;
+    /** Absent pour un titre (h1/h2/h3) ; renseigné pour un bloc pédagogique
+     * (définition/propriété/remarque/exemple/schéma), affiché indenté sous
+     * le dernier titre rencontré. */
+    blockKind?: BlockKind;
+}
+
+const BLOCK_KIND_LABEL: Record<BlockKind, { ar: string; fr: string; color: string }> = {
+    "block-definition": { ar: "تعريف", fr: "Définition", color: "217 91% 60%" },
+    "block-property": { ar: "خاصية", fr: "Propriété", color: "160 84% 39%" },
+    "block-remark": { ar: "ملاحظة", fr: "Remarque", color: "38 92% 50%" },
+    "block-example": { ar: "مثال", fr: "Exemple", color: "280 70% 55%" },
+    "block-graphic": { ar: "شكل", fr: "Schéma", color: "340 75% 55%" },
+};
+
+function detectBlockKind(el: Element): BlockKind | null {
+    for (const kind of Object.keys(BLOCK_KIND_LABEL) as BlockKind[]) {
+        if (el.classList.contains(kind)) return kind;
+    }
+    return null;
 }
 
 interface TableOfContentsProps {
@@ -103,7 +124,7 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
             const container = document.querySelector('.lesson-markdown');
             if (!container) return;
 
-            const headings = container.querySelectorAll("h1, h2, h3");
+            const elements = container.querySelectorAll("h1, h2, h3, .lesson-block");
 
             // Utility to extract text cleanly without duplicating KaTeX elements
             const extractText = (htmlNode: Element): string => {
@@ -131,25 +152,32 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
                 return latexToSymbols((clone.textContent || "").replace(/\s+/g, " ").trim());
             };
 
-            const tocItems: TocItem[] = Array.from(headings).map((heading, index) => {
-                const text = extractText(heading) || "";
-                const id = heading.id || `toc-${index}-${Math.random().toString(36).substr(2, 9)}`;
-                // Assign id if it doesn't have one
-                if (!heading.id) {
-                    heading.id = id;
+            // Un bloc pédagogique (définition/propriété/remarque/exemple/schéma)
+            // s'indente sous le dernier titre rencontré en parcourant le DOM
+            // dans l'ordre, plutôt que de prendre son "niveau" sur sa propre
+            // balise (ce sont toujours des <div>, sans notion de niveau).
+            let currentHeadingLevel = 1;
+            const tocItems: TocItem[] = Array.from(elements).map((el, index) => {
+                const blockKind = detectBlockKind(el);
+                const id = el.id || `toc-${index}-${Math.random().toString(36).substr(2, 9)}`;
+                if (!el.id) el.id = id;
+
+                if (!blockKind) {
+                    currentHeadingLevel = parseInt(el.tagName.substring(1));
+                    return { id, text: extractText(el) || "", level: currentHeadingLevel };
                 }
-                return {
-                    id,
-                    text,
-                    level: parseInt(heading.tagName.substring(1)),
-                };
+
+                const titleEl = el.querySelector(".lesson-block-title");
+                const label = BLOCK_KIND_LABEL[blockKind][dir === "rtl" ? "ar" : "fr"];
+                const text = titleEl ? extractText(titleEl) : label;
+                return { id, text: text || label, level: currentHeadingLevel + 1, blockKind };
             });
 
             setItems(tocItems);
         }, 150);
 
         return () => clearTimeout(timer);
-    }, [htmlContent]);
+    }, [htmlContent, dir]);
 
     // Scroll spy: highlight the heading the student is currently reading
     useEffect(() => {
@@ -224,22 +252,34 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
                 <nav className="space-y-2">
                     {items.map((item) => {
                         const isActive = activeId === item.id;
+                        const blockColor = item.blockKind ? BLOCK_KIND_LABEL[item.blockKind].color : null;
                         return (
                             <button
                                 key={item.id}
                                 onClick={() => scrollToHeading(item.id)}
                                 dir={dir}
                                 aria-current={isActive ? "true" : undefined}
+                                style={blockColor ? { borderInlineStartColor: `hsl(${blockColor})` } : undefined}
                                 className={cn(
-                                    "block w-full text-sm transition-all hover:translate-x-1 hover:text-primary active:scale-95 px-2 py-1.5 rounded-md",
+                                    "flex items-center gap-1.5 w-full text-sm transition-all hover:translate-x-1 hover:text-primary active:scale-95 px-2 py-1.5 rounded-md",
                                     dir === "rtl" ? "text-right" : "text-left",
-                                    item.level === 1 && "font-bold border-l-2 border-primary/20 pl-2",
-                                    item.level === 2 && "font-medium opacity-90 pl-4",
-                                    item.level === 3 && "text-xs opacity-75 pl-7 text-muted-foreground",
+                                    !item.blockKind && item.level === 1 && "font-bold border-l-2 border-primary/20 pl-2",
+                                    !item.blockKind && item.level === 2 && "font-medium opacity-90 pl-4",
+                                    !item.blockKind && item.level === 3 && "text-xs opacity-75 pl-7 text-muted-foreground",
+                                    item.blockKind && "text-xs opacity-80 text-muted-foreground border-l-2",
+                                    item.blockKind && item.level <= 2 && "pl-4",
+                                    item.blockKind && item.level === 3 && "pl-7",
+                                    item.blockKind && item.level >= 4 && "pl-10",
                                     isActive && "!text-primary !font-extrabold !opacity-100 bg-primary/15 underline underline-offset-4 decoration-2 shadow-sm"
                                 )}
                             >
-                                {item.text}
+                                {blockColor && (
+                                    <span
+                                        className="inline-block h-1.5 w-1.5 rounded-full shrink-0"
+                                        style={{ backgroundColor: `hsl(${blockColor})` }}
+                                    />
+                                )}
+                                <span className="truncate">{item.text}</span>
                             </button>
                         );
                     })}

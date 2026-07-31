@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { useTimeTracking, formatTime } from "@/hooks/useTimeTracking";
 import { ExerciseFormDialog, DeleteExerciseButton } from "./QuizExerciseCRUD";
+import { ExportPDFButton } from "./ExportPDFButton";
 import { supabase } from "@/integrations/supabase/client";
 import { MarkdownSolution } from "./MarkdownSolution";
 import { MathKeyboard } from "./MathKeyboard";
@@ -366,6 +367,16 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
           </CardTitle>
           <div className="flex gap-2">
             {canManage && onRefresh && <ExerciseFormDialog chapterId={chapterId} onSaved={onRefresh} />}
+            {exercises.length > 0 && (
+              <ExportPDFButton
+                chapterTitle={`${chapterTitle} — تمارين`}
+                content={exercises.map((ex, i) => `
+                  <h3>${i + 1}. ${ex.title}</h3>
+                  <p style="white-space:pre-wrap">${(ex.statement || "").replace(/<[^>]*>/g, "")}</p>
+                  ${ex.solution ? `<p style="white-space:pre-wrap;color:#555"><strong>الحل :</strong> ${ex.solution.replace(/<[^>]*>/g, "")}</p>` : ""}
+                `).join("<hr style=\"margin:20px 0;border:none;border-top:1px solid #ddd\"/>")}
+              />
+            )}
             <Button variant="outline" onClick={onClose}>العودة للدرس</Button>
           </div>
         </div>

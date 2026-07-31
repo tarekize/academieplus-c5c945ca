@@ -325,6 +325,11 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
         referenceContent: string,
         wizard: Record<string, unknown> | null,
         onToken: (full: string) => void,
+        // "Garder tel quel" sur un document image/PDF (pas de texte extrait
+        // côté client à insérer directement) : demande à l'edge function une
+        // transcription fidèle, sans la structure/le résumé imposés par le
+        // prompt de génération habituel (voir buildEditorialPrompt côté serveur).
+        strictTranscription = false,
     ): Promise<string> => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.access_token) {
@@ -338,6 +343,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                 lessonTitle: lessonTitle || '',
                 schoolLevel: schoolLevel || '',
                 wizard,
+                strictTranscription,
             },
             subject: 'mathématiques',
         };
@@ -561,6 +567,11 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
         'absent-exact': (fileName) => `لا يحتوي درس "${titleLabel}" على أي محتوى بعد. لدي مستند مرفق (${fileName}). انقل محتوى هذا المستند كما هو تماماً دون أي تغيير في المضمون أو الأسلوب أو حذف أو إضافة أي فكرة، فقط أعد تنسيقه ليتوافق مع بنية الدرس المعتادة (::: تعريف، ::: مثال، إلخ) وصيغة LaTeX للرموز الرياضية إن وجدت.`,
     };
 
+    // "Garder tel quel" : les deux options qui garantissent un contenu
+    // fidèle, sans invention — par opposition à absent-generate/present-
+    // improve qui laissent l'IA reformuler/enrichir.
+    const EXACT_MODES: DocumentMode[] = ['absent-exact', 'present-replace'];
+
     const runDocumentBasedGeneration = async (mode: DocumentMode) => {
         if (!attachedDoc) return;
         setStep('preview');
@@ -571,6 +582,29 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
         const instruction = DOCUMENT_INSTRUCTIONS[mode](attachedDoc.name);
         setPreviewMessages([{ role: 'user', content: `📎 ${attachedDoc.name}\n\n${instruction}` }]);
 
+        const isExact = EXACT_MODES.includes(mode);
+
+        // Le texte d'un document Word est déjà extrait côté client : en mode
+        // "tel quel", on l'insère directement, sans passer par l'IA, pour
+        // garantir qu'aucun mot n'est modifié (l'IA ne voit jamais ce texte).
+        if (isExact && attachedDoc.kind === 'text') {
+            const raw = attachedDoc.text || '';
+            const escaped = raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const asHtml = escaped.split(/\n{2,}/).map((para) => `<p>${para.replace(/\n/g, '<br />')}</p>`).join('\n');
+            setPreviewContent(asHtml);
+            setPreviewMessages(prev => [...prev, {
+                role: 'assistant',
+                content: 'تم استرجاع محتوى المستند حرفياً دون أي معالجة بالذكاء الاصطناعي. راجعه قبل الاعتماد.',
+            }]);
+            setPreviewLoading(false);
+            setStreamingProgress('');
+            return;
+        }
+
+        // Document image/PDF en mode "tel quel" : le texte n'est pas connu côté
+        // client (l'IA doit le lire), donc un appel reste nécessaire — mais on
+        // demande une transcription stricte (strictTranscription) plutôt que
+        // le prompt de génération habituel, qui impose sa propre structure.
         const contentParts: ContentPart[] = attachedDoc.kind === 'text'
             ? [{ type: 'text', text: `${instruction}\n\n--- محتوى المستند المرفق ---\n${attachedDoc.text}` }]
             : [
@@ -584,6 +618,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
                 mode === 'present-improve' ? currentContent : '',
                 null,
                 (partial) => setStreamingProgress(partial),
+                isExact,
             );
             const { finalContent } = resolveAiContent(full, '');
             setPreviewContent(finalContent || full);

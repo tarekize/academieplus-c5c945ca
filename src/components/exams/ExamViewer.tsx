@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Eye, Trash2, Plus, Code2, PenLine, Clock, Send, CheckCircle2, XCircle, BookOpen, ChevronDown } from "lucide-react";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
+import { ExportPDFButton } from "@/components/course/ExportPDFButton";
 import { cleanMathStatement } from "@/lib/mathStatement";
 import { ExamExercise, ExamSubQuestion } from "@/lib/examTypes";
 import { normalizeAnswer } from "@/lib/teacherContentAttempt";
@@ -19,6 +20,26 @@ interface ExamViewerProps {
   onChange?: (exercises: ExamExercise[]) => void;
   /** "student" only : durée de l'examen, alimente le compte à rebours. */
   durationMinutes?: number;
+  /** Affiche le bouton "Exporter en PDF" (titre de l'examen requis). */
+  examTitle?: string;
+}
+
+function stripHtml(value: string): string {
+  return (value || "").replace(/<[^>]*>/g, "");
+}
+
+function buildExamExportHtml(exercises: ExamExercise[]): string {
+  return exercises.map((ex, i) => {
+    const subQ = Array.isArray(ex.sub_questions) && ex.sub_questions.length >= 2 ? ex.sub_questions : null;
+    const questionsHtml = subQ
+      ? subQ.map((sq, j) => `<p style="white-space:pre-wrap">${i + 1}.${j + 1}. ${stripHtml(sq.question)}</p>`).join("")
+      : `<p style="white-space:pre-wrap">${stripHtml(ex.statement)}</p>`;
+    return `
+      <h3>Exercice ${i + 1}${ex.chapter_title ? ` — ${stripHtml(ex.chapter_title)}` : ""}</h3>
+      ${subQ && ex.statement ? `<p style="white-space:pre-wrap;color:#555">${stripHtml(ex.statement)}</p>` : ""}
+      ${questionsHtml}
+    `;
+  }).join("<hr style=\"margin:20px 0;border:none;border-top:1px solid #ddd\"/>");
 }
 
 /** Rend un énoncé/solution qu'il soit du texte brut avec LaTeX ($...$) ou du
@@ -112,7 +133,7 @@ function makeAnswerGrid(exercises: ExamExercise[]): string[][] {
  *    aucune zone de réponse — rien à insérer, juste la consultation.
  *  - "edit" : le pédago modifie chaque exercice, soit directement (aperçu
  *    du rendu en direct), soit via le LaTeX brut. */
-export default function ExamViewer({ exercises, mode, onChange, durationMinutes }: ExamViewerProps) {
+export default function ExamViewer({ exercises, mode, onChange, durationMinutes, examTitle }: ExamViewerProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editStyle, setEditStyle] = useState<"direct" | "latex">("direct");
   const [answers, setAnswers] = useState<string[][]>(() => makeAnswerGrid(exercises));
@@ -188,6 +209,11 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes 
 
   return (
     <div className="space-y-4">
+      {examTitle && (
+        <div className="flex justify-end">
+          <ExportPDFButton chapterTitle={examTitle} content={buildExamExportHtml(exercises)} />
+        </div>
+      )}
       {mode === "student" && durationMinutes ? (
         <CountdownTimer durationMinutes={durationMinutes} frozen={submitted} onExpire={handleSubmit} />
       ) : null}

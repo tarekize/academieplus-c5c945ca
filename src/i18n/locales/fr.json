@@ -384,6 +384,7 @@
     "pdfDownloaded": "PDF téléchargé",
     "pdfDownloadedDesc": "Le chapitre a été téléchargé avec succès",
     "pdfError": "Impossible de générer le PDF",
+    "exportPdf": "Exporter en PDF",
     "courseUnavailable": "Cours non disponible",
     "courseUnavailableDesc": "Aucun cours n'est disponible pour cette matière et ce niveau.",
     "backToCourseList": "Retour à la liste des cours",
