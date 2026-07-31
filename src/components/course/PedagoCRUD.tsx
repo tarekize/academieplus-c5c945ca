@@ -251,7 +251,12 @@ interface DeleteItemButtonProps {
 function DeleteItemButton({ itemType, itemId, onDeleted, status, deletionRequested, isAdmin, onLogActivity }: DeleteItemButtonProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+  const [reason, setReason] = useState("");
   const isChapter = itemType === "chapter";
+  // Un pédago qui supprime un élément publié n'efface rien tout de suite :
+  // sa demande part en attente de décision admin, avec un motif obligatoire
+  // pour que l'admin comprenne pourquoi (voir request_item_deletion).
+  const needsReason = status === "approved" && !isAdmin;
   const labels = isChapter ? {
     aria: t("pedagoCRUD.chapter.deleteAria"),
     confirmTitle: t("pedagoCRUD.chapter.deleteConfirmTitle"),
@@ -311,12 +316,17 @@ function DeleteItemButton({ itemType, itemId, onDeleted, status, deletionRequest
   }
 
   const handleDelete = async () => {
+    if (needsReason && !reason.trim()) {
+      toast.error(t("pedagoCRUD.deletion.reasonRequired"));
+      return;
+    }
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc("request_item_deletion" as any, { p_item_type: itemType, p_item_id: itemId });
+      const { data, error } = await supabase.rpc("request_item_deletion" as any, { p_item_type: itemType, p_item_id: itemId, p_reason: reason.trim() || null });
       if (error) throw error;
       onLogActivity?.();
       toast.success(data === false ? t("pedagoCRUD.deletion.requestSent") : t(isChapter ? "pedagoCRUD.chapter.deleteSuccess" : "pedagoCRUD.lesson.deleteSuccess"));
+      setReason("");
       onDeleted();
     } catch (error: any) {
       toast.error(error.message || labels.error);
@@ -326,7 +336,7 @@ function DeleteItemButton({ itemType, itemId, onDeleted, status, deletionRequest
   };
 
   return (
-    <AlertDialog>
+    <AlertDialog onOpenChange={(open) => { if (!open) setReason(""); }}>
       <AlertDialogTrigger asChild>
         <Button variant="ghost" size="icon" className={cn("h-8 w-8 text-destructive hover:text-destructive", !isChapter && "h-7 w-7")} aria-label={labels.aria}>
           <Trash2 className={cn("h-4 w-4", !isChapter && "h-3 w-3")} />
@@ -335,16 +345,33 @@ function DeleteItemButton({ itemType, itemId, onDeleted, status, deletionRequest
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{labels.confirmTitle}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {labels.confirmDescription}
-            {status === "approved" && !isAdmin && (
-              <span className="block mt-2 font-medium text-foreground">{t("pedagoCRUD.deletion.needsValidationNotice")}</span>
-            )}
+          <AlertDialogDescription asChild>
+            <div>
+              {labels.confirmDescription}
+              {needsReason && (
+                <span className="block mt-2 font-medium text-foreground">{t("pedagoCRUD.deletion.needsValidationNotice")}</span>
+              )}
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
+        {needsReason && (
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">{t("pedagoCRUD.deletion.reasonLabel")}</label>
+            <Textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder={t("pedagoCRUD.deletion.reasonPlaceholder")}
+              rows={3}
+            />
+          </div>
+        )}
         <AlertDialogFooter>
           <AlertDialogCancel>{t("app.cancel")}</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete} disabled={loading} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+          <AlertDialogAction
+            onClick={handleDelete}
+            disabled={loading || (needsReason && !reason.trim())}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("app.delete")}
           </AlertDialogAction>
         </AlertDialogFooter>

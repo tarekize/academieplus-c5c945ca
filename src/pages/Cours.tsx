@@ -604,15 +604,17 @@ const Cours = () => {
                       {t("cours.backToLevels")}
                     </Button>
                   )}
-                  <Button
-                    variant="outline"
-                    className="relative rounded-full gap-2 border-accent/30 bg-accent/5 text-accent hover:bg-accent hover:text-accent-foreground hover:border-accent hover:shadow-lg hover:shadow-accent/25 active:scale-95 transition-all duration-300"
-                    onClick={() => navigate(`/exams?niveau=${schoolLevel}&subject=${subjectId || "math"}${adminFiliere ? `&filiere=${adminFiliere}` : ''}`)}
-                  >
-                    <TeacherContentRedDot show={!canManage && hasUnreadExam(schoolLevel, subjectId || "math")} className="-top-1 -right-1" />
-                    <FileText className="h-4 w-4" />
-                    {t("cours.exams")}
-                  </Button>
+                  {!canManage && (
+                    <Button
+                      variant="outline"
+                      className="relative rounded-full gap-2 border-accent/30 bg-accent/5 text-accent hover:bg-accent hover:text-accent-foreground hover:border-accent hover:shadow-lg hover:shadow-accent/25 active:scale-95 transition-all duration-300"
+                      onClick={() => navigate(`/exams?niveau=${schoolLevel}&subject=${subjectId || "math"}${adminFiliere ? `&filiere=${adminFiliere}` : ''}`)}
+                    >
+                      <TeacherContentRedDot show={hasUnreadExam(schoolLevel, subjectId || "math")} className="-top-1 -right-1" />
+                      <FileText className="h-4 w-4" />
+                      {t("cours.exams")}
+                    </Button>
+                  )}
                 </div>
               </div>
               <div className="relative">

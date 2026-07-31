@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { History, Plus, Pencil, Trash2, Loader2, BookOpen, FileText, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { AppHeader } from "@/components/layout/AppHeader";
 
 type ActivityAction = "create" | "update" | "delete";
-type EntityType = "chapter" | "lesson" | "lesson_content";
+type EntityType = "chapter" | "lesson" | "lesson_content" | "exam";
 /** 'immediate' : titre/description, jamais gaté (toujours appliqué). 'deleted' :
  * l'élément n'existe plus (suppression confirmée). 'superseded' : version de
  * contenu remplacée par une soumission plus récente. */
@@ -19,6 +20,7 @@ interface ActivityRow {
   id: string;
   action: ActivityAction;
   entity_type: EntityType;
+  entity_id: string | null;
   entity_title: string | null;
   chapter_id: string | null;
   chapter_title: string | null;
@@ -38,6 +40,7 @@ const ENTITY_TYPE_LABEL: Record<EntityType, string> = {
   chapter: "Chapitre",
   lesson: "Leçon",
   lesson_content: "Contenu de leçon",
+  exam: "Examen",
 };
 
 /** Combine l'action ("Ajout"/"Modification"/"Suppression") au statut de
@@ -107,12 +110,29 @@ export default function PedagoActivity() {
               const schoolLevel = row.school_level;
               const badge = reviewBadge(row.action, row.review_status);
               const BadgeIcon = badge?.icon;
+              // Une modification de contenu de leçon refusée par l'admin peut être
+              // corrigée : l'icône crayon devient cliquable et redirige vers la
+              // leçon concernée, où le motif du refus est déjà affiché.
+              const isFixableRejection = row.entity_type === "lesson_content" && row.review_status === "rejected" && row.entity_id;
               return (
                 <Card key={row.id} className="border-0 shadow-md">
                   <CardContent className="p-4 flex items-center gap-4">
-                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${actionMeta.color}`}>
-                      <ActionIcon className="h-5 w-5" />
-                    </div>
+                    {isFixableRejection ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-10 w-10 rounded-xl shrink-0 ${actionMeta.color} hover:opacity-80`}
+                        onClick={() => navigate(`/lecon/${row.entity_id}`)}
+                        aria-label="Corriger cette modification refusée"
+                        title="Corriger cette modification refusée"
+                      >
+                        <ActionIcon className="h-5 w-5" />
+                      </Button>
+                    ) : (
+                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${actionMeta.color}`}>
+                        <ActionIcon className="h-5 w-5" />
+                      </div>
+                    )}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant="secondary">{actionMeta.label}</Badge>

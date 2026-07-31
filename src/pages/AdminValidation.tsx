@@ -11,8 +11,9 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ExpandableText } from "@/components/ui/expandable-text";
+import { TRIMESTER_LABELS } from "@/lib/examTypes";
 
-type ItemType = "chapter" | "lesson" | "lesson_creation" | "exercise" | "quiz" | "chapter_deletion" | "lesson_deletion";
+type ItemType = "chapter" | "lesson" | "lesson_creation" | "exercise" | "quiz" | "chapter_deletion" | "lesson_deletion" | "exam";
 
 interface PendingItem {
   id: string;
@@ -30,6 +31,8 @@ interface PendingItem {
   lesson_title: string | null;
   submitted_by_name: string | null;
   submitted_at: string | null;
+  deletion_reason: string | null;
+  trimester: number | null;
 }
 
 interface HistoryItem extends PendingItem {
@@ -47,6 +50,7 @@ const ITEM_TYPE_META: Record<ItemType, { label: string; icon: typeof BookOpen; c
   quiz: { label: "Quiz", icon: Brain, color: "bg-emerald-500/10 text-emerald-600" },
   chapter_deletion: { label: "Suppression de chapitre", icon: Trash2, color: "bg-red-500/10 text-red-600" },
   lesson_deletion: { label: "Suppression de leçon", icon: Trash2, color: "bg-orange-500/10 text-orange-600" },
+  exam: { label: "Examen", icon: FileText, color: "bg-rose-500/10 text-rose-600" },
 };
 
 export default function AdminValidation() {
@@ -91,6 +95,12 @@ export default function AdminValidation() {
     // chapitre qu'on s'apprête peut-être à supprimer) — le chapitre visé y
     // est entouré en rouge (chapter.deletionRequested).
     if (item.item_type === "chapter_deletion") return `/cours/${item.subject}/${item.school_level}/chapitres${filiereQs}`;
+    if (item.item_type === "exam") {
+      const params = new URLSearchParams({ subject: item.subject, niveau: item.school_level });
+      if (item.filiere_code) params.set("filiere", item.filiere_code);
+      if (item.trimester) params.set("trimester", String(item.trimester));
+      return `/admin/examens?${params.toString()}`;
+    }
     return `/cours/${item.subject}/${item.school_level}/chapitres/${item.chapter_id}/lecons${filiereQs}`;
   };
 
@@ -157,8 +167,15 @@ export default function AdminValidation() {
                           <p className="text-xs text-muted-foreground truncate">
                             {item.subject} · {item.school_level}
                             {item.filiere_name ? ` · ${item.filiere_name}` : ""}
-                            {!(["chapter","lesson_creation","chapter_deletion"] as ItemType[]).includes(item.item_type) ? ` · ${item.chapter_title}` : ""}
+                            {!(["chapter","lesson_creation","chapter_deletion","exam"] as ItemType[]).includes(item.item_type) ? ` · ${item.chapter_title}` : ""}
+                            {item.item_type === "exam" && item.trimester ? ` · ${TRIMESTER_LABELS[item.trimester]}` : ""}
                           </p>
+                          {(item.item_type === "chapter_deletion" || item.item_type === "lesson_deletion") && item.deletion_reason && (
+                            <ExpandableText
+                              text={`Motif : « ${item.deletion_reason} »`}
+                              className="text-xs text-destructive mt-1"
+                            />
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-3">
@@ -218,7 +235,8 @@ export default function AdminValidation() {
                         <p className="text-xs text-muted-foreground truncate">
                           {item.subject} · {item.school_level}
                           {item.filiere_name ? ` · ${item.filiere_name}` : ""}
-                          {!(["chapter","lesson_creation","chapter_deletion"] as ItemType[]).includes(item.item_type) ? ` · ${item.chapter_title}` : ""}
+                          {!(["chapter","lesson_creation","chapter_deletion","exam"] as ItemType[]).includes(item.item_type) ? ` · ${item.chapter_title}` : ""}
+                          {item.item_type === "exam" && item.trimester ? ` · ${TRIMESTER_LABELS[item.trimester]}` : ""}
                         </p>
                         {!approved && item.rejection_reason && (
                           <ExpandableText

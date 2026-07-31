@@ -456,6 +456,9 @@
     "validationDesc": "الفصول والدروس والتمارين المرسلة من طرف المربّين التربويين",
     "activity": "نشاطي",
     "activityDesc": "سجلّ الإضافات والتعديلات والحذف التي قمت بها",
+    "exams": "الاختبارات",
+    "examsDescPedago": "أنشئ الاختبارات حسب المادة والمستوى/الشعبة",
+    "examsDescAdmin": "عرض والمصادقة على الاختبارات المرسلة من المربّين التربويين",
     "viewCourses": "عرض الدروس",
     "viewCoursesDesc": "اطّلع على الدروس حسب المستوى",
     "myCourses": "دروسي",
@@ -510,7 +513,10 @@
       "approveAria": "تأكيد الحذف",
       "rejectAria": "إلغاء طلب الحذف",
       "approveSuccess": "تم تأكيد الحذف",
-      "rejectSuccess": "تم إلغاء طلب الحذف"
+      "rejectSuccess": "تم إلغاء طلب الحذف",
+      "reasonLabel": "سبب الحذف (إلزامي)",
+      "reasonPlaceholder": "اشرح سبب وجوب حذف هذا العنصر...",
+      "reasonRequired": "يرجى تحديد سبب الحذف."
     }
   },
   "quizExerciseCRUD": {

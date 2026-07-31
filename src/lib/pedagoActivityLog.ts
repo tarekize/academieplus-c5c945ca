@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export type PedagoActivityAction = "create" | "update" | "delete";
-export type PedagoActivityEntityType = "chapter" | "lesson" | "lesson_content";
+export type PedagoActivityEntityType = "chapter" | "lesson" | "lesson_content" | "exam";
 
 interface LogPedagoActivityParams {
   action: PedagoActivityAction;

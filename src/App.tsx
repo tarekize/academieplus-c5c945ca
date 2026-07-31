@@ -27,6 +27,8 @@ const AdminContrats = lazy(() => import("./pages/AdminContrats"));
 const AdminNotifications = lazy(() => import("./pages/AdminNotifications"));
 const AdminValidation = lazy(() => import("./pages/AdminValidation"));
 const PedagoActivity = lazy(() => import("./pages/PedagoActivity"));
+const PedagoExams = lazy(() => import("./pages/PedagoExams"));
+const AdminExams = lazy(() => import("./pages/AdminExams"));
 const AdminTokenUsage = lazy(() => import("./pages/AdminTokenUsage"));
 const Factures = lazy(() => import("./pages/Factures"));
 const MesInformations = lazy(() => import("./pages/MesInformations"));
@@ -156,6 +158,16 @@ const App = () => (
               <Route path="/pedago/activite" element={
                 <ProtectedRoute allowedRoles={['pedago']}>
                   <PedagoActivity />
+                </ProtectedRoute>
+              } />
+              <Route path="/pedago/examens" element={
+                <ProtectedRoute allowedRoles={['pedago']}>
+                  <PedagoExams />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/examens" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminExams />
                 </ProtectedRoute>
               } />
               <Route path="/rejoindre/:code" element={<JoinClass />} />

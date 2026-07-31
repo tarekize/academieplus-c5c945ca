@@ -153,6 +153,7 @@ const ExamList = () => {
       .eq("school_level", niveau)
       .eq("trimester", trimester)
       .eq("subject", subject)
+      .eq("status", "approved")
       .order("created_at", { ascending: false });
 
     if (!error && data) {
@@ -176,15 +177,13 @@ const ExamList = () => {
     }
   };
 
+  // La création/édition directe d'examens (dialogues manuel/IA ci-dessous)
+  // est remplacée par le nouveau module Examens (grille matière x
+  // niveau/filière, /pedago/examens et /admin/examens, avec validation
+  // admin). Cette page reste la vue "élève" pour tout le monde, y compris
+  // pédago/admin qui souhaiteraient prévisualiser un examen validé.
   const checkRole = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
-    const r = roles?.map((x) => x.role) || [];
-    setCanManage(r.includes("admin") || r.includes("pedago"));
+    setCanManage(false);
   };
 
   const fetchTeacherExams = async () => {

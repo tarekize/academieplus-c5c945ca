@@ -450,6 +450,9 @@
     "validationDesc": "Chapitres, leçons et exercices envoyés par les pédagogues",
     "activity": "Mon activité",
     "activityDesc": "Historique de vos ajouts, modifications et suppressions",
+    "exams": "Examens",
+    "examsDescPedago": "Créez les examens par matière et niveau/filière",
+    "examsDescAdmin": "Visualisez et validez les examens envoyés par les pédagogues",
     "viewCourses": "Voir les Cours",
     "viewCoursesDesc": "Consultez les cours par niveau",
     "myCourses": "Mes Cours",
@@ -504,7 +507,10 @@
       "approveAria": "Confirmer la suppression",
       "rejectAria": "Annuler la demande de suppression",
       "approveSuccess": "Suppression confirmée",
-      "rejectSuccess": "Demande de suppression annulée"
+      "rejectSuccess": "Demande de suppression annulée",
+      "reasonLabel": "Motif de la suppression (obligatoire)",
+      "reasonPlaceholder": "Expliquez pourquoi cet élément doit être supprimé...",
+      "reasonRequired": "Merci de préciser un motif de suppression."
     }
   },
   "quizExerciseCRUD": {

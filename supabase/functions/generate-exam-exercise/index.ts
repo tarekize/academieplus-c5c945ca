@@ -101,7 +101,7 @@ serve(async (req) => {
   }
 
   try {
-    const { chapter_id, difficulty } = await req.json();
+    const { chapter_id, difficulty, instructions } = await req.json();
 
     if (!chapter_id) {
       return new Response(
@@ -190,6 +190,7 @@ serve(async (req) => {
 شروط مهمة:
 - جميع النصوص بالعربية.
 - التمرين يجب أن يكون مناسباً لمستوى الصعوبة "${diffLabel}" ومطابقاً لبرنامج فصل "${chapterTitle}" فقط.
+${typeof instructions === "string" && instructions.trim() ? `- تعليمات إضافية من الأستاذ (يجب إتباعها بدقة) : ${instructions.trim()}\n` : ""}
 
 FORMAT MATHÉMATIQUE OBLIGATOIRE : TOUTES les expressions mathématiques (variables, fonctions, fractions, puissances, indices, limites, racines, symboles ∞, ≤, ≥, ≠, ±, →, etc.) DOIVENT être écrites en LaTeX entre délimiteurs $...$ (ou $$...$$ pour les formules isolées) pour le rendu KaTeX.
 - الكسور: \\frac{a}{b} (ممنوع كتابتها a/b).

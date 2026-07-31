@@ -183,17 +183,36 @@ const Dashboard = () => {
                       onClick={() => navigate("/admin/validation")}
                       showDot={hasPendingValidation}
                     />
+                    <DashboardTile
+                      icon={FileText}
+                      iconBg="bg-rose-500/10"
+                      iconText="text-rose-600"
+                      title={t("dashboard.exams")}
+                      description={t("dashboard.examsDescAdmin")}
+                      onClick={() => navigate("/admin/examens")}
+                      showDot={hasPendingValidation}
+                    />
                   </>
                 )}
                 {isPedago && (
-                  <DashboardTile
-                    icon={History}
-                    iconBg="bg-amber/10"
-                    iconText="text-amber"
-                    title={t("dashboard.activity")}
-                    description={t("dashboard.activityDesc")}
-                    onClick={() => navigate("/pedago/activite")}
-                  />
+                  <>
+                    <DashboardTile
+                      icon={FileText}
+                      iconBg="bg-rose-500/10"
+                      iconText="text-rose-600"
+                      title={t("dashboard.exams")}
+                      description={t("dashboard.examsDescPedago")}
+                      onClick={() => navigate("/pedago/examens")}
+                    />
+                    <DashboardTile
+                      icon={History}
+                      iconBg="bg-amber/10"
+                      iconText="text-amber"
+                      title={t("dashboard.activity")}
+                      description={t("dashboard.activityDesc")}
+                      onClick={() => navigate("/pedago/activite")}
+                    />
+                  </>
                 )}
                 <DashboardTile
                   icon={GraduationCap}
