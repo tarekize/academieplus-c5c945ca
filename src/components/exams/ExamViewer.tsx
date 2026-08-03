@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, Eye, Trash2, Plus, Code2, PenLine, Clock, Send, CheckCircle2, XCircle, BookOpen, ChevronDown } from "lucide-react";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import { ExportPDFButton } from "@/components/course/ExportPDFButton";
+import { MathKeyboard } from "@/components/course/MathKeyboard";
 import { cleanMathStatement } from "@/lib/mathStatement";
 import { ExamExercise, ExamSubQuestion } from "@/lib/examTypes";
 import { normalizeAnswer } from "@/lib/teacherContentAttempt";
@@ -130,6 +131,25 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
 
   const setAnswer = (exIdx: number, subIdx: number, value: string) => {
     setAnswers((prev) => prev.map((row, i) => (i === exIdx ? row.map((a, j) => (j === subIdx ? value : a)) : row)));
+  };
+
+  /** Insère un symbole à la position du curseur dans le champ de réponse
+   * (au lieu de simplement l'ajouter à la fin), comme dans ChapterMathExercises. */
+  const insertAtCursor = (elementId: string, current: string, symbol: string, apply: (value: string) => void) => {
+    const el = document.getElementById(elementId) as HTMLTextAreaElement | null;
+    if (el) {
+      const start = el.selectionStart ?? current.length;
+      const end = el.selectionEnd ?? current.length;
+      const next = current.slice(0, start) + symbol + current.slice(end);
+      apply(next);
+      requestAnimationFrame(() => {
+        el.focus();
+        const pos = start + symbol.length;
+        el.setSelectionRange(pos, pos);
+      });
+    } else {
+      apply(current + symbol);
+    }
   };
 
   const update = (index: number, field: keyof ExamExercise, value: string) => {
@@ -338,13 +358,22 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
                             )}
                           </div>
                           {mode === "student" && (
-                            <Textarea
-                              rows={2}
-                              placeholder={`Réponse à la question ${j + 1}...`}
-                              value={answers[idx]?.[j] || ""}
-                              disabled={submitted}
-                              onChange={(e) => setAnswer(idx, j, e.target.value)}
-                            />
+                            <div className="flex gap-2 items-start">
+                              <Textarea
+                                id={`exam-answer-${idx}-${j}`}
+                                rows={2}
+                                placeholder={`Réponse à la question ${j + 1}...`}
+                                value={answers[idx]?.[j] || ""}
+                                disabled={submitted}
+                                onChange={(e) => setAnswer(idx, j, e.target.value)}
+                                className="flex-1"
+                              />
+                              {!submitted && (
+                                <MathKeyboard
+                                  onInsert={(sym) => insertAtCursor(`exam-answer-${idx}-${j}`, answers[idx]?.[j] || "", sym, (v) => setAnswer(idx, j, v))}
+                                />
+                              )}
+                            </div>
                           )}
                           {mode === "student" && submitted && sq.expected_answer && (
                             <p className="text-xs text-muted-foreground">Réponse attendue : <MathText text={sq.expected_answer} /></p>
@@ -355,13 +384,22 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
                   </div>
                 ) : (
                   mode === "student" && (
-                    <Textarea
-                      rows={2}
-                      placeholder="Votre réponse..."
-                      value={answers[idx]?.[0] || ""}
-                      disabled={submitted}
-                      onChange={(e) => setAnswer(idx, 0, e.target.value)}
-                    />
+                    <div className="flex gap-2 items-start">
+                      <Textarea
+                        id={`exam-answer-${idx}-0`}
+                        rows={2}
+                        placeholder="Votre réponse..."
+                        value={answers[idx]?.[0] || ""}
+                        disabled={submitted}
+                        onChange={(e) => setAnswer(idx, 0, e.target.value)}
+                        className="flex-1"
+                      />
+                      {!submitted && (
+                        <MathKeyboard
+                          onInsert={(sym) => insertAtCursor(`exam-answer-${idx}-0`, answers[idx]?.[0] || "", sym, (v) => setAnswer(idx, 0, v))}
+                        />
+                      )}
+                    </div>
                   )
                 )}
 
