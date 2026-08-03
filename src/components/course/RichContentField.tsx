@@ -36,7 +36,7 @@ export default function RichContentField({
           {latexMode ? "Édition directe" : "Édition LaTeX"}
         </Button>
       </div>
-      <div className="border rounded-md overflow-hidden" style={{ minHeight }} dir="ltr">
+      <div className="border rounded-md overflow-hidden" style={{ minHeight }} dir="auto">
         {latexMode ? (
           <LessonSourceEditor content={value} onChange={onChange} />
         ) : (

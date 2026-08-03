@@ -154,6 +154,25 @@ serve(async (req) => {
       );
     }
 
+    // --- Rate limiting : cette fonction consomme un quota IA payant.
+    const rateLimitClient = createClient(supabaseUrlAuth, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data: rateLimitAllowed, error: rateLimitError } = await rateLimitClient.rpc("check_and_log_rate_limit", {
+      p_user_id: caller.id,
+      p_action: "generate_chapter_revision",
+      p_window_seconds: 60,
+      p_max_requests: 15,
+    });
+    if (rateLimitError) {
+      console.error("Rate limit check failed:", rateLimitError);
+    } else if (!rateLimitAllowed) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Trop de requêtes. Merci de patienter quelques instants." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { chapterTitle, lessons } = await req.json();
     if (!chapterTitle || !Array.isArray(lessons)) {
       return new Response(
@@ -173,7 +192,7 @@ serve(async (req) => {
     const systemPrompt = `أنت معلم رياضيات جزائري خبير. مهمتك إنشاء بطاقة مراجعة شاملة (fiche de révision) لفصل كامل، على شكل مخطط تخطيطي توضيحي (schéma explicatif) منظّم، باللغة العربية، يغطي كل دروس الفصل من البداية إلى النهاية.
 
 قواعد الإخراج (مهم جدا):
-- أخرج Markdown فقط (بدون \`\`\` ولا JSON).
+- أخرج Markdown فقط (بدون blocs de code ولا JSON).
 - استعمل LaTeX داخل $...$ أو $$...$$ للصيغ الرياضية.
 - استعمل العناوين والرموز التوضيحية: 🎯 📌 🔑 ⚡ ✅ 💡 ➡️ 📊
 - ابدأ بعنوان رئيسي # ثم خريطة ذهنية مبسطة بين الدروس (مع أسهم ➡️).

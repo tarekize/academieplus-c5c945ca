@@ -1,7 +1,7 @@
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, CreditCard, GraduationCap, LogOut, User as UserIcon, Shield, Lock, CheckCircle, Copy } from "lucide-react";
+import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, Shield, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -49,7 +49,6 @@ const Paiement = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [generatedCodes, setGeneratedCodes] = useState<string[]>([]);
   const [paymentDone, setPaymentDone] = useState(false);
 
   useEffect(() => {
@@ -117,21 +116,13 @@ const Paiement = () => {
       if (error) throw new Error(error.message || 'Payment failed');
       if (data?.error) throw new Error(data.error);
 
-      setGeneratedCodes(data.codes || []);
       setPaymentDone(true);
-
-      const codeCount = data.codes?.length || 1;
-      toast.success("Paiement effectué !", { description: `${codeCount} code(s) d'activation généré(s).` });
+      toast.success("Demande envoyée !", { description: data?.message || "Votre demande est en attente de vérification." });
     } catch (err: any) {
       toast.error("Erreur", { description: err.message });
     } finally {
       setProcessing(false);
     }
-  };
-
-  const copyCode = (code: string) => {
-    navigator.clipboard.writeText(code);
-    toast.success("Code copié !", { description: code });
   };
 
   const getBillingDetails = () => {
@@ -193,8 +184,12 @@ const Paiement = () => {
 
   const fullName = getFullName(profile);
 
-  // Payment success view with codes
-  if (paymentDone && generatedCodes.length > 0) {
+  // Vue de confirmation : la demande est enregistrée, en attente de
+  // vérification manuelle du paiement par un administrateur (aucune
+  // passerelle de paiement réelle n'est intégrée à ce jour — voir
+  // record-payment). Les codes d'activation ne sont émis qu'après cette
+  // vérification, via admin_approve_payment.
+  if (paymentDone) {
     return (
       <div className="min-h-screen pro-shell">
         <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
@@ -214,24 +209,11 @@ const Paiement = () => {
           <div className="container mx-auto px-4 max-w-lg">
             <Card className="p-8 text-center">
               <CheckCircle className="h-16 w-16 text-mint mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-foreground mb-2">Paiement réussi !</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-2">Demande envoyée !</h1>
               <p className="text-muted-foreground mb-6">
-                Voici {generatedCodes.length > 1 ? "vos codes" : "votre code"} d'activation à transmettre à {generatedCodes.length > 1 ? "vos enfants" : "votre enfant"} :
-              </p>
-
-              <div className="space-y-3 mb-6">
-                {generatedCodes.map((code, i) => (
-                  <div key={i} className="flex items-center justify-between bg-secondary/50 rounded-lg px-4 py-3">
-                    <span className="font-mono text-lg font-bold tracking-widest text-foreground">{code}</span>
-                    <Button variant="ghost" size="sm" onClick={() => copyCode(code)}>
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-
-              <p className="text-sm text-muted-foreground mb-6">
-                Vous pouvez retrouver vos codes à tout moment dans la section "Mes Codes" de la page Abonnements.
+                Votre demande d'abonnement a été enregistrée. Une fois votre paiement vérifié par notre
+                équipe, vos codes d'activation seront disponibles dans la section "Mes Codes" de la page
+                Abonnements.
               </p>
 
               <div className="flex gap-3">
@@ -314,34 +296,13 @@ const Paiement = () => {
 
               <div className="space-y-6">
                 <h2 className="text-xl font-bold text-foreground">Paiement</h2>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 border-2 border-primary rounded-lg px-4 py-2.5">
-                    <CreditCard className="h-5 w-5 text-primary" />
-                    <span className="text-sm font-semibold text-foreground">CIB / EDAHABIA</span>
-                  </div>
-                  <div className="flex items-center gap-2 border rounded-lg px-4 py-2.5 text-muted-foreground">
-                    <span className="text-sm font-medium">Virement bancaire</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="relative">
-                    <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input id="cardNumber" placeholder="1234 1234 1234 1234" className="pl-11 h-12 text-base" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Input id="expiry" placeholder="MM / AA" className="h-12 text-base" />
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="cvv" placeholder="CVC" className="pl-10 h-12 text-base" />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground text-sm bg-accent/10 rounded-lg p-3">
                   <Shield className="h-4 w-4 flex-shrink-0" />
-                  <span>Hébergement entièrement sécurisé. AcadémiePlus n'enregistre pas votre moyen de paiement.</span>
+                  <span>
+                    Le paiement en ligne par carte n'est pas encore disponible. Votre demande d'abonnement
+                    sera enregistrée puis vérifiée manuellement par notre équipe (virement, EDAHABIA...) avant
+                    l'émission de vos codes d'activation.
+                  </span>
                 </div>
 
                 <Button
@@ -350,7 +311,7 @@ const Paiement = () => {
                   disabled={processing}
                   onClick={handlePayment}
                 >
-                  {processing ? "Traitement..." : `Payer ${paymentInfo.price.toLocaleString('fr-DZ')} DA`}
+                  {processing ? "Envoi..." : `Envoyer ma demande — ${paymentInfo.price.toLocaleString('fr-DZ')} DA`}
                 </Button>
 
                 <p className="text-xs text-muted-foreground leading-relaxed">

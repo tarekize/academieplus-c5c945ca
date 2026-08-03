@@ -62,6 +62,22 @@ Deno.serve(async (req) => {
       });
     }
 
+    // --- Rate limiting : cette fonction consomme un quota Gemini payant.
+    const { data: rateLimitAllowed, error: rateLimitError } = await supabase.rpc("check_and_log_rate_limit", {
+      p_user_id: parentId,
+      p_action: "generate_parent_report",
+      p_window_seconds: 60,
+      p_max_requests: 10,
+    });
+    if (rateLimitError) {
+      console.error("Rate limit check failed:", rateLimitError);
+    } else if (!rateLimitAllowed) {
+      return new Response(JSON.stringify({ error: "Trop de requêtes. Merci de patienter quelques instants." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json().catch(() => ({}));
     const childId: string | undefined = body?.child_id;
     if (!childId) {
