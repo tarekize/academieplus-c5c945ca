@@ -78,6 +78,25 @@ serve(async (req) => {
       });
     }
 
+    // --- Rate limiting : cette fonction consomme un quota IA payant (OpenRouter).
+    const rateLimitClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data: rateLimitAllowed, error: rateLimitError } = await rateLimitClient.rpc("check_and_log_rate_limit", {
+      p_user_id: user.id,
+      p_action: "generate_periodic_advice",
+      p_window_seconds: 60,
+      p_max_requests: 15,
+    });
+    if (rateLimitError) {
+      console.error("Rate limit check failed:", rateLimitError);
+    } else if (!rateLimitAllowed) {
+      return new Response(JSON.stringify({ error: "Trop de requêtes. Merci de patienter quelques instants.", success: false }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const { assessment_data, student_level, days_since_assessment } = body;
     const user_id = user.id; // toujours le compte authentifié, jamais celui du corps de la requête

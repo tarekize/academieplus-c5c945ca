@@ -51,8 +51,21 @@ const Auth = () => {
   const [consentDataProcessing, setConsentDataProcessing] = useState(false);
   const [consentTermsPrivacy, setConsentTermsPrivacy] = useState(false);
   const [consentParental, setConsentParental] = useState(false);
+  const [consentParentEmail, setConsentParentEmail] = useState("");
   const navigate = useNavigate();
   const hasNavigated = useRef(false);
+
+  // Âge précis (tient compte du mois/jour, pas seulement de l'année — une
+  // simple différence d'années surestime l'âge de jusqu'à 11 mois).
+  const calculateAge = (dob: Date): number => {
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   const hasCompletedPlacementAssessment = async (userId: string): Promise<boolean> => {
     const { data: scoreRows } = await supabase
@@ -234,6 +247,9 @@ const Auth = () => {
         if (needsFiliere && !filiere) {
           missingFields.push(classLevel === "Première" ? "Tronc commun" : "Filière");
         }
+        // Obligatoire : sans date de naissance, aucun contrôle d'âge (consentement
+        // parental <15 ans) n'est possible, ni côté client ni côté serveur.
+        if (!dateOfBirth) missingFields.push("Date de naissance");
       }
 
       if (missingFields.length > 0) {
@@ -249,10 +265,16 @@ const Auth = () => {
       }
 
       if (dateOfBirth) {
-        const age = new Date().getFullYear() - dateOfBirth.getFullYear();
-        if (age < 15 && !consentParental) {
-          toast.error("Le consentement parental est requis pour les utilisateurs de moins de 15 ans.");
-          return;
+        const age = calculateAge(dateOfBirth);
+        if (age < 15) {
+          if (!consentParental) {
+            toast.error("Le consentement parental est requis pour les utilisateurs de moins de 15 ans.");
+            return;
+          }
+          if (!consentParentEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(consentParentEmail)) {
+            toast.error("L'email d'un parent/tuteur est requis pour les utilisateurs de moins de 15 ans.");
+            return;
+          }
         }
       }
 
@@ -263,7 +285,7 @@ const Auth = () => {
       performSignUp(
         firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth,
         wilaya, ville, ecole, phone, establishmentCode,
-        { consentDataProcessing, consentTermsPrivacy, consentParental }
+        { consentDataProcessing, consentTermsPrivacy, consentParental, consentParentEmail }
       );
     } else {
       // LOGIN
@@ -320,7 +342,7 @@ const Auth = () => {
     ecole: string,
     phone: string,
     establishmentCode: string = "",
-    consents: { consentDataProcessing: boolean; consentTermsPrivacy: boolean; consentParental: boolean }
+    consents: { consentDataProcessing: boolean; consentTermsPrivacy: boolean; consentParental: boolean; consentParentEmail: string }
   ) => {
     try {
       const schoolLevelMapping: Record<string, string> = {
@@ -342,6 +364,7 @@ const Auth = () => {
         consent_data_processing: consents.consentDataProcessing,
         consent_terms_privacy: consents.consentTermsPrivacy,
         consent_parental: consents.consentParental,
+        consent_parent_email: consents.consentParentEmail || undefined,
       };
 
       if (dateOfBirth) {
@@ -1003,20 +1026,35 @@ const Auth = () => {
                           </label>
                         </div>
 
-                        {dateOfBirth && new Date().getFullYear() - dateOfBirth.getFullYear() < 15 && (
-                          <div className="flex items-start space-x-3 bg-accent/10 p-3 rounded-lg">
-                            <Checkbox
-                              id="consentParental"
-                              checked={consentParental}
-                              onCheckedChange={(checked) => setConsentParental(checked as boolean)}
-                              className="mt-1"
-                            />
-                            <label
-                              htmlFor="consentParental"
-                              className="text-sm text-foreground cursor-pointer leading-relaxed"
-                            >
-                              <span className="text-red-500">*</span> Je certifie que mes parents/tuteurs légaux consentent à mon inscription et au traitement de mes données personnelles (requis pour les mineurs de moins de 15 ans)
-                            </label>
+                        {dateOfBirth && calculateAge(dateOfBirth) < 15 && (
+                          <div className="space-y-3 bg-accent/10 p-3 rounded-lg">
+                            <div className="flex items-start space-x-3">
+                              <Checkbox
+                                id="consentParental"
+                                checked={consentParental}
+                                onCheckedChange={(checked) => setConsentParental(checked as boolean)}
+                                className="mt-1"
+                              />
+                              <label
+                                htmlFor="consentParental"
+                                className="text-sm text-foreground cursor-pointer leading-relaxed"
+                              >
+                                <span className="text-red-500">*</span> Je certifie que mes parents/tuteurs légaux consentent à mon inscription et au traitement de mes données personnelles (requis pour les mineurs de moins de 15 ans)
+                              </label>
+                            </div>
+                            <div>
+                              <Label htmlFor="consentParentEmail" className="text-sm">
+                                <span className="text-red-500">*</span> Email d'un parent/tuteur (pour vérification)
+                              </Label>
+                              <Input
+                                id="consentParentEmail"
+                                type="email"
+                                value={consentParentEmail}
+                                onChange={(e) => setConsentParentEmail(e.target.value)}
+                                placeholder="email@parent.com"
+                                className="mt-1"
+                              />
+                            </div>
                           </div>
                         )}
 

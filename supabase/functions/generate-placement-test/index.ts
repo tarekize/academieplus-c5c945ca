@@ -82,6 +82,24 @@ serve(async (req) => {
       });
     }
 
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // --- Rate limiting : cette fonction consomme un quota IA payant (OpenRouter).
+    const { data: rateLimitAllowed, error: rateLimitError } = await supabase.rpc("check_and_log_rate_limit", {
+      p_user_id: user.id,
+      p_action: "generate_placement_test",
+      p_window_seconds: 60,
+      p_max_requests: 15,
+    });
+    if (rateLimitError) {
+      console.error("Rate limit check failed:", rateLimitError);
+    } else if (!rateLimitAllowed) {
+      return new Response(JSON.stringify({ error: "Trop de requêtes. Merci de patienter quelques instants.", success: false }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const { school_level, action, answers } = body;
 
@@ -89,8 +107,6 @@ serve(async (req) => {
 
     if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY n'est pas configurée");
     if (!school_level) throw new Error("school_level est requis");
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // ── GENERATE ──
     if (action === "generate") {

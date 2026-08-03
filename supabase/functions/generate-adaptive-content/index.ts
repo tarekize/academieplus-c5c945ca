@@ -236,65 +236,9 @@ function buildResponseSchema(contentType: string): Record<string, unknown> {
   };
 }
 
-// ============ Provider 1: Lovable AI ============
-async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<string> {
-  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
-
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.95,
-      max_tokens: 4096,
-    }),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("Lovable AI error:", response.status, errText);
-    throw new Error(`Lovable AI failed: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data?.choices?.[0]?.message?.content || "";
-}
-
-// ============ Provider 2: Google Gemini (Key 1) ============
-async function callGemini(systemPrompt: string, userPrompt: string): Promise<string> {
-  const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: { temperature: 0.95, topP: 0.95, maxOutputTokens: 4096 },
-    }),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("Gemini 1 error:", response.status, errText);
-    throw new Error(`Gemini 1 failed: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-}
-
-// ============ Provider 3: Google Gemini (Key 2) ============
+// ============ Google Gemini (Key 2) — seul provider réellement utilisé.
+// (Les anciens providers Lovable AI / Gemini clé 1 étaient définis mais
+// jamais appelés depuis le handler ci-dessous : code mort supprimé.)
 // gemini-2.0-flash was retired by Google (404 "no longer available"); try current
 // models in order instead of a single hardcoded one so a single retirement doesn't
 // take the whole feature down again.
@@ -381,6 +325,26 @@ serve(async (req) => {
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Non autorisé" }), {
         status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // --- Rate limiting : cette fonction consomme un quota Gemini payant.
+    // Sans cela, un compte authentifié pouvait boucler dessus sans limite. ---
+    const rateLimitClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data: rateLimitAllowed, error: rateLimitError } = await rateLimitClient.rpc("check_and_log_rate_limit", {
+      p_user_id: user.id,
+      p_action: "generate_adaptive_content",
+      p_window_seconds: 60,
+      p_max_requests: 15,
+    });
+    if (rateLimitError) {
+      console.error("Rate limit check failed:", rateLimitError);
+    } else if (!rateLimitAllowed) {
+      return new Response(JSON.stringify({ error: "Trop de requêtes. Merci de patienter quelques instants." }), {
+        status: 429,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
