@@ -93,6 +93,16 @@ Deno.serve(async (req) => {
 
   console.log('GDPR cleanup completed:', results);
 
+  // Observabilité : sans ceci, un échec de cette tâche planifiée ne serait
+  // visible que dans les logs Edge Function (jamais consultés en pratique).
+  if (hadError) {
+    await supabaseClient.from('error_logs').insert({
+      context: 'gdpr-cleanup',
+      message: 'Une ou plusieurs étapes de la purge RGPD ont échoué.',
+      metadata: results,
+    });
+  }
+
   return new Response(
     JSON.stringify(results, null, 2),
     {

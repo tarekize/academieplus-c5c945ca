@@ -41,15 +41,13 @@ type DocumentMode = 'present-improve' | 'present-replace' | 'absent-generate' | 
 
 const MAX_DOCUMENT_SIZE = 20 * 1024 * 1024;
 
-/** Extrait le texte brut d'un fichier Word (.docx) via mammoth, chargé à la
- * demande depuis un CDN ESM — évite d'alourdir le bundle pour un usage
- * ponctuel déclenché par l'utilisateur. Ne supporte pas l'ancien format .doc
- * (binaire, pas pris en charge par mammoth). */
+/** Extrait le texte brut d'un fichier Word (.docx) via mammoth, importé
+ * dynamiquement (code-splitting, évite d'alourdir le bundle pour un usage
+ * ponctuel) depuis la dépendance npm versionnée — plus de CDN au runtime.
+ * Ne supporte pas l'ancien format .doc (binaire, pas pris en charge par mammoth). */
 async function extractDocxText(file: File): Promise<string> {
     const arrayBuffer = await file.arrayBuffer();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mod: any = await import(/* @vite-ignore */ 'https://esm.sh/mammoth@1.12.0');
-    const mammoth = mod.extractRawText ? mod : mod.default;
+    const mammoth = await import('mammoth');
     const result = await mammoth.extractRawText({ arrayBuffer });
     return (result?.value || '').trim();
 }

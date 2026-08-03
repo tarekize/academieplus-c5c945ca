@@ -2,6 +2,7 @@ import { Component, ErrorInfo, ReactNode } from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
+import { logClientError } from "@/lib/errorLogger";
 
 interface Props extends WithTranslation {
   children: ReactNode;
@@ -20,6 +21,7 @@ class ErrorBoundaryBase extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught render error:", error, errorInfo);
+    logClientError("react_error_boundary", error, { componentStack: errorInfo.componentStack });
   }
 
   render() {
