@@ -6,6 +6,9 @@ const BodySchema = z.object({
   code: z.string().trim().min(4).max(20),
 });
 
+const MAX_ATTEMPTS = 10;
+const WINDOW_MINUTES = 15;
+
 // .ilike() traite % et _ comme des jokers SQL LIKE : sans échappement, un
 // élève soumettant par exemple "____" (4 underscores) fait chercher "une
 // classe dont le code fait exactement 4 caractères", au lieu du code exact
@@ -70,6 +73,25 @@ Deno.serve(async (req) => {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Rate limiting: too many code guesses from this student recently -> block.
+    // The join_code lookup is now joker-escaped (see escapeLikePattern above),
+    // but without a frequency cap it's still brute-forceable by scripted
+    // trial-and-error (cf. link-child-by-code, same pattern).
+    const { data: allowed, error: rateLimitError } = await admin.rpc("check_and_log_rate_limit", {
+      p_user_id: studentId,
+      p_action: "join_class_attempt",
+      p_window_seconds: WINDOW_MINUTES * 60,
+      p_max_requests: MAX_ATTEMPTS,
+    });
+    if (rateLimitError) {
+      console.error("Rate limit check failed:", rateLimitError);
+    } else if (!allowed) {
+      return new Response(
+        JSON.stringify({ error: "Trop de tentatives. Réessayez dans quelques minutes." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     // Find the class by its join code.
