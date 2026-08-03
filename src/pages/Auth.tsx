@@ -252,6 +252,13 @@ const Auth = () => {
         if (!dateOfBirth) missingFields.push("Date de naissance");
       }
 
+      // handle_new_user (trigger serveur) rejette toute inscription enseignant sans
+      // code d'établissement — sans ce contrôle, le formulaire laissait passer une
+      // inscription vouée à échouer avec une erreur Postgres peu claire.
+      if (profileType === 'enseignant' && !establishmentCode.trim()) {
+        missingFields.push("Code d'établissement");
+      }
+
       if (missingFields.length > 0) {
         toast.error(`Remplis les champs obligatoires suivants : ${missingFields.join(", ")}`);
         return;
@@ -859,6 +866,33 @@ const Auth = () => {
                           </div>
                         </RadioGroup>
                       </div>
+
+                      {profileType === "enseignant" && (
+                        <div className="space-y-2">
+                          <Label htmlFor="establishmentCode" className="text-foreground">
+                            Code d'établissement <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            id="establishmentCode"
+                            type="text"
+                            placeholder="Ex: ETB1234"
+                            value={establishmentCode}
+                            onChange={(e) => {
+                              setEstablishmentCode(e.target.value.toUpperCase());
+                              setTouched(prev => ({ ...prev, establishmentCode: true }));
+                            }}
+                            onBlur={() => setTouched(prev => ({ ...prev, establishmentCode: true }))}
+                            className={cn(
+                              "bg-secondary/20 font-mono tracking-widest uppercase",
+                              (submitted || touched.establishmentCode) && !establishmentCode.trim() ? "border-red-500 border-2" : "border-border"
+                            )}
+                            required
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Code fourni par ton établissement pour rattacher ton compte enseignant.
+                          </p>
+                        </div>
+                      )}
 
                       {profileType === "enfant" && (
                         <div className="space-y-4">
