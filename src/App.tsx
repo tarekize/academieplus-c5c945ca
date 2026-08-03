@@ -17,6 +17,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Auth = lazy(() => import("./pages/Auth"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const VerifyParentalConsent = lazy(() => import("./pages/VerifyParentalConsent"));
+const CompleteDateOfBirth = lazy(() => import("./pages/CompleteDateOfBirth"));
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ListeCours = lazy(() => import("./pages/ListeCours"));
@@ -94,6 +95,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/verify-parental-consent" element={<VerifyParentalConsent />} />
               <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
+              <Route path="/completer-naissance" element={<ProtectedRoute><CompleteDateOfBirth /></ProtectedRoute>} />
               <Route path="/learning-assessment" element={<ProtectedRoute allowedRoles={['student']}><LearningAssessment /></ProtectedRoute>} />
 
               <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['student', 'admin', 'pedago']}><Dashboard /></ProtectedRoute>} />

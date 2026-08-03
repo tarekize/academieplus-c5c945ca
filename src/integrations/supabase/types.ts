@@ -870,6 +870,39 @@ export type Database = {
           },
         ]
       }
+      error_logs: {
+        Row: {
+          context: string
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          stack: string | null
+          url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context: string
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          stack?: string | null
+          url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context?: string
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          stack?: string | null
+          url?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       establishments: {
         Row: {
           created_at: string
@@ -2850,6 +2883,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      submit_missing_date_of_birth: {
+        Args: { p_consent_parent_email?: string; p_date_of_birth: string }
+        Returns: undefined
       }
       trigger_gdpr_cleanup: { Args: never; Returns: undefined }
       trigger_scheduled_parent_reports: { Args: never; Returns: undefined }
