@@ -138,7 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTimeout(async () => {
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('is_active')
+            .select('is_active, date_of_birth')
             .eq('id', session.user.id)
             .maybeSingle();
 
@@ -170,6 +170,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Si pas de rôle et qu'on n'est pas déjà sur la page de complétion ou d'évaluation
           if (!roleData?.role && !currentPath.includes('/complete-profile') && !currentPath.includes('/auth') && !currentPath.includes('/learning-assessment')) {
             window.location.href = '/complete-profile';
+            return;
+          }
+
+          // Campagne de régularisation douce : un compte élève créé avant que
+          // date_of_birth ne devienne obligatoire à l'inscription (cf.
+          // 20260803090009) est invité une fois par connexion à la renseigner,
+          // sans jamais bloquer la navigation ("Plus tard" reste possible).
+          if (roleData?.role === 'student' && !profileData.date_of_birth &&
+            !currentPath.includes('/completer-naissance') && !currentPath.includes('/complete-profile') &&
+            !currentPath.includes('/auth') && !currentPath.includes('/learning-assessment')) {
+            window.location.href = '/completer-naissance';
             return;
           }
 
