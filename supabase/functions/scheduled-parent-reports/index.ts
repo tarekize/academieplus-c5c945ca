@@ -353,11 +353,24 @@ Deno.serve(async (req) => {
       }
     }
 
+    if (stats.errors > 0) {
+      await supabase.from("error_logs").insert({
+        context: "scheduled-parent-reports",
+        message: `${stats.errors} lien(s) parent-enfant en échec sur ${stats.processed} traités.`,
+        metadata: stats,
+      });
+    }
+
     return new Response(JSON.stringify({ ok: true, stats }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e: any) {
     console.error("scheduled-parent-reports fatal", e);
+    await supabase.from("error_logs").insert({
+      context: "scheduled-parent-reports",
+      message: e.message || String(e),
+      metadata: stats,
+    });
     return new Response(JSON.stringify({ error: e.message || String(e), stats }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

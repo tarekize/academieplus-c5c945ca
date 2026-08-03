@@ -5,7 +5,11 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  // supabase/functions/** tourne sur Deno (pas le navigateur) et a ses
+  // propres conventions runtime : cette config ESLint (globals.browser,
+  // règles React) ne le concerne pas — d'où ~800 faux positifs
+  // "no-explicit-any" avant ce correctif, jamais réellement traités.
+  { ignores: ["dist", "supabase/functions"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

@@ -40,8 +40,9 @@ export async function fileToDocumentParts(file: File): Promise<DocumentPart[]> {
 
   if (ext === "docx") {
     const arrayBuffer = await file.arrayBuffer();
-    const mod: any = await import(/* @vite-ignore */ "https://esm.sh/mammoth@1.12.0");
-    const mammoth = mod.extractRawText ? mod : mod.default;
+    // Import dynamique (code-splitting) d'une dépendance versionnée réelle —
+    // plus de chargement d'exécutable tiers depuis un CDN au runtime.
+    const mammoth = await import("mammoth");
     const result = await mammoth.extractRawText({ arrayBuffer });
     const text = (result?.value || "").trim();
     if (!text) throw new Error("Impossible d'extraire le texte de ce document Word.");
