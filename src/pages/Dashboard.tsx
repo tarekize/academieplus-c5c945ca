@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, GraduationCap, BarChart3, CreditCard, FileText, Cpu, Bell, ClipboardCheck, History } from "lucide-react";
+import {
+  Home, Users, GraduationCap, BarChart3, CreditCard, FileText, Cpu, Bell,
+  ClipboardCheck, History, BookOpen, UserRound,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
 import DashboardTile from "@/components/dashboard/DashboardTile";
-import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
-import { BottomNav } from "@/components/layout/BottomNav";
-import { AppHeader } from "@/components/layout/AppHeader";
+import { AppShell, type AppShellNavItem, type AppRole } from "@/components/layout/AppShell";
 import { WelcomeBanner } from "@/components/layout/WelcomeBanner";
 
 interface Profile {
@@ -92,143 +93,172 @@ const Dashboard = () => {
   const isStudent = roles.includes('student');
   const isPedago = roles.includes('pedago');
 
+  const role: AppRole = isAdmin ? "admin" : isPedago ? "pedago" : "student";
+  const initials = (fullName.match(/\S+/g) ?? [])
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("") || "U";
+
+  const navItems: AppShellNavItem[] = isAdmin
+    ? [
+        { label: t("nav.dashboard"), icon: Home, active: true, to: "/dashboard" },
+        { label: t("dashboard.userManagement"), icon: Users, to: "/admin" },
+        { label: t("dashboard.analytics"), icon: BarChart3, to: "/analytics" },
+        { label: t("dashboard.subscriptions"), icon: CreditCard, to: "/admin/abonnements" },
+        { label: t("dashboard.contracts"), icon: FileText, to: "/admin/contrats" },
+        { label: t("dashboard.aiUsage"), icon: Cpu, to: "/admin/token-usage" },
+        { label: t("dashboard.notifications"), icon: Bell, to: "/admin/notifications" },
+        { label: t("dashboard.validation"), icon: ClipboardCheck, to: "/admin/validation" },
+        { label: t("dashboard.exams"), icon: FileText, to: "/admin/examens" },
+        { label: t("dashboard.viewCourses"), icon: GraduationCap, to: "/liste-matieres" },
+      ]
+    : isPedago
+    ? [
+        { label: t("nav.dashboard"), icon: Home, active: true, to: "/dashboard" },
+        { label: t("dashboard.myCourses"), icon: GraduationCap, to: "/liste-matieres" },
+        { label: t("dashboard.exams"), icon: FileText, to: "/pedago/examens" },
+        { label: t("dashboard.activity"), icon: History, to: "/pedago/activite" },
+        { label: t("editorial.title", "Espace éditorial"), icon: BookOpen, to: "/editorial" },
+      ]
+    : [
+        { label: t("nav.dashboard"), icon: Home, active: true, to: "/dashboard" },
+        { label: t("dashboard.myCourses"), icon: BookOpen, to: "/liste-matieres" },
+        { label: t("dashboard.exams"), icon: FileText, to: "/exams" },
+        { label: t("app.manageAccount"), icon: UserRound, to: "/account" },
+      ];
+
   return (
-    <div className={cn("min-h-screen", isStudent ? "student-shell" : "bg-background")}>
-      <AppHeader />
+    <AppShell role={role} navItems={navItems} userName={fullName} initials={initials}>
+      <div className={isStudent ? undefined : "p-[26px]"}>
+        {/* Student Dashboard */}
+        {isStudent && user && profile && (
+          <StudentDashboardContent userId={user.id} profile={profile} />
+        )}
 
-      <main className={cn("container mx-auto px-4 pt-6", isStudent ? "pb-28" : "pb-12")}>
-        <div className="max-w-7xl mx-auto">
-          {/* Student Dashboard */}
-          {isStudent && user && profile && (
-            <StudentDashboardContent userId={user.id} profile={profile} />
-          )}
+        {/* Admin / Other roles */}
+        {!isStudent && (
+          <>
+            <WelcomeBanner
+              className="mb-[22px]"
+              role={role}
+              title={t("dashboard.hello", { name: fullName })}
+              subtitle={isAdmin ? t("dashboard.adminSpace") : t("nav.dashboard")}
+            />
 
-          {/* Admin / Other roles */}
-          {!isStudent && (
-            <>
-              {/* Welcome banner */}
-              <WelcomeBanner
-                className="mb-8"
-                eyebrow={isAdmin ? t("dashboard.adminSpace") : t("nav.dashboard")}
-                title={t("dashboard.hello", { name: fullName })}
-              />
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {roles.includes('parent') && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {roles.includes('parent') && (
+                <DashboardTile
+                  icon={Users}
+                  iconBg="bg-primary/10"
+                  iconText="text-primary"
+                  title={t("dashboard.myChildren")}
+                  description={t("dashboard.myChildrenDesc")}
+                  onClick={() => navigate("/mes-informations")}
+                />
+              )}
+              {isAdmin && (
+                <>
                   <DashboardTile
                     icon={Users}
                     iconBg="bg-primary/10"
                     iconText="text-primary"
-                    title={t("dashboard.myChildren")}
-                    description={t("dashboard.myChildrenDesc")}
-                    onClick={() => navigate("/mes-informations")}
+                    title={t("dashboard.userManagement")}
+                    description={t("dashboard.userManagementDesc")}
+                    onClick={() => navigate("/admin")}
                   />
-                )}
-                {isAdmin && (
-                  <>
-                    <DashboardTile
-                      icon={Users}
-                      iconBg="bg-primary/10"
-                      iconText="text-primary"
-                      title={t("dashboard.userManagement")}
-                      description={t("dashboard.userManagementDesc")}
-                      onClick={() => navigate("/admin")}
-                    />
-                    <DashboardTile
-                      icon={BarChart3}
-                      iconBg="bg-amber/10"
-                      iconText="text-amber"
-                      title={t("dashboard.analytics")}
-                      description={t("dashboard.analyticsDesc")}
-                      onClick={() => navigate("/analytics")}
-                    />
-                    <DashboardTile
-                      icon={CreditCard}
-                      iconBg="bg-violet/10"
-                      iconText="text-violet"
-                      title={t("dashboard.subscriptions")}
-                      description={t("dashboard.subscriptionsDesc")}
-                      onClick={() => navigate("/admin/abonnements")}
-                    />
-                    <DashboardTile
-                      icon={FileText}
-                      iconBg="bg-mint/10"
-                      iconText="text-mint"
-                      title={t("dashboard.contracts")}
-                      description={t("dashboard.contractsDesc")}
-                      onClick={() => navigate("/admin/contrats")}
-                    />
-                    <DashboardTile
-                      icon={Cpu}
-                      iconBg="bg-info/10"
-                      iconText="text-info"
-                      title={t("dashboard.aiUsage")}
-                      description={t("dashboard.aiUsageDesc")}
-                      onClick={() => navigate("/admin/token-usage")}
-                    />
-                    <DashboardTile
-                      icon={Bell}
-                      iconBg="bg-coral/10"
-                      iconText="text-coral"
-                      title={t("dashboard.notifications")}
-                      description={t("dashboard.notificationsDesc")}
-                      onClick={() => navigate("/admin/notifications")}
-                    />
-                    <DashboardTile
-                      icon={ClipboardCheck}
-                      iconBg="bg-orange-500/10"
-                      iconText="text-orange-600"
-                      title={t("dashboard.validation")}
-                      description={t("dashboard.validationDesc")}
-                      onClick={() => navigate("/admin/validation")}
-                      showDot={hasPendingValidation}
-                    />
-                    <DashboardTile
-                      icon={FileText}
-                      iconBg="bg-rose-500/10"
-                      iconText="text-rose-600"
-                      title={t("dashboard.exams")}
-                      description={t("dashboard.examsDescAdmin")}
-                      onClick={() => navigate("/admin/examens")}
-                      showDot={hasPendingValidation}
-                    />
-                  </>
-                )}
-                {isPedago && (
-                  <>
-                    <DashboardTile
-                      icon={FileText}
-                      iconBg="bg-rose-500/10"
-                      iconText="text-rose-600"
-                      title={t("dashboard.exams")}
-                      description={t("dashboard.examsDescPedago")}
-                      onClick={() => navigate("/pedago/examens")}
-                    />
-                    <DashboardTile
-                      icon={History}
-                      iconBg="bg-amber/10"
-                      iconText="text-amber"
-                      title={t("dashboard.activity")}
-                      description={t("dashboard.activityDesc")}
-                      onClick={() => navigate("/pedago/activite")}
-                    />
-                  </>
-                )}
-                <DashboardTile
-                  icon={GraduationCap}
-                  iconBg="bg-purple-500/10"
-                  iconText="text-purple-600"
-                  title={isAdmin ? t("dashboard.viewCourses") : t("dashboard.myCourses")}
-                  description={isAdmin ? t("dashboard.viewCoursesDesc") : t("dashboard.myCoursesDesc")}
-                  onClick={() => navigate("/liste-matieres")}
-                />
-              </div>
-            </>
-          )}
-        </div>
-      </main>
-      {isStudent && <BottomNav />}
-    </div>
+                  <DashboardTile
+                    icon={BarChart3}
+                    iconBg="bg-amber/10"
+                    iconText="text-amber"
+                    title={t("dashboard.analytics")}
+                    description={t("dashboard.analyticsDesc")}
+                    onClick={() => navigate("/analytics")}
+                  />
+                  <DashboardTile
+                    icon={CreditCard}
+                    iconBg="bg-violet/10"
+                    iconText="text-violet"
+                    title={t("dashboard.subscriptions")}
+                    description={t("dashboard.subscriptionsDesc")}
+                    onClick={() => navigate("/admin/abonnements")}
+                  />
+                  <DashboardTile
+                    icon={FileText}
+                    iconBg="bg-mint/10"
+                    iconText="text-mint"
+                    title={t("dashboard.contracts")}
+                    description={t("dashboard.contractsDesc")}
+                    onClick={() => navigate("/admin/contrats")}
+                  />
+                  <DashboardTile
+                    icon={Cpu}
+                    iconBg="bg-info/10"
+                    iconText="text-info"
+                    title={t("dashboard.aiUsage")}
+                    description={t("dashboard.aiUsageDesc")}
+                    onClick={() => navigate("/admin/token-usage")}
+                  />
+                  <DashboardTile
+                    icon={Bell}
+                    iconBg="bg-coral/10"
+                    iconText="text-coral"
+                    title={t("dashboard.notifications")}
+                    description={t("dashboard.notificationsDesc")}
+                    onClick={() => navigate("/admin/notifications")}
+                  />
+                  <DashboardTile
+                    icon={ClipboardCheck}
+                    iconBg="bg-orange-500/10"
+                    iconText="text-orange-600"
+                    title={t("dashboard.validation")}
+                    description={t("dashboard.validationDesc")}
+                    onClick={() => navigate("/admin/validation")}
+                    showDot={hasPendingValidation}
+                  />
+                  <DashboardTile
+                    icon={FileText}
+                    iconBg="bg-rose-500/10"
+                    iconText="text-rose-600"
+                    title={t("dashboard.exams")}
+                    description={t("dashboard.examsDescAdmin")}
+                    onClick={() => navigate("/admin/examens")}
+                    showDot={hasPendingValidation}
+                  />
+                </>
+              )}
+              {isPedago && (
+                <>
+                  <DashboardTile
+                    icon={FileText}
+                    iconBg="bg-rose-500/10"
+                    iconText="text-rose-600"
+                    title={t("dashboard.exams")}
+                    description={t("dashboard.examsDescPedago")}
+                    onClick={() => navigate("/pedago/examens")}
+                  />
+                  <DashboardTile
+                    icon={History}
+                    iconBg="bg-amber/10"
+                    iconText="text-amber"
+                    title={t("dashboard.activity")}
+                    description={t("dashboard.activityDesc")}
+                    onClick={() => navigate("/pedago/activite")}
+                  />
+                </>
+              )}
+              <DashboardTile
+                icon={GraduationCap}
+                iconBg="bg-purple-500/10"
+                iconText="text-purple-600"
+                title={isAdmin ? t("dashboard.viewCourses") : t("dashboard.myCourses")}
+                description={isAdmin ? t("dashboard.viewCoursesDesc") : t("dashboard.myCoursesDesc")}
+                onClick={() => navigate("/liste-matieres")}
+              />
+            </div>
+          </>
+        )}
+      </div>
+    </AppShell>
   );
 };
 

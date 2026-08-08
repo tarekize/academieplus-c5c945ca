@@ -13,6 +13,8 @@
     "delete": "Supprimer",
     "add": "Ajouter",
     "search": "Rechercher",
+    "openMenu": "Ouvrir le menu",
+    "notifications": "Notifications",
     "close": "Fermer",
     "administration": "Administration",
     "manageUsers": "Gestion Utilisateurs",

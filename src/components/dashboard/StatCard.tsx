@@ -1,29 +1,42 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, AlertCircle } from 'lucide-react';
+import { type ReactNode } from "react";
+import { cn } from "@/lib/utils";
+import { type AppRole, roleAccent } from "@/components/layout/AppShell";
+
+type DeltaTone = "success" | "warning" | "destructive" | "info" | "neutral" | "accent";
+
+const TONE_CLASS: Record<Exclude<DeltaTone, "accent">, string> = {
+  success: "text-badge-success-foreground",
+  warning: "text-badge-warning-foreground",
+  destructive: "text-badge-destructive-foreground",
+  info: "text-badge-info-foreground",
+  neutral: "text-text-muted-2",
+};
 
 interface StatCardProps {
-  title: string;
-  value: number;
-  trend?: string;
-  alert?: boolean;
+  label: ReactNode;
+  value: ReactNode;
+  delta?: ReactNode;
+  /** Couleur de la ligne "delta". "accent" utilise la couleur du profil (voir `role`). */
+  deltaTone?: DeltaTone;
+  role?: AppRole;
+  className?: string;
 }
 
-export default function StatCard({ title, value, trend, alert }: StatCardProps) {
+/** Carte KPI (charte v2) : label uppercase muted, valeur Sora 24px/800, delta coloré. */
+export function StatCard({ label, value, delta, deltaTone = "neutral", role, className }: StatCardProps) {
+  const isAccent = deltaTone === "accent";
   return (
-    <Card className={alert ? 'border-l-4 border-l-destructive' : 'border-l-4 border-l-primary'}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        {alert && <AlertCircle className="w-4 h-4 text-destructive" />}
-      </CardHeader>
-      <CardContent>
-        <div className="text-3xl font-bold">{value}</div>
-        {trend && (
-          <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
-            <TrendingUp className="w-3 h-3" />
-            {trend}
-          </p>
-        )}
-      </CardContent>
-    </Card>
+    <div className={cn("rounded-card border border-surface-border bg-card p-[18px] shadow-card-v2", className)}>
+      <div className="font-body text-xs font-bold uppercase tracking-[0.03em] text-text-muted-2">{label}</div>
+      <div className="my-1 font-heading text-2xl font-extrabold text-text-title">{value}</div>
+      {delta && (
+        <div
+          className={cn("font-body text-xs font-bold", !isAccent && TONE_CLASS[deltaTone])}
+          style={isAccent && role ? { color: roleAccent(role) } : undefined}
+        >
+          {delta}
+        </div>
+      )}
+    </div>
   );
 }

@@ -1,30 +1,24 @@
 import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { type AppRole, roleAccentSoft } from "@/components/layout/AppShell";
 
 interface WelcomeBannerProps {
-  eyebrow: ReactNode;
+  role: AppRole;
   title: ReactNode;
   subtitle?: ReactNode;
   className?: string;
 }
 
-/** Bannière de bienvenue partagée par les pages "pro" (dashboard admin/élève,
- * enseignant, établissement) : même rayon, même padding, mêmes blobs décoratifs. */
-export function WelcomeBanner({ eyebrow, title, subtitle, className }: WelcomeBannerProps) {
+/** Bandeau de bienvenue (charte v2), partagé par les 6 tableaux de bord :
+ * fond accentSoft (couleur du profil à faible opacité), titre Sora 20px/700. */
+export function WelcomeBanner({ role, title, subtitle, className }: WelcomeBannerProps) {
   return (
     <div
-      className={cn(
-        "relative overflow-hidden rounded-3xl bg-[image:var(--gradient-primary)] px-6 py-7 sm:px-8 sm:py-8 text-primary-foreground shadow-[var(--shadow-elegant)]",
-        className,
-      )}
+      className={cn("rounded-card px-[22px] py-[22px] sm:px-[26px]", className)}
+      style={{ background: roleAccentSoft(role) }}
     >
-      <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" aria-hidden />
-      <div className="absolute right-6 bottom-0 h-20 w-20 rounded-full bg-white/10" aria-hidden />
-      <div className="relative">
-        <p className="text-primary-foreground/75 text-sm font-medium uppercase tracking-wide">{eyebrow}</p>
-        <h1 className="font-display text-2xl sm:text-3xl font-extrabold mt-1">{title}</h1>
-        {subtitle && <p className="text-primary-foreground/80 text-sm mt-1.5">{subtitle}</p>}
-      </div>
+      <div className="font-heading text-xl font-bold text-text-title">{title}</div>
+      {subtitle && <div className="mt-1 font-body text-[13px] text-text-body">{subtitle}</div>}
     </div>
   );
 }

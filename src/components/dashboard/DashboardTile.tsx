@@ -37,7 +37,7 @@ export default function DashboardTile({
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick(); }}
       className={cn(
-        "group relative rounded-2xl border-border/60 transition-all duration-300",
+        "group relative rounded-card border-surface-border shadow-card-v2 transition-all duration-300",
         locked
           ? "cursor-not-allowed opacity-60"
           : "cursor-pointer hover:-translate-y-1 hover:border-transparent hover:shadow-[var(--shadow-card)]",
@@ -45,7 +45,7 @@ export default function DashboardTile({
       )}
     >
       {showDot && (
-        <span className="absolute -top-1 -right-1 z-10 flex h-3.5 w-3.5">
+        <span className="absolute -top-1 -end-1 z-10 flex h-3.5 w-3.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 border-2 border-background" />
         </span>
