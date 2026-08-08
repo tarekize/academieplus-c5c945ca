@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { GraduationCap, Loader2 } from "lucide-react";
+import { GraduationCap, Loader2, Home } from "lucide-react";
+import { toast } from "sonner";
 import { useTeacherEstablishmentStatus } from "@/hooks/useTeacherEstablishmentStatus";
-import { AppHeader } from "@/components/layout/AppHeader";
+import { AppShell, type AppShellNavItem } from "@/components/layout/AppShell";
 import { WelcomeBanner } from "@/components/layout/WelcomeBanner";
 
-import TeacherHome, { TeacherSection, TEACHER_SECTIONS } from "@/components/teacher/TeacherHome";
+import TeacherHome, { TeacherSection, TEACHER_SECTIONS, REQUIRES_ESTABLISHMENT } from "@/components/teacher/TeacherHome";
 import EstablishmentManager from "@/components/teacher/EstablishmentManager";
 import TeacherContentSpace from "@/components/teacher/TeacherContentSpace";
 import TeacherReclamationPanel from "@/components/teacher/TeacherReclamationPanel";
@@ -84,40 +84,33 @@ const TeacherDashboard = () => {
     );
   }
 
-  const activeMeta = TEACHER_SECTIONS.find((s) => s.key === section);
+  const initials = (fullName.match(/\S+/g) ?? []).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("") || "U";
+
+  const selectSection = (next: TeacherSection) => {
+    if (hasEstablishment === false && REQUIRES_ESTABLISHMENT.includes(next)) {
+      toast.error("Ajoutez d'abord un établissement pour accéder à cette fonctionnalité.");
+      return;
+    }
+    setSection(next);
+  };
+
+  const navItems: AppShellNavItem[] = [
+    { label: "Tableau de bord", icon: Home, active: section === null, onClick: () => setSection(null) },
+    ...TEACHER_SECTIONS.map((s) => ({
+      label: s.label,
+      icon: s.icon,
+      active: section === s.key,
+      onClick: () => selectSection(s.key),
+    })),
+  ];
 
   return (
-    <div className="min-h-screen pro-shell">
-      <AppHeader
-        title="Espace Enseignant"
-        subtitle={activeMeta?.label}
-        onLogoClick={() => setSection(null)}
-        showProfileMenu={false}
-        actions={
-          <button
-            type="button"
-            onClick={() => setSection("profil")}
-            className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 hover:bg-muted active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <Avatar className="h-8 w-8 ring-2 ring-primary/20">
-              <AvatarImage src={profile?.avatar_url || undefined} />
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                {fullName.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="text-start hidden md:block">
-              <p className="text-sm font-semibold leading-tight">{fullName}</p>
-              <p className="text-xs text-muted-foreground leading-tight">Enseignant</p>
-            </div>
-          </button>
-        }
-      />
-
-      <main className="container mx-auto px-4 pt-6 pb-12">
+    <AppShell role="teacher" navItems={navItems} userName={fullName} initials={initials}>
+      <div className="p-[26px]">
         {section === null && (
-          <div className="space-y-8 max-w-4xl mx-auto">
+          <div className="space-y-6 max-w-4xl mx-auto">
             <WelcomeBanner
-              eyebrow="Espace Enseignant"
+              role="teacher"
               title="Bienvenue dans votre espace"
               subtitle="Que souhaitez-vous faire aujourd'hui ?"
             />
@@ -140,8 +133,8 @@ const TeacherDashboard = () => {
         {section === "profil" && (
           <TeacherProfile onBack={() => setSection(null)} />
         )}
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 };
 

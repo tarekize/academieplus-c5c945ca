@@ -11,7 +11,7 @@ interface Props {
   hasEstablishment: boolean;
 }
 
-const REQUIRES_ESTABLISHMENT: TeacherSection[] = ["exercise", "quiz", "exam", "reclamation"];
+export const REQUIRES_ESTABLISHMENT: TeacherSection[] = ["exercise", "quiz", "exam", "reclamation"];
 
 export const TEACHER_SECTIONS: {
   key: TeacherSection;

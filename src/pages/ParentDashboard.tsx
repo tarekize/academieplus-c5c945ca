@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSessionState } from "@/hooks/useSessionState";
-import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +20,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, Plus, BookOpen, Key, Check, Calendar as CalendarIcon, FileDown, FileText, Users, RefreshCw
+  UserIcon, UserPlus, Hash, Eye, Trash2, Loader2, Plus, BookOpen, Key, Check, Calendar as CalendarIcon,
+  FileDown, FileText, Users, RefreshCw, Home, CreditCard, Gift, UserRound, ArrowLeft,
 } from "lucide-react";
 import { downloadParentReportPdf, type ParentReportData } from "@/lib/parentReportPdf";
 import { toast as sonnerToast } from "sonner";
@@ -43,7 +43,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import LocationFields from "@/components/profile/LocationFields";
-import { AppHeader } from "@/components/layout/AppHeader";
+import { AppShell, type AppShellNavItem } from "@/components/layout/AppShell";
+import { WelcomeBanner } from "@/components/layout/WelcomeBanner";
+import { StatCard } from "@/components/dashboard/StatCard";
 
 interface Profile {
   id: string;
@@ -417,19 +419,35 @@ const ParentDashboard = () => {
   }
 
   const fullName = getFullName(profile);
+  const initials = (fullName.match(/\S+/g) ?? []).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("") || "U";
+
+  const navItems: AppShellNavItem[] = [
+    { label: "Tableau de bord", icon: Home, active: !selectedChild, to: "/parent-dashboard" },
+    { label: "Mes informations", icon: Users, to: "/mes-informations" },
+    { label: "Factures", icon: FileText, to: "/factures" },
+    { label: "Abonnements", icon: CreditCard, to: "/abonnements" },
+    { label: "Parrainage", icon: Gift, to: "/parrainage" },
+    { label: "Mon compte", icon: UserRound, to: "/account" },
+  ];
 
   // If a child is selected, show their dashboard
   if (selectedChild && selectedChild.child) {
     return (
-      <div className="min-h-screen pro-shell">
-        <AppHeader
-          title={`Progression de ${getChildFullName(selectedChild.child)}`}
-          onBack={() => setSelectedChild(null)}
-          showProfileMenu={false}
-          showLogout={false}
-        />
-        <main className="container mx-auto px-4 py-8">
+      <AppShell role="parent" navItems={navItems} userName={fullName} initials={initials}>
+        <div className="p-[26px]">
           <div className="max-w-7xl mx-auto">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mb-4 gap-2 text-text-body hover:text-text-title"
+              onClick={() => setSelectedChild(null)}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Retour
+            </Button>
+            <h1 className="mb-4 font-heading text-xl font-bold text-text-title">
+              Progression de {getChildFullName(selectedChild.child)}
+            </h1>
             <StudentDashboardContent
               userId={selectedChild.child_id}
               profile={selectedChild.child}
@@ -444,16 +462,33 @@ const ParentDashboard = () => {
               />
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </AppShell>
     );
   }
 
-  return (
-    <div className="min-h-screen pro-shell">
-      <AppHeader />
+  const activeChildrenCount = children.filter((c) => c.status === "active").length;
+  const pendingChildrenCount = children.filter((c) => c.status !== "active").length;
+  const activeSubscriptionsCount = children.filter((c) => c.subscription).length;
+  const reportsCount = Object.values(latestReports).filter(Boolean).length;
 
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
+  return (
+    <AppShell role="parent" navItems={navItems} userName={fullName} initials={initials}>
+      <div className="p-[26px] max-w-6xl mx-auto">
+        <WelcomeBanner
+          role="parent"
+          className="mb-[22px]"
+          title={`Bonjour ${fullName} 👋`}
+          subtitle="Suivez la progression de vos enfants"
+        />
+
+        <div className="mb-[22px] grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <StatCard label="Enfants liés" value={children.length} delta={`${activeChildrenCount} actif(s)`} deltaTone="accent" role="parent" />
+          <StatCard label="En attente" value={pendingChildrenCount} deltaTone="warning" delta={pendingChildrenCount > 0 ? "À valider" : "Aucun"} />
+          <StatCard label="Abonnements actifs" value={activeSubscriptionsCount} deltaTone="success" delta="Accès complet" />
+          <StatCard label="Rapports générés" value={reportsCount} deltaTone="neutral" delta="Derniers bilans" />
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
@@ -650,10 +685,10 @@ const ParentDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: 0.05, ease: "easeOut" }}
         >
-          <Card className="pro-card overflow-hidden">
-            <div className="px-6 py-4 border-b border-border flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Users className="h-4 w-4 text-primary" />
+          <Card className="rounded-card border-surface-border shadow-card-v2 overflow-hidden">
+            <div className="px-6 py-4 border-b border-surface-border flex items-center gap-3">
+              <div className="h-9 w-9 rounded-control bg-role-parent/10 flex items-center justify-center">
+                <Users className="h-4 w-4 text-role-parent" />
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-foreground">Mes enfants</h2>
@@ -702,14 +737,11 @@ const ParentDashboard = () => {
                           <TableCell className="text-muted-foreground">{link.child?.email ?? "—"}</TableCell>
                           <TableCell>
                             {link.child?.school_level ? (
-                              <Badge variant="outline" className="rounded-full">{getSchoolLevelLabel(link.child.school_level)}</Badge>
+                              <Badge variant="neutral">{getSchoolLevelLabel(link.child.school_level)}</Badge>
                             ) : <span className="text-muted-foreground">—</span>}
                           </TableCell>
                           <TableCell>
-                            <Badge
-                              variant={link.status === "active" ? "default" : "secondary"}
-                              className={cn("rounded-full", link.status !== "active" && "badge-status-pending")}
-                            >
+                            <Badge variant={link.status === "active" ? "success" : "warning"}>
                               {link.status === "active" ? "Actif" : "En attente"}
                             </Badge>
                           </TableCell>
@@ -864,8 +896,8 @@ const ParentDashboard = () => {
             </CardContent>
           </Card>
         </motion.div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 };
 
