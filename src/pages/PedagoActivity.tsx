@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { History, Plus, Pencil, Trash2, Loader2, BookOpen, FileText, Clock, CheckCircle2, XCircle } from "lucide-react";
+import {
+  History, Plus, Pencil, Trash2, Loader2, BookOpen, FileText, Clock, CheckCircle2, XCircle, Home, GraduationCap,
+} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { AppHeader } from "@/components/layout/AppHeader";
+import { AppShell, type AppShellNavItem } from "@/components/layout/AppShell";
+import { WelcomeBanner } from "@/components/layout/WelcomeBanner";
 
 type ActivityAction = "create" | "update" | "delete";
 type EntityType = "chapter" | "lesson" | "lesson_content" | "exam";
@@ -50,17 +54,17 @@ function reviewBadge(action: ActivityAction, status: ReviewStatus) {
   const actionWord = action === "create" ? "Ajout" : action === "delete" ? "Suppression" : "Modification";
   switch (status) {
     case "pending":
-      return { label: `${actionWord} en attente`, icon: Clock, className: "badge-status-pending gap-1" };
+      return { label: `${actionWord} en attente`, icon: Clock, variant: "warning" as const };
     case "approved":
-      return { label: `${actionWord} validé(e)`, icon: CheckCircle2, className: "bg-green-100 text-green-700 border-green-200 gap-1" };
+      return { label: `${actionWord} validé(e)`, icon: CheckCircle2, variant: "success" as const };
     case "rejected":
-      return { label: `${actionWord} refusé(e)`, icon: XCircle, className: "gap-1" };
+      return { label: `${actionWord} refusé(e)`, icon: XCircle, variant: "v2-destructive" as const };
     case "superseded":
-      return { label: "Remplacée par une version plus récente", icon: History, className: "gap-1" };
+      return { label: "Remplacée par une version plus récente", icon: History, variant: "neutral" as const };
     case "deleted":
-      return { label: "Supprimé", icon: Trash2, className: "gap-1" };
+      return { label: "Supprimé", icon: Trash2, variant: "neutral" as const };
     case "immediate":
-      return { label: "Appliqué directement", icon: CheckCircle2, className: "gap-1" };
+      return { label: "Appliqué directement", icon: CheckCircle2, variant: "info" as const };
     default:
       return null;
   }
@@ -68,8 +72,10 @@ function reviewBadge(action: ActivityAction, status: ReviewStatus) {
 
 export default function PedagoActivity() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<ActivityRow[]>([]);
+  const [fullName, setFullName] = useState("Pédagogue");
 
   useEffect(() => {
     (async () => {
@@ -80,23 +86,43 @@ export default function PedagoActivity() {
     })();
   }, []);
 
-  return (
-    <div className="min-h-screen pro-shell">
-      <AppHeader
-        title="Mon activité"
-        subtitle="Historique de vos ajouts, modifications et suppressions"
-        titleIcon={History}
-        onBack={() => navigate("/dashboard")}
-        showProfileMenu={false}
-      />
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("first_name, last_name")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        const name = [data?.first_name, data?.last_name].filter(Boolean).join(" ");
+        if (name) setFullName(name);
+      });
+  }, [user]);
 
-      <main className="container mx-auto px-4 py-8">
+  const initials = (fullName.match(/\S+/g) ?? []).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("") || "P";
+
+  const navItems: AppShellNavItem[] = [
+    { label: "Tableau de bord", icon: Home, to: "/dashboard" },
+    { label: "Mes cours", icon: GraduationCap, to: "/liste-matieres" },
+    { label: "Examens", icon: FileText, to: "/pedago/examens" },
+    { label: "Mon activité", icon: History, active: true, to: "/pedago/activite" },
+  ];
+
+  return (
+    <AppShell role="pedago" navItems={navItems} userName={fullName} initials={initials}>
+      <div className="p-[26px]">
+        <WelcomeBanner
+          role="pedago"
+          className="mb-[22px]"
+          title="Mon activité"
+          subtitle="Historique de vos ajouts, modifications et suppressions"
+        />
         {loading ? (
           <div className="flex justify-center py-16">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : rows.length === 0 ? (
-          <Card className="border-0 shadow-lg">
+          <Card className="rounded-card border-surface-border shadow-card-v2">
             <CardContent className="py-16 text-center text-muted-foreground">
               Aucune activité enregistrée pour le moment.
             </CardContent>
@@ -115,13 +141,13 @@ export default function PedagoActivity() {
               // leçon concernée, où le motif du refus est déjà affiché.
               const isFixableRejection = row.entity_type === "lesson_content" && row.review_status === "rejected" && row.entity_id;
               return (
-                <Card key={row.id} className="border-0 shadow-md">
+                <Card key={row.id} className="rounded-card border-surface-border shadow-card-v2">
                   <CardContent className="p-4 flex items-center gap-4">
                     {isFixableRejection ? (
                       <Button
                         variant="ghost"
                         size="icon"
-                        className={`h-10 w-10 rounded-xl shrink-0 ${actionMeta.color} hover:opacity-80`}
+                        className={`h-10 w-10 rounded-control shrink-0 ${actionMeta.color} hover:opacity-80`}
                         onClick={() => navigate(`/lecon/${row.entity_id}`)}
                         aria-label="Corriger cette modification refusée"
                         title="Corriger cette modification refusée"
@@ -129,16 +155,16 @@ export default function PedagoActivity() {
                         <ActionIcon className="h-5 w-5" />
                       </Button>
                     ) : (
-                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${actionMeta.color}`}>
+                      <div className={`h-10 w-10 rounded-control flex items-center justify-center shrink-0 ${actionMeta.color}`}>
                         <ActionIcon className="h-5 w-5" />
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="secondary">{actionMeta.label}</Badge>
+                        <Badge variant="neutral">{actionMeta.label}</Badge>
                         <span className="text-xs text-muted-foreground">{ENTITY_TYPE_LABEL[row.entity_type]}</span>
                         {badge && BadgeIcon && (
-                          <Badge variant={row.review_status === "rejected" ? "destructive" : "secondary"} className={badge.className}>
+                          <Badge variant={badge.variant} className="gap-1">
                             <BadgeIcon className="h-3 w-3" /> {badge.label}
                           </Badge>
                         )}
@@ -161,7 +187,7 @@ export default function PedagoActivity() {
             })}
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }
