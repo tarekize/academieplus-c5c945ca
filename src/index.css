@@ -1,8 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here.
 All colors MUST be HSL.
 */
 
@@ -10,6 +12,46 @@ All colors MUST be HSL.
   :root {
     --background: 200 60% 98%;
     --foreground: 215 35% 22%;
+
+    /* ===== Charte v2 : polices ===== */
+    /* Sora/Manrope ne couvrent pas l'arabe : le fallback Cairo/Tajawal prend
+       le relais glyphe par glyphe pour le contenu RTL, sans changer la police
+       des titres/corps latins. */
+    --font-heading: 'Sora', 'Cairo', 'Tajawal', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Manrope', 'Tajawal', ui-sans-serif, system-ui, sans-serif;
+
+    /* ===== Charte v2 : rayons & ombre carte ===== */
+    --radius-control: 10px;
+    --radius-card: 16px;
+    --radius-pill: 999px;
+    --shadow-card-v2: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .06);
+
+    /* ===== Charte v2 : surfaces neutres ===== */
+    --app-bg: 220 36% 95%;       /* #EEF1F7 */
+    --app-bg-alt: 228 45% 98%;   /* #F7F8FC */
+    --surface-border: 225 33% 93%; /* #E7EAF3 */
+    --control-border: 219 28% 88%; /* #D8DEE9 */
+    --search-bg: 217 40% 96%;    /* #F1F4F9 */
+    --sidebar-ink: 222 43% 11%;  /* #101728 */
+
+    --text-title: 222 47% 11%;   /* #0F172A */
+    --text-body: 215 19% 35%;    /* #475569 */
+    --text-muted: 215 20% 65%;   /* #94A3B8 */
+
+    /* ===== Charte v2 : accent par rôle ===== */
+    --role-student: 221 83% 53%;       /* #2563EB */
+    --role-parent: 252 96% 67%;        /* #7C5CFC */
+    --role-teacher: 175 84% 32%;       /* #0D9488 */
+    --role-etablissement: 32 95% 44%;  /* #D97706 */
+    --role-pedago: 347 77% 50%;        /* #E11D48 */
+    --role-admin: 222 47% 11%;         /* #0F172A */
+
+    /* ===== Charte v2 : badges sémantiques (pill) ===== */
+    --badge-success-bg: 141 84% 93%; --badge-success-fg: 142 72% 29%;
+    --badge-warning-bg: 48 96% 89%; --badge-warning-fg: 23 82% 31%;
+    --badge-info-bg: 214 95% 93%; --badge-info-fg: 224 76% 48%;
+    --badge-destructive-bg: 0 93% 94%; --badge-destructive-fg: 0 74% 42%;
+    --badge-neutral-bg: 210 40% 96%; --badge-neutral-fg: 215 19% 35%;
 
     --card: 0 0% 100%;
     --card-foreground: 215 35% 22%;
@@ -83,6 +125,30 @@ All colors MUST be HSL.
   .dark {
     --background: 215 35% 10%;
     --foreground: 200 40% 96%;
+
+    --app-bg: 222 32% 12%;
+    --app-bg-alt: 222 30% 14%;
+    --surface-border: 215 28% 22%;
+    --control-border: 215 25% 26%;
+    --search-bg: 215 28% 20%;
+    --sidebar-ink: 222 43% 8%;
+
+    --text-title: 210 40% 96%;
+    --text-body: 213 20% 78%;
+    --text-muted: 215 16% 60%;
+
+    --role-student: 217 91% 65%;
+    --role-parent: 252 90% 74%;
+    --role-teacher: 168 70% 45%;
+    --role-etablissement: 32 90% 58%;
+    --role-pedago: 347 80% 62%;
+    --role-admin: 210 40% 90%;
+
+    --badge-success-bg: 142 40% 18%; --badge-success-fg: 141 70% 78%;
+    --badge-warning-bg: 38 45% 18%; --badge-warning-fg: 45 90% 78%;
+    --badge-info-bg: 217 45% 20%; --badge-info-fg: 214 90% 82%;
+    --badge-destructive-bg: 0 45% 20%; --badge-destructive-fg: 0 85% 82%;
+    --badge-neutral-bg: 215 25% 22%; --badge-neutral-fg: 213 20% 78%;
 
     --card: 215 32% 13%;
     --card-foreground: 200 40% 96%;

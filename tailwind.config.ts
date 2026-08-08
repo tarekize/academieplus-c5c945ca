@@ -17,6 +17,8 @@ export default {
       fontFamily: {
         sans: ["Tajawal", "Figtree", "ui-sans-serif", "system-ui", "sans-serif"],
         display: ["Cairo", "Outfit", "ui-sans-serif", "system-ui", "sans-serif"],
+        heading: ["Sora", "Cairo", "Tajawal", "ui-sans-serif", "system-ui", "sans-serif"],
+        body: ["Manrope", "Tajawal", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -82,11 +84,41 @@ export default {
         coral: "hsl(var(--coral))",
         amber: "hsl(var(--amber))",
         ink: "hsl(var(--ink))",
+        "app-surface": {
+          DEFAULT: "hsl(var(--app-bg))",
+          alt: "hsl(var(--app-bg-alt))",
+        },
+        "surface-border": "hsl(var(--surface-border))",
+        "control-border": "hsl(var(--control-border))",
+        "search-surface": "hsl(var(--search-bg))",
+        "sidebar-ink": "hsl(var(--sidebar-ink))",
+        "text-title": "hsl(var(--text-title))",
+        "text-body": "hsl(var(--text-body))",
+        "text-muted-2": "hsl(var(--text-muted))",
+        role: {
+          student: "hsl(var(--role-student))",
+          parent: "hsl(var(--role-parent))",
+          teacher: "hsl(var(--role-teacher))",
+          etablissement: "hsl(var(--role-etablissement))",
+          pedago: "hsl(var(--role-pedago))",
+          admin: "hsl(var(--role-admin))",
+        },
+        "badge-success": { DEFAULT: "hsl(var(--badge-success-bg))", foreground: "hsl(var(--badge-success-fg))" },
+        "badge-warning": { DEFAULT: "hsl(var(--badge-warning-bg))", foreground: "hsl(var(--badge-warning-fg))" },
+        "badge-info": { DEFAULT: "hsl(var(--badge-info-bg))", foreground: "hsl(var(--badge-info-fg))" },
+        "badge-destructive": { DEFAULT: "hsl(var(--badge-destructive-bg))", foreground: "hsl(var(--badge-destructive-fg))" },
+        "badge-neutral": { DEFAULT: "hsl(var(--badge-neutral-bg))", foreground: "hsl(var(--badge-neutral-fg))" },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        control: "var(--radius-control)",
+        card: "var(--radius-card)",
+        pill: "var(--radius-pill)",
+      },
+      boxShadow: {
+        "card-v2": "var(--shadow-card-v2)",
       },
       keyframes: {
         "accordion-down": {
