@@ -482,7 +482,7 @@ const ParentDashboard = () => {
           subtitle="Suivez la progression de vos enfants"
         />
 
-        <div className="mb-[22px] grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="mb-[22px] grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 md:grid-cols-4">
           <StatCard label="Enfants liés" value={children.length} delta={`${activeChildrenCount} actif(s)`} deltaTone="accent" role="parent" />
           <StatCard label="En attente" value={pendingChildrenCount} deltaTone="warning" delta={pendingChildrenCount > 0 ? "À valider" : "Aucun"} />
           <StatCard label="Abonnements actifs" value={activeSubscriptionsCount} deltaTone="success" delta="Accès complet" />

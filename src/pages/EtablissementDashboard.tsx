@@ -515,7 +515,7 @@ const EtablissementDashboard = () => {
 
 
           {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 md:grid-cols-4">
             <StatCard label="Enseignants" value={teachers.length} deltaTone="accent" role="etablissement" delta="Établissement" />
             <StatCard label="Classes" value={totalClasses} deltaTone="accent" role="etablissement" delta="Toutes classes" />
             <StatCard label="Élèves" value={totalStudents} deltaTone="accent" role="etablissement" delta="Inscrits" />
