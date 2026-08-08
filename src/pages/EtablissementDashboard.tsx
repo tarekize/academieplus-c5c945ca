@@ -15,7 +15,6 @@ import QRCode from "react-qr-code";
 import {
   Loader2,
   Users,
-  School,
   BookOpen,
   AlertCircle,
   ChevronDown,
@@ -29,13 +28,15 @@ import {
   Check,
   Search,
   ArrowLeft,
+  Home,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import ClassProgressView, { ClassRow } from "@/components/teacher/ClassProgressView";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
-import { AppHeader } from "@/components/layout/AppHeader";
+import { AppShell, type AppShellNavItem } from "@/components/layout/AppShell";
 import { WelcomeBanner } from "@/components/layout/WelcomeBanner";
+import { StatCard } from "@/components/dashboard/StatCard";
 
 interface Teacher {
   id: string;
@@ -357,10 +358,10 @@ const EtablissementDashboard = () => {
 
   const statusBadge = (status: string) => {
     if (status === "resolved")
-      return <Badge className="bg-green-100 text-green-700 border-green-200 gap-1"><CheckCircle className="h-3 w-3" />Résolu</Badge>;
+      return <Badge variant="success" className="gap-1"><CheckCircle className="h-3 w-3" />Résolu</Badge>;
     if (status === "rejected")
-      return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" />Rejeté</Badge>;
-    return <Badge variant="secondary" className="badge-status-pending gap-1"><Clock className="h-3 w-3" />En attente</Badge>;
+      return <Badge variant="v2-destructive" className="gap-1"><XCircle className="h-3 w-3" />Rejeté</Badge>;
+    return <Badge variant="warning" className="gap-1"><Clock className="h-3 w-3" />En attente</Badge>;
   };
 
   const pendingCount = reclamations.filter((r) => r.status === "pending").length;
@@ -375,27 +376,39 @@ const EtablissementDashboard = () => {
     );
   }
 
-  const renderHeader = () => (
-    <AppHeader
-      title="Espace Établissement"
-      showProfileMenu={false}
-      onLogoClick={() => { setSelectedClass(null); setDetailStudent(null); }}
-    />
-  );
+  const displayName = establishmentName || "Établissement";
+  const initials = (displayName.match(/\S+/g) ?? []).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("") || "E";
+  const inOverview = !selectedClass && !detailStudent;
+  const resetSubviews = () => { setSelectedClass(null); setDetailStudent(null); };
+
+  const navItems: AppShellNavItem[] = [
+    { label: "Vue d'ensemble", icon: Home, active: inOverview, onClick: resetSubviews },
+    {
+      label: "Enseignants & Classes", icon: Users, active: inOverview && activeTab === "teachers",
+      onClick: () => { resetSubviews(); setActiveTab("teachers"); },
+    },
+    {
+      label: "Élèves", icon: BookOpen, active: inOverview && activeTab === "eleves",
+      onClick: () => { resetSubviews(); setActiveTab("eleves"); },
+    },
+    {
+      label: "Réclamations", icon: AlertCircle, active: inOverview && activeTab === "reclamations",
+      onClick: () => { resetSubviews(); setActiveTab("reclamations"); },
+    },
+  ];
 
   // --- Vue détail élève (lecture seule) : accessible depuis la grille de progression
   // d'une classe ou depuis le tableau "Élèves" ---
   if (detailStudent) {
     return (
-      <div className="min-h-screen pro-shell">
-        {renderHeader()}
-        <main className="container mx-auto px-4 pt-6 pb-12">
+      <AppShell role="etablissement" navItems={navItems} userName={displayName} initials={initials}>
+        <div className="p-[26px]">
           <div className="max-w-5xl mx-auto space-y-6">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setDetailStudent(null)}
-              className="gap-2 -ms-2 rounded-xl text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
+              className="gap-2 -ms-2 rounded-control text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" /> Retour
             </Button>
@@ -413,8 +426,8 @@ const EtablissementDashboard = () => {
               hideActions
             />
           </div>
-        </main>
-      </div>
+        </div>
+      </AppShell>
     );
   }
 
@@ -422,15 +435,14 @@ const EtablissementDashboard = () => {
   // d'exercices/rappels (réservée à l'enseignant) ---
   if (selectedClass) {
     return (
-      <div className="min-h-screen pro-shell">
-        {renderHeader()}
-        <main className="container mx-auto px-4 pt-6 pb-12">
+      <AppShell role="etablissement" navItems={navItems} userName={displayName} initials={initials}>
+        <div className="p-[26px]">
           <div className="max-w-5xl mx-auto space-y-6">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSelectedClass(null)}
-              className="gap-2 -ms-2 rounded-xl text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
+              className="gap-2 -ms-2 rounded-control text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" /> Retour
             </Button>
@@ -448,29 +460,27 @@ const EtablissementDashboard = () => {
               readOnly
             />
           </div>
-        </main>
-      </div>
+        </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="min-h-screen pro-shell">
-      {renderHeader()}
-
-      <main className="container mx-auto px-4 pt-6 pb-12">
+    <AppShell role="etablissement" navItems={navItems} userName={displayName} initials={initials}>
+      <div className="p-[26px]">
         <div className="max-w-5xl mx-auto space-y-6">
           {/* Welcome banner */}
           <WelcomeBanner
-            eyebrow="Espace Établissement"
+            role="etablissement"
             title="Tableau de bord"
             subtitle="Suivi des enseignants, classes et réclamations"
           />
 
           {/* Establishment code & QR — shared with teachers so they can register */}
-          <Card className="rounded-2xl border-border/50 overflow-hidden">
+          <Card className="rounded-card border-surface-border shadow-card-v2 overflow-hidden">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
-                <KeyRound className="h-5 w-5 text-primary" />
+                <KeyRound className="h-5 w-5 text-role-etablissement" />
                 Code d'inscription enseignant
               </CardTitle>
             </CardHeader>
@@ -505,51 +515,16 @@ const EtablissementDashboard = () => {
 
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="rounded-2xl border-border/50">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Users className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{teachers.length}</p>
-                  <p className="text-xs text-muted-foreground">Enseignants</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-2xl border-border/50">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-mint/10 flex items-center justify-center flex-shrink-0">
-                  <School className="h-5 w-5 text-mint" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{totalClasses}</p>
-                  <p className="text-xs text-muted-foreground">Classes</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-2xl border-border/50">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-violet/10 flex items-center justify-center flex-shrink-0">
-                  <BookOpen className="h-5 w-5 text-violet" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{totalStudents}</p>
-                  <p className="text-xs text-muted-foreground">Élèves</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-2xl border-border/50">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-coral/10 flex items-center justify-center flex-shrink-0">
-                  <AlertCircle className="h-5 w-5 text-coral" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{pendingCount}</p>
-                  <p className="text-xs text-muted-foreground">Réclamations en attente</p>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard label="Enseignants" value={teachers.length} deltaTone="accent" role="etablissement" delta="Établissement" />
+            <StatCard label="Classes" value={totalClasses} deltaTone="accent" role="etablissement" delta="Toutes classes" />
+            <StatCard label="Élèves" value={totalStudents} deltaTone="accent" role="etablissement" delta="Inscrits" />
+            <StatCard
+              label="Réclamations en attente"
+              value={pendingCount}
+              deltaTone={pendingCount > 0 ? "destructive" : "success"}
+              delta={pendingCount > 0 ? "À traiter" : "Aucune"}
+            />
           </div>
 
           {/* Tabs */}
@@ -827,8 +802,8 @@ const EtablissementDashboard = () => {
             </TabsContent>
           </Tabs>
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 };
 
