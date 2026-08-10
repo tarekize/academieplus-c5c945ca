@@ -171,33 +171,6 @@ const MesInformations = () => {
 
       if (!profile?.id || !user) return;
 
-      // Update email if it has changed - edge function sends a confirmation
-      // link to the new address; the change only takes effect once clicked.
-      if (validatedData.email !== profile.email) {
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-
-        if (sessionError || !sessionData.session) {
-          toast.error("Session expirée", {
-            description: "Veuillez vous reconnecter pour modifier votre email.",
-          });
-          navigate("/auth");
-          return;
-        }
-
-        const { error: emailError } = await supabase.functions.invoke("update-user-email", {
-          body: { userId: profile.id, newEmail: validatedData.email },
-        });
-
-        if (emailError) {
-          throw new Error(emailError.message || "Erreur lors de la mise à jour de l'email");
-        }
-
-        toast.success("Confirmez votre nouvel email", {
-          description: "Un email de confirmation a été envoyé à votre nouvelle adresse. Le changement ne sera effectif qu'après avoir cliqué sur le lien reçu.",
-        });
-      }
-
-      // Update other profile fields (email change is confirmed separately, see above)
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -392,12 +365,11 @@ const MesInformations = () => {
                       id="email"
                       type="email"
                       value={formData.email}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                      placeholder="Votre adresse email"
-                      className="rounded-xl"
+                      disabled
+                      className="rounded-xl text-muted-foreground"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Un email de confirmation sera envoyé si vous modifiez votre adresse.
+                      L'adresse email n'est pas modifiable depuis cette page.
                     </p>
                   </div>
 
