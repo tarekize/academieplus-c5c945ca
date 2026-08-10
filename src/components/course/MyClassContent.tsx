@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ interface Props {
 }
 
 export function MyClassContent({ userId, contentType }: Props) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<TeacherContentRow[]>([]);
   const [directIds, setDirectIds] = useState<Set<string>>(new Set());
@@ -108,14 +110,14 @@ export function MyClassContent({ userId, contentType }: Props) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-emerald-600 font-bold">
             <Users className="h-5 w-5" />
-            <span dir="rtl">{isQuiz ? "اختبارات من معلمي" : "تمارين من معلمي"}</span>
+            <span>{isQuiz ? t("myClassContent.quizTitle") : t("myClassContent.exercisesTitle")}</span>
           </div>
-          <Badge variant="secondary">{items.length} {isQuiz ? "أسئلة" : "تمارين"}</Badge>
+          <Badge variant="secondary">{isQuiz ? t("cours.quizCount", { count: items.length }) : t("cours.exercisesCount", { count: items.length })}</Badge>
         </div>
 
         {items.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground" dir="rtl">
-            {isQuiz ? "لم يرسل معلمك أي أسئلة بعد." : "لم يرسل معلمك أي تمارين بعد."}
+          <div className="text-center py-8 text-muted-foreground">
+            {isQuiz ? t("myClassContent.noQuizYet") : t("myClassContent.noExercisesYet")}
           </div>
         ) : isQuiz ? (
           <div className="space-y-3">
@@ -127,7 +129,7 @@ export function MyClassContent({ userId, contentType }: Props) {
                 <Card key={it.id} className={cn(direct && "border-2 border-red-500 bg-red-500/5")}>
                   <CardContent className="p-4 space-y-3">
                     {direct && (
-                      <Badge className="bg-red-600 hover:bg-red-600 text-white">⚠️ تمرين خاص بك</Badge>
+                      <Badge className="bg-red-600 hover:bg-red-600 text-white">{t("myClassContent.assignedToYou")}</Badge>
                     )}
                     <div className="flex items-center gap-3" dir="rtl">
                       <HtmlWithMath htmlContent={cleanMathStatement(p.question || it.title || "")} className="flex-1 font-medium" />
@@ -158,20 +160,20 @@ export function MyClassContent({ userId, contentType }: Props) {
                     {p.hint && showHint[it.id] && (
                       <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {p.hint}</div>
                     )}
-                    <div className="flex justify-end gap-2" dir="rtl">
+                    <div className="flex justify-end gap-2">
                       {p.hint && !showHint[it.id] && (
                         <Button size="sm" variant="ghost" onClick={() => handleHint(it.id, it.id)}>
-                          <Lightbulb className="h-4 w-4 mr-1" /> تلميح
+                          <Lightbulb className="h-4 w-4 mr-1" /> {t("exercisePlayer.hint")}
                         </Button>
                       )}
                       <Button size="sm" variant="outline" disabled={!selected[it.id]}
                         onClick={() => handleQuizCheck(it, p)}>
-                        <Eye className="h-4 w-4 mr-1" /> {isRevealed ? "إخفاء" : "تحقق"}
+                        <Eye className="h-4 w-4 mr-1" /> {isRevealed ? t("exercisePlayer.hide") : t("exercisePlayer.check")}
                       </Button>
                     </div>
                     {isRevealed && p.explanation && (
                       <div className="bg-muted/50 p-3 rounded text-sm" dir="rtl">
-                        <p className="font-semibold flex items-center gap-2 mb-1"><BookOpen className="h-4 w-4" /> الشرح:</p>
+                        <p className="font-semibold flex items-center gap-2 mb-1"><BookOpen className="h-4 w-4" /> {t("lessonActivity.explanationLabel")}</p>
                         <HtmlWithMath htmlContent={cleanMathStatement(p.explanation)} />
                       </div>
                     )}
@@ -189,7 +191,7 @@ export function MyClassContent({ userId, contentType }: Props) {
                 <Card key={it.id} className={cn(direct && "border-2 border-red-500 bg-red-500/5")}>
                   <CardContent className="p-4 space-y-3">
                     {direct && (
-                      <Badge className="bg-red-600 hover:bg-red-600 text-white">⚠️ تمرين خاص بك</Badge>
+                      <Badge className="bg-red-600 hover:bg-red-600 text-white">{t("myClassContent.assignedToYou")}</Badge>
                     )}
                     <div className="flex items-center gap-3" dir="rtl">
                       <HtmlWithMath htmlContent={cleanMathStatement(p.title || it.title || "")} className="flex-1 font-semibold" />

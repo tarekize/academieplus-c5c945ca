@@ -840,5 +840,12 @@
     "historyDialogTitle": "سجل بطاقات المراجعة",
     "backToHistory": "العودة للسجل",
     "historyCardLabel": "بطاقة #{{number}}"
+  },
+  "myClassContent": {
+    "quizTitle": "اختبارات من معلمي",
+    "exercisesTitle": "تمارين من معلمي",
+    "noQuizYet": "لم يرسل معلمك أي أسئلة بعد.",
+    "noExercisesYet": "لم يرسل معلمك أي تمارين بعد.",
+    "assignedToYou": "⚠️ تمرين خاص بك"
   }
 }

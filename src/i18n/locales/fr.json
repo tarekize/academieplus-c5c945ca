@@ -834,5 +834,12 @@
     "historyDialogTitle": "Historique des fiches de révision",
     "backToHistory": "Retour à l'historique",
     "historyCardLabel": "Fiche #{{number}}"
+  },
+  "myClassContent": {
+    "quizTitle": "Quiz de mon enseignant",
+    "exercisesTitle": "Exercices de mon enseignant",
+    "noQuizYet": "Ton enseignant n'a pas encore envoyé de questions.",
+    "noExercisesYet": "Ton enseignant n'a pas encore envoyé d'exercices.",
+    "assignedToYou": "⚠️ Exercice qui t'est destiné"
   }
 }
