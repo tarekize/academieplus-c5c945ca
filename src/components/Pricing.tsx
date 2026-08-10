@@ -50,6 +50,17 @@ const Pricing = () => {
       }
     };
     fetchConfig();
+
+    // Une modification de tarif par l'admin (AdminAbonnements) ne se
+    // reflétait pas sans recharger la page : ce composant ne chargeait les
+    // prix qu'une fois au montage. Un abonnement realtime garde les cartes
+    // à jour immédiatement pour quiconque a déjà la page ouverte.
+    const channel = supabase
+      .channel("pricing-config-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "subscription_config" }, fetchConfig)
+      .on("postgres_changes", { event: "*", schema: "public", table: "subscription_periods" }, fetchConfig)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const getTotalPrice = (plan: PricingPlan) => {
