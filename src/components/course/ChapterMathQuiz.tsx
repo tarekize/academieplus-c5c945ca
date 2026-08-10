@@ -11,8 +11,9 @@ import { recordActivityAnswer } from "@/lib/recordActivityAnswer";
 import { useNavigate } from "react-router-dom";
 
 function DifficultyPencils({ level }: { level: number }) {
+  const { t } = useTranslation();
   return (
-    <span className="inline-flex items-center gap-0.5 ml-2" title={`Difficulté ${level}/5`}>
+    <span className="inline-flex items-center gap-0.5 ml-2" title={t("quizPlayer.difficultyTitle", { level })}>
       {Array.from({ length: 5 }).map((_, i) => (
         <PenTool key={i} className={cn("h-3.5 w-3.5", i < level ? "text-primary fill-primary/20" : "text-muted-foreground/30")} />
       ))}
@@ -23,6 +24,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { QuizFormDialog, DeleteQuizButton } from "./QuizExerciseCRUD";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { MarkdownSolution } from "./MarkdownSolution";
+import { useTranslation } from "react-i18next";
 
 export interface DBQuizQuestion {
   id: string;
@@ -45,6 +47,7 @@ interface ChapterMathQuizProps {
 }
 
 export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, canManage, onRefresh }: ChapterMathQuizProps) => {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [hasAnswered, setHasAnswered] = useState(false);
@@ -163,14 +166,14 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           <div className="mx-auto w-16 h-16 rounded-full bg-[image:var(--gradient-violet)] flex items-center justify-center mb-4 shadow-lg">
             <Trophy className="h-8 w-8 text-white" />
           </div>
-          <CardTitle className="font-display text-2xl">!انتهى الاختبار</CardTitle>
+          <CardTitle className="font-display text-2xl">{t("quizPlayer.quizFinished")}</CardTitle>
           <p className="text-sm text-muted-foreground mt-1">{chapterTitle}</p>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="text-center">
             <div className="text-5xl font-bold text-primary mb-2">{score}/{questions.length}</div>
             <p className="text-muted-foreground">
-              {percentage >= 80 ? "!عمل ممتاز 🎉" : percentage >= 60 ? "!أحسنت، واصل 👍" : "!واصل التدريب 💪"}
+              {percentage >= 80 ? t("quizPlayer.feedbackExcellent") : percentage >= 60 ? t("quizPlayer.feedbackGood") : t("quizPlayer.feedbackKeepPracticing")}
             </p>
             <div className="flex items-center justify-center gap-2 mt-3 text-sm text-muted-foreground bg-muted px-4 py-2 rounded-lg inline-flex">
               <Clock className="h-4 w-4" /><span className="font-mono font-medium">{formattedTime}</span>
@@ -186,8 +189,8 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
             ))}
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={handleRestart} className="flex-1"><RotateCcw className="h-4 w-4 mr-2" />إعادة</Button>
-            <Button onClick={onClose} className="flex-1"><BookOpen className="h-4 w-4 mr-2" />العودة للدرس</Button>
+            <Button variant="outline" onClick={handleRestart} className="flex-1"><RotateCcw className="h-4 w-4 mr-2" />{t("quizPlayer.restart")}</Button>
+            <Button onClick={onClose} className="flex-1"><BookOpen className="h-4 w-4 mr-2" />{t("quizPlayer.backToLesson")}</Button>
           </div>
           {firstWrongLessonId && (
             <Button
@@ -196,7 +199,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
               onClick={() => navigate(`/remediation?chapitre=${chapterId}&lecon=${firstWrongLessonId}`)}
             >
               <Lightbulb className="h-4 w-4 mr-2" />
-              مراجعة النقاط الضعيفة
+              {t("quizPlayer.reviewWeakPoints")}
             </Button>
           )}
         </CardContent>
@@ -206,14 +209,14 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
 
   if (!currentQuestion) {
     return (
-      <Card className="max-w-2xl mx-auto p-8 text-center" dir="rtl">
-        <p>لا توجد أسئلة متاحة لهذا الفصل.</p>
+      <Card className="max-w-2xl mx-auto p-8 text-center">
+        <p>{t("quizPlayer.noQuestionsAvailable")}</p>
         {canManage && onRefresh && (
           <div className="mt-4 flex justify-center gap-2">
             <QuizFormDialog chapterId={chapterId} onSaved={onRefresh} />
           </div>
         )}
-        <Button onClick={onClose} className="mt-4">العودة للدرس</Button>
+        <Button onClick={onClose} className="mt-4">{t("quizPlayer.backToLesson")}</Button>
       </Card>
     );
   }
@@ -229,13 +232,13 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <Clock className="h-4 w-4" />
               <span className="font-mono">{formattedTime}</span>
-              {isPaused && <span className="text-xs opacity-80">(إيقاف)</span>}
+              {isPaused && <span className="text-xs opacity-80">{t("quizPlayer.pausedLabel")}</span>}
             </div>
             <Button variant="ghost" size="sm" onClick={isPaused ? resume : pause} className="gap-1">
-              {isPaused ? <><Play className="h-4 w-4" />استئناف</> : <><Pause className="h-4 w-4" />إيقاف</>}
+              {isPaused ? <><Play className="h-4 w-4" />{t("quizPlayer.resume")}</> : <><Pause className="h-4 w-4" />{t("quizPlayer.pause")}</>}
             </Button>
           </div>
-          <div className="text-sm font-semibold text-muted-foreground">سؤال {currentIndex + 1} / {questions.length}</div>
+          <div className="text-sm font-semibold text-muted-foreground">{t("quizPlayer.questionCounter", { current: currentIndex + 1, total: questions.length })}</div>
         </div>
         <Progress value={progress} className="h-2 mt-2" />
       </div>
@@ -259,9 +262,9 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <h3 className="text-lg font-semibold flex items-center gap-2" dir="rtl"><HtmlWithMath htmlContent={currentQuestion.question} className="flex-1" />{currentQuestion.difficulty && <DifficultyPencils level={currentQuestion.difficulty} />}</h3>
+          <h3 className="text-lg font-semibold flex items-center gap-2"><HtmlWithMath htmlContent={currentQuestion.question} className="flex-1" dir="rtl" />{currentQuestion.difficulty && <DifficultyPencils level={currentQuestion.difficulty} />}</h3>
           {currentQuestion.hint && (
-            <div dir="rtl" className="space-y-2">
+            <div className="space-y-2">
               <Button
                 type="button"
                 variant="outline"
@@ -269,15 +272,15 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                 onClick={() => { setShowHint(v => !v); if (!hasAnswered) setHintUsed(true); }}
                 className="gap-2 border-amber text-amber hover:bg-amber/10 font-semibold">
                 <Lightbulb className="h-4 w-4" />
-                {showHint ? "إخفاء المساعدة" : "💡 مساعدة"}
+                {showHint ? t("quizPlayer.hideHint") : t("quizPlayer.showHint")}
               </Button>
               {showHint && (
                 <div className="p-4 rounded-lg bg-amber/10 border-2 border-amber/40">
                   <div className="flex items-start gap-3">
                     <Lightbulb className="h-5 w-5 text-amber mt-0.5 shrink-0" />
                     <div className="flex-1 text-sm text-foreground">
-                      <p className="font-semibold mb-2">نصيحة مفيدة:</p>
-                      <HtmlWithMath htmlContent={currentQuestion.hint} className="max-w-none text-right leading-relaxed" />
+                      <p className="font-semibold mb-2">{t("quizPlayer.helpfulTip")}</p>
+                      <HtmlWithMath htmlContent={currentQuestion.hint} className="max-w-none text-right leading-relaxed" dir="rtl" />
                     </div>
                   </div>
                 </div>
@@ -299,7 +302,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                   !isThisSelected && !isThisCorrect && !isThisWrong && !isThisTheCorrectOne && "border-border hover:bg-accent"
                 )}>
                   <RadioGroupItem value={option} id={`option-${index}`} />
-                  <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer" dir="rtl"><HtmlWithMath htmlContent={option} /></Label>
+                  <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer"><HtmlWithMath htmlContent={option} dir="rtl" /></Label>
                   {(isThisCorrect || isThisTheCorrectOne) && <CheckCircle2 className="h-5 w-5 text-mint" />}
                   {isThisWrong && <XCircle className="h-5 w-5 text-coral" />}
                 </div>
@@ -311,44 +314,44 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
             <div className={cn(
               "p-5 rounded-lg border-2 space-y-3",
               isCorrect ? "bg-mint/10 border-mint/40" : "bg-amber/10 border-amber/40"
-            )} dir="rtl">
+            )}>
               <div className="flex items-center gap-2 font-semibold">
                 {isCorrect ? (
                   <>
                     <CheckCircle2 className="h-5 w-5 text-mint" />
-                    <span className="text-mint">✓ إجابة صحيحة! ممتاز 🎉</span>
+                    <span className="text-mint">{t("quizPlayer.correctAnswerFeedback")}</span>
                   </>
                 ) : (
                   <>
                     <XCircle className="h-5 w-5 text-coral" />
-                    <span className="text-coral">✗ إجابة خاطئة</span>
+                    <span className="text-coral">{t("quizPlayer.wrongAnswerFeedback")}</span>
                   </>
                 )}
               </div>
 
               {explanation && (
-                <MarkdownSolution content={explanation} title="📖 الشرح المفصل" compact />
+                <MarkdownSolution content={explanation} title={t("quizPlayer.detailedExplanation")} compact />
               )}
 
               {!isCorrect && correctAnswer && (
                 <div className="bg-white/50 dark:bg-black/20 p-3 rounded border border-mint/30">
-                  <p className="text-sm font-semibold text-mint mb-1">✓ الإجابة الصحيحة:</p>
-                  <div className="text-sm text-mint"><HtmlWithMath htmlContent={correctAnswer} /></div>
+                  <p className="text-sm font-semibold text-mint mb-1">{t("quizPlayer.correctAnswerLabel")}</p>
+                  <div className="text-sm text-mint"><HtmlWithMath htmlContent={correctAnswer} dir="rtl" /></div>
                 </div>
               )}
             </div>
           )}
 
           <div className="flex gap-3">
-            <Button variant="outline" onClick={onClose} className="flex-1">خروج</Button>
+            <Button variant="outline" onClick={onClose} className="flex-1">{t("quizPlayer.exit")}</Button>
             {!hasAnswered ? (
               <Button onClick={handleSubmit} disabled={!selectedAnswer || isSubmitting} className="flex-1 bg-[image:var(--gradient-primary)] border-0 text-white hover:opacity-90">
                 {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                تأكيد
+                {t("quizPlayer.confirm")}
               </Button>
             ) : (
               <Button onClick={handleNext} className="flex-1 bg-[image:var(--gradient-mint)] border-0 text-white hover:opacity-90">
-                {currentIndex < questions.length - 1 ? <>التالي <ArrowRight className="h-4 w-4 ml-2" /></> : "عرض النتائج"}
+                {currentIndex < questions.length - 1 ? <>{t("quizPlayer.next")} <ArrowRight className="h-4 w-4 ml-2 rtl:rotate-180" /></> : t("quizPlayer.showResults")}
               </Button>
             )}
           </div>
