@@ -416,7 +416,7 @@ const MesInformations = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Date de naissance</Label>
+                      <Label className="flex items-center">Date de naissance</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
