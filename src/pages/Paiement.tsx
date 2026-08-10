@@ -1,7 +1,7 @@
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, Shield, CheckCircle } from "lucide-react";
+import { ArrowLeft, CreditCard, GraduationCap, LogOut, User as UserIcon, Shield, Lock, CheckCircle, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -42,15 +42,6 @@ interface PaymentInfo {
   monthsCount: number;
 }
 
-interface BankDetails {
-  bank_name: string | null;
-  rib: string | null;
-  ccp_number: string | null;
-  ccp_key: string | null;
-  account_holder: string | null;
-  instructions: string | null;
-}
-
 const Paiement = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,7 +50,9 @@ const Paiement = () => {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [paymentDone, setPaymentDone] = useState(false);
-  const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
+  const [generatedCodes, setGeneratedCodes] = useState<string[]>([]);
+  const [cardNumber, setCardNumber] = useState("");
+  const [secretCode, setSecretCode] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -71,12 +64,6 @@ const Paiement = () => {
       if (!session) { navigate("/auth"); return; }
       fetchProfile(session.user.id);
     });
-
-    supabase
-      .from("payment_bank_details" as any)
-      .select("bank_name, rib, ccp_number, ccp_key, account_holder, instructions")
-      .maybeSingle()
-      .then(({ data }) => setBankDetails(data as any));
 
     return () => subscription.unsubscribe();
   }, [navigate]);
@@ -118,6 +105,10 @@ const Paiement = () => {
 
   const handlePayment = async () => {
     if (!paymentInfo || !profile) return;
+    if (!cardNumber.trim() || !secretCode.trim()) {
+      toast.error("Merci de renseigner le numéro de carte et le code secret.");
+      return;
+    }
     setProcessing(true);
 
     try {
@@ -132,13 +123,21 @@ const Paiement = () => {
       if (error) throw new Error(error.message || 'Payment failed');
       if (data?.error) throw new Error(data.error);
 
+      setGeneratedCodes(data.codes || []);
       setPaymentDone(true);
-      toast.success("Demande envoyée !", { description: data?.message || "Votre demande est en attente de vérification." });
+
+      const codeCount = data.codes?.length || 1;
+      toast.success("Paiement effectué !", { description: `${codeCount} code(s) d'activation généré(s).` });
     } catch (err: any) {
       toast.error("Erreur", { description: err.message });
     } finally {
       setProcessing(false);
     }
+  };
+
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    toast.success("Code copié !", { description: code });
   };
 
   const getBillingDetails = () => {
@@ -200,11 +199,6 @@ const Paiement = () => {
 
   const fullName = getFullName(profile);
 
-  // Vue de confirmation : la demande est enregistrée, en attente de
-  // vérification manuelle du paiement par un administrateur (aucune
-  // passerelle de paiement réelle n'est intégrée à ce jour — voir
-  // record-payment). Les codes d'activation ne sont émis qu'après cette
-  // vérification, via admin_approve_payment.
   if (paymentDone) {
     return (
       <div className="min-h-screen pro-shell">
@@ -225,11 +219,24 @@ const Paiement = () => {
           <div className="container mx-auto px-4 max-w-lg">
             <Card className="p-8 text-center">
               <CheckCircle className="h-16 w-16 text-mint mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-foreground mb-2">Demande envoyée !</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-2">Paiement réussi !</h1>
               <p className="text-muted-foreground mb-6">
-                Votre demande d'abonnement a été enregistrée. Une fois votre paiement vérifié par notre
-                équipe, vos codes d'activation seront disponibles dans la section "Mes Codes" de la page
-                Abonnements.
+                Voici {generatedCodes.length > 1 ? "vos codes" : "votre code"} d'activation à transmettre à {generatedCodes.length > 1 ? "vos enfants" : "votre enfant"} :
+              </p>
+
+              <div className="space-y-3 mb-6">
+                {generatedCodes.map((code, i) => (
+                  <div key={i} className="flex items-center justify-between bg-secondary/50 rounded-lg px-4 py-3">
+                    <span className="font-mono text-lg font-bold tracking-widest text-foreground">{code}</span>
+                    <Button variant="ghost" size="sm" onClick={() => copyCode(code)}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-sm text-muted-foreground mb-6">
+                Vous pouvez retrouver vos codes à tout moment dans la section "Mes Codes" de la page Abonnements.
               </p>
 
               <div className="flex gap-3">
@@ -312,44 +319,44 @@ const Paiement = () => {
 
               <div className="space-y-6">
                 <h2 className="text-xl font-bold text-foreground">Paiement</h2>
-                <div className="flex items-center gap-2 text-muted-foreground text-sm bg-accent/10 rounded-lg p-3">
-                  <Shield className="h-4 w-4 flex-shrink-0" />
-                  <span>
-                    Le paiement en ligne par carte n'est pas encore disponible. Votre demande d'abonnement
-                    sera enregistrée puis vérifiée manuellement par notre équipe (virement, EDAHABIA...) avant
-                    l'émission de vos codes d'activation.
-                  </span>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 border-2 border-primary rounded-lg px-4 py-2.5">
+                    <CreditCard className="h-5 w-5 text-primary" />
+                    <span className="text-sm font-semibold text-foreground">CIB / EDAHABIA</span>
+                  </div>
                 </div>
 
-                {(bankDetails?.rib || bankDetails?.ccp_number) ? (
-                  <div className="rounded-lg border border-border p-4 space-y-2">
-                    <h3 className="font-bold text-foreground text-sm">Coordonnées pour votre versement</h3>
-                    {bankDetails.account_holder && (
-                      <p className="text-sm"><span className="text-muted-foreground">Titulaire : </span>{bankDetails.account_holder}</p>
-                    )}
-                    {bankDetails.bank_name && bankDetails.rib && (
-                      <p className="text-sm">
-                        <span className="text-muted-foreground">{bankDetails.bank_name} — RIB : </span>
-                        <span className="font-mono">{bankDetails.rib}</span>
-                      </p>
-                    )}
-                    {bankDetails.ccp_number && (
-                      <p className="text-sm">
-                        <span className="text-muted-foreground">CCP : </span>
-                        <span className="font-mono">{bankDetails.ccp_number}</span>
-                        {bankDetails.ccp_key && <span className="text-muted-foreground"> (clé {bankDetails.ccp_key})</span>}
-                      </p>
-                    )}
-                    {bankDetails.instructions && (
-                      <p className="text-xs text-muted-foreground pt-1">{bankDetails.instructions}</p>
-                    )}
+                <div className="space-y-2">
+                  <div className="relative">
+                    <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="cardNumber"
+                      placeholder="Numéro de carte"
+                      className="pl-11 h-12 text-base"
+                      value={cardNumber}
+                      onChange={(e) => setCardNumber(e.target.value)}
+                    />
                   </div>
-                ) : (
-                  <div className="rounded-lg border border-dashed border-warning/50 bg-warning/5 p-4 text-sm text-muted-foreground">
-                    Les coordonnées de versement (RIB / CCP) n'ont pas encore été renseignées par
-                    l'administration. Contactez notre équipe pour connaître la marche à suivre en attendant.
+                </div>
+
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="secretCode"
+                      type="password"
+                      placeholder="Code secret"
+                      className="pl-10 h-12 text-base"
+                      value={secretCode}
+                      onChange={(e) => setSecretCode(e.target.value)}
+                    />
                   </div>
-                )}
+                </div>
+
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <Shield className="h-4 w-4 flex-shrink-0" />
+                  <span>Hébergement entièrement sécurisé. AcadémiePlus n'enregistre pas votre moyen de paiement.</span>
+                </div>
 
                 <Button
                   className="w-auto px-10 font-bold text-lg py-6"
@@ -357,7 +364,7 @@ const Paiement = () => {
                   disabled={processing}
                   onClick={handlePayment}
                 >
-                  {processing ? "Envoi..." : `Envoyer ma demande — ${paymentInfo.price.toLocaleString('fr-DZ')} DA`}
+                  {processing ? "Traitement..." : `Payer ${paymentInfo.price.toLocaleString('fr-DZ')} DA`}
                 </Button>
 
                 <p className="text-xs text-muted-foreground leading-relaxed">
