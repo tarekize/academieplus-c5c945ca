@@ -198,7 +198,15 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
         .insert({ teacher_id: teacherId, name: result.establishment_name, establishment_profile_id: result.establishment_id })
         .select("id, name, type, ville, establishment_profile_id")
         .single();
-      if (error) throw error;
+      if (error) {
+        if (error.code === "23505") {
+          toast.error("Cet établissement est déjà ajouté à votre compte.");
+          setEstCode("");
+          setShowCreateForm(false);
+          return;
+        }
+        throw error;
+      }
       toast.success("Établissement ajouté");
       setEstCode("");
       setShowCreateForm(false);

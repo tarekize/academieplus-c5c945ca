@@ -1752,6 +1752,7 @@ export type Database = {
           linking_code: string | null
           phone: string | null
           school_level: Database["public"]["Enums"]["school_level"] | null
+          subject: string | null
           subscription_end_date: string | null
           updated_at: string | null
           ville: string | null
@@ -1779,6 +1780,7 @@ export type Database = {
           linking_code?: string | null
           phone?: string | null
           school_level?: Database["public"]["Enums"]["school_level"] | null
+          subject?: string | null
           subscription_end_date?: string | null
           updated_at?: string | null
           ville?: string | null
@@ -1806,6 +1808,7 @@ export type Database = {
           linking_code?: string | null
           phone?: string | null
           school_level?: Database["public"]["Enums"]["school_level"] | null
+          subject?: string | null
           subscription_end_date?: string | null
           updated_at?: string | null
           ville?: string | null
