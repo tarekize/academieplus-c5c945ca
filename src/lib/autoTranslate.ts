@@ -46,6 +46,17 @@ export interface LocalizedPair {
   ar?: string | null;
 }
 
+// Le champ "fr" de beaucoup de contenus (chapitres, leçons, examens...) a
+// été rempli avec le même texte arabe que le champ "ar" au moment de la
+// création (aucune vraie traduction française n'a jamais été saisie). Sans
+// cette détection, `primary` paraît toujours "déjà rempli" et la traduction
+// automatique ne se déclenche jamais quand l'interface passe en français.
+const ARABIC_SCRIPT_RE = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/;
+
+function looksArabic(text: string): boolean {
+  return ARABIC_SCRIPT_RE.test(text);
+}
+
 /**
  * Pour chaque paire {fr, ar}, renvoie le texte de la langue active s'il
  * existe déjà ; sinon renvoie une traduction automatique (mise en cache) de
@@ -60,23 +71,34 @@ export async function resolveLocalizedTexts(
   const toTranslate: { index: number; text: string }[] = [];
 
   pairs.forEach((pair, index) => {
-    const primary = lang === "ar" ? pair.ar : pair.fr;
-    const fallback = lang === "ar" ? pair.fr : pair.ar;
+    if (lang === "ar") {
+      // L'utilisateur a choisi l'arabe : le contenu (rédigé en arabe dans
+      // l'immense majorité des cas) s'affiche tel quel, sans jamais appeler
+      // la traduction.
+      results[index] = pair.ar || pair.fr || "";
+      return;
+    }
 
-    if (primary && primary.trim()) {
-      results[index] = primary;
+    // lang === "fr" : on ne fait confiance au champ "fr" que s'il ne
+    // contient pas de script arabe (sinon ce n'est qu'un doublon du champ
+    // "ar", pas une vraie traduction française saisie par un auteur).
+    const frCandidate = pair.fr && !looksArabic(pair.fr) ? pair.fr : null;
+    if (frCandidate) {
+      results[index] = frCandidate;
       return;
     }
-    if (!fallback || !fallback.trim()) {
-      results[index] = fallback || "";
+
+    const source = pair.ar || pair.fr;
+    if (!source || !source.trim()) {
+      results[index] = source || "";
       return;
     }
-    const cached = readCache(cacheKey(lang, fallback));
+    const cached = readCache(cacheKey(lang, source));
     if (cached) {
       results[index] = cached;
     } else {
-      toTranslate.push({ index, text: fallback });
-      results[index] = fallback; // repli immédiat pendant la traduction
+      toTranslate.push({ index, text: source });
+      results[index] = source; // repli immédiat pendant la traduction
     }
   });
 
@@ -85,7 +107,7 @@ export async function resolveLocalizedTexts(
   // Dédoublonne les textes identiques (ex: "Méthodologie de résolution de
   // problèmes" répété dans plusieurs chapitres) avant d'appeler l'IA.
   const uniqueTexts = Array.from(new Set(toTranslate.map((t) => t.text)));
-  const BATCH_SIZE = 50;
+  const BATCH_SIZE = 30;
 
   for (let i = 0; i < uniqueTexts.length; i += BATCH_SIZE) {
     const batch = uniqueTexts.slice(i, i + BATCH_SIZE);
@@ -102,6 +124,65 @@ export async function resolveLocalizedTexts(
     } catch (e) {
       console.error("Auto-translation failed:", e);
       // Repli : on garde le texte de l'autre langue déjà présent dans `results`.
+    }
+  }
+
+  toTranslate.forEach(({ index, text }) => {
+    const cached = readCache(cacheKey(lang, text));
+    if (cached) results[index] = cached;
+  });
+
+  return results;
+}
+
+/**
+ * Traduit un lot de contenus mono-langue (contenu de leçon, énoncé/solution/
+ * aide d'exercice, question/option/explication de quiz — tout ce qui
+ * n'existe qu'en arabe en base). Si `lang` est "ar", renvoie les textes tels
+ * quels (le contenu est déjà rédigé en arabe, aucune traduction requise) ;
+ * si "fr", traduit (avec cache mémoire + localStorage + cache serveur
+ * partagé côté edge function) chaque texte manquant. Le balisage HTML et le
+ * LaTeX sont protégés côté edge function, pas ici.
+ */
+export async function translateContentTexts(
+  texts: (string | null | undefined)[],
+  lang: "fr" | "ar"
+): Promise<string[]> {
+  const normalized = texts.map((t) => t || "");
+  if (lang === "ar") return normalized;
+
+  const results = [...normalized];
+  const toTranslate: { index: number; text: string }[] = [];
+
+  normalized.forEach((text, index) => {
+    if (!text.trim() || !looksArabic(text)) return; // déjà en français ou vide
+    const cached = readCache(cacheKey(lang, text));
+    if (cached) {
+      results[index] = cached;
+    } else {
+      toTranslate.push({ index, text });
+    }
+  });
+
+  if (toTranslate.length === 0) return results;
+
+  const uniqueTexts = Array.from(new Set(toTranslate.map((t) => t.text)));
+  const BATCH_SIZE = 30;
+
+  for (let i = 0; i < uniqueTexts.length; i += BATCH_SIZE) {
+    const batch = uniqueTexts.slice(i, i + BATCH_SIZE);
+    try {
+      const { data, error } = await supabase.functions.invoke("translate-text", {
+        body: { texts: batch, targetLang: lang },
+      });
+      if (error) throw error;
+      const translations: string[] = data?.translations || [];
+      batch.forEach((text, idx) => {
+        const translated = translations[idx] || text;
+        writeCache(cacheKey(lang, text), translated);
+      });
+    } catch (e) {
+      console.error("Content auto-translation failed:", e);
     }
   }
 

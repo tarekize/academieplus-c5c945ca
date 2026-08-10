@@ -25,6 +25,7 @@ import { QuizFormDialog, DeleteQuizButton } from "./QuizExerciseCRUD";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { MarkdownSolution } from "./MarkdownSolution";
 import { useTranslation } from "react-i18next";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 
 export interface DBQuizQuestion {
   id: string;
@@ -47,7 +48,8 @@ interface ChapterMathQuizProps {
 }
 
 export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, canManage, onRefresh }: ChapterMathQuizProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [hasAnswered, setHasAnswered] = useState(false);
@@ -74,6 +76,29 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
 
   const currentQuestion = questions[currentIndex];
   const progress = ((currentIndex + 1) / questions.length) * 100;
+
+  // La question, ses options, son indice et son explication n'existent
+  // qu'en arabe en base : traduits à la volée pour l'affichage en français,
+  // jamais écrits en base.
+  const currentOptions = currentQuestion?.options || [];
+  const quizTranslationInputs = [
+    currentQuestion?.question || "",
+    currentQuestion?.hint || "",
+    explanation || "",
+    correctAnswer || "",
+    ...currentOptions,
+  ];
+  const { translated: tQuiz } = useTranslatedContent(quizTranslationInputs, lang);
+  const tQuestion = tQuiz[0] || currentQuestion?.question || "";
+  const tHint = tQuiz[1] || currentQuestion?.hint || "";
+  const tExplanation = tQuiz[2] || explanation || "";
+  const tCorrectAnswer = tQuiz[3] || correctAnswer || "";
+  const tOptions = tQuiz.slice(4, 4 + currentOptions.length);
+
+  const { translated: tAnswerQuestions } = useTranslatedContent(
+    answers.map((a) => a.question),
+    lang
+  );
 
   const handleSubmit = async () => {
     if (!selectedAnswer || !currentQuestion) return;
@@ -184,7 +209,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
             {answers.map((answer, index) => (
               <div key={index} className={cn("p-3 rounded-lg flex items-start gap-3", answer.correct ? "bg-mint/10" : "bg-coral/10")}>
                 {answer.correct ? <CheckCircle2 className="h-5 w-5 text-mint mt-0.5 shrink-0" /> : <XCircle className="h-5 w-5 text-coral mt-0.5 shrink-0" />}
-                <HtmlWithMath htmlContent={answer.question} className="text-sm" dir="rtl" />
+                <HtmlWithMath htmlContent={tAnswerQuestions[index] || answer.question} className="text-sm" dir="auto" />
               </div>
             ))}
           </div>
@@ -262,7 +287,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <h3 className="text-lg font-semibold flex items-center gap-2"><HtmlWithMath htmlContent={currentQuestion.question} className="flex-1" dir="rtl" />{currentQuestion.difficulty && <DifficultyPencils level={currentQuestion.difficulty} />}</h3>
+          <h3 className="text-lg font-semibold flex items-center gap-2"><HtmlWithMath htmlContent={tQuestion} className="flex-1" dir="auto" />{currentQuestion.difficulty && <DifficultyPencils level={currentQuestion.difficulty} />}</h3>
           {currentQuestion.hint && (
             <div className="space-y-2">
               <Button
@@ -280,7 +305,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                     <Lightbulb className="h-5 w-5 text-amber mt-0.5 shrink-0" />
                     <div className="flex-1 text-sm text-foreground">
                       <p className="font-semibold mb-2">{t("quizPlayer.helpfulTip")}</p>
-                      <HtmlWithMath htmlContent={currentQuestion.hint} className="max-w-none text-right leading-relaxed" dir="rtl" />
+                      <HtmlWithMath htmlContent={tHint} className="max-w-none text-end leading-relaxed" dir="auto" />
                     </div>
                   </div>
                 </div>
@@ -302,7 +327,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                   !isThisSelected && !isThisCorrect && !isThisWrong && !isThisTheCorrectOne && "border-border hover:bg-accent"
                 )}>
                   <RadioGroupItem value={option} id={`option-${index}`} />
-                  <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer"><HtmlWithMath htmlContent={option} dir="rtl" /></Label>
+                  <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer"><HtmlWithMath htmlContent={tOptions[index] || option} dir="auto" /></Label>
                   {(isThisCorrect || isThisTheCorrectOne) && <CheckCircle2 className="h-5 w-5 text-mint" />}
                   {isThisWrong && <XCircle className="h-5 w-5 text-coral" />}
                 </div>
@@ -330,13 +355,13 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
               </div>
 
               {explanation && (
-                <MarkdownSolution content={explanation} title={t("quizPlayer.detailedExplanation")} compact />
+                <MarkdownSolution content={tExplanation} title={t("quizPlayer.detailedExplanation")} compact />
               )}
 
               {!isCorrect && correctAnswer && (
                 <div className="bg-white/50 dark:bg-black/20 p-3 rounded border border-mint/30">
                   <p className="text-sm font-semibold text-mint mb-1">{t("quizPlayer.correctAnswerLabel")}</p>
-                  <div className="text-sm text-mint"><HtmlWithMath htmlContent={correctAnswer} dir="rtl" /></div>
+                  <div className="text-sm text-mint"><HtmlWithMath htmlContent={tCorrectAnswer} dir="auto" /></div>
                 </div>
               )}
             </div>

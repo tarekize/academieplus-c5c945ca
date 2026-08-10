@@ -21,6 +21,7 @@ import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import { TeacherContentRedDot } from "@/components/TeacherContentRedDot";
 import {
     Sheet,
@@ -40,9 +41,16 @@ import {
 
 export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel, showActivityCards, initialLessonId, onInitialLessonHandled, onBackToChapters, onBackToLessons, readOnly }: any) {
     const navigate = useNavigate();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
     const [selectedLesson, setSelectedLesson] = useState<any>(null);
     const [lessonContent, setLessonContent] = useState<string>("");
+    // Le contenu de leçon n'existe qu'en arabe en base : traduit à la volée
+    // pour l'affichage quand l'interface est en français, jamais écrit en
+    // base. Calculé au niveau du composant (pas dans renderLessonContent,
+    // appelée conditionnellement) pour respecter les règles des hooks.
+    const { translated: translatedLessonContentArr, loading: translatingLessonContent } = useTranslatedContent([lessonContent], lang);
+    const displayLessonContent = translatedLessonContentArr[0] || lessonContent;
     const lessonContentExportRef = useRef<HTMLDivElement>(null);
     const [loadingContent, setLoadingContent] = useState(false);
     const readingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -352,12 +360,12 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
 
     // Student lesson content view
     const renderLessonContent = () => {
-        const lessonContentNode = /<\s*(html|body|head|!doctype)/i.test(lessonContent) ? (
+        const lessonContentNode = /<\s*(html|body|head|!doctype)/i.test(displayLessonContent) ? (
             <HtmlWithMath
                 className="lesson-markdown html-with-math prose prose-sm dark:prose-invert max-w-none"
-                htmlContent={injectHeaderIds(lessonContent)} />
+                htmlContent={injectHeaderIds(displayLessonContent)} />
         ) : (
-            <LessonMarkdown content={lessonContent} dir="rtl" />
+            <LessonMarkdown content={displayLessonContent} dir={lang === "fr" ? "ltr" : "rtl"} />
         );
 
         return (
@@ -428,7 +436,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                                         </SheetTitle>
                                                     </SheetHeader>
                                                     <div className="mt-4 min-h-0 flex-1 overflow-hidden">
-                                                        <TableOfContents htmlContent={lessonContent} compact className="h-full overflow-y-auto pr-1" />
+                                                        <TableOfContents htmlContent={displayLessonContent} compact className="h-full overflow-y-auto pr-1" />
                                                     </div>
                                                 </div>
                                             </SheetContent>
@@ -460,7 +468,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                                     </SheetTitle>
                                                 </SheetHeader>
                                                 <div className="mt-4 min-h-0 flex-1 overflow-hidden">
-                                                    <TableOfContents htmlContent={lessonContent} compact className="h-full overflow-y-auto pr-1" />
+                                                    <TableOfContents htmlContent={displayLessonContent} compact className="h-full overflow-y-auto pr-1" />
                                                 </div>
                                             </div>
                                         </SheetContent>
@@ -488,7 +496,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                             </CardContent>
                         </Card>
                         <div className="hidden lg:block w-full lg:w-72 shrink-0">
-                            <TableOfContents htmlContent={lessonContent} />
+                            <TableOfContents htmlContent={displayLessonContent} />
                         </div>
                     </div>
                 )}

@@ -8,6 +8,7 @@ import { recordTeacherContentAttempt, normalizeAnswer } from "@/lib/teacherConte
 import { supabase } from "@/integrations/supabase/client";
 import { ExerciseSubQuestion } from "@/lib/teacherContent";
 import { useTranslation } from "react-i18next";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 
 interface Props {
   /** The teacher_content row id this exercise belongs to (attempts are recorded against it). */
@@ -31,7 +32,8 @@ type Part = { text: string; expectedAnswer?: string };
  * l'enseignant (page "Suivi de la classe"), qui la corrige lui-même — l'élève
  * peut alors réessayer tant qu'il n'a pas obtenu "correct". */
 export default function ExerciseAnswerBlock({ contentId, userId, statement, expectedAnswer, solution, hint, subQuestions }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
   const legacySplit = splitStatementIntoQuestions(statement || "");
   const structuredParts: Part[] | null =
     subQuestions && subQuestions.length >= 2
@@ -45,6 +47,27 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
   const hasCorrection = hasSubQuestions
     ? parts.some((p) => !!p.expectedAnswer?.trim()) || !!solution?.trim()
     : !!(expectedAnswer?.trim() || solution?.trim());
+
+  // Le contenu (énoncé, indice, réponse, corrigé) n'existe qu'en arabe en
+  // base : traduit à la volée pour l'affichage quand l'interface est en
+  // français, jamais écrit en base.
+  const translationInputs = [
+    statement || "",
+    intro || "",
+    hint || "",
+    expectedAnswer || "",
+    solution || "",
+    ...parts.map((p) => p.text),
+    ...parts.map((p) => p.expectedAnswer || ""),
+  ];
+  const { translated } = useTranslatedContent(translationInputs, lang);
+  const tStatement = translated[0] || statement || "";
+  const tIntro = translated[1] || intro || "";
+  const tHint = translated[2] || hint || "";
+  const tExpectedAnswer = translated[3] || expectedAnswer || "";
+  const tSolution = translated[4] || solution || "";
+  const tPartTexts = translated.slice(5, 5 + parts.length);
+  const tPartAnswers = translated.slice(5 + parts.length, 5 + 2 * parts.length);
 
   const [answer, setAnswer] = useState("");
   const [subAnswers, setSubAnswers] = useState<string[]>(() => parts.map(() => ""));
@@ -172,10 +195,10 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
     <div className="space-y-3">
       {hasSubQuestions ? (
         <div className="space-y-4">
-          {intro && <HtmlWithMath htmlContent={cleanMathStatement(intro)} className="text-sm text-right" dir="rtl" />}
+          {intro && <HtmlWithMath htmlContent={cleanMathStatement(tIntro)} className="text-sm text-end" dir="auto" />}
           {parts.map((p, i) => (
             <div key={i} className="space-y-1.5">
-              <HtmlWithMath htmlContent={cleanMathStatement(p.text)} className="text-sm text-right" dir="rtl" />
+              <HtmlWithMath htmlContent={cleanMathStatement(tPartTexts[i] || p.text)} className="text-sm text-end" dir="auto" />
               <div className="flex items-center gap-2">
                 <input
                   id={`exo-answer-${contentId}-${i}`}
@@ -205,12 +228,12 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
         </div>
       ) : (
         statement && (
-          <HtmlWithMath htmlContent={cleanMathStatement(statement)} className="text-sm text-right" dir="rtl" />
+          <HtmlWithMath htmlContent={cleanMathStatement(tStatement)} className="text-sm text-end" dir="auto" />
         )
       )}
 
       {hint && showHint && (
-        <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {hint}</div>
+        <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="auto">💡 {tHint}</div>
       )}
 
       <div className="flex gap-2 items-center flex-wrap">
@@ -262,16 +285,16 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
           {hasSubQuestions ? (
             parts.map((p, i) => p.expectedAnswer ? (
               <p key={i}><span className="font-semibold">{t("exercisePlayer.subQuestionAnswerLabel", { n: i + 1 })}</span>{" "}
-                <HtmlWithMath htmlContent={cleanMathStatement(p.expectedAnswer)} className="inline" dir="rtl" /></p>
+                <HtmlWithMath htmlContent={cleanMathStatement(tPartAnswers[i] || p.expectedAnswer)} className="inline" dir="auto" /></p>
             ) : null)
           ) : expectedAnswer && (
             <p><span className="font-semibold">{t("exercisePlayer.theAnswerLabel")}</span>{" "}
-              <HtmlWithMath htmlContent={cleanMathStatement(expectedAnswer)} className="inline" dir="rtl" /></p>
+              <HtmlWithMath htmlContent={cleanMathStatement(tExpectedAnswer)} className="inline" dir="auto" /></p>
           )}
           {solution && (
             <div>
               <p className="font-semibold flex items-center gap-2 mb-1"><BookOpen className="h-4 w-4" /> {t("exercisePlayer.theSolutionLabel")}</p>
-              <HtmlWithMath htmlContent={cleanMathStatement(solution)} dir="rtl" />
+              <HtmlWithMath htmlContent={cleanMathStatement(tSolution)} dir="auto" />
             </div>
           )}
         </div>
