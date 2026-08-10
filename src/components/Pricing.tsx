@@ -62,7 +62,6 @@ const Pricing = () => {
   const features = [
     "Tous les cours de mathématiques de votre niveau",
     "Exercices et corrigés",
-    "Vidéos explicatives",
     "Suivi de progression",
     "Support prioritaire",
     "Examens blancs",
