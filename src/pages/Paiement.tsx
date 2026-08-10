@@ -1,7 +1,7 @@
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, CreditCard, GraduationCap, LogOut, User as UserIcon, Shield, Lock, CheckCircle, Copy } from "lucide-react";
+import { ArrowLeft, CreditCard, GraduationCap, LogOut, User as UserIcon, Shield, Lock, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -52,7 +52,6 @@ const Paiement = () => {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [paymentDone, setPaymentDone] = useState(false);
-  const [generatedCodes, setGeneratedCodes] = useState<string[]>([]);
   const [cardNumber, setCardNumber] = useState("");
   const [secretCode, setSecretCode] = useState("");
 
@@ -121,21 +120,13 @@ const Paiement = () => {
       if (error) throw new Error(error.message || 'Payment failed');
       if (data?.error) throw new Error(data.error);
 
-      setGeneratedCodes(data.codes || []);
       setPaymentDone(true);
-
-      const codeCount = data.codes?.length || 1;
-      toast.success(t("paiement.paymentSuccessToast"), { description: t("paiement.codesGeneratedDesc", { count: codeCount }) });
+      toast.success(t("paiement.paymentPendingToast"), { description: t("paiement.paymentPendingDesc") });
     } catch (err: any) {
       toast.error(t("account.errorTitle"), { description: err.message });
     } finally {
       setProcessing(false);
     }
-  };
-
-  const copyCode = (code: string) => {
-    navigator.clipboard.writeText(code);
-    toast.success(t("abonnements.codeCopied"), { description: code });
   };
 
   const getBillingDetails = () => {
@@ -216,22 +207,11 @@ const Paiement = () => {
         <main className="pt-24 pb-12">
           <div className="container mx-auto px-4 max-w-lg">
             <Card className="p-8 text-center">
-              <CheckCircle className="h-16 w-16 text-mint mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-foreground mb-2">{t("paiement.paymentSuccessTitle")}</h1>
+              <Clock className="h-16 w-16 text-amber-500 mx-auto mb-4" />
+              <h1 className="text-2xl font-bold text-foreground mb-2">{t("paiement.paymentPendingTitle")}</h1>
               <p className="text-muted-foreground mb-6">
-                {generatedCodes.length > 1 ? t("paiement.successMessageMultiple") : t("paiement.successMessageSingle")}
+                {t("paiement.paymentPendingDesc")}
               </p>
-
-              <div className="space-y-3 mb-6">
-                {generatedCodes.map((code, i) => (
-                  <div key={i} className="flex items-center justify-between bg-secondary/50 rounded-lg px-4 py-3">
-                    <span className="font-mono text-lg font-bold tracking-widest text-foreground">{code}</span>
-                    <Button variant="ghost" size="sm" onClick={() => copyCode(code)}>
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
 
               <p className="text-sm text-muted-foreground mb-6">
                 {t("paiement.retrieveCodesHint")}

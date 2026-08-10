@@ -17,7 +17,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarWidget } from "@/components/ui/calendar";
 import {
-  ArrowLeft, CreditCard, Calendar, CalendarIcon, Settings, Users, Eye, Loader2, Save, Plus, Pencil, Landmark,
+  ArrowLeft, CreditCard, Calendar, CalendarIcon, Settings, Users, Eye, Loader2, Save, Plus, Pencil, Landmark, Check, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -73,6 +73,7 @@ export default function AdminAbonnements() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showPayments, setShowPayments] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState<string | null>(null);
 
   // Edit state for prices
   const [editPrices, setEditPrices] = useState<Record<string, { single: number; family: number }>>({});
@@ -195,6 +196,34 @@ export default function AdminAbonnements() {
     } else {
       setPayments([]);
     }
+  };
+
+  // Aucune passerelle de paiement réelle n'est intégrée : un paiement entre en
+  // statut 'pending' et seul un admin, après avoir vérifié le virement/paiement
+  // réel, peut l'approuver (ce qui émet alors les codes d'activation) ou le
+  // rejeter.
+  const handleApprovePayment = async (paymentId: string) => {
+    setProcessingPayment(paymentId);
+    const { error } = await supabase.rpc("admin_approve_payment" as any, { p_payment_id: paymentId });
+    if (error) {
+      toast.error("Impossible de valider ce paiement", { description: error.message });
+    } else {
+      toast.success("Paiement validé, codes d'activation émis");
+      await fetchPayments();
+    }
+    setProcessingPayment(null);
+  };
+
+  const handleRejectPayment = async (paymentId: string) => {
+    setProcessingPayment(paymentId);
+    const { error } = await supabase.rpc("admin_reject_payment" as any, { p_payment_id: paymentId });
+    if (error) {
+      toast.error("Impossible de rejeter ce paiement", { description: error.message });
+    } else {
+      toast.success("Paiement rejeté");
+      await fetchPayments();
+    }
+    setProcessingPayment(null);
   };
 
   const handleSavePrices = async (configId: string) => {
@@ -529,12 +558,13 @@ export default function AdminAbonnements() {
                       <TableHead>Montant</TableHead>
                       <TableHead>Nb enfants</TableHead>
                       <TableHead>Statut</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {payments.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                           Aucun paiement enregistré pour le moment.
                         </TableCell>
                       </TableRow>
@@ -555,6 +585,31 @@ export default function AdminAbonnements() {
                             <Badge variant={p.status === "completed" ? "default" : p.status === "pending" ? "secondary" : "destructive"}>
                               {p.status === "completed" ? "Complété" : p.status === "pending" ? "En attente" : p.status === "failed" ? "Rejeté" : p.status}
                             </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {p.status === "pending" && (
+                              <div className="flex items-center justify-end gap-2">
+                                <Button
+                                  size="sm"
+                                  className="gap-1.5"
+                                  disabled={processingPayment === p.id}
+                                  onClick={() => handleApprovePayment(p.id)}
+                                >
+                                  {processingPayment === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                                  Valider
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="gap-1.5"
+                                  disabled={processingPayment === p.id}
+                                  onClick={() => handleRejectPayment(p.id)}
+                                >
+                                  <X className="h-3.5 w-3.5" />
+                                  Rejeter
+                                </Button>
+                              </div>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))

@@ -23,6 +23,19 @@ export const phoneSchema = z
   .optional()
   .or(z.literal(""));
 
+// Numéro algérien : mobile 05/06/07 + 8 chiffres, fixe 02-04 + 7-8 chiffres,
+// préfixe +213 ou 0 accepté, espaces/points/tirets tolérés dans la saisie.
+export const ALGERIAN_PHONE_REGEX = /^(?:\+213[\s.-]?0?|0)(?:[5-7](?:[\s.-]?\d){8}|[2-4](?:[\s.-]?\d){7,8})$/;
+
+export const algerianPhoneSchema = z
+  .string()
+  .trim()
+  .refine((v) => v === "" || ALGERIAN_PHONE_REGEX.test(v), {
+    message: "Numéro de téléphone invalide (format algérien attendu, ex : 05 XX XX XX XX)",
+  })
+  .optional()
+  .or(z.literal(""));
+
 // Name validation
 export const nameSchema = z
   .string()

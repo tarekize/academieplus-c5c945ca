@@ -93,8 +93,13 @@ Deno.serve(async (req) => {
 
     // Aucune passerelle de paiement réelle (CIB/EDAHABIA/Chargily...) n'est
     // intégrée : le formulaire carte côté client est purement visuel, rien
-    // n'est débité. Le paiement est enregistré 'completed' et les codes
-    // d'activation émis immédiatement.
+    // n'est débité. Le paiement entre donc en statut 'pending' (valeur par
+    // défaut de la colonne, cf. migration payment_requires_admin_approval) —
+    // seul un admin qui a vérifié le virement/paiement réel peut le faire
+    // passer à 'completed' via le RPC admin_approve_payment, qui émet alors
+    // les codes d'activation. Émettre les codes ici, avant toute vérification
+    // humaine, permettait à n'importe quel compte authentifié d'obtenir des
+    // codes d'activation valides sans jamais payer.
     const { data: payment, error: payErr } = await serviceClient
       .from('payments')
       .insert({
@@ -105,7 +110,7 @@ Deno.serve(async (req) => {
         is_family,
         children_count: childrenCount,
         period_id: periodId,
-        status: 'completed',
+        status: 'pending',
       })
       .select()
       .single()
@@ -117,39 +122,10 @@ Deno.serve(async (req) => {
       })
     }
 
-    const codes: string[] = []
-    for (let i = 0; i < Math.max(childrenCount, 1); i++) {
-      const { data: code, error: codeErr } = await serviceClient.rpc('generate_activation_code')
-      if (codeErr || !code) {
-        console.error('Code generation error:', codeErr)
-        return new Response(JSON.stringify({ error: 'Failed to generate activation code' }), {
-          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
-      const { error: insertCodeErr } = await serviceClient
-        .from('activation_codes')
-        .insert({
-          code,
-          payment_id: payment.id,
-          created_by: user.id,
-          plan_type: billing_period === 'annual' ? 'annual' : 'monthly',
-          is_family,
-          status: 'free',
-        })
-      if (insertCodeErr) {
-        console.error('Activation code insert error:', insertCodeErr)
-        return new Response(JSON.stringify({ error: 'Failed to record activation code' }), {
-          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
-      codes.push(code)
-    }
-
     return new Response(JSON.stringify({
       payment_id: payment.id,
-      status: 'completed',
-      codes,
-      message: `${codes.length} code(s) d'activation généré(s).`,
+      status: 'pending',
+      message: 'Paiement enregistré, en attente de validation par un administrateur.',
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })

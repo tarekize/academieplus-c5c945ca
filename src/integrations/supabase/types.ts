@@ -1597,6 +1597,7 @@ export type Database = {
           children_count: number
           created_at: string
           id: string
+          invoice_number: string | null
           is_family: boolean
           payment_date: string
           period_end: string
@@ -1616,6 +1617,7 @@ export type Database = {
           children_count?: number
           created_at?: string
           id?: string
+          invoice_number?: string | null
           is_family?: boolean
           payment_date?: string
           period_end: string
@@ -1635,6 +1637,7 @@ export type Database = {
           children_count?: number
           created_at?: string
           id?: string
+          invoice_number?: string | null
           is_family?: boolean
           payment_date?: string
           period_end?: string

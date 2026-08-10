@@ -264,7 +264,7 @@ export function TableOfContents({ htmlContent, className, title, dir, compact = 
                                 aria-current={isActive ? "true" : undefined}
                                 style={blockColor ? { borderInlineStartColor: `hsl(${blockColor})` } : undefined}
                                 className={cn(
-                                    "flex items-center gap-1.5 w-full text-sm transition-all hover:translate-x-1 hover:text-primary active:scale-95 px-2 py-1.5 rounded-md",
+                                    "flex items-start gap-1.5 w-full text-sm transition-all hover:translate-x-1 hover:text-primary active:scale-95 px-2 py-1.5 rounded-md",
                                     resolvedDir === "rtl" ? "text-right" : "text-left",
                                     !item.blockKind && item.level === 1 && "font-bold border-l-2 border-primary/20 pl-2",
                                     !item.blockKind && item.level === 2 && "font-medium opacity-90 pl-4",
@@ -278,11 +278,11 @@ export function TableOfContents({ htmlContent, className, title, dir, compact = 
                             >
                                 {blockColor && (
                                     <span
-                                        className="inline-block h-1.5 w-1.5 rounded-full shrink-0"
+                                        className="inline-block h-1.5 w-1.5 rounded-full shrink-0 mt-1.5"
                                         style={{ backgroundColor: `hsl(${blockColor})` }}
                                     />
                                 )}
-                                <span className="truncate">{item.text}</span>
+                                <span className="min-w-0 break-words">{item.text}</span>
                             </button>
                         );
                     })}

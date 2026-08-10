@@ -25,6 +25,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { z } from "zod";
+import { algerianPhoneSchema } from "@/lib/validation";
 import { LinkedChildrenSection } from "@/components/profile/LinkedChildrenSection";
 import { LinkedParentsSection } from "@/components/profile/LinkedParentsSection";
 import { AvatarUpload } from "@/components/profile/AvatarUpload";
@@ -35,7 +36,7 @@ import LocationFields from "@/components/profile/LocationFields";
 const profileSchema = z.object({
   first_name: z.string().trim().min(1, "Le prénom est requis").max(100, "Le prénom ne peut pas dépasser 100 caractères"),
   last_name: z.string().trim().min(1, "Le nom est requis").max(100, "Le nom ne peut pas dépasser 100 caractères"),
-  phone: z.string().trim().max(20, "Le téléphone ne peut pas dépasser 20 caractères").optional().nullable(),
+  phone: algerianPhoneSchema.nullable(),
   school_level: z.string().optional().nullable(),
   filiere: z.string().optional().nullable(),
   email: z.string().email("L'adresse email n'est pas valide"),
@@ -189,7 +190,10 @@ const MesInformations = () => {
 
       if (error) throw error;
 
-      navigate("/update-success");
+      toast.success("Informations mises à jour", {
+        description: "Vos modifications ont bien été enregistrées.",
+      });
+      if (user) await fetchProfile(user.id);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast.error("Erreur de validation", {
@@ -397,9 +401,14 @@ const MesInformations = () => {
                       </Label>
                       <Input
                         id="phone"
+                        type="tel"
+                        inputMode="tel"
                         value={formData.phone}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
-                        placeholder="Numéro de téléphone"
+                        onChange={(e) => {
+                          const filtered = e.target.value.replace(/[^\d\s+.\-]/g, "");
+                          setFormData((prev) => ({ ...prev, phone: filtered }));
+                        }}
+                        placeholder="05 XX XX XX XX"
                         className="rounded-xl"
                       />
                     </div>

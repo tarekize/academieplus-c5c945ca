@@ -46,6 +46,7 @@ interface Payment {
   amount_ht: number;
   vat_amount: number;
   amount_ttc: number;
+  invoice_number: string | null;
 }
 
 interface ActivationCode {
@@ -173,8 +174,12 @@ const Factures = () => {
   };
 
   const generateInvoiceNumber = (payment: Payment) => {
-    const date = new Date(payment.payment_date);
-    return `FA-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}-${payment.id.slice(0, 6).toUpperCase()}`;
+    // Numéro de facture réel, attribué en base uniquement au moment où le
+    // paiement passe à "completed" (cf. migration invoice_number_only_on_completion).
+    // Un paiement encore en attente n'a pas de vraie facture : référence
+    // provisoire, clairement distincte, en attendant validation.
+    if (payment.invoice_number) return payment.invoice_number;
+    return `PROVISOIRE-${payment.id.slice(0, 8).toUpperCase()}`;
   };
 
   const handleDownloadInvoice = (payment: Payment) => {

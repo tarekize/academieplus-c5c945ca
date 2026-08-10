@@ -195,7 +195,7 @@ export default function TeacherProfile({ onBack }: { onBack: () => void }) {
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl border-destructive/30 bg-destructive/[0.03]">
+      <Card className="rounded-2xl">
         <CardContent className="p-5 space-y-4">
           <div className="flex items-start gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-destructive/10">
