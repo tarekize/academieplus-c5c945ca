@@ -19,10 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserPlus, Eye, EyeOff, Loader2 } from "lucide-react";
+import { UserPlus, Eye, EyeOff, Loader2, CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SUBJECTS } from "@/lib/subjects";
+import LocationFields from "@/components/profile/LocationFields";
 
 const SCHOOL_LEVELS = [
   { value: "5eme_primaire", label: "5ème Primaire" },
@@ -72,6 +77,12 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
   const [role, setRole] = useState<string>("");
   const [schoolLevel, setSchoolLevel] = useState<string>("");
   const [filiere, setFiliere] = useState<string>("");
+  const [phone, setPhone] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined);
+  const [wilaya, setWilaya] = useState("");
+  const [ville, setVille] = useState("");
+  const [ecole, setEcole] = useState("");
+  const [subscriptionEndDate, setSubscriptionEndDate] = useState<Date | undefined>(undefined);
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [takenSubjects, setTakenSubjects] = useState<Record<string, string>>({});
   const [loadingSubjects, setLoadingSubjects] = useState(false);
@@ -158,6 +169,11 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
       return;
     }
 
+    if (role === "student" && subscriptionEndDate && subscriptionEndDate <= new Date()) {
+      toast.error("La date de fin d'abonnement doit être dans le futur.");
+      return;
+    }
+
     if (isPedago && selectedSubjects.length === 0) {
       toast.error("Veuillez sélectionner au moins une matière enseignée par ce pédago.");
       return;
@@ -182,6 +198,12 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
           role,
           schoolLevel: role === "student" ? schoolLevel : null,
           filiere: needsFiliere ? filiere : null,
+          phone: !isEstablishment && phone.trim() ? phone.trim() : null,
+          dateOfBirth: !isEstablishment && dateOfBirth ? format(dateOfBirth, "yyyy-MM-dd") : null,
+          wilaya: role === "student" && wilaya ? wilaya : null,
+          ville: role === "student" && ville ? ville : null,
+          ecole: role === "student" && ecole.trim() ? ecole.trim() : null,
+          subscriptionEndDate: role === "student" && subscriptionEndDate ? format(subscriptionEndDate, "yyyy-MM-dd") : null,
           subjects: isPedago ? selectedSubjects : undefined,
         },
       });
@@ -229,6 +251,12 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
     setRole("");
     setSchoolLevel("");
     setFiliere("");
+    setPhone("");
+    setDateOfBirth(undefined);
+    setWilaya("");
+    setVille("");
+    setEcole("");
+    setSubscriptionEndDate(undefined);
     setSelectedSubjects([]);
   };
 
@@ -344,6 +372,51 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
                   </div>
                 </div>
 
+                {!isEstablishment && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Téléphone</Label>
+                      <Input
+                        id="phone"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="Numéro de téléphone"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Date de naissance</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !dateOfBirth && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy") : "Sélectionner"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={dateOfBirth}
+                            onSelect={setDateOfBirth}
+                            disabled={(date) => date > new Date() || date < new Date("1940-01-01")}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                            captionLayout="dropdown-buttons"
+                            fromYear={1940}
+                            toYear={new Date().getFullYear()}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                )}
+
                 {role === "student" && (
                   <div className="space-y-2">
                     <Label htmlFor="schoolLevel">Niveau scolaire *</Label>
@@ -383,6 +456,52 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                )}
+
+                {role === "student" && (
+                  <LocationFields
+                    wilaya={wilaya}
+                    ville={ville}
+                    ecole={ecole}
+                    onWilayaChange={setWilaya}
+                    onVilleChange={setVille}
+                    onEcoleChange={setEcole}
+                    required={false}
+                  />
+                )}
+
+                {role === "student" && (
+                  <div className="space-y-2">
+                    <Label>Date de fin d'abonnement (optionnel)</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Accorde un accès premium immédiat jusqu'à cette date, sans passer par un paiement.
+                    </p>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !subscriptionEndDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {subscriptionEndDate ? format(subscriptionEndDate, "dd/MM/yyyy") : "Aucune (compte gratuit)"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={subscriptionEndDate}
+                          onSelect={setSubscriptionEndDate}
+                          disabled={(date) => date <= new Date()}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 )}
 

@@ -57,7 +57,10 @@ Deno.serve(async (req) => {
     }
 
     // Parse body
-    const { email, password, firstName, lastName, role, schoolLevel, filiere, subjects } = await req.json();
+    const {
+      email, password, firstName, lastName, role, schoolLevel, filiere,
+      phone, dateOfBirth, wilaya, ville, ecole, subscriptionEndDate, subjects,
+    } = await req.json();
 
     if (!email || !password || !role) {
       return new Response(JSON.stringify({ error: "email, password et role sont obligatoires" }), {
@@ -168,6 +171,11 @@ Deno.serve(async (req) => {
         last_name: lastName ?? null,
         school_level: role === "student" && schoolLevel ? schoolLevel : null,
         filiere: role === "student" && filiere ? filiere : null,
+        phone: phone ?? null,
+        date_of_birth: dateOfBirth ?? null,
+        wilaya: role === "student" ? (wilaya ?? null) : null,
+        ville: role === "student" ? (ville ?? null) : null,
+        ecole: role === "student" ? (ecole ?? null) : null,
         establishment_code: establishmentCode,
         is_active: true,
       },
@@ -179,6 +187,30 @@ Deno.serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Accorde immédiatement un accès premium jusqu'à la date choisie, sans
+    // passer par un paiement — même modèle en jours-crédit que
+    // admin_grant_subscription_days (RPC non réutilisable ici : elle vérifie
+    // auth.uid(), qui est vide sous la clé service_role de cette fonction ;
+    // le contrôle admin a déjà été fait plus haut par ce endpoint lui-même).
+    if (role === "student" && subscriptionEndDate) {
+      const endDate = new Date(`${subscriptionEndDate}T00:00:00Z`);
+      const days = Math.ceil((endDate.getTime() - Date.now()) / 86_400_000);
+      if (days > 0) {
+        const { error: subError } = await adminClient.from("student_subscriptions").insert({
+          user_id: newUserId,
+          plan_type: "admin_grant",
+          total_days: days,
+          days_used: 0,
+          is_paused: false,
+          started_at: new Date().toISOString(),
+          last_tick_at: new Date().toISOString(),
+        });
+        if (subError) {
+          console.error("student_subscriptions insert failed:", subError);
+        }
+      }
     }
 
     // Assigne les matières au pédago. subject_id est la clé primaire de
