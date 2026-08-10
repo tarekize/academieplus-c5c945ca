@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
     }
 
     // Parse body
-    const { email, password, firstName, lastName, role, schoolLevel, subjects } = await req.json();
+    const { email, password, firstName, lastName, role, schoolLevel, filiere, subjects } = await req.json();
 
     if (!email || !password || !role) {
       return new Response(JSON.stringify({ error: "email, password et role sont obligatoires" }), {
@@ -160,18 +160,26 @@ Deno.serve(async (req) => {
     }
 
     // Upsert profile (the trigger may have already created it)
-    await adminClient.from("profiles").upsert(
+    const { error: profileError } = await adminClient.from("profiles").upsert(
       {
         id: newUserId,
         email,
         first_name: firstName ?? null,
         last_name: lastName ?? null,
         school_level: role === "student" && schoolLevel ? schoolLevel : null,
+        filiere: role === "student" && filiere ? filiere : null,
         establishment_code: establishmentCode,
         is_active: true,
       },
       { onConflict: "id" }
     );
+    if (profileError) {
+      await adminClient.auth.admin.deleteUser(newUserId);
+      return new Response(JSON.stringify({ error: profileError.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Assigne les matières au pédago. subject_id est la clé primaire de
     // pedago_subjects : un conflit ici signifie qu'une autre requête vient

@@ -25,14 +25,38 @@ import { toast } from "sonner";
 import { SUBJECTS } from "@/lib/subjects";
 
 const SCHOOL_LEVELS = [
-  { value: "6eme", label: "6ème" },
-  { value: "5eme", label: "5ème" },
-  { value: "4eme", label: "4ème" },
-  { value: "3eme", label: "3ème" },
+  { value: "5eme_primaire", label: "5ème Primaire" },
+  { value: "1ere_cem", label: "1ère CEM" },
+  { value: "2eme_cem", label: "2ème CEM" },
+  { value: "3eme_cem", label: "3ème CEM" },
+  { value: "4eme_cem", label: "4ème CEM" },
   { value: "seconde", label: "Seconde" },
   { value: "premiere", label: "Première" },
   { value: "terminale", label: "Terminale" },
 ];
+
+const LEVELS_WITH_FILIERE = ["seconde", "premiere", "terminale"];
+
+const FILIERES_BY_LEVEL: Record<string, { value: string; label: string }[]> = {
+  seconde: [
+    { value: "sciences", label: "Sciences" },
+    { value: "lettres", label: "Lettres" },
+    { value: "gestion", label: "Gestion et Économie" },
+    { value: "math_techniques", label: "Math Techniques" },
+    { value: "mathematiques", label: "Mathématiques" },
+  ],
+  terminale: [
+    { value: "sciences", label: "Sciences Expérimentales" },
+    { value: "lettres", label: "Lettres et Philosophie" },
+    { value: "gestion", label: "Gestion et Économie" },
+    { value: "math_techniques", label: "Math Techniques" },
+    { value: "mathematiques", label: "Mathématiques" },
+  ],
+  premiere: [
+    { value: "tronc_commun_scientifique", label: "Tronc commun scientifique" },
+    { value: "tronc_commun_lettres", label: "Tronc commun lettres" },
+  ],
+};
 
 interface AddUserDialogProps {
   onUserAdded: () => void;
@@ -47,6 +71,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
   const [establishmentName, setEstablishmentName] = useState("");
   const [role, setRole] = useState<string>("");
   const [schoolLevel, setSchoolLevel] = useState<string>("");
+  const [filiere, setFiliere] = useState<string>("");
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [takenSubjects, setTakenSubjects] = useState<Record<string, string>>({});
   const [loadingSubjects, setLoadingSubjects] = useState(false);
@@ -55,6 +80,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
 
   const isEstablishment = role === "etablissement";
   const isPedago = role === "pedago";
+  const needsFiliere = role === "student" && LEVELS_WITH_FILIERE.includes(schoolLevel);
 
   // Charge quelles matières sont déjà assignées à un autre pédago, pour les
   // désactiver dans la sélection (une matière = un seul pédago).
@@ -127,6 +153,11 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
       return;
     }
 
+    if (needsFiliere && !filiere) {
+      toast.error("Veuillez sélectionner une filière pour cet élève.");
+      return;
+    }
+
     if (isPedago && selectedSubjects.length === 0) {
       toast.error("Veuillez sélectionner au moins une matière enseignée par ce pédago.");
       return;
@@ -150,6 +181,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
           lastName: isEstablishment ? "" : lastName,
           role,
           schoolLevel: role === "student" ? schoolLevel : null,
+          filiere: needsFiliere ? filiere : null,
           subjects: isPedago ? selectedSubjects : undefined,
         },
       });
@@ -196,6 +228,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
     setEstablishmentName("");
     setRole("");
     setSchoolLevel("");
+    setFiliere("");
     setSelectedSubjects([]);
   };
 
@@ -314,7 +347,13 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
                 {role === "student" && (
                   <div className="space-y-2">
                     <Label htmlFor="schoolLevel">Niveau scolaire *</Label>
-                    <Select value={schoolLevel} onValueChange={setSchoolLevel}>
+                    <Select
+                      value={schoolLevel}
+                      onValueChange={(value) => {
+                        setSchoolLevel(value);
+                        setFiliere("");
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionnez un niveau" />
                       </SelectTrigger>
@@ -322,6 +361,24 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
                         {SCHOOL_LEVELS.map((level) => (
                           <SelectItem key={level.value} value={level.value}>
                             {level.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {needsFiliere && (
+                  <div className="space-y-2">
+                    <Label htmlFor="filiere">Filière *</Label>
+                    <Select value={filiere} onValueChange={setFiliere}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionnez une filière" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FILIERES_BY_LEVEL[schoolLevel]?.map((f) => (
+                          <SelectItem key={f.value} value={f.value}>
+                            {f.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
