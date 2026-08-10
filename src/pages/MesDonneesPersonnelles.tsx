@@ -124,7 +124,21 @@ const MesDonneesPersonnelles = () => {
         body: { userId: user.id },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Sur une réponse non-2xx, response.data reste null : le vrai
+        // message de l'edge function n'est lisible que via error.context.
+        let message = error.message;
+        try {
+          const context = (error as any)?.context;
+          if (context && typeof context.json === "function") {
+            const body = await context.json();
+            if (body?.error) message = body.error;
+          }
+        } catch {
+          // Corps non-JSON ou déjà consommé : on garde le message générique.
+        }
+        throw new Error(message);
+      }
 
       await supabase.auth.signOut();
       navigate('/');

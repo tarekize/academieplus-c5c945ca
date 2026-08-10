@@ -215,7 +215,24 @@ const MesInformations = () => {
         body: { userId: profile.id },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Sur une réponse non-2xx, le client Supabase ne parse jamais le
+        // corps dans data : le vrai message renvoyé par l'edge function
+        // (ex: conflit de suppression) n'est lisible que via error.context
+        // (la Response brute), sinon on retombe sur le message générique
+        // "Edge Function returned a non-2xx status code".
+        let message = error.message;
+        try {
+          const context = (error as any)?.context;
+          if (context && typeof context.json === "function") {
+            const body = await context.json();
+            if (body?.error) message = body.error;
+          }
+        } catch {
+          // Corps non-JSON ou déjà consommé : on garde le message générique.
+        }
+        throw new Error(message);
+      }
 
       await supabase.auth.signOut();
       navigate("/");
