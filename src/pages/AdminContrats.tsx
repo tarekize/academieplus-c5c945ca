@@ -9,7 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, FileText, Send, Loader2, Ban } from "lucide-react";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, FileText, Send, Loader2, Ban, Search } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -22,11 +25,14 @@ interface ContratRow {
   is_active: boolean | null;
   contract_start_date?: string | null;
   contract_end_date?: string | null;
+  establishment_id?: string | null;
 }
 
 interface StudentSubStatus {
   hasPremium: boolean;
   remainingDays: number;
+  startedAt: string | null;
+  lastRenewalAt: string | null;
 }
 
 // Reproduit exactement la logique de src/hooks/useChatLimits.ts pour rester cohérent
@@ -36,18 +42,25 @@ function computeSubStatus(sub: {
   days_used: number | null;
   is_paused: boolean | null;
   last_tick_at: string | null;
+  started_at?: string | null;
 } | undefined): StudentSubStatus {
-  if (!sub) return { hasPremium: false, remainingDays: 0 };
+  if (!sub) return { hasPremium: false, remainingDays: 0, startedAt: null, lastRenewalAt: null };
   // total_days/days_used arrivent parfois en string depuis PostgREST (days_used est numeric(10,4)) : Number(...) évite une concaténation de chaînes.
   const totalDays = Number(sub.total_days || 0);
   const daysUsed = Number(sub.days_used || 0);
   if (!sub.is_paused && sub.last_tick_at) {
     const elapsed = (Date.now() - new Date(sub.last_tick_at).getTime()) / (1000 * 60 * 60 * 24);
     const remaining = totalDays - (daysUsed + elapsed);
-    return { hasPremium: remaining > 0, remainingDays: Math.max(0, Math.round(remaining)) };
+    return {
+      hasPremium: remaining > 0, remainingDays: Math.max(0, Math.round(remaining)),
+      startedAt: sub.started_at || null, lastRenewalAt: sub.last_tick_at || null,
+    };
   }
   const remaining = totalDays - daysUsed;
-  return { hasPremium: remaining > 0, remainingDays: Math.max(0, Math.round(remaining)) };
+  return {
+    hasPremium: remaining > 0, remainingDays: Math.max(0, Math.round(remaining)),
+    startedAt: sub.started_at || null, lastRenewalAt: sub.last_tick_at || null,
+  };
 }
 
 export default function AdminContrats() {
@@ -55,11 +68,18 @@ export default function AdminContrats() {
   const [loading, setLoading] = useState(true);
   const [etablissements, setEtablissements] = useState<ContratRow[]>([]);
   const [eleves, setEleves] = useState<ContratRow[]>([]);
+  const [establishmentNames, setEstablishmentNames] = useState<Record<string, string>>({});
   const [studentSubMap, setStudentSubMap] = useState<Record<string, StudentSubStatus>>({});
   const [lastReminderMap, setLastReminderMap] = useState<Record<string, string>>({});
   const [addDaysInput, setAddDaysInput] = useState<Record<string, string>>({});
   const [sendingReminder, setSendingReminder] = useState<string | null>(null);
   const [savingRow, setSavingRow] = useState<string | null>(null);
+
+  // Filtres de la liste Élèves
+  const [studentSearch, setStudentSearch] = useState("");
+  const [studentAccountFilter, setStudentAccountFilter] = useState<"all" | "active" | "inactive">("all");
+  const [studentPremiumFilter, setStudentPremiumFilter] = useState<"all" | "active" | "inactive">("all");
+  const [studentEstablishmentFilter, setStudentEstablishmentFilter] = useState<string>("all");
 
   useEffect(() => {
     fetchAll();
@@ -74,7 +94,7 @@ export default function AdminContrats() {
   const fetchContracts = async () => {
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, first_name, last_name, email, is_active, contract_start_date, contract_end_date" as any);
+      .select("id, first_name, last_name, email, is_active, contract_start_date, contract_end_date, establishment_id" as any);
     const { data: rolesData } = await supabase.from("user_roles").select("user_id, role");
 
     const rows = (profiles as any as ContratRow[]) || [];
@@ -85,8 +105,16 @@ export default function AdminContrats() {
       roleMap.set(r.user_id, list);
     });
 
-    setEtablissements(rows.filter((r) => roleMap.get(r.id)?.includes("etablissement")));
+    const etabRows = rows.filter((r) => roleMap.get(r.id)?.includes("etablissement"));
+    setEtablissements(etabRows);
     setEleves(rows.filter((r) => roleMap.get(r.id)?.includes("student")));
+
+    // Nom de l'établissement (stocké comme first_name sur le profil "etablissement") pour
+    // affichage/filtre sur la liste des élèves — le lien élève↔établissement passe par
+    // profiles.establishment_id, jamais montré nulle part avant.
+    const names: Record<string, string> = {};
+    etabRows.forEach((e) => { names[e.id] = e.first_name || e.email || "Établissement"; });
+    setEstablishmentNames(names);
   };
 
   // Statut réel de l'accès premium IA (table lue par useChatLimits), distinct de profiles.is_active
@@ -94,7 +122,7 @@ export default function AdminContrats() {
   const fetchStudentSubscriptions = async () => {
     const { data } = await supabase
       .from("student_subscriptions")
-      .select("user_id, total_days, days_used, is_paused, last_tick_at, created_at")
+      .select("user_id, total_days, days_used, is_paused, last_tick_at, started_at, created_at")
       .order("created_at", { ascending: false });
 
     const map: Record<string, StudentSubStatus> = {};
@@ -239,6 +267,23 @@ export default function AdminContrats() {
     <Badge variant={isActive ? "default" : "destructive"}>{isActive ? "Actif" : "Inactif"}</Badge>
   );
 
+  const filteredEleves = eleves.filter((row) => {
+    const search = studentSearch.trim().toLowerCase();
+    if (search) {
+      const haystack = `${getFullName(row)} ${row.email || ""}`.toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+    if (studentAccountFilter === "active" && !row.is_active) return false;
+    if (studentAccountFilter === "inactive" && row.is_active) return false;
+    const hasPremium = !!studentSubMap[row.id]?.hasPremium;
+    if (studentPremiumFilter === "active" && !hasPremium) return false;
+    if (studentPremiumFilter === "inactive" && hasPremium) return false;
+    if (studentEstablishmentFilter !== "all") {
+      if (studentEstablishmentFilter === "none" ? !!row.establishment_id : row.establishment_id !== studentEstablishmentFilter) return false;
+    }
+    return true;
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -363,10 +408,50 @@ export default function AdminContrats() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="eleves" className="mt-4">
+          <TabsContent value="eleves" className="mt-4 space-y-4">
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-4 flex flex-wrap items-center gap-3">
+                <div className="relative flex-1 min-w-[200px]">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Rechercher un nom ou un email..."
+                    value={studentSearch}
+                    onChange={(e) => setStudentSearch(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Select value={studentAccountFilter} onValueChange={(v) => setStudentAccountFilter(v as any)}>
+                  <SelectTrigger className="w-44"><SelectValue placeholder="Statut du compte" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="active">Compte actif</SelectItem>
+                    <SelectItem value="inactive">Compte inactif</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={studentPremiumFilter} onValueChange={(v) => setStudentPremiumFilter(v as any)}>
+                  <SelectTrigger className="w-44"><SelectValue placeholder="Statut premium" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tout premium</SelectItem>
+                    <SelectItem value="active">Premium actif</SelectItem>
+                    <SelectItem value="inactive">Premium inactif</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={studentEstablishmentFilter} onValueChange={setStudentEstablishmentFilter}>
+                  <SelectTrigger className="w-52"><SelectValue placeholder="Établissement" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les établissements</SelectItem>
+                    <SelectItem value="none">Aucun établissement</SelectItem>
+                    {etablissements.map((e) => (
+                      <SelectItem key={e.id} value={e.id}>{establishmentNames[e.id] || getFullName(e)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
             <ContratTable
-              rows={eleves}
+              rows={filteredEleves}
               studentSubMap={studentSubMap}
+              establishmentNames={establishmentNames}
               getFullName={getFullName}
               renderStatusBadge={renderStatusBadge}
               renderLastReminder={renderLastReminder}
@@ -388,6 +473,7 @@ export default function AdminContrats() {
 function ContratTable({
   rows,
   studentSubMap,
+  establishmentNames,
   getFullName,
   renderStatusBadge,
   renderLastReminder,
@@ -401,6 +487,7 @@ function ContratTable({
 }: {
   rows: ContratRow[];
   studentSubMap: Record<string, StudentSubStatus>;
+  establishmentNames: Record<string, string>;
   getFullName: (r: ContratRow) => string;
   renderStatusBadge: (isActive: boolean | null) => JSX.Element;
   renderLastReminder: (userId: string) => JSX.Element;
@@ -412,6 +499,7 @@ function ContratTable({
   onDeactivate: (userId: string) => void;
   onSendReminder: (userId: string) => void;
 }) {
+  const formatDate = (iso: string | null) => iso ? format(new Date(iso), "dd MMM yyyy", { locale: fr }) : "—";
   return (
     <Card className="border-0 shadow-lg">
       <CardHeader className="border-b bg-muted/30">
@@ -428,9 +516,12 @@ function ContratTable({
               <TableRow className="bg-muted/30">
                 <TableHead>Nom</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>Établissement</TableHead>
                 <TableHead>Statut compte</TableHead>
                 <TableHead>Premium IA</TableHead>
+                <TableHead>Début premium</TableHead>
                 <TableHead>Ajouter des jours</TableHead>
+                <TableHead>Dernier renouvellement</TableHead>
                 <TableHead>Dernier rappel</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -438,7 +529,7 @@ function ContratTable({
             <TableBody>
               {rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                     Aucun utilisateur.
                   </TableCell>
                 </TableRow>
@@ -449,12 +540,16 @@ function ContratTable({
                   <TableRow key={row.id}>
                     <TableCell className="font-medium">{getFullName(row)}</TableCell>
                     <TableCell className="text-muted-foreground">{row.email}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {row.establishment_id ? (establishmentNames[row.establishment_id] || "—") : "—"}
+                    </TableCell>
                     <TableCell>{renderStatusBadge(row.is_active)}</TableCell>
                     <TableCell>
                       <Badge variant={sub?.hasPremium ? "default" : "secondary"}>
                         {sub?.hasPremium ? `Actif (${sub.remainingDays}j)` : "Inactif"}
                       </Badge>
                     </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{formatDate(sub?.startedAt || null)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Input
@@ -474,6 +569,7 @@ function ContratTable({
                         </Button>
                       </div>
                     </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{formatDate(sub?.lastRenewalAt || null)}</TableCell>
                     <TableCell>{renderLastReminder(row.id)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
