@@ -9,7 +9,7 @@ import { LessonFormDialog, DeleteLessonButton } from "@/components/course/Pedago
 import { StatusBadge, ReviewActionButtons, SubmitItemButton } from "@/components/course/QuizExerciseCRUD";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Brain, PenTool, BookOpen, ArrowLeft, ChevronLeft } from "lucide-react";
+import { Brain, PenTool, BookOpen, ArrowLeft, ChevronLeft, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -243,6 +243,38 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
         );
     };
 
+    // En-tête compact pour la vue "à l'intérieur d'une leçon" : le fil
+    // d'Ariane complet prenait trop de place ; une simple croix pour
+    // ressortir vers la liste des leçons, plus le titre courant.
+    const renderLessonCloseHeader = () => {
+        const title = activeSectionLabel
+            ? `${selectedLesson.displayTitle} — ${activeSectionLabel}`
+            : selectedLesson.displayTitle;
+        return (
+            <div className="flex items-center gap-3 mb-6">
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full shrink-0"
+                    onClick={
+                        activeSectionLabel
+                            ? () => {
+                                setActiveSectionLabel(null);
+                                setActiveSection(null);
+                                setActivityResetKey(k => k + 1);
+                            }
+                            : handleBackToList
+                    }
+                    aria-label={t("cours.closeLesson")}
+                >
+                    <X className="h-5 w-5" />
+                </Button>
+                <h2 className="font-display text-base font-bold truncate">{title}</h2>
+            </div>
+        );
+    };
+
     // Liste des leçons
     const renderLessonsList = () => (
         <div className="mt-2 space-y-2">
@@ -370,7 +402,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
 
         return (
             <div>
-                {renderBreadcrumb()}
+                {renderLessonCloseHeader()}
 
                 {/* Activity tabs always on top for students */}
                 {!canManage && selectedLesson && (
@@ -701,7 +733,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
         return (
             <>
                 {renderBreadcrumb()}
-                <ChapterRevision chapter={chapter} onBack={() => setShowRevision(false)} />
+                <ChapterRevision chapter={chapter} onBack={() => setShowRevision(false)} canManage={canManage} />
             </>
         );
     }

@@ -880,6 +880,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
               <div className="flex items-center gap-2">
                 <Rocket className="h-5 w-5" />
                 <span>{isQuiz ? t("lessonActivity.smartQuizTitle") : t("lessonActivity.smartExerciseTitle")}{t("lessonActivity.aiGeneratedSuffix")}</span>
+                {((isQuiz && adaptiveContent.quizzes.length > 0) || (!isQuiz && adaptiveContent.exercises.length > 0)) && (
+                  <span className="text-xs font-normal text-muted-foreground">
+                    ({(isQuiz ? adaptiveContent.quizzes.length : adaptiveContent.exercises.length)})
+                  </span>
+                )}
               </div>
               {((isQuiz && adaptiveContent.quizzes.length > 0) || (!isQuiz && adaptiveContent.exercises.length > 0)) && (
                 <Button size="sm" variant="outline"
