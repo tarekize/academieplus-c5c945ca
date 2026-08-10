@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ExpandableText } from "@/components/ui/expandable-text";
 import { TRIMESTER_LABELS } from "@/lib/examTypes";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 type ItemType = "chapter" | "lesson" | "lesson_creation" | "exercise" | "quiz" | "chapter_deletion" | "lesson_deletion" | "exam" | "exam_deletion";
 
@@ -110,36 +111,27 @@ export default function AdminValidation() {
 
   return (
     <div className="min-h-screen pro-shell">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4 flex-wrap">
-            <Button variant="ghost" onClick={() => navigate("/dashboard")} className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" /> Retour
-            </Button>
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="p-2 rounded-xl bg-primary/10">
-                <ClipboardCheck className="h-6 w-6 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="font-display text-2xl font-extrabold">Validation</h1>
-                <p className="text-sm text-muted-foreground truncate">
-                  {view === "pending"
-                    ? "Chapitres, leçons et exercices/quiz envoyés par les pédagogues, en attente de votre décision"
-                    : "Historique de vos décisions de validation"}
-                </p>
-              </div>
-            </div>
-            <Button
-              variant={view === "history" ? "default" : "outline"}
-              className="gap-2 rounded-xl active:scale-95 transition-transform"
-              onClick={() => setView(view === "history" ? "pending" : "history")}
-            >
-              <History className="h-4 w-4" />
-              {view === "history" ? "Voir les envois en attente" : "Historique"}
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        title="Validation"
+        subtitle={
+          view === "pending"
+            ? "Chapitres, leçons et exercices/quiz envoyés par les pédagogues, en attente de votre décision"
+            : "Historique de vos décisions de validation"
+        }
+        titleIcon={ClipboardCheck}
+        onBack={() => navigate("/dashboard")}
+        showProfileMenu={false}
+        actions={
+          <Button
+            variant={view === "history" ? "default" : "outline"}
+            className="gap-2 rounded-xl active:scale-95 transition-transform"
+            onClick={() => setView(view === "history" ? "pending" : "history")}
+          >
+            <History className="h-4 w-4" />
+            {view === "history" ? "Voir les envois en attente" : "Historique"}
+          </Button>
+        }
+      />
 
       <main className="container mx-auto px-4 py-8">
         {view === "pending" ? (

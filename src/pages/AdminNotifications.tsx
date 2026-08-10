@@ -26,6 +26,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { extractFunctionErrorMessage } from "@/lib/edgeFunctionError";
 import { cn } from "@/lib/utils";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 interface EmailTemplate {
   id: string;
@@ -331,24 +332,13 @@ export default function AdminNotifications() {
 
   return (
     <div className="min-h-screen pro-shell">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/dashboard")} className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" /> Retour
-            </Button>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/10">
-                <Bell className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="font-display text-2xl font-extrabold">Notifications</h1>
-                <p className="text-sm text-muted-foreground">Modèles d'email, rappels et campagnes ciblées</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        title="Notifications"
+        subtitle="Modèles d'email, rappels et campagnes ciblées"
+        titleIcon={Bell}
+        onBack={() => navigate("/dashboard")}
+        showProfileMenu={false}
+      />
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="send">

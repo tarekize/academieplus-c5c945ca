@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit } from "lucide-react";
+import { Plus, Trash2, Edit, HelpCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { AppHeader } from "@/components/layout/AppHeader";
 
@@ -40,6 +41,7 @@ const defaultFAQItems: FAQItem[] = [
 ];
 
 const FAQAdmin = () => {
+  const navigate = useNavigate();
   const [items, setItems] = useState<FAQItem[]>(defaultFAQItems);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -104,9 +106,14 @@ const FAQAdmin = () => {
 
   return (
     <div className="min-h-screen pro-shell">
-      <AppHeader />
+      <AppHeader
+        title="Gestion des FAQ"
+        subtitle="Questions fréquentes affichées aux visiteurs"
+        titleIcon={HelpCircle}
+        onBack={() => navigate("/dashboard")}
+        showProfileMenu={false}
+      />
       <div className="container mx-auto p-6 space-y-6">
-      <h1 className="font-display text-3xl font-extrabold">Gestion des FAQ</h1>
 
       <Card>
         <CardHeader>

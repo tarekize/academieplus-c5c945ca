@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 interface SubscriptionConfig {
   id: string;
@@ -285,25 +286,13 @@ export default function AdminAbonnements() {
 
   return (
     <div className="min-h-screen pro-shell">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/dashboard")} className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" /> Retour
-            </Button>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/10">
-                <CreditCard className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="font-display text-2xl font-extrabold">Gestion des Abonnements</h1>
-                <p className="text-sm text-muted-foreground">Configurez les tarifs, périodes et consultez les paiements</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        title="Gestion des Abonnements"
+        subtitle="Configurez les tarifs, périodes et consultez les paiements"
+        titleIcon={CreditCard}
+        onBack={() => navigate("/dashboard")}
+        showProfileMenu={false}
+      />
 
       <main className="container mx-auto px-4 py-8 space-y-8">
         {/* Section 1: Tarifs */}
