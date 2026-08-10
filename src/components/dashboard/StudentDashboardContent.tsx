@@ -189,7 +189,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
   // État de remédiation par leçon : true = résolu (toutes réponses correctes) → arrête le clignotement.
   const [remediationStatus, setRemediationStatus] = useState<Map<string, boolean>>(new Map());
 
-  const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Utilisateur";
+  const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || t("dashboard.user");
 
   const fetchScores = useCallback(async (silent = false) => {
     if (!silent) setIsRefreshing(true);
@@ -664,7 +664,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
     : "";
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6">
       {/* Hero Header */}
       {!parentView && (
       <div className="gamify-hero relative overflow-hidden p-6 md:p-8 animate-fade-up">
@@ -707,7 +707,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
             <div className="text-white/90 text-start hidden sm:block">
               <p className="text-[10px] opacity-75">{t("studentDashboard.lastUpdated")}</p>
               <p className="text-xs font-medium">
-                {lastUpdated.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}
+                {lastUpdated.toLocaleTimeString(lang === "fr" ? "fr-FR" : "ar-DZ", { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
             <Button
@@ -898,7 +898,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
                         : !parentView ? "bg-white/60 hover:bg-white/80 border-white/70" : "bg-card hover:bg-accent/50 border-border"
                     )}
                   >
-                    {ch.chapterTitle}
+                    <span dir="auto">{ch.chapterTitle}</span>
                     {hasNotif && (
                       <span className="absolute -top-1.5 -left-1.5 flex h-3.5 w-3.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
@@ -919,7 +919,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
           <CardContent className="p-5 md:p-6 space-y-5">
             <div className="flex items-start justify-between gap-3 flex-wrap">
               <div>
-                <h3 className="text-lg font-bold">{selectedChapter.chapterTitle}</h3>
+                <h3 className="text-lg font-bold" dir="auto">{selectedChapter.chapterTitle}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {getSchoolLevelLabel(profile.school_level)}
                 </p>
@@ -980,7 +980,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
                                 onClick={() => navigate(`/cours/math/chapitres/${selectedChapter.chapterId}/lecons?lecon=${lesson.lessonId}`)}
                                 className="text-sm font-medium truncate hover:text-primary text-end min-w-0"
                               >
-                                <span className="truncate">{lesson.lessonTitleAr || lesson.lessonTitle}</span>
+                                <span className="truncate" dir="auto">{lesson.lessonTitleAr || lesson.lessonTitle}</span>
                               </button>
                             </div>
                             <span className={`text-xs font-bold shrink-0 ${info.color}`}>{level}%</span>
@@ -1031,13 +1031,13 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
 
       {/* AI lesson comment dialog */}
       <Dialog open={!!selectedLessonComment} onOpenChange={(o) => !o && setSelectedLessonComment(null)}>
-        <DialogContent dir="rtl" className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent dir={lang === "fr" ? "ltr" : "rtl"} className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
               {t("studentDashboard.aiComment")}
             </DialogTitle>
-            <DialogDescription className="text-right">
+            <DialogDescription className="text-end" dir="auto">
               {selectedLessonComment?.lessonTitle} {selectedLessonComment?.chapterTitle ? `— ${selectedLessonComment.chapterTitle}` : ""}
             </DialogDescription>
           </DialogHeader>
