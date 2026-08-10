@@ -40,6 +40,12 @@ interface Payment {
   created_at: string;
   children_count: number;
   is_family: boolean;
+  period_start: string;
+  period_end: string;
+  vat_rate: number;
+  amount_ht: number;
+  vat_amount: number;
+  amount_ttc: number;
 }
 
 interface ActivationCode {
@@ -243,15 +249,17 @@ const Factures = () => {
           <div class="info-label">Détails de facturation</div>
           <p style="font-size:12px;margin-top:4px">Type : ${typeLabel}</p>
           <p style="font-size:12px">Formule : ${payment.plan_label}</p>
+          <p style="font-size:12px">Période : ${formatDate(payment.period_start)} — ${formatDate(payment.period_end)}</p>
         </div>
       </div>
       <table><thead><tr><th>DESCRIPTION</th><th>QTÉ</th><th>MONTANT</th></tr></thead>
-      <tbody><tr><td>${payment.plan_label}</td><td>1</td><td>${formatCurrency(payment.amount)}</td></tr></tbody></table>
+      <tbody><tr><td>${payment.plan_label}</td><td>1</td><td>${formatCurrency(payment.amount_ht)}</td></tr></tbody></table>
       <div style="display:flex;justify-content:space-between;align-items:start">
         <div class="status" style="color:${statusColor};background:${statusBg};border-color:${statusColor}">${statusText}</div>
         <div class="totals-box">
-          <div class="total-row"><span>Sous-total</span><span style="color:#0f172a">${formatCurrency(payment.amount)}</span></div>
-          <div class="total-final"><span>TOTAL TTC</span><span>${formatCurrency(payment.amount)}</span></div>
+          <div class="total-row"><span>Montant HT</span><span style="color:#0f172a">${formatCurrency(payment.amount_ht)}</span></div>
+          <div class="total-row"><span>TVA (${payment.vat_rate}%)</span><span style="color:#0f172a">${formatCurrency(payment.vat_amount)}</span></div>
+          <div class="total-final"><span>TOTAL TTC</span><span>${formatCurrency(payment.amount_ttc)}</span></div>
         </div>
       </div>
       <div class="thanks"><h3>Merci pour votre confiance !</h3><p>Pour toute question, contactez-nous à support@academieplus.dz</p></div>
@@ -368,8 +376,11 @@ const Factures = () => {
                     <TableRow className="bg-muted/20 hover:bg-muted/20">
                       <TableHead className="font-semibold">{t("factures.invoiceNumber")}</TableHead>
                       <TableHead className="font-semibold">{t("factures.date")}</TableHead>
+                      <TableHead className="font-semibold">{t("factures.period")}</TableHead>
                       <TableHead className="font-semibold">{t("factures.plan")}</TableHead>
                       <TableHead className="font-semibold">{t("factures.type")}</TableHead>
+                      <TableHead className="font-semibold text-right">{t("factures.amountHt")}</TableHead>
+                      <TableHead className="font-semibold text-right">{t("factures.vat")}</TableHead>
                       <TableHead className="font-semibold text-right">{t("factures.amount")}</TableHead>
                       <TableHead className="font-semibold text-center">{t("factures.status")}</TableHead>
                       <TableHead className="font-semibold text-center">{t("factures.action")}</TableHead>
@@ -384,6 +395,9 @@ const Factures = () => {
                         <TableCell className="text-muted-foreground">
                           {formatDate(payment.payment_date)}
                         </TableCell>
+                        <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
+                          {formatDate(payment.period_start)} — {formatDate(payment.period_end)}
+                        </TableCell>
                         <TableCell className="font-medium">
                           {payment.plan_label}
                         </TableCell>
@@ -394,8 +408,14 @@ const Factures = () => {
                             <span className="text-sm">{t("factures.individual")}</span>
                           )}
                         </TableCell>
+                        <TableCell className="text-right text-muted-foreground">
+                          {formatCurrency(payment.amount_ht)}
+                        </TableCell>
+                        <TableCell className="text-right text-muted-foreground">
+                          {formatCurrency(payment.vat_amount)}
+                        </TableCell>
                         <TableCell className="text-right font-bold">
-                          {formatCurrency(payment.amount)}
+                          {formatCurrency(payment.amount_ttc)}
                         </TableCell>
                         <TableCell className="text-center">
                           {getStatusBadge(payment.status)}

@@ -433,7 +433,10 @@
     "viewSubscriptions": "عرض الاشتراكات",
     "popupBlocked": "يرجى السماح بالنوافذ المنبثقة لتحميل الفاتورة",
     "invoiceReady": "الفاتورة جاهزة",
-    "invoiceReadyDesc": "{{invoiceNum}} - استخدم Ctrl+P لحفظها بصيغة PDF"
+    "invoiceReadyDesc": "{{invoiceNum}} - استخدم Ctrl+P لحفظها بصيغة PDF",
+    "period": "الفترة",
+    "amountHt": "المبلغ خارج الرسم",
+    "vat": "الرسم على القيمة المضافة"
   },
   "cours": {
     "errorTitle": "خطأ",

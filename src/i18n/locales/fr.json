@@ -427,7 +427,10 @@
     "viewSubscriptions": "Voir les abonnements",
     "popupBlocked": "Veuillez autoriser les pop-ups pour télécharger la facture",
     "invoiceReady": "Facture prête",
-    "invoiceReadyDesc": "{{invoiceNum}} - utilisez Ctrl+P pour enregistrer en PDF"
+    "invoiceReadyDesc": "{{invoiceNum}} - utilisez Ctrl+P pour enregistrer en PDF",
+    "period": "Période",
+    "amountHt": "Montant HT",
+    "vat": "TVA"
   },
   "cours": {
     "errorTitle": "Erreur",

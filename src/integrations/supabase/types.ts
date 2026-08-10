@@ -1592,42 +1592,60 @@ export type Database = {
       payments: {
         Row: {
           amount: number
+          amount_ht: number | null
+          amount_ttc: number | null
           children_count: number
           created_at: string
           id: string
           is_family: boolean
           payment_date: string
+          period_end: string
           period_id: string | null
+          period_start: string
           plan_label: string
           plan_type: string
           status: string
           user_id: string
+          vat_amount: number | null
+          vat_rate: number
         }
         Insert: {
           amount: number
+          amount_ht?: number | null
+          amount_ttc?: number | null
           children_count?: number
           created_at?: string
           id?: string
           is_family?: boolean
           payment_date?: string
+          period_end: string
           period_id?: string | null
+          period_start: string
           plan_label: string
           plan_type: string
           status?: string
           user_id: string
+          vat_amount?: number | null
+          vat_rate?: number
         }
         Update: {
           amount?: number
+          amount_ht?: number | null
+          amount_ttc?: number | null
           children_count?: number
           created_at?: string
           id?: string
           is_family?: boolean
           payment_date?: string
+          period_end?: string
           period_id?: string | null
+          period_start?: string
           plan_label?: string
           plan_type?: string
           status?: string
           user_id?: string
+          vat_amount?: number | null
+          vat_rate?: number
         }
         Relationships: [
           {
@@ -2445,6 +2463,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      translation_cache: {
+        Row: {
+          cache_key: string
+          created_at: string
+          source_text: string
+          target_lang: string
+          translated_text: string
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          source_text: string
+          target_lang: string
+          translated_text: string
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          source_text?: string
+          target_lang?: string
+          translated_text?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
