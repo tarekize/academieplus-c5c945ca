@@ -155,8 +155,21 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
       });
 
       if (response.error) {
-        // response.data contains the actual JSON body from the edge function
-        const actualError = (response.data as any)?.error || response.error.message || "Erreur lors de la création";
+        // Sur une réponse non-2xx, le client Supabase ne parse jamais le
+        // corps dans response.data (qui reste null) — le vrai message
+        // d'erreur renvoyé par l'edge function n'est lisible que via
+        // error.context (la Response brute), sans quoi on retombe sur le
+        // message générique "Edge Function returned a non-2xx status code".
+        let actualError = response.error.message || "Erreur lors de la création";
+        try {
+          const context = (response.error as any)?.context;
+          if (context && typeof context.json === "function") {
+            const body = await context.json();
+            if (body?.error) actualError = body.error;
+          }
+        } catch {
+          // Corps non-JSON ou déjà consommé : on garde le message générique.
+        }
         throw new Error(actualError);
       }
 
