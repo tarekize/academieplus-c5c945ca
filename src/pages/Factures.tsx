@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, FileText, Receipt, Calendar, CreditCard } from "lucide-react";
+import { ArrowLeft, Download, FileText, Receipt, Calendar, CreditCard, Key, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -17,6 +17,9 @@ import {
   BreadcrumbList,
 } from "@/components/ui/breadcrumb";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 
 interface Profile {
   id: string;
@@ -39,12 +42,23 @@ interface Payment {
   is_family: boolean;
 }
 
+interface ActivationCode {
+  id: string;
+  code: string;
+  plan_type: string;
+  status: string;
+  used_at: string | null;
+  created_at: string;
+}
+
 const Factures = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [codes, setCodes] = useState<ActivationCode[]>([]);
+  const [codesDialogOpen, setCodesDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -53,6 +67,7 @@ const Factures = () => {
       setUser(session.user);
       fetchProfile(session.user.id);
       fetchPayments(session.user.id);
+      fetchCodes(session.user.id);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -60,6 +75,7 @@ const Factures = () => {
       setUser(session.user);
       fetchProfile(session.user.id);
       fetchPayments(session.user.id);
+      fetchCodes(session.user.id);
     });
 
     return () => subscription.unsubscribe();
@@ -88,6 +104,28 @@ const Factures = () => {
       .eq("user_id", userId)
       .order("payment_date", { ascending: false });
     if (data) setPayments(data as Payment[]);
+  };
+
+  const fetchCodes = async (userId: string) => {
+    const { data } = await supabase
+      .from("activation_codes")
+      .select("id, code, plan_type, status, used_at, created_at")
+      .eq("created_by", userId)
+      .order("created_at", { ascending: false });
+    if (data) setCodes(data as ActivationCode[]);
+  };
+
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    toast.success("Code copié !", { description: code });
+  };
+
+  const getExpiryDate = (code: ActivationCode) => {
+    const start = code.used_at ? new Date(code.used_at) : new Date(code.created_at);
+    const days = code.plan_type === "annual" ? 360 : 30;
+    const end = new Date(start);
+    end.setDate(end.getDate() + days);
+    return end;
   };
 
   const getFullName = (p: Profile | null): string => {
@@ -252,14 +290,22 @@ const Factures = () => {
           </Breadcrumb>
 
           {/* Page Title */}
-          <div className="flex items-center gap-4 mb-8">
-            <div className="h-14 w-14 rounded-2xl bg-[image:var(--gradient-violet)] flex items-center justify-center shadow-md">
-              <Receipt className="h-7 w-7 text-white" />
+          <div className="flex items-center justify-between gap-4 mb-8 flex-wrap">
+            <div className="flex items-center gap-4">
+              <div className="h-14 w-14 rounded-2xl bg-[image:var(--gradient-violet)] flex items-center justify-center shadow-md">
+                <Receipt className="h-7 w-7 text-white" />
+              </div>
+              <div>
+                <h1 className="font-display text-3xl font-extrabold">{t("factures.pageTitle")}</h1>
+                <p className="text-muted-foreground">{t("factures.pageSubtitle")}</p>
+              </div>
             </div>
-            <div>
-              <h1 className="font-display text-3xl font-extrabold">{t("factures.pageTitle")}</h1>
-              <p className="text-muted-foreground">{t("factures.pageSubtitle")}</p>
-            </div>
+            {codes.length > 0 && (
+              <Button variant="outline" className="gap-2" onClick={() => setCodesDialogOpen(true)}>
+                <Key className="h-4 w-4" />
+                Mes codes
+              </Button>
+            )}
           </div>
 
           {/* Summary Cards */}
@@ -389,6 +435,56 @@ const Factures = () => {
           )}
         </div>
       </main>
+
+      <Dialog open={codesDialogOpen} onOpenChange={setCodesDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5 text-primary" />
+              Mes codes d'activation
+            </DialogTitle>
+            <DialogDescription>
+              {codes.filter((c) => c.status === "free").length} code(s) disponible(s) sur {codes.length}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+            {codes.map((code) => {
+              const isUsable = code.status === "free";
+              const expiry = getExpiryDate(code);
+              const isExpired = expiry.getTime() < Date.now();
+              return (
+                <div key={code.id} className="rounded-xl border border-border p-4 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono font-bold tracking-widest text-primary">{code.code}</span>
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant={isUsable ? "default" : "secondary"}
+                        className={isUsable ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20" : ""}
+                      >
+                        {isUsable ? "Disponible" : "Utilisé"}
+                      </Badge>
+                      {isUsable && (
+                        <Button variant="ghost" size="sm" onClick={() => copyCode(code.code)}>
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground space-y-0.5">
+                    <p>
+                      Créé le {formatLocaleDate(code.created_at, { day: "numeric", month: "long", year: "numeric" })}
+                    </p>
+                    <p className={isExpired ? "text-destructive" : ""}>
+                      {isExpired ? "Expiré le " : "Expire le "}
+                      {formatLocaleDate(expiry, { day: "numeric", month: "long", year: "numeric" })}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

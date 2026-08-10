@@ -236,11 +236,11 @@ const Paiement = () => {
               </div>
 
               <p className="text-sm text-muted-foreground mb-6">
-                Vous pouvez retrouver vos codes à tout moment dans la section "Mes Codes" de la page Abonnements.
+                Vous pouvez retrouver vos codes à tout moment via le bouton "Mes codes" de la page Facturation.
               </p>
 
               <div className="flex gap-3">
-                <Button variant="outline" className="flex-1" onClick={() => navigate("/abonnements")}>
+                <Button variant="outline" className="flex-1" onClick={() => navigate("/factures")}>
                   Mes Codes
                 </Button>
                 <Button className="flex-1" onClick={() => navigate("/account")}>
