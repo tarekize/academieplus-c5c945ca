@@ -42,6 +42,15 @@ interface PaymentInfo {
   monthsCount: number;
 }
 
+interface BankDetails {
+  bank_name: string | null;
+  rib: string | null;
+  ccp_number: string | null;
+  ccp_key: string | null;
+  account_holder: string | null;
+  instructions: string | null;
+}
+
 const Paiement = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -50,6 +59,7 @@ const Paiement = () => {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [paymentDone, setPaymentDone] = useState(false);
+  const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -61,6 +71,12 @@ const Paiement = () => {
       if (!session) { navigate("/auth"); return; }
       fetchProfile(session.user.id);
     });
+
+    supabase
+      .from("payment_bank_details" as any)
+      .select("bank_name, rib, ccp_number, ccp_key, account_holder, instructions")
+      .maybeSingle()
+      .then(({ data }) => setBankDetails(data as any));
 
     return () => subscription.unsubscribe();
   }, [navigate]);
@@ -304,6 +320,36 @@ const Paiement = () => {
                     l'émission de vos codes d'activation.
                   </span>
                 </div>
+
+                {(bankDetails?.rib || bankDetails?.ccp_number) ? (
+                  <div className="rounded-lg border border-border p-4 space-y-2">
+                    <h3 className="font-bold text-foreground text-sm">Coordonnées pour votre versement</h3>
+                    {bankDetails.account_holder && (
+                      <p className="text-sm"><span className="text-muted-foreground">Titulaire : </span>{bankDetails.account_holder}</p>
+                    )}
+                    {bankDetails.bank_name && bankDetails.rib && (
+                      <p className="text-sm">
+                        <span className="text-muted-foreground">{bankDetails.bank_name} — RIB : </span>
+                        <span className="font-mono">{bankDetails.rib}</span>
+                      </p>
+                    )}
+                    {bankDetails.ccp_number && (
+                      <p className="text-sm">
+                        <span className="text-muted-foreground">CCP : </span>
+                        <span className="font-mono">{bankDetails.ccp_number}</span>
+                        {bankDetails.ccp_key && <span className="text-muted-foreground"> (clé {bankDetails.ccp_key})</span>}
+                      </p>
+                    )}
+                    {bankDetails.instructions && (
+                      <p className="text-xs text-muted-foreground pt-1">{bankDetails.instructions}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-dashed border-warning/50 bg-warning/5 p-4 text-sm text-muted-foreground">
+                    Les coordonnées de versement (RIB / CCP) n'ont pas encore été renseignées par
+                    l'administration. Contactez notre équipe pour connaître la marche à suivre en attendant.
+                  </div>
+                )}
 
                 <Button
                   className="w-auto px-10 font-bold text-lg py-6"

@@ -14,7 +14,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  ArrowLeft, CreditCard, Calendar, Settings, Users, Eye, Loader2, Save, Plus, Pencil,
+  ArrowLeft, CreditCard, Calendar, Settings, Users, Eye, Loader2, Save, Plus, Pencil, Check, X, Landmark,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -35,6 +35,15 @@ interface SubscriptionPeriod {
   start_date: string;
   end_date: string;
   is_active: boolean;
+}
+
+interface BankDetails {
+  bank_name: string;
+  rib: string;
+  ccp_number: string;
+  ccp_key: string;
+  account_holder: string;
+  instructions: string;
 }
 
 interface PaymentRecord {
@@ -59,9 +68,16 @@ export default function AdminAbonnements() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showPayments, setShowPayments] = useState(false);
+  const [processingPaymentId, setProcessingPaymentId] = useState<string | null>(null);
 
   // Edit state for prices
   const [editPrices, setEditPrices] = useState<Record<string, { single: number; family: number }>>({});
+
+  // Bank details (RIB/CCP) shown to users on the payment page
+  const [bankDetails, setBankDetails] = useState<BankDetails>({
+    bank_name: "", rib: "", ccp_number: "", ccp_key: "", account_holder: "", instructions: "",
+  });
+  const [savingBankDetails, setSavingBankDetails] = useState(false);
 
   // Period dialog
   const [periodDialog, setPeriodDialog] = useState(false);
@@ -74,8 +90,45 @@ export default function AdminAbonnements() {
 
   const fetchAll = async () => {
     setLoading(true);
-    await Promise.all([fetchConfigs(), fetchPeriods(), fetchPayments()]);
+    await Promise.all([fetchConfigs(), fetchPeriods(), fetchPayments(), fetchBankDetails()]);
     setLoading(false);
+  };
+
+  const fetchBankDetails = async () => {
+    const { data, error } = await supabase
+      .from("payment_bank_details" as any)
+      .select("bank_name, rib, ccp_number, ccp_key, account_holder, instructions")
+      .maybeSingle();
+    if (error) {
+      toast.error("Impossible de charger les coordonnées bancaires", { description: error.message });
+      return;
+    }
+    if (data) {
+      const d = data as any;
+      setBankDetails({
+        bank_name: d.bank_name || "",
+        rib: d.rib || "",
+        ccp_number: d.ccp_number || "",
+        ccp_key: d.ccp_key || "",
+        account_holder: d.account_holder || "",
+        instructions: d.instructions || "",
+      });
+    }
+  };
+
+  const handleSaveBankDetails = async () => {
+    setSavingBankDetails(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from("payment_bank_details" as any)
+      .update({ ...bankDetails, updated_at: new Date().toISOString(), updated_by: user?.id })
+      .eq("id", true);
+    if (error) {
+      toast.error("Erreur", { description: error.message });
+    } else {
+      toast.success("Coordonnées bancaires mises à jour");
+    }
+    setSavingBankDetails(false);
   };
 
   const fetchConfigs = async () => {
@@ -190,6 +243,37 @@ export default function AdminAbonnements() {
     setEditingPeriod(null);
     setPeriodForm({ label: "", start_date: "", end_date: "" });
     setPeriodDialog(true);
+  };
+
+  const handleApprovePayment = async (paymentId: string) => {
+    setProcessingPaymentId(paymentId);
+    try {
+      const { data, error } = await supabase.rpc("admin_approve_payment" as any, { p_payment_id: paymentId });
+      if (error) throw error;
+      const codes = (data as string[]) || [];
+      toast.success("Paiement validé", {
+        description: codes.length > 0 ? `Code(s) d'activation généré(s) : ${codes.join(", ")}` : "Paiement marqué comme complété.",
+      });
+      fetchPayments();
+    } catch (error: any) {
+      toast.error("Erreur", { description: error.message || "Impossible de valider ce paiement." });
+    } finally {
+      setProcessingPaymentId(null);
+    }
+  };
+
+  const handleRejectPayment = async (paymentId: string) => {
+    setProcessingPaymentId(paymentId);
+    try {
+      const { error } = await supabase.rpc("admin_reject_payment" as any, { p_payment_id: paymentId });
+      if (error) throw error;
+      toast.success("Paiement rejeté");
+      fetchPayments();
+    } catch (error: any) {
+      toast.error("Erreur", { description: error.message || "Impossible de rejeter ce paiement." });
+    } finally {
+      setProcessingPaymentId(null);
+    }
   };
 
   if (loading) {
@@ -343,6 +427,89 @@ export default function AdminAbonnements() {
           </CardContent>
         </Card>
 
+        {/* Section 2bis: Coordonnées bancaires pour les versements */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="border-b bg-muted/30">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Landmark className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Coordonnées bancaires</CardTitle>
+                <CardDescription>
+                  Affichées aux utilisateurs sur la page de paiement pour effectuer leur virement ou versement CCP.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6 space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Titulaire du compte</Label>
+                <Input
+                  value={bankDetails.account_holder}
+                  onChange={(e) => setBankDetails((b) => ({ ...b, account_holder: e.target.value }))}
+                  placeholder="Ex: AcadémiePlus SARL"
+                />
+              </div>
+              <div>
+                <Label>Banque</Label>
+                <Input
+                  value={bankDetails.bank_name}
+                  onChange={(e) => setBankDetails((b) => ({ ...b, bank_name: e.target.value }))}
+                  placeholder="Ex: BNA, CPA, BADR..."
+                />
+              </div>
+              <div>
+                <Label>RIB</Label>
+                <Input
+                  value={bankDetails.rib}
+                  onChange={(e) => setBankDetails((b) => ({ ...b, rib: e.target.value }))}
+                  placeholder="XX XXXXX XXXXXXXXXXXX XX"
+                  className="font-mono"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label>Numéro CCP</Label>
+                  <Input
+                    value={bankDetails.ccp_number}
+                    onChange={(e) => setBankDetails((b) => ({ ...b, ccp_number: e.target.value }))}
+                    placeholder="XXXXXXXX"
+                    className="font-mono"
+                  />
+                </div>
+                <div>
+                  <Label>Clé CCP</Label>
+                  <Input
+                    value={bankDetails.ccp_key}
+                    onChange={(e) => setBankDetails((b) => ({ ...b, ccp_key: e.target.value }))}
+                    placeholder="XX"
+                    className="font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <Label>Instructions complémentaires (optionnel)</Label>
+              <Input
+                value={bankDetails.instructions}
+                onChange={(e) => setBankDetails((b) => ({ ...b, instructions: e.target.value }))}
+                placeholder="Ex: précisez votre nom complet en communication du virement"
+              />
+            </div>
+            {!bankDetails.rib && !bankDetails.ccp_number && (
+              <p className="text-sm text-warning">
+                Tant qu'aucun RIB ni numéro CCP n'est renseigné, la page de paiement affiche un message
+                indiquant que les coordonnées ne sont pas encore disponibles.
+              </p>
+            )}
+            <Button onClick={handleSaveBankDetails} disabled={savingBankDetails}>
+              <Save className="h-4 w-4 mr-2" /> Enregistrer les coordonnées
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Section 3: Paiements */}
         <Card className="border-0 shadow-lg">
           <CardHeader className="border-b bg-muted/30">
@@ -374,12 +541,13 @@ export default function AdminAbonnements() {
                       <TableHead>Montant</TableHead>
                       <TableHead>Nb enfants</TableHead>
                       <TableHead>Statut</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {payments.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                           Aucun paiement enregistré pour le moment.
                         </TableCell>
                       </TableRow>
@@ -397,9 +565,33 @@ export default function AdminAbonnements() {
                           <TableCell className="font-semibold">{p.amount.toLocaleString("fr-DZ")} DA</TableCell>
                           <TableCell className="text-center">{p.is_family ? p.children_count : 1}</TableCell>
                           <TableCell>
-                            <Badge variant={p.status === "completed" ? "default" : "destructive"}>
-                              {p.status === "completed" ? "Complété" : p.status}
+                            <Badge variant={p.status === "completed" ? "default" : p.status === "pending" ? "secondary" : "destructive"}>
+                              {p.status === "completed" ? "Complété" : p.status === "pending" ? "En attente" : p.status === "failed" ? "Rejeté" : p.status}
                             </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {p.status === "pending" && (
+                              <div className="flex gap-2 justify-end">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-green-600 border-green-600 hover:bg-green-50"
+                                  disabled={processingPaymentId === p.id}
+                                  onClick={() => handleApprovePayment(p.id)}
+                                >
+                                  {processingPaymentId === p.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-destructive border-destructive hover:bg-destructive/10"
+                                  disabled={processingPaymentId === p.id}
+                                  onClick={() => handleRejectPayment(p.id)}
+                                >
+                                  {processingPaymentId === p.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                                </Button>
+                              </div>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))

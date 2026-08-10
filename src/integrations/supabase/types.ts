@@ -670,7 +670,7 @@ export type Database = {
           {
             foreignKeyName: "class_students_student_id_fkey"
             columns: ["student_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1550,6 +1550,42 @@ export type Database = {
           id?: string
           used_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      payment_bank_details: {
+        Row: {
+          account_holder: string | null
+          bank_name: string | null
+          ccp_key: string | null
+          ccp_number: string | null
+          id: boolean
+          instructions: string | null
+          rib: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          account_holder?: string | null
+          bank_name?: string | null
+          ccp_key?: string | null
+          ccp_number?: string | null
+          id?: boolean
+          instructions?: string | null
+          rib?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          account_holder?: string | null
+          bank_name?: string | null
+          ccp_key?: string | null
+          ccp_number?: string | null
+          id?: boolean
+          instructions?: string | null
+          rib?: string | null
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -2467,6 +2503,29 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_grant_subscription_days: {
+        Args: { p_days: number; p_user_id: string }
+        Returns: {
+          activation_code_id: string | null
+          created_at: string
+          days_used: number
+          id: string
+          is_paused: boolean
+          last_tick_at: string
+          paused_at: string | null
+          plan_type: string
+          started_at: string
+          total_days: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "student_subscriptions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_list_notification_candidates: {
         Args: never
         Returns: {
@@ -2623,6 +2682,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      is_establishment_member: {
+        Args: { _est_id: string; _user_id: string }
+        Returns: boolean
       }
       is_establishment_student: {
         Args: { _est_id: string; _student_id: string }
