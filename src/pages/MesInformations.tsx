@@ -331,8 +331,8 @@ const MesInformations = () => {
             <div className="relative bg-card/80 backdrop-blur-sm rounded-3xl border border-border/50 p-8 flex flex-col items-center text-center">
               <AvatarUpload
                 url={formData.avatar_url}
-                onUpload={(url) => { setFormData({ ...formData, avatar_url: url }); persistAvatarUrl(url); }}
-                onDelete={() => { setFormData({ ...formData, avatar_url: null }); persistAvatarUrl(null); }}
+                onUpload={(url) => { setFormData((prev) => ({ ...prev, avatar_url: url })); persistAvatarUrl(url); }}
+                onDelete={() => { setFormData((prev) => ({ ...prev, avatar_url: null })); persistAvatarUrl(null); }}
               />
               <h1 className="mt-5 font-display text-2xl font-extrabold text-foreground">{fullName}</h1>
               <p className="text-muted-foreground text-sm">{profile?.email}</p>
@@ -366,7 +366,7 @@ const MesInformations = () => {
                       <Input
                         id="first_name"
                         value={formData.first_name}
-                        onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, first_name: e.target.value }))}
                         placeholder="Votre prénom"
                         className="rounded-xl"
                       />
@@ -377,7 +377,7 @@ const MesInformations = () => {
                       <Input
                         id="last_name"
                         value={formData.last_name}
-                        onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, last_name: e.target.value }))}
                         placeholder="Votre nom de famille"
                         className="rounded-xl"
                       />
@@ -392,7 +392,7 @@ const MesInformations = () => {
                       id="email"
                       type="email"
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                       placeholder="Votre adresse email"
                       className="rounded-xl"
                     />
@@ -409,7 +409,7 @@ const MesInformations = () => {
                       <Input
                         id="phone"
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
                         placeholder="Numéro de téléphone"
                         className="rounded-xl"
                       />
@@ -422,7 +422,7 @@ const MesInformations = () => {
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal rounded-xl",
+                              "w-full h-10 justify-start text-left font-normal rounded-xl",
                               !formData.date_of_birth && "text-muted-foreground"
                             )}
                           >
@@ -436,7 +436,7 @@ const MesInformations = () => {
                           <Calendar
                             mode="single"
                             selected={formData.date_of_birth}
-                            onSelect={(date) => setFormData({ ...formData, date_of_birth: date })}
+                            onSelect={(date) => setFormData((prev) => ({ ...prev, date_of_birth: date }))}
                             disabled={(date) =>
                               date > new Date() || date < new Date("1940-01-01")
                             }
@@ -471,9 +471,9 @@ const MesInformations = () => {
                       wilaya={formData.wilaya}
                       ville={formData.ville}
                       ecole={formData.ecole}
-                      onWilayaChange={(val) => setFormData({ ...formData, wilaya: val, ville: "" })}
-                      onVilleChange={(val) => setFormData({ ...formData, ville: val })}
-                      onEcoleChange={(val) => setFormData({ ...formData, ecole: val })}
+                      onWilayaChange={(val) => setFormData((prev) => ({ ...prev, wilaya: val, ville: "" }))}
+                      onVilleChange={(val) => setFormData((prev) => ({ ...prev, ville: val }))}
+                      onEcoleChange={(val) => setFormData((prev) => ({ ...prev, ecole: val }))}
                       hideEcole={userRole === 'parent'}
                     />
                   </CardContent>
