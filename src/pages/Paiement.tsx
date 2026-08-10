@@ -23,6 +23,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatLocaleDate } from "@/lib/formatLocale";
+import { useTranslation } from "react-i18next";
 
 interface Profile {
   id: string;
@@ -44,6 +45,7 @@ interface PaymentInfo {
 
 const Paiement = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const location = useLocation();
   const paymentInfo = location.state as PaymentInfo | null;
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -78,24 +80,20 @@ const Paiement = () => {
       if (error) throw error;
       setProfile(data);
     } catch (error: any) {
-      toast.error("Erreur", { description: error.message });
+      toast.error(t("account.errorTitle"), { description: error.message });
     } finally {
       setLoading(false);
     }
   };
 
   const getFullName = (p: Profile | null): string => {
-    if (!p) return "Utilisateur";
+    if (!p) return t("abonnements.defaultUser");
     const parts = [p.first_name, p.last_name].filter(Boolean);
-    return parts.length > 0 ? parts.join(" ") : "Utilisateur";
+    return parts.length > 0 ? parts.join(" ") : t("abonnements.defaultUser");
   };
 
   const getSchoolLevelName = (level: string) => {
-    const levels: Record<string, string> = {
-      "6eme": "6ème", "5eme": "5ème", "4eme": "4ème", "3eme": "3ème",
-      seconde: "Seconde", premiere: "Première", terminale: "Terminale",
-    };
-    return levels[level] || level || "Votre classe";
+    return t(`app.schoolLevels.${level}`, { defaultValue: level });
   };
 
   const handleLogout = async () => {
@@ -106,7 +104,7 @@ const Paiement = () => {
   const handlePayment = async () => {
     if (!paymentInfo || !profile) return;
     if (!cardNumber.trim() || !secretCode.trim()) {
-      toast.error("Merci de renseigner le numéro de carte et le code secret.");
+      toast.error(t("paiement.missingFieldsError"));
       return;
     }
     setProcessing(true);
@@ -127,9 +125,9 @@ const Paiement = () => {
       setPaymentDone(true);
 
       const codeCount = data.codes?.length || 1;
-      toast.success("Paiement effectué !", { description: `${codeCount} code(s) d'activation généré(s).` });
+      toast.success(t("paiement.paymentSuccessToast"), { description: t("paiement.codesGeneratedDesc", { count: codeCount }) });
     } catch (err: any) {
-      toast.error("Erreur", { description: err.message });
+      toast.error(t("account.errorTitle"), { description: err.message });
     } finally {
       setProcessing(false);
     }
@@ -137,7 +135,7 @@ const Paiement = () => {
 
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
-    toast.success("Code copié !", { description: code });
+    toast.success(t("abonnements.codeCopied"), { description: code });
   };
 
   const getBillingDetails = () => {
@@ -153,7 +151,7 @@ const Paiement = () => {
       monthlyPrice,
       totalPrice: paymentInfo.price,
       months,
-      periodLabel: isAnnual ? '1 année scolaire' : 'mensuel',
+      periodLabel: isAnnual ? t("pricing.fallbackPeriod") : t("account.planMonthlyLower"),
       startDate: formatDate(now),
       endDate: formatDate(endDate),
       renewalDate: formatDate(endDate),
@@ -188,9 +186,9 @@ const Paiement = () => {
         </header>
         <main className="pt-24 pb-12">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="font-display text-3xl font-extrabold mb-4 text-foreground">Aucune formule sélectionnée</h1>
-            <p className="text-muted-foreground mb-8">Veuillez d'abord choisir une formule d'abonnement.</p>
-            <Button onClick={() => navigate("/abonnements")}>Voir les formules</Button>
+            <h1 className="font-display text-3xl font-extrabold mb-4 text-foreground">{t("paiement.noPlanTitle")}</h1>
+            <p className="text-muted-foreground mb-8">{t("paiement.noPlanDesc")}</p>
+            <Button onClick={() => navigate("/abonnements")}>{t("paiement.viewPlans")}</Button>
           </div>
         </main>
       </div>
@@ -219,9 +217,9 @@ const Paiement = () => {
           <div className="container mx-auto px-4 max-w-lg">
             <Card className="p-8 text-center">
               <CheckCircle className="h-16 w-16 text-mint mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-foreground mb-2">Paiement réussi !</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-2">{t("paiement.paymentSuccessTitle")}</h1>
               <p className="text-muted-foreground mb-6">
-                Voici {generatedCodes.length > 1 ? "vos codes" : "votre code"} d'activation à transmettre à {generatedCodes.length > 1 ? "vos enfants" : "votre enfant"} :
+                {generatedCodes.length > 1 ? t("paiement.successMessageMultiple") : t("paiement.successMessageSingle")}
               </p>
 
               <div className="space-y-3 mb-6">
@@ -236,15 +234,15 @@ const Paiement = () => {
               </div>
 
               <p className="text-sm text-muted-foreground mb-6">
-                Vous pouvez retrouver vos codes à tout moment via le bouton "Mes codes" de la page Facturation.
+                {t("paiement.retrieveCodesHint")}
               </p>
 
               <div className="flex gap-3">
                 <Button variant="outline" className="flex-1" onClick={() => navigate("/factures")}>
-                  Mes Codes
+                  {t("paiement.myCodes")}
                 </Button>
                 <Button className="flex-1" onClick={() => navigate("/account")}>
-                  Mon compte
+                  {t("account.pageTitle")}
                 </Button>
               </div>
             </Card>
@@ -282,10 +280,10 @@ const Paiement = () => {
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/account")}><UserIcon className="mr-2 h-4 w-4" /><span>Gérer mon compte</span></DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")}><GraduationCap className="mr-2 h-4 w-4" /><span>Tableau de bord</span></DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/account")}><UserIcon className="mr-2 h-4 w-4" /><span>{t("app.manageAccount")}</span></DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/dashboard")}><GraduationCap className="mr-2 h-4 w-4" /><span>{t("app.dashboard")}</span></DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" /><span>Se déconnecter</span></DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" /><span>{t("app.logout")}</span></DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -300,7 +298,7 @@ const Paiement = () => {
               <BreadcrumbItem>
                 <BreadcrumbLink onClick={() => navigate("/abonnements")} className="cursor-pointer flex items-center gap-2">
                   <ArrowLeft className="h-4 w-4" />
-                  Retour aux formules
+                  {t("paiement.backToPlans")}
                 </BreadcrumbLink>
               </BreadcrumbItem>
             </BreadcrumbList>
@@ -310,15 +308,15 @@ const Paiement = () => {
             {/* Left Column */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h1 className="font-display text-2xl font-extrabold text-foreground">Formule sélectionnée</h1>
+                <h1 className="font-display text-2xl font-extrabold text-foreground">{t("paiement.selectedFormula")}</h1>
                 <span className="text-muted-foreground underline underline-offset-4">
-                  Contenus - {billing?.isAnnual ? '1 année scolaire' : 'mensuel'}
+                  {t("paiement.contentPrefix", { period: billing?.isAnnual ? t("pricing.fallbackPeriod") : t("account.planMonthlyLower") })}
                 </span>
               </div>
               <Separator />
 
               <div className="space-y-6">
-                <h2 className="text-xl font-bold text-foreground">Paiement</h2>
+                <h2 className="text-xl font-bold text-foreground">{t("paiement.paymentSectionTitle")}</h2>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2 border-2 border-primary rounded-lg px-4 py-2.5">
                     <CreditCard className="h-5 w-5 text-primary" />
@@ -331,7 +329,7 @@ const Paiement = () => {
                     <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                       id="cardNumber"
-                      placeholder="Numéro de carte"
+                      placeholder={t("paiement.cardNumberPlaceholder")}
                       className="pl-11 h-12 text-base"
                       value={cardNumber}
                       onChange={(e) => setCardNumber(e.target.value)}
@@ -345,7 +343,7 @@ const Paiement = () => {
                     <Input
                       id="secretCode"
                       type="password"
-                      placeholder="Code secret"
+                      placeholder={t("paiement.secretCodePlaceholder")}
                       className="pl-10 h-12 text-base"
                       value={secretCode}
                       onChange={(e) => setSecretCode(e.target.value)}
@@ -355,7 +353,7 @@ const Paiement = () => {
 
                 <div className="flex items-center gap-2 text-muted-foreground text-sm">
                   <Shield className="h-4 w-4 flex-shrink-0" />
-                  <span>Hébergement entièrement sécurisé. AcadémiePlus n'enregistre pas votre moyen de paiement.</span>
+                  <span>{t("paiement.securedHosting")}</span>
                 </div>
 
                 <Button
@@ -364,20 +362,20 @@ const Paiement = () => {
                   disabled={processing}
                   onClick={handlePayment}
                 >
-                  {processing ? "Traitement..." : `Payer ${paymentInfo.price.toLocaleString('fr-DZ')} DA`}
+                  {processing ? t("paiement.processing") : t("paiement.payButton", { amount: paymentInfo.price.toLocaleString('fr-DZ') })}
                 </Button>
 
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  En cliquant sur ce bouton, je confirme avoir lu et accepté les{" "}
+                  {t("paiement.termsAgreementPrefix")}{" "}
                   <span className="font-semibold text-foreground cursor-pointer hover:underline" onClick={() => navigate("/mentions-legales")}>
-                    Conditions générales d'utilisation
+                    {t("paiement.termsOfUse")}
                   </span>
-                  , la{" "}
+                  , {t("paiement.andThe")}{" "}
                   <span className="font-semibold text-foreground cursor-pointer hover:underline" onClick={() => navigate("/politique-confidentialite")}>
-                    politique de confidentialité
+                    {t("paiement.privacyPolicy")}
                   </span>
-                  , ainsi que les{" "}
-                  <span className="font-semibold text-foreground">Conditions générales de vente d'AcadémiePlus</span>.
+                  , {t("paiement.aswellAs")}{" "}
+                  <span className="font-semibold text-foreground">{t("paiement.salesTerms")}</span>.
                 </p>
               </div>
             </div>
@@ -386,44 +384,43 @@ const Paiement = () => {
             <div className="lg:sticky lg:top-24 h-fit">
               <Card className="p-6 border-l-4 border-l-primary bg-card">
                 <div className="flex items-baseline justify-between mb-6">
-                  <h3 className="text-xl font-bold text-foreground">Tarif</h3>
+                  <h3 className="text-xl font-bold text-foreground">{t("paiement.tariffTitle")}</h3>
                   <div className="text-right">
                     <span className="text-3xl font-bold text-primary">
                       {billing ? billing.monthlyPrice.toLocaleString('fr-DZ') : '---'} DA
                     </span>
-                    <span className="text-muted-foreground text-sm"> / mois</span>
+                    <span className="text-muted-foreground text-sm"> {t("paiement.perMonth")}</span>
                   </div>
                 </div>
                 <Separator className="mb-5" />
                 <div className="space-y-5">
                   <div>
-                    <h4 className="font-bold text-foreground mb-1">Facturation :</h4>
+                    <h4 className="font-bold text-foreground mb-1">{t("paiement.billingLabel")}</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      Prélèvement immédiat de{" "}
+                      {t("paiement.immediateDebit")}{" "}
                       <span className="font-semibold text-foreground">{paymentInfo.price.toLocaleString('fr-DZ')} DA</span>
+                      {" "}
                       {billing?.isAnnual
-                        ? <> pour une période de {billing.months} mois, soit du {billing.startDate} au {billing.endDate}.</>
-                        : <> pour un mois, soit du {billing?.startDate} au {billing?.endDate}.</>}
+                        ? t("paiement.forPeriodAnnual", { months: billing.months, start: billing.startDate, end: billing.endDate })
+                        : t("paiement.forPeriodMonthly", { start: billing?.startDate, end: billing?.endDate })}
                     </p>
                   </div>
                   <div>
-                    <h4 className="font-bold text-foreground mb-1">Codes d'activation :</h4>
+                    <h4 className="font-bold text-foreground mb-1">{t("paiement.activationCodesLabel")}</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      {paymentInfo.isFamily
-                        ? "3 codes d'activation seront générés pour vos enfants."
-                        : "1 code d'activation sera généré pour votre enfant."}
+                      {paymentInfo.isFamily ? t("paiement.codesFamily") : t("paiement.codesSingle")}
                     </p>
                   </div>
                   <div>
-                    <h4 className="font-bold text-foreground mb-1">Durée :</h4>
+                    <h4 className="font-bold text-foreground mb-1">{t("paiement.durationLabel")}</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      {billing?.isAnnual ? "360 jours." : "30 jours."}
+                      {billing?.isAnnual ? t("paiement.annualDuration") : t("paiement.monthlyDuration")}
                     </p>
                   </div>
                   {paymentInfo.isFamily && (
                     <div>
-                      <h4 className="font-bold text-foreground mb-1">Formule :</h4>
-                      <p className="text-sm text-muted-foreground">Famille (jusqu'à 3 enfants)</p>
+                      <h4 className="font-bold text-foreground mb-1">{t("paiement.formulaLabel")}</h4>
+                      <p className="text-sm text-muted-foreground">{t("paiement.familyPlan")}</p>
                     </div>
                   )}
                 </div>

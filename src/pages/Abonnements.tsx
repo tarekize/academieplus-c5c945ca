@@ -26,6 +26,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatLocaleDate } from "@/lib/formatLocale";
+import { useTranslation } from "react-i18next";
 
 interface Profile {
   id: string;
@@ -53,6 +54,7 @@ interface SubStatus {
 
 const Abonnements = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { hasRole } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -89,7 +91,7 @@ const Abonnements = () => {
       if (error) throw error;
       setProfile(data);
     } catch (error: any) {
-      toast.error("Erreur", { description: error.message });
+      toast.error(t("account.errorTitle"), { description: error.message });
     } finally {
       setLoading(false);
     }
@@ -121,18 +123,13 @@ const Abonnements = () => {
   };
 
   const getFullName = (p: Profile | null): string => {
-    if (!p) return "Utilisateur";
+    if (!p) return t("abonnements.defaultUser");
     const parts = [p.first_name, p.last_name].filter(Boolean);
-    return parts.length > 0 ? parts.join(" ") : "Utilisateur";
+    return parts.length > 0 ? parts.join(" ") : t("abonnements.defaultUser");
   };
 
   const getSchoolLevelName = (level: string) => {
-    const levels: Record<string, string> = {
-      cp: 'CP', ce1: 'CE1', ce2: 'CE2', cm1: 'CM1', cm2: 'CM2',
-      sixieme: '6ème', cinquieme: '5ème', quatrieme: '4ème', troisieme: '3ème',
-      seconde: 'Seconde', premiere: 'Première', terminale: 'Terminale'
-    };
-    return levels[level] || 'Votre classe';
+    return t(`app.schoolLevels.${level}`, { defaultValue: level });
   };
 
   const handleLogout = async () => {
@@ -142,7 +139,7 @@ const Abonnements = () => {
 
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
-    toast.success("Code copié !", { description: code });
+    toast.success(t("abonnements.codeCopied"), { description: code });
   };
 
   const getEndDate = (code: ActivationCode) => {
@@ -190,10 +187,10 @@ const Abonnements = () => {
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/account")}><UserIcon className="mr-2 h-4 w-4" /><span>Gérer mon compte</span></DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")}><GraduationCap className="mr-2 h-4 w-4" /><span>Tableau de bord</span></DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/account")}><UserIcon className="mr-2 h-4 w-4" /><span>{t("app.manageAccount")}</span></DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/dashboard")}><GraduationCap className="mr-2 h-4 w-4" /><span>{t("app.dashboard")}</span></DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" /><span>Se déconnecter</span></DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" /><span>{t("app.logout")}</span></DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -208,7 +205,7 @@ const Abonnements = () => {
               <BreadcrumbItem>
                 <BreadcrumbLink onClick={() => navigate("/account")} className="cursor-pointer flex items-center gap-2">
                   <ArrowLeft className="h-4 w-4" />
-                  Retour vers Gérer mon compte
+                  {t("factures.backToAccount")}
                 </BreadcrumbLink>
               </BreadcrumbItem>
             </BreadcrumbList>
@@ -248,9 +245,9 @@ const Abonnements = () => {
                       <Key className="h-6 w-6" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg">Mes Codes d'Activation</h3>
+                      <h3 className="font-semibold text-lg">{t("abonnements.myActivationCodes")}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {codes.length} code{codes.length > 1 ? "s" : ""} • {codes.filter(c => c.status === "free").length} disponible{codes.filter(c => c.status === "free").length > 1 ? "s" : ""}
+                        {t("abonnements.codesCountSummary", { count: codes.length, available: codes.filter(c => c.status === "free").length })}
                       </p>
                     </div>
                   </div>
@@ -271,12 +268,12 @@ const Abonnements = () => {
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/30 hover:bg-muted/30">
-                          <TableHead className="font-semibold">Code</TableHead>
-                          <TableHead className="font-semibold">Formule</TableHead>
-                          <TableHead className="font-semibold">Statut</TableHead>
-                          <TableHead className="font-semibold">État</TableHead>
-                          <TableHead className="font-semibold">Date de début</TableHead>
-                          <TableHead className="font-semibold">Date de fin</TableHead>
+                          <TableHead className="font-semibold">{t("abonnements.tableCode")}</TableHead>
+                          <TableHead className="font-semibold">{t("account.plan")}</TableHead>
+                          <TableHead className="font-semibold">{t("factures.status")}</TableHead>
+                          <TableHead className="font-semibold">{t("abonnements.tableState")}</TableHead>
+                          <TableHead className="font-semibold">{t("abonnements.tableStartDate")}</TableHead>
+                          <TableHead className="font-semibold">{t("abonnements.tableEndDate")}</TableHead>
                           <TableHead></TableHead>
                         </TableRow>
                       </TableHeader>
@@ -284,19 +281,19 @@ const Abonnements = () => {
                         {codes.map((code) => (
                           <TableRow key={code.id} className="group hover:bg-muted/20 transition-colors">
                             <TableCell className="font-mono font-bold tracking-widest text-primary">{code.code}</TableCell>
-                            <TableCell>{code.plan_type === "annual" ? "Scolaire (1 an)" : "Mensuelle"}</TableCell>
+                            <TableCell>{code.plan_type === "annual" ? t("account.planAnnual") : t("account.planMonthly")}</TableCell>
                             <TableCell>
-                              <Badge 
+                              <Badge
                                 variant={code.status === "used" ? "secondary" : "default"}
                                 className={code.status === "free" ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20" : ""}
                               >
-                                {code.status === "used" ? "Utilisé" : "Disponible"}
+                                {code.status === "used" ? t("abonnements.statusUsed") : t("abonnements.statusAvailable")}
                               </Badge>
                             </TableCell>
                             <TableCell>
                               {code.status === "used" ? (
                                 <Badge variant={subStatuses[code.id]?.is_paused ? "outline" : "default"}>
-                                  {subStatuses[code.id]?.is_paused ? "En pause" : "Actif"}
+                                  {subStatuses[code.id]?.is_paused ? t("account.paused") : t("account.active")}
                                 </Badge>
                               ) : (
                                 <span className="text-muted-foreground">—</span>
@@ -319,7 +316,7 @@ const Abonnements = () => {
                                   className="opacity-60 group-hover:opacity-100 transition-opacity hover:bg-primary/10 hover:text-primary"
                                 >
                                   <Copy className="h-4 w-4 mr-1" />
-                                  <span className="hidden sm:inline">Copier</span>
+                                  <span className="hidden sm:inline">{t("abonnements.copy")}</span>
                                 </Button>
                               )}
                             </TableCell>

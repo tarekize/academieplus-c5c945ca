@@ -576,13 +576,16 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
         </div>
     );
 
-    function renderNavigation() {
+    function renderNavigation(position: "top" | "bottom" = "bottom") {
         const currentLessonIndex = selectedLesson
             ? chapter.lessons?.findIndex((l: any) => l.id === selectedLesson.id) ?? -1
             : -1;
         const isFirstLesson = currentLessonIndex === 0;
         const isLastLesson = currentLessonIndex === chapter.lessons?.length - 1;
         const currentChapterIndex = chapters.findIndex((c: any) => c.id === chapter.id);
+        const wrapperClass = position === "top"
+            ? "flex justify-between items-center gap-4 mb-6 pb-6 border-b border-border/50"
+            : "flex justify-between items-center gap-4 mt-8 pt-6 border-t border-border/50";
 
         const scrollToTop = () => {
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -591,7 +594,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
         // When a lesson is selected - lesson-based navigation
         if (selectedLesson && chapter.lessons && chapter.lessons.length > 0) {
             return (
-                <div className="flex justify-between items-center gap-4 mt-8 pt-6 border-t border-border/50">
+                <div className={wrapperClass}>
                     {/* Previous lesson button - only show if not first lesson */}
                     {!isFirstLesson ? (
                         <Button
@@ -642,7 +645,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
 
         // Chapter navigation - when no lesson is selected
         return (
-            <div className="flex justify-between mt-8 pt-6 border-t border-border/50">
+            <div className={wrapperClass}>
                 <Button
                     variant="outline"
                     className="rounded-full gap-2 active:scale-95 transition-transform disabled:opacity-40"
@@ -670,6 +673,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
             // Pédagogue → afficher la liste des leçons (vide) avec le bouton d'ajout
             return (
                 <>
+                    {renderNavigation("top")}
                     {renderLessonsList()}
                     {renderNavigation()}
                 </>
@@ -677,6 +681,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
         }
         return (
             <>
+                {renderNavigation("top")}
                 {showActivityCards && renderActivityCards()}
                 {renderNoLesson()}
                 {renderNavigation()}
@@ -695,12 +700,14 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
 
     return (
         <>
+            {/* Pas de navigation leçon/chapitre pendant un exercice, un quiz ou une révision : */}
+            {activeSection === null && renderNavigation("top")}
             {!selectedLesson ? (
                 renderLessonsList()
             ) : (
                 renderLessonContent()
             )}
-            {renderNavigation()}
+            {activeSection === null && renderNavigation()}
         </>
     );
 }
