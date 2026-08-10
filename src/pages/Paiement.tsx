@@ -417,9 +417,7 @@ const Paiement = () => {
                   <div>
                     <h4 className="font-bold text-foreground mb-1">Durée :</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      {billing?.isAnnual
-                        ? "360 jours de crédit temps avec possibilité de pause."
-                        : "30 jours de crédit temps sans pause."}
+                      {billing?.isAnnual ? "360 jours." : "30 jours."}
                     </p>
                   </div>
                   {paymentInfo.isFamily && (
