@@ -588,6 +588,24 @@
     "questionsShort": "Questions",
     "exercisesShort": "Exercices"
   },
+  "learningAssessment": {
+    "preparingTest": "Préparation du test d'évaluation...",
+    "pageTitle": "Test de positionnement",
+    "introDescription": "{{count}} questions seront posées pour évaluer ton niveau actuel en mathématiques. Réponds sincèrement pour obtenir une évaluation précise.",
+    "smartEvaluation": "Évaluation intelligente",
+    "startTest": "Commencer le test",
+    "chapterLabel": "Chapitre :",
+    "confirmAnswer": "Valider la réponse",
+    "nextQuestion": "Question suivante",
+    "analyzingResults": "Analyse des résultats en cours...",
+    "resultsTitle": "Résultats de l'évaluation",
+    "reportTitle": "Rapport d'évaluation",
+    "strengths": "Points forts",
+    "improvements": "Points à améliorer",
+    "personalAdvice": "💡 Conseil personnalisé",
+    "continueToLessons": "Continuer vers les leçons",
+    "saveError": "Erreur lors de la sauvegarde. Veuillez réessayer."
+  },
   "notFound": {
     "description": "Cette page n'existe pas ou plus.",
     "backToCourses": "Retour à mes cours"

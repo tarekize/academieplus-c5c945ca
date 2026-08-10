@@ -594,6 +594,24 @@
     "questionsShort": "أسئلة",
     "exercisesShort": "تمارين"
   },
+  "learningAssessment": {
+    "preparingTest": "جاري تحضير اختبار التقييم...",
+    "pageTitle": "اختبار تحديد المستوى",
+    "introDescription": "سيتم طرح {{count}} أسئلة لتقييم مستواك الحالي في الرياضيات. أجب بصدق للحصول على تقييم دقيق.",
+    "smartEvaluation": "تقييم ذكي",
+    "startTest": "ابدأ الاختبار",
+    "chapterLabel": "الفصل:",
+    "confirmAnswer": "تأكيد الإجابة",
+    "nextQuestion": "السؤال التالي",
+    "analyzingResults": "جاري تحليل النتائج...",
+    "resultsTitle": "نتائج التقييم",
+    "reportTitle": "تقرير التقييم",
+    "strengths": "نقاط القوة",
+    "improvements": "نقاط التحسين",
+    "personalAdvice": "💡 نصيحة شخصية",
+    "continueToLessons": "متابعة إلى الدروس",
+    "saveError": "خطأ أثناء الحفظ. يرجى المحاولة مرة أخرى."
+  },
   "notFound": {
     "description": "هذه الصفحة غير موجودة.",
     "backToCourses": "العودة إلى دروسي"

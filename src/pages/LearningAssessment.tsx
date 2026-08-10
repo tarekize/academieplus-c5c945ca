@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Brain, CheckCircle, XCircle, Loader2, ArrowRight, Sparkles, Trophy, Target, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 interface Question {
   question: string;
@@ -126,6 +127,7 @@ const shuffleQuestionOptions = (question: Question): Question => {
 
 const LearningAssessment = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const { profile, loading: profileLoading } = useProfile();
   const [phase, setPhase] = useState<Phase>("loading");
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -425,7 +427,7 @@ const LearningAssessment = () => {
         }
       } catch (legacyError: any) {
         console.error("Legacy save failed:", legacyError);
-        toast.error("Erreur lors de la sauvegarde. Veuillez réessayer.");
+        toast.error(t("learningAssessment.saveError"));
       }
     }
   };
@@ -451,7 +453,7 @@ const LearningAssessment = () => {
             {phase === "loading" && (
               <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-6 py-20">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <p className="text-muted-foreground">جاري تحضير اختبار التقييم...</p>
+                <p className="text-muted-foreground">{t("learningAssessment.preparingTest")}</p>
               </motion.div>
             )}
 
@@ -463,24 +465,23 @@ const LearningAssessment = () => {
                     <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                       <Target className="h-10 w-10 text-primary" />
                     </div>
-                    <h1 className="font-display text-2xl font-extrabold">اختبار تحديد المستوى</h1>
+                    <h1 className="font-display text-2xl font-extrabold">{t("learningAssessment.pageTitle")}</h1>
                     <p className="text-muted-foreground leading-relaxed">
-                      سيتم طرح {questions.length} أسئلة لتقييم مستواك الحالي في الرياضيات.
-                      أجب بصدق للحصول على تقييم دقيق.
+                      {t("learningAssessment.introDescription", { count: questions.length })}
                     </p>
                     <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <Brain className="h-4 w-4" />
-                        <span>{questions.length} أسئلة</span>
+                        <span>{t("cours.quizCount", { count: questions.length })}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Sparkles className="h-4 w-4" />
-                        <span>تقييم ذكي</span>
+                        <span>{t("learningAssessment.smartEvaluation")}</span>
                       </div>
                     </div>
                     <Button size="lg" onClick={() => setPhase("quiz")} className="gap-2">
-                      ابدأ الاختبار
-                      <ArrowRight className="h-4 w-4" />
+                      {t("learningAssessment.startTest")}
+                      <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                     </Button>
                   </CardContent>
                 </Card>
@@ -493,7 +494,7 @@ const LearningAssessment = () => {
                 <Card>
                   <CardContent className="p-6 space-y-6">
                     <div className="text-sm text-muted-foreground">
-                      الفصل: {questions[currentIndex].chapter_ref}
+                      {t("learningAssessment.chapterLabel")} {questions[currentIndex].chapter_ref}
                     </div>
                     <h2 className="text-lg font-semibold leading-relaxed">
                       {questions[currentIndex].question}
@@ -516,7 +517,7 @@ const LearningAssessment = () => {
                           >
                             <div className="flex items-center gap-3">
                               <span className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold shrink-0">
-                                {String.fromCharCode(1571 + idx)}
+                                {i18n.language === "ar" ? String.fromCharCode(1571 + idx) : String.fromCharCode(65 + idx)}
                               </span>
                               <span className="flex-1">{option}</span>
                               {showExplanation && idx === questions[currentIndex].correct_index && (
@@ -533,19 +534,19 @@ const LearningAssessment = () => {
 
                     {showExplanation && questions[currentIndex].explanation && (
                       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-lg bg-muted/50 border">
-                        <p className="text-sm font-medium mb-1">الشرح:</p>
+                        <p className="text-sm font-medium mb-1">{t("lessonActivity.explanationLabel")}</p>
                         <p className="text-sm text-muted-foreground">{questions[currentIndex].explanation}</p>
                       </motion.div>
                     )}
 
                     {!showExplanation ? (
                       <Button onClick={handleAnswer} disabled={selectedAnswer === null} className="w-full">
-                        تأكيد الإجابة
+                        {t("learningAssessment.confirmAnswer")}
                       </Button>
                     ) : (
                       <Button onClick={handleNext} className="w-full gap-2">
-                        {currentIndex < questions.length - 1 ? "السؤال التالي" : "عرض النتائج"}
-                        <ArrowRight className="h-4 w-4" />
+                        {currentIndex < questions.length - 1 ? t("learningAssessment.nextQuestion") : t("quizPlayer.showResults")}
+                        <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                       </Button>
                     )}
                   </CardContent>
@@ -557,7 +558,7 @@ const LearningAssessment = () => {
             {phase === "evaluating" && (
               <motion.div key="eval" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-6 py-20">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <p className="text-muted-foreground">جاري تحليل النتائج...</p>
+                <p className="text-muted-foreground">{t("learningAssessment.analyzingResults")}</p>
               </motion.div>
             )}
 
@@ -569,7 +570,7 @@ const LearningAssessment = () => {
                     <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                       <Trophy className="h-10 w-10 text-primary" />
                     </div>
-                    <h1 className="font-display text-2xl font-extrabold">نتائج التقييم</h1>
+                    <h1 className="font-display text-2xl font-extrabold">{t("learningAssessment.resultsTitle")}</h1>
                     <div className="text-4xl font-bold text-primary">
                       {score.score}/{score.total}
                     </div>
@@ -586,7 +587,7 @@ const LearningAssessment = () => {
                     <CardContent className="p-6 space-y-6">
                       <div className="flex items-center gap-2 text-primary">
                         <Sparkles className="h-5 w-5" />
-                        <h2 className="font-semibold">تقرير التقييم</h2>
+                        <h2 className="font-semibold">{t("learningAssessment.reportTitle")}</h2>
                       </div>
                       <p className="text-muted-foreground leading-relaxed">{report.summary}</p>
 
@@ -594,7 +595,7 @@ const LearningAssessment = () => {
                         <div>
                           <h3 className="font-semibold text-mint flex items-center gap-2 mb-2">
                             <CheckCircle className="h-4 w-4" />
-                            نقاط القوة
+                            {t("learningAssessment.strengths")}
                           </h3>
                           <ul className="space-y-1">
                             {report.strengths.map((s, i) => (
@@ -610,7 +611,7 @@ const LearningAssessment = () => {
                         <div>
                           <h3 className="font-semibold text-amber-600 flex items-center gap-2 mb-2">
                             <TrendingUp className="h-4 w-4" />
-                            نقاط التحسين
+                            {t("learningAssessment.improvements")}
                           </h3>
                           <ul className="space-y-1">
                             {report.improvements.map((s, i) => (
@@ -624,7 +625,7 @@ const LearningAssessment = () => {
 
                       {report.advice && (
                         <div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
-                          <p className="text-sm font-medium text-primary mb-1">💡 نصيحة شخصية</p>
+                          <p className="text-sm font-medium text-primary mb-1">{t("learningAssessment.personalAdvice")}</p>
                           <p className="text-sm text-muted-foreground">{report.advice}</p>
                         </div>
                       )}
@@ -633,8 +634,8 @@ const LearningAssessment = () => {
                 )}
 
                 <Button size="lg" onClick={saveAndContinue} className="w-full gap-2">
-                  متابعة إلى الدروس
-                  <ArrowRight className="h-4 w-4" />
+                  {t("learningAssessment.continueToLessons")}
+                  <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                 </Button>
               </motion.div>
             )}
