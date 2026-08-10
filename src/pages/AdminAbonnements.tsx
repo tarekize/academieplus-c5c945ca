@@ -7,18 +7,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
 } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarWidget } from "@/components/ui/calendar";
 import {
-  ArrowLeft, CreditCard, Calendar, Settings, Users, Eye, Loader2, Save, Plus, Pencil, Landmark,
+  ArrowLeft, CreditCard, Calendar, CalendarIcon, Settings, Users, Eye, Loader2, Save, Plus, Pencil, Landmark,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface SubscriptionConfig {
   id: string;
@@ -81,7 +85,7 @@ export default function AdminAbonnements() {
   // Period dialog
   const [periodDialog, setPeriodDialog] = useState(false);
   const [editingPeriod, setEditingPeriod] = useState<SubscriptionPeriod | null>(null);
-  const [periodForm, setPeriodForm] = useState({ label: "", start_date: "", end_date: "" });
+  const [periodForm, setPeriodForm] = useState({ label: "", start_date: "", end_date: "", is_active: false });
 
   useEffect(() => {
     fetchAll();
@@ -210,37 +214,64 @@ export default function AdminAbonnements() {
   };
 
   const handleSavePeriod = async () => {
+    if (!periodForm.label.trim() || !periodForm.start_date || !periodForm.end_date) {
+      toast.error("Erreur", { description: "Libellé, date de début et date de fin sont obligatoires." });
+      return;
+    }
+    if (periodForm.end_date <= periodForm.start_date) {
+      toast.error("Erreur", { description: "La date de fin doit être postérieure à la date de début." });
+      return;
+    }
+
     setSaving(true);
+
+    // Une seule période "active" à la fois (c'est elle que record-payment
+    // rattache aux nouveaux paiements) : en activer une désactive les autres.
+    if (periodForm.is_active) {
+      const { error: deactivateError } = await supabase
+        .from("subscription_periods")
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .neq("id", editingPeriod?.id || "00000000-0000-0000-0000-000000000000");
+      if (deactivateError) {
+        toast.error("Erreur", { description: deactivateError.message });
+        setSaving(false);
+        return;
+      }
+    }
+
     if (editingPeriod) {
       const { error } = await supabase
         .from("subscription_periods")
-        .update({ label: periodForm.label, start_date: periodForm.start_date, end_date: periodForm.end_date, updated_at: new Date().toISOString() })
+        .update({
+          label: periodForm.label, start_date: periodForm.start_date, end_date: periodForm.end_date,
+          is_active: periodForm.is_active, updated_at: new Date().toISOString(),
+        })
         .eq("id", editingPeriod.id);
       if (error) toast.error("Erreur", { description: error.message });
       else toast.success("Succès", { description: "Période mise à jour" });
     } else {
       const { error } = await supabase
         .from("subscription_periods")
-        .insert({ label: periodForm.label, start_date: periodForm.start_date, end_date: periodForm.end_date });
+        .insert({ label: periodForm.label, start_date: periodForm.start_date, end_date: periodForm.end_date, is_active: periodForm.is_active });
       if (error) toast.error("Erreur", { description: error.message });
       else toast.success("Succès", { description: "Période créée" });
     }
     setPeriodDialog(false);
     setEditingPeriod(null);
-    setPeriodForm({ label: "", start_date: "", end_date: "" });
+    setPeriodForm({ label: "", start_date: "", end_date: "", is_active: false });
     fetchPeriods();
     setSaving(false);
   };
 
   const openEditPeriod = (p: SubscriptionPeriod) => {
     setEditingPeriod(p);
-    setPeriodForm({ label: p.label, start_date: p.start_date, end_date: p.end_date });
+    setPeriodForm({ label: p.label, start_date: p.start_date, end_date: p.end_date, is_active: p.is_active });
     setPeriodDialog(true);
   };
 
   const openNewPeriod = () => {
     setEditingPeriod(null);
-    setPeriodForm({ label: "", start_date: "", end_date: "" });
+    setPeriodForm({ label: "", start_date: "", end_date: "", is_active: false });
     setPeriodDialog(true);
   };
 
@@ -555,27 +586,83 @@ export default function AdminAbonnements() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label>Libellé (ex: Année scolaire 2025-2026)</Label>
+              <Label>Libellé (ex: Année scolaire 2025-2026) *</Label>
               <Input
                 value={periodForm.label}
                 onChange={(e) => setPeriodForm((f) => ({ ...f, label: e.target.value }))}
                 placeholder="Année scolaire 2025-2026"
+                required
               />
             </div>
-            <div>
-              <Label>Date de début</Label>
-              <Input
-                type="date"
-                value={periodForm.start_date}
-                onChange={(e) => setPeriodForm((f) => ({ ...f, start_date: e.target.value }))}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Date de début *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn("w-full justify-start text-left font-normal", !periodForm.start_date && "text-muted-foreground")}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {periodForm.start_date ? format(new Date(`${periodForm.start_date}T00:00:00`), "dd MMMM yyyy", { locale: fr }) : "Sélectionner"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarWidget
+                      mode="single"
+                      selected={periodForm.start_date ? new Date(`${periodForm.start_date}T00:00:00`) : undefined}
+                      onSelect={(date) => date && setPeriodForm((f) => ({ ...f, start_date: format(date, "yyyy-MM-dd") }))}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                      captionLayout="dropdown-buttons"
+                      fromYear={2020}
+                      toYear={new Date().getFullYear() + 5}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label>Date de fin *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn("w-full justify-start text-left font-normal", !periodForm.end_date && "text-muted-foreground")}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {periodForm.end_date ? format(new Date(`${periodForm.end_date}T00:00:00`), "dd MMMM yyyy", { locale: fr }) : "Sélectionner"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarWidget
+                      mode="single"
+                      selected={periodForm.end_date ? new Date(`${periodForm.end_date}T00:00:00`) : undefined}
+                      onSelect={(date) => date && setPeriodForm((f) => ({ ...f, end_date: format(date, "yyyy-MM-dd") }))}
+                      disabled={(date) => !!periodForm.start_date && date <= new Date(`${periodForm.start_date}T00:00:00`)}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                      captionLayout="dropdown-buttons"
+                      fromYear={2020}
+                      toYear={new Date().getFullYear() + 5}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
-            <div>
-              <Label>Date de fin</Label>
-              <Input
-                type="date"
-                value={periodForm.end_date}
-                onChange={(e) => setPeriodForm((f) => ({ ...f, end_date: e.target.value }))}
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <Label>Période active</Label>
+                <p className="text-xs text-muted-foreground max-w-sm">
+                  La période active est celle rattachée aux nouveaux paiements enregistrés.
+                  Une seule période peut être active à la fois ; l'activer désactive
+                  automatiquement les autres.
+                </p>
+              </div>
+              <Switch
+                checked={periodForm.is_active}
+                onCheckedChange={(checked) => setPeriodForm((f) => ({ ...f, is_active: checked }))}
               />
             </div>
           </div>
