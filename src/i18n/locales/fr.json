@@ -841,5 +841,15 @@
     "noQuizYet": "Ton enseignant n'a pas encore envoyé de questions.",
     "noExercisesYet": "Ton enseignant n'a pas encore envoyé d'exercices.",
     "assignedToYou": "⚠️ Exercice qui t'est destiné"
+  },
+  "examTrimesterSelect": {
+    "title": "Examens — Choisis le type d'examen",
+    "subtitle": "Sélectionne le trimestre pour accéder aux examens",
+    "trimestersSection": "Trimestres",
+    "bacSection": "Baccalauréat"
+  },
+  "tableOfContents": {
+    "title": "Table des matières",
+    "emptyState": "Le plan du cours s'affichera ici automatiquement après l'ajout de titres."
   }
 }

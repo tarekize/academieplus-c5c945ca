@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { List } from "lucide-react";
 
@@ -105,7 +106,9 @@ function latexToSymbols(input: string): string {
     return out.replace(/\s+/g, " ").trim();
 }
 
-export function TableOfContents({ htmlContent, className, title = "Table des matières", dir = "rtl", compact = false }: TableOfContentsProps) {
+export function TableOfContents({ htmlContent, className, title, dir, compact = false }: TableOfContentsProps) {
+    const { t, i18n } = useTranslation();
+    const resolvedDir: "rtl" | "ltr" = dir ?? (i18n.language?.startsWith("ar") ? "rtl" : "ltr");
     const [items, setItems] = useState<TocItem[]>([]);
     const [activeId, setActiveId] = useState<string>("");
 
@@ -168,7 +171,7 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
                 }
 
                 const titleEl = el.querySelector(".lesson-block-title");
-                const label = BLOCK_KIND_LABEL[blockKind][dir === "rtl" ? "ar" : "fr"];
+                const label = BLOCK_KIND_LABEL[blockKind][resolvedDir === "rtl" ? "ar" : "fr"];
                 const text = titleEl ? extractText(titleEl) : label;
                 return { id, text: text || label, level: currentHeadingLevel + 1, blockKind };
             });
@@ -177,7 +180,7 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
         }, 150);
 
         return () => clearTimeout(timer);
-    }, [htmlContent, dir]);
+    }, [htmlContent, resolvedDir]);
 
     // Scroll spy: highlight the heading the student is currently reading
     useEffect(() => {
@@ -241,10 +244,10 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
             wrapperClassName,
             className
         )}>
-            <div className={cn("flex items-center gap-2 mb-4 border-b pb-3", dir === "rtl" ? "flex-row-reverse" : "")}>
+            <div className={cn("flex items-center gap-2 mb-4 border-b pb-3", resolvedDir === "rtl" ? "flex-row-reverse" : "")}>
                 <List className="h-4 w-4 text-primary" />
                 <h3 className={cn("font-bold text-sm uppercase tracking-widest text-primary", compact && "text-base")}>
-                    {dir === "rtl" ? "فهرس المحتويات" : title}
+                    {title || t("tableOfContents.title")}
                 </h3>
             </div>
 
@@ -257,12 +260,12 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
                             <button
                                 key={item.id}
                                 onClick={() => scrollToHeading(item.id)}
-                                dir={dir}
+                                dir={resolvedDir}
                                 aria-current={isActive ? "true" : undefined}
                                 style={blockColor ? { borderInlineStartColor: `hsl(${blockColor})` } : undefined}
                                 className={cn(
                                     "flex items-center gap-1.5 w-full text-sm transition-all hover:translate-x-1 hover:text-primary active:scale-95 px-2 py-1.5 rounded-md",
-                                    dir === "rtl" ? "text-right" : "text-left",
+                                    resolvedDir === "rtl" ? "text-right" : "text-left",
                                     !item.blockKind && item.level === 1 && "font-bold border-l-2 border-primary/20 pl-2",
                                     !item.blockKind && item.level === 2 && "font-medium opacity-90 pl-4",
                                     !item.blockKind && item.level === 3 && "text-xs opacity-75 pl-7 text-muted-foreground",
@@ -285,10 +288,8 @@ export function TableOfContents({ htmlContent, className, title = "Table des mat
                     })}
                 </nav>
             ) : (
-                <p className={cn("text-xs text-muted-foreground italic leading-relaxed", dir === "rtl" ? "text-right" : "text-left")}>
-                    {dir === "rtl"
-                        ? "سيظهر فهرس الدروس هنا تلقائياً عند إضافة العناوين الرئيسية للمحتوى."
-                        : "Le plan du cours s'affichera ici automatiquement après l'ajout de titres."}
+                <p className={cn("text-xs text-muted-foreground italic leading-relaxed", resolvedDir === "rtl" ? "text-right" : "text-left")}>
+                    {t("tableOfContents.emptyState")}
                 </p>
             )}
         </div>
