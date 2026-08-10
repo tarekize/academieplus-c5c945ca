@@ -606,6 +606,21 @@
     "continueToLessons": "Continuer vers les leçons",
     "saveError": "Erreur lors de la sauvegarde. Veuillez réessayer."
   },
+  "examList": {
+    "official": "Officiel",
+    "fromTeacher": "De l'enseignant",
+    "teacherExamsHint": "Examens envoyés par tes enseignants pour ce niveau (tous trimestres).",
+    "noExamsYet": "Aucun examen pour l'instant",
+    "noExamsYetDesc": "Aucun examen n'a encore été ajouté pour ce trimestre.",
+    "durationMinutes": "{{count}} min",
+    "takeExam": "Passer l'examen",
+    "noTeacherExams": "Aucun examen envoyé par un enseignant",
+    "noTeacherExamsDesc": "Aucun enseignant n'a encore envoyé d'examen pour ce niveau.",
+    "examFallback": "Examen",
+    "teacherFallback": "Enseignant",
+    "view": "Voir",
+    "exerciseNumber": "Exercice {{n}}"
+  },
   "notFound": {
     "description": "Cette page n'existe pas ou plus.",
     "backToCourses": "Retour à mes cours"

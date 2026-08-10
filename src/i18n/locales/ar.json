@@ -612,6 +612,21 @@
     "continueToLessons": "متابعة إلى الدروس",
     "saveError": "خطأ أثناء الحفظ. يرجى المحاولة مرة أخرى."
   },
+  "examList": {
+    "official": "رسمي",
+    "fromTeacher": "من الأستاذ",
+    "teacherExamsHint": "امتحانات أرسلها أساتذتك لهذا المستوى (كل الفصول).",
+    "noExamsYet": "لا توجد اختبارات حالياً",
+    "noExamsYetDesc": "لم يتم إضافة اختبارات لهذا الفصل بعد",
+    "durationMinutes": "{{count}} دقيقة",
+    "takeExam": "اجتياز",
+    "noTeacherExams": "لا توجد امتحانات من الأستاذ",
+    "noTeacherExamsDesc": "لم يرسل أي أستاذ امتحاناً لهذا المستوى بعد.",
+    "examFallback": "امتحان",
+    "teacherFallback": "أستاذ",
+    "view": "عرض",
+    "exerciseNumber": "تمرين {{n}}"
+  },
   "notFound": {
     "description": "هذه الصفحة غير موجودة.",
     "backToCourses": "العودة إلى دروسي"
