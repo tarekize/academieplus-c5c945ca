@@ -58,6 +58,7 @@ import { fr } from "date-fns/locale";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import { AddUserDialog } from "@/components/admin/AddUserDialog";
 import { EditUserDialog } from "@/components/admin/EditUserDialog";
+import { describeAction } from "@/lib/activityLogDescriptions";
 
 // Helper to get full name from profile
 const getFullName = (user: AdminUser): string => {
@@ -361,7 +362,7 @@ export default function Admin() {
                         || (log.user ? [log.user.first_name, log.user.last_name].filter(Boolean).join(" ") || log.user.email : null)
                         || "Système";
 
-                      let actionLine: string = log.action;
+                      let actionLine: string = describeAction(log.action, log.details as any);
                       if (log.action === "user_deleted") {
                         const targetEmail = d.target_user_email || d.target_email || d.email;
                         const targetName = d.target_user_name || d.target_name || d.name;
@@ -809,7 +810,7 @@ export default function Admin() {
                         || (log.user ? [log.user.first_name, log.user.last_name].filter(Boolean).join(" ") || log.user.email : null)
                         || "Admin Système";
 
-                      let actionText = log.action;
+                      let actionText = describeAction(log.action, log.details as any);
                       let detailsText: string | null = null;
 
                       if (log.action === "user_deleted") {
