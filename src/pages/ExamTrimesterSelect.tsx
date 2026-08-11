@@ -1,5 +1,6 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ComponentType } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, ChevronLeft, Award, Star } from "lucide-react";
@@ -47,6 +48,7 @@ function ExamRow({ t, niveau, subject, filiere }: {
 
 const ExamTrimesterSelect = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const niveau = searchParams.get("niveau") || "";
   const subject = searchParams.get("subject") || "math";
@@ -81,16 +83,16 @@ const ExamTrimesterSelect = () => {
             onClick={() => navigate(-1)}
             className="mb-4 rounded-full gap-2 active:scale-95 transition-transform"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Retour
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+            {t("app.back")}
           </Button>
-          <div dir="rtl">
+          <div>
             <h1 className="font-display text-xl font-extrabold text-foreground">
-              الاختبارات — اختر نوع الاختبار
+              {t("examTrimesterSelect.title")}
             </h1>
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Sélectionnez le trimestre pour accéder aux examens
+            {t("examTrimesterSelect.subtitle")}
           </p>
         </motion.div>
 
@@ -102,8 +104,8 @@ const ExamTrimesterSelect = () => {
         >
           <Card className="glass-card border-0 overflow-hidden mb-6">
             <div className="px-6 py-3.5 border-b border-border">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" dir="rtl">
-                فصول دراسية
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {t("examTrimesterSelect.trimestersSection")}
               </p>
             </div>
             <div className="divide-y divide-border">
@@ -123,8 +125,8 @@ const ExamTrimesterSelect = () => {
           >
             <Card className="glass-card border-0 overflow-hidden">
               <div className="px-6 py-3.5 border-b border-border">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" dir="rtl">
-                  بكالوريا
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("examTrimesterSelect.bacSection")}
                 </p>
               </div>
               <div className="divide-y divide-border">

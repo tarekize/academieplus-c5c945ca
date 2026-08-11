@@ -15,6 +15,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 interface UsageRow {
   role_group: string;
@@ -124,28 +125,17 @@ export default function AdminTokenUsage() {
 
   return (
     <div className="min-h-screen pro-shell">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/dashboard")} className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" /> Retour
-            </Button>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/10">
-                <Cpu className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="font-display text-2xl font-extrabold">Consommation IA (tokens)</h1>
-                <p className="text-sm text-muted-foreground">
-                  {rows.length > 0
-                    ? `${exactPct}% des entrées sont un comptage exact (fourni par l'IA), le reste est estimé`
-                    : "Usage de tokens par groupe"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        title="Consommation IA (tokens)"
+        subtitle={
+          rows.length > 0
+            ? `${exactPct}% des entrées sont un comptage exact (fourni par l'IA), le reste est estimé`
+            : "Usage de tokens par groupe"
+        }
+        titleIcon={Cpu}
+        onBack={() => navigate("/dashboard")}
+        showProfileMenu={false}
+      />
 
       <main className="container mx-auto px-4 py-8 space-y-8">
         {loadError && (

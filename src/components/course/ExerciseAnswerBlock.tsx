@@ -7,6 +7,8 @@ import { cleanMathStatement, splitStatementIntoQuestions } from "@/lib/mathState
 import { recordTeacherContentAttempt, normalizeAnswer } from "@/lib/teacherContentAttempt";
 import { supabase } from "@/integrations/supabase/client";
 import { ExerciseSubQuestion } from "@/lib/teacherContent";
+import { useTranslation } from "react-i18next";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 
 interface Props {
   /** The teacher_content row id this exercise belongs to (attempts are recorded against it). */
@@ -30,6 +32,8 @@ type Part = { text: string; expectedAnswer?: string };
  * l'enseignant (page "Suivi de la classe"), qui la corrige lui-même — l'élève
  * peut alors réessayer tant qu'il n'a pas obtenu "correct". */
 export default function ExerciseAnswerBlock({ contentId, userId, statement, expectedAnswer, solution, hint, subQuestions }: Props) {
+  const { t, i18n } = useTranslation();
+  const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
   const legacySplit = splitStatementIntoQuestions(statement || "");
   const structuredParts: Part[] | null =
     subQuestions && subQuestions.length >= 2
@@ -43,6 +47,27 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
   const hasCorrection = hasSubQuestions
     ? parts.some((p) => !!p.expectedAnswer?.trim()) || !!solution?.trim()
     : !!(expectedAnswer?.trim() || solution?.trim());
+
+  // Le contenu (énoncé, indice, réponse, corrigé) n'existe qu'en arabe en
+  // base : traduit à la volée pour l'affichage quand l'interface est en
+  // français, jamais écrit en base.
+  const translationInputs = [
+    statement || "",
+    intro || "",
+    hint || "",
+    expectedAnswer || "",
+    solution || "",
+    ...parts.map((p) => p.text),
+    ...parts.map((p) => p.expectedAnswer || ""),
+  ];
+  const { translated } = useTranslatedContent(translationInputs, lang);
+  const tStatement = translated[0] || statement || "";
+  const tIntro = translated[1] || intro || "";
+  const tHint = translated[2] || hint || "";
+  const tExpectedAnswer = translated[3] || expectedAnswer || "";
+  const tSolution = translated[4] || solution || "";
+  const tPartTexts = translated.slice(5, 5 + parts.length);
+  const tPartAnswers = translated.slice(5 + parts.length, 5 + 2 * parts.length);
 
   const [answer, setAnswer] = useState("");
   const [subAnswers, setSubAnswers] = useState<string[]>(() => parts.map(() => ""));
@@ -169,20 +194,19 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
   return (
     <div className="space-y-3">
       {hasSubQuestions ? (
-        <div className="space-y-4" dir="rtl">
-          {intro && <HtmlWithMath htmlContent={cleanMathStatement(intro)} className="text-sm text-right" dir="rtl" />}
+        <div className="space-y-4">
+          {intro && <HtmlWithMath htmlContent={cleanMathStatement(tIntro)} className="text-sm text-end" dir="auto" />}
           {parts.map((p, i) => (
             <div key={i} className="space-y-1.5">
-              <HtmlWithMath htmlContent={cleanMathStatement(p.text)} className="text-sm text-right" dir="rtl" />
+              <HtmlWithMath htmlContent={cleanMathStatement(tPartTexts[i] || p.text)} className="text-sm text-end" dir="auto" />
               <div className="flex items-center gap-2">
                 <input
                   id={`exo-answer-${contentId}-${i}`}
                   className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background disabled:opacity-60"
-                  placeholder={`إجابة السؤال ${i + 1}...`}
+                  placeholder={t("exercisePlayer.subQuestionPlaceholder", { n: i + 1 })}
                   value={subAnswers[i] || ""}
                   onChange={(e) => { setSubAnswers((prev) => prev.map((v, j) => (j === i ? e.target.value : v))); setPartChecked((prev) => { const { [i]: _, ...rest } = prev; return rest; }); }}
-                  disabled={!canEdit}
-                  dir="rtl" />
+                  disabled={!canEdit} />
                 {canEdit && (
                   <MathKeyboard
                     onInsert={(sym) => insertAtCursor(`exo-answer-${contentId}-${i}`, subAnswers[i] || "", sym, (v) => setSubAnswers((prev) => prev.map((val, j) => (j === i ? v : val))))}
@@ -192,9 +216,9 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
                   size="sm" variant="outline" className="shrink-0"
                   onClick={() => handleCheckPart(i)}
                   disabled={!canEdit || !parts[i]?.expectedAnswer?.trim() || !subAnswers[i]?.trim()}
-                  title={!parts[i]?.expectedAnswer?.trim() ? "لم يضف الأستاذ إجابة لهذا السؤال" : undefined}
+                  title={!parts[i]?.expectedAnswer?.trim() ? t("exercisePlayer.noTeacherAnswerTitle") : undefined}
                 >
-                  تحقق
+                  {t("exercisePlayer.check")}
                 </Button>
                 {partChecked[i] === true && <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />}
                 {partChecked[i] === false && <XCircle className="h-5 w-5 text-red-500 shrink-0" />}
@@ -204,25 +228,24 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
         </div>
       ) : (
         statement && (
-          <HtmlWithMath htmlContent={cleanMathStatement(statement)} className="text-sm text-right" dir="rtl" />
+          <HtmlWithMath htmlContent={cleanMathStatement(tStatement)} className="text-sm text-end" dir="auto" />
         )
       )}
 
       {hint && showHint && (
-        <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {hint}</div>
+        <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="auto">💡 {tHint}</div>
       )}
 
-      <div className="flex gap-2 items-center flex-wrap" dir="rtl">
+      <div className="flex gap-2 items-center flex-wrap">
         {!hasSubQuestions && (
           <>
             <input
               id={`exo-answer-${contentId}`}
               className="flex-1 border rounded-lg px-3 py-2 text-sm bg-background disabled:opacity-60"
-              placeholder="أدخل إجابتك..."
+              placeholder={t("exercisePlayer.placeholderAnswer")}
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
-              disabled={!canEdit}
-              dir="rtl" />
+              disabled={!canEdit} />
             {canEdit && (
               <MathKeyboard onInsert={(sym) => insertAtCursor(`exo-answer-${contentId}`, answer, sym, setAnswer)} />
             )}
@@ -230,48 +253,48 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
         )}
         {hint && !showHint && (
           <Button size="sm" variant="ghost" onClick={handleHint}>
-            <Lightbulb className="h-4 w-4 mr-1" /> تلميح
+            <Lightbulb className="h-4 w-4 mr-1" /> {t("exercisePlayer.hint")}
           </Button>
         )}
         <Button size="sm" variant={canEdit ? "default" : "secondary"} onClick={handleSubmit} disabled={!canEdit}>
-          <Send className="h-4 w-4 mr-1" /> {grade === "none" ? "إرسال الإجابة" : "إعادة الإرسال"}
+          <Send className="h-4 w-4 mr-1" /> {grade === "none" ? t("exercisePlayer.sendAnswer") : t("exercisePlayer.resendAnswer")}
         </Button>
-        <Button size="sm" variant="outline" onClick={handleToggleReveal} disabled={!hasCorrection} title={!hasCorrection ? "لم يضف الأستاذ تصحيحاً لهذا التمرين" : undefined}>
-          <CheckCircle2 className="h-4 w-4 mr-1" /> {revealed ? "إخفاء" : "التصحيح"}
+        <Button size="sm" variant="outline" onClick={handleToggleReveal} disabled={!hasCorrection} title={!hasCorrection ? t("exercisePlayer.noTeacherCorrectionTitle") : undefined}>
+          <CheckCircle2 className="h-4 w-4 mr-1" /> {revealed ? t("exercisePlayer.hide") : t("exercisePlayer.correction")}
         </Button>
       </div>
 
       {grade === "correct" && (
-        <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 bg-emerald-500/5 p-2.5 rounded-lg" dir="rtl">
-          <CheckCircle2 className="h-4 w-4" /> إجابة صحيحة!
+        <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 bg-emerald-500/5 p-2.5 rounded-lg">
+          <CheckCircle2 className="h-4 w-4" /> {t("exercisePlayer.correctAnswerSimple")}
         </div>
       )}
       {grade === "incorrect" && (
-        <div className="flex items-center gap-2 text-sm font-medium text-red-500 bg-red-500/5 p-2.5 rounded-lg" dir="rtl">
-          <XCircle className="h-4 w-4" /> إجابة غير صحيحة، حاول مجدداً.
+        <div className="flex items-center gap-2 text-sm font-medium text-red-500 bg-red-500/5 p-2.5 rounded-lg">
+          <XCircle className="h-4 w-4" /> {t("exercisePlayer.wrongAnswerRetry")}
         </div>
       )}
       {grade === "pending" && (
-        <div className="flex items-center gap-2 text-sm font-medium text-amber-600 bg-amber-500/5 p-2.5 rounded-lg" dir="rtl">
-          <Clock className="h-4 w-4" /> تم إرسال إجابتك، بانتظار تصحيح الأستاذ.
+        <div className="flex items-center gap-2 text-sm font-medium text-amber-600 bg-amber-500/5 p-2.5 rounded-lg">
+          <Clock className="h-4 w-4" /> {t("exercisePlayer.pendingTeacherReview")}
         </div>
       )}
 
       {revealed && (
-        <div className="bg-muted/50 p-3 rounded text-sm space-y-2" dir="rtl">
+        <div className="bg-muted/50 p-3 rounded text-sm space-y-2">
           {hasSubQuestions ? (
             parts.map((p, i) => p.expectedAnswer ? (
-              <p key={i}><span className="font-semibold">إجابة السؤال {i + 1}:</span>{" "}
-                <HtmlWithMath htmlContent={cleanMathStatement(p.expectedAnswer)} className="inline" /></p>
+              <p key={i}><span className="font-semibold">{t("exercisePlayer.subQuestionAnswerLabel", { n: i + 1 })}</span>{" "}
+                <HtmlWithMath htmlContent={cleanMathStatement(tPartAnswers[i] || p.expectedAnswer)} className="inline" dir="auto" /></p>
             ) : null)
           ) : expectedAnswer && (
-            <p><span className="font-semibold">الإجابة:</span>{" "}
-              <HtmlWithMath htmlContent={cleanMathStatement(expectedAnswer)} className="inline" /></p>
+            <p><span className="font-semibold">{t("exercisePlayer.theAnswerLabel")}</span>{" "}
+              <HtmlWithMath htmlContent={cleanMathStatement(tExpectedAnswer)} className="inline" dir="auto" /></p>
           )}
           {solution && (
             <div>
-              <p className="font-semibold flex items-center gap-2 mb-1"><BookOpen className="h-4 w-4" /> الحل:</p>
-              <HtmlWithMath htmlContent={cleanMathStatement(solution)} />
+              <p className="font-semibold flex items-center gap-2 mb-1"><BookOpen className="h-4 w-4" /> {t("exercisePlayer.theSolutionLabel")}</p>
+              <HtmlWithMath htmlContent={cleanMathStatement(tSolution)} dir="auto" />
             </div>
           )}
         </div>

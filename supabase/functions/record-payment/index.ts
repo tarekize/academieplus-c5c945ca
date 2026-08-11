@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
 
     // Parse and validate input
     const body = await req.json()
-    const { billing_period, plan_name, is_family } = body
+    const { billing_period, plan_name, is_family, payment_method, receipt_path } = body
 
     if (!billing_period || !plan_name || typeof is_family !== 'boolean') {
       return new Response(JSON.stringify({ error: 'Missing required fields: billing_period, plan_name, is_family' }), {
@@ -42,11 +42,34 @@ Deno.serve(async (req) => {
       })
     }
 
+    const paymentMethod = payment_method === 'bank_transfer' ? 'bank_transfer' : 'card'
+
+    if (paymentMethod === 'bank_transfer') {
+      if (!receipt_path || typeof receipt_path !== 'string' || !receipt_path.startsWith(`${user.id}/`)) {
+        return new Response(JSON.stringify({ error: 'Le reçu de virement est manquant ou invalide.' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+    }
+
     // Use service role to validate against subscription_config and insert
     const serviceClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
+
+    if (paymentMethod === 'bank_transfer') {
+      // Vérifie que le fichier existe réellement dans le bucket (pas juste un
+      // chemin inventé côté client) avant d'enregistrer le paiement.
+      const { error: receiptCheckError } = await serviceClient.storage
+        .from('payment-receipts')
+        .createSignedUrl(receipt_path, 60)
+      if (receiptCheckError) {
+        return new Response(JSON.stringify({ error: 'Le reçu de virement est introuvable. Merci de le joindre à nouveau.' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+    }
 
     // Rate limiting : évite qu'un compte crée un nombre illimité de demandes
     // de paiement en attente.
@@ -91,13 +114,15 @@ Deno.serve(async (req) => {
 
     const periodId = periods && periods.length > 0 ? periods[0].id : null
 
-    // IMPORTANT : aucune passerelle de paiement réelle (CIB/EDAHABIA/
-    // Chargily...) n'est intégrée à ce jour. Un paiement est donc créé en
-    // statut 'pending' — PAS 'completed' — et AUCUN code d'activation n'est
-    // généré ici. Seul un administrateur, après vérification manuelle du
-    // règlement réel (virement, reçu...), peut faire passer ce paiement à
-    // 'completed' via la RPC admin_approve_payment, qui génère alors les
-    // codes. Voir /admin/paiements côté frontend (à adapter en conséquence).
+    // Aucune passerelle de paiement réelle (CIB/EDAHABIA/Chargily...) n'est
+    // intégrée : le formulaire carte côté client est purement visuel, rien
+    // n'est débité. Le paiement entre donc en statut 'pending' (valeur par
+    // défaut de la colonne, cf. migration payment_requires_admin_approval) —
+    // seul un admin qui a vérifié le virement/paiement réel peut le faire
+    // passer à 'completed' via le RPC admin_approve_payment, qui émet alors
+    // les codes d'activation. Émettre les codes ici, avant toute vérification
+    // humaine, permettait à n'importe quel compte authentifié d'obtenir des
+    // codes d'activation valides sans jamais payer.
     const { data: payment, error: payErr } = await serviceClient
       .from('payments')
       .insert({
@@ -109,13 +134,15 @@ Deno.serve(async (req) => {
         children_count: childrenCount,
         period_id: periodId,
         status: 'pending',
+        payment_method: paymentMethod,
+        receipt_url: paymentMethod === 'bank_transfer' ? receipt_path : null,
       })
       .select()
       .single()
 
     if (payErr) {
       console.error('Payment insert error:', payErr)
-      return new Response(JSON.stringify({ error: 'Failed to record payment request' }), {
+      return new Response(JSON.stringify({ error: 'Failed to record payment' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -123,7 +150,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       payment_id: payment.id,
       status: 'pending',
-      message: "Votre demande a été enregistrée. Vos codes d'activation seront émis après vérification du paiement par un administrateur.",
+      message: 'Paiement enregistré, en attente de validation par un administrateur.',
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })

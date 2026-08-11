@@ -25,6 +25,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { z } from "zod";
+import { algerianPhoneSchema } from "@/lib/validation";
 import { LinkedChildrenSection } from "@/components/profile/LinkedChildrenSection";
 import { LinkedParentsSection } from "@/components/profile/LinkedParentsSection";
 import { AvatarUpload } from "@/components/profile/AvatarUpload";
@@ -35,7 +36,7 @@ import LocationFields from "@/components/profile/LocationFields";
 const profileSchema = z.object({
   first_name: z.string().trim().min(1, "Le prénom est requis").max(100, "Le prénom ne peut pas dépasser 100 caractères"),
   last_name: z.string().trim().min(1, "Le nom est requis").max(100, "Le nom ne peut pas dépasser 100 caractères"),
-  phone: z.string().trim().max(20, "Le téléphone ne peut pas dépasser 20 caractères").optional().nullable(),
+  phone: algerianPhoneSchema.nullable(),
   school_level: z.string().optional().nullable(),
   filiere: z.string().optional().nullable(),
   email: z.string().email("L'adresse email n'est pas valide"),
@@ -171,33 +172,6 @@ const MesInformations = () => {
 
       if (!profile?.id || !user) return;
 
-      // Update email if it has changed - edge function sends a confirmation
-      // link to the new address; the change only takes effect once clicked.
-      if (validatedData.email !== profile.email) {
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-
-        if (sessionError || !sessionData.session) {
-          toast.error("Session expirée", {
-            description: "Veuillez vous reconnecter pour modifier votre email.",
-          });
-          navigate("/auth");
-          return;
-        }
-
-        const { error: emailError } = await supabase.functions.invoke("update-user-email", {
-          body: { userId: profile.id, newEmail: validatedData.email },
-        });
-
-        if (emailError) {
-          throw new Error(emailError.message || "Erreur lors de la mise à jour de l'email");
-        }
-
-        toast.success("Confirmez votre nouvel email", {
-          description: "Un email de confirmation a été envoyé à votre nouvelle adresse. Le changement ne sera effectif qu'après avoir cliqué sur le lien reçu.",
-        });
-      }
-
-      // Update other profile fields (email change is confirmed separately, see above)
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -216,7 +190,10 @@ const MesInformations = () => {
 
       if (error) throw error;
 
-      navigate("/update-success");
+      toast.success("Informations mises à jour", {
+        description: "Vos modifications ont bien été enregistrées.",
+      });
+      if (user) await fetchProfile(user.id);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast.error("Erreur de validation", {
@@ -242,7 +219,24 @@ const MesInformations = () => {
         body: { userId: profile.id },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Sur une réponse non-2xx, le client Supabase ne parse jamais le
+        // corps dans data : le vrai message renvoyé par l'edge function
+        // (ex: conflit de suppression) n'est lisible que via error.context
+        // (la Response brute), sinon on retombe sur le message générique
+        // "Edge Function returned a non-2xx status code".
+        let message = error.message;
+        try {
+          const context = (error as any)?.context;
+          if (context && typeof context.json === "function") {
+            const body = await context.json();
+            if (body?.error) message = body.error;
+          }
+        } catch {
+          // Corps non-JSON ou déjà consommé : on garde le message générique.
+        }
+        throw new Error(message);
+      }
 
       await supabase.auth.signOut();
       navigate("/");
@@ -331,8 +325,8 @@ const MesInformations = () => {
             <div className="relative bg-card/80 backdrop-blur-sm rounded-3xl border border-border/50 p-8 flex flex-col items-center text-center">
               <AvatarUpload
                 url={formData.avatar_url}
-                onUpload={(url) => { setFormData({ ...formData, avatar_url: url }); persistAvatarUrl(url); }}
-                onDelete={() => { setFormData({ ...formData, avatar_url: null }); persistAvatarUrl(null); }}
+                onUpload={(url) => { setFormData((prev) => ({ ...prev, avatar_url: url })); persistAvatarUrl(url); }}
+                onDelete={() => { setFormData((prev) => ({ ...prev, avatar_url: null })); persistAvatarUrl(null); }}
               />
               <h1 className="mt-5 font-display text-2xl font-extrabold text-foreground">{fullName}</h1>
               <p className="text-muted-foreground text-sm">{profile?.email}</p>
@@ -366,7 +360,7 @@ const MesInformations = () => {
                       <Input
                         id="first_name"
                         value={formData.first_name}
-                        onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, first_name: e.target.value }))}
                         placeholder="Votre prénom"
                         className="rounded-xl"
                       />
@@ -377,7 +371,7 @@ const MesInformations = () => {
                       <Input
                         id="last_name"
                         value={formData.last_name}
-                        onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, last_name: e.target.value }))}
                         placeholder="Votre nom de famille"
                         className="rounded-xl"
                       />
@@ -392,12 +386,11 @@ const MesInformations = () => {
                       id="email"
                       type="email"
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="Votre adresse email"
-                      className="rounded-xl"
+                      disabled
+                      className="rounded-xl text-muted-foreground"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Un email de confirmation sera envoyé si vous modifiez votre adresse.
+                      L'adresse email n'est pas modifiable depuis cette page.
                     </p>
                   </div>
 
@@ -408,21 +401,26 @@ const MesInformations = () => {
                       </Label>
                       <Input
                         id="phone"
+                        type="tel"
+                        inputMode="tel"
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="Numéro de téléphone"
+                        onChange={(e) => {
+                          const filtered = e.target.value.replace(/[^\d\s+.\-]/g, "");
+                          setFormData((prev) => ({ ...prev, phone: filtered }));
+                        }}
+                        placeholder="05 XX XX XX XX"
                         className="rounded-xl"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Date de naissance</Label>
+                      <Label className="flex items-center">Date de naissance</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal rounded-xl",
+                              "w-full h-10 justify-start text-left font-normal rounded-xl",
                               !formData.date_of_birth && "text-muted-foreground"
                             )}
                           >
@@ -436,7 +434,7 @@ const MesInformations = () => {
                           <Calendar
                             mode="single"
                             selected={formData.date_of_birth}
-                            onSelect={(date) => setFormData({ ...formData, date_of_birth: date })}
+                            onSelect={(date) => setFormData((prev) => ({ ...prev, date_of_birth: date }))}
                             disabled={(date) =>
                               date > new Date() || date < new Date("1940-01-01")
                             }
@@ -471,9 +469,9 @@ const MesInformations = () => {
                       wilaya={formData.wilaya}
                       ville={formData.ville}
                       ecole={formData.ecole}
-                      onWilayaChange={(val) => setFormData({ ...formData, wilaya: val, ville: "" })}
-                      onVilleChange={(val) => setFormData({ ...formData, ville: val })}
-                      onEcoleChange={(val) => setFormData({ ...formData, ecole: val })}
+                      onWilayaChange={(val) => setFormData((prev) => ({ ...prev, wilaya: val, ville: "" }))}
+                      onVilleChange={(val) => setFormData((prev) => ({ ...prev, ville: val }))}
+                      onEcoleChange={(val) => setFormData((prev) => ({ ...prev, ecole: val }))}
                       hideEcole={userRole === 'parent'}
                     />
                   </CardContent>

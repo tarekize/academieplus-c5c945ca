@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
-import { Calendar as CalendarIcon, Eye, EyeOff, User, GraduationCap } from "lucide-react";
+import { Calendar as CalendarIcon, Eye, EyeOff, User, GraduationCap, Mail } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 import { format, parse, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -40,6 +40,8 @@ const Auth = () => {
   const [submitted, setSubmitted] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [registrationEmail, setRegistrationEmail] = useState("");
+  const [awaitingEmailConfirmation, setAwaitingEmailConfirmation] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [wilaya, setWilaya] = useState("");
   const [ville, setVille] = useState("");
@@ -252,6 +254,13 @@ const Auth = () => {
         if (!dateOfBirth) missingFields.push("Date de naissance");
       }
 
+      // handle_new_user (trigger serveur) rejette toute inscription enseignant sans
+      // code d'établissement — sans ce contrôle, le formulaire laissait passer une
+      // inscription vouée à échouer avec une erreur Postgres peu claire.
+      if (profileType === 'enseignant' && !establishmentCode.trim()) {
+        missingFields.push("Code d'établissement");
+      }
+
       if (missingFields.length > 0) {
         toast.error(`Remplis les champs obligatoires suivants : ${missingFields.join(", ")}`);
         return;
@@ -396,18 +405,28 @@ const Auth = () => {
         userData.establishment_code = establishmentCode.trim().toUpperCase();
       }
 
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}/auth`,
           data: userData,
         },
       });
 
       if (error) throw error;
-      setIsRegistering(true);
       setRegistrationEmail(email);
+
+      // Si la confirmation par email est activée côté projet Supabase,
+      // signUp() ne renvoie aucune session tant que le lien reçu par email
+      // n'a pas été cliqué : on ne peut pas naviguer vers une page protégée
+      // (il n'y a pas encore d'utilisateur authentifié).
+      if (!data.session) {
+        setAwaitingEmailConfirmation(true);
+        return;
+      }
+
+      setIsRegistering(true);
       const returnTo = sessionStorage.getItem('returnTo');
       // Si l'inscription vient d'un clic Pricing, respecter la redirection demandée.
       if (returnTo === '/abonnements') {
@@ -436,6 +455,24 @@ const Auth = () => {
     } finally {
       setIsRegistering(false);
       setLoading(false);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!registrationEmail) return;
+    setResendingEmail(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: registrationEmail,
+        options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+      });
+      if (error) throw error;
+      toast.success("Email renvoyé", { description: `Un nouveau lien de confirmation a été envoyé à ${registrationEmail}.` });
+    } catch (error: any) {
+      toast.error(error.message || "Impossible de renvoyer l'email de confirmation.");
+    } finally {
+      setResendingEmail(false);
     }
   };
 
@@ -510,6 +547,52 @@ const Auth = () => {
           <p className="text-muted-foreground text-sm">Redirection vers ton espace</p>
         </div>
       </div>
+    );
+  }
+
+  // Écran d'attente de confirmation par email (compte créé mais pas encore
+  // activé : signUp() n'a renvoyé aucune session).
+  if (awaitingEmailConfirmation) {
+    return (
+      <>
+        <Header minimal={true} />
+        <div className="relative min-h-screen flex items-center justify-center p-4 pt-24 overflow-hidden">
+          <div className="absolute inset-0 -z-10 bg-[image:var(--gradient-soft)]" />
+          <div className="w-full max-w-md">
+            <div className="bg-card/90 backdrop-blur-sm rounded-3xl shadow-[var(--shadow-elegant)] border border-border overflow-hidden p-8 text-center space-y-5">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+                <Mail className="h-8 w-8 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-xl font-bold text-foreground">Confirme ton adresse email</h2>
+                <p className="text-muted-foreground text-sm">
+                  Un email de confirmation a été envoyé à{" "}
+                  <span className="font-semibold text-foreground">{registrationEmail}</span>.
+                  Clique sur le lien qu'il contient pour activer ton compte.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                className="w-full"
+                disabled={resendingEmail}
+                onClick={handleResendConfirmation}
+              >
+                {resendingEmail ? "Envoi..." : "Renvoyer l'email de confirmation"}
+              </Button>
+              <button
+                type="button"
+                className="text-sm text-primary hover:underline"
+                onClick={() => {
+                  setAwaitingEmailConfirmation(false);
+                  setIsLogin(true);
+                }}
+              >
+                Retour à la connexion
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -859,6 +942,33 @@ const Auth = () => {
                           </div>
                         </RadioGroup>
                       </div>
+
+                      {profileType === "enseignant" && (
+                        <div className="space-y-2">
+                          <Label htmlFor="establishmentCode" className="text-foreground">
+                            Code d'établissement <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            id="establishmentCode"
+                            type="text"
+                            placeholder="Ex: ETB1234"
+                            value={establishmentCode}
+                            onChange={(e) => {
+                              setEstablishmentCode(e.target.value.toUpperCase());
+                              setTouched(prev => ({ ...prev, establishmentCode: true }));
+                            }}
+                            onBlur={() => setTouched(prev => ({ ...prev, establishmentCode: true }))}
+                            className={cn(
+                              "bg-secondary/20 font-mono tracking-widest uppercase",
+                              (submitted || touched.establishmentCode) && !establishmentCode.trim() ? "border-red-500 border-2" : "border-border"
+                            )}
+                            required
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Code fourni par ton établissement pour rattacher ton compte enseignant.
+                          </p>
+                        </div>
+                      )}
 
                       {profileType === "enfant" && (
                         <div className="space-y-4">

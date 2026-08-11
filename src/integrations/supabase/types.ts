@@ -670,7 +670,7 @@ export type Database = {
           {
             foreignKeyName: "class_students_student_id_fkey"
             columns: ["student_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1202,6 +1202,81 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          amount: number
+          amount_ht: number
+          amount_ttc: number
+          children_count: number
+          created_at: string
+          id: string
+          invoice_number: string
+          is_family: boolean
+          issued_at: string
+          payment_id: string
+          period_end: string | null
+          period_start: string | null
+          plan_label: string
+          plan_type: string
+          user_id: string
+          vat_amount: number
+          vat_rate: number
+        }
+        Insert: {
+          amount: number
+          amount_ht: number
+          amount_ttc: number
+          children_count?: number
+          created_at?: string
+          id?: string
+          invoice_number: string
+          is_family?: boolean
+          issued_at?: string
+          payment_id: string
+          period_end?: string | null
+          period_start?: string | null
+          plan_label: string
+          plan_type: string
+          user_id: string
+          vat_amount: number
+          vat_rate: number
+        }
+        Update: {
+          amount?: number
+          amount_ht?: number
+          amount_ttc?: number
+          children_count?: number
+          created_at?: string
+          id?: string
+          invoice_number?: string
+          is_family?: boolean
+          issued_at?: string
+          payment_id?: string
+          period_end?: string | null
+          period_start?: string | null
+          plan_label?: string
+          plan_type?: string
+          user_id?: string
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: true
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_versions: {
         Row: {
           content: string | null
@@ -1553,45 +1628,105 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_bank_details: {
+        Row: {
+          account_holder: string | null
+          bank_name: string | null
+          ccp_key: string | null
+          ccp_number: string | null
+          id: boolean
+          instructions: string | null
+          rib: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          account_holder?: string | null
+          bank_name?: string | null
+          ccp_key?: string | null
+          ccp_number?: string | null
+          id?: boolean
+          instructions?: string | null
+          rib?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          account_holder?: string | null
+          bank_name?: string | null
+          ccp_key?: string | null
+          ccp_number?: string | null
+          id?: boolean
+          instructions?: string | null
+          rib?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
+          amount_ht: number | null
+          amount_ttc: number | null
           children_count: number
           created_at: string
           id: string
           is_family: boolean
           payment_date: string
+          payment_method: string
+          period_end: string
           period_id: string | null
+          period_start: string
           plan_label: string
           plan_type: string
+          receipt_url: string | null
           status: string
           user_id: string
+          vat_amount: number | null
+          vat_rate: number
         }
         Insert: {
           amount: number
+          amount_ht?: number | null
+          amount_ttc?: number | null
           children_count?: number
           created_at?: string
           id?: string
           is_family?: boolean
           payment_date?: string
+          payment_method?: string
+          period_end: string
           period_id?: string | null
+          period_start: string
           plan_label: string
           plan_type: string
+          receipt_url?: string | null
           status?: string
           user_id: string
+          vat_amount?: number | null
+          vat_rate?: number
         }
         Update: {
           amount?: number
+          amount_ht?: number | null
+          amount_ttc?: number | null
           children_count?: number
           created_at?: string
           id?: string
           is_family?: boolean
           payment_date?: string
+          payment_method?: string
+          period_end?: string
           period_id?: string | null
+          period_start?: string
           plan_label?: string
           plan_type?: string
+          receipt_url?: string | null
           status?: string
           user_id?: string
+          vat_amount?: number | null
+          vat_rate?: number
         }
         Relationships: [
           {
@@ -1695,14 +1830,22 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           avatar_url: string | null
           consent_data_processing_at: string | null
           consent_parental_at: string | null
           consent_terms_privacy_at: string | null
+          contract_document_url: string | null
+          contract_duration_months: number | null
           contract_end_date: string | null
+          contract_notes: string | null
           contract_start_date: string | null
           created_at: string | null
           date_of_birth: string | null
+          deputy_contact: string | null
+          deputy_name: string | null
+          director_contact: string | null
+          director_name: string | null
           ecole: string | null
           email: string
           email_verified: boolean | null
@@ -1710,26 +1853,40 @@ export type Database = {
           establishment_id: string | null
           filiere: string | null
           first_name: string | null
+          general_email: string | null
           id: string
           is_active: boolean | null
           last_name: string | null
           linking_code: string | null
+          notice_date: string | null
+          notice_period_days: number | null
           phone: string | null
           school_level: Database["public"]["Enums"]["school_level"] | null
+          student_count: number | null
+          subject: string | null
           subscription_end_date: string | null
+          teacher_count: number | null
           updated_at: string | null
           ville: string | null
           wilaya: string | null
         }
         Insert: {
+          address?: string | null
           avatar_url?: string | null
           consent_data_processing_at?: string | null
           consent_parental_at?: string | null
           consent_terms_privacy_at?: string | null
+          contract_document_url?: string | null
+          contract_duration_months?: number | null
           contract_end_date?: string | null
+          contract_notes?: string | null
           contract_start_date?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          deputy_contact?: string | null
+          deputy_name?: string | null
+          director_contact?: string | null
+          director_name?: string | null
           ecole?: string | null
           email: string
           email_verified?: boolean | null
@@ -1737,26 +1894,40 @@ export type Database = {
           establishment_id?: string | null
           filiere?: string | null
           first_name?: string | null
+          general_email?: string | null
           id: string
           is_active?: boolean | null
           last_name?: string | null
           linking_code?: string | null
+          notice_date?: string | null
+          notice_period_days?: number | null
           phone?: string | null
           school_level?: Database["public"]["Enums"]["school_level"] | null
+          student_count?: number | null
+          subject?: string | null
           subscription_end_date?: string | null
+          teacher_count?: number | null
           updated_at?: string | null
           ville?: string | null
           wilaya?: string | null
         }
         Update: {
+          address?: string | null
           avatar_url?: string | null
           consent_data_processing_at?: string | null
           consent_parental_at?: string | null
           consent_terms_privacy_at?: string | null
+          contract_document_url?: string | null
+          contract_duration_months?: number | null
           contract_end_date?: string | null
+          contract_notes?: string | null
           contract_start_date?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          deputy_contact?: string | null
+          deputy_name?: string | null
+          director_contact?: string | null
+          director_name?: string | null
           ecole?: string | null
           email?: string
           email_verified?: boolean | null
@@ -1764,13 +1935,19 @@ export type Database = {
           establishment_id?: string | null
           filiere?: string | null
           first_name?: string | null
+          general_email?: string | null
           id?: string
           is_active?: boolean | null
           last_name?: string | null
           linking_code?: string | null
+          notice_date?: string | null
+          notice_period_days?: number | null
           phone?: string | null
           school_level?: Database["public"]["Enums"]["school_level"] | null
+          student_count?: number | null
+          subject?: string | null
           subscription_end_date?: string | null
+          teacher_count?: number | null
           updated_at?: string | null
           ville?: string | null
           wilaya?: string | null
@@ -2407,6 +2584,30 @@ export type Database = {
           },
         ]
       }
+      translation_cache: {
+        Row: {
+          cache_key: string
+          created_at: string
+          source_text: string
+          target_lang: string
+          translated_text: string
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          source_text: string
+          target_lang: string
+          translated_text: string
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          source_text?: string
+          target_lang?: string
+          translated_text?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -2466,6 +2667,29 @@ export type Database = {
           last_sign_in_at: string
           user_id: string
         }[]
+      }
+      admin_grant_subscription_days: {
+        Args: { p_days: number; p_user_id: string }
+        Returns: {
+          activation_code_id: string | null
+          created_at: string
+          days_used: number
+          id: string
+          is_paused: boolean
+          last_tick_at: string
+          paused_at: string | null
+          plan_type: string
+          started_at: string
+          total_days: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "student_subscriptions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       admin_list_notification_candidates: {
         Args: never
@@ -2623,6 +2847,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      is_establishment_member: {
+        Args: { _est_id: string; _user_id: string }
+        Returns: boolean
       }
       is_establishment_student: {
         Args: { _est_id: string; _student_id: string }

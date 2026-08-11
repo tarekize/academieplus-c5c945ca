@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, GraduationCap, BarChart3, CreditCard, FileText, Cpu, Bell, ClipboardCheck, History } from "lucide-react";
+import { Users, GraduationCap, BarChart3, CreditCard, FileText, Cpu, Bell, ClipboardCheck, History, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
@@ -149,6 +149,14 @@ const Dashboard = () => {
                       title={t("dashboard.subscriptions")}
                       description={t("dashboard.subscriptionsDesc")}
                       onClick={() => navigate("/admin/abonnements")}
+                    />
+                    <DashboardTile
+                      icon={Receipt}
+                      iconBg="bg-emerald-500/10"
+                      iconText="text-emerald-600"
+                      title={t("dashboard.payments")}
+                      description={t("dashboard.paymentsDesc")}
+                      onClick={() => navigate("/admin/paiements")}
                     />
                     <DashboardTile
                       icon={FileText}

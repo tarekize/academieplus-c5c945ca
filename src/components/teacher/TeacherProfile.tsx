@@ -4,14 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, User, Mail, Phone, MapPin, School, Trash2, ShieldAlert } from "lucide-react";
+import { Loader2, User, Trash2, ShieldAlert, Save } from "lucide-react";
 import { toast } from "sonner";
 import TeacherPageHeader from "./TeacherPageHeader";
+import LocationFields from "@/components/profile/LocationFields";
 
 interface Profile {
   id: string;
@@ -22,26 +25,7 @@ interface Profile {
   wilaya: string | null;
   ville: string | null;
   ecole: string | null;
-}
-
-interface InfoRowProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string | null | undefined;
-}
-
-function InfoRow({ icon, label, value }: InfoRowProps) {
-  return (
-    <div className="flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-muted/40">
-      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-        {icon}
-      </div>
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
-        <p className="font-medium truncate">{value || <span className="text-muted-foreground italic text-sm">Non renseigné</span>}</p>
-      </div>
-    </div>
-  );
+  subject: string | null;
 }
 
 export default function TeacherProfile({ onBack }: { onBack: () => void }) {
@@ -49,20 +33,66 @@ export default function TeacherProfile({ onBack }: { onBack: () => void }) {
   const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const [form, setForm] = useState({
+    first_name: "", last_name: "", phone: "", wilaya: "", ville: "", ecole: "", subject: "",
+  });
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("id, first_name, last_name, email, phone, wilaya, ville, ecole")
+      .select("id, first_name, last_name, email, phone, wilaya, ville, ecole, subject")
       .eq("id", user.id)
       .single()
       .then(({ data, error }) => {
-        if (!error && data) setProfile(data as Profile);
+        if (!error && data) {
+          const p = data as Profile;
+          setProfile(p);
+          setForm({
+            first_name: p.first_name || "",
+            last_name: p.last_name || "",
+            phone: p.phone || "",
+            wilaya: p.wilaya || "",
+            ville: p.ville || "",
+            ecole: p.ecole || "",
+            subject: p.subject || "",
+          });
+        }
         setLoading(false);
       });
   }, [user]);
+
+  const handleSave = async () => {
+    if (!user) return;
+    if (!form.first_name.trim() || !form.last_name.trim()) {
+      toast.error("Le prénom et le nom sont obligatoires.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          first_name: form.first_name.trim(),
+          last_name: form.last_name.trim(),
+          phone: form.phone.trim() || null,
+          wilaya: form.wilaya || null,
+          ville: form.ville || null,
+          ecole: form.ecole || null,
+          subject: form.subject.trim() || null,
+        } as any)
+        .eq("id", user.id);
+      if (error) throw error;
+      toast.success("Profil mis à jour");
+    } catch (e: any) {
+      toast.error(e.message || "Erreur lors de la mise à jour du profil.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!profile) return;
@@ -71,7 +101,21 @@ export default function TeacherProfile({ onBack }: { onBack: () => void }) {
       const { error } = await supabase.functions.invoke("delete-user-account", {
         body: { userId: profile.id },
       });
-      if (error) throw error;
+      if (error) {
+        // Sur une réponse non-2xx, response.data reste null : le vrai
+        // message de l'edge function n'est lisible que via error.context.
+        let message = error.message;
+        try {
+          const context = (error as any)?.context;
+          if (context && typeof context.json === "function") {
+            const body = await context.json();
+            if (body?.error) message = body.error;
+          }
+        } catch {
+          // Corps non-JSON ou déjà consommé : on garde le message générique.
+        }
+        throw new Error(message);
+      }
       await supabase.auth.signOut();
       navigate("/");
     } catch (e: any) {
@@ -111,18 +155,47 @@ export default function TeacherProfile({ onBack }: { onBack: () => void }) {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-3 grid grid-cols-1 sm:grid-cols-2 gap-1">
-          <InfoRow icon={<User className="h-4 w-4" />} label="Prénom" value={profile?.first_name} />
-          <InfoRow icon={<User className="h-4 w-4" />} label="Nom" value={profile?.last_name} />
-          <InfoRow icon={<Mail className="h-4 w-4" />} label="Email" value={profile?.email} />
-          <InfoRow icon={<Phone className="h-4 w-4" />} label="Téléphone" value={profile?.phone} />
-          <InfoRow icon={<MapPin className="h-4 w-4" />} label="Wilaya" value={profile?.wilaya} />
-          <InfoRow icon={<MapPin className="h-4 w-4" />} label="Ville" value={profile?.ville} />
-          <InfoRow icon={<School className="h-4 w-4" />} label="École" value={profile?.ecole} />
+        <CardContent className="pt-3 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="first_name">Prénom</Label>
+              <Input id="first_name" value={form.first_name} onChange={(e) => setForm((f) => ({ ...f, first_name: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="last_name">Nom</Label>
+              <Input id="last_name" value={form.last_name} onChange={(e) => setForm((f) => ({ ...f, last_name: e.target.value }))} />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Email</Label>
+            <Input value={profile?.email || ""} disabled className="text-muted-foreground" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="phone">Téléphone</Label>
+              <Input id="phone" type="tel" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="subject">Matière</Label>
+              <Input id="subject" placeholder="Ex: Mathématiques" value={form.subject} onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))} />
+            </div>
+          </div>
+          <LocationFields
+            wilaya={form.wilaya}
+            ville={form.ville}
+            ecole={form.ecole}
+            onWilayaChange={(val) => setForm((f) => ({ ...f, wilaya: val, ville: "" }))}
+            onVilleChange={(val) => setForm((f) => ({ ...f, ville: val }))}
+            onEcoleChange={(val) => setForm((f) => ({ ...f, ecole: val }))}
+          />
+          <Button onClick={handleSave} disabled={saving} className="w-full rounded-xl gap-2">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            Enregistrer les modifications
+          </Button>
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl border-destructive/30 bg-destructive/[0.03]">
+      <Card className="rounded-2xl">
         <CardContent className="p-5 space-y-4">
           <div className="flex items-start gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-destructive/10">

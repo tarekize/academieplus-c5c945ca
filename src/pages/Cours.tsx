@@ -587,10 +587,10 @@ const Cours = () => {
               <div className="relative flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
                 <div>
                   <h2 className="text-lg font-semibold mb-1">
-                    Matières de {schoolLevel && getSchoolLevelName(schoolLevel)}
+                    {t("listeCours.subjectsOf", { level: (schoolLevel && getSchoolLevelName(schoolLevel)) || "" })}
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Découvre tous les cours de ta classe et prépare-toi à réussir ! 🚀
+                    {t("listeCours.discoverSubjects")}
                   </p>
                 </div>
                 <div className="flex gap-2 flex-wrap shrink-0">

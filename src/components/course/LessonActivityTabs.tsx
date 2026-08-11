@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Brain, PenTool, BookOpen, Sparkles, Eye, Lightbulb, Rocket, ChevronRight, Lock, CheckCircle2, RefreshCw, Pencil, Dices, XCircle, ChevronDown, ChevronUp, Users } from "lucide-react";
+import { Brain, PenTool, BookOpen, Sparkles, Eye, Lightbulb, Rocket, ChevronRight, Lock, CheckCircle2, RefreshCw, Pencil, Dices, XCircle, ChevronDown, ChevronUp, Users, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +17,8 @@ import { cleanMathStatement, statementHasMath } from "@/lib/mathStatement";
 import { MyClassContent } from "./MyClassContent";
 import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
 import { TeacherContentRedDot } from "@/components/TeacherContentRedDot";
+import { useTranslation } from "react-i18next";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 
 export interface DBQuizQuestion {
   id: string;
@@ -69,6 +71,7 @@ const stepConfig: { id: StepLevel; label: string; labelAr: string; icon: typeof 
 ];
 
 export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonId, lessonTitle, onGenerateAI, onSectionChange, hiddenBackButton, readOnly, userId: propUserId, schoolLevel }: LessonActivityTabsProps) {
+  const { t } = useTranslation();
   const [activeSection, setActiveSection] = useState<ActivitySection>(null);
   const [activeStep, setActiveStep] = useState<StepLevel>("decouvrir");
 
@@ -656,8 +659,8 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
               <PenTool className="h-7 w-7 text-amber" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-base" dir="rtl">تمارين</h3>
-              <p className="text-sm text-muted-foreground" dir="rtl">{dbExercises.length} تمارين{!readOnly && " + ذكاء اصطناعي"}</p>
+              <h3 className="font-bold text-base">{t("exercisePlayer.exercisesTitle")}</h3>
+              <p className="text-sm text-muted-foreground">{t("cours.exercisesCount", { count: dbExercises.length })}{!readOnly && t("lessonActivity.aiSuffix")}</p>
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
           </CardContent>
@@ -669,8 +672,8 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
               <Brain className="h-7 w-7 text-primary" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-base" dir="rtl">اسئله متعدده الاختيارات</h3>
-              <p className="text-sm text-muted-foreground" dir="rtl">{dbQuizzes.length} أسئلة{!readOnly && " + ذكاء اصطناعي"}</p>
+              <h3 className="font-bold text-base">{t("cours.quizLabel")}</h3>
+              <p className="text-sm text-muted-foreground">{t("cours.quizCount", { count: dbQuizzes.length })}{!readOnly && t("lessonActivity.aiSuffix")}</p>
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
           </CardContent>
@@ -685,10 +688,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   return (
     <div className="mt-6 space-y-4">
       <div className="flex items-center gap-3">
-        {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}>← العودة</Button>}
+        {!hiddenBackButton && <Button variant="outline" size="sm" onClick={() => handleSectionChange(null)}><ArrowLeft className="h-4 w-4 mr-1 rtl:rotate-180" />{t("lessonActivity.back")}</Button>}
         <div className="flex items-center gap-2">
           <SectionIcon className={cn("h-5 w-5", isQuiz ? "text-primary" : "text-amber")} />
-          <h2 className="text-lg font-bold" dir="rtl">{isQuiz ? "اسئله متعدده الاختيارات" : "تمارين"}</h2>
+          <h2 className="text-lg font-bold">{isQuiz ? t("cours.quizLabel") : t("exercisePlayer.exercisesTitle")}</h2>
         </div>
       </div>
 
@@ -749,26 +752,24 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             <CardTitle className="flex flex-wrap items-center justify-between text-blue-600 gap-2">
               <div className="flex items-center gap-2">
                 <Eye className="h-5 w-5" />
-                <span dir="rtl">{isQuiz ? "اسئله متعدده الاختيارات تشخيصية" : "تمارين تمهيدية"}</span>
+                <span>{isQuiz ? t("lessonActivity.discoverQuizTitle") : t("lessonActivity.discoverExerciseTitle")}</span>
               </div>
               <div className="flex-1 flex justify-center gap-2">
                 {(completedExerciseIds.length > 0 || completedQuizIds.length > 0) && (
                   <Button size="sm" variant={showCorrectOnly ? "default" : "outline"}
                     onClick={(e) => { e.stopPropagation(); setShowCorrectOnly(!showCorrectOnly); }}
                     className={cn("gap-2 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105",
-                      showCorrectOnly ? "bg-green-600 hover:bg-green-700 text-white" : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100")}
-                    dir="rtl">
+                      showCorrectOnly ? "bg-green-600 hover:bg-green-700 text-white" : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100")}>
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    <span>{showCorrectOnly ? "العودة للتمارين" : "إجابات صحيحة"}</span>
+                    <span>{showCorrectOnly ? t("lessonActivity.backToExercises") : t("lessonActivity.correctAnswers")}</span>
                   </Button>
                 )}
                 {showReloadBtn && !showCorrectOnly && (
                   <Button size="sm" variant="outline"
                     onClick={(e) => { e.stopPropagation(); handleReloadContent(); }}
-                    className="gap-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-950/30 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105"
-                    dir="rtl">
+                    className="gap-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-950/30 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105">
                     <Dices className="h-3.5 w-3.5" />
-                    <span>مجموعة جديدة</span>
+                    <span>{t("lessonActivity.newSet")}</span>
                   </Button>
                 )}
               </div>
@@ -776,7 +777,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 {showCorrectOnly
                   ? (isQuiz ? completedQuizIds.length : completedExerciseIds.length)
                   : (isQuiz ? discoverQuizzes.length : discoverExercises.length)
-                } {isQuiz ? "أسئلة" : "تمارين"}
+                } {isQuiz ? t("lessonActivity.questionsShort") : t("lessonActivity.exercisesShort")}
               </Badge>
             </CardTitle>
           </CardHeader>
@@ -786,22 +787,22 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 {isQuiz ? (
                   completedQuizIds.length > 0
                     ? dbQuizzes.filter(q => completedQuizIds.includes(q.id)).map((q, idx) => <CompletedQuizCard key={`completed-qz-${q.id}`} question={q} index={idx} />)
-                    : <EmptyState text="لا توجد إجابات صحيحة بعد" />
+                    : <EmptyState text={t("lessonActivity.noCorrectAnswersYet")} />
                 ) : (
                   completedExerciseIds.length > 0
                     ? dbExercises.filter(e => completedExerciseIds.includes(e.id)).map((ex, idx) => <CompletedExerciseCard key={`completed-ex-${ex.id}`} exercise={ex} index={idx} />)
-                    : <EmptyState text="لا توجد تمارين صحيحة بعد" />
+                    : <EmptyState text={t("lessonActivity.noCorrectExercisesYet")} />
                 )}
               </div>
             ) : (
               isQuiz ? (
                 discoverQuizzes.length > 0
                   ? <div className="space-y-3" key={resetKey}>{discoverQuizzes.map((q, idx) => <TrackedQuizCard key={`${q.id}-${resetKey}`} question={q} index={idx} readOnly={readOnly} onAnswer={(payload) => handleDiscoverAnswer(payload, "quiz", q.id)} />)}</div>
-                  : <EmptyState text={completedQuizIds.length > 0 ? "أكملت جميع اسئله متعدده الاختيارات المتاحة!" : "لا توجد اسئله متعدده الاختيارات تشخيصية بعد"} />
+                  : <EmptyState text={completedQuizIds.length > 0 ? t("lessonActivity.allQuizzesCompleted") : t("lessonActivity.noDiscoverQuizzesYet")} />
               ) : (
                 discoverExercises.length > 0
                   ? <div className="space-y-3" key={resetKey}>{discoverExercises.map((ex, idx) => <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx} readOnly={readOnly} onAnswer={(payload) => handleDiscoverAnswer(payload, "exercise", ex.id)} />)}</div>
-                  : <EmptyState text={completedExerciseIds.length > 0 ? "أكملت جميع التمارين المتاحة!" : "لا توجد تمارين تمهيدية بعد"} />
+                  : <EmptyState text={completedExerciseIds.length > 0 ? t("lessonActivity.allExercisesCompleted") : t("lessonActivity.noDiscoverExercisesYet")} />
               )
             )}
           </CardContent>
@@ -815,26 +816,24 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             <CardTitle className="flex flex-wrap items-center justify-between text-yellow-600 gap-2">
               <div className="flex items-center gap-2">
                 <Lightbulb className="h-5 w-5" />
-                <span dir="rtl">{isQuiz ? "اسئله متعدده الاختيارات تطبيقية" : "تمارين تطبيقية"}</span>
+                <span>{isQuiz ? t("lessonActivity.understandQuizTitle") : t("lessonActivity.understandExerciseTitle")}</span>
               </div>
               <div className="flex-1 flex justify-center gap-2">
                 {(completedExerciseIds.length > 0 || completedQuizIds.length > 0) && (
                   <Button size="sm" variant={showCorrectOnly ? "default" : "outline"}
                     onClick={(e) => { e.stopPropagation(); setShowCorrectOnly(!showCorrectOnly); }}
                     className={cn("gap-2 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105",
-                      showCorrectOnly ? "bg-green-600 hover:bg-green-700 text-white" : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100")}
-                    dir="rtl">
+                      showCorrectOnly ? "bg-green-600 hover:bg-green-700 text-white" : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100")}>
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    <span>{showCorrectOnly ? "العودة للتمارين" : "إجابات صحيحة"}</span>
+                    <span>{showCorrectOnly ? t("lessonActivity.backToExercises") : t("lessonActivity.correctAnswers")}</span>
                   </Button>
                 )}
                 {!showCorrectOnly && (
                   <Button size="sm" variant="outline"
                     onClick={(e) => { e.stopPropagation(); handleReloadContent(); }}
-                    className="gap-2 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100 dark:bg-yellow-950/30 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-900/40 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105"
-                    dir="rtl">
+                    className="gap-2 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100 dark:bg-yellow-950/30 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-900/40 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105">
                     <Dices className="h-3.5 w-3.5" />
-                    <span>مجموعة جديدة</span>
+                    <span>{t("lessonActivity.newSet")}</span>
                   </Button>
                 )}
               </div>
@@ -842,7 +841,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 {showCorrectOnly
                   ? (isQuiz ? completedQuizIds.length : completedExerciseIds.length)
                   : (isQuiz ? subsetUnderstandQz.length : subsetUnderstandEx.length)
-                } {isQuiz ? "أسئلة" : "تمارين"}
+                } {isQuiz ? t("lessonActivity.questionsShort") : t("lessonActivity.exercisesShort")}
               </Badge>
             </CardTitle>
           </CardHeader>
@@ -852,22 +851,22 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 {isQuiz ? (
                   completedQuizIds.length > 0
                     ? dbQuizzes.filter(q => completedQuizIds.includes(q.id)).map((q, idx) => <CompletedQuizCard key={`completed-qz-und-${q.id}`} question={q} index={idx} />)
-                    : <EmptyState text="لا توجد إجابات صحيحة بعد" />
+                    : <EmptyState text={t("lessonActivity.noCorrectAnswersYet")} />
                 ) : (
                   completedExerciseIds.length > 0
                     ? dbExercises.filter(e => completedExerciseIds.includes(e.id)).map((ex, idx) => <CompletedExerciseCard key={`completed-ex-und-${ex.id}`} exercise={ex} index={idx} />)
-                    : <EmptyState text="لا توجد تمارين صحيحة بعد" />
+                    : <EmptyState text={t("lessonActivity.noCorrectExercisesYet")} />
                 )}
               </div>
             ) : (
               isQuiz ? (
                 subsetUnderstandQz.length > 0
                   ? <div className="space-y-3">{subsetUnderstandQz.map((q, idx) => <TrackedQuizCard key={`${q.id}-${resetKey}`} question={q} index={idx + halfQuiz} readOnly={readOnly} onAnswer={(payload) => handleUnderstandAnswer(payload, "quiz", q.id)} />)}</div>
-                  : <EmptyState text={completedQuizIds.length > 0 ? "أكملت جميع اسئله متعدده الاختيارات المتاحة!" : "لا توجد اسئله متعدده الاختيارات تطبيقية بعد"} />
+                  : <EmptyState text={completedQuizIds.length > 0 ? t("lessonActivity.allQuizzesCompleted") : t("lessonActivity.noUnderstandQuizzesYet")} />
               ) : (
                 subsetUnderstandEx.length > 0
                   ? <div className="space-y-3">{subsetUnderstandEx.map((ex, idx) => <TrackedExerciseCard key={`${ex.id}-${resetKey}`} exercise={ex} index={idx + halfExercise} readOnly={readOnly} onAnswer={(payload) => handleUnderstandAnswer(payload, "exercise", ex.id)} />)}</div>
-                  : <EmptyState text={completedExerciseIds.length > 0 ? "أكملت جميع التمارين المتاحة!" : "لا توجد تمارين تطبيقية بعد"} />
+                  : <EmptyState text={completedExerciseIds.length > 0 ? t("lessonActivity.allExercisesCompleted") : t("lessonActivity.noUnderstandExercisesYet")} />
               )
             )}
           </CardContent>
@@ -881,7 +880,12 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
             <CardTitle className="flex items-center justify-between text-purple-600">
               <div className="flex items-center gap-2">
                 <Rocket className="h-5 w-5" />
-                <span dir="rtl">{isQuiz ? "اسئله متعدده الاختيارات ذكية" : "تمارين ذكية"} - إنشاء بالذكاء الاصطناعي</span>
+                <span>{isQuiz ? t("lessonActivity.smartQuizTitle") : t("lessonActivity.smartExerciseTitle")}{t("lessonActivity.aiGeneratedSuffix")}</span>
+                {((isQuiz && adaptiveContent.quizzes.length > 0) || (!isQuiz && adaptiveContent.exercises.length > 0)) && (
+                  <span className="text-xs font-normal text-muted-foreground">
+                    ({(isQuiz ? adaptiveContent.quizzes.length : adaptiveContent.exercises.length)})
+                  </span>
+                )}
               </div>
               {((isQuiz && adaptiveContent.quizzes.length > 0) || (!isQuiz && adaptiveContent.exercises.length > 0)) && (
                 <Button size="sm" variant="outline"
@@ -893,7 +897,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                   }}
                   disabled={isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise}>
                   <RefreshCw className={cn("h-4 w-4 mr-2", (isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise) && "animate-spin")} />
-                  تجديد
+                  {t("lessonActivity.renew")}
                 </Button>
               )}
             </CardTitle>
@@ -906,16 +910,16 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                 <div className="bg-purple-50 dark:bg-purple-900/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                   <Sparkles className="h-8 w-8 text-purple-600 dark:text-purple-400" />
                 </div>
-                <h3 className="text-lg font-bold mb-2">Générer avec l'IA</h3>
-                <p className="text-muted-foreground mb-6 max-w-sm mx-auto" dir="rtl">
-                  {isQuiz ? "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء اسئله متعدده الاختيارات متقدمة تناسب مستواك" : "اضغط على الزر أدناه ليقوم الذكاء الاصطناعي بإنشاء تمارين متقدمة تناسب مستواك"}
+                <h3 className="text-lg font-bold mb-2">{t("lessonActivity.generateWithAI")}</h3>
+                <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+                  {isQuiz ? t("lessonActivity.generateQuizDesc") : t("lessonActivity.generateExerciseDesc")}
                 </p>
                 <Button size="lg"
                   onClick={() => adaptiveContent.generateContent(isQuiz ? "quiz" : "exercise")}
                   disabled={isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise}
                   className="bg-purple-600 hover:bg-purple-700 text-white font-bold gap-2 transition-all hover:scale-105 shadow-md shadow-purple-500/20">
                   <Sparkles className="h-4 w-4 text-yellow-300" />
-                  {(isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise) ? "جاري الإنشاء..." : "Générer avec l'IA"}
+                  {(isQuiz ? adaptiveContent.loading.quiz : adaptiveContent.loading.exercise) ? t("lessonActivity.generating") : t("lessonActivity.generateWithAI")}
                 </Button>
               </div>
             ) : isQuiz ? (
@@ -957,7 +961,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                         })}
                       </div>
                       {aiQuizResults[idx] !== true && (
-                        <div className="mt-3 flex justify-end" dir="rtl">
+                        <div className="mt-3 flex justify-end">
                           <Button size="sm" disabled={!aiQuizSelected[idx] || aiQuizLocked[idx]}
                             onClick={() => {
                               const opt = aiQuizSelected[idx];
@@ -978,22 +982,22 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                               }
                               adaptiveContent.recordAnswer(isCorrect, 0, "quiz", q.question, isCorrect ? undefined : { user_answer: opt, correct_answer: q.correct_answer }, q.difficulty);
                             }}>
-                            تأكيد
+                            {t("quizPlayer.confirm")}
                           </Button>
                         </div>
                       )}
                       {aiQuizLocked[idx] && (
-                        <div className="mt-3 p-3 rounded border border-red-300 dark:border-red-700 bg-red-500/10 text-red-700 dark:text-red-300 flex items-center gap-2 text-sm font-medium" dir="rtl">
+                        <div className="mt-3 p-3 rounded border border-red-300 dark:border-red-700 bg-red-500/10 text-red-700 dark:text-red-300 flex items-center gap-2 text-sm font-medium">
                           <XCircle className="h-4 w-4" />
-                          <span>إجابة غير صحيحة. ستتمكن من إعادة المحاولة بعد لحظات…</span>
+                          <span>{t("exercisePlayer.wrongAnswerLocked")}</span>
                         </div>
                       )}
                       {aiQuizResults[idx] === true && q.explanation && (
-                        <div className="mt-4 bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700" dir="rtl">
+                        <div className="mt-4 bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700">
                           <p className="font-semibold text-sm mb-2 text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                            <BookOpen className="h-4 w-4" /> الشرح:
+                            <BookOpen className="h-4 w-4" /> {t("lessonActivity.explanationLabel")}
                           </p>
-                          <HtmlWithMath htmlContent={q.explanation} className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" />
+                          <HtmlWithMath htmlContent={q.explanation} className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" dir="rtl" />
                         </div>
                       )}
                     </CardContent>
@@ -1019,23 +1023,23 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                         <Button variant="ghost" size="sm" onClick={() => setAiShowHints(prev => ({ ...prev, [idx]: !prev[idx] }))} className="text-yellow-600">
                           <Lightbulb className="h-4 w-4 mr-1" />
                           {aiShowHints[idx] ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                          تلميحات
+                          {t("lessonActivity.hintsPlural")}
                         </Button>
                       )}
                       {aiShowHints[idx] && ex.hints?.map((hint: string, hIdx: number) => (
-                        <div key={hIdx} className="text-xs text-muted-foreground bg-yellow-500/5 p-2 rounded flex gap-1" dir="rtl">
+                        <div key={hIdx} className="text-xs text-muted-foreground bg-yellow-500/5 p-2 rounded flex gap-1">
                           <span>💡</span>
-                          <HtmlWithMath htmlContent={cleanMathStatement(hint)} className="flex-1" />
+                          <HtmlWithMath htmlContent={cleanMathStatement(hint)} className="flex-1" dir="rtl" />
                         </div>
                       ))}
                       {aiExerciseResults[idx] !== true && (
-                        <div className="flex gap-2 items-center" dir="rtl">
+                        <div className="flex gap-2 items-center">
                           <input id={`ai-exo-input-${idx}`}
                             className={cn("flex-1 border rounded-lg px-3 py-2 text-sm bg-background transition-colors", aiExerciseLocked[idx] && "border-red-500 ring-2 ring-red-500/40 bg-red-500/5")}
-                            placeholder={aiExerciseLocked[idx] ? "إجابة خاطئة، حاول مجدداً..." : "أدخل إجابتك..."}
+                            placeholder={aiExerciseLocked[idx] ? t("exercisePlayer.placeholderWrong") : t("exercisePlayer.placeholderAnswer")}
                             value={aiExerciseAnswers[idx] || ""}
                             disabled={aiExerciseLocked[idx]}
-                            onChange={(e) => setAiExerciseAnswers(prev => ({ ...prev, [idx]: e.target.value }))} dir="rtl" />
+                            onChange={(e) => setAiExerciseAnswers(prev => ({ ...prev, [idx]: e.target.value }))} />
                           <Button size="sm" disabled={aiExerciseLocked[idx] || !aiExerciseAnswers[idx]?.trim()} onClick={() => {
                             const userAnswer = aiExerciseAnswers[idx]?.trim();
                             if (!userAnswer || aiExerciseLocked[idx]) return;
@@ -1053,7 +1057,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                               }, 3000);
                             }
                             adaptiveContent.recordAnswer(isCorrect, 0, "exercise", `${ex.title || ''} — ${ex.statement || ''}`.trim(), isCorrect ? undefined : { user_answer: userAnswer, correct_answer: ex.expected_answer }, ex.difficulty);
-                          }}>تحقق</Button>
+                          }}>{t("exercisePlayer.check")}</Button>
                           {!aiExerciseLocked[idx] && (
                             <MathKeyboard onInsert={(sym) => {
                               const el = document.getElementById(`ai-exo-input-${idx}`) as HTMLInputElement | null;
@@ -1072,31 +1076,32 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
                         </div>
                       )}
                       {aiExerciseLocked[idx] && (
-                        <div className="p-2 rounded text-sm bg-red-500/10 text-red-700 flex items-center gap-2" dir="rtl">
+                        <div className="p-2 rounded text-sm bg-red-500/10 text-red-700 flex items-center gap-2">
                           <XCircle className="h-4 w-4" />
-                          <span>إجابة غير صحيحة. ستتمكن من إعادة المحاولة بعد لحظات…</span>
+                          <span>{t("exercisePlayer.wrongAnswerLocked")}</span>
                         </div>
                       )}
                       {aiExerciseResults[idx] === true && (
-                        <div className="p-2 rounded text-sm bg-green-500/10 text-green-700 flex items-center gap-2" dir="rtl">
+                        <div className="p-2 rounded text-sm bg-green-500/10 text-green-700 flex items-center gap-2">
                           <CheckCircle2 className="h-4 w-4" />
-                          <span>✅ إجابة صحيحة!</span>
+                          <span>{t("lessonActivity.correctAnswerChecked")}</span>
                         </div>
                       )}
                       {ex.solution && (
                         <details className="text-sm group">
                           <summary className="cursor-pointer flex items-center gap-2 text-primary hover:text-primary/80 font-semibold py-2 px-3 bg-primary/5 hover:bg-primary/10 rounded-lg border border-primary/20 transition-colors">
                             <BookOpen className="h-4 w-4" />
-                            <span>📖 عرض الحل المفصل</span>
+                            <span>{t("exercisePlayer.showSolution")}</span>
                           </summary>
-                          <div className="mt-3 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-lg border border-blue-200 dark:border-blue-800 shadow-sm" dir="rtl">
+                          <div className="mt-3 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-lg border border-blue-200 dark:border-blue-800 shadow-sm">
                             <div className="flex items-center gap-2 mb-3 pb-2 border-b border-blue-200 dark:border-blue-800">
                               <Sparkles className="h-4 w-4 text-blue-600" />
-                              <h5 className="font-bold text-blue-900 dark:text-blue-100">الحل خطوة بخطوة</h5>
+                              <h5 className="font-bold text-blue-900 dark:text-blue-100">{t("lessonActivity.stepByStepSolution")}</h5>
                             </div>
                             <HtmlWithMath
                               htmlContent={cleanMathStatement(ex.solution)}
                               className="prose prose-sm dark:prose-invert max-w-none text-right leading-relaxed text-gray-800 dark:text-gray-200 [&_p]:mb-2 [&_ol]:list-decimal [&_ul]:list-disc [&_li]:mb-1"
+                              dir="rtl"
                             />
                           </div>
                         </details>
@@ -1121,9 +1126,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 // --- Sub-components ---
 
 const DifficultyIndicator = ({ level }: { level?: number }) => {
+  const { t } = useTranslation();
   if (!level) return null;
   return (
-    <div className="flex gap-0.5 items-center mr-2 bg-yellow-50/50 px-1.5 py-0.5 rounded-full border border-yellow-100/50" title={`الصعوبة: ${level}/5`}>
+    <div className="flex gap-0.5 items-center mr-2 bg-yellow-50/50 px-1.5 py-0.5 rounded-full border border-yellow-100/50" title={t("quizPlayer.difficultyTitle", { level })}>
       {Array.from({ length: 5 }).map((_, i) => (
         <Pencil key={i} className={cn("w-3 h-3 transition-colors", i < level ? "text-yellow-500 fill-yellow-500" : "text-gray-200")} />
       ))}
@@ -1132,6 +1138,7 @@ const DifficultyIndicator = ({ level }: { level?: number }) => {
 };
 
 function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; index: number }) {
+  const { t } = useTranslation();
   const [showAnswer, setShowAnswer] = useState(false);
   const [correctAnswer, setCorrectAnswer] = useState<string | null>(question.correct_answer || null);
   const [explanation, setExplanation] = useState<string | null>(question.explanation || null);
@@ -1165,24 +1172,24 @@ function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; inde
         </div>
         <div className="flex items-center gap-2 justify-end">
           <CheckCircle2 className="h-4 w-4 text-green-500" />
-          <span className="text-sm text-green-600 font-medium">إجابة صحيحة</span>
+          <span className="text-sm text-green-600 font-medium">{t("lessonActivity.correctAnswerLabelSimple")}</span>
         </div>
         <Button variant="ghost" size="sm" onClick={handleToggle} disabled={loading}>
-          {loading ? "جاري التحميل..." : showAnswer ? "إخفاء الحل" : "عرض الحل"}
+          {loading ? t("app.loading") : showAnswer ? t("lessonActivity.hideSolutionSimple") : t("lessonActivity.showSolutionSimple")}
         </Button>
         {showAnswer && (
-          <div className="mt-4 space-y-3" dir="rtl">
+          <div className="mt-4 space-y-3">
             <div className="p-3 rounded border border-green-200 dark:border-green-700 text-sm bg-green-500/10 text-green-800 dark:text-green-300 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" />
-              <span className="font-medium">الإجابة الصحيحة: </span>
-              {correctAnswer ? <HtmlWithMath htmlContent={correctAnswer} /> : "—"}
+              <span className="font-medium">{t("lessonActivity.theCorrectAnswerLabel")} </span>
+              {correctAnswer ? <HtmlWithMath htmlContent={correctAnswer} dir="rtl" /> : "—"}
             </div>
             {explanation && (
               <div className="bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
                 <p className="font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
-                  <BookOpen className="h-4 w-4" /> الشرح:
+                  <BookOpen className="h-4 w-4" /> {t("lessonActivity.explanationLabel")}
                 </p>
-                <HtmlWithMath htmlContent={explanation} />
+                <HtmlWithMath htmlContent={explanation} dir="rtl" />
               </div>
             )}
           </div>
@@ -1193,6 +1200,7 @@ function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; inde
 }
 
 function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; index: number }) {
+  const { t } = useTranslation();
   const [showSolution, setShowSolution] = useState(false);
   const [expectedAnswer, setExpectedAnswer] = useState<string | null>(exercise.expected_answer || null);
   const [solution, setSolution] = useState<string | null>(exercise.solution || null);
@@ -1225,14 +1233,14 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
 
         <div className="flex items-center gap-2 justify-end">
           <CheckCircle2 className="h-4 w-4 text-green-500" />
-          <span className="text-sm text-green-600 font-medium">إجابة صحيحة</span>
+          <span className="text-sm text-green-600 font-medium">{t("lessonActivity.correctAnswerLabelSimple")}</span>
         </div>
         <Button variant="ghost" size="sm" onClick={handleToggle} disabled={loading}>
-          {loading ? "جاري التحميل..." : showSolution ? "إخفاء الحل" : "عرض الحل"}
+          {loading ? t("app.loading") : showSolution ? t("lessonActivity.hideSolutionSimple") : t("lessonActivity.showSolutionSimple")}
         </Button>
         {showSolution && (
-          <div className="space-y-2" dir="rtl">
-            <div className="p-3 bg-muted/50 rounded-lg text-sm"><span className="font-medium">الإجابة: </span>{expectedAnswer || "—"}</div>
+          <div className="space-y-2">
+            <div className="p-3 bg-muted/50 rounded-lg text-sm"><span className="font-medium">{t("exercisePlayer.theAnswerLabel")} </span><span dir="rtl">{expectedAnswer || "—"}</span></div>
             {solution && <MarkdownSolution content={solution} compact />}
           </div>
         )}
@@ -1242,6 +1250,8 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
 }
 
 function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DBQuizQuestion; index: number; readOnly?: boolean; onAnswer: (answer: AnswerPayload) => void }) {
+  const { t, i18n } = useTranslation();
+  const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
   const [selected, setSelected] = useState<string | null>(null);
   const [solved, setSolved] = useState(false);
   const [locked, setLocked] = useState(false);
@@ -1250,6 +1260,18 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
   const [showHint, setShowHint] = useState(false);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // La question, ses options, son indice et son explication n'existent qu'en
+  // arabe en base : traduits à la volée pour l'affichage en français, jamais
+  // écrits en base (même pattern que ChapterMathQuiz.tsx).
+  const { translated: tQuiz } = useTranslatedContent(
+    [question.question, question.hint || "", explanation, ...question.options],
+    lang
+  );
+  const tQuestion = tQuiz[0] || question.question;
+  const tHint = tQuiz[1] || question.hint || "";
+  const tExplanation = tQuiz[2] || explanation;
+  const tOptions = tQuiz.slice(3, 3 + question.options.length);
 
   useEffect(() => () => {
     if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
@@ -1312,9 +1334,9 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
     <Card className={cn("transition-all", solved && "border-green-500/50 bg-green-500/5", locked && "border-red-500/50 bg-red-500/5")}>
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-3">
-          <div className="font-medium flex-1 flex gap-2 items-start" dir="rtl">
+          <div className="font-medium flex-1 flex gap-2 items-start" dir="auto">
             <span className="shrink-0">{index + 1}.</span>
-            <HtmlWithMath htmlContent={question.question} className="flex-1 text-right" />
+            <HtmlWithMath htmlContent={tQuestion} className="flex-1 text-right" />
           </div>
           <div className="flex flex-col items-end gap-2">
             <DifficultyIndicator level={question.difficulty} />
@@ -1327,19 +1349,19 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
                 className="gap-2 h-7 text-xs border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950 font-semibold"
               >
                 <Lightbulb className="h-3 w-3" />
-                {showHint ? "إخفاء المساعدة" : "💡 مساعدة"}
+                {showHint ? t("quizPlayer.hideHint") : t("quizPlayer.showHint")}
               </Button>
             )}
           </div>
         </div>
 
         {showHint && !solved && question.hint && (
-          <div className="mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700 text-sm" dir="rtl">
+          <div className="mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700 text-sm">
             <div className="flex items-start gap-2">
               <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
               <div className="flex-1 text-amber-900 dark:text-amber-200">
-                <span className="font-semibold block mb-1">تلميح:</span>
-                <HtmlWithMath htmlContent={question.hint} className="text-right" />
+                <span className="font-semibold block mb-1">{t("lessonActivity.hintLabel")}</span>
+                <HtmlWithMath htmlContent={tHint} className="text-right" dir="auto" />
               </div>
             </div>
           </div>
@@ -1347,6 +1369,9 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {question.options.map((opt, oIdx) => {
+            // La sélection/soumission se fait toujours sur le texte ORIGINAL
+            // (arabe, tel qu'en base) : check_quiz_answer compare contre la
+            // valeur brute. Seul l'affichage utilise le texte traduit.
             const isSelected = selected === opt;
             let variant: "default" | "destructive" | "secondary" | "outline" = "outline";
             if (solved && isSelected) variant = "default";
@@ -1358,39 +1383,39 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
                 className={cn("justify-start text-right", !solved && !locked && isSelected && "ring-2 ring-primary")}
                 onClick={() => handleSelect(opt)}
                 disabled={readOnly || solved || locked || submitting}
-                dir="rtl"><HtmlWithMath htmlContent={opt} /></Button>
+                dir="auto"><HtmlWithMath htmlContent={tOptions[oIdx] || opt} /></Button>
             );
           })}
         </div>
 
         {!solved && (
-          <div className="mt-3 flex justify-end" dir="rtl">
+          <div className="mt-3 flex justify-end">
             <Button size="sm" onClick={handleValidate} disabled={readOnly || locked || submitting || !selected}>
-              {submitting ? "..." : "تأكيد"}
+              {submitting ? "..." : t("quizPlayer.confirm")}
             </Button>
           </div>
         )}
 
         {locked && (
-          <div className="mt-3 p-3 rounded border border-red-300 dark:border-red-700 bg-red-500/10 text-red-700 dark:text-red-300 flex items-center gap-2 text-sm font-medium" dir="rtl">
+          <div className="mt-3 p-3 rounded border border-red-300 dark:border-red-700 bg-red-500/10 text-red-700 dark:text-red-300 flex items-center gap-2 text-sm font-medium">
             <XCircle className="h-4 w-4" />
-            <span>إجابة غير صحيحة. ستتمكن من إعادة المحاولة بعد لحظات…</span>
+            <span>{t("exercisePlayer.wrongAnswerLocked")}</span>
           </div>
         )}
 
         {solved && (
-          <div className="mt-3 p-3 rounded border border-green-300 dark:border-green-700 bg-green-500/10 text-green-800 dark:text-green-300 flex items-center gap-2 text-sm font-semibold" dir="rtl">
+          <div className="mt-3 p-3 rounded border border-green-300 dark:border-green-700 bg-green-500/10 text-green-800 dark:text-green-300 flex items-center gap-2 text-sm font-semibold">
             <CheckCircle2 className="h-4 w-4" />
-            <span>✅ إجابة صحيحة! أحسنت 🎉</span>
+            <span>{t("lessonActivity.correctAnswerCheckedCheer")}</span>
           </div>
         )}
 
         {solved && explanation && (
-          <div className="mt-4 bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700" dir="rtl">
+          <div className="mt-4 bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700">
             <p className="font-semibold text-sm mb-2 text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <BookOpen className="h-4 w-4" /> الشرح:
+              <BookOpen className="h-4 w-4" /> {t("lessonActivity.explanationLabel")}
             </p>
-            <HtmlWithMath htmlContent={explanation} className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" />
+            <HtmlWithMath htmlContent={tExplanation} className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" dir="auto" />
           </div>
         )}
       </CardContent>
@@ -1399,6 +1424,8 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
 }
 
 function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise: DBExercise; index: number; readOnly?: boolean; onAnswer: (answer: AnswerPayload) => void }) {
+  const { t, i18n } = useTranslation();
+  const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
   const [open, setOpen] = useState(false);
   const [answer, setAnswer] = useState("");
   const [revealed, setRevealed] = useState(false);
@@ -1408,6 +1435,19 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
   const [submitting, setSubmitting] = useState(false);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Titre, énoncé, indice et solution n'existent qu'en arabe en base :
+  // traduits à la volée pour l'affichage en français (même pattern que
+  // ChapterMathExercises.tsx). La réponse de l'utilisateur et la comparaison
+  // serveur (check_exercise_answer) restent sur le texte brut.
+  const { translated: tExercise } = useTranslatedContent(
+    [exercise.title, exercise.statement, exercise.hint || "", solution || exercise.solution || ""],
+    lang
+  );
+  const tTitle = tExercise[0] || exercise.title;
+  const tStatement = tExercise[1] || exercise.statement;
+  const tHint = tExercise[2] || exercise.hint || "";
+  const tSolution = tExercise[3] || solution || exercise.solution || "";
 
   useEffect(() => () => {
     if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
@@ -1479,43 +1519,42 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
       <Card className="cursor-pointer hover:border-primary/40 hover:shadow-md transition-all" onClick={() => setOpen(true)}>
         <CardContent className="p-4">
           <div className="flex justify-between items-start gap-3">
-            <h4 className="font-semibold flex-1 text-right" dir="rtl">{index + 1}. {exercise.title}</h4>
+            <h4 className="font-semibold flex-1 text-right" dir="auto">{index + 1}. {tTitle}</h4>
             <DifficultyIndicator level={exercise.difficulty} />
           </div>
-          <p className="text-xs text-muted-foreground mt-2 text-right" dir="rtl">اضغط لفتح التمرين</p>
+          <p className="text-xs text-muted-foreground mt-2 text-right">{t("lessonActivity.clickToOpenExercise")}</p>
         </CardContent>
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-right">{index + 1}. {exercise.title}</DialogTitle>
+            <DialogTitle className="text-right" dir="auto">{index + 1}. {tTitle}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             {(() => {
-              const cleaned = cleanMathStatement(exercise.statement);
+              const cleaned = cleanMathStatement(tStatement);
               return statementHasMath(cleaned) ? (
-                <HtmlWithMath htmlContent={cleaned} className="text-sm border-t pt-2 text-right" dir="rtl" />
+                <HtmlWithMath htmlContent={cleaned} className="text-sm border-t pt-2 text-right" dir="auto" />
               ) : (
-                <p className="text-sm border-t pt-2 text-right" dir="rtl">{cleaned}</p>
+                <p className="text-sm border-t pt-2 text-right" dir="auto">{cleaned}</p>
               );
             })()}
             {exercise.hint && (
-              <HintBlock hint={exercise.hint} />
+              <HintBlock hint={tHint} />
             )}
             {!readOnly && !solved && (
-              <div className="flex gap-2 items-center" dir="rtl">
+              <div className="flex gap-2 items-center">
                 <input
                   id={`exo-input-${exercise.id}`}
                   className={cn("flex-1 border rounded-lg px-3 py-2 text-sm bg-background transition-colors", locked && "border-red-500 ring-2 ring-red-500/40 bg-red-500/5")}
-                  placeholder={locked ? "إجابة خاطئة، حاول مجدداً..." : "أدخل إجابتك..."}
+                  placeholder={locked ? t("exercisePlayer.placeholderWrong") : t("exercisePlayer.placeholderAnswer")}
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
                   disabled={locked || submitting}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !locked && !submitting && answer.trim()) handleSubmit(); }}
-                  dir="rtl"
                 />
-                <Button size="sm" onClick={handleSubmit} disabled={locked || submitting || !answer.trim()}>{submitting ? "..." : "تحقق"}</Button>
+                <Button size="sm" onClick={handleSubmit} disabled={locked || submitting || !answer.trim()}>{submitting ? "..." : t("exercisePlayer.check")}</Button>
                 {!locked && (
                   <MathKeyboard
                     onInsert={(sym) => {
@@ -1539,20 +1578,20 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
               </div>
             )}
             {locked && (
-              <div className="p-3 rounded border border-red-300 dark:border-red-700 bg-red-500/10 text-red-700 dark:text-red-300 flex items-center gap-2 text-sm font-medium" dir="rtl">
+              <div className="p-3 rounded border border-red-300 dark:border-red-700 bg-red-500/10 text-red-700 dark:text-red-300 flex items-center gap-2 text-sm font-medium">
                 <XCircle className="h-4 w-4" />
-                <span>إجابة غير صحيحة. ستتمكن من إعادة المحاولة بعد لحظات…</span>
+                <span>{t("exercisePlayer.wrongAnswerLocked")}</span>
               </div>
             )}
             {solved && (
-              <div className="p-3 rounded border border-green-300 dark:border-green-700 bg-green-500/10 text-green-800 dark:text-green-300 flex items-center gap-2 text-sm font-semibold" dir="rtl">
+              <div className="p-3 rounded border border-green-300 dark:border-green-700 bg-green-500/10 text-green-800 dark:text-green-300 flex items-center gap-2 text-sm font-semibold">
                 <CheckCircle2 className="h-4 w-4" />
-                <span>✅ إجابة صحيحة! أحسنت 🎉</span>
+                <span>{t("lessonActivity.correctAnswerCheckedCheer")}</span>
               </div>
             )}
-            <Button variant="ghost" size="sm" onClick={handleRevealSolution}>{revealed ? "إخفاء الحل" : "📖 عرض الحل المفصل"}</Button>
-            {revealed && (solution || exercise.solution) && (
-              <MarkdownSolution content={(solution || exercise.solution) as string} compact />
+            <Button variant="ghost" size="sm" onClick={handleRevealSolution}>{revealed ? t("lessonActivity.hideSolutionSimple") : t("exercisePlayer.showSolution")}</Button>
+            {revealed && tSolution && (
+              <MarkdownSolution content={tSolution} compact />
             )}
           </div>
         </DialogContent>
@@ -1562,20 +1601,21 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
 }
 
 function HintBlock({ hint }: { hint: string }) {
+  const { t } = useTranslation();
   const [showHint, setShowHint] = useState(false);
   return (
-    <div dir="rtl" className="mt-2 mb-3">
+    <div className="mt-2 mb-3">
       <Button type="button" variant="outline" size="sm"
         onClick={() => setShowHint(v => !v)}
         className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950 mb-2">
         <Lightbulb className="h-4 w-4" />
-        {showHint ? "إخفاء المساعدة" : "مساعدة"}
+        {showHint ? t("quizPlayer.hideHint") : t("lessonActivity.hintButtonSimple")}
       </Button>
       {showHint && (
         <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
           <div className="flex items-start gap-2">
             <Lightbulb className="h-4 w-4 text-amber-500 mt-1 shrink-0" />
-            <HtmlWithMath htmlContent={hint} className="text-sm flex-1" />
+            <HtmlWithMath htmlContent={hint} className="text-sm flex-1" dir="auto" />
           </div>
         </div>
       )}
@@ -1584,5 +1624,5 @@ function HintBlock({ hint }: { hint: string }) {
 }
 
 function EmptyState({ text }: { text: string }) {
-  return <div className="text-center py-8"><p className="text-muted-foreground" dir="rtl">{text}</p></div>;
+  return <div className="text-center py-8"><p className="text-muted-foreground">{text}</p></div>;
 }

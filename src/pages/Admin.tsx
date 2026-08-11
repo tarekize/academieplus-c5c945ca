@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { useAdminUsers, useActivityLogs, AdminUser } from "@/hooks/useAdmin";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,6 +58,7 @@ import { fr } from "date-fns/locale";
 import { getSchoolLevelLabel } from "@/lib/validation";
 import { AddUserDialog } from "@/components/admin/AddUserDialog";
 import { EditUserDialog } from "@/components/admin/EditUserDialog";
+import { describeAction } from "@/lib/activityLogDescriptions";
 
 // Helper to get full name from profile
 const getFullName = (user: AdminUser): string => {
@@ -163,33 +164,13 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen pro-shell">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/60 shadow-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center h-16 gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/dashboard")}
-              className="flex items-center gap-1.5 rounded-xl"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Retour</span>
-            </Button>
-            <div className="w-px h-5 bg-border" />
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[image:var(--gradient-primary)] flex items-center justify-center shadow-sm flex-shrink-0">
-                <Shield className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold leading-tight">Administration</h1>
-                <p className="text-xs text-muted-foreground leading-tight">Tableau de bord administrateur</p>
-              </div>
-            </div>
-            <LanguageToggle className="ms-auto" />
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        title="Administration"
+        subtitle="Tableau de bord administrateur"
+        titleIcon={Shield}
+        onBack={() => navigate("/dashboard")}
+        showProfileMenu={false}
+      />
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Stats Cards */}
@@ -361,7 +342,7 @@ export default function Admin() {
                         || (log.user ? [log.user.first_name, log.user.last_name].filter(Boolean).join(" ") || log.user.email : null)
                         || "Système";
 
-                      let actionLine: string = log.action;
+                      let actionLine: string = describeAction(log.action, log.details as any);
                       if (log.action === "user_deleted") {
                         const targetEmail = d.target_user_email || d.target_email || d.email;
                         const targetName = d.target_user_name || d.target_name || d.name;
@@ -809,7 +790,7 @@ export default function Admin() {
                         || (log.user ? [log.user.first_name, log.user.last_name].filter(Boolean).join(" ") || log.user.email : null)
                         || "Admin Système";
 
-                      let actionText = log.action;
+                      let actionText = describeAction(log.action, log.details as any);
                       let detailsText: string | null = null;
 
                       if (log.action === "user_deleted") {

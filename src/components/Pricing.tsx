@@ -30,7 +30,7 @@ const Pricing = () => {
 
   const [isFamily, setIsFamily] = useState(false);
   const [plans, setPlans] = useState<PricingPlan[]>(FALLBACK_PLANS);
-  const [periodLabel, setPeriodLabel] = useState("1 année scolaire");
+  const [periodLabel, setPeriodLabel] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -50,6 +50,17 @@ const Pricing = () => {
       }
     };
     fetchConfig();
+
+    // Une modification de tarif par l'admin (AdminAbonnements) ne se
+    // reflétait pas sans recharger la page : ce composant ne chargeait les
+    // prix qu'une fois au montage. Un abonnement realtime garde les cartes
+    // à jour immédiatement pour quiconque a déjà la page ouverte.
+    const channel = supabase
+      .channel("pricing-config-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "subscription_config" }, fetchConfig)
+      .on("postgres_changes", { event: "*", schema: "public", table: "subscription_periods" }, fetchConfig)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const getTotalPrice = (plan: PricingPlan) => {
@@ -60,27 +71,26 @@ const Pricing = () => {
   const monthlyPlan = plans.find(p => p.billing_period === 'monthly');
 
   const features = [
-    "Tous les cours de mathématiques de votre niveau",
-    "Exercices et corrigés",
-    "Vidéos explicatives",
-    "Suivi de progression",
-    "Support prioritaire",
-    "Examens blancs",
+    t("pricing.featureAllCourses"),
+    t("pricing.featureExercises"),
+    t("pricing.featureTracking"),
+    t("pricing.featureSupport"),
+    t("pricing.featureExams"),
   ];
 
   const displayPlans = [
     {
-      name: annualPlan?.name || "Formule Scolaire",
+      name: annualPlan?.name || t("pricing.fallbackAnnualName"),
       price: annualPlan ? `${getTotalPrice(annualPlan).toLocaleString('fr-FR')} DA` : '---',
-      description: `Paiement unique pour ${periodLabel}`,
+      description: t("pricing.annualDescription", { period: periodLabel || t("pricing.fallbackPeriod") }),
       features,
       highlighted: true,
       planData: annualPlan,
     },
     {
-      name: monthlyPlan?.name || "Formule Mensuelle",
+      name: monthlyPlan?.name || t("pricing.fallbackMonthlyName"),
       price: monthlyPlan ? `${getTotalPrice(monthlyPlan).toLocaleString('fr-FR')} DA` : '---',
-      description: "Paiement mensuel",
+      description: t("pricing.monthlyDescription"),
       features,
       highlighted: false,
       planData: monthlyPlan,
@@ -155,7 +165,7 @@ const Pricing = () => {
                   : "bg-secondary text-secondary-foreground border-2 border-border hover:bg-secondary/80"
                   }`}
               >
-                Choisir {plan.name}
+                {t("pricing.choose")} {plan.name}
               </Button>
 
               <div className="text-center mb-6">

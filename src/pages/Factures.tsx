@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, FileText, Receipt, Calendar, CreditCard } from "lucide-react";
+import { ArrowLeft, Download, FileText, Receipt, Calendar, CreditCard, Key, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -17,6 +17,9 @@ import {
   BreadcrumbList,
 } from "@/components/ui/breadcrumb";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 
 interface Profile {
   id: string;
@@ -37,6 +40,28 @@ interface Payment {
   created_at: string;
   children_count: number;
   is_family: boolean;
+  period_start: string;
+  period_end: string;
+  vat_rate: number;
+  amount_ht: number;
+  vat_amount: number;
+  amount_ttc: number;
+}
+
+interface Invoice {
+  id: string;
+  invoice_number: string;
+  payment_id: string;
+  issued_at: string;
+}
+
+interface ActivationCode {
+  id: string;
+  code: string;
+  plan_type: string;
+  status: string;
+  used_at: string | null;
+  created_at: string;
 }
 
 const Factures = () => {
@@ -45,6 +70,9 @@ const Factures = () => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [invoicesByPayment, setInvoicesByPayment] = useState<Record<string, Invoice>>({});
+  const [codes, setCodes] = useState<ActivationCode[]>([]);
+  const [codesDialogOpen, setCodesDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -53,6 +81,8 @@ const Factures = () => {
       setUser(session.user);
       fetchProfile(session.user.id);
       fetchPayments(session.user.id);
+      fetchInvoices(session.user.id);
+      fetchCodes(session.user.id);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -60,6 +90,8 @@ const Factures = () => {
       setUser(session.user);
       fetchProfile(session.user.id);
       fetchPayments(session.user.id);
+      fetchInvoices(session.user.id);
+      fetchCodes(session.user.id);
     });
 
     return () => subscription.unsubscribe();
@@ -88,6 +120,43 @@ const Factures = () => {
       .eq("user_id", userId)
       .order("payment_date", { ascending: false });
     if (data) setPayments(data as Payment[]);
+  };
+
+  // La facture (numéro, date d'émission) vit dans sa propre table, dissociée
+  // du paiement lui-même : un document distinct, créé automatiquement dès
+  // que le paiement passe à "completed" (voir migration dedicated_invoices_table).
+  const fetchInvoices = async (userId: string) => {
+    const { data } = await supabase
+      .from("invoices")
+      .select("id, invoice_number, payment_id, issued_at")
+      .eq("user_id", userId);
+    if (data) {
+      const map: Record<string, Invoice> = {};
+      (data as Invoice[]).forEach((inv) => { map[inv.payment_id] = inv; });
+      setInvoicesByPayment(map);
+    }
+  };
+
+  const fetchCodes = async (userId: string) => {
+    const { data } = await supabase
+      .from("activation_codes")
+      .select("id, code, plan_type, status, used_at, created_at")
+      .eq("created_by", userId)
+      .order("created_at", { ascending: false });
+    if (data) setCodes(data as ActivationCode[]);
+  };
+
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    toast.success("Code copié !", { description: code });
+  };
+
+  const getExpiryDate = (code: ActivationCode) => {
+    const start = code.used_at ? new Date(code.used_at) : new Date(code.created_at);
+    const days = code.plan_type === "annual" ? 360 : 30;
+    const end = new Date(start);
+    end.setDate(end.getDate() + days);
+    return end;
   };
 
   const getFullName = (p: Profile | null): string => {
@@ -129,8 +198,14 @@ const Factures = () => {
   };
 
   const generateInvoiceNumber = (payment: Payment) => {
-    const date = new Date(payment.payment_date);
-    return `FA-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}-${payment.id.slice(0, 6).toUpperCase()}`;
+    // Numéro de facture réel, tiré de la table invoices dédiée — un document
+    // distinct créé automatiquement dès que le paiement passe à "completed"
+    // (cf. migration dedicated_invoices_table). Un paiement encore en
+    // attente n'a pas de vraie facture : référence provisoire, clairement
+    // distincte, en attendant validation.
+    const invoice = invoicesByPayment[payment.id];
+    if (invoice) return invoice.invoice_number;
+    return `PROVISOIRE-${payment.id.slice(0, 8).toUpperCase()}`;
   };
 
   const handleDownloadInvoice = (payment: Payment) => {
@@ -205,15 +280,17 @@ const Factures = () => {
           <div class="info-label">Détails de facturation</div>
           <p style="font-size:12px;margin-top:4px">Type : ${typeLabel}</p>
           <p style="font-size:12px">Formule : ${payment.plan_label}</p>
+          <p style="font-size:12px">Période : ${formatDate(payment.period_start)} — ${formatDate(payment.period_end)}</p>
         </div>
       </div>
       <table><thead><tr><th>DESCRIPTION</th><th>QTÉ</th><th>MONTANT</th></tr></thead>
-      <tbody><tr><td>${payment.plan_label}</td><td>1</td><td>${formatCurrency(payment.amount)}</td></tr></tbody></table>
+      <tbody><tr><td>${payment.plan_label}</td><td>1</td><td>${formatCurrency(payment.amount_ht)}</td></tr></tbody></table>
       <div style="display:flex;justify-content:space-between;align-items:start">
         <div class="status" style="color:${statusColor};background:${statusBg};border-color:${statusColor}">${statusText}</div>
         <div class="totals-box">
-          <div class="total-row"><span>Sous-total</span><span style="color:#0f172a">${formatCurrency(payment.amount)}</span></div>
-          <div class="total-final"><span>TOTAL TTC</span><span>${formatCurrency(payment.amount)}</span></div>
+          <div class="total-row"><span>Montant HT</span><span style="color:#0f172a">${formatCurrency(payment.amount_ht)}</span></div>
+          <div class="total-row"><span>TVA (${payment.vat_rate}%)</span><span style="color:#0f172a">${formatCurrency(payment.vat_amount)}</span></div>
+          <div class="total-final"><span>TOTAL TTC</span><span>${formatCurrency(payment.amount_ttc)}</span></div>
         </div>
       </div>
       <div class="thanks"><h3>Merci pour votre confiance !</h3><p>Pour toute question, contactez-nous à support@academieplus.dz</p></div>
@@ -252,14 +329,22 @@ const Factures = () => {
           </Breadcrumb>
 
           {/* Page Title */}
-          <div className="flex items-center gap-4 mb-8">
-            <div className="h-14 w-14 rounded-2xl bg-[image:var(--gradient-violet)] flex items-center justify-center shadow-md">
-              <Receipt className="h-7 w-7 text-white" />
+          <div className="flex items-center justify-between gap-4 mb-8 flex-wrap">
+            <div className="flex items-center gap-4">
+              <div className="h-14 w-14 rounded-2xl bg-[image:var(--gradient-violet)] flex items-center justify-center shadow-md">
+                <Receipt className="h-7 w-7 text-white" />
+              </div>
+              <div>
+                <h1 className="font-display text-3xl font-extrabold">{t("factures.pageTitle")}</h1>
+                <p className="text-muted-foreground">{t("factures.pageSubtitle")}</p>
+              </div>
             </div>
-            <div>
-              <h1 className="font-display text-3xl font-extrabold">{t("factures.pageTitle")}</h1>
-              <p className="text-muted-foreground">{t("factures.pageSubtitle")}</p>
-            </div>
+            {codes.length > 0 && (
+              <Button variant="outline" className="gap-2" onClick={() => setCodesDialogOpen(true)}>
+                <Key className="h-4 w-4" />
+                Mes codes
+              </Button>
+            )}
           </div>
 
           {/* Summary Cards */}
@@ -322,8 +407,11 @@ const Factures = () => {
                     <TableRow className="bg-muted/20 hover:bg-muted/20">
                       <TableHead className="font-semibold">{t("factures.invoiceNumber")}</TableHead>
                       <TableHead className="font-semibold">{t("factures.date")}</TableHead>
+                      <TableHead className="font-semibold">{t("factures.period")}</TableHead>
                       <TableHead className="font-semibold">{t("factures.plan")}</TableHead>
                       <TableHead className="font-semibold">{t("factures.type")}</TableHead>
+                      <TableHead className="font-semibold text-right">{t("factures.amountHt")}</TableHead>
+                      <TableHead className="font-semibold text-right">{t("factures.vat")}</TableHead>
                       <TableHead className="font-semibold text-right">{t("factures.amount")}</TableHead>
                       <TableHead className="font-semibold text-center">{t("factures.status")}</TableHead>
                       <TableHead className="font-semibold text-center">{t("factures.action")}</TableHead>
@@ -338,6 +426,9 @@ const Factures = () => {
                         <TableCell className="text-muted-foreground">
                           {formatDate(payment.payment_date)}
                         </TableCell>
+                        <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
+                          {formatDate(payment.period_start)} — {formatDate(payment.period_end)}
+                        </TableCell>
                         <TableCell className="font-medium">
                           {payment.plan_label}
                         </TableCell>
@@ -348,8 +439,14 @@ const Factures = () => {
                             <span className="text-sm">{t("factures.individual")}</span>
                           )}
                         </TableCell>
+                        <TableCell className="text-right text-muted-foreground">
+                          {formatCurrency(payment.amount_ht)}
+                        </TableCell>
+                        <TableCell className="text-right text-muted-foreground">
+                          {formatCurrency(payment.vat_amount)}
+                        </TableCell>
                         <TableCell className="text-right font-bold">
-                          {formatCurrency(payment.amount)}
+                          {formatCurrency(payment.amount_ttc)}
                         </TableCell>
                         <TableCell className="text-center">
                           {getStatusBadge(payment.status)}
@@ -389,6 +486,56 @@ const Factures = () => {
           )}
         </div>
       </main>
+
+      <Dialog open={codesDialogOpen} onOpenChange={setCodesDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5 text-primary" />
+              Mes codes d'activation
+            </DialogTitle>
+            <DialogDescription>
+              {codes.filter((c) => c.status === "free").length} code(s) disponible(s) sur {codes.length}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+            {codes.map((code) => {
+              const isUsable = code.status === "free";
+              const expiry = getExpiryDate(code);
+              const isExpired = expiry.getTime() < Date.now();
+              return (
+                <div key={code.id} className="rounded-xl border border-border p-4 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono font-bold tracking-widest text-primary">{code.code}</span>
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant={isUsable ? "default" : "secondary"}
+                        className={isUsable ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20" : ""}
+                      >
+                        {isUsable ? "Disponible" : "Utilisé"}
+                      </Badge>
+                      {isUsable && (
+                        <Button variant="ghost" size="sm" onClick={() => copyCode(code.code)}>
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground space-y-0.5">
+                    <p>
+                      Créé le {formatLocaleDate(code.created_at, { day: "numeric", month: "long", year: "numeric" })}
+                    </p>
+                    <p className={isExpired ? "text-destructive" : ""}>
+                      {isExpired ? "Expiré le " : "Expire le "}
+                      {formatLocaleDate(expiry, { day: "numeric", month: "long", year: "numeric" })}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

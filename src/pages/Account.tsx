@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { UserCircle, BarChart3, ArrowLeft, GraduationCap, Key, Pause, Play, Clock, FileText, Loader2, AlertCircle, Sparkles, ChevronRight, MessageSquareWarning } from "lucide-react";
+import { UserCircle, BarChart3, ArrowLeft, GraduationCap, Key, Clock, FileText, Loader2, AlertCircle, Sparkles, ChevronRight, MessageSquareWarning } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChangePasswordButton } from "@/components/ChangePasswordButton";
@@ -113,32 +113,6 @@ const Account = () => {
     const lastTick = new Date(sub.last_tick_at);
     const elapsedDays = (now.getTime() - lastTick.getTime()) / (1000 * 60 * 60 * 24);
     return Math.max(0, sub.total_days - Number(sub.days_used) - elapsedDays);
-  };
-
-  const handlePause = async () => {
-    if (!subscription || !user) return;
-
-    const { error } = await supabase.rpc("pause_my_subscription" as any);
-    if (error) {
-      toast.error(t("account.errorTitle"), { description: error.message });
-      return;
-    }
-
-    toast.success(t("account.subscriptionPaused"), { description: t("account.subscriptionPausedDesc") });
-    fetchSubscription(user.id);
-  };
-
-  const handleResume = async () => {
-    if (!subscription || !user) return;
-
-    const { error } = await supabase.rpc("resume_my_subscription" as any);
-    if (error) {
-      toast.error(t("account.errorTitle"), { description: error.message });
-      return;
-    }
-
-    toast.success(t("account.subscriptionResumed"), { description: t("account.subscriptionResumedDesc") });
-    fetchSubscription(user.id);
   };
 
   const getFullName = (profile: Profile | null): string => {
@@ -453,19 +427,6 @@ const Account = () => {
                         </div>
                       </div>
 
-                      {subscription.plan_type === "annual" && (
-                        <Button
-                          variant={subscription.is_paused ? "default" : "outline"}
-                          className="w-full rounded-lg h-11 active:scale-[0.98] transition-transform"
-                          onClick={subscription.is_paused ? handleResume : handlePause}
-                        >
-                          {subscription.is_paused ? (
-                            <><Play className="h-4 w-4 mr-2" /> {t("account.resumeSubscription")}</>
-                          ) : (
-                            <><Pause className="h-4 w-4 mr-2" /> {t("account.pauseSubscription")}</>
-                          )}
-                        </Button>
-                      )}
                     </div>
                   ) : (
                     <div className="space-y-4">

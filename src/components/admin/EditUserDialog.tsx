@@ -26,10 +26,11 @@ import { SUBJECTS } from "@/lib/subjects";
 import { AdminUser } from "@/hooks/useAdmin";
 
 const SCHOOL_LEVELS = [
-  { value: "6eme", label: "6ème" },
-  { value: "5eme", label: "5ème" },
-  { value: "4eme", label: "4ème" },
-  { value: "3eme", label: "3ème" },
+  { value: "5eme_primaire", label: "5ème Primaire" },
+  { value: "1ere_cem", label: "1ère CEM" },
+  { value: "2eme_cem", label: "2ème CEM" },
+  { value: "3eme_cem", label: "3ème CEM" },
+  { value: "4eme_cem", label: "4ème CEM" },
   { value: "seconde", label: "Seconde" },
   { value: "premiere", label: "Première" },
   { value: "terminale", label: "Terminale" },

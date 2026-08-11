@@ -9,7 +9,7 @@ import { LessonFormDialog, DeleteLessonButton } from "@/components/course/Pedago
 import { StatusBadge, ReviewActionButtons, SubmitItemButton } from "@/components/course/QuizExerciseCRUD";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Brain, PenTool, BookOpen, ArrowLeft, ChevronLeft } from "lucide-react";
+import { Brain, PenTool, BookOpen, ArrowLeft, ChevronLeft, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,7 @@ import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import { TeacherContentRedDot } from "@/components/TeacherContentRedDot";
 import {
     Sheet,
@@ -40,9 +41,16 @@ import {
 
 export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse, dbQuizzes, dbExercises, fetchQuizExercises, subjectId, progress, handleDownloadPDF, handleChapterChange, chapters, onActivitySelect, userId, schoolLevel, showActivityCards, initialLessonId, onInitialLessonHandled, onBackToChapters, onBackToLessons, readOnly }: any) {
     const navigate = useNavigate();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
     const [selectedLesson, setSelectedLesson] = useState<any>(null);
     const [lessonContent, setLessonContent] = useState<string>("");
+    // Le contenu de leçon n'existe qu'en arabe en base : traduit à la volée
+    // pour l'affichage quand l'interface est en français, jamais écrit en
+    // base. Calculé au niveau du composant (pas dans renderLessonContent,
+    // appelée conditionnellement) pour respecter les règles des hooks.
+    const { translated: translatedLessonContentArr, loading: translatingLessonContent } = useTranslatedContent([lessonContent], lang);
+    const displayLessonContent = translatedLessonContentArr[0] || lessonContent;
     const lessonContentExportRef = useRef<HTMLDivElement>(null);
     const [loadingContent, setLoadingContent] = useState(false);
     const readingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -235,6 +243,38 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
         );
     };
 
+    // En-tête compact pour la vue "à l'intérieur d'une leçon" : le fil
+    // d'Ariane complet prenait trop de place ; une simple croix pour
+    // ressortir vers la liste des leçons, plus le titre courant.
+    const renderLessonCloseHeader = () => {
+        const title = activeSectionLabel
+            ? `${selectedLesson.displayTitle} — ${activeSectionLabel}`
+            : selectedLesson.displayTitle;
+        return (
+            <div className="flex items-center gap-3 mb-6">
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full shrink-0"
+                    onClick={
+                        activeSectionLabel
+                            ? () => {
+                                setActiveSectionLabel(null);
+                                setActiveSection(null);
+                                setActivityResetKey(k => k + 1);
+                            }
+                            : handleBackToList
+                    }
+                    aria-label={t("cours.closeLesson")}
+                >
+                    <X className="h-5 w-5" />
+                </Button>
+                <h2 className="font-display text-base font-bold truncate">{title}</h2>
+            </div>
+        );
+    };
+
     // Liste des leçons
     const renderLessonsList = () => (
         <div className="mt-2 space-y-2">
@@ -352,17 +392,17 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
 
     // Student lesson content view
     const renderLessonContent = () => {
-        const lessonContentNode = /<\s*(html|body|head|!doctype)/i.test(lessonContent) ? (
+        const lessonContentNode = /<\s*(html|body|head|!doctype)/i.test(displayLessonContent) ? (
             <HtmlWithMath
                 className="lesson-markdown html-with-math prose prose-sm dark:prose-invert max-w-none"
-                htmlContent={injectHeaderIds(lessonContent)} />
+                htmlContent={injectHeaderIds(displayLessonContent)} />
         ) : (
-            <LessonMarkdown content={lessonContent} dir="rtl" />
+            <LessonMarkdown content={displayLessonContent} dir={lang === "fr" ? "ltr" : "rtl"} />
         );
 
         return (
             <div>
-                {renderBreadcrumb()}
+                {renderLessonCloseHeader()}
 
                 {/* Activity tabs always on top for students */}
                 {!canManage && selectedLesson && (
@@ -428,7 +468,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                                         </SheetTitle>
                                                     </SheetHeader>
                                                     <div className="mt-4 min-h-0 flex-1 overflow-hidden">
-                                                        <TableOfContents htmlContent={lessonContent} compact className="h-full overflow-y-auto pr-1" />
+                                                        <TableOfContents htmlContent={displayLessonContent} compact className="h-full overflow-y-auto pr-1" />
                                                     </div>
                                                 </div>
                                             </SheetContent>
@@ -460,7 +500,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                                                     </SheetTitle>
                                                 </SheetHeader>
                                                 <div className="mt-4 min-h-0 flex-1 overflow-hidden">
-                                                    <TableOfContents htmlContent={lessonContent} compact className="h-full overflow-y-auto pr-1" />
+                                                    <TableOfContents htmlContent={displayLessonContent} compact className="h-full overflow-y-auto pr-1" />
                                                 </div>
                                             </div>
                                         </SheetContent>
@@ -488,7 +528,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
                             </CardContent>
                         </Card>
                         <div className="hidden lg:block w-full lg:w-72 shrink-0">
-                            <TableOfContents htmlContent={lessonContent} />
+                            <TableOfContents htmlContent={displayLessonContent} />
                         </div>
                     </div>
                 )}
@@ -576,13 +616,16 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
         </div>
     );
 
-    function renderNavigation() {
+    function renderNavigation(position: "top" | "bottom" = "bottom") {
         const currentLessonIndex = selectedLesson
             ? chapter.lessons?.findIndex((l: any) => l.id === selectedLesson.id) ?? -1
             : -1;
         const isFirstLesson = currentLessonIndex === 0;
         const isLastLesson = currentLessonIndex === chapter.lessons?.length - 1;
         const currentChapterIndex = chapters.findIndex((c: any) => c.id === chapter.id);
+        const wrapperClass = position === "top"
+            ? "flex justify-between items-center gap-4 mb-6 pb-6 border-b border-border/50"
+            : "flex justify-between items-center gap-4 mt-8 pt-6 border-t border-border/50";
 
         const scrollToTop = () => {
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -591,7 +634,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
         // When a lesson is selected - lesson-based navigation
         if (selectedLesson && chapter.lessons && chapter.lessons.length > 0) {
             return (
-                <div className="flex justify-between items-center gap-4 mt-8 pt-6 border-t border-border/50">
+                <div className={wrapperClass}>
                     {/* Previous lesson button - only show if not first lesson */}
                     {!isFirstLesson ? (
                         <Button
@@ -642,7 +685,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
 
         // Chapter navigation - when no lesson is selected
         return (
-            <div className="flex justify-between mt-8 pt-6 border-t border-border/50">
+            <div className={wrapperClass}>
                 <Button
                     variant="outline"
                     className="rounded-full gap-2 active:scale-95 transition-transform disabled:opacity-40"
@@ -670,6 +713,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
             // Pédagogue → afficher la liste des leçons (vide) avec le bouton d'ajout
             return (
                 <>
+                    {renderNavigation("top")}
                     {renderLessonsList()}
                     {renderNavigation()}
                 </>
@@ -677,6 +721,7 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
         }
         return (
             <>
+                {renderNavigation("top")}
                 {showActivityCards && renderActivityCards()}
                 {renderNoLesson()}
                 {renderNavigation()}
@@ -688,19 +733,21 @@ export function AdaptiveLessonContent({ chapter, canManage, isAdmin, fetchCourse
         return (
             <>
                 {renderBreadcrumb()}
-                <ChapterRevision chapter={chapter} onBack={() => setShowRevision(false)} />
+                <ChapterRevision chapter={chapter} onBack={() => setShowRevision(false)} canManage={canManage} />
             </>
         );
     }
 
     return (
         <>
+            {/* Pas de navigation leçon/chapitre pendant un exercice, un quiz ou une révision : */}
+            {activeSection === null && renderNavigation("top")}
             {!selectedLesson ? (
                 renderLessonsList()
             ) : (
                 renderLessonContent()
             )}
-            {renderNavigation()}
+            {activeSection === null && renderNavigation()}
         </>
     );
 }

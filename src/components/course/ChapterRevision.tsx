@@ -18,6 +18,7 @@ interface ChapterRevisionProps {
     lessons?: ChapterLesson[];
   };
   onBack: () => void;
+  canManage?: boolean;
 }
 
 interface ChapterLesson {
@@ -34,7 +35,7 @@ interface RevisionRow {
 
 const CHAPTER_REVISION_CONTENT_TYPE = "revision";
 
-export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
+export function ChapterRevision({ chapter, onBack, canManage = false }: ChapterRevisionProps) {
   const { t, i18n } = useTranslation();
   const dir = i18n.language === "ar" ? "rtl" : "ltr";
   const dateLocale = i18n.language === "ar" ? "ar" : "fr";
@@ -57,12 +58,12 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
 
   const loadHistory = async () => {
     if (!chapter?.id) return [];
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return [];
+    // Fiche de révision PARTAGÉE, publiée par le pédagogue : on lit la
+    // ressource du chapitre, pas une copie privée par utilisateur (cf.
+    // migration chapter_revision_shared_pedago_only).
     const { data, error } = await supabase
       .from("ai_generated_content")
       .select("id, content, created_at")
-      .eq("user_id", user.id)
       .eq("chapter_id", chapter.id)
       .eq("content_type", CHAPTER_REVISION_CONTENT_TYPE)
       .is("lesson_id", null)
@@ -182,12 +183,14 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
           {!content && !loading && (
             <div className="text-center py-8 space-y-4">
               <p className="text-muted-foreground">
-                {t("chapterRevision.generatePrompt")}
+                {canManage ? t("chapterRevision.generatePrompt") : t("chapterRevision.notPublishedYet")}
               </p>
-              <Button onClick={generate} variant="hero" size="lg" className="gap-2">
-                <Sparkles className="h-5 w-5" />
-                {t("chapterRevision.generateButton")}
-              </Button>
+              {canManage && (
+                <Button onClick={generate} variant="hero" size="lg" className="gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  {t("chapterRevision.generateButton")}
+                </Button>
+              )}
             </div>
           )}
 
@@ -202,12 +205,14 @@ export function ChapterRevision({ chapter, onBack }: ChapterRevisionProps) {
 
           {content && !loading && (
             <>
-              <div className="flex items-center justify-end gap-2 flex-wrap">
-                <Button onClick={generate} variant="outline" size="sm" className="gap-2">
-                  <RefreshCw className="h-4 w-4" />
-                  {t("chapterRevision.regenerate")}
-                </Button>
-              </div>
+              {canManage && (
+                <div className="flex items-center justify-end gap-2 flex-wrap">
+                  <Button onClick={generate} variant="outline" size="sm" className="gap-2">
+                    <RefreshCw className="h-4 w-4" />
+                    {t("chapterRevision.regenerate")}
+                  </Button>
+                </div>
+              )}
 
               <div className="border rounded-lg p-4 bg-gradient-to-br from-green-500/5 to-transparent">
                 <MarkdownSolution content={content} />

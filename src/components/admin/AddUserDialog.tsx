@@ -19,20 +19,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserPlus, Eye, EyeOff, Loader2 } from "lucide-react";
+import { UserPlus, Eye, EyeOff, Loader2, CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SUBJECTS } from "@/lib/subjects";
+import LocationFields from "@/components/profile/LocationFields";
 
 const SCHOOL_LEVELS = [
-  { value: "6eme", label: "6ème" },
-  { value: "5eme", label: "5ème" },
-  { value: "4eme", label: "4ème" },
-  { value: "3eme", label: "3ème" },
+  { value: "5eme_primaire", label: "5ème Primaire" },
+  { value: "1ere_cem", label: "1ère CEM" },
+  { value: "2eme_cem", label: "2ème CEM" },
+  { value: "3eme_cem", label: "3ème CEM" },
+  { value: "4eme_cem", label: "4ème CEM" },
   { value: "seconde", label: "Seconde" },
   { value: "premiere", label: "Première" },
   { value: "terminale", label: "Terminale" },
 ];
+
+const LEVELS_WITH_FILIERE = ["seconde", "premiere", "terminale"];
+
+const FILIERES_BY_LEVEL: Record<string, { value: string; label: string }[]> = {
+  seconde: [
+    { value: "sciences", label: "Sciences" },
+    { value: "lettres", label: "Lettres" },
+    { value: "gestion", label: "Gestion et Économie" },
+    { value: "math_techniques", label: "Math Techniques" },
+    { value: "mathematiques", label: "Mathématiques" },
+  ],
+  terminale: [
+    { value: "sciences", label: "Sciences Expérimentales" },
+    { value: "lettres", label: "Lettres et Philosophie" },
+    { value: "gestion", label: "Gestion et Économie" },
+    { value: "math_techniques", label: "Math Techniques" },
+    { value: "mathematiques", label: "Mathématiques" },
+  ],
+  premiere: [
+    { value: "tronc_commun_scientifique", label: "Tronc commun scientifique" },
+    { value: "tronc_commun_lettres", label: "Tronc commun lettres" },
+  ],
+};
 
 interface AddUserDialogProps {
   onUserAdded: () => void;
@@ -47,6 +76,13 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
   const [establishmentName, setEstablishmentName] = useState("");
   const [role, setRole] = useState<string>("");
   const [schoolLevel, setSchoolLevel] = useState<string>("");
+  const [filiere, setFiliere] = useState<string>("");
+  const [phone, setPhone] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined);
+  const [wilaya, setWilaya] = useState("");
+  const [ville, setVille] = useState("");
+  const [ecole, setEcole] = useState("");
+  const [subscriptionEndDate, setSubscriptionEndDate] = useState<Date | undefined>(undefined);
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [takenSubjects, setTakenSubjects] = useState<Record<string, string>>({});
   const [loadingSubjects, setLoadingSubjects] = useState(false);
@@ -55,6 +91,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
 
   const isEstablishment = role === "etablissement";
   const isPedago = role === "pedago";
+  const needsFiliere = role === "student" && LEVELS_WITH_FILIERE.includes(schoolLevel);
 
   // Charge quelles matières sont déjà assignées à un autre pédago, pour les
   // désactiver dans la sélection (une matière = un seul pédago).
@@ -127,6 +164,16 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
       return;
     }
 
+    if (needsFiliere && !filiere) {
+      toast.error("Veuillez sélectionner une filière pour cet élève.");
+      return;
+    }
+
+    if (role === "student" && subscriptionEndDate && subscriptionEndDate <= new Date()) {
+      toast.error("La date de fin d'abonnement doit être dans le futur.");
+      return;
+    }
+
     if (isPedago && selectedSubjects.length === 0) {
       toast.error("Veuillez sélectionner au moins une matière enseignée par ce pédago.");
       return;
@@ -150,13 +197,33 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
           lastName: isEstablishment ? "" : lastName,
           role,
           schoolLevel: role === "student" ? schoolLevel : null,
+          filiere: needsFiliere ? filiere : null,
+          phone: !isEstablishment && phone.trim() ? phone.trim() : null,
+          dateOfBirth: !isEstablishment && dateOfBirth ? format(dateOfBirth, "yyyy-MM-dd") : null,
+          wilaya: role === "student" && wilaya ? wilaya : null,
+          ville: role === "student" && ville ? ville : null,
+          ecole: role === "student" && ecole.trim() ? ecole.trim() : null,
+          subscriptionEndDate: role === "student" && subscriptionEndDate ? format(subscriptionEndDate, "yyyy-MM-dd") : null,
           subjects: isPedago ? selectedSubjects : undefined,
         },
       });
 
       if (response.error) {
-        // response.data contains the actual JSON body from the edge function
-        const actualError = (response.data as any)?.error || response.error.message || "Erreur lors de la création";
+        // Sur une réponse non-2xx, le client Supabase ne parse jamais le
+        // corps dans response.data (qui reste null) — le vrai message
+        // d'erreur renvoyé par l'edge function n'est lisible que via
+        // error.context (la Response brute), sans quoi on retombe sur le
+        // message générique "Edge Function returned a non-2xx status code".
+        let actualError = response.error.message || "Erreur lors de la création";
+        try {
+          const context = (response.error as any)?.context;
+          if (context && typeof context.json === "function") {
+            const body = await context.json();
+            if (body?.error) actualError = body.error;
+          }
+        } catch {
+          // Corps non-JSON ou déjà consommé : on garde le message générique.
+        }
         throw new Error(actualError);
       }
 
@@ -183,6 +250,13 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
     setEstablishmentName("");
     setRole("");
     setSchoolLevel("");
+    setFiliere("");
+    setPhone("");
+    setDateOfBirth(undefined);
+    setWilaya("");
+    setVille("");
+    setEcole("");
+    setSubscriptionEndDate(undefined);
     setSelectedSubjects([]);
   };
 
@@ -298,10 +372,61 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
                   </div>
                 </div>
 
+                {!isEstablishment && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Téléphone</Label>
+                      <Input
+                        id="phone"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="Numéro de téléphone"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Date de naissance</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !dateOfBirth && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy") : "Sélectionner"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={dateOfBirth}
+                            onSelect={setDateOfBirth}
+                            disabled={(date) => date > new Date() || date < new Date("1940-01-01")}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                            captionLayout="dropdown-buttons"
+                            fromYear={1940}
+                            toYear={new Date().getFullYear()}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                )}
+
                 {role === "student" && (
                   <div className="space-y-2">
                     <Label htmlFor="schoolLevel">Niveau scolaire *</Label>
-                    <Select value={schoolLevel} onValueChange={setSchoolLevel}>
+                    <Select
+                      value={schoolLevel}
+                      onValueChange={(value) => {
+                        setSchoolLevel(value);
+                        setFiliere("");
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionnez un niveau" />
                       </SelectTrigger>
@@ -313,6 +438,70 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                )}
+
+                {needsFiliere && (
+                  <div className="space-y-2">
+                    <Label htmlFor="filiere">Filière *</Label>
+                    <Select value={filiere} onValueChange={setFiliere}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionnez une filière" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FILIERES_BY_LEVEL[schoolLevel]?.map((f) => (
+                          <SelectItem key={f.value} value={f.value}>
+                            {f.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {role === "student" && (
+                  <LocationFields
+                    wilaya={wilaya}
+                    ville={ville}
+                    ecole={ecole}
+                    onWilayaChange={setWilaya}
+                    onVilleChange={setVille}
+                    onEcoleChange={setEcole}
+                    required={false}
+                  />
+                )}
+
+                {role === "student" && (
+                  <div className="space-y-2">
+                    <Label>Date de fin d'abonnement (optionnel)</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Accorde un accès premium immédiat jusqu'à cette date, sans passer par un paiement.
+                    </p>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !subscriptionEndDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {subscriptionEndDate ? format(subscriptionEndDate, "dd/MM/yyyy") : "Aucune (compte gratuit)"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={subscriptionEndDate}
+                          onSelect={setSubscriptionEndDate}
+                          disabled={(date) => date <= new Date()}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 )}
 

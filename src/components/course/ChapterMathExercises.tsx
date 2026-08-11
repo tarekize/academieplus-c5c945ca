@@ -14,6 +14,8 @@ import { MathKeyboard } from "./MathKeyboard";
 import { cleanMathStatement } from "@/lib/mathStatement";
 import { recordActivityAnswer, recordActivityHesitation } from "@/lib/recordActivityAnswer";
 import type { HintUsage } from "@/lib/levelEngine";
+import { useTranslation } from "react-i18next";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 
 export interface DBExercise {
   id: string;
@@ -28,8 +30,9 @@ export interface DBExercise {
 }
 
 function DifficultyPencils({ level }: { level: number }) {
+  const { t } = useTranslation();
   return (
-    <span className="inline-flex items-center gap-0.5 ml-2" title={`Difficulté ${level}/5`}>
+    <span className="inline-flex items-center gap-0.5 ml-2" title={t("exercisePlayer.difficultyTitle", { level })}>
       {Array.from({ length: 5 }).map((_, i) => (
         <PenTool key={i} className={cn("h-3.5 w-3.5", i < level ? "text-primary fill-primary/20" : "text-muted-foreground/30")} />
       ))}
@@ -47,6 +50,8 @@ interface ChapterMathExercisesProps {
 }
 
 export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClose, canManage, onRefresh }: ChapterMathExercisesProps) => {
+  const { t, i18n } = useTranslation();
+  const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
   const [currentExercise, setCurrentExercise] = useState<number | null>(null);
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [solved, setSolved] = useState<Record<string, boolean>>({});
@@ -76,6 +81,25 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
   useEffect(() => () => { Object.values(lockTimersRef.current).forEach(clearTimeout); }, []);
 
   const exercise = currentExercise !== null ? exercises[currentExercise] : null;
+
+  // Le titre, l'énoncé, l'aide et le corrigé n'existent qu'en arabe en base :
+  // traduits à la volée pour l'affichage en français, jamais écrits en base.
+  const perExerciseInputs = exercises.flatMap((ex) => [ex.title, ex.statement, ex.hint || "", ex.solution || ""]);
+  const { translated: tPerExercise } = useTranslatedContent(perExerciseInputs, lang);
+  const translatedExercise = (index: number) => ({
+    title: tPerExercise[index * 4] || exercises[index]?.title || "",
+    statement: tPerExercise[index * 4 + 1] || exercises[index]?.statement || "",
+    hint: tPerExercise[index * 4 + 2] || exercises[index]?.hint || "",
+    solution: tPerExercise[index * 4 + 3] || exercises[index]?.solution || "",
+  });
+
+  // La solution renvoyée par le serveur au moment de la soumission/correction
+  // (exerciseSolutions, différente du champ ex.solution pré-chargé) est
+  // traduite séparément, sur les entrées effectivement chargées.
+  const solutionIds = Object.keys(exerciseSolutions);
+  const { translated: tSolutions } = useTranslatedContent(solutionIds.map((id) => exerciseSolutions[id]), lang);
+  const translatedSolutionById: Record<string, string> = {};
+  solutionIds.forEach((id, i) => { translatedSolutionById[id] = tSolutions[i] || exerciseSolutions[id]; });
 
   const currentExerciseContentId = useMemo(() => {
     if (currentExercise === null) return "";
@@ -222,16 +246,18 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
     const isLocked = locked[exercise.id];
     const correctionVisible = showCorrection[exercise.id];
     const solution = exerciseSolutions[exercise.id];
+    const tCurrent = translatedExercise(currentExercise);
+    const displaySolution = translatedSolutionById[exercise.id] || solution;
 
     return (
       <Card className="max-w-3xl mx-auto">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <Button variant="ghost" size="sm" onClick={() => setCurrentExercise(null)}>
-              <ArrowLeft className="h-4 w-4 mr-2" />العودة للقائمة
+              <ArrowLeft className="h-4 w-4 mr-2 rtl:rotate-180" />{t("exercisePlayer.backToList")}
             </Button>
             <span className="text-sm px-2 py-1 rounded-full bg-primary/10 text-primary">
-              تمرين {currentExercise + 1}/{exercises.length}
+              {t("exercisePlayer.exerciseCounter", { current: currentExercise + 1, total: exercises.length })}
             </span>
           </div>
           <CardTitle className="text-xl mt-4 flex items-center justify-between">
@@ -239,7 +265,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
               <div className="w-10 h-10 rounded-full bg-amber/10 flex items-center justify-center">
                 <PenTool className="h-5 w-5 text-amber" />
               </div>
-              <span dir="rtl">{exercise.title}</span>
+              <span dir="auto">{tCurrent.title}</span>
               {exercise.difficulty && <DifficultyPencils level={exercise.difficulty} />}
             </div>
             <div className="flex items-center gap-2">
@@ -257,13 +283,13 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="p-4 bg-muted/50 rounded-lg" dir="rtl">
-            <h4 className="font-semibold mb-3 flex items-center gap-2"><BookOpen className="h-4 w-4" />التمرين</h4>
-            <HtmlWithMath htmlContent={cleanMathStatement(exercise.statement)} className="text-sm border-t pt-2 block text-right" dir="rtl" />
+          <div className="p-4 bg-muted/50 rounded-lg">
+            <h4 className="font-semibold mb-3 flex items-center gap-2"><BookOpen className="h-4 w-4" />{t("exercisePlayer.statementLabel")}</h4>
+            <HtmlWithMath htmlContent={cleanMathStatement(tCurrent.statement)} className="text-sm border-t pt-2 block text-end" dir="auto" />
           </div>
 
           {exercise.hint && (
-            <div dir="rtl" className="space-y-2">
+            <div className="space-y-2">
               <Button
                 type="button"
                 variant="outline"
@@ -271,15 +297,15 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
                 onClick={() => handleToggleHint(exercise)}
                 className="gap-2 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950 font-semibold">
                 <Lightbulb className="h-4 w-4" />
-                {showHint[exercise.id] ? "إخفاء المساعدة" : "💡 مساعدة"}
+                {showHint[exercise.id] ? t("exercisePlayer.hideHint") : t("exercisePlayer.showHint")}
               </Button>
               {showHint[exercise.id] && (
                 <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-300 dark:border-amber-700">
                   <div className="flex items-start gap-3">
                     <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                     <div className="flex-1 text-sm text-amber-900 dark:text-amber-200">
-                      <p className="font-semibold mb-2">نصيحة مفيدة:</p>
-                      <HtmlWithMath htmlContent={exercise.hint} className="max-w-none text-right leading-relaxed" />
+                      <p className="font-semibold mb-2">{t("exercisePlayer.helpfulTip")}</p>
+                      <HtmlWithMath htmlContent={tCurrent.hint} className="max-w-none text-end leading-relaxed" dir="auto" />
                     </div>
                   </div>
                 </div>
@@ -287,10 +313,10 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
             </div>
           )}
 
-          <div className="space-y-4" dir="rtl">
+          <div className="space-y-4">
             {!isSolved && (
               <div className="flex gap-3 items-center">
-                <Input id={`chap-exo-input-${exercise.id}`} placeholder={isLocked ? "إجابة خاطئة، حاول مجدداً..." : "أدخل إجابتك..."} value={userAnswers[exercise.id] || ""}
+                <Input id={`chap-exo-input-${exercise.id}`} placeholder={isLocked ? t("exercisePlayer.placeholderWrong") : t("exercisePlayer.placeholderAnswer")} value={userAnswers[exercise.id] || ""}
                   onChange={(e) => handleAnswerChange(exercise.id, e.target.value)}
                   disabled={isLocked || isSubmitting}
                   className={cn("flex-1", isLocked && "border-red-500 ring-2 ring-red-500/40 bg-red-500/5")}
@@ -298,7 +324,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
                 />
                 <Button onClick={() => handleSubmit(exercise)} disabled={isLocked || isSubmitting || !userAnswers[exercise.id]?.trim()} className="gap-2">
                   {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  تأكيد
+                  {t("exercisePlayer.confirm")}
                 </Button>
                 {!isLocked && (
                   <MathKeyboard onInsert={(sym) => {
@@ -321,14 +347,14 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
             {isLocked && (
               <div className="p-4 rounded-lg flex items-center gap-3 bg-red-500/10 border border-red-500/30">
                 <XCircle className="h-5 w-5 text-red-500 shrink-0" />
-                <p className="text-sm text-red-700 dark:text-red-300">إجابة غير صحيحة. ستتمكن من إعادة المحاولة بعد لحظات…</p>
+                <p className="text-sm text-red-700 dark:text-red-300">{t("exercisePlayer.wrongAnswerLocked")}</p>
               </div>
             )}
 
             {isSolved && (
               <div className="p-4 rounded-lg flex items-center gap-3 bg-green-500/10 border border-green-500/30">
                 <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
-                <p className="font-medium text-green-700 dark:text-green-300">إجابة صحيحة! 🎉</p>
+                <p className="font-medium text-green-700 dark:text-green-300">{t("exercisePlayer.correctAnswerCelebration")}</p>
               </div>
             )}
           </div>
@@ -338,16 +364,16 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
             onClick={() => toggleCorrection(exercise)}
             className="w-full gap-2 font-semibold">
             <Eye className="h-4 w-4" />
-            {correctionVisible ? "إخفاء الحل المفصل" : "📖 عرض الحل المفصل"}
+            {correctionVisible ? t("exercisePlayer.hideSolution") : t("exercisePlayer.showSolution")}
           </Button>
 
           {correctionVisible && solution && (
-            <MarkdownSolution content={solution} />
+            <MarkdownSolution content={displaySolution} />
           )}
 
           <div className="flex gap-3">
-            {currentExercise > 0 && <Button variant="outline" onClick={() => setCurrentExercise(currentExercise - 1)} className="flex-1">التمرين السابق</Button>}
-            {currentExercise < exercises.length - 1 && <Button onClick={() => setCurrentExercise(currentExercise + 1)} className="flex-1">التمرين التالي</Button>}
+            {currentExercise > 0 && <Button variant="outline" onClick={() => setCurrentExercise(currentExercise - 1)} className="flex-1">{t("exercisePlayer.previousExercise")}</Button>}
+            {currentExercise < exercises.length - 1 && <Button onClick={() => setCurrentExercise(currentExercise + 1)} className="flex-1">{t("exercisePlayer.nextExercise")}</Button>}
           </div>
         </CardContent>
       </Card>
@@ -364,30 +390,31 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
             <div className="w-10 h-10 rounded-full bg-amber flex items-center justify-center">
               <PenTool className="h-5 w-5 text-white" />
             </div>
-            <span dir="rtl">تمارين</span>
+            <span>{t("exercisePlayer.exercisesTitle")}</span>
           </CardTitle>
           <div className="flex gap-2">
             {canManage && onRefresh && <ExerciseFormDialog chapterId={chapterId} onSaved={onRefresh} />}
             {exercises.length > 0 && (
-              <ExportPDFButton targetRef={exportRef} title={`${chapterTitle} — تمارين`} label="تصدير PDF" />
+              <ExportPDFButton targetRef={exportRef} title={`${chapterTitle} — ${t("exercisePlayer.exercisesTitle")}`} label={t("cours.exportPdf")} />
             )}
-            <Button variant="outline" onClick={onClose}>العودة للدرس</Button>
+            <Button variant="outline" onClick={onClose}>{t("exercisePlayer.backToLesson")}</Button>
           </div>
         </div>
-        <p className="text-muted-foreground mt-2" dir="rtl">{chapterTitle} — {completedCount}/{exercises.length} ناجح</p>
+        <p className="text-muted-foreground mt-2">{t("exercisePlayer.progressSummary", { chapterTitle, completed: completedCount, total: exercises.length })}</p>
       </CardHeader>
       <CardContent>
         {exercises.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8" dir="rtl">لا توجد تمارين متاحة لهذا الفصل.</p>
+          <p className="text-center text-muted-foreground py-8">{t("exercisePlayer.noExercisesAvailable")}</p>
         ) : (
           <div className="grid gap-3">
             {exercises.map((ex, index) => {
               const isSolved = solved[ex.id];
               const exerciseId = `exercise-${chapterId}-${index}`;
               const timeForExercise = exerciseTimes[exerciseId] || 0;
+              const tEx = translatedExercise(index);
               return (
                 <button key={ex.id} onClick={() => setCurrentExercise(index)} className={cn(
-                  "w-full p-4 rounded-lg border text-right transition-all hover:shadow-md flex items-center justify-between gap-4",
+                  "w-full p-4 rounded-lg border text-end transition-all hover:shadow-md flex items-center justify-between gap-4",
                   isSolved ? "bg-green-500/5 border-green-500/30" : "hover:bg-accent"
                 )}>
                   <div className="flex items-center gap-4">
@@ -396,9 +423,9 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
                     )}>
                       {isSolved ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
                     </div>
-                    <div dir="rtl">
-                      <h4 className="font-medium flex items-center">{ex.title}{ex.difficulty && <DifficultyPencils level={ex.difficulty} />}</h4>
-                      <span className="text-sm text-muted-foreground line-clamp-1">{ex.statement.substring(0, 60)}...</span>
+                    <div dir="auto">
+                      <h4 className="font-medium flex items-center">{tEx.title}{ex.difficulty && <DifficultyPencils level={ex.difficulty} />}</h4>
+                      <span className="text-sm text-muted-foreground line-clamp-1">{tEx.statement.substring(0, 60)}...</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -407,7 +434,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
                         <Clock className="h-3 w-3" />{formatTime(timeForExercise)}
                       </div>
                     )}
-                    <span className="text-primary">←</span>
+                    <ArrowLeft className="h-4 w-4 text-primary rtl:rotate-180" />
                   </div>
                 </button>
               );
@@ -419,19 +446,22 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
       {/* Rendu hors-écran de tous les exercices (énoncé + solution rendus
           exactement comme à l'écran, LaTeX inclus) : sert uniquement de
           source à la capture html2canvas de l'export PDF, jamais visible. */}
-      <div ref={exportRef} style={{ position: "fixed", left: "-9999px", top: 0, width: 780 }} aria-hidden className="bg-white p-8" dir="rtl">
-        <h1 className="text-2xl font-bold text-center border-b pb-4 mb-6">{chapterTitle} — تمارين</h1>
-        {exercises.map((ex, i) => (
-          <div key={ex.id} className={i > 0 ? "mt-6 pt-6 border-t" : ""}>
-            <h3 className="font-bold mb-2">{i + 1}. {ex.title}</h3>
-            <HtmlWithMath htmlContent={cleanMathStatement(ex.statement)} className="text-sm text-right" dir="rtl" />
-            {ex.solution && (
-              <div className="mt-3">
-                <MarkdownSolution content={ex.solution} />
-              </div>
-            )}
-          </div>
-        ))}
+      <div ref={exportRef} style={{ position: "fixed", left: "-9999px", top: 0, width: 780 }} aria-hidden className="bg-white p-8" dir={lang === "fr" ? "ltr" : "rtl"}>
+        <h1 className="text-2xl font-bold text-center border-b pb-4 mb-6">{chapterTitle} — {t("exercisePlayer.exercisesTitle")}</h1>
+        {exercises.map((ex, i) => {
+          const tEx = translatedExercise(i);
+          return (
+            <div key={ex.id} className={i > 0 ? "mt-6 pt-6 border-t" : ""}>
+              <h3 className="font-bold mb-2">{i + 1}. {tEx.title}</h3>
+              <HtmlWithMath htmlContent={cleanMathStatement(tEx.statement)} className="text-sm text-end" dir="auto" />
+              {ex.solution && (
+                <div className="mt-3">
+                  <MarkdownSolution content={tEx.solution} />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </Card>
   );

@@ -1,6 +1,59 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { logTokenUsageAsync, resolveCallerRoleGroup, extractGeminiUsage, type AiUsage } from "../_shared/tokenLogger.ts";
+
+// Inlined from _shared/tokenLogger.ts : le déploiement via l'outil MCP ne
+// résout pas les imports relatifs hors du dossier de la fonction.
+type RoleGroup = "student" | "teacher" | "pedago" | "admin" | "parent" | "other";
+interface AiUsage { inputTokens: number; outputTokens: number; }
+
+function extractGeminiUsage(data: any): AiUsage | null {
+  const usage = data?.usageMetadata;
+  if (!usage) return null;
+  const inputTokens = Number(usage.promptTokenCount ?? 0);
+  const outputTokens = Number(usage.candidatesTokenCount ?? 0);
+  if (!inputTokens && !outputTokens) return null;
+  return { inputTokens, outputTokens };
+}
+
+function logTokenUsageAsync(params: {
+  supabaseUrl: string; serviceRoleKey: string; userId: string | null; roleGroup: RoleGroup;
+  functionName: string; inputTokens?: number; outputTokens?: number; inputText?: string; estimatedOutputTokens?: number;
+}): void {
+  try {
+    const client = createClient(params.supabaseUrl, params.serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const isEstimated = params.inputTokens === undefined || params.outputTokens === undefined;
+    const inputTokens = params.inputTokens ?? Math.max(1, Math.ceil((params.inputText ?? "").length / 4));
+    const outputTokens = params.outputTokens ?? params.estimatedOutputTokens ?? 500;
+    client.from("ai_token_usage").insert({
+      user_id: params.userId, role_group: params.roleGroup, function_name: params.functionName,
+      estimated_input_tokens: inputTokens, estimated_output_tokens: outputTokens, is_estimated: isEstimated,
+    }).then(({ error }: any) => { if (error) console.error(`[tokenLogger] insert failed for ${params.functionName}:`, error.message); });
+  } catch (e) {
+    console.error(`[tokenLogger] unexpected error for ${params.functionName}:`, e);
+  }
+}
+
+async function resolveCallerRoleGroup(supabaseUrl: string, serviceRoleKey: string, authHeader: string | null): Promise<{ userId: string | null; roleGroup: RoleGroup }> {
+  if (!authHeader) return { userId: null, roleGroup: "other" };
+  try {
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const userClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
+    const { data: { user } } = await userClient.auth.getUser();
+    if (!user) return { userId: null, roleGroup: "other" };
+    const adminClient = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data: roleRow } = await adminClient.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+    const role = roleRow?.role;
+    const roleGroup: RoleGroup =
+      role === "student" ? "student" :
+      role === "teacher" ? "teacher" :
+      role === "pedago" ? "pedago" :
+      role === "parent" ? "parent" :
+      role === "admin" ? "admin" : "other";
+    return { userId: user.id, roleGroup };
+  } catch {
+    return { userId: null, roleGroup: "other" };
+  }
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -158,6 +211,22 @@ serve(async (req) => {
     const rateLimitClient = createClient(supabaseUrlAuth, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", {
       auth: { persistSession: false, autoRefreshToken: false },
     });
+
+    // --- La fiche de révision est un contenu PARTAGÉ publié par le
+    // pédagogue (cf. migration chapter_revision_shared_pedago_only) : seuls
+    // admin/pédago peuvent en générer une, sinon chaque élève créerait sa
+    // propre copie privée payante en IA.
+    const { data: callerRoles } = await rateLimitClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", caller.id);
+    const isAllowed = (callerRoles || []).some((r: any) => r.role === "admin" || r.role === "pedago");
+    if (!isAllowed) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Réservé aux pédagogues et administrateurs." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     const { data: rateLimitAllowed, error: rateLimitError } = await rateLimitClient.rpc("check_and_log_rate_limit", {
       p_user_id: caller.id,
       p_action: "generate_chapter_revision",

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { Users, BookOpen, Pencil, Eye, Lightbulb } from "lucide-react";
 import { recordTeacherContentAttempt } from "@/lib/teacherContentAttempt";
 import ExerciseAnswerBlock from "./ExerciseAnswerBlock";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 
 interface TeacherContentRow {
   id: string;
@@ -27,6 +29,8 @@ interface Props {
 }
 
 export function MyClassContent({ userId, contentType }: Props) {
+  const { t, i18n } = useTranslation();
+  const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<TeacherContentRow[]>([]);
   const [directIds, setDirectIds] = useState<Set<string>>(new Set());
@@ -108,113 +112,154 @@ export function MyClassContent({ userId, contentType }: Props) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-emerald-600 font-bold">
             <Users className="h-5 w-5" />
-            <span dir="rtl">{isQuiz ? "اختبارات من معلمي" : "تمارين من معلمي"}</span>
+            <span>{isQuiz ? t("myClassContent.quizTitle") : t("myClassContent.exercisesTitle")}</span>
           </div>
-          <Badge variant="secondary">{items.length} {isQuiz ? "أسئلة" : "تمارين"}</Badge>
+          <Badge variant="secondary">{isQuiz ? t("cours.quizCount", { count: items.length }) : t("cours.exercisesCount", { count: items.length })}</Badge>
         </div>
 
         {items.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground" dir="rtl">
-            {isQuiz ? "لم يرسل معلمك أي أسئلة بعد." : "لم يرسل معلمك أي تمارين بعد."}
+          <div className="text-center py-8 text-muted-foreground">
+            {isQuiz ? t("myClassContent.noQuizYet") : t("myClassContent.noExercisesYet")}
           </div>
         ) : isQuiz ? (
           <div className="space-y-3">
-            {items.map((it) => {
-              const p = it.payload || {};
-              const direct = directIds.has(it.id);
-              const isRevealed = revealed[it.id];
-              return (
-                <Card key={it.id} className={cn(direct && "border-2 border-red-500 bg-red-500/5")}>
-                  <CardContent className="p-4 space-y-3">
-                    {direct && (
-                      <Badge className="bg-red-600 hover:bg-red-600 text-white">⚠️ تمرين خاص بك</Badge>
-                    )}
-                    <div className="flex items-center gap-3" dir="rtl">
-                      <HtmlWithMath htmlContent={cleanMathStatement(p.question || it.title || "")} className="flex-1 font-medium" />
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Pencil key={i} className={cn("h-3.5 w-3.5", i < (it.difficulty || 3) ? "text-amber fill-orange-500/20" : "text-muted-foreground/20")} />
-                        ))}
-                      </div>
-                    </div>
-                    {Array.isArray(p.options) && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {p.options.map((opt: string, oIdx: number) => {
-                          const isSel = selected[it.id] === opt;
-                          const isCorrect = isRevealed && opt === p.correct_answer;
-                          const isWrong = isRevealed && isSel && opt !== p.correct_answer;
-                          return (
-                            <Button key={oIdx}
-                              variant={isCorrect ? "default" : isWrong ? "destructive" : isSel ? "secondary" : "outline"}
-                              className="justify-start text-right"
-                              onClick={() => !isRevealed && setSelected((s) => ({ ...s, [it.id]: opt }))}
-                              dir="rtl">
-                              <HtmlWithMath htmlContent={cleanMathStatement(opt)} className="flex-1 text-right" />
-                            </Button>
-                          );
-                        })}
-                      </div>
-                    )}
-                    {p.hint && showHint[it.id] && (
-                      <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="rtl">💡 {p.hint}</div>
-                    )}
-                    <div className="flex justify-end gap-2" dir="rtl">
-                      {p.hint && !showHint[it.id] && (
-                        <Button size="sm" variant="ghost" onClick={() => handleHint(it.id, it.id)}>
-                          <Lightbulb className="h-4 w-4 mr-1" /> تلميح
-                        </Button>
-                      )}
-                      <Button size="sm" variant="outline" disabled={!selected[it.id]}
-                        onClick={() => handleQuizCheck(it, p)}>
-                        <Eye className="h-4 w-4 mr-1" /> {isRevealed ? "إخفاء" : "تحقق"}
-                      </Button>
-                    </div>
-                    {isRevealed && p.explanation && (
-                      <div className="bg-muted/50 p-3 rounded text-sm" dir="rtl">
-                        <p className="font-semibold flex items-center gap-2 mb-1"><BookOpen className="h-4 w-4" /> الشرح:</p>
-                        <HtmlWithMath htmlContent={cleanMathStatement(p.explanation)} />
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {items.map((it) => (
+              <QuizContentCard
+                key={it.id}
+                it={it}
+                direct={directIds.has(it.id)}
+                isRevealed={!!revealed[it.id]}
+                selectedOption={selected[it.id]}
+                hintShown={!!showHint[it.id]}
+                lang={lang}
+                onSelect={(opt) => setSelected((s) => ({ ...s, [it.id]: opt }))}
+                onHint={() => handleHint(it.id, it.id)}
+                onCheck={() => handleQuizCheck(it, it.payload || {})}
+              />
+            ))}
           </div>
         ) : (
           <div className="space-y-3">
-            {items.map((it) => {
-              const p = it.payload || {};
-              const direct = directIds.has(it.id);
-              return (
-                <Card key={it.id} className={cn(direct && "border-2 border-red-500 bg-red-500/5")}>
-                  <CardContent className="p-4 space-y-3">
-                    {direct && (
-                      <Badge className="bg-red-600 hover:bg-red-600 text-white">⚠️ تمرين خاص بك</Badge>
-                    )}
-                    <div className="flex items-center gap-3" dir="rtl">
-                      <HtmlWithMath htmlContent={cleanMathStatement(p.title || it.title || "")} className="flex-1 font-semibold" />
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Pencil key={i} className={cn("h-3.5 w-3.5", i < (it.difficulty || 3) ? "text-amber fill-orange-500/20" : "text-muted-foreground/20")} />
-                        ))}
-                      </div>
-                    </div>
+            {items.map((it) => (
+              <ExerciseContentCard key={it.id} it={it} direct={directIds.has(it.id)} lang={lang} userId={userId} />
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
-                    <ExerciseAnswerBlock
-                      contentId={it.id}
-                      userId={userId}
-                      statement={p.statement}
-                      expectedAnswer={p.expected_answer}
-                      solution={p.solution}
-                      hint={p.hint}
-                      subQuestions={p.sub_questions}
-                    />
-                  </CardContent>
-                </Card>
+function QuizContentCard({
+  it, direct, isRevealed, selectedOption, hintShown, lang, onSelect, onHint, onCheck,
+}: {
+  it: TeacherContentRow;
+  direct: boolean;
+  isRevealed: boolean;
+  selectedOption: string | undefined;
+  hintShown: boolean;
+  lang: "fr" | "ar";
+  onSelect: (opt: string) => void;
+  onHint: () => void;
+  onCheck: () => void;
+}) {
+  const { t } = useTranslation();
+  const p = it.payload || {};
+  const options: string[] = Array.isArray(p.options) ? p.options : [];
+  const translationInputs = [p.question || it.title || "", p.hint || "", p.explanation || "", ...options];
+  const { translated } = useTranslatedContent(translationInputs, lang);
+  const tQuestion = translated[0] || p.question || it.title || "";
+  const tHint = translated[1] || p.hint || "";
+  const tExplanation = translated[2] || p.explanation || "";
+  const tOptions = translated.slice(3, 3 + options.length);
+
+  return (
+    <Card className={cn(direct && "border-2 border-red-500 bg-red-500/5")}>
+      <CardContent className="p-4 space-y-3">
+        {direct && (
+          <Badge className="bg-red-600 hover:bg-red-600 text-white">{t("myClassContent.assignedToYou")}</Badge>
+        )}
+        <div className="flex items-center gap-3">
+          <HtmlWithMath htmlContent={cleanMathStatement(tQuestion)} className="flex-1 font-medium" dir="auto" />
+          <div className="flex items-center gap-0.5 shrink-0">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Pencil key={i} className={cn("h-3.5 w-3.5", i < (it.difficulty || 3) ? "text-amber fill-orange-500/20" : "text-muted-foreground/20")} />
+            ))}
+          </div>
+        </div>
+        {options.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {options.map((opt, oIdx) => {
+              const isSel = selectedOption === opt;
+              const isCorrect = isRevealed && opt === p.correct_answer;
+              const isWrong = isRevealed && isSel && opt !== p.correct_answer;
+              return (
+                <Button key={oIdx}
+                  variant={isCorrect ? "default" : isWrong ? "destructive" : isSel ? "secondary" : "outline"}
+                  className="justify-start text-end"
+                  onClick={() => !isRevealed && onSelect(opt)}
+                  dir="auto">
+                  <HtmlWithMath htmlContent={cleanMathStatement(tOptions[oIdx] || opt)} className="flex-1 text-end" dir="auto" />
+                </Button>
               );
             })}
           </div>
         )}
+        {p.hint && hintShown && (
+          <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="auto">💡 {tHint}</div>
+        )}
+        <div className="flex justify-end gap-2">
+          {p.hint && !hintShown && (
+            <Button size="sm" variant="ghost" onClick={onHint}>
+              <Lightbulb className="h-4 w-4 mr-1" /> {t("exercisePlayer.hint")}
+            </Button>
+          )}
+          <Button size="sm" variant="outline" disabled={!selectedOption}
+            onClick={onCheck}>
+            <Eye className="h-4 w-4 mr-1" /> {isRevealed ? t("exercisePlayer.hide") : t("exercisePlayer.check")}
+          </Button>
+        </div>
+        {isRevealed && p.explanation && (
+          <div className="bg-muted/50 p-3 rounded text-sm">
+            <p className="font-semibold flex items-center gap-2 mb-1"><BookOpen className="h-4 w-4" /> {t("lessonActivity.explanationLabel")}</p>
+            <HtmlWithMath htmlContent={cleanMathStatement(tExplanation)} dir="auto" />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ExerciseContentCard({ it, direct, lang, userId }: { it: TeacherContentRow; direct: boolean; lang: "fr" | "ar"; userId: string }) {
+  const p = it.payload || {};
+  const { translated } = useTranslatedContent([p.title || it.title || ""], lang);
+  const tTitle = translated[0] || p.title || it.title || "";
+  const { t } = useTranslation();
+
+  return (
+    <Card className={cn(direct && "border-2 border-red-500 bg-red-500/5")}>
+      <CardContent className="p-4 space-y-3">
+        {direct && (
+          <Badge className="bg-red-600 hover:bg-red-600 text-white">{t("myClassContent.assignedToYou")}</Badge>
+        )}
+        <div className="flex items-center gap-3">
+          <HtmlWithMath htmlContent={cleanMathStatement(tTitle)} className="flex-1 font-semibold" dir="auto" />
+          <div className="flex items-center gap-0.5 shrink-0">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Pencil key={i} className={cn("h-3.5 w-3.5", i < (it.difficulty || 3) ? "text-amber fill-orange-500/20" : "text-muted-foreground/20")} />
+            ))}
+          </div>
+        </div>
+
+        <ExerciseAnswerBlock
+          contentId={it.id}
+          userId={userId}
+          statement={p.statement}
+          expectedAnswer={p.expected_answer}
+          solution={p.solution}
+          hint={p.hint}
+          subQuestions={p.sub_questions}
+        />
       </CardContent>
     </Card>
   );

@@ -137,7 +137,19 @@ export function useAdminUsers() {
       });
 
       if (response.error) {
-        throw new Error(response.error.message || "Erreur lors de la suppression");
+        // Sur une réponse non-2xx, response.data reste null : le vrai
+        // message de l'edge function n'est lisible que via error.context.
+        let message = response.error.message || "Erreur lors de la suppression";
+        try {
+          const context = (response.error as any)?.context;
+          if (context && typeof context.json === "function") {
+            const body = await context.json();
+            if (body?.error) message = body.error;
+          }
+        } catch {
+          // Corps non-JSON ou déjà consommé : on garde le message générique.
+        }
+        throw new Error(message);
       }
 
       await supabase.rpc("log_activity", {

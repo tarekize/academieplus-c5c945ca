@@ -13,6 +13,7 @@ import DocumentImportButton from "@/components/DocumentImportButton";
 import { GeneratedItem } from "@/lib/teacherContent";
 import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
 import { TeacherContentRedDot } from "@/components/TeacherContentRedDot";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -82,6 +83,7 @@ interface TeacherExam {
 }
 
 const ExamList = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const niveau = searchParams.get("niveau") || "";
@@ -216,7 +218,7 @@ const ExamList = () => {
       const { data: profs } = await supabase.from("profiles").select("id, first_name, last_name").in("id", teacherIds);
       const map: Record<string, string> = {};
       (profs || []).forEach((p: any) => {
-        map[p.id] = `${p.first_name || ""} ${p.last_name || ""}`.trim() || "Enseignant";
+        map[p.id] = `${p.first_name || ""} ${p.last_name || ""}`.trim() || t("examList.teacherFallback");
       });
       setTeacherNames(map);
     }
@@ -445,8 +447,8 @@ const ExamList = () => {
               onClick={() => navigate(-1)}
               className="mb-4 rounded-full gap-2 active:scale-95 transition-transform"
             >
-              <ArrowLeft className="h-4 w-4" />
-              Retour
+              <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+              {t("app.back")}
             </Button>
             <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-gradient-to-r ${trimesterColors[trimester] || "from-primary to-primary/70"} text-white shadow-md`}>
               <BookOpenCheck className="h-4 w-4" />
@@ -486,7 +488,7 @@ const ExamList = () => {
                 )}
               >
                 <BookOpenCheck className="h-4 w-4" />
-                <span dir="rtl">رسمي</span>
+                <span>{t("examList.official")}</span>
                 <span className="text-xs opacity-60">({exams.length})</span>
               </button>
               <button
@@ -497,12 +499,12 @@ const ExamList = () => {
                 )}
               >
                 <GraduationCap className="h-4 w-4" />
-                <span dir="rtl">من الأستاذ</span>
+                <span>{t("examList.fromTeacher")}</span>
                 <span className="text-xs opacity-60">({teacherExams.length})</span>
               </button>
             </div>
             {source === "teacher" && (
-              <p className="text-xs text-muted-foreground" dir="rtl">امتحانات أرسلها أساتذتك لهذا المستوى (كل الفصول).</p>
+              <p className="text-xs text-muted-foreground">{t("examList.teacherExamsHint")}</p>
             )}
           </div>
         )}
@@ -512,7 +514,7 @@ const ExamList = () => {
           loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent" />
-              <p className="text-sm text-muted-foreground">جاري التحميل...</p>
+              <p className="text-sm text-muted-foreground">{t("app.loading")}</p>
             </div>
           ) : exams.length === 0 ? (
             <motion.div
@@ -523,16 +525,10 @@ const ExamList = () => {
               <div className="w-20 h-20 rounded-2xl bg-secondary flex items-center justify-center mb-5">
                 <Search className="h-9 w-9 text-muted-foreground/50" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-1" dir="rtl">لا توجد اختبارات حالياً</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-1">{t("examList.noExamsYet")}</h3>
               <p className="text-sm text-muted-foreground max-w-sm">
-                {canManage ? "ابدأ بإضافة اختبار جديد لهذا الفصل" : "لم يتم إضافة اختبارات لهذا الفصل بعد"}
+                {t("examList.noExamsYetDesc")}
               </p>
-              {canManage && (
-                <Button onClick={openCreateForm} className="mt-6 gap-2 rounded-xl">
-                  <Plus className="h-4 w-4" />
-                  إضافة اختبار
-                </Button>
-              )}
             </motion.div>
           ) : (
             <div className="grid gap-4">
@@ -563,12 +559,12 @@ const ExamList = () => {
                         <div className="flex items-center gap-3 mt-2">
                           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
                             <Clock className="h-3 w-3" />
-                            {exam.duration_minutes} دقيقة
+                            {t("examList.durationMinutes", { count: exam.duration_minutes })}
                           </span>
                           {Array.isArray(exam.content) && (
                             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
                               <FileText className="h-3 w-3" />
-                              {exam.content.length} تمرين
+                              {t("cours.exercisesCount", { count: exam.content.length })}
                             </span>
                           )}
                         </div>
@@ -624,7 +620,7 @@ const ExamList = () => {
                             size="sm"
                           >
                             <Play className="h-3.5 w-3.5" />
-                            اجتياز
+                            {t("examList.takeExam")}
                           </Button>
                         )}
                       </div>
@@ -637,7 +633,7 @@ const ExamList = () => {
         ) : loadingTeacherExams ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent" />
-            <p className="text-sm text-muted-foreground">جاري التحميل...</p>
+            <p className="text-sm text-muted-foreground">{t("app.loading")}</p>
           </div>
         ) : teacherExams.length === 0 ? (
           <motion.div
@@ -648,9 +644,9 @@ const ExamList = () => {
             <div className="w-20 h-20 rounded-2xl bg-secondary flex items-center justify-center mb-5">
               <GraduationCap className="h-9 w-9 text-muted-foreground/50" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-1" dir="rtl">لا توجد امتحانات من الأستاذ</h3>
-            <p className="text-sm text-muted-foreground max-w-sm" dir="rtl">
-              لم يرسل أي أستاذ امتحاناً لهذا المستوى بعد.
+            <h3 className="text-lg font-semibold text-foreground mb-1">{t("examList.noTeacherExams")}</h3>
+            <p className="text-sm text-muted-foreground max-w-sm">
+              {t("examList.noTeacherExamsDesc")}
             </p>
           </motion.div>
         ) : (
@@ -674,17 +670,17 @@ const ExamList = () => {
                         <GraduationCap className="h-5 w-5 text-white" />
                       </div>
 
-                      <div className="flex-1 min-w-0" dir="rtl">
+                      <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-foreground truncate">
-                          {p.title || exam.title || "امتحان"}
+                          {p.title || exam.title || t("examList.examFallback")}
                         </h3>
                         <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                          {teacherNames[exam.teacher_id] || "أستاذ"}
+                          {teacherNames[exam.teacher_id] || t("examList.teacherFallback")}
                         </p>
                         <div className="flex items-center gap-3 mt-2">
                           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
                             <FileText className="h-3 w-3" />
-                            {exercises.length} تمرين
+                            {t("cours.exercisesCount", { count: exercises.length })}
                           </span>
                         </div>
                       </div>
@@ -697,7 +693,7 @@ const ExamList = () => {
                           size="sm"
                         >
                           <Eye className="h-3.5 w-3.5" />
-                          عرض
+                          {t("examList.view")}
                         </Button>
                       </div>
                     </div>
@@ -885,14 +881,14 @@ const ExamList = () => {
       <Dialog open={!!viewTeacherExam} onOpenChange={(open) => !open && setViewTeacherExam(null)}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
-            <div className="flex items-center gap-3" dir="rtl">
+            <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center">
                 <GraduationCap className="h-5 w-5 text-white" />
               </div>
               <div>
-                <DialogTitle dir="rtl">{viewTeacherExam?.payload?.title || viewTeacherExam?.title || "امتحان"}</DialogTitle>
+                <DialogTitle>{viewTeacherExam?.payload?.title || viewTeacherExam?.title || t("examList.examFallback")}</DialogTitle>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {viewTeacherExam ? (teacherNames[viewTeacherExam.teacher_id] || "أستاذ") : ""}
+                  {viewTeacherExam ? (teacherNames[viewTeacherExam.teacher_id] || t("examList.teacherFallback")) : ""}
                 </p>
               </div>
             </div>
@@ -902,7 +898,7 @@ const ExamList = () => {
               {(Array.isArray(viewTeacherExam.payload?.exercises) ? viewTeacherExam.payload.exercises : []).map(
                 (ex: { statement: string; solution?: string; answer?: string }, idx: number) => (
                   <div key={idx} className={idx > 0 ? "pt-4" : ""} dir="rtl">
-                    <p className="text-xs font-semibold text-muted-foreground mb-2">تمرين {idx + 1}</p>
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">{t("examList.exerciseNumber", { n: idx + 1 })}</p>
                     <ExerciseAnswerBlock
                       contentId={viewTeacherExam.id}
                       userId={authUser.id}
@@ -916,7 +912,7 @@ const ExamList = () => {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={() => setViewTeacherExam(null)}>إغلاق</Button>
+            <Button variant="outline" className="rounded-xl" onClick={() => setViewTeacherExam(null)}>{t("app.close")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

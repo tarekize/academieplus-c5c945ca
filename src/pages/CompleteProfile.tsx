@@ -13,7 +13,7 @@ import { format, parse, isValid } from "date-fns";
 import Header from "@/components/Header";
 import iconStudent from "@/assets/icon-student.png";
 import iconParent from "@/assets/icon-parent.png";
-import { User, CalendarIcon } from "lucide-react";
+import { User, CalendarIcon, GraduationCap } from "lucide-react";
 import LocationFields from "@/components/profile/LocationFields";
 
 const CompleteProfile = () => {
@@ -31,6 +31,7 @@ const CompleteProfile = () => {
   const [ville, setVille] = useState("");
   const [ecole, setEcole] = useState("");
   const [dateOfBirthInput, setDateOfBirthInput] = useState("");
+  const [establishmentCode, setEstablishmentCode] = useState("");
 
   useEffect(() => {
     const checkSession = async () => {
@@ -72,11 +73,32 @@ const CompleteProfile = () => {
       // Pré-remplir le type de profil si le rôle est déjà connu
       if (roleData?.role === 'student') setProfileType('enfant');
       else if (roleData?.role === 'parent') setProfileType('parent');
+      else if (roleData?.role === 'teacher') setProfileType('enseignant');
 
-      // Rediriger uniquement si l'utilisateur a déjà un rôle ET un niveau scolaire
-      if (roleData?.role && profile?.school_level) {
-        if (roleData.role === 'parent') navigate("/parent-dashboard");
-        else navigate("/liste-matieres");
+      // Un rôle déjà assigné signifie que le profil est complet — mais seul le
+      // rôle élève dépend réellement de cette page pour renseigner school_level.
+      // Les comptes créés par un admin (pédago, admin, établissement) n'ont — et
+      // n'auront jamais — de school_level : les bloquer sur `roleData?.role &&
+      // profile?.school_level` les laissait coincés ici avec le seul choix
+      // élève/parent au lieu de les renvoyer vers leur espace.
+      if (roleData?.role === 'admin' || roleData?.role === 'pedago') {
+        navigate("/liste-matieres");
+        return;
+      }
+      if (roleData?.role === 'etablissement') {
+        navigate("/etablissement-dashboard");
+        return;
+      }
+      if (roleData?.role === 'teacher') {
+        navigate("/teacher-dashboard");
+        return;
+      }
+      if (roleData?.role === 'parent') {
+        navigate("/parent-dashboard");
+        return;
+      }
+      if (roleData?.role === 'student' && profile?.school_level) {
+        navigate("/liste-matieres");
         return;
       }
     };
@@ -97,11 +119,35 @@ const CompleteProfile = () => {
       toast.error("Veuillez sélectionner votre filière / tronc commun.");
       return;
     }
+    if (profileType === 'enseignant' && !establishmentCode.trim()) {
+      toast.error("Veuillez renseigner votre code d'établissement.");
+      return;
+    }
     if (!userId) { toast.error("Session expirée."); navigate("/auth"); return; }
 
     setLoading(true);
 
     try {
+      // Valider le code AVANT toute écriture sur profiles/user_roles : un code
+      // invalide ne doit pas laisser un compte enseignant à moitié créé (rôle
+      // assigné mais jamais rattaché à un établissement).
+      let joinedEstablishment: { establishment_id: string; establishment_name: string } | null = null;
+      if (profileType === 'enseignant') {
+        const { data: joinResult, error: joinError } = await supabase
+          .rpc('join_establishment_by_code' as any, { p_code: establishmentCode.trim().toUpperCase() });
+        if (joinError) {
+          toast.error(joinError.message || "Code d'établissement invalide.");
+          setLoading(false);
+          return;
+        }
+        const result = Array.isArray(joinResult) ? joinResult[0] : joinResult;
+        if (!result?.establishment_name) {
+          toast.error("Code d'établissement invalide.");
+          setLoading(false);
+          return;
+        }
+        joinedEstablishment = result;
+      }
       const schoolLevelMapping: Record<string, string> = {
         "5ème Primaire": "5eme_primaire",
         "1ère CEM": "1ere_cem",
@@ -113,7 +159,7 @@ const CompleteProfile = () => {
         "Terminale": "terminale",
       };
 
-      const role = profileType === 'enfant' ? 'student' : 'parent';
+      const role = profileType === 'enfant' ? 'student' : profileType === 'enseignant' ? 'teacher' : 'parent';
 
       const updateData: any = {
         first_name: firstName,
@@ -147,10 +193,25 @@ const CompleteProfile = () => {
 
       if (roleError && !roleError.message.includes('duplicate')) throw roleError;
 
+      // Rattache l'établissement au compte (même mécanisme que "Ajouter un
+      // établissement" côté tableau de bord enseignant — voir EstablishmentManager).
+      if (role === 'teacher' && joinedEstablishment) {
+        const { error: estError } = await supabase
+          .from('establishments' as any)
+          .insert({
+            teacher_id: userId,
+            name: joinedEstablishment.establishment_name,
+            establishment_profile_id: joinedEstablishment.establishment_id,
+          });
+        if (estError) console.error('Erreur liaison établissement:', estError);
+      }
+
       toast.success("Profil complété avec succès !");
 
       if (role === 'parent') {
         navigate("/parent-dashboard");
+      } else if (role === 'teacher') {
+        navigate("/teacher-dashboard");
       } else {
         navigate("/learning-assessment");
       }
@@ -254,9 +315,9 @@ const CompleteProfile = () => {
                 <div className="space-y-2">
                   <Label className="text-foreground">Qui êtes-vous ? <span className="text-red-500">*</span></Label>
                   <RadioGroup value={profileType} onValueChange={setProfileType}>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                       <Label htmlFor="enfant-complete" className={cn(
-                        "flex flex-col items-center justify-center h-32 px-4 rounded-lg border-2 cursor-pointer transition-all",
+                        "flex flex-col items-center justify-center h-32 px-2 rounded-lg border-2 cursor-pointer transition-all",
                         profileType === "enfant" ? "bg-primary text-primary-foreground border-primary shadow-lg" : "bg-secondary/20 border-border hover:bg-secondary/30"
                       )}>
                         <RadioGroupItem value="enfant" id="enfant-complete" className="sr-only" />
@@ -264,16 +325,44 @@ const CompleteProfile = () => {
                         <span className="font-semibold">Élève</span>
                       </Label>
                       <Label htmlFor="parent-complete" className={cn(
-                        "flex flex-col items-center justify-center h-32 px-4 rounded-lg border-2 cursor-pointer transition-all",
+                        "flex flex-col items-center justify-center h-32 px-2 rounded-lg border-2 cursor-pointer transition-all",
                         profileType === "parent" ? "bg-primary text-primary-foreground border-primary shadow-lg" : "bg-secondary/20 border-border hover:bg-secondary/30"
                       )}>
                         <RadioGroupItem value="parent" id="parent-complete" className="sr-only" />
                         <img src={iconParent} alt="Parent" className="h-16 w-16 mb-2 object-contain" />
                         <span className="font-semibold">Parent</span>
                       </Label>
+                      <Label htmlFor="enseignant-complete" className={cn(
+                        "flex flex-col items-center justify-center h-32 px-2 rounded-lg border-2 cursor-pointer transition-all",
+                        profileType === "enseignant" ? "bg-primary text-primary-foreground border-primary shadow-lg" : "bg-secondary/20 border-border hover:bg-secondary/30"
+                      )}>
+                        <RadioGroupItem value="enseignant" id="enseignant-complete" className="sr-only" />
+                        <GraduationCap className="h-16 w-16 mb-2" strokeWidth={1.5} />
+                        <span className="font-semibold">Enseignant</span>
+                      </Label>
                     </div>
                   </RadioGroup>
                 </div>
+
+                {profileType === "enseignant" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="establishmentCode-complete" className="text-foreground">
+                      Code d'établissement <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="establishmentCode-complete"
+                      type="text"
+                      placeholder="Ex: ETB1234"
+                      value={establishmentCode}
+                      onChange={(e) => setEstablishmentCode(e.target.value.toUpperCase())}
+                      className="bg-secondary/20 border-border font-mono tracking-widest uppercase"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Code fourni par ton établissement pour rattacher ton compte enseignant.
+                    </p>
+                  </div>
+                )}
 
                 {profileType === "enfant" && (
                   <>
@@ -341,7 +430,7 @@ const CompleteProfile = () => {
                   onWilayaChange={setWilaya}
                   onVilleChange={setVille}
                   onEcoleChange={setEcole}
-                  hideEcole={profileType === "parent"}
+                  hideEcole={profileType === "parent" || profileType === "enseignant"}
                 />
 
                 <Button type="submit" className="w-full rounded-xl" disabled={loading}>
