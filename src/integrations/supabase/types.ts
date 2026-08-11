@@ -903,6 +903,65 @@ export type Database = {
         }
         Relationships: []
       }
+      establishment_contract_details: {
+        Row: {
+          contract_document_url: string | null
+          contract_duration_months: number | null
+          contract_notes: string | null
+          deputy_contact: string | null
+          deputy_name: string | null
+          director_contact: string | null
+          director_name: string | null
+          establishment_id: string
+          general_email: string | null
+          notice_period_days: number | null
+          student_count: number | null
+          teacher_count: number | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          contract_document_url?: string | null
+          contract_duration_months?: number | null
+          contract_notes?: string | null
+          deputy_contact?: string | null
+          deputy_name?: string | null
+          director_contact?: string | null
+          director_name?: string | null
+          establishment_id: string
+          general_email?: string | null
+          notice_period_days?: number | null
+          student_count?: number | null
+          teacher_count?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          contract_document_url?: string | null
+          contract_duration_months?: number | null
+          contract_notes?: string | null
+          deputy_contact?: string | null
+          deputy_name?: string | null
+          director_contact?: string | null
+          director_name?: string | null
+          establishment_id?: string
+          general_email?: string | null
+          notice_period_days?: number | null
+          student_count?: number | null
+          teacher_count?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "establishment_contract_details_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       establishments: {
         Row: {
           created_at: string
@@ -1835,17 +1894,10 @@ export type Database = {
           consent_data_processing_at: string | null
           consent_parental_at: string | null
           consent_terms_privacy_at: string | null
-          contract_document_url: string | null
-          contract_duration_months: number | null
           contract_end_date: string | null
-          contract_notes: string | null
           contract_start_date: string | null
           created_at: string | null
           date_of_birth: string | null
-          deputy_contact: string | null
-          deputy_name: string | null
-          director_contact: string | null
-          director_name: string | null
           ecole: string | null
           email: string
           email_verified: boolean | null
@@ -1853,19 +1905,14 @@ export type Database = {
           establishment_id: string | null
           filiere: string | null
           first_name: string | null
-          general_email: string | null
           id: string
           is_active: boolean | null
           last_name: string | null
           linking_code: string | null
-          notice_date: string | null
-          notice_period_days: number | null
           phone: string | null
           school_level: Database["public"]["Enums"]["school_level"] | null
-          student_count: number | null
           subject: string | null
           subscription_end_date: string | null
-          teacher_count: number | null
           updated_at: string | null
           ville: string | null
           wilaya: string | null
@@ -1876,17 +1923,10 @@ export type Database = {
           consent_data_processing_at?: string | null
           consent_parental_at?: string | null
           consent_terms_privacy_at?: string | null
-          contract_document_url?: string | null
-          contract_duration_months?: number | null
           contract_end_date?: string | null
-          contract_notes?: string | null
           contract_start_date?: string | null
           created_at?: string | null
           date_of_birth?: string | null
-          deputy_contact?: string | null
-          deputy_name?: string | null
-          director_contact?: string | null
-          director_name?: string | null
           ecole?: string | null
           email: string
           email_verified?: boolean | null
@@ -1894,19 +1934,14 @@ export type Database = {
           establishment_id?: string | null
           filiere?: string | null
           first_name?: string | null
-          general_email?: string | null
           id: string
           is_active?: boolean | null
           last_name?: string | null
           linking_code?: string | null
-          notice_date?: string | null
-          notice_period_days?: number | null
           phone?: string | null
           school_level?: Database["public"]["Enums"]["school_level"] | null
-          student_count?: number | null
           subject?: string | null
           subscription_end_date?: string | null
-          teacher_count?: number | null
           updated_at?: string | null
           ville?: string | null
           wilaya?: string | null
@@ -1917,17 +1952,10 @@ export type Database = {
           consent_data_processing_at?: string | null
           consent_parental_at?: string | null
           consent_terms_privacy_at?: string | null
-          contract_document_url?: string | null
-          contract_duration_months?: number | null
           contract_end_date?: string | null
-          contract_notes?: string | null
           contract_start_date?: string | null
           created_at?: string | null
           date_of_birth?: string | null
-          deputy_contact?: string | null
-          deputy_name?: string | null
-          director_contact?: string | null
-          director_name?: string | null
           ecole?: string | null
           email?: string
           email_verified?: boolean | null
@@ -1935,19 +1963,14 @@ export type Database = {
           establishment_id?: string | null
           filiere?: string | null
           first_name?: string | null
-          general_email?: string | null
           id?: string
           is_active?: boolean | null
           last_name?: string | null
           linking_code?: string | null
-          notice_date?: string | null
-          notice_period_days?: number | null
           phone?: string | null
           school_level?: Database["public"]["Enums"]["school_level"] | null
-          student_count?: number | null
           subject?: string | null
           subscription_end_date?: string | null
-          teacher_count?: number | null
           updated_at?: string | null
           ville?: string | null
           wilaya?: string | null
