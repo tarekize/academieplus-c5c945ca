@@ -39,7 +39,6 @@ interface ContratRow {
   contract_end_date?: string | null;
   establishment_id?: string | null;
   notice_period_days?: number | null;
-  notice_date?: string | null;
   contract_duration_months?: number | null;
   contract_document_url?: string | null;
   contract_notes?: string | null;
@@ -130,13 +129,20 @@ export default function AdminContrats() {
       .from("profiles")
       .select(
         "id, first_name, last_name, email, is_active, contract_start_date, contract_end_date, establishment_id, " +
-        "notice_period_days, notice_date, contract_duration_months, contract_document_url, contract_notes, " +
-        "student_count, teacher_count, director_name, director_contact, deputy_name, deputy_contact, " +
-        "general_email, address, wilaya, ville" as any
+        "address, wilaya, ville" as any
       );
     const { data: rolesData } = await supabase.from("user_roles").select("user_id, role");
+    // Détails de contrat admin-only, table séparée (voir 20260811130000) : ne
+    // fait de sens à charger que pour les lignes "établissement".
+    const { data: contractDetails } = await supabase
+      .from("establishment_contract_details" as any)
+      .select("*");
 
     const rows = (profiles as any as ContratRow[]) || [];
+    const detailsMap = new Map<string, any>();
+    (contractDetails as any[] || []).forEach((d) => detailsMap.set(d.establishment_id, d));
+    rows.forEach((r) => Object.assign(r, detailsMap.get(r.id)));
+
     const roleMap = new Map<string, string[]>();
     (rolesData || []).forEach((r: any) => {
       const list = roleMap.get(r.user_id) || [];
@@ -275,6 +281,17 @@ export default function AdminContrats() {
 
   const getFullName = (r: ContratRow) => [r.first_name, r.last_name].filter(Boolean).join(" ") || "Sans nom";
 
+  // Date de préavis = fin de contrat - délai de préavis. Calculée ici plutôt
+  // qu'en base (colonne GENERATED impossible : les deux entrées vivent
+  // maintenant dans deux tables différentes, profiles et
+  // establishment_contract_details — voir 20260811130000).
+  const getNoticeDate = (r: ContratRow): Date | null => {
+    if (!r.contract_end_date || !r.notice_period_days) return null;
+    const d = new Date(r.contract_end_date);
+    d.setDate(d.getDate() - r.notice_period_days);
+    return d;
+  };
+
   const renderLastReminder = (userId: string) => {
     const date = lastReminderMap[userId];
     if (!date) return <span className="text-xs text-muted-foreground">—</span>;
@@ -320,8 +337,9 @@ export default function AdminContrats() {
     if (etabAccountFilter === "inactive" && row.is_active) return false;
     if (etabWilayaFilter !== "all" && row.wilaya !== etabWilayaFilter) return false;
     if (etabNoticeFilter !== "all") {
-      if (!row.notice_date) return false;
-      const noticeTime = new Date(row.notice_date).getTime();
+      const noticeDate = getNoticeDate(row);
+      if (!noticeDate) return false;
+      const noticeTime = noticeDate.getTime();
       const now = Date.now();
       const in30Days = now + 30 * 24 * 60 * 60 * 1000;
       if (etabNoticeFilter === "upcoming" && !(noticeTime >= now && noticeTime <= in30Days)) return false;
@@ -440,7 +458,7 @@ export default function AdminContrats() {
                               {row.contract_end_date ? format(new Date(row.contract_end_date), "dd MMM yyyy", { locale: fr }) : "—"}
                             </TableCell>
                             <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                              {row.notice_date ? format(new Date(row.notice_date), "dd MMM yyyy", { locale: fr }) : "—"}
+                              {(() => { const nd = getNoticeDate(row); return nd ? format(nd, "dd MMM yyyy", { locale: fr }) : "—"; })()}
                             </TableCell>
                             <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                               {row.student_count ?? "—"} élèves / {row.teacher_count ?? "—"} profs
@@ -756,11 +774,25 @@ function EstablishmentContractDialog({
         finalDocumentPath = path;
       }
 
-      const { error } = await supabase
+      const { error: profileError } = await supabase
         .from("profiles")
         .update({
           contract_start_date: startDate ? format(startDate, "yyyy-MM-dd") : null,
           contract_end_date: endDate ? format(endDate, "yyyy-MM-dd") : null,
+          address: address.trim() || null,
+          wilaya: wilaya || null,
+          ville: ville || null,
+        } as any)
+        .eq("id", establishment.id);
+
+      if (profileError) throw profileError;
+
+      // Table séparée admin-only (voir 20260811130000) : ces champs ne
+      // doivent pas être lisibles par un enseignant lié à l'établissement.
+      const { error: detailsError } = await supabase
+        .from("establishment_contract_details" as any)
+        .upsert({
+          establishment_id: establishment.id,
           notice_period_days: noticePeriodDays ? parseInt(noticePeriodDays, 10) : null,
           contract_duration_months: durationMonths ? parseInt(durationMonths, 10) : null,
           student_count: studentCount ? parseInt(studentCount, 10) : null,
@@ -770,15 +802,12 @@ function EstablishmentContractDialog({
           deputy_name: deputyName.trim() || null,
           deputy_contact: deputyContact.trim() || null,
           general_email: generalEmail.trim() || null,
-          address: address.trim() || null,
-          wilaya: wilaya || null,
-          ville: ville || null,
           contract_notes: notes.trim() || null,
           contract_document_url: finalDocumentPath,
-        } as any)
-        .eq("id", establishment.id);
+          updated_at: new Date().toISOString(),
+        } as any);
 
-      if (error) throw error;
+      if (detailsError) throw detailsError;
       toast.success("Contrat mis à jour");
       onSaved();
     } catch (error: any) {
