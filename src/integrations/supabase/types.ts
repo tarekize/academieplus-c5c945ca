@@ -1674,11 +1674,13 @@ export type Database = {
           id: string
           is_family: boolean
           payment_date: string
+          payment_method: string
           period_end: string
           period_id: string | null
           period_start: string
           plan_label: string
           plan_type: string
+          receipt_url: string | null
           status: string
           user_id: string
           vat_amount: number | null
@@ -1693,11 +1695,13 @@ export type Database = {
           id?: string
           is_family?: boolean
           payment_date?: string
+          payment_method?: string
           period_end: string
           period_id?: string | null
           period_start: string
           plan_label: string
           plan_type: string
+          receipt_url?: string | null
           status?: string
           user_id: string
           vat_amount?: number | null
@@ -1712,11 +1716,13 @@ export type Database = {
           id?: string
           is_family?: boolean
           payment_date?: string
+          payment_method?: string
           period_end?: string
           period_id?: string | null
           period_start?: string
           plan_label?: string
           plan_type?: string
+          receipt_url?: string | null
           status?: string
           user_id?: string
           vat_amount?: number | null

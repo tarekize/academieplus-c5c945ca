@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
 
     // Parse and validate input
     const body = await req.json()
-    const { billing_period, plan_name, is_family } = body
+    const { billing_period, plan_name, is_family, payment_method, receipt_path } = body
 
     if (!billing_period || !plan_name || typeof is_family !== 'boolean') {
       return new Response(JSON.stringify({ error: 'Missing required fields: billing_period, plan_name, is_family' }), {
@@ -42,11 +42,34 @@ Deno.serve(async (req) => {
       })
     }
 
+    const paymentMethod = payment_method === 'bank_transfer' ? 'bank_transfer' : 'card'
+
+    if (paymentMethod === 'bank_transfer') {
+      if (!receipt_path || typeof receipt_path !== 'string' || !receipt_path.startsWith(`${user.id}/`)) {
+        return new Response(JSON.stringify({ error: 'Le reçu de virement est manquant ou invalide.' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+    }
+
     // Use service role to validate against subscription_config and insert
     const serviceClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
+
+    if (paymentMethod === 'bank_transfer') {
+      // Vérifie que le fichier existe réellement dans le bucket (pas juste un
+      // chemin inventé côté client) avant d'enregistrer le paiement.
+      const { error: receiptCheckError } = await serviceClient.storage
+        .from('payment-receipts')
+        .createSignedUrl(receipt_path, 60)
+      if (receiptCheckError) {
+        return new Response(JSON.stringify({ error: 'Le reçu de virement est introuvable. Merci de le joindre à nouveau.' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+    }
 
     // Rate limiting : évite qu'un compte crée un nombre illimité de demandes
     // de paiement en attente.
@@ -111,6 +134,8 @@ Deno.serve(async (req) => {
         children_count: childrenCount,
         period_id: periodId,
         status: 'pending',
+        payment_method: paymentMethod,
+        receipt_url: paymentMethod === 'bank_transfer' ? receipt_path : null,
       })
       .select()
       .single()

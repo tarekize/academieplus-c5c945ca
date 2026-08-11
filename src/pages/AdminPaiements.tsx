@@ -11,7 +11,10 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { CreditCard, Search, Loader2, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { CreditCard, Search, Loader2, Check, X, ChevronLeft, ChevronRight, Landmark, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -28,6 +31,8 @@ interface PaymentRecord {
   children_count: number;
   payment_date: string;
   status: string;
+  payment_method?: string;
+  receipt_url?: string | null;
   user_name?: string;
   user_email?: string;
   invoice_number?: string | null;
@@ -45,6 +50,8 @@ export default function AdminPaiements() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "completed" | "failed" | "cancelled">("all");
+  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+  const [loadingReceipt, setLoadingReceipt] = useState(false);
 
   useEffect(() => {
     fetchPayments();
@@ -142,6 +149,19 @@ export default function AdminPaiements() {
     setProcessingPayment(null);
   };
 
+  const handleViewReceipt = async (path: string) => {
+    setLoadingReceipt(true);
+    setReceiptUrl("");
+    const { data, error } = await supabase.storage.from("payment-receipts").createSignedUrl(path, 300);
+    if (error || !data?.signedUrl) {
+      toast.error("Impossible de charger le reçu", { description: error?.message });
+      setReceiptUrl(null);
+    } else {
+      setReceiptUrl(data.signedUrl);
+    }
+    setLoadingReceipt(false);
+  };
+
   const filteredPayments = payments.filter((p) => {
     const s = search.trim().toLowerCase();
     if (!s) return true;
@@ -208,6 +228,7 @@ export default function AdminPaiements() {
                       <TableHead>Formule</TableHead>
                       <TableHead>Montant</TableHead>
                       <TableHead>Nb enfants</TableHead>
+                      <TableHead>Méthode</TableHead>
                       <TableHead>Facture</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -216,7 +237,7 @@ export default function AdminPaiements() {
                   <TableBody>
                     {filteredPayments.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                           Aucun paiement trouvé.
                         </TableCell>
                       </TableRow>
@@ -233,6 +254,24 @@ export default function AdminPaiements() {
                           </TableCell>
                           <TableCell className="font-semibold">{(p.amount_ttc ?? p.amount).toLocaleString("fr-DZ")} DA</TableCell>
                           <TableCell className="text-center">{p.is_family ? p.children_count : 1}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="gap-1.5">
+                                {p.payment_method === "bank_transfer" ? <Landmark className="h-3 w-3" /> : <CreditCard className="h-3 w-3" />}
+                                {p.payment_method === "bank_transfer" ? "Virement" : "Carte"}
+                              </Badge>
+                              {p.payment_method === "bank_transfer" && p.receipt_url && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 px-2 gap-1"
+                                  onClick={() => handleViewReceipt(p.receipt_url!)}
+                                >
+                                  <ImageIcon className="h-3.5 w-3.5" /> Reçu
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell className="text-xs text-muted-foreground font-mono">{p.invoice_number || "—"}</TableCell>
                           <TableCell>
                             <Badge variant={p.status === "completed" ? "default" : p.status === "pending" ? "secondary" : "destructive"}>
@@ -297,6 +336,21 @@ export default function AdminPaiements() {
           )}
         </Card>
       </main>
+
+      <Dialog open={receiptUrl !== null} onOpenChange={(open) => { if (!open) setReceiptUrl(null); }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Reçu de virement</DialogTitle>
+          </DialogHeader>
+          {loadingReceipt || !receiptUrl ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <img src={receiptUrl} alt="Reçu de virement" className="w-full rounded-lg border" />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

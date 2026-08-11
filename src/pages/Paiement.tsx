@@ -1,11 +1,12 @@
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, CreditCard, GraduationCap, LogOut, User as UserIcon, Shield, Lock, Clock } from "lucide-react";
+import { ArrowLeft, CreditCard, GraduationCap, LogOut, User as UserIcon, Shield, Lock, Clock, Landmark, Upload, FileImage, X as XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -43,6 +44,18 @@ interface PaymentInfo {
   monthsCount: number;
 }
 
+interface BankDetails {
+  bank_name: string;
+  rib: string;
+  ccp_number: string;
+  ccp_key: string;
+  account_holder: string;
+  instructions: string;
+}
+
+const RECEIPT_MAX_SIZE = 5 * 1024 * 1024; // 5 Mo
+const RECEIPT_ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
+
 const Paiement = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -54,6 +67,9 @@ const Paiement = () => {
   const [paymentDone, setPaymentDone] = useState(false);
   const [cardNumber, setCardNumber] = useState("");
   const [secretCode, setSecretCode] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "bank_transfer">("card");
+  const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -66,8 +82,18 @@ const Paiement = () => {
       fetchProfile(session.user.id);
     });
 
+    fetchBankDetails();
+
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const fetchBankDetails = async () => {
+    const { data } = await supabase
+      .from("payment_bank_details" as any)
+      .select("bank_name, rib, ccp_number, ccp_key, account_holder, instructions")
+      .maybeSingle();
+    if (data) setBankDetails(data as unknown as BankDetails);
+  };
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -100,20 +126,53 @@ const Paiement = () => {
     navigate("/");
   };
 
-  const handlePayment = async () => {
-    if (!paymentInfo || !profile) return;
-    if (!cardNumber.trim() || !secretCode.trim()) {
-      toast.error(t("paiement.missingFieldsError"));
+  const handleReceiptChange = (file: File | null) => {
+    if (!file) { setReceiptFile(null); return; }
+    if (!RECEIPT_ACCEPTED_TYPES.includes(file.type)) {
+      toast.error(t("paiement.receiptInvalidType"));
       return;
     }
+    if (file.size > RECEIPT_MAX_SIZE) {
+      toast.error(t("paiement.receiptTooLarge"));
+      return;
+    }
+    setReceiptFile(file);
+  };
+
+  const handlePayment = async () => {
+    if (!paymentInfo || !profile) return;
+
+    if (paymentMethod === "card") {
+      if (!cardNumber.trim() || !secretCode.trim()) {
+        toast.error(t("paiement.missingFieldsError"));
+        return;
+      }
+    } else if (!receiptFile) {
+      toast.error(t("paiement.receiptRequired"));
+      return;
+    }
+
     setProcessing(true);
 
     try {
+      let receiptPath: string | null = null;
+
+      if (paymentMethod === "bank_transfer" && receiptFile) {
+        const ext = receiptFile.name.split(".").pop() || "jpg";
+        receiptPath = `${profile.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("payment-receipts")
+          .upload(receiptPath, receiptFile, { upsert: false });
+        if (uploadError) throw new Error(uploadError.message);
+      }
+
       const { data, error } = await supabase.functions.invoke('record-payment', {
         body: {
           billing_period: paymentInfo.billingPeriod,
           plan_name: paymentInfo.planName,
           is_family: paymentInfo.isFamily,
+          payment_method: paymentMethod,
+          receipt_path: receiptPath,
         },
       });
 
@@ -297,44 +356,111 @@ const Paiement = () => {
 
               <div className="space-y-6">
                 <h2 className="text-xl font-bold text-foreground">{t("paiement.paymentSectionTitle")}</h2>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 border-2 border-primary rounded-lg px-4 py-2.5">
-                    <CreditCard className="h-5 w-5 text-primary" />
-                    <span className="text-sm font-semibold text-foreground">CIB / EDAHABIA</span>
-                  </div>
-                </div>
 
-                <div className="space-y-2">
-                  <div className="relative">
-                    <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
-                      id="cardNumber"
-                      placeholder={t("paiement.cardNumberPlaceholder")}
-                      className="pl-11 h-12 text-base"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
-                    />
-                  </div>
-                </div>
+                <Tabs value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as "card" | "bank_transfer")}>
+                  <TabsList className="grid grid-cols-2 h-auto">
+                    <TabsTrigger value="card" className="gap-2 py-2.5">
+                      <CreditCard className="h-4 w-4" /> {t("paiement.methodCard")}
+                    </TabsTrigger>
+                    <TabsTrigger value="bank_transfer" className="gap-2 py-2.5">
+                      <Landmark className="h-4 w-4" /> {t("paiement.methodBankTransfer")}
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
 
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="secretCode"
-                      type="password"
-                      placeholder={t("paiement.secretCodePlaceholder")}
-                      className="pl-10 h-12 text-base"
-                      value={secretCode}
-                      onChange={(e) => setSecretCode(e.target.value)}
-                    />
-                  </div>
-                </div>
+                {paymentMethod === "card" ? (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 border-2 border-primary rounded-lg px-4 py-2.5">
+                        <CreditCard className="h-5 w-5 text-primary" />
+                        <span className="text-sm font-semibold text-foreground">CIB / EDAHABIA</span>
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                  <Shield className="h-4 w-4 flex-shrink-0" />
-                  <span>{t("paiement.securedHosting")}</span>
-                </div>
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input
+                          id="cardNumber"
+                          placeholder={t("paiement.cardNumberPlaceholder")}
+                          className="pl-11 h-12 text-base"
+                          value={cardNumber}
+                          onChange={(e) => setCardNumber(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="secretCode"
+                          type="password"
+                          placeholder={t("paiement.secretCodePlaceholder")}
+                          className="pl-10 h-12 text-base"
+                          value={secretCode}
+                          onChange={(e) => setSecretCode(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                      <Shield className="h-4 w-4 flex-shrink-0" />
+                      <span>{t("paiement.securedHosting")}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-4">
+                    {bankDetails && (bankDetails.rib || bankDetails.ccp_number) ? (
+                      <Card className="p-4 bg-muted/30 space-y-2 text-sm">
+                        {bankDetails.account_holder && (
+                          <p><span className="font-semibold text-foreground">{t("paiement.accountHolderLabel")} :</span> {bankDetails.account_holder}</p>
+                        )}
+                        {bankDetails.bank_name && (
+                          <p><span className="font-semibold text-foreground">{t("paiement.bankNameLabel")} :</span> {bankDetails.bank_name}</p>
+                        )}
+                        {bankDetails.rib && (
+                          <p><span className="font-semibold text-foreground">{t("paiement.ribLabel")} :</span> <span className="font-mono">{bankDetails.rib}</span></p>
+                        )}
+                        {bankDetails.ccp_number && (
+                          <p><span className="font-semibold text-foreground">{t("paiement.ccpLabel")} :</span> <span className="font-mono">{bankDetails.ccp_number}{bankDetails.ccp_key ? ` / ${bankDetails.ccp_key}` : ""}</span></p>
+                        )}
+                        {bankDetails.instructions && (
+                          <p className="text-muted-foreground pt-1">{bankDetails.instructions}</p>
+                        )}
+                      </Card>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{t("paiement.bankDetailsUnavailable")}</p>
+                    )}
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-foreground">{t("paiement.receiptLabel")}</label>
+                      <p className="text-xs text-muted-foreground">{t("paiement.receiptHint")}</p>
+                      {receiptFile ? (
+                        <div className="flex items-center justify-between gap-2 border rounded-lg px-3 py-2.5">
+                          <span className="flex items-center gap-2 text-sm truncate">
+                            <FileImage className="h-4 w-4 text-primary shrink-0" />
+                            {receiptFile.name}
+                          </span>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => setReceiptFile(null)}>
+                            <XIcon className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <label className="flex items-center justify-center gap-2 border-2 border-dashed rounded-lg px-4 py-6 text-sm text-muted-foreground cursor-pointer hover:border-primary/50 hover:text-foreground transition-colors">
+                          <Upload className="h-4 w-4" />
+                          {t("paiement.receiptUploadCta")}
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            className="hidden"
+                            onChange={(e) => handleReceiptChange(e.target.files?.[0] || null)}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <Button
                   className="w-auto px-10 font-bold text-lg py-6"
@@ -342,7 +468,11 @@ const Paiement = () => {
                   disabled={processing}
                   onClick={handlePayment}
                 >
-                  {processing ? t("paiement.processing") : t("paiement.payButton", { amount: paymentInfo.price.toLocaleString('fr-DZ') })}
+                  {processing
+                    ? t("paiement.processing")
+                    : paymentMethod === "card"
+                      ? t("paiement.payButton", { amount: paymentInfo.price.toLocaleString('fr-DZ') })
+                      : t("paiement.submitReceiptButton")}
                 </Button>
 
                 <p className="text-xs text-muted-foreground leading-relaxed">
