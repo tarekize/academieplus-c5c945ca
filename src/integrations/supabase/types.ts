@@ -1202,6 +1202,81 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          amount: number
+          amount_ht: number
+          amount_ttc: number
+          children_count: number
+          created_at: string
+          id: string
+          invoice_number: string
+          is_family: boolean
+          issued_at: string
+          payment_id: string
+          period_end: string | null
+          period_start: string | null
+          plan_label: string
+          plan_type: string
+          user_id: string
+          vat_amount: number
+          vat_rate: number
+        }
+        Insert: {
+          amount: number
+          amount_ht: number
+          amount_ttc: number
+          children_count?: number
+          created_at?: string
+          id?: string
+          invoice_number: string
+          is_family?: boolean
+          issued_at?: string
+          payment_id: string
+          period_end?: string | null
+          period_start?: string | null
+          plan_label: string
+          plan_type: string
+          user_id: string
+          vat_amount: number
+          vat_rate: number
+        }
+        Update: {
+          amount?: number
+          amount_ht?: number
+          amount_ttc?: number
+          children_count?: number
+          created_at?: string
+          id?: string
+          invoice_number?: string
+          is_family?: boolean
+          issued_at?: string
+          payment_id?: string
+          period_end?: string | null
+          period_start?: string | null
+          plan_label?: string
+          plan_type?: string
+          user_id?: string
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: true
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_versions: {
         Row: {
           content: string | null
@@ -1597,7 +1672,6 @@ export type Database = {
           children_count: number
           created_at: string
           id: string
-          invoice_number: string | null
           is_family: boolean
           payment_date: string
           period_end: string
@@ -1617,7 +1691,6 @@ export type Database = {
           children_count?: number
           created_at?: string
           id?: string
-          invoice_number?: string | null
           is_family?: boolean
           payment_date?: string
           period_end: string
@@ -1637,7 +1710,6 @@ export type Database = {
           children_count?: number
           created_at?: string
           id?: string
-          invoice_number?: string | null
           is_family?: boolean
           payment_date?: string
           period_end?: string

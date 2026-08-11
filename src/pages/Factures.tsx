@@ -46,7 +46,13 @@ interface Payment {
   amount_ht: number;
   vat_amount: number;
   amount_ttc: number;
-  invoice_number: string | null;
+}
+
+interface Invoice {
+  id: string;
+  invoice_number: string;
+  payment_id: string;
+  issued_at: string;
 }
 
 interface ActivationCode {
@@ -64,6 +70,7 @@ const Factures = () => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [invoicesByPayment, setInvoicesByPayment] = useState<Record<string, Invoice>>({});
   const [codes, setCodes] = useState<ActivationCode[]>([]);
   const [codesDialogOpen, setCodesDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -74,6 +81,7 @@ const Factures = () => {
       setUser(session.user);
       fetchProfile(session.user.id);
       fetchPayments(session.user.id);
+      fetchInvoices(session.user.id);
       fetchCodes(session.user.id);
     });
 
@@ -82,6 +90,7 @@ const Factures = () => {
       setUser(session.user);
       fetchProfile(session.user.id);
       fetchPayments(session.user.id);
+      fetchInvoices(session.user.id);
       fetchCodes(session.user.id);
     });
 
@@ -111,6 +120,21 @@ const Factures = () => {
       .eq("user_id", userId)
       .order("payment_date", { ascending: false });
     if (data) setPayments(data as Payment[]);
+  };
+
+  // La facture (numéro, date d'émission) vit dans sa propre table, dissociée
+  // du paiement lui-même : un document distinct, créé automatiquement dès
+  // que le paiement passe à "completed" (voir migration dedicated_invoices_table).
+  const fetchInvoices = async (userId: string) => {
+    const { data } = await supabase
+      .from("invoices")
+      .select("id, invoice_number, payment_id, issued_at")
+      .eq("user_id", userId);
+    if (data) {
+      const map: Record<string, Invoice> = {};
+      (data as Invoice[]).forEach((inv) => { map[inv.payment_id] = inv; });
+      setInvoicesByPayment(map);
+    }
   };
 
   const fetchCodes = async (userId: string) => {
@@ -174,11 +198,13 @@ const Factures = () => {
   };
 
   const generateInvoiceNumber = (payment: Payment) => {
-    // Numéro de facture réel, attribué en base uniquement au moment où le
-    // paiement passe à "completed" (cf. migration invoice_number_only_on_completion).
-    // Un paiement encore en attente n'a pas de vraie facture : référence
-    // provisoire, clairement distincte, en attendant validation.
-    if (payment.invoice_number) return payment.invoice_number;
+    // Numéro de facture réel, tiré de la table invoices dédiée — un document
+    // distinct créé automatiquement dès que le paiement passe à "completed"
+    // (cf. migration dedicated_invoices_table). Un paiement encore en
+    // attente n'a pas de vraie facture : référence provisoire, clairement
+    // distincte, en attendant validation.
+    const invoice = invoicesByPayment[payment.id];
+    if (invoice) return invoice.invoice_number;
     return `PROVISOIRE-${payment.id.slice(0, 8).toUpperCase()}`;
   };
 
