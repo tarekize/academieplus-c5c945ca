@@ -25,6 +25,7 @@ const Cours = lazy(() => import("./pages/Cours"));
 const Account = lazy(() => import("./pages/Account"));
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminAbonnements = lazy(() => import("./pages/AdminAbonnements"));
+const AdminPaiements = lazy(() => import("./pages/AdminPaiements"));
 const AdminContrats = lazy(() => import("./pages/AdminContrats"));
 const AdminNotifications = lazy(() => import("./pages/AdminNotifications"));
 const AdminValidation = lazy(() => import("./pages/AdminValidation"));
@@ -140,6 +141,11 @@ const App = () => (
               <Route path="/admin/abonnements" element={
                 <ProtectedRoute requireAdmin>
                   <AdminAbonnements />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/paiements" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminPaiements />
                 </ProtectedRoute>
               } />
               <Route path="/admin/contrats" element={

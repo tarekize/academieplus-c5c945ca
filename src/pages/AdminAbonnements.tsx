@@ -17,7 +17,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarWidget } from "@/components/ui/calendar";
 import {
-  ArrowLeft, CreditCard, Calendar, CalendarIcon, Settings, Users, Eye, Loader2, Save, Plus, Pencil, Landmark, Check, X,
+  ArrowLeft, CreditCard, Calendar, CalendarIcon, Settings, Loader2, Save, Plus, Pencil, Landmark,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -51,29 +51,12 @@ interface BankDetails {
   instructions: string;
 }
 
-interface PaymentRecord {
-  id: string;
-  user_id: string;
-  plan_type: string;
-  plan_label: string;
-  amount: number;
-  is_family: boolean;
-  children_count: number;
-  payment_date: string;
-  status: string;
-  user_name?: string;
-  user_email?: string;
-}
-
 export default function AdminAbonnements() {
   const navigate = useNavigate();
   const [configs, setConfigs] = useState<SubscriptionConfig[]>([]);
   const [periods, setPeriods] = useState<SubscriptionPeriod[]>([]);
-  const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [showPayments, setShowPayments] = useState(false);
-  const [processingPayment, setProcessingPayment] = useState<string | null>(null);
 
   // Edit state for prices
   const [editPrices, setEditPrices] = useState<Record<string, { single: number; family: number }>>({});
@@ -95,7 +78,7 @@ export default function AdminAbonnements() {
 
   const fetchAll = async () => {
     setLoading(true);
-    await Promise.all([fetchConfigs(), fetchPeriods(), fetchPayments(), fetchBankDetails()]);
+    await Promise.all([fetchConfigs(), fetchPeriods(), fetchBankDetails()]);
     setLoading(false);
   };
 
@@ -159,71 +142,6 @@ export default function AdminAbonnements() {
       return;
     }
     if (data) setPeriods(data as SubscriptionPeriod[]);
-  };
-
-  const fetchPayments = async () => {
-    const { data: paymentsData, error: paymentsError } = await supabase
-      .from("payments")
-      .select("*")
-      .order("payment_date", { ascending: false });
-
-    if (paymentsError) {
-      toast.error("Impossible de charger les paiements", { description: paymentsError.message });
-      return;
-    }
-
-    if (paymentsData && paymentsData.length > 0) {
-      // Fetch profile names
-      const userIds = [...new Set(paymentsData.map((p: any) => p.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email")
-        .in("id", userIds);
-
-      const profileMap = new Map<string, { name: string; email: string }>();
-      profiles?.forEach((p: any) => {
-        const name = [p.first_name, p.last_name].filter(Boolean).join(" ") || "Sans nom";
-        profileMap.set(p.id, { name, email: p.email });
-      });
-
-      setPayments(
-        paymentsData.map((p: any) => ({
-          ...p,
-          user_name: profileMap.get(p.user_id)?.name || "Inconnu",
-          user_email: profileMap.get(p.user_id)?.email || "",
-        }))
-      );
-    } else {
-      setPayments([]);
-    }
-  };
-
-  // Aucune passerelle de paiement réelle n'est intégrée : un paiement entre en
-  // statut 'pending' et seul un admin, après avoir vérifié le virement/paiement
-  // réel, peut l'approuver (ce qui émet alors les codes d'activation) ou le
-  // rejeter.
-  const handleApprovePayment = async (paymentId: string) => {
-    setProcessingPayment(paymentId);
-    const { error } = await supabase.rpc("admin_approve_payment" as any, { p_payment_id: paymentId });
-    if (error) {
-      toast.error("Impossible de valider ce paiement", { description: error.message });
-    } else {
-      toast.success("Paiement validé, codes d'activation émis");
-      await fetchPayments();
-    }
-    setProcessingPayment(null);
-  };
-
-  const handleRejectPayment = async (paymentId: string) => {
-    setProcessingPayment(paymentId);
-    const { error } = await supabase.rpc("admin_reject_payment" as any, { p_payment_id: paymentId });
-    if (error) {
-      toast.error("Impossible de rejeter ce paiement", { description: error.message });
-    } else {
-      toast.success("Paiement rejeté");
-      await fetchPayments();
-    }
-    setProcessingPayment(null);
   };
 
   const handleSavePrices = async (configId: string) => {
@@ -527,98 +445,20 @@ export default function AdminAbonnements() {
           </CardContent>
         </Card>
 
-        {/* Section 3: Paiements */}
+        {/* L'historique des paiements et la validation/rejet vivent désormais
+            dans leur propre module dédié (Espace administrateur / Paiement). */}
         <Card className="border-0 shadow-lg">
-          <CardHeader className="border-b bg-muted/30">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-green-500/10">
-                  <Users className="h-5 w-5 text-green-500" />
-                </div>
-                <div>
-                  <CardTitle>Historique des Paiements</CardTitle>
-                  <CardDescription>Consultez toutes les transactions effectuées</CardDescription>
-                </div>
-              </div>
-              <Button variant="outline" onClick={() => setShowPayments(!showPayments)}>
-                <Eye className="h-4 w-4 mr-2" /> {showPayments ? "Masquer" : "Voir les paiements"}
-              </Button>
+          <CardContent className="p-6 flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <p className="font-semibold">Historique des paiements</p>
+              <p className="text-sm text-muted-foreground">
+                Déplacé vers le module Paiement dédié, avec pagination.
+              </p>
             </div>
-          </CardHeader>
-          {showPayments && (
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/30">
-                      <TableHead>Nom</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Date de paiement</TableHead>
-                      <TableHead>Formule</TableHead>
-                      <TableHead>Montant</TableHead>
-                      <TableHead>Nb enfants</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {payments.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                          Aucun paiement enregistré pour le moment.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      payments.map((p) => (
-                        <TableRow key={p.id}>
-                          <TableCell className="font-medium">{p.user_name}</TableCell>
-                          <TableCell className="text-muted-foreground">{p.user_email}</TableCell>
-                          <TableCell>{format(new Date(p.payment_date), "dd MMM yyyy à HH:mm", { locale: fr })}</TableCell>
-                          <TableCell>
-                            <Badge variant={p.plan_type === "annual" ? "default" : "secondary"}>
-                              {p.plan_label}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="font-semibold">{p.amount.toLocaleString("fr-DZ")} DA</TableCell>
-                          <TableCell className="text-center">{p.is_family ? p.children_count : 1}</TableCell>
-                          <TableCell>
-                            <Badge variant={p.status === "completed" ? "default" : p.status === "pending" ? "secondary" : "destructive"}>
-                              {p.status === "completed" ? "Complété" : p.status === "pending" ? "En attente" : p.status === "failed" ? "Rejeté" : p.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {p.status === "pending" && (
-                              <div className="flex items-center justify-end gap-2">
-                                <Button
-                                  size="sm"
-                                  className="gap-1.5"
-                                  disabled={processingPayment === p.id}
-                                  onClick={() => handleApprovePayment(p.id)}
-                                >
-                                  {processingPayment === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                                  Valider
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  className="gap-1.5"
-                                  disabled={processingPayment === p.id}
-                                  onClick={() => handleRejectPayment(p.id)}
-                                >
-                                  <X className="h-3.5 w-3.5" />
-                                  Rejeter
-                                </Button>
-                              </div>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          )}
+            <Button onClick={() => navigate("/admin/paiements")} className="gap-2">
+              <CreditCard className="h-4 w-4" /> Ouvrir le module Paiement
+            </Button>
+          </CardContent>
         </Card>
       </main>
 
