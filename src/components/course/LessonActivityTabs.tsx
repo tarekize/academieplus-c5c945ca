@@ -18,6 +18,7 @@ import { MyClassContent } from "./MyClassContent";
 import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
 import { TeacherContentRedDot } from "@/components/TeacherContentRedDot";
 import { useTranslation } from "react-i18next";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 
 export interface DBQuizQuestion {
   id: string;
@@ -1249,7 +1250,8 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
 }
 
 function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DBQuizQuestion; index: number; readOnly?: boolean; onAnswer: (answer: AnswerPayload) => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
   const [selected, setSelected] = useState<string | null>(null);
   const [solved, setSolved] = useState(false);
   const [locked, setLocked] = useState(false);
@@ -1258,6 +1260,18 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
   const [showHint, setShowHint] = useState(false);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // La question, ses options, son indice et son explication n'existent qu'en
+  // arabe en base : traduits à la volée pour l'affichage en français, jamais
+  // écrits en base (même pattern que ChapterMathQuiz.tsx).
+  const { translated: tQuiz } = useTranslatedContent(
+    [question.question, question.hint || "", explanation, ...question.options],
+    lang
+  );
+  const tQuestion = tQuiz[0] || question.question;
+  const tHint = tQuiz[1] || question.hint || "";
+  const tExplanation = tQuiz[2] || explanation;
+  const tOptions = tQuiz.slice(3, 3 + question.options.length);
 
   useEffect(() => () => {
     if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
@@ -1320,9 +1334,9 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
     <Card className={cn("transition-all", solved && "border-green-500/50 bg-green-500/5", locked && "border-red-500/50 bg-red-500/5")}>
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-3">
-          <div className="font-medium flex-1 flex gap-2 items-start" dir="rtl">
+          <div className="font-medium flex-1 flex gap-2 items-start" dir="auto">
             <span className="shrink-0">{index + 1}.</span>
-            <HtmlWithMath htmlContent={question.question} className="flex-1 text-right" />
+            <HtmlWithMath htmlContent={tQuestion} className="flex-1 text-right" />
           </div>
           <div className="flex flex-col items-end gap-2">
             <DifficultyIndicator level={question.difficulty} />
@@ -1347,7 +1361,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
               <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
               <div className="flex-1 text-amber-900 dark:text-amber-200">
                 <span className="font-semibold block mb-1">{t("lessonActivity.hintLabel")}</span>
-                <HtmlWithMath htmlContent={question.hint} className="text-right" dir="rtl" />
+                <HtmlWithMath htmlContent={tHint} className="text-right" dir="auto" />
               </div>
             </div>
           </div>
@@ -1355,6 +1369,9 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {question.options.map((opt, oIdx) => {
+            // La sélection/soumission se fait toujours sur le texte ORIGINAL
+            // (arabe, tel qu'en base) : check_quiz_answer compare contre la
+            // valeur brute. Seul l'affichage utilise le texte traduit.
             const isSelected = selected === opt;
             let variant: "default" | "destructive" | "secondary" | "outline" = "outline";
             if (solved && isSelected) variant = "default";
@@ -1366,7 +1383,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
                 className={cn("justify-start text-right", !solved && !locked && isSelected && "ring-2 ring-primary")}
                 onClick={() => handleSelect(opt)}
                 disabled={readOnly || solved || locked || submitting}
-                dir="rtl"><HtmlWithMath htmlContent={opt} /></Button>
+                dir="auto"><HtmlWithMath htmlContent={tOptions[oIdx] || opt} /></Button>
             );
           })}
         </div>
@@ -1398,7 +1415,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
             <p className="font-semibold text-sm mb-2 text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <BookOpen className="h-4 w-4" /> {t("lessonActivity.explanationLabel")}
             </p>
-            <HtmlWithMath htmlContent={explanation} className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" dir="rtl" />
+            <HtmlWithMath htmlContent={tExplanation} className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" dir="auto" />
           </div>
         )}
       </CardContent>
@@ -1407,7 +1424,8 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
 }
 
 function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise: DBExercise; index: number; readOnly?: boolean; onAnswer: (answer: AnswerPayload) => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
   const [open, setOpen] = useState(false);
   const [answer, setAnswer] = useState("");
   const [revealed, setRevealed] = useState(false);
@@ -1417,6 +1435,19 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
   const [submitting, setSubmitting] = useState(false);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Titre, énoncé, indice et solution n'existent qu'en arabe en base :
+  // traduits à la volée pour l'affichage en français (même pattern que
+  // ChapterMathExercises.tsx). La réponse de l'utilisateur et la comparaison
+  // serveur (check_exercise_answer) restent sur le texte brut.
+  const { translated: tExercise } = useTranslatedContent(
+    [exercise.title, exercise.statement, exercise.hint || "", solution || exercise.solution || ""],
+    lang
+  );
+  const tTitle = tExercise[0] || exercise.title;
+  const tStatement = tExercise[1] || exercise.statement;
+  const tHint = tExercise[2] || exercise.hint || "";
+  const tSolution = tExercise[3] || solution || exercise.solution || "";
 
   useEffect(() => () => {
     if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
@@ -1488,7 +1519,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
       <Card className="cursor-pointer hover:border-primary/40 hover:shadow-md transition-all" onClick={() => setOpen(true)}>
         <CardContent className="p-4">
           <div className="flex justify-between items-start gap-3">
-            <h4 className="font-semibold flex-1 text-right" dir="rtl">{index + 1}. {exercise.title}</h4>
+            <h4 className="font-semibold flex-1 text-right" dir="auto">{index + 1}. {tTitle}</h4>
             <DifficultyIndicator level={exercise.difficulty} />
           </div>
           <p className="text-xs text-muted-foreground mt-2 text-right">{t("lessonActivity.clickToOpenExercise")}</p>
@@ -1498,19 +1529,19 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-right" dir="rtl">{index + 1}. {exercise.title}</DialogTitle>
+            <DialogTitle className="text-right" dir="auto">{index + 1}. {tTitle}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             {(() => {
-              const cleaned = cleanMathStatement(exercise.statement);
+              const cleaned = cleanMathStatement(tStatement);
               return statementHasMath(cleaned) ? (
-                <HtmlWithMath htmlContent={cleaned} className="text-sm border-t pt-2 text-right" dir="rtl" />
+                <HtmlWithMath htmlContent={cleaned} className="text-sm border-t pt-2 text-right" dir="auto" />
               ) : (
-                <p className="text-sm border-t pt-2 text-right" dir="rtl">{cleaned}</p>
+                <p className="text-sm border-t pt-2 text-right" dir="auto">{cleaned}</p>
               );
             })()}
             {exercise.hint && (
-              <HintBlock hint={exercise.hint} />
+              <HintBlock hint={tHint} />
             )}
             {!readOnly && !solved && (
               <div className="flex gap-2 items-center">
@@ -1559,8 +1590,8 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
               </div>
             )}
             <Button variant="ghost" size="sm" onClick={handleRevealSolution}>{revealed ? t("lessonActivity.hideSolutionSimple") : t("exercisePlayer.showSolution")}</Button>
-            {revealed && (solution || exercise.solution) && (
-              <MarkdownSolution content={(solution || exercise.solution) as string} compact />
+            {revealed && tSolution && (
+              <MarkdownSolution content={tSolution} compact />
             )}
           </div>
         </DialogContent>
@@ -1584,7 +1615,7 @@ function HintBlock({ hint }: { hint: string }) {
         <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
           <div className="flex items-start gap-2">
             <Lightbulb className="h-4 w-4 text-amber-500 mt-1 shrink-0" />
-            <HtmlWithMath htmlContent={hint} className="text-sm flex-1" dir="rtl" />
+            <HtmlWithMath htmlContent={hint} className="text-sm flex-1" dir="auto" />
           </div>
         </div>
       )}

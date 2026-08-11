@@ -47,14 +47,24 @@ function protect(text: string): { protectedText: string; restore: (t: string) =>
     working = working.replace(pattern, (match) => {
       const idx = tokens.length;
       tokens.push(match);
-      return ` §§${idx}§§ `;
+      // Jeton en lettres/chiffres uniquement : un jeton fait de symboles
+      // répétés (ex: §§0§§) était retourné par MyMemory avec un espace
+      // inséré entre chaque §, cassant le regex de restauration et laissant
+      // des "§ §16 § §" bruts et non traduits dans le contenu affiché.
+      return ` tkzq${idx}zqkt `;
     });
   }
 
   return {
     protectedText: working,
-    restore: (translated: string) =>
-      translated.replace(/§§\s*(\d+)\s*§§/g, (_m, idxStr) => tokens[Number(idxStr)] ?? ""),
+    restore: (translated: string) => {
+      let out = translated.replace(/t\s*k\s*z\s*q\s*(\d+)\s*z\s*q\s*k\s*t/gi, (_m, idxStr) => tokens[Number(idxStr)] ?? "");
+      // Filet de sécurité : si un jeton a malgré tout survécu déformé (mot
+      // coupé/retraduit par le service), mieux vaut l'effacer que d'afficher
+      // du charabia à l'utilisateur.
+      out = out.replace(/t\s*k\s*z\s*q\s*\d+\s*z\s*q\s*k\s*t/gi, "");
+      return out;
+    },
   };
 }
 
