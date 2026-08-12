@@ -11,6 +11,9 @@ const corsHeaders = {
 const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
 const RATE_LIMIT_MAX_REQUESTS = 8;
 
+// Hache le code avec un poivre serveur + l'userId, pour ne jamais comparer/
+// stocker le code en clair (mêmes garanties qu'un mot de passe) : même en cas
+// de fuite de la table password_change_codes, les codes restent inutilisables.
 async function hashCode(code: string, userId: string): Promise<string> {
   const pepper = Deno.env.get("PASSWORD_CODE_PEPPER") || "academieplus-default-pepper";
   const data = new TextEncoder().encode(`${pepper}:${userId}:${code}`);
@@ -18,6 +21,8 @@ async function hashCode(code: string, userId: string): Promise<string> {
   return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// Politique de complexité minimale appliquée côté serveur (le client peut
+// avoir sa propre validation, mais elle ne fait pas foi).
 function isValidPassword(password: string): boolean {
   return typeof password === "string" && password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password);
 }

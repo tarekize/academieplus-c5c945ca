@@ -6,6 +6,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// Appelé par ParentDashboard.tsx quand un parent authentifié crée un compte
+// élève pour son enfant. Vérifie que l'appelant possède bien le rôle "parent"
+// (côté serveur, via user_roles) avant d'utiliser service_role pour créer le
+// compte et le lien parent_child_links associé — un utilisateur non-parent
+// ne peut donc jamais créer de compte élève même en appelant l'endpoint
+// directement.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });

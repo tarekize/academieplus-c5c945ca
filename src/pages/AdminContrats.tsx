@@ -118,12 +118,18 @@ export default function AdminContrats() {
     fetchAll();
   }, []);
 
+  // Charge en parallèle contrats, journal des rappels et abonnements premium
+  // au montage de la page.
   const fetchAll = async () => {
     setLoading(true);
     await Promise.all([fetchContracts(), fetchReminderLog(), fetchStudentSubscriptions()]);
     setLoading(false);
   };
 
+  // Charge les profils (établissements + élèves), leurs rôles et les détails
+  // de contrat, puis fusionne le tout en lignes ContratRow. Lecture admin-only
+  // attendue côté RLS sur profiles/user_roles (page déjà protégée par
+  // ProtectedRoute requireAdmin, mais la policy serveur doit aussi restreindre).
   const fetchContracts = async () => {
     const { data: profiles } = await supabase
       .from("profiles")
@@ -178,6 +184,8 @@ export default function AdminContrats() {
     setStudentSubMap(map);
   };
 
+  // Charge la date du dernier rappel de renouvellement envoyé à chaque
+  // utilisateur (table renewal_reminders_log), pour l'afficher dans les tables.
   const fetchReminderLog = async () => {
     const { data } = await supabase
       .from("renewal_reminders_log" as any)
@@ -257,6 +265,9 @@ export default function AdminContrats() {
     setSavingRow(null);
   };
 
+  // Envoie manuellement un rappel de renouvellement à un établissement ou un
+  // élève (bouton "Rappel"), via l'edge function send-renewal-reminder qui
+  // doit vérifier côté serveur que l'appelant est admin.
   const handleSendReminder = async (userId: string) => {
     setSendingReminder(userId);
     const { error } = await supabase.functions.invoke("send-renewal-reminder", { body: { userId } });
@@ -751,6 +762,10 @@ function EstablishmentContractDialog({
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Génère une URL signée temporaire (5 min) pour le document de contrat déjà
+  // uploadé, à chaque changement de documentPath — le bucket
+  // "establishment-contracts" n'est pas public, l'accès dépend donc des
+  // policies storage (admin-only attendu côté serveur).
   useEffect(() => {
     if (!documentPath || documentFile) {
       setSignedUrl(null);
@@ -761,6 +776,11 @@ function EstablishmentContractDialog({
     });
   }, [documentPath, documentFile]);
 
+  // Enregistre le contrat : upload optionnel du document vers le bucket
+  // "establishment-contracts", mise à jour des dates de contrat sur profiles,
+  // puis upsert des détails étendus (préavis, effectifs, contacts...) sur la
+  // table admin-only establishment_contract_details. Déclenché par le bouton
+  // "Enregistrer" du dialogue.
   const handleSave = async () => {
     setSaving(true);
     try {

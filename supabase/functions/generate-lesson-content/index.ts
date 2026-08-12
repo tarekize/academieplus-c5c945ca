@@ -7,6 +7,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Essaie successivement OpenRouter, Lovable AI puis Gemini direct pour générer
+// le contenu — le premier provider disponible et qui répond 2xx est utilisé,
+// pour rester résilient si une des clés API tombe en panne ou en quota.
 async function callAIWithFallback(messages: any[]): Promise<{ text: string; usage: AiUsage | null }> {
   const openrouterKey = Deno.env.get("OPENROUTER_API_KEY");
   const lovableKey = Deno.env.get("LOVABLE_API_KEY");

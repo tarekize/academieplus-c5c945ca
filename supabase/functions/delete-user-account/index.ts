@@ -6,6 +6,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Appelé par MesDonneesPersonnelles.tsx / MesInformations.tsx (suppression de
+// son propre compte) ainsi que TeacherProfile.tsx et useAdmin.ts (un admin
+// supprime le compte d'un tiers). N'autorise la suppression que si
+// l'appelant supprime son PROPRE compte (userId === appelant) ou possède le
+// rôle admin (vérifié via has_role côté serveur, jamais déduit du body) —
+// service_role n'est utilisé qu'une fois cette autorisation confirmée.
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });

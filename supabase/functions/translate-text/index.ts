@@ -23,6 +23,9 @@ const corsHeaders = {
 const MAX_TEXTS_PER_CALL = 30;
 const CHUNK_MAX_CHARS = 450;
 
+// Hache "targetLang:text" en SHA-256 pour servir de clé de cache stable et
+// courte dans `translation_cache` (évite de stocker/indexer le texte source
+// brut, potentiellement long, comme clé primaire).
 async function sha256Hex(input: string): Promise<string> {
   const data = new TextEncoder().encode(input);
   const digest = await crypto.subtle.digest("SHA-256", data);
@@ -86,6 +89,11 @@ function chunkText(text: string): string[] {
   return chunks;
 }
 
+// Traduit un seul morceau de texte (≤ CHUNK_MAX_CHARS) via l'API MyMemory.
+// En cas d'échec réseau ou de réponse invalide/avertissement du service,
+// retourne le texte original tel quel plutôt que de faire échouer tout
+// l'appel : une traduction partiellement ratée reste préférable à une page
+// blanche pour l'élève/l'enseignant qui consulte le contenu.
 async function translateChunk(text: string, source: "fr" | "ar", target: "fr" | "ar"): Promise<string> {
   if (!text.trim()) return text;
   const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${source}|${target}`;
@@ -102,6 +110,9 @@ async function translateChunk(text: string, source: "fr" | "ar", target: "fr" | 
   return translated;
 }
 
+// Traduit un texte complet (potentiellement long) en le protégeant (balises
+// HTML/LaTeX), le découpant en morceaux, traduisant chaque morceau, puis en
+// restaurant le balisage protégé dans le résultat.
 async function translateFull(text: string, source: "fr" | "ar", target: "fr" | "ar"): Promise<string> {
   if (!text.trim()) return text;
   const { protectedText, restore } = protect(text);
@@ -115,6 +126,15 @@ async function translateFull(text: string, source: "fr" | "ar", target: "fr" | "
   return restore(translatedChunks.join(""));
 }
 
+// Traduit à la volée un lot de textes (max MAX_TEXTS_PER_CALL) vers 'fr' ou
+// 'ar' via l'API gratuite MyMemory, avec cache partagé dans
+// `translation_cache`. Appelé par src/lib/autoTranslate.ts (utilisé par les
+// pages de cours/exercices/quiz pour afficher le contenu dans la langue
+// choisie par l'utilisateur). Authentification obligatoire (pas de coût IA
+// ici, mais le quota MyMemory est partagé par toute l'application — voir
+// commentaire en tête de fichier) ; rate-limiting par utilisateur ci-dessous
+// pour qu'un seul compte ne puisse pas épuiser à lui seul ce quota partagé
+// (ce qui dégraderait la traduction pour tous les autres utilisateurs).
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -137,6 +157,29 @@ serve(async (req) => {
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Non autorisé" }), {
         status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // --- Rate limiting : le quota gratuit MyMemory (~5000 mots/jour) est
+    // PARTAGÉ par toute l'application (pas par utilisateur, cf. commentaire
+    // en tête de fichier). Sans throttle, un seul compte authentifié pouvait
+    // boucler sur cet endpoint avec des textes jamais mis en cache et épuiser
+    // le quota du service pour TOUS les autres utilisateurs de la plateforme.
+    const adminClientForRateLimit = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data: rateLimitAllowed, error: rateLimitError } = await adminClientForRateLimit.rpc("check_and_log_rate_limit", {
+      p_user_id: user.id,
+      p_action: "translate_text",
+      p_window_seconds: 60,
+      p_max_requests: 30,
+    });
+    if (rateLimitError) {
+      console.error("Rate limit check failed:", rateLimitError);
+    } else if (!rateLimitAllowed) {
+      return new Response(JSON.stringify({ error: "Trop de requêtes. Merci de patienter quelques instants." }), {
+        status: 429,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

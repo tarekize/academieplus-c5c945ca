@@ -16,6 +16,12 @@ function escapeLikePattern(input: string): string {
   return input.replace(/[\\%_]/g, (ch) => `\\${ch}`);
 }
 
+// Appelé par JoinClassDialog.tsx et JoinClass.tsx quand un élève authentifié
+// saisit le code de classe fourni par son enseignant. Vérifie côté serveur
+// que l'appelant a bien le rôle "student" (pas seulement masqué côté UI),
+// applique une limite de tentatives (voir check_and_log_rate_limit) pour
+// empêcher de deviner un join_code par force brute, et n'autorise qu'une
+// seule classe active par élève.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });

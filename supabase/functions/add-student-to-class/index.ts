@@ -7,6 +7,25 @@ const BodySchema = z.object({
   code: z.string().trim().min(4).max(20),
 });
 
+const MAX_ATTEMPTS = 10;
+const WINDOW_MINUTES = 15;
+
+// .ilike() traite % et _ comme des jokers SQL LIKE : sans échappement, un
+// enseignant peut deviner le linking_code d'un élève par recherche
+// dichotomique (ex. "A%", "AB%"...) au lieu de le connaître exactement.
+// Échapper \, % et _ neutralise ces jokers (\ est l'échappement LIKE par
+// défaut de Postgres). Voir supabase/functions/join-class/index.ts.
+function escapeLikePattern(input: string): string {
+  return input.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+}
+
+// Appelé par AddStudentToClassDialog.tsx quand un enseignant authentifié
+// ajoute un élève à l'une de ses classes via le linking_code de l'élève.
+// Vérifie côté serveur que l'appelant a le rôle teacher/admin ET que la
+// classe ciblée lui appartient bien (classes.teacher_id === appelant) — un
+// enseignant ne peut donc pas ajouter d'élève à la classe d'un collègue en
+// changeant juste le classId dans le body. Limite aussi les tentatives de
+// code (voir check_and_log_rate_limit) contre le brute-force du linking_code.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -76,11 +95,29 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Rate limiting: too many code guesses from this teacher recently -> block.
+    // Prevents brute-forcing a student's linking_code (see join-class/
+    // link-child-by-code, same pattern).
+    const { data: allowed, error: rateLimitError } = await admin.rpc("check_and_log_rate_limit", {
+      p_user_id: teacherId,
+      p_action: "add_student_code_attempt",
+      p_window_seconds: WINDOW_MINUTES * 60,
+      p_max_requests: MAX_ATTEMPTS,
+    });
+    if (rateLimitError) {
+      console.error("Rate limit check failed:", rateLimitError);
+    } else if (!allowed) {
+      return new Response(
+        JSON.stringify({ error: "Trop de tentatives. Réessayez dans quelques minutes." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // Find the student profile by linking code.
     const { data: student } = await admin
       .from("profiles")
       .select("id, first_name, last_name")
-      .ilike("linking_code", code)
+      .ilike("linking_code", escapeLikePattern(code))
       .maybeSingle();
     if (!student) {
       return new Response(JSON.stringify({ error: "Aucun élève trouvé avec ce code" }), {

@@ -26,6 +26,9 @@ export default function AdminExamReview() {
   const [showRefuse, setShowRefuse] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  // Charge l'examen à partir de l'id dans l'URL (/admin/examens/revue/:examId).
+  // Lecture directe de la table exams : à couvrir par une policy RLS
+  // admin-only côté serveur, l'accès à cette page ne suffisant pas seul.
   const fetchExam = async () => {
     setLoading(true);
     const { data, error } = await supabase.from("exams" as any).select("*").eq("id", examId).maybeSingle();
@@ -33,11 +36,14 @@ export default function AdminExamReview() {
     setLoading(false);
   };
 
+  // Recharge l'examen à chaque changement d'id dans l'URL.
   useEffect(() => {
     if (examId) fetchExam();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [examId]);
 
+  // Valide l'examen soumis par le pédago (bouton "Accepter"), via la RPC
+  // approve_exam qui doit vérifier côté serveur que l'appelant est admin.
   const approve = async () => {
     if (!exam) return;
     setBusy(true);
@@ -53,6 +59,8 @@ export default function AdminExamReview() {
     }
   };
 
+  // Refuse l'examen avec un motif obligatoire (bouton "Confirmer le refus"),
+  // via la RPC reject_exam (admin-only côté serveur).
   const refuse = async () => {
     if (!exam) return;
     if (!reason.trim()) {
@@ -72,6 +80,10 @@ export default function AdminExamReview() {
     }
   };
 
+  // Supprime directement l'examen (bouton "Supprimer l'examen" + confirmation
+  // AlertDialog). Passe par la même RPC request_exam_deletion que le pédago,
+  // mais côté admin la suppression est effective immédiatement (pas de
+  // validation supplémentaire requise) — cf. logique serveur de la RPC.
   const deleteExam = async () => {
     if (!exam) return;
     setBusy(true);
@@ -87,6 +99,9 @@ export default function AdminExamReview() {
     }
   };
 
+  // Confirme une demande de suppression émise par un pédago (bouton
+  // "Confirmer la suppression" affiché quand exam.deletion_requested est
+  // vrai), via la RPC approve_exam_deletion (admin-only côté serveur).
   const confirmDeletion = async () => {
     if (!exam) return;
     setBusy(true);
@@ -102,6 +117,9 @@ export default function AdminExamReview() {
     }
   };
 
+  // Rejette une demande de suppression émise par un pédago (bouton "Annuler
+  // la suppression"), via la RPC reject_exam_deletion — l'examen redevient
+  // normal, d'où le rechargement (fetchExam) plutôt qu'une navigation.
   const cancelDeletion = async () => {
     if (!exam) return;
     setBusy(true);
