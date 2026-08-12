@@ -185,15 +185,20 @@ export default function AdminContrats() {
   };
 
   // Charge la date du dernier rappel de renouvellement envoyé à chaque
-  // utilisateur (table renewal_reminders_log), pour l'afficher dans les tables.
+  // utilisateur, pour l'afficher dans les tables. Fusionne deux sources :
+  // renewal_reminders_log (bouton "Rappel" manuel) et
+  // automatic_notification_log (modèles automatiques envoyés par
+  // process-automatic-notifications) — sans cette fusion, "Dernier rappel"
+  // resterait vide pour tout élève n'ayant jamais reçu de rappel manuel
+  // alors qu'un rappel automatique vient de partir.
   const fetchReminderLog = async () => {
-    const { data } = await supabase
-      .from("renewal_reminders_log" as any)
-      .select("target_user_id, created_at")
-      .order("created_at", { ascending: false });
+    const [{ data: manual }, { data: automatic }] = await Promise.all([
+      supabase.from("renewal_reminders_log" as any).select("target_user_id, created_at"),
+      supabase.from("automatic_notification_log" as any).select("target_user_id, created_at").eq("success", true),
+    ]);
     const map: Record<string, string> = {};
-    (data as any[] || []).forEach((r) => {
-      if (!map[r.target_user_id]) map[r.target_user_id] = r.created_at;
+    [...((manual as any[]) || []), ...((automatic as any[]) || [])].forEach((r) => {
+      if (!map[r.target_user_id] || r.created_at > map[r.target_user_id]) map[r.target_user_id] = r.created_at;
     });
     setLastReminderMap(map);
   };
