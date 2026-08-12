@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,13 +34,17 @@ import { AppHeader } from "@/components/layout/AppHeader";
 
 import LocationFields from "@/components/profile/LocationFields";
 
-const profileSchema = z.object({
-  first_name: z.string().trim().min(1, "Le prénom est requis").max(100, "Le prénom ne peut pas dépasser 100 caractères"),
-  last_name: z.string().trim().min(1, "Le nom est requis").max(100, "Le nom ne peut pas dépasser 100 caractères"),
+// Construit le schéma de validation avec des messages dans la langue active
+// (t vient de react-i18next) — algerianPhoneSchema est partagé avec
+// d'autres pages et garde son message d'erreur par défaut (français), seul
+// cas résiduel non localisé sur cette page.
+const buildProfileSchema = (t: (key: string) => string) => z.object({
+  first_name: z.string().trim().min(1, t("mesInformations.firstNameRequired")).max(100, t("mesInformations.firstNameTooLong")),
+  last_name: z.string().trim().min(1, t("mesInformations.lastNameRequired")).max(100, t("mesInformations.lastNameTooLong")),
   phone: algerianPhoneSchema.nullable(),
   school_level: z.string().optional().nullable(),
   filiere: z.string().optional().nullable(),
-  email: z.string().email("L'adresse email n'est pas valide"),
+  email: z.string().email(t("mesInformations.emailInvalid")),
   avatar_url: z.string().optional().nullable(),
 });
 
@@ -60,6 +65,7 @@ interface Profile {
 }
 
 const MesInformations = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, loading: authLoading, hasRole } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -130,7 +136,7 @@ const MesInformations = () => {
         ecole: (data as any).ecole || "",
       });
     } catch (error: any) {
-      toast.error("Erreur", {
+      toast.error(t("mesInformations.errorTitle"), {
         description: error.message,
       });
     } finally {
@@ -139,9 +145,9 @@ const MesInformations = () => {
   };
 
   const getFullName = (profile: Profile | null): string => {
-    if (!profile) return "Utilisateur";
+    if (!profile) return t("mesInformations.defaultUserName");
     const parts = [profile.first_name, profile.last_name].filter(Boolean);
-    return parts.length > 0 ? parts.join(" ") : "Utilisateur";
+    return parts.length > 0 ? parts.join(" ") : t("mesInformations.defaultUserName");
   };
 
   // La photo de profil s'enregistre immédiatement (contrairement aux autres
@@ -150,7 +156,7 @@ const MesInformations = () => {
     if (!user) return;
     const { error } = await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("id", user.id);
     if (error) {
-      toast.error("Erreur", { description: "Impossible d'enregistrer la photo de profil." });
+      toast.error(t("mesInformations.errorTitle"), { description: t("mesInformations.avatarSaveError") });
       return;
     }
     setProfile((prev) => (prev ? { ...prev, avatar_url: avatarUrl } : prev));
@@ -160,7 +166,7 @@ const MesInformations = () => {
     try {
       setUpdating(true);
 
-      const validatedData = profileSchema.parse({
+      const validatedData = buildProfileSchema(t).parse({
         first_name: formData.first_name,
         last_name: formData.last_name,
         phone: formData.phone || null,
@@ -190,17 +196,17 @@ const MesInformations = () => {
 
       if (error) throw error;
 
-      toast.success("Informations mises à jour", {
-        description: "Vos modifications ont bien été enregistrées.",
+      toast.success(t("mesInformations.updateSuccessTitle"), {
+        description: t("mesInformations.updateSuccessDesc"),
       });
       if (user) await fetchProfile(user.id);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        toast.error("Erreur de validation", {
+        toast.error(t("mesInformations.validationErrorTitle"), {
           description: error.errors[0].message,
         });
       } else {
-        toast.error("Erreur", {
+        toast.error(t("mesInformations.errorTitle"), {
           description: error.message,
         });
       }
@@ -241,13 +247,16 @@ const MesInformations = () => {
       await supabase.auth.signOut();
       navigate("/");
     } catch (error: any) {
-      toast.error("Erreur", {
+      toast.error(t("mesInformations.errorTitle"), {
         description: error.message,
       });
       setDeleting(false);
     }
   };
 
+  // Les niveaux scolaires restent en français dans les deux langues :
+  // termes de scolarité standards en Algérie (décision explicite), pas du
+  // contenu d'interface à traduire.
   const getSchoolLevelName = (level: string) => {
     const levels: Record<string, string> = {
       "5eme_primaire": "5ème Primaire",
@@ -259,7 +268,7 @@ const MesInformations = () => {
       premiere: "Première",
       terminale: "Terminale",
     };
-    return levels[level] || level || "Votre classe";
+    return levels[level] || level || t("mesInformations.defaultClass");
   };
 
   const getFiliereLabel = (filiere: string) => {
@@ -309,7 +318,7 @@ const MesInformations = () => {
             className="mb-6 rounded-full gap-2 border-primary/20 bg-primary/5 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-lg hover:shadow-primary/25 active:scale-95 transition-all duration-300 group"
           >
             <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
-            Retour vers Gérer mon compte
+            {t("mesInformations.backToAccount")}
           </Button>
         </motion.div>
 
@@ -348,31 +357,31 @@ const MesInformations = () => {
                       <IdCard className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-bold text-foreground">Informations personnelles</h2>
-                      <p className="text-xs text-muted-foreground">Vos informations d'inscription</p>
+                      <h2 className="text-lg font-bold text-foreground">{t("mesInformations.personalInfoTitle")}</h2>
+                      <p className="text-xs text-muted-foreground">{t("mesInformations.personalInfoDesc")}</p>
                     </div>
                   </div>
                 </div>
                 <CardContent className="p-6 space-y-4">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="first_name">Prénom</Label>
+                      <Label htmlFor="first_name">{t("mesInformations.firstName")}</Label>
                       <Input
                         id="first_name"
                         value={formData.first_name}
                         onChange={(e) => setFormData((prev) => ({ ...prev, first_name: e.target.value }))}
-                        placeholder="Votre prénom"
+                        placeholder={t("mesInformations.firstNamePlaceholder")}
                         className="rounded-xl"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="last_name">Nom de famille</Label>
+                      <Label htmlFor="last_name">{t("mesInformations.lastName")}</Label>
                       <Input
                         id="last_name"
                         value={formData.last_name}
                         onChange={(e) => setFormData((prev) => ({ ...prev, last_name: e.target.value }))}
-                        placeholder="Votre nom de famille"
+                        placeholder={t("mesInformations.lastNamePlaceholder")}
                         className="rounded-xl"
                       />
                     </div>
@@ -380,7 +389,7 @@ const MesInformations = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="email" className="flex items-center gap-1.5">
-                      <Mail className="h-3.5 w-3.5" /> Email
+                      <Mail className="h-3.5 w-3.5" /> {t("mesInformations.email")}
                     </Label>
                     <Input
                       id="email"
@@ -390,14 +399,14 @@ const MesInformations = () => {
                       className="rounded-xl text-muted-foreground"
                     />
                     <p className="text-xs text-muted-foreground">
-                      L'adresse email n'est pas modifiable depuis cette page.
+                      {t("mesInformations.emailNotEditable")}
                     </p>
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="flex items-center gap-1.5">
-                        <Phone className="h-3.5 w-3.5" /> Téléphone
+                        <Phone className="h-3.5 w-3.5" /> {t("mesInformations.phone")}
                       </Label>
                       <Input
                         id="phone"
@@ -408,13 +417,13 @@ const MesInformations = () => {
                           const filtered = e.target.value.replace(/[^\d\s+.\-]/g, "");
                           setFormData((prev) => ({ ...prev, phone: filtered }));
                         }}
-                        placeholder="05 XX XX XX XX"
+                        placeholder={t("mesInformations.phonePlaceholder")}
                         className="rounded-xl"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="flex items-center">Date de naissance</Label>
+                      <Label className="flex items-center">{t("mesInformations.dateOfBirth")}</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -427,7 +436,7 @@ const MesInformations = () => {
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {formData.date_of_birth
                               ? format(formData.date_of_birth, "dd/MM/yyyy")
-                              : "Sélectionnez une date"}
+                              : t("mesInformations.selectDate")}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -461,7 +470,7 @@ const MesInformations = () => {
                       <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
                         <MapPin className="h-5 w-5 text-primary" />
                       </div>
-                      <h2 className="text-lg font-bold text-foreground">Localisation</h2>
+                      <h2 className="text-lg font-bold text-foreground">{t("mesInformations.locationTitle")}</h2>
                     </div>
                   </div>
                   <CardContent className="p-6">
@@ -488,13 +497,13 @@ const MesInformations = () => {
                       <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
                         <GraduationCap className="h-5 w-5 text-primary" />
                       </div>
-                      <h2 className="text-lg font-bold text-foreground">Scolarité</h2>
+                      <h2 className="text-lg font-bold text-foreground">{t("mesInformations.schoolingTitle")}</h2>
                     </div>
                   </div>
                   <CardContent className="p-6 space-y-4">
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Niveau scolaire</Label>
+                        <Label>{t("mesInformations.schoolLevelLabel")}</Label>
                         <div className="flex h-10 w-full items-center rounded-xl border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
                           {getSchoolLevelName(formData.school_level)}
                         </div>
@@ -502,7 +511,7 @@ const MesInformations = () => {
 
                       {showFiliereSelector && formData.filiere && (
                         <div className="space-y-2">
-                          <Label>Filière</Label>
+                          <Label>{t("mesInformations.filiereLabel")}</Label>
                           <div className="flex h-10 w-full items-center rounded-xl border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
                             {getFiliereLabel(formData.filiere)}
                           </div>
@@ -512,7 +521,7 @@ const MesInformations = () => {
 
                     {profile?.linking_code && (
                       <div className="space-y-2 p-4 bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl border border-primary/20">
-                        <Label className="text-primary font-semibold">Code de liaison parent</Label>
+                        <Label className="text-primary font-semibold">{t("mesInformations.linkingCodeLabel")}</Label>
                         <div className="flex items-center gap-2">
                           <Input
                             value={profile.linking_code.toUpperCase()}
@@ -527,8 +536,8 @@ const MesInformations = () => {
                             onClick={() => {
                               navigator.clipboard.writeText(profile.linking_code!);
                               setCodeCopied(true);
-                              toast.success("Copié !", {
-                                description: "Le code a été copié dans le presse-papiers",
+                              toast.success(t("mesInformations.copiedTitle"), {
+                                description: t("mesInformations.copiedDesc"),
                               });
                               setTimeout(() => setCodeCopied(false), 2000);
                             }}
@@ -537,7 +546,7 @@ const MesInformations = () => {
                           </Button>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Partagez ce code avec vos parents pour qu'ils puissent lier leur compte au vôtre.
+                          {t("mesInformations.linkingCodeHint")}
                         </p>
                       </div>
                     )}
@@ -559,21 +568,20 @@ const MesInformations = () => {
                     className="rounded-full gap-1.5 text-destructive border-destructive/30 hover:bg-destructive hover:text-destructive-foreground active:scale-95 transition-all"
                   >
                     <ShieldAlert className="h-4 w-4" />
-                    Supprimer le compte
+                    {t("mesInformations.deleteAccountButton")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent className="rounded-2xl">
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
+                    <AlertDialogTitle>{t("mesInformations.deleteConfirmTitle")}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Cette action est irréversible. Cela supprimera définitivement votre compte et toutes vos
-                      données associées.
+                      {t("mesInformations.deleteConfirmDesc")}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="rounded-xl">Annuler</AlertDialogCancel>
+                    <AlertDialogCancel className="rounded-xl">{t("mesInformations.cancel")}</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDeleteAccount} className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      Supprimer définitivement
+                      {t("mesInformations.deletePermanently")}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -584,7 +592,7 @@ const MesInformations = () => {
                 disabled={updating}
                 className="rounded-full px-8 h-11 shadow-md hover:shadow-lg active:scale-95 transition-all"
               >
-                {updating ? "Mise à jour..." : "Mettre à jour"}
+                {updating ? t("mesInformations.updating") : t("mesInformations.updateButton")}
               </Button>
             </motion.div>
 

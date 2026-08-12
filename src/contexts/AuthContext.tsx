@@ -241,17 +241,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // L'espace élève est arabe uniquement (RTL forcé, pas de bascule FR) : dès
-  // qu'un compte avec le rôle student est chargé, on verrouille la langue
-  // d'interface sur l'arabe, quel que soit le choix FR/AR précédemment
-  // mémorisé en localStorage (ex : un élève ayant basculé en FR avant ce
-  // changement, ou un compte auparavant enseignant/parent redevenu élève).
-  // applyDirection() (voir src/i18n/config.ts, déclenché par l'événement
-  // languageChanged) se charge d'appliquer dir="rtl" au document dans la
-  // foulée. Le bouton FR/AR lui-même se masque séparément pour les élèves
-  // (voir LanguageToggle.tsx) — les autres rôles gardent le choix.
+  // Les espaces élève ET parent sont arabe uniquement (RTL forcé, pas de
+  // bascule FR) : dès qu'un compte avec l'un de ces deux rôles est chargé,
+  // on verrouille la langue d'interface sur l'arabe, quel que soit le choix
+  // FR/AR précédemment mémorisé en localStorage (ex : un élève/parent ayant
+  // basculé en FR avant ce changement, ou un compte auparavant
+  // enseignant/admin redevenu élève/parent). applyDirection() (voir
+  // src/i18n/config.ts, déclenché par l'événement languageChanged) se charge
+  // d'appliquer dir="rtl" au document dans la foulée. Le bouton FR/AR
+  // lui-même se masque séparément pour ces deux rôles (voir
+  // LanguageToggle.tsx) — les autres rôles (enseignant, admin, pédago,
+  // établissement) gardent le choix.
   useEffect(() => {
-    if (roles.includes('student') && i18n.language !== 'ar') {
+    if ((roles.includes('student') || roles.includes('parent')) && i18n.language !== 'ar') {
       i18n.changeLanguage('ar');
     }
   }, [roles]);
