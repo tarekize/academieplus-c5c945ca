@@ -43,6 +43,14 @@ interface TeamMember {
   roles: string[];
 }
 
+// Page d'administration de l'équipe (rôles, activation/désactivation,
+// suppression de comptes) réservée aux admins. Le garde `isAdmin` ci-dessous
+// n'est qu'un confort d'UX (masquer la page, rediriger) : la sécurité réelle
+// est appliquée côté serveur par les policies RLS "Admins can manage all
+// roles" (table user_roles) et "Admins can manage/update/delete all
+// profiles" (table profiles), qui re-vérifient has_role(auth.uid(),'admin')
+// pour CHAQUE requête — un appel direct à Supabase en contournant cette page
+// serait donc rejeté pour un utilisateur non-admin même sans ce garde.
 export default function GestionEquipe() {
   const navigate = useNavigate();
   const [team, setTeam] = useState<TeamMember[]>([]);
@@ -57,6 +65,9 @@ export default function GestionEquipe() {
     loadTeam();
   }, []);
 
+  // Vérifie que l'utilisateur connecté a le rôle admin ; sinon le renvoie
+  // vers /editorial. Purement UX — la vraie vérification est refaite côté
+  // serveur (RLS) sur chaque requête déclenchée par cette page.
   const checkAdminStatus = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -78,6 +89,9 @@ export default function GestionEquipe() {
     }
   };
 
+  // Charge tous les profils + leurs rôles. Réservé en pratique aux admins :
+  // pour tout autre appelant, la policy RLS "Admins can view all profiles"
+  // ne matche pas et seule sa propre ligne (le cas échéant) est renvoyée.
   const loadTeam = async () => {
     try {
       const { data: profiles, error: profilesError } = await supabase
@@ -111,11 +125,16 @@ export default function GestionEquipe() {
     }
   };
 
+  /** Nom affichable d'un membre, avec repli si prénom/nom sont vides. */
   const getFullName = (member: TeamMember) => {
     const parts = [member.first_name, member.last_name].filter(Boolean);
     return parts.length > 0 ? parts.join(" ") : "Sans nom";
   };
 
+  // Ajoute ou retire un rôle pour un membre. La table user_roles est
+  // protégée par la policy RLS "Admins can manage all roles" : cette requête
+  // échouerait silencieusement (0 ligne affectée) si l'appelant n'était pas
+  // réellement admin, quel que soit l'état de `isAdmin` côté client.
   const updateRole = async (userId: string, role: string, action: 'add' | 'remove') => {
     try {
       if (action === 'add') {
@@ -143,6 +162,8 @@ export default function GestionEquipe() {
     }
   };
 
+  // Active/désactive un compte (is_active). Protégé côté serveur par la
+  // policy RLS "Admins can update all profiles".
   const toggleUserStatus = async (userId: string, currentStatus: boolean | null) => {
     try {
       const { error } = await supabase
@@ -160,15 +181,24 @@ export default function GestionEquipe() {
     }
   };
 
+  // Supprime définitivement un membre (rôles puis profil, après confirmation
+  // dans la boîte de dialogue). Protégé côté serveur par les policies RLS
+  // "Admins can manage all roles" et "Admins can delete profiles".
   const deleteUser = async () => {
     if (!selectedMember) return;
 
     try {
       // Delete roles first
-      await supabase
+      const { error: rolesError } = await supabase
         .from('user_roles')
         .delete()
         .eq('user_id', selectedMember.id);
+
+      // Le résultat n'était pas vérifié : une erreur ici (ex. policy RLS qui
+      // bloque) passait inaperçue et la suppression du profil s'enchaînait
+      // quand même, laissant potentiellement des lignes user_roles orphelines
+      // pointant vers un profil sur le point d'être supprimé.
+      if (rolesError) throw rolesError;
 
       // Then delete profile
       const { error } = await supabase
@@ -188,6 +218,7 @@ export default function GestionEquipe() {
     }
   };
 
+  /** Badge coloré pour un rôle donné (couleur neutre si rôle inconnu). */
   const getRoleBadge = (role: string) => {
     const variants: Record<string, string> = {
       'admin': 'bg-red-100 text-red-800 border-red-300',
@@ -202,7 +233,8 @@ export default function GestionEquipe() {
     );
   };
 
-  const filteredTeam = team.filter(member => 
+  // Filtre côté client la liste déjà chargée, par email ou nom complet.
+  const filteredTeam = team.filter(member =>
     member.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     getFullName(member).toLowerCase().includes(searchQuery.toLowerCase())
   );

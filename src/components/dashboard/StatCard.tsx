@@ -8,6 +8,7 @@ interface StatCardProps {
   alert?: boolean;
 }
 
+// Carte statistique simple (valeur + tendance optionnelle), bordure rouge si `alert`.
 export default function StatCard({ title, value, trend, alert }: StatCardProps) {
   return (
     <Card className={alert ? 'border-l-4 border-l-destructive' : 'border-l-4 border-l-primary'}>

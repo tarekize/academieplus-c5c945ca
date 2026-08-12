@@ -57,6 +57,9 @@ const buildPedagogicScoreMessage = (lessonTitle: string, accuracy: number, level
 
 اضغط على **"توليد تعليق IA"** للحصول على أمثلة خاصة بأخطائك الحقيقية.`;
 
+// Fil des commentaires IA de progression de l'élève (userId doit toujours être
+// l'id de l'élève courant — l'appelant est responsable de ne jamais y passer
+// un autre id, sinon les requêtes ci-dessous exposeraient les données d'autrui).
 export default function AICommentsCard({ userId }: { userId: string }) {
   const navigate = useNavigate();
   const [comments, setComments] = useState<AIComment[]>([]);
@@ -64,6 +67,8 @@ export default function AICommentsCard({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
 
+  /** Construit un commentaire "de secours" à partir d'un score brut (student_scores),
+   * utilisé tant qu'aucun vrai commentaire IA n'a été généré pour cette leçon. */
   const buildScoreComment = (score: ScoreCommentSource): AIComment => {
     const levelAfter = Number(score.current_level || 0);
     const levelBefore = levelAfter < 50 ? 50 : levelAfter;
@@ -90,6 +95,8 @@ export default function AICommentsCard({ userId }: { userId: string }) {
     };
   };
 
+  /** Remplace le commentaire de secours par un vrai commentaire IA (edge function
+   * generate-lesson-comment), en repli sur le message pédagogique statique si l'appel échoue. */
   const generateCommentForScore = async (scoreComment: AIComment) => {
     if (!scoreComment.lesson_id || !userId) return;
     setGeneratingId(scoreComment.id);
@@ -146,6 +153,8 @@ export default function AICommentsCard({ userId }: { userId: string }) {
     }
   };
 
+  /** Charge les commentaires IA des dernières 24h (purge les plus anciens au passage),
+   * puis complète avec un commentaire de secours pour les leçons faibles sans commentaire réel. */
   const fetchLatest = async () => {
     // Auto-delete AI comments older than 24h
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -195,6 +204,8 @@ export default function AICommentsCard({ userId }: { userId: string }) {
     setLoading(false);
   };
 
+  // Charge la liste au montage puis se réabonne en temps réel aux changements de
+  // ai_lesson_comments pour CET élève, pour refléter un nouveau commentaire sans reload.
   useEffect(() => {
     fetchLatest();
     const channel = supabase
@@ -211,6 +222,7 @@ export default function AICommentsCard({ userId }: { userId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  /** Formate une date ISO en "il y a X min/h" (arabe), ou date+heure complète au-delà de 24h. */
   const formatTime = (iso: string) => {
     const d = new Date(iso);
     const now = new Date();

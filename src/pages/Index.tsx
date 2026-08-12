@@ -10,6 +10,8 @@ import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
 import MobileHome from "@/components/MobileHome";
 
+// Page d'accueil publique (route "/") : landing marketing complète sur le
+// web, écran minimal sur l'app native.
 const Index = () => {
   // The native app (Android/iOS) gets a minimal landing screen — the full
   // marketing page below is for the web only.

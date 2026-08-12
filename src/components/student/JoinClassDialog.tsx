@@ -23,6 +23,12 @@ interface JoinClassDialogProps {
   onClassChange?: (hasClass: boolean) => void;
 }
 
+/** Widget "compte élève" permettant de rejoindre une classe via un code fourni
+ * par l'enseignant, ou de quitter la classe actuelle. La validation du code
+ * (existence, essais successifs...) est entièrement déléguée à l'edge function
+ * `join-class` côté serveur — aucune requête directe vers la table `classes`
+ * n'est faite ici, ce qui évite qu'un client puisse deviner un code par
+ * requêtes répétées en contournant une éventuelle protection anti-bruteforce serveur. */
 export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps) {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
@@ -30,12 +36,16 @@ export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps)
   const [loading, setLoading] = useState(true);
   const [leaving, setLeaving] = useState(false);
   const [current, setCurrent] = useState<CurrentClass | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
+  /** Charge la classe actuelle de l'élève connecté (la plus récente s'il y en
+   * avait plusieurs), pour afficher soit le bouton "rejoindre" soit la classe + option de sortie. */
   const loadCurrentClass = async () => {
     setLoading(true);
     try {
       const { data: auth } = await supabase.auth.getUser();
       const uid = auth.user?.id;
+      setUserId(uid ?? null);
       if (!uid) {
         setCurrent(null);
         onClassChange?.(false);
@@ -72,6 +82,8 @@ export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps)
     loadCurrentClass();
   }, []);
 
+  /** Rejoint une classe via le code saisi, en passant par l'edge function
+   * `join-class` (seule habilitée à valider le code côté serveur). */
   const handleSubmit = async () => {
     const trimmed = code.trim();
     if (!trimmed) {
@@ -104,14 +116,20 @@ export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps)
     }
   };
 
+  /** Quitte la classe actuelle (supprime la ligne class_students correspondante). */
   const handleLeave = async () => {
     if (!current) return;
     setLeaving(true);
     try {
+      // Filtre défensif sur student_id en plus de l'id du lien : même si la
+      // policy RLS de suppression s'avérait trop large, un élève ne pourrait
+      // ainsi jamais supprimer le lien d'un AUTRE élève en devinant/rejouant
+      // un membershipId qui ne lui appartient pas.
       const { error } = await supabase
         .from("class_students")
         .delete()
-        .eq("id", current.membershipId);
+        .eq("id", current.membershipId)
+        .eq("student_id", userId);
       if (error) throw error;
       toast.success("Vous avez quitté la classe.");
       setCurrent(null);

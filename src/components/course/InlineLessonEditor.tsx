@@ -28,6 +28,9 @@ const TEXT_COLORS = [
   { label: 'Noir', className: 'clr-black', hex: '#111827' },
 ] as const;
 
+// Échappe le texte avant de l'injecter dans un gabarit HTML construit à la
+// main (insertHeading/insertBlock ci-dessous) : sans ça, un titre ou un texte
+// sélectionné contenant "<"/">" casserait la structure du fragment inséré.
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -135,6 +138,8 @@ function InlineLessonEditorInner({
     onChange(sanitizeLessonHtml(raw));
   }, [onChange]);
 
+  // Gestionnaire du vrai blur DOM (contrairement à persist() seul, appelé
+  // aussi après chaque clic sur la barre d'outils sans perte de focus réelle).
   const commit = useCallback(() => {
     persist();
     onBlurTarget?.();
@@ -191,11 +196,15 @@ function InlineLessonEditorInner({
     return sel.toString();
   }, []);
 
+  // Insère un titre h1/h2/h3 (numéroté automatiquement côté rendu élève) à
+  // partir du texte sélectionné, ou d'un texte par défaut si rien n'est sélectionné.
   const insertHeading = useCallback((level: 1 | 2 | 3, defaultText: string) => {
     const text = escapeHtml(getSelectedText() || defaultText);
     insertHtmlAtCursor(`<h${level}>${text}</h${level}>`);
   }, [getSelectedText, insertHtmlAtCursor]);
 
+  // Insère un bloc pédagogique (Définition/Propriété/Exemple) avec le même
+  // balisage que le rendu élève (lesson-block / lesson-block-title / lesson-block-content).
   const insertBlock = useCallback((blockClass: string, blockTitle: string, defaultText: string) => {
     const text = escapeHtml(getSelectedText() || defaultText);
     insertHtmlAtCursor(
@@ -203,6 +212,9 @@ function InlineLessonEditorInner({
     );
   }, [getSelectedText, insertHtmlAtCursor]);
 
+  // Insère une formule LaTeX en ligne ($...$) ou en bloc ($$...$$) : reste du
+  // texte brut éditable (voir commentaire du composant), rendu en KaTeX
+  // uniquement côté élève.
   const insertLatex = useCallback((display: boolean) => {
     const defaultFormula = display ? '\\int_a^b f(x)\\,dx' : 'x^2';
     const text = escapeHtml(getSelectedText() || defaultFormula);
@@ -251,6 +263,10 @@ function InlineLessonEditorInner({
     setStructSelection(null);
   }, [activeTable]);
 
+  // Enveloppe commune aux opérations d'ajout/suppression de ligne/colonne
+  // déclenchées depuis le panneau du bouton "Tableau" : résout la cellule
+  // active, applique la mutation DOM, puis persiste et force le recalcul de
+  // la position des boutons "+"/poignées (layoutTick).
   const withTableContext = useCallback((fn: (ctx: { table: HTMLTableElement; row: HTMLTableRowElement; colIndex: number }) => void) => {
     const ctx = getTableContext();
     if (!ctx) {
@@ -482,9 +498,15 @@ function InlineLessonEditorInner({
         sel2.removeAllRanges();
         sel2.addRange(range);
       }
+      // insertHtmlAtCursor ci-dessus a déjà persisté (onChange) le HTML AVEC
+      // data-tmp-id, avant qu'on ait pu le retirer du DOM : sans ce second
+      // persist(), ce marqueur purement interne (retrouver le tableau juste
+      // inséré) resterait dans le contenu enregistré en base — DOMPurify
+      // (sanitizeLessonHtml) ne filtre pas les attributs data-* par défaut.
+      persist();
     }
     setActiveTable(newTable ?? null);
-  }, [tableRowsInput, tableColsInput, insertHtmlAtCursor]);
+  }, [tableRowsInput, tableColsInput, insertHtmlAtCursor, persist]);
 
   // Le bouton "Ajouter une image" ouvre le sélecteur de fichiers de
   // l'appareil (en sauvegardant d'abord le curseur courant) ; l'upload réel

@@ -4,6 +4,10 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 
+// Éditeur de cours (création/édition de contenu pédagogique par l'équipe
+// éditoriale). Placeholder tant que les tables éditoriales (cours, sections,
+// matieres, niveaux) n'existent pas en base ; l'id de cours de l'URL n'est
+// pour l'instant pas exploité.
 export default function EditeurCours() {
   const { id } = useParams();
   const navigate = useNavigate();

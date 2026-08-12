@@ -3,6 +3,7 @@ import { Home, BookOpen, PenTool, Target, User } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { cn } from "@/lib/utils";
 
+/** Définition d'un onglet de la barre de navigation basse mobile. */
 interface NavItem {
   key: string;
   icon: typeof Home;

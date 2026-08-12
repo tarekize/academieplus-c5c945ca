@@ -11,9 +11,12 @@ interface FlashCardProps {
   onDifficulty: (difficulty: "facile" | "moyen" | "difficile") => void;
 }
 
+/** Carte de révision recto/verso (question/réponse) qui se retourne au clic ;
+ * une fois la réponse vue, l'élève note sa difficulté puis on passe à la carte suivante. */
 export const FlashCard = ({ question, answer, onNext, onDifficulty }: FlashCardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
 
+  /** Enregistre la difficulté ressentie, referme la carte puis avance à la suivante. */
   const handleDifficulty = (difficulty: "facile" | "moyen" | "difficile") => {
     onDifficulty(difficulty);
     setIsFlipped(false);

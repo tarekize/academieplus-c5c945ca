@@ -50,6 +50,9 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
   const [estCode, setEstCode] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
 
+  /** Charge les établissements du prof courant ; à défaut, tente de recréer la ligne
+   * "establishments" depuis son établissement d'inscription, puis répare les liens
+   * legacy et calcule l'état actif/verrouillé de chacun. */
   const fetchEstablishments = useCallback(async () => {
     setLoading(true);
     const { data } = await supabase
@@ -142,6 +145,8 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
   const activeEstablishment = establishments.find((e) => e.id === activeEstab);
   const isActiveLocked = activeEstablishment ? activeEstablishment.is_active === false : false;
 
+  /** Charge les classes de l'établissement actif (teacher_id = prof courant) et compte
+   * les élèves actifs par classe (ceux dont le profil existe encore). */
   const fetchClasses = useCallback(async () => {
     if (isActiveLocked) { setClasses([]); return; }
     const { data } = await supabase
@@ -173,6 +178,8 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
   useEffect(() => { fetchEstablishments(); }, [fetchEstablishments]);
   useEffect(() => { if (activeEstab) fetchClasses(); }, [activeEstab, fetchClasses]);
 
+  /** Rejoint un établissement via son code (RPC join_establishment_by_code), puis
+   * crée la ligne "establishments" liée pour le prof courant. */
   const addByCode = async () => {
     const code = estCode.trim().toUpperCase();
     if (!code) { toast.error("Entrez un code d'établissement."); return; }
@@ -220,6 +227,8 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
     }
   };
 
+  /** Supprime un établissement du prof courant : ses classes (et donc class_students
+   * en cascade), le lien teacher_establishments, puis la ligne establishments elle-même. */
   const handleDeleteEstablishment = async (id: string) => {
     try {
       const target = establishments.find((e) => e.id === id);
@@ -273,9 +282,14 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
     }
   };
 
+  /** Supprime une classe du prof courant. */
   const handleDeleteClass = async (id: string) => {
     try {
-      const { error } = await supabase.from("classes").delete().eq("id", id);
+      // Filtre défensif sur teacher_id en plus de l'id de la classe : sans lui, un
+      // prof connecté pourrait supprimer la classe d'un AUTRE prof en devinant/rejouant
+      // un id qui ne lui appartient pas, si jamais la policy RLS de suppression sur
+      // "classes" s'avérait trop large.
+      const { error } = await supabase.from("classes").delete().eq("id", id).eq("teacher_id", teacherId);
       if (error) throw error;
       fetchClasses();
     } catch {
@@ -283,6 +297,7 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
     }
   };
 
+  /** Ouvre la vue détail d'une classe et charge la liste des élèves membres. */
   const openClass = async (c: ClassRow) => {
     if (isActiveLocked) return;
     setSelectedClass(c);

@@ -12,6 +12,10 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
+// Tableau de bord éditorial (accueil de l'espace équipe pédagogique).
+// Actuellement une UI placeholder à statistiques figées à 0 : le module
+// nécessite des tables (cours, sections, matieres, niveaux,
+// historique_versions) pas encore créées en base.
 export default function DashboardEditorial() {
   const navigate = useNavigate();
 
