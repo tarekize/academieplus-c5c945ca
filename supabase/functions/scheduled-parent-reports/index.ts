@@ -41,6 +41,11 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ 
   return { text: String(text).trim(), usage: extractGeminiUsage(data) };
 }
 
+// Construit et insère un rapport périodique (résumé de niveau/progression sur
+// 30 jours + commentaire généré par IA) pour un enfant donné. N'est appelée
+// que depuis la boucle cron ci-dessous, jamais directement depuis un client :
+// parentId/childId proviennent de parent_child_links (status='active'), pas
+// d'un body de requête.
 async function buildPeriodicReport(supabase: any, parentId: string, childId: string) {
   const { data: child } = await supabase
     .from("profiles")
@@ -176,6 +181,9 @@ async function buildPeriodicReport(supabase: any, parentId: string, childId: str
   });
 }
 
+// Construit et insère une alerte d'inactivité quand un enfant n'a pas
+// utilisé l'application depuis INACTIVITY_DAYS jours. Même origine
+// exclusivement cron que buildPeriodicReport ci-dessus.
 async function buildInactivityReport(
   supabase: any,
   parentId: string,

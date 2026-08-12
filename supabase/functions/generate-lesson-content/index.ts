@@ -81,6 +81,10 @@ async function callAIWithFallback(messages: any[]): Promise<{ text: string; usag
   throw new Error("Tous les services IA sont indisponibles.");
 }
 
+// Génère le contenu HTML complet d'UNE leçon (via callAIWithFallback) et
+// l'écrit directement dans lessons.content. Utilisée à la fois pour la
+// génération ciblée d'une leçon précise et pour le traitement par lot
+// ci-dessous (boucle sur les leçons sans contenu).
 async function generateForLesson(
   supabase: any,
   lessonId: string,
@@ -125,6 +129,13 @@ async function generateForLesson(
   return { id: lessonId, status: "success" };
 }
 
+// Génère (et écrit en base) le contenu HTML d'une leçon donnée (`lesson_id`),
+// ou traite par lot les leçons sans contenu (`batch_size`, `school_level`
+// optionnels). Aucun appelant trouvé dans src/ (grep négatif) ni dans les
+// migrations — probablement invoquée manuellement par un admin (script/
+// console) pour peupler le contenu initial des leçons, cf. label "Admin/
+// Pédago" dans src/pages/AdminTokenUsage.tsx. Réservé admin/pédago : écrit
+// directement le contenu de cours réel avec la service_role key.
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 

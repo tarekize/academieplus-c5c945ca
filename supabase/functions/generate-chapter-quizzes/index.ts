@@ -64,6 +64,8 @@ const EXERCISE_RESPONSE_SCHEMA = {
   },
 };
 
+// Retire les éventuelles balises ```json et le texte parasite autour du JSON
+// renvoyé par le modèle, pour ne garder que l'objet/tableau JSON exploitable.
 function cleanGeneratedJson(rawContent: string): string {
   let cleanedContent = rawContent
     .replace(/```json\s*/gi, "")
@@ -78,10 +80,15 @@ function cleanGeneratedJson(rawContent: string): string {
   return cleanedContent.replace(/\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})/g, "\\\\");
 }
 
+// Convertit les "\n" littéraux (fréquents dans le JSON généré par l'IA) en
+// vrais sauts de ligne et retire les espaces superflus en tête/fin.
 function normalizeText(value: string | null | undefined): string {
   return (value || "").replace(/\\n/g, "\n").trim();
 }
 
+// Parse le JSON nettoyé ; si ça échoue (souvent à cause de backslashes LaTeX
+// non échappés), retente en retirant purement et simplement les backslashes
+// problématiques plutôt que de faire échouer toute la génération.
 function parseGeneratedArray<T>(content: string): T[] {
   const cleaned = cleanGeneratedJson(content);
   try {
@@ -214,6 +221,9 @@ async function callGeminiWithKey(apiKey: string, label: string, systemPrompt: st
 }
 
 // ============ Unified AI generation with fallback ============
+// Essaie chaque provider IA de la liste dans l'ordre jusqu'à obtenir une
+// réponse non vide et valide (validateJson) ; agrège les erreurs de chacun
+// pour un message final exploitable si tous échouent.
 async function generateWithAI(
   systemPrompt: string,
   userPrompt: string,
@@ -243,6 +253,8 @@ async function generateWithAI(
   throw new Error(`⚠️ جميع خدمات الذكاء الاصطناعي غير متاحة أو أعطت JSON غير صالح. التفاصيل: ${errors.join(" | ")}`);
 }
 
+// Génère 5 QCM (avec indices) sur une leçon/chapitre donné et les normalise
+// (filtre les items incomplets, nettoie le texte).
 async function generateQuizzes(
   chapterTitle: string,
   lessonTitle: string
@@ -301,6 +313,8 @@ async function generateQuizzes(
   }
 }
 
+// Génère 5 exercices (avec solutions détaillées) sur une leçon/chapitre
+// donné et les normalise (filtre les items incomplets, nettoie le texte).
 async function generateExercises(
   chapterTitle: string,
   lessonTitle: string
@@ -385,6 +399,13 @@ $$\\\\boxed{\\\\text{النتيجة}}$$
   }
 }
 
+// Génère 5 quiz + 5 exercices pour un chapitre (et optionnellement une leçon
+// précise) et les insère directement dans chapter_quizzes/chapter_exercises.
+// Aucun appelant trouvé dans src/ (grep négatif) ni dans les migrations —
+// seule référence trouvée est un libellé "Admin/Pédago" dans
+// src/pages/AdminTokenUsage.tsx, ce qui suggère un endpoint legacy/orphelin
+// ou invoqué manuellement par un admin. Réservé admin/pédago ci-dessous
+// (écrit directement en base avec la service_role key).
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });

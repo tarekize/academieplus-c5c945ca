@@ -11,6 +11,7 @@ export const GROUP_INFO: Record<StudentGroupLetter, { label: string; tone: strin
 
 export const GROUP_ORDER: StudentGroupLetter[] = ["A", "B", "C", "D"];
 
+/** Convertit un score global (0-100) en groupe de niveau A (avancé) à D (en difficulté). */
 export function groupFromPct(pct: number): StudentGroupLetter {
   if (pct >= 70) return "A";
   if (pct >= 50) return "B";

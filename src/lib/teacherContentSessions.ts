@@ -15,6 +15,8 @@ export interface TeacherContentSessionRow {
   updated_at: string;
 }
 
+/** Liste les brouillons/sessions sauvegardés d'un enseignant pour un type de
+ * contenu donné (historique affiché dans les générateurs IA enseignant). */
 export async function listTeacherContentSessions(teacherId: string, contentType: SessionContentType): Promise<TeacherContentSessionRow[]> {
   const { data, error } = await (supabase as any)
     .from("teacher_content_sessions")
@@ -26,6 +28,8 @@ export async function listTeacherContentSessions(teacherId: string, contentType:
   return (data as TeacherContentSessionRow[]) || [];
 }
 
+/** Crée ou met à jour (si `id` fourni) une session de génération enseignant
+ * (état du wizard/chat + titre), pour reprendre plus tard un brouillon. */
 export async function saveTeacherContentSession(params: {
   id?: string | null;
   teacherId: string;
@@ -34,10 +38,15 @@ export async function saveTeacherContentSession(params: {
   state: Record<string, any>;
 }): Promise<string> {
   if (params.id) {
+    // Filtre défensif sur teacher_id en plus de l'id de session : empêche un
+    // enseignant de réécrire la session d'un collègue en rejouant un id de
+    // session qu'il ne possède pas, si la policy RLS d'update s'avérait trop
+    // permissive.
     const { error } = await (supabase as any)
       .from("teacher_content_sessions")
       .update({ title: params.title, state: params.state })
-      .eq("id", params.id);
+      .eq("id", params.id)
+      .eq("teacher_id", params.teacherId);
     if (error) throw error;
     return params.id;
   }
@@ -50,6 +59,10 @@ export async function saveTeacherContentSession(params: {
   return data.id as string;
 }
 
+// Supprime une session enregistrée (bouton corbeille dans TeacherContentSessionHistory).
+// Ne filtre pas par teacher_id ici : repose entièrement sur la policy RLS de
+// suppression de teacher_content_sessions pour empêcher un enseignant de
+// supprimer la session d'un collègue — à vérifier côté RLS.
 export async function deleteTeacherContentSession(id: string): Promise<void> {
   const { error } = await (supabase as any).from("teacher_content_sessions").delete().eq("id", id);
   if (error) throw error;

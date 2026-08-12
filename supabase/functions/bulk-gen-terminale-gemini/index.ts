@@ -27,12 +27,15 @@ const SYSTEM_PROMPT = `أنت معلم رياضيات خبير للسنة الن
 // (bande = emplacement Découvrir [1-2] ou Comprendre [3-5], recoupée avec le niveau min/max choisi).
 interface DifficultyBatch { count: number; min: number; max: number; }
 
+// Formate la liste des tranches de difficulté en lignes lisibles pour le prompt IA.
 function describeBatches(batches: DifficultyBatch[], label: string): string {
   return batches
     .map((b, i) => `- ${b.count} ${label} بمستوى صعوبة بين ${b.min} و ${b.max}`)
     .join("\n");
 }
 
+// Construit le prompt utilisateur détaillant le nombre et la répartition de
+// difficulté des exercices/quiz à générer pour une leçon donnée.
 function buildUserPrompt(
   chapterAr: string,
   lessonAr: string,
@@ -155,6 +158,8 @@ function fixJsonStringEscapes(input: string): string {
   return out;
 }
 
+// Nettoie puis parse le JSON généré, en réparant d'abord les échappements
+// LaTeX invalides avant de retenter un parse strict en repli.
 function parseGeneratedObject(rawContent: string): any {
   const cleaned = cleanGeneratedJson(rawContent);
   try { return JSON.parse(cleaned); } catch { /* fallthrough */ }
@@ -165,6 +170,8 @@ function parseGeneratedObject(rawContent: string): any {
   }
 }
 
+// Appelle Gemini directement (sans passerelle) en essayant plusieurs clés et
+// modèles, avec retries et backoff sur les erreurs transitoires (429/5xx).
 async function callGemini(systemPrompt: string, userPrompt: string): Promise<{ parsed: any; usage: GeminiUsage | null }> {
   if (!GEMINI_KEYS.length) throw new Error("GEMINI_API_KEY_2 not configured");
 

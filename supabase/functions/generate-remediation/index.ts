@@ -202,6 +202,9 @@ const REMEDIATION_RESPONSE_SCHEMA = {
   required: ["exercises", "quizzes"],
 };
 
+// Provider Lovable AI Gateway — non branché dans le handler actuel (qui
+// n'appelle que callGemini via GEMINI_API_KEY_2), conservé comme repli
+// potentiel.
 async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<string> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -231,6 +234,8 @@ async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<
 // models in order instead of a single hardcoded one.
 const GEMINI_FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite"];
 
+// Génère les activités de remédiation via Gemini, en essayant plusieurs
+// modèles en repli si le premier échoue ou renvoie une réponse tronquée.
 async function callGemini(systemPrompt: string, userPrompt: string, key: string, label: string): Promise<{ text: string; usage: AiUsage | null }> {
   let lastError = `Gemini ${label} unavailable`;
   for (const model of GEMINI_FALLBACK_MODELS) {
@@ -275,6 +280,10 @@ async function callGemini(systemPrompt: string, userPrompt: string, key: string,
   throw new Error(lastError);
 }
 
+// Génère des activités de remédiation (3 exercices + 2 quiz, ou un seul item
+// en mode "single") ciblées exclusivement sur les lacunes de l'élève, sans
+// jamais monter en difficulté. Appelée par src/pages/LessonRemediation.tsx
+// (élève). Authentification + rate limiting obligatoires ci-dessous.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 

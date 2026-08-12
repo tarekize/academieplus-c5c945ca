@@ -163,7 +163,9 @@ Contenu du bloc (peut contenir des listes, du gras, du LaTeX)...
 Tu retournes UNIQUEMENT le contenu Markdown de la leçon, rien avant, rien après. Aucun blabla, pas de texte "Voici le cours...", AUCUNE balise de code \`\`\`markdown. JUSTE LE CONTENU BRUT.`;
 }
 
-// Convert OpenAI-style messages (string OR [{type:'text'|'image_url',...}]) to Gemini parts
+// Convertit les messages façon OpenAI (texte OU [{type:'text'|'image_url',...}])
+// envoyés par AdminAssistantPanel.tsx en "parts" Gemini (texte ou inlineData
+// pour une image/PDF en data URL).
 function toGeminiParts(content: any): any[] {
   if (typeof content === "string") return [{ text: sanitizeForGemini(content) }];
   if (!Array.isArray(content)) return [{ text: sanitizeForGemini(String(content ?? "")) }];
@@ -197,6 +199,9 @@ function toGeminiParts(content: any): any[] {
 // une erreur 400 sur UN modèle ne garantit pas l'échec des autres.
 const GEMINI_MODEL_FALLBACKS = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
 
+// Appelle Gemini en streaming (SSE) et retransmet les tokens à l'appelant
+// au format compatible OpenAI attendu par le client (choices[].delta.content),
+// tout en capturant l'usage réel de tokens du dernier chunk pour le logging.
 async function callGemini(
   systemPrompt: string,
   messages: any[],
@@ -329,6 +334,12 @@ async function callGemini(
   });
 }
 
+// Assistant éditorial en streaming pour l'édition/génération de contenu de
+// leçon (chat + document joint). Appelé directement en fetch SSE (pas
+// supabase.functions.invoke, qui ne supporte pas le streaming) par
+// src/components/admin/AdminAssistantPanel.tsx (EDITORIAL_ASSISTANT_URL),
+// réservé enseignant/pédago/admin. Authentification + rôle + rate limiting
+// obligatoires ci-dessous.
 // ============ Main handler ============
 serve(async (req) => {
   if (req.method === "OPTIONS") {

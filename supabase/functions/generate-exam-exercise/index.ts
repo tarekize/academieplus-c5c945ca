@@ -22,6 +22,7 @@ interface GeneratedExamExercise {
   sub_questions?: GeneratedSubQuestion[];
 }
 
+// Retire les balises ```json et le texte parasite autour du JSON renvoyé.
 function cleanGeneratedJson(rawContent: string): string {
   let cleaned = rawContent
     .replace(/```json\s*/gi, "")
@@ -49,6 +50,9 @@ function looksLikeLatexNCommand(input: string, pos: number): boolean {
   return LATEX_N_WORDS.some((w) => input.startsWith(w, pos));
 }
 
+// Parcourt le JSON caractère par caractère pour ré-échapper tout backslash
+// LaTeX invalide (\frac, \right, \neq...) sans casser les échappements JSON
+// déjà valides — voir le commentaire détaillé au-dessus.
 function fixJsonStringEscapes(input: string): string {
   let out = "";
   let inString = false;
@@ -80,10 +84,13 @@ function fixJsonStringEscapes(input: string): string {
   return out;
 }
 
+// Convertit les "\n" littéraux en vrais sauts de ligne et trim.
 function normalizeText(value: string | null | undefined): string {
   return (value || "").replace(/\\n/g, "\n").trim();
 }
 
+// Nettoie puis parse le JSON généré, en appliquant systématiquement le
+// correctif d'échappement LaTeX (voir commentaire au-dessus).
 function parseGeneratedObject(content: string): GeneratedExamExercise {
   const cleaned = cleanGeneratedJson(content);
   // Le correctif doit s'appliquer TOUJOURS, pas seulement quand JSON.parse()
@@ -121,6 +128,9 @@ const EXAM_EXERCISE_RESPONSE_SCHEMA = {
   required: ["statement", "solution", "answer"],
 };
 
+// Génère UN exercice d'examen (avec solution détaillée) via Gemini (2ème
+// clé), en essayant plusieurs modèles en repli si le premier échoue ou
+// renvoie une réponse tronquée (finishReason != STOP).
 async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
   const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
   if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
@@ -162,6 +172,11 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ 
   throw new Error(lastError);
 }
 
+// Génère UN exercice d'examen (énoncé + solution détaillée + réponse) pour un
+// chapitre donné. Appelée par src/components/exams/ViaIAWizard.tsx,
+// src/components/teacher/ExamAIBuilder.tsx et src/pages/ExamList.tsx (côté
+// enseignant/pédago/admin, préparation d'examens). Authentification + rôle +
+// rate limiting obligatoires ci-dessous.
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });

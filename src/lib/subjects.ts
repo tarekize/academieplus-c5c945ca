@@ -19,6 +19,7 @@ export const SUBJECTS: SubjectDef[] = [
   { id: "philo", name: "Philosophie", nameAr: "الفلسفة", icon: "🧠" },
 ];
 
+/** Libellé FR d'une matière à partir de son id (repli sur l'id si inconnu). */
 export function subjectLabel(id: string): string {
   return SUBJECTS.find((s) => s.id === id)?.name || id;
 }

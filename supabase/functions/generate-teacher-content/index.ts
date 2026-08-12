@@ -66,6 +66,8 @@ function fixJsonStringEscapes(input: string): string {
   return out;
 }
 
+// Nettoie puis parse le JSON généré par l'IA, en réparant d'abord les
+// échappements LaTeX invalides (voir fixJsonStringEscapes ci-dessus).
 function parseAiJson(rawContent: string): any {
   const cleaned = cleanGeneratedJson(rawContent);
   try { return JSON.parse(cleaned); } catch { /* fallthrough */ }
@@ -103,6 +105,9 @@ interface Body {
   focusNote?: string; // optional context (e.g. weak points for class/student help)
 }
 
+// Construit le prompt système + utilisateur pour générer `count` items
+// (exercice/quiz/examen) sur une leçon donnée, dans la fourchette de
+// difficulté demandée par l'enseignant.
 function buildPrompt(b: Body) {
   const levelLabel = SCHOOL_LEVEL_LABELS[b.schoolLevel || ""] || b.schoolLevel || "";
   const count = Math.min(Math.max(b.count || 3, 1), 10);
@@ -153,6 +158,9 @@ Format de "solution" — OBLIGATOIRE :
   };
 }
 
+// Appelle Lovable AI Gateway pour générer le contenu ; dégrade vers une
+// liste d'items vide plutôt que de faire échouer toute la requête si le JSON
+// renvoyé reste invalide malgré les réparations d'échappement.
 async function callGateway(system: string, user: string): Promise<{ parsed: any; usage: AiUsage | null }> {
   const key = Deno.env.get("LOVABLE_API_KEY");
   if (!key) throw new Error("LOVABLE_API_KEY manquante");
@@ -186,6 +194,11 @@ async function callGateway(system: string, user: string): Promise<{ parsed: any;
   }
 }
 
+// Génère `count` exercices/quiz/examens sur une leçon donnée (contenu
+// autonome, pas encore inséré en base — retourné à l'appelant pour relecture).
+// Appelée par src/lib/teacherContent.ts (enseignant/pédago/admin, via
+// ExamAIBuilder.tsx et consorts). Authentification + rôle + rate limiting
+// obligatoires ci-dessous.
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {

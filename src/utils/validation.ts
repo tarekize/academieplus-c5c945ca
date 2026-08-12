@@ -1,3 +1,8 @@
+// Schémas Zod + wrappers de validation pour le module Cours/Sections/Formules/Media.
+// À date de cet audit, aucun fichier du repo n'importe ce module
+// (src/utils/validation.ts) : ni les schémas ni les fonctions validateXxx
+// ci-dessous ne sont utilisés — code mort, probablement remplacé par la
+// validation faite directement dans les formulaires concernés.
 import { z } from 'zod';
 
 export const courseSchema = z.object({
@@ -30,18 +35,22 @@ export const mediaSchema = z.object({
   legende: z.string().optional(),
 });
 
+/** Valide un objet cours contre courseSchema (safeParse : ne lève pas, renvoie {success, data|error}). */
 export function validateCourse(data: unknown) {
   return courseSchema.safeParse(data);
 }
 
+/** Valide une section de cours contre sectionSchema. */
 export function validateSection(data: unknown) {
   return sectionSchema.safeParse(data);
 }
 
+/** Valide une formule LaTeX contre formulaSchema. */
 export function validateFormula(data: unknown) {
   return formulaSchema.safeParse(data);
 }
 
+/** Valide un média (image/vidéo/audio/document) contre mediaSchema. */
 export function validateMedia(data: unknown) {
   return mediaSchema.safeParse(data);
 }

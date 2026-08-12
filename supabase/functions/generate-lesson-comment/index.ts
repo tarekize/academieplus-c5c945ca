@@ -10,6 +10,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Message de repli non-IA utilisé si GEMINI_API_KEY_2 est absente ou si tous
+// les appels Gemini échouent : construit un commentaire simple à partir des
+// chiffres de la session, pour que l'élève ait toujours un retour même en
+// cas d'indisponibilité du service IA.
 function fallbackMessage(lessonTitle: string, levelBefore: number, levelAfter: number, correct: number, total: number, _weak: string[]) {
   const acc = total > 0 ? Math.round((correct / total) * 100) : 0;
   const lesson = lessonTitle ? `درس **"${lessonTitle}"**` : 'هذا الدرس';
@@ -23,6 +27,12 @@ function fallbackMessage(lessonTitle: string, levelBefore: number, levelAfter: n
 }
 
 
+// Génère un court commentaire IA (2-3 lignes, en arabe) sur la progression de
+// l'élève après une session d'exercices/quiz sur une leçon (lacunes, niveau
+// avant/après). Appelée par src/components/dashboard/AICommentsCard.tsx et
+// src/hooks/useAdaptiveContent.ts (côté élève). Authentification + rate
+// limiting obligatoires ci-dessous ; se dégrade silencieusement vers
+// fallbackMessage() plutôt que d'échouer si l'IA est indisponible.
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
@@ -122,6 +132,9 @@ Deno.serve(async (req) => {
     // Utilise uniquement Gemini (2ème clé)
 
 
+    // Appelle Gemini (2ème clé) pour générer le commentaire ; retourne null
+    // (plutôt que de lever une exception) sur tout échec HTTP, pour que
+    // l'appelant puisse basculer proprement sur fallbackMessage().
     async function tryGemini(key: string, label: string): Promise<{ text: string; usage: AiUsage | null } | null> {
       const r = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,

@@ -220,10 +220,15 @@ export function useLinkedChildren() {
 
   const removeChild = async (linkId: string) => {
     try {
+      // Filtre défensif sur parent_id en plus de l'id du lien : sans lui, un
+      // parent connecté pourrait supprimer le lien d'un AUTRE parent en
+      // devinant/rejouant un linkId qui ne lui appartient pas, si jamais la
+      // policy RLS de suppression sur parent_child_links s'avérait trop large.
       const { error } = await supabase
         .from("parent_child_links")
         .delete()
-        .eq("id", linkId);
+        .eq("id", linkId)
+        .eq("parent_id", user?.id);
 
       if (error) throw error;
 
@@ -348,10 +353,14 @@ export function useLinkedParents() {
 
   const removeParent = async (linkId: string) => {
     try {
+      // Idem removeChild : filtre défensif sur child_id pour qu'un élève ne
+      // puisse pas supprimer le lien d'un autre élève avec son parent en
+      // fournissant un linkId qui ne le concerne pas.
       const { error } = await supabase
         .from("parent_child_links")
         .delete()
-        .eq("id", linkId);
+        .eq("id", linkId)
+        .eq("child_id", user?.id);
 
       if (error) throw error;
 

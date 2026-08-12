@@ -18,6 +18,8 @@ const SCHOOL_LEVEL_LABELS: Record<string, string> = {
   "terminale": "3ème année secondaire (BAC)",
 };
 
+// Convertit le score de niveau composite de l'élève (0-100) en une échelle
+// de difficulté 1-5 utilisée pour calibrer le prompt de génération.
 function getDifficultyScale(level: number): number {
   if (level < 20) return 1;
   if (level < 40) return 2;
@@ -26,6 +28,7 @@ function getDifficultyScale(level: number): number {
   return 5;
 }
 
+// Libellé humain (FR) de la difficulté, injecté dans le prompt pour guider le ton.
 function getDifficultyLabel(level: number): string {
   if (level < 25) return "débutant (très facile)";
   if (level < 40) return "facile";
@@ -34,6 +37,8 @@ function getDifficultyLabel(level: number): string {
   return "avancé (très difficile)";
 }
 
+// Résume en texte libre les points faibles détectés à partir du taux de
+// réussite et de la série de bonnes réponses, injecté dans le prompt IA.
 function getWeakPointsText(accuracyRate: number, streak: number): string {
   const points: string[] = [];
   if (accuracyRate < 40) points.push("compréhension générale faible");
@@ -42,6 +47,9 @@ function getWeakPointsText(accuracyRate: number, streak: number): string {
   return points.length > 0 ? points.join(", ") : "aucun point faible notable";
 }
 
+// Construit le prompt système + utilisateur pour générer 5 items (quiz,
+// exercice ou fiche de révision) calibrés sur le profil de l'élève (niveau,
+// taux de réussite, série, questions déjà posées à éviter).
 function buildPrompt(
   contentType: string,
   schoolLevel: string,
@@ -298,6 +306,10 @@ async function callGemini2(systemPrompt: string, userPrompt: string, responseSch
   throw new Error(lastError);
 }
 
+// Génère 5 items (quiz/exercice/fiche de révision) adaptés en temps réel au
+// niveau et aux performances de l'élève sur la leçon en cours. Appelée par
+// src/hooks/useAdaptiveContent.ts (élève, à chaque nouvelle série d'exercices/
+// quiz proposée). Authentification + rate limiting obligatoires ci-dessous.
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });

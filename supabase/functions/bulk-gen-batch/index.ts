@@ -23,6 +23,7 @@ const SYSTEM_PROMPT = `أنت معلم رياضيات خبير للسنة الن
 - درجات الصعوبة من 1 إلى 5، وزع تدريجيا.
 - أرجع JSON صالح فقط حسب الخطاطة.`;
 
+// Construit le prompt utilisateur demandant 10 exercices + 10 QCM pour une leçon donnée.
 function buildUserPrompt(chapterAr: string, lessonAr: string, lessonFr: string) {
   return `الفصل: ${chapterAr}
 الدرس: ${lessonAr} (${lessonFr})
@@ -51,6 +52,7 @@ function buildUserPrompt(chapterAr: string, lessonAr: string, lessonFr: string) 
 أرجع JSON: {"exercises":[...10...],"quizzes":[...10...]}`;
 }
 
+// Appelle Lovable AI Gateway (modèle Gemini 2.5 Flash) et parse la réponse JSON.
 async function callGemini(userPrompt: string): Promise<any> {
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -78,6 +80,9 @@ async function callGemini(userPrompt: string): Promise<any> {
   return JSON.parse(cleaned);
 }
 
+// Génère (avec jusqu'à 3 tentatives) puis insère 10 exercices + 10 quiz pour
+// UNE leçon, en remplaçant systématiquement tout contenu existant pour cette
+// leçon (delete puis insert).
 async function processLesson(admin: any, lesson: any): Promise<{ ok: boolean; error?: string; ex?: number; qz?: number }> {
   const userPrompt = buildUserPrompt(
     lesson.chapter_title_ar || lesson.chapter_title || "",
@@ -132,6 +137,11 @@ async function processLesson(admin: any, lesson: any): Promise<{ ok: boolean; er
   return { ok: true, ex: exercises.length, qz: quizzes.length };
 }
 
+// Génère en masse (jusqu'à 5 leçons par appel) 10 exercices + 10 quiz par
+// leçon, en REMPLAÇANT le contenu existant. Aucun appelant trouvé dans src/
+// (grep négatif) ni dans les migrations — probablement un script admin
+// externe (voir le commentaire d'en-tête du fichier : "batch-generate...").
+// Réservé admin/pédago ci-dessous.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {

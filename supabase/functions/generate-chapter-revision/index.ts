@@ -6,6 +6,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 type RoleGroup = "student" | "teacher" | "pedago" | "admin" | "parent" | "other";
 interface AiUsage { inputTokens: number; outputTokens: number; }
 
+// Copie inlinée de _shared/tokenLogger.ts::extractGeminiUsage (voir
+// commentaire plus haut sur pourquoi ce fichier n'importe pas _shared/).
 function extractGeminiUsage(data: any): AiUsage | null {
   const usage = data?.usageMetadata;
   if (!usage) return null;
@@ -15,6 +17,8 @@ function extractGeminiUsage(data: any): AiUsage | null {
   return { inputTokens, outputTokens };
 }
 
+// Copie inlinée de _shared/tokenLogger.ts::logTokenUsageAsync : insertion
+// fire-and-forget dans ai_token_usage, jamais attendue par l'appelant.
 function logTokenUsageAsync(params: {
   supabaseUrl: string; serviceRoleKey: string; userId: string | null; roleGroup: RoleGroup;
   functionName: string; inputTokens?: number; outputTokens?: number; inputText?: string; estimatedOutputTokens?: number;
@@ -33,6 +37,9 @@ function logTokenUsageAsync(params: {
   }
 }
 
+// Copie inlinée de _shared/tokenLogger.ts::resolveCallerRoleGroup : résout le
+// rôle de l'appelant depuis son JWT, pour catégoriser les logs — ne rejette
+// jamais un appel (dégrade vers {userId:null, roleGroup:'other'}).
 async function resolveCallerRoleGroup(supabaseUrl: string, serviceRoleKey: string, authHeader: string | null): Promise<{ userId: string | null; roleGroup: RoleGroup }> {
   if (!authHeader) return { userId: null, roleGroup: "other" };
   try {
@@ -65,6 +72,7 @@ type AIProvider = {
   call: (systemPrompt: string, userPrompt: string) => Promise<{ text: string; usage: AiUsage | null }>;
 };
 
+// Provider 1 : Lovable AI Gateway (essayé en premier dans generateWithAI).
 async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<string> {
   const KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -89,6 +97,9 @@ async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<
   return data?.choices?.[0]?.message?.content || "";
 }
 
+// Provider Gemini direct (clé principale) — non branché dans generateWithAI
+// actuellement (voir liste `providers` : seule Gemini clé 2 y est utilisée),
+// conservé au cas où un repli supplémentaire soit réactivé plus tard.
 async function callGemini(systemPrompt: string, userPrompt: string): Promise<string> {
   const KEY = Deno.env.get("GEMINI_API_KEY");
   if (!KEY) throw new Error("GEMINI_API_KEY not configured");
@@ -110,6 +121,8 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<str
   return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }
 
+// Provider Groq (Llama) — non branché dans generateWithAI actuellement, voir
+// commentaire sur callGemini ci-dessus.
 async function callGroq(systemPrompt: string, userPrompt: string): Promise<string> {
   const KEY = Deno.env.get("GROQ_API_KEY");
   if (!KEY) throw new Error("GROQ_API_KEY not configured");
@@ -134,6 +147,8 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<strin
   return data?.choices?.[0]?.message?.content || "";
 }
 
+// Provider Gemini (2ème clé) — seul provider réellement utilisé par
+// generateWithAI ci-dessous.
 async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
   const KEY = Deno.env.get("GEMINI_API_KEY_2");
   if (!KEY) throw new Error("GEMINI_API_KEY_2 not configured");
@@ -155,6 +170,8 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ 
   return { text: data?.candidates?.[0]?.content?.parts?.[0]?.text || "", usage: extractGeminiUsage(data) };
 }
 
+// Essaie chaque provider de `providers` dans l'ordre jusqu'à obtenir une
+// réponse non vide ; agrège les erreurs si tous échouent.
 async function generateWithAI(systemPrompt: string, userPrompt: string): Promise<{ content: string; provider: string; usage: AiUsage | null }> {
   const providers: AIProvider[] = [
     { name: "Gemini key 2", call: callGemini2 },
@@ -176,10 +193,16 @@ async function generateWithAI(systemPrompt: string, userPrompt: string): Promise
   throw new Error(`All AI providers failed: ${errors.join(" | ")}`);
 }
 
+// Retire les balises HTML du contenu de leçon pour n'envoyer que du texte
+// brut à l'IA (réduit la taille du prompt).
 function stripHtml(html: string): string {
   return (html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
+// Génère une fiche de révision Markdown pour un chapitre entier (à partir du
+// contenu de ses leçons). Appelée par src/components/course/ChapterRevision.tsx.
+// Contenu PARTAGÉ (publié par le pédagogue) : réservé admin/pédago pour
+// éviter qu'un élève ne déclenche une génération IA payante à volonté.
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 

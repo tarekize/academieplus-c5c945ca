@@ -30,6 +30,10 @@ export async function signInWithGoogleNative() {
   await Browser.open({ url: data.url, presentationStyle: "popover" });
 }
 
+// Termine la connexion à partir de l'URL de callback interceptée par le
+// deep-link : gère à la fois le flux PKCE (?code=) et le flux implicite
+// (tokens dans le #fragment), et remonte un message d'erreur explicite si
+// Google/Supabase ont renvoyé error_description.
 async function completeSessionFromCallbackUrl(url: string) {
   const parsed = new URL(url);
   const hashParams = new URLSearchParams(parsed.hash.replace(/^#/, ""));

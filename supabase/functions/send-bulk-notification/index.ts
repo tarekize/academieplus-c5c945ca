@@ -29,6 +29,11 @@ async function sendSmtpEmail(client: SMTPClient, to: string, subject: string, ht
   await client.send({ from: `${fromName} <${fromEmail}>`, to, subject, content: text, html });
 }
 
+// Échappe le HTML avant insertion dans le corps de l'email : le contenu du
+// template (subject/body_text) est saisi par un admin dans l'UI, mais reste
+// injecté tel quel dans un <p>/<h1> — sans échappement, un caractère comme
+// < ou & casserait le rendu, voire permettrait d'injecter du HTML/script
+// dans un email vu par tous les destinataires de la campagne.
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -38,10 +43,15 @@ function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
+// Remplace les jetons {{prenom}}/{{nom}}/{{email}} du template par les
+// valeurs réelles du destinataire courant ; un jeton inconnu est laissé tel
+// quel plutôt que supprimé, pour rester visible si le template est mal écrit.
 function applyPlaceholders(text: string, vars: Record<string, string>): string {
   return text.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, key) => (key in vars ? vars[key] : match));
 }
 
+// Habille le texte du template (subject + paragraphes, chacun passé par
+// escapeHtml ci-dessous) dans la mise en page email standard AcademiePlus.
 function buildEmailHtml(opts: { logoUrl: string | null; subject: string; bodyText: string }): string {
   const paragraphs = opts.bodyText
     .split(/\n+/)
