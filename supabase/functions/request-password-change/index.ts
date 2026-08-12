@@ -14,6 +14,9 @@ const CODE_TTL_SECONDS = 10 * 60;
 const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
 const RATE_LIMIT_MAX_REQUESTS = 5;
 
+// Hache le code avec un poivre serveur + l'userId, pour ne jamais stocker le
+// code en clair (mêmes garanties qu'un mot de passe) — voir confirm-password-
+// change, qui recalcule ce même hash pour vérifier le code soumis.
 async function hashCode(code: string, userId: string): Promise<string> {
   const pepper = Deno.env.get("PASSWORD_CODE_PEPPER") || "academieplus-default-pepper";
   const data = new TextEncoder().encode(`${pepper}:${userId}:${code}`);
@@ -21,6 +24,8 @@ async function hashCode(code: string, userId: string): Promise<string> {
   return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// Code à 6 chiffres tiré via crypto.getRandomValues (CSPRNG), pas Math.random :
+// un générateur prévisible permettrait de deviner le code de vérification.
 function generateCode(): string {
   const bytes = new Uint32Array(1);
   crypto.getRandomValues(bytes);

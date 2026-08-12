@@ -19,6 +19,13 @@ function escapeLikePattern(input: string): string {
   return input.replace(/[\\%_]/g, (ch) => `\\${ch}`);
 }
 
+// Appelé par AddStudentToClassDialog.tsx quand un enseignant authentifié
+// ajoute un élève à l'une de ses classes via le linking_code de l'élève.
+// Vérifie côté serveur que l'appelant a le rôle teacher/admin ET que la
+// classe ciblée lui appartient bien (classes.teacher_id === appelant) — un
+// enseignant ne peut donc pas ajouter d'élève à la classe d'un collègue en
+// changeant juste le classId dans le body. Limite aussi les tentatives de
+// code (voir check_and_log_rate_limit) contre le brute-force du linking_code.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });

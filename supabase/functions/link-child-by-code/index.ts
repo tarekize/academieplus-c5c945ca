@@ -9,6 +9,12 @@ const corsHeaders = {
 const MAX_ATTEMPTS = 10;
 const WINDOW_MINUTES = 15;
 
+// Appelé par useProfile.ts et ParentDashboard.tsx quand un parent authentifié
+// saisit le code de liaison à 8 caractères d'un élève. Ne crée qu'une demande
+// "pending" — le lien ne devient actif que lorsque l'élève l'accepte depuis
+// son propre compte — et limite le nombre de tentatives par parent (voir
+// check_and_log_rate_limit ci-dessous) pour empêcher de deviner le code d'un
+// élève par force brute.
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {

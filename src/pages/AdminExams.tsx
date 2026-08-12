@@ -47,6 +47,12 @@ export default function AdminExams() {
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
   const [deepLinkTrimester, setDeepLinkTrimester] = useState<number | null>(null);
 
+  // Construit la grille niveau/filière × matière, puis marque les cellules
+  // ayant un examen en attente de validation ou de suppression (pastille
+  // rouge). Gère aussi le deep-link depuis /admin/validation (paramètres
+  // ?subject=&niveau=&filiere=&trimester= dans l'URL) pour ouvrir directement
+  // la cellule concernée. Lecture directe des tables filieres/exams : lecture
+  // globale attendue admin-only côté RLS.
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -174,6 +180,9 @@ function AdminExamCellPanel({ cell, initialTrimester, onBack }: { cell: Selected
   const [exams, setExams] = useState<ExamRecord[]>([]);
   const isTerminale = cell.schoolLevel === "terminale";
 
+  // Charge les examens de la cellule sélectionnée (matière + niveau [+
+  // filière]), tous trimestres confondus. Lecture directe de la table exams,
+  // admin-only attendue côté RLS.
   const fetchExams = async () => {
     setLoading(true);
     let query = supabase

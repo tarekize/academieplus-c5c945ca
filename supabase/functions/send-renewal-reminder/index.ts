@@ -6,6 +6,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
+const RATE_LIMIT_MAX_REQUESTS = 30;
+
 // NB : dupliqué (plutôt que partagé via _shared/) car les redéploiements
 // mono-fonction de cette plateforme ne repèrent pas toujours un nouveau
 // fichier _shared/ ajouté après coup ("Module not found" au déploiement) —
@@ -44,6 +47,11 @@ async function sendSmtpEmail(to: string, subject: string, html: string, text: st
   }
 }
 
+// Appelé par AdminContrats.tsx quand un admin envoie manuellement un rappel
+// d'échéance d'abonnement/contrat à un utilisateur ciblé. Réservé aux admins
+// (rôle vérifié côté serveur via user_roles, pas déduit du client) et limité
+// en fréquence pour empêcher qu'un compte admin compromis, ou un script,
+// n'utilise cet endpoint pour bombarder un même destinataire de rappels.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -85,6 +93,24 @@ Deno.serve(async (req) => {
     if (!callerRole) {
       return new Response(JSON.stringify({ error: "Accès non autorisé — rôle admin requis" }), {
         status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Rate limiting : évite qu'un rappel de renouvellement soit renvoyé en
+    // boucle vers les mêmes destinataires (spam), que ce soit par erreur
+    // (double-clic, script d'automatisation admin) ou abus intentionnel.
+    const { data: rateLimitAllowed, error: rateLimitError } = await adminClient.rpc("check_and_log_rate_limit", {
+      p_user_id: caller.id,
+      p_action: "send_renewal_reminder",
+      p_window_seconds: RATE_LIMIT_WINDOW_SECONDS,
+      p_max_requests: RATE_LIMIT_MAX_REQUESTS,
+    });
+    if (rateLimitError) {
+      console.error("Rate limit check failed:", rateLimitError);
+    } else if (!rateLimitAllowed) {
+      return new Response(JSON.stringify({ error: "Trop de rappels envoyés récemment. Merci de patienter." }), {
+        status: 429,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

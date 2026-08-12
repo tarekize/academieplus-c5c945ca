@@ -122,12 +122,17 @@ export default function AdminNotifications() {
     fetchAll();
   }, []);
 
+  // Charge en parallèle modèles, historique des campagnes et destinataires
+  // potentiels au montage de la page.
   const fetchAll = async () => {
     setLoading(true);
     await Promise.all([fetchTemplates(), fetchCampaigns(), fetchCandidates()]);
     setLoading(false);
   };
 
+  // Charge la liste des destinataires potentiels (tous rôles) avec leur
+  // statut de contrat/abonnement calculé côté serveur, via la RPC
+  // admin_list_notification_candidates (admin-only attendu côté serveur).
   const fetchCandidates = async () => {
     const { data, error } = await supabase.rpc("admin_list_notification_candidates" as any);
     if (error) {
@@ -137,6 +142,8 @@ export default function AdminNotifications() {
     setCandidates((data as any) || []);
   };
 
+  // Charge les modèles d'email réutilisables. Lecture directe de
+  // email_templates : à couvrir par une policy RLS admin-only côté serveur.
   const fetchTemplates = async () => {
     const { data, error } = await supabase
       .from("email_templates" as any)
@@ -149,6 +156,9 @@ export default function AdminNotifications() {
     setTemplates((data as any) || []);
   };
 
+  // Charge les 50 dernières campagnes envoyées, pour l'onglet Historique.
+  // Lecture directe de email_campaigns : à couvrir par une policy RLS
+  // admin-only côté serveur.
   const fetchCampaigns = async () => {
     const { data, error } = await supabase
       .from("email_campaigns" as any)
@@ -162,12 +172,15 @@ export default function AdminNotifications() {
     setCampaigns((data as any) || []);
   };
 
+  // Ouvre le dialogue Modèle à vide (bouton "Nouveau modèle").
   const openCreateTemplate = () => {
     setEditingTemplateId(null);
     setTemplateForm(emptyTemplateForm);
     setTemplateDialogOpen(true);
   };
 
+  // Ouvre le dialogue Modèle préchargé avec les valeurs du modèle cliqué
+  // (bouton crayon de la liste).
   const openEditTemplate = (template: EmailTemplate) => {
     setEditingTemplateId(template.id);
     setTemplateForm({
@@ -182,6 +195,10 @@ export default function AdminNotifications() {
   const LOGO_ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp", "svg"];
   const LOGO_MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 Mo
 
+  // Upload le logo du modèle vers le bucket public "email-assets" (utilisé
+  // tel quel dans l'email envoyé, d'où l'URL publique), après validation du
+  // format et de la taille côté client. Déclenché par le champ fichier
+  // "Importer un logo".
   const handleLogoUpload = async (file: File) => {
     const ext = file.name.split(".").pop()?.toLowerCase();
     if (!ext || !LOGO_ALLOWED_EXTENSIONS.includes(ext)) {
@@ -209,6 +226,9 @@ export default function AdminNotifications() {
     }
   };
 
+  // Crée ou met à jour un modèle d'email (bouton "Créer"/"Enregistrer" du
+  // dialogue). Écriture directe sur email_templates : à couvrir par une
+  // policy RLS admin-only côté serveur.
   const handleSaveTemplate = async () => {
     if (!templateForm.name.trim() || !templateForm.subject.trim() || !templateForm.bodyText.trim()) {
       toast.error("Nom, sujet et contenu sont requis.");

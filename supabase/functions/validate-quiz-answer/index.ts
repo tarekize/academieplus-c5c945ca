@@ -12,6 +12,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Endpoint neutralisé : aucun appelant frontend trouvé (grep négatif sur
+// src/) ni trigger DB. Répond 410 à tout appel résiduel au lieu d'exécuter
+// une logique obsolète référençant des tables supprimées — voir le
+// commentaire d'audit en tête de fichier pour le détail.
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });

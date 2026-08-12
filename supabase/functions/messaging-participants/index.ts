@@ -6,9 +6,17 @@ const BodySchema = z.object({
   studentId: z.string().uuid(),
 });
 
+// Formate un nom affichable à partir d'un profil, avec repli si vide.
 const fullName = (p: any) =>
   [p?.first_name, p?.last_name].filter(Boolean).join(" ").trim() || "Utilisateur";
 
+// Appelé par ParentTeacherChat.tsx pour lister les parents et enseignants
+// avec qui l'utilisateur courant peut échanger au sujet d'un élève donné.
+// N'autorise l'accès que si l'appelant est lui-même parent OU enseignant de
+// CET élève précis (vérifié côté serveur via les RPC is_teacher_of /
+// is_parent_of, pas juste un rôle générique) — empêche un enseignant ou un
+// parent tiers de lister les contacts messagerie d'un élève qui n'est pas
+// le sien en changeant simplement studentId dans le body.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });

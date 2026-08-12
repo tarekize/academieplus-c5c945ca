@@ -143,6 +143,10 @@ export default function Admin() {
 
 
 
+  // Confirme et déclenche la suppression du compte utilisateur sélectionné
+  // (bouton "Supprimer" de l'AlertDialog de confirmation). `deleteUser`
+  // (hook useAdminUsers) appelle l'edge function "delete-user-account",
+  // qui doit elle-même vérifier côté serveur que l'appelant est admin.
   const handleDeleteUser = async () => {
     if (userToDelete) {
       await deleteUser(userToDelete.id, userToDelete.email);
