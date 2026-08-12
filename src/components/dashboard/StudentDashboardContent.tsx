@@ -89,6 +89,7 @@ interface LessonCommentDialog {
   createdAt: string;
 }
 
+/** Formate une durée en secondes en "Xh Ymin" (fr) ou "Xس Yد" (ar). */
 function formatTime(lang: "ar" | "fr", seconds: number) {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
@@ -96,6 +97,7 @@ function formatTime(lang: "ar" | "fr", seconds: number) {
   return h > 0 ? `${h}س ${m}د` : `${m}د`;
 }
 
+/** Mappe un pourcentage de maîtrise vers un libellé + palette de couleurs (badges, jauges). */
 function getLevelInfo(t: (key: string) => string, accuracy: number) {
   if (accuracy >= 80) return { label: t("studentDashboard.levelInfo.advanced"), color: "text-emerald-600", bg: "bg-emerald-500/10", border: "border-emerald-500/20", ring: "hsl(152, 60%, 45%)" };
   if (accuracy >= 60) return { label: t("studentDashboard.levelInfo.good"), color: "text-blue-600", bg: "bg-blue-500/10", border: "border-blue-500/20", ring: "hsl(217, 70%, 55%)" };
@@ -103,6 +105,8 @@ function getLevelInfo(t: (key: string) => string, accuracy: number) {
   return { label: t("studentDashboard.levelInfo.needsImprovement"), color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/20", ring: "hsl(0, 70%, 55%)" };
 }
 
+/** Message statique de repli (conseil générique) affiché pour une leçon en difficulté
+ * tant qu'aucun vrai commentaire IA n'existe encore pour elle. */
 function buildLessonLacunaMessage(lang: "ar" | "fr", lessonTitle: string, level: number) {
   if (lang === "fr") {
     return `📌 Il semble que tu aies des lacunes sur la leçon **"${lessonTitle}"** (niveau actuel ${level}/100).
@@ -124,6 +128,8 @@ Clique sur **"Aller à la leçon"** pour réviser maintenant.`;
 اضغط على **"اذهب إلى الدرس"** للمراجعة الآن.`;
 }
 
+/** Construit le texte de suggestion IA affiché sous le chapitre sélectionné, à partir
+ * du niveau moyen des leçons du chapitre (générique — pas d'appel IA réel ici). */
 function buildChapterSuggestion(lang: "ar" | "fr", chapterTitle: string, lessons: LessonProgress[]) {
   if (lang === "fr") {
     if (lessons.length === 0) {
@@ -165,6 +171,8 @@ function buildChapterSuggestion(lang: "ar" | "fr", chapterTitle: string, lessons
 
 const REFRESH_INTERVAL = 30000; // 30s auto-refresh
 
+// Clé de dédoublonnage des chapitres (même titre + même ordre = doublon) : évite
+// d'afficher deux fois un chapitre présent via plusieurs filières/lignes.
 const makeUniqueChapterKey = (chapter: { title?: string | null; title_ar?: string | null; order_index?: number | null }) =>
   `${chapter.order_index ?? ""}|${(chapter.title_ar || chapter.title || "").replace(/\s+/g, " ").trim()}`;
 
@@ -191,6 +199,10 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
 
   const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || t("dashboard.user");
 
+  /** Recalcule toutes les statistiques affichées (niveaux, temps, taux de réussite,
+   * progression par leçon/chapitre) à partir de student_scores pour `userId` — toujours
+   * filtré explicitement (pas seulement via RLS), donc valide aussi bien pour l'élève
+   * lui-même que pour la vue "parentView" d'un prof/parent regardant un autre élève. */
   const fetchScores = useCallback(async (silent = false) => {
     if (!silent) setIsRefreshing(true);
     try {
@@ -504,6 +516,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
     }
   }, [userId, profile.school_level, profile.filiere]);
 
+  /** Badge coloré (terminé / en cours / non commencé) pour le statut d'une leçon. */
   const getLessonStatusBadge = (status: LessonProgress["status"]) => {
     if (status === "completed") {
       return <Badge className="bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">{t("studentDashboard.lessonStatus.completed")}</Badge>;
@@ -516,13 +529,15 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
 
   useEffect(() => { fetchScores(); }, [fetchScores]);
 
-  // Auto-refresh
+  // Auto-refresh silencieux (pas de spinner) toutes les 30s, pour rester à jour sans
+  // que l'utilisateur ait à recharger la page.
   useEffect(() => {
     const interval = setInterval(() => fetchScores(true), REFRESH_INTERVAL);
     return () => clearInterval(interval);
   }, [fetchScores]);
 
-  // Realtime subscription
+  // Réagit en temps réel à toute modification de student_scores pour cet élève
+  // (ex : un exercice terminé dans un autre onglet) en relançant fetchScores.
   useEffect(() => {
     const channel = supabase
       .channel('student-scores-realtime')
@@ -538,7 +553,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
     return () => { supabase.removeChannel(channel); };
   }, [userId, fetchScores]);
 
-  // Auto-select first chapter
+  // Sélectionne le premier chapitre par défaut dès que les stats sont chargées.
   useEffect(() => {
     if (!selectedChapterId && chapterStats.length > 0) {
       setSelectedChapterId(chapterStats[0].chapterId);
@@ -547,6 +562,8 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
 
   // Fetch AI lesson comments (for blinking notifications + dialog)
   useEffect(() => {
+    /** Charge les commentaires IA des dernières 24h (un seul par leçon, le plus récent)
+     * pour alimenter les pastilles clignotantes et la popup de détail. */
     const fetchLessonComments = async () => {
       const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       const { data } = await supabase
@@ -574,6 +591,8 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
     fetchLessonComments();
 
     // État de remédiation : une leçon résolue n'affiche plus de clignotement.
+    /** Charge, par leçon, si le contenu de remédiation généré a été résolu (toutes
+     * réponses correctes) — pilote lessonHasNotification. */
     const fetchRemediation = async () => {
       const { data } = await supabase
         .from("ai_generated_content")
@@ -608,6 +627,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
   const quizPct = Math.round((activityBreakdown.quiz / totalActivity) * 100);
   const exPct = 100 - readPct - quizPct;
 
+  /** % de leçons terminées dans un chapitre donné (utilisé pour le radar de performance). */
   const getChapterCompletionPct = (chapterId: string) => {
     const chapterLessons = chapterLessonProgress.find((chapter) => chapter.chapterId === chapterId);
     if (!chapterLessons || chapterLessons.totalLessons === 0) return 0;
@@ -628,6 +648,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
   const selectedChapter = chapterStats.find((c) => c.chapterId === selectedChapterId) || chapterStats[0];
   const selectedChapterLessons = chapterLessonProgress.find((c) => c.chapterId === selectedChapter?.chapterId);
 
+  /** Détermine si une leçon doit afficher la pastille rouge clignotante (lacune à traiter). */
   const lessonHasNotification = (lessonId: string, level: number | null) => {
     // Si une remédiation existe pour cette leçon, le clignotement dépend uniquement
     // de sa résolution : il reste tant que toutes les réponses ne sont pas correctes.
@@ -635,12 +656,16 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
     return lessonComments.has(lessonId) || (level !== null && level < 50);
   };
 
+  /** Un chapitre est signalé dès qu'au moins une de ses leçons a une notification. */
   const chapterHasNotification = (chapterId: string) => {
     const lp = chapterLessonProgress.find((c) => c.chapterId === chapterId);
     if (!lp) return false;
     return lp.lessons.some((l) => lessonHasNotification(l.lessonId, l.level));
   };
 
+  /** Ouvre la popup de commentaire IA d'une leçon : réutilise le commentaire réel s'il
+   * existe, sinon construit un message générique de repli (mode parentView uniquement,
+   * l'élève est redirigé directement vers /remediation). */
   const openLessonComment = (lesson: LessonProgress, chapterId: string | null, chapterTitle: string | null) => {
     const existing = lessonComments.get(lesson.lessonId);
     if (existing) {

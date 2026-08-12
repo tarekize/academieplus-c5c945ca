@@ -37,6 +37,7 @@ interface GroupOption { letter: StudentGroupLetter; studentIds: string[]; }
 interface GenEntry extends GeneratedItem { _type: ContentTypeSel; _lessonTitle?: string; _lessonId?: string; _chapterId?: string | null; }
 interface LessonPlan { exercise: number; quiz: number; }
 
+/** Bulle de dialogue "assistant" (avatar + fond gris) du chat d'aide IA. */
 function Bubble({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex gap-2 items-start">
@@ -99,6 +100,7 @@ export default function HelpChatbot(props: Props) {
   const selectedLessons = weak.filter((w) => selectedLessonIds.includes(w.lessonId));
   const targetStudentIds = mode === "class" ? (selectedGroup?.studentIds || []) : (studentId ? [studentId] : []);
 
+  // Fait défiler la conversation vers le bas à chaque nouvelle étape/résultat, comme un vrai chat.
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [phase, items, itemPos, lessonIdx]);
@@ -118,6 +120,7 @@ export default function HelpChatbot(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, items, sent]);
 
+  /** Restaure une session sauvegardée (bouton "Historique") et saute directement à l'écran des résultats. */
   const loadSession = (session: TeacherContentSessionRow) => {
     const s = session.state || {};
     setSelectedGroup(s.selectedGroup || null);
@@ -134,6 +137,7 @@ export default function HelpChatbot(props: Props) {
     setShowHistory(false);
   };
 
+  /** Repart de zéro sur une nouvelle session (dissocie sessionId pour ne pas écraser l'ancienne). */
   const startNewSession = () => {
     setSessionId(null);
     restart();
@@ -210,17 +214,21 @@ export default function HelpChatbot(props: Props) {
     })();
   }, [mode, selectedGroup, studentId]);
 
+  /** Coche/décoche une leçon dans la liste des lacunes sélectionnées. */
   const toggleLesson = (id: string) => {
     setSelectedLessonIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
+  /** Coche/décoche un type de contenu ("exercise" / "quiz") à générer. */
   const toggleType = (t: ContentTypeSel) => {
     setTypes((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
   };
 
+  /** Valide la sélection de leçons et passe à l'étape "types de contenu". */
   const goToTypes = () => {
     if (selectedLessonIds.length === 0) { toast.error("Sélectionnez au moins une leçon"); return; }
     setPhase("selectTypes");
   };
+  /** Valide les types choisis et passe à l'étape "approche" (IA seule vs idées du prof). */
   const goToApproach = () => {
     if (types.length === 0) { toast.error("Choisissez exercices, quiz, ou les deux"); return; }
     setPhase("chooseApproach");
@@ -289,6 +297,8 @@ export default function HelpChatbot(props: Props) {
     setPhase("lessonIdea");
   };
 
+  /** Passe à la leçon suivante (réinitialise le plan par défaut) ou, si c'était la
+   * dernière, lance la génération finale de tous les items planifiés. */
   const advanceLesson = () => {
     if (lessonIdx + 1 < selectedLessons.length) {
       setLessonIdx((i) => i + 1);
@@ -299,6 +309,8 @@ export default function HelpChatbot(props: Props) {
     }
   };
 
+  /** Enregistre l'idée saisie par le prof pour l'item courant de la file, puis avance
+   * à l'item suivant (ou à la leçon suivante si la file est épuisée). */
   const submitIdea = () => {
     const lesson = selectedLessons[lessonIdx];
     const item = itemQueue[itemPos];
@@ -312,6 +324,8 @@ export default function HelpChatbot(props: Props) {
     }
   };
 
+  /** Génère un item IA par job planifié (une leçon × un type × une idée du prof, ou
+   * vide si le prof a laissé l'IA libre), en s'appuyant sur les plans par leçon. */
   const runIdeaGeneration = async () => {
     setPhase("generating");
     try {
@@ -348,6 +362,7 @@ export default function HelpChatbot(props: Props) {
     }
   };
 
+  /** Démarre la branche "j'ai des idées" : réinitialise l'itération leçon par leçon. */
   const beginTeacherApproach = () => {
     setLessonIdx(0);
     setCurrentPlan({ exercise: types.includes("exercise") ? 1 : 0, quiz: types.includes("quiz") ? 1 : 0 });
@@ -356,10 +371,13 @@ export default function HelpChatbot(props: Props) {
     setPhase("lessonCounts");
   };
 
+  /** Applique les modifications faites par le prof (édition directe/LaTeX) à un item généré. */
   const updateItem = (idx: number, patch: Partial<GenEntry>) => {
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
   };
 
+  /** Sauvegarde un item généré comme contenu du prof puis l'assigne aux élèves ciblés
+   * (groupe entier en mode classe, ou l'élève seul en mode élève). */
   const sendOne = async (idx: number) => {
     const it = items[idx];
     if (targetStudentIds.length === 0) { toast.error("Aucun destinataire sélectionné"); return; }
@@ -380,6 +398,7 @@ export default function HelpChatbot(props: Props) {
     }
   };
 
+  /** Remet le chatbot à l'écran initial ("Recommencer"), sans toucher à sessionId. */
   const restart = () => {
     setPhase(mode === "class" ? "selectGroup" : "analyzing");
     setSelectedGroup(null);
@@ -599,8 +618,10 @@ export default function HelpChatbot(props: Props) {
 
           {phase === "results" && (
             <>
+              {/* Message générique quel que soit le mode : en mode élève, "envoyez au groupe"
+                  n'aurait pas de sens puisqu'il n'y a qu'un seul destinataire. */}
               <Bubble>
-                Voici les exercices et quiz générés. Visualisez, modifiez si besoin (directement ou en LaTeX), puis envoyez au groupe.
+                Voici les exercices et quiz générés. Visualisez, modifiez si besoin (directement ou en LaTeX), puis envoyez-les.
               </Bubble>
               <div className="space-y-3 pl-2">
                 {items.map((it, idx) => (
@@ -658,6 +679,8 @@ export default function HelpChatbot(props: Props) {
   );
 }
 
+/** Popup d'aperçu "côté élève" d'un item généré + édition directe de l'énoncé/solution
+ * (ou question/explication pour un quiz), avec bouton d'envoi final. */
 function PreviewEditor({ item, onChange, onSend, sent, sendLabel }: {
   item: GenEntry; onChange: (patch: Partial<GenEntry>) => void; onSend: () => void; sent: boolean; sendLabel: string;
 }) {

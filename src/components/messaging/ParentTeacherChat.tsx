@@ -24,6 +24,12 @@ interface ParentTeacherChatProps {
   role: "teacher" | "parent";
 }
 
+/** Fil de discussion parent-enseignant à propos d'un élève donné. Le fil est
+ * identifié par le triplet (teacher_id, parent_id, student_id) ; côté serveur,
+ * les policies RLS de `teacher_parent_messages` re-vérifient que l'utilisateur
+ * courant est bien ce teacher_id/parent_id ET qu'il est effectivement lié à cet
+ * élève (is_teacher_of / is_parent_of), donc aucune fuite possible entre
+ * conversations d'autres utilisateurs même si ces ids venaient à être manipulés côté client. */
 export default function ParentTeacherChat({ studentId, studentName, role }: ParentTeacherChatProps) {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [counterparts, setCounterparts] = useState<Participant[]>([]);
@@ -38,10 +44,15 @@ export default function ParentTeacherChat({ studentId, studentName, role }: Pare
   const teacherId = role === "teacher" ? currentUserId : selected;
   const parentId = role === "parent" ? currentUserId : selected;
 
+  // Récupère l'id de l'utilisateur connecté (sert à distinguer "mes" messages
+  // des messages reçus, et à composer teacherId/parentId ci-dessus).
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null));
   }, []);
 
+  // Charge la liste des interlocuteurs possibles (parents de l'élève côté
+  // enseignant, ou enseignants de l'élève côté parent) via l'edge function
+  // messaging-participants, qui valide côté serveur le lien avec cet élève.
   useEffect(() => {
     let active = true;
     setLoading(true);
@@ -62,6 +73,9 @@ export default function ParentTeacherChat({ studentId, studentName, role }: Pare
     return () => { active = false; };
   }, [studentId, role]);
 
+  /** Charge les messages du fil courant, strictement scopé à
+   * (student_id, teacher_id, parent_id) — les policies RLS re-vérifient en plus
+   * que l'appelant est bien l'un des deux participants de ce fil précis. */
   const loadMessages = useCallback(async () => {
     if (!teacherId || !parentId) { setMessages([]); return; }
     const { data, error } = await (supabase as any)
@@ -76,10 +90,13 @@ export default function ParentTeacherChat({ studentId, studentName, role }: Pare
 
   useEffect(() => { loadMessages(); }, [loadMessages]);
 
+  // Fait défiler la zone de messages tout en bas à chaque nouveau message.
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages]);
 
+  /** Envoie un message dans le fil courant ; sender_id est toujours l'utilisateur
+   * connecté, jamais fourni par l'appelant. */
   const handleSend = async () => {
     const text = content.trim();
     if (!text) return;

@@ -393,6 +393,8 @@ export default function LessonRemediation() {
     }
   };
 
+  // Valide le choix d'un quiz : si correct, tente de marquer la leçon
+  // résolue ; sinon, régénère une question similaire à refaire.
   const submitQuiz = async (idx: number) => {
     const q = quizzes[idx];
     const correct = normalizeAnswer(quizPicks[idx] || "") === normalizeAnswer(q.correct_answer);
@@ -405,6 +407,8 @@ export default function LessonRemediation() {
     }
   };
 
+  // Liste des lacunes affichées en badges : concepts faibles détectés par
+  // l'IA + concepts couverts par les exercices/quiz générés, dédupliqués.
   const lacunesList = useMemo(() => {
     const fromConcepts = weakConcepts.length > 0 ? weakConcepts : [];
     const fromActivities = [

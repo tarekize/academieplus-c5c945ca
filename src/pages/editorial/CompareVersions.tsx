@@ -14,6 +14,10 @@ interface Version {
   contenu_snapshot: any;
 }
 
+// Page de comparaison de deux versions d'un cours (diff v1/v2). Actuellement
+// désactivée : affiche un message d'indisponibilité tant que les tables
+// éditoriales (cours, historique_versions) ne sont pas créées en base — les
+// paramètres id/v1/v2 ne sont donc encore utilisés dans aucune requête.
 export default function CompareVersions() {
   const { id } = useParams();
   const navigate = useNavigate();

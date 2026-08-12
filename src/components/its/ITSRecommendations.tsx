@@ -43,6 +43,9 @@ const getAdviceStartKey = (userId: string) => `its_advice_start_${userId}`;
 const getAdviceDoneKey = (userId: string) => `its_advice_done_${userId}`;
 const getAdviceGenKey = (userId: string) => `its_advice_gen_${userId}`;
 
+/** Affiche, sur le dashboard élève, le rapport IA de style d'apprentissage
+ * (après le test initial) puis un conseil périodique renouvelé tous les 10
+ * jours — chacun avec un compte à rebours d'affichage qui survit au refresh. */
 export default function ITSRecommendations() {
   const { user } = useAuth();
   const [learningData, setLearningData] = useState<LearningStyleData | null>(null);
@@ -55,7 +58,7 @@ export default function ITSRecommendations() {
   const reportTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const adviceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Cleanup timers on unmount or logout
+  // Nettoie les intervalles de compte à rebours au démontage du composant.
   useEffect(() => {
     return () => {
       if (reportTimerRef.current) clearInterval(reportTimerRef.current);
@@ -63,7 +66,8 @@ export default function ITSRecommendations() {
     };
   }, []);
 
-  // Hide everything on logout
+  // Masque immédiatement le rapport/conseil et coupe les timers dès que
+  // l'utilisateur se déconnecte (évite d'afficher les données du compte précédent).
   useEffect(() => {
     if (!user) {
       setShowReport(false);
@@ -75,6 +79,9 @@ export default function ITSRecommendations() {
     }
   }, [user]);
 
+  /** Démarre (ou reprend après un refresh) un compte à rebours de DISPLAY_SECONDS
+   * persisté dans localStorage : la bannière reste visible le temps restant puis
+   * se marque "done" définitivement pour cet utilisateur. */
   const startCountdown = useCallback((
     storageStartKey: string,
     storageDoneKey: string,
@@ -122,6 +129,8 @@ export default function ITSRecommendations() {
   }, []);
 
   // Generate periodic advice
+  /** Appelle l'edge function generate-periodic-advice (tous les ~10 jours) puis
+   * persiste le conseil retourné sur la ligne learning_styles de l'utilisateur. */
   const generatePeriodicAdvice = useCallback(async (learningId: string, assessmentData: AssessmentData, level: string) => {
     try {
       const { data, error } = await supabase.functions.invoke("generate-periodic-advice", {
@@ -143,13 +152,16 @@ export default function ITSRecommendations() {
           generated_at: new Date().toISOString()
         };
 
+        // Filtre défensif sur user_id en plus de l'id de la ligne : évite qu'un
+        // appel avec un learningId erroné ne puisse toucher la ligne d'un autre utilisateur.
         await (supabase as any)
           .from("learning_styles")
           .update({
             periodic_advice: newAdvice as any,
             last_advice_generated_at: new Date().toISOString()
           } as any)
-          .eq("id", learningId);
+          .eq("id", learningId)
+          .eq("user_id", user?.id);
 
         setPeriodicAdvice(newAdvice);
         return newAdvice;
@@ -160,14 +172,22 @@ export default function ITSRecommendations() {
     return null;
   }, [user]);
 
+  // Charge la ligne learning_styles de l'utilisateur courant, affiche le
+  // rapport initial puis, 10 jours après, régénère et affiche un conseil
+  // périodique — chaque étape utilise un compte à rebours persistant.
   useEffect(() => {
     if (!user) { setLoading(false); return; }
 
     const fetchData = async () => {
       try {
+        // Bug corrigé : le SELECT n'incluait pas report_first_shown_at,
+        // last_advice_generated_at, periodic_advice ni preferred_style, alors
+        // que le code plus bas les lit — ces champs étaient donc toujours
+        // undefined et le conseil périodique ne se déclenchait jamais après la
+        // première connexion.
         const { data: rawData, error } = await (supabase as any)
           .from("learning_styles")
-          .select("id, assessment_data, advice_seen")
+          .select("id, assessment_data, advice_seen, report_first_shown_at, last_advice_generated_at, periodic_advice, preferred_style")
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -185,7 +205,8 @@ export default function ITSRecommendations() {
           await (supabase as any)
             .from("learning_styles")
             .update({ report_first_shown_at: reportFirstShownAt } as any)
-            .eq("id", data.id);
+            .eq("id", data.id)
+            .eq("user_id", user.id);
         }
 
         const ld: LearningStyleData = {
@@ -258,7 +279,7 @@ export default function ITSRecommendations() {
 
         // Mark as seen
         if (!data.advice_seen) {
-          await (supabase as any).from("learning_styles").update({ advice_seen: true }).eq("id", data.id);
+          await (supabase as any).from("learning_styles").update({ advice_seen: true }).eq("id", data.id).eq("user_id", user.id);
         }
 
         setLoading(false);

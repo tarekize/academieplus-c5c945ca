@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Clock } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 
+// Historique des versions d'un cours (liste des révisions passées).
+// Placeholder tant que les tables éditoriales (cours, historique_versions)
+// n'existent pas en base ; l'id de cours de l'URL n'est pas encore exploité.
 export default function HistoriqueVersions() {
   const { id } = useParams();
   const navigate = useNavigate();

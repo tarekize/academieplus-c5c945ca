@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Eye } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 
+// File de révision des cours soumis par les éditeurs (validation/refus par
+// les pédagos/admins). Placeholder tant que la table 'cours' n'existe pas.
 export default function PageRevision() {
   const navigate = useNavigate();
 

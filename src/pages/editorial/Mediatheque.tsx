@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Image as ImageIcon } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 
+// Médiathèque de l'espace éditorial (gestion des images/médias des cours).
+// Placeholder tant que la table 'medias' n'existe pas en base.
 export default function Mediatheque() {
   const navigate = useNavigate();
 

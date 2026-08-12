@@ -4,6 +4,8 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 
+// Prévisualisation d'un cours avant publication. Placeholder tant que la
+// table 'cours' n'existe pas ; l'id de cours de l'URL n'est pas exploité.
 export default function PreviewCours() {
   const { id } = useParams();
   const navigate = useNavigate();

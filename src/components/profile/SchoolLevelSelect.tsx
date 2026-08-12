@@ -15,6 +15,8 @@ interface SchoolLevelSelectProps {
   disabled?: boolean;
 }
 
+/** Sélecteur de niveau scolaire (Primaire/CEM/Lycée) groupé, utilisé dans les
+ * formulaires de profil et d'inscription. Valeur/onChange contrôlés par le parent. */
 export function SchoolLevelSelect({
   value,
   onValueChange,

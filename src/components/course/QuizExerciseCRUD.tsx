@@ -503,11 +503,17 @@ export function ImportFromDocumentButton({
 }: {
   chapterId: string;
   lessonId: string;
-  itemType: ItemType;
+  // Restreint à "exercise" | "quiz" (pas le ItemType complet, qui inclut aussi
+  // "chapter"/"lesson_creation" utilisés ailleurs) : insertItems ci-dessous ne
+  // sait traiter que ces deux cas, et DocumentImportButton.contentType a le
+  // même type restreint côté extraction IA.
+  itemType: "exercise" | "quiz";
   isAdmin: boolean;
   onImported: () => void;
 }) {
   const { t } = useTranslation();
+  /** Insère les items extraits du document en base, avec le statut adapté au
+   * rôle (auto-approuvé pour un admin, brouillon à envoyer pour un pédago). */
   const insertItems = async (items: GeneratedItem[]) => {
     const status = isAdmin ? "approved" : "draft";
     if (itemType === "exercise") {

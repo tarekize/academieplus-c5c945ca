@@ -19,6 +19,8 @@ interface DashboardTileProps {
   showDot?: boolean;
 }
 
+// Tuile cliquable/accessible (Enter/Espace) d'un menu de tableau de bord — gère
+// aussi l'état "verrouillé" (cadenas + description alternative) et la pastille d'alerte.
 export default function DashboardTile({
   icon: Icon,
   iconBg,

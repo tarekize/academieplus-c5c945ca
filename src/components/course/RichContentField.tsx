@@ -14,11 +14,19 @@ export default function RichContentField({
   value,
   onChange,
   minHeight = 100,
+  resetKey,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   minHeight?: number;
+  /** À fournir seulement si CE champ peut afficher un contenu différent sans que
+   * le formulaire parent ne soit démonté (ex: plusieurs sous-questions dans le
+   * même dialogue) — sinon InlineLessonEditor garderait l'ancien texte affiché.
+   * Par défaut, `label` suffit : il est stable tant que le champ ne change pas
+   * de rôle, et RichContentField est de toute façon remonté avec le formulaire
+   * qui l'englobe (dialogue fermé/rouvert) dans tous les usages actuels. */
+  resetKey?: string | number;
 }) {
   const [latexMode, setLatexMode] = useState(false);
   return (
@@ -40,7 +48,7 @@ export default function RichContentField({
         {latexMode ? (
           <LessonSourceEditor content={value} onChange={onChange} />
         ) : (
-          <InlineLessonEditor content={value} onChange={onChange} />
+          <InlineLessonEditor content={value} onChange={onChange} resetKey={resetKey ?? label} />
         )}
       </div>
     </div>

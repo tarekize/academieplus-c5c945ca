@@ -22,6 +22,7 @@ interface HeaderProfile {
   school_level: string | null;
 }
 
+/** Traduit un code de niveau scolaire (ex: "3eme_cem") en libellé affichable. */
 const getSchoolLevelName = (level: string) => {
   const levels: Record<string, string> = {
     cp: "CP", ce1: "CE1", ce2: "CE2", cm1: "CM1", cm2: "CM2",
@@ -76,6 +77,8 @@ export function AppHeader({
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPedago, setIsPedago] = useState(false);
 
+  // Charge le profil (pour l'avatar/nom) et les rôles de l'utilisateur courant
+  // uniquement — user.id vient de useAuth(), jamais d'un paramètre externe.
   useEffect(() => {
     if (!user) return;
     supabase
@@ -89,16 +92,21 @@ export function AppHeader({
     hasRole("pedago").then(setIsPedago);
   }, [user, hasRole]);
 
+  // Nom complet affiché dans le menu déroulant, avec repli si prénom/nom absents.
   const fullName = (() => {
     const parts = [profile?.first_name, profile?.last_name].filter(Boolean);
     return parts.length > 0 ? parts.join(" ") : "Utilisateur";
   })();
 
+  /** Déconnecte l'utilisateur et le renvoie vers la page d'accueil. */
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
   };
 
+  /** Clic sur le logo : callback personnalisé si fourni, sinon navigation par
+   * défaut selon le rôle (admin/pédagogue -> dashboard, parent -> son espace,
+   * sinon liste des matières). */
   const handleLogoClick = () => {
     if (onLogoClick) { onLogoClick(); return; }
     navigate(isAdmin || isPedago ? "/dashboard" : isParent ? "/parent-dashboard" : "/liste-matieres");
