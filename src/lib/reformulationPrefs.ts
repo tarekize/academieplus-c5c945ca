@@ -8,6 +8,7 @@ type ReformState = { shown: number; clicked: boolean };
 
 const storageKey = (chapterId: string) => `chatbot_reform_${chapterId}`;
 
+/** Lit le compteur/état "reformulation" du chapitre depuis localStorage. */
 export function getReformState(chapterId: string | null | undefined): ReformState {
   if (!chapterId) return { shown: 0, clicked: false };
   try {
@@ -20,6 +21,7 @@ export function getReformState(chapterId: string | null | undefined): ReformStat
   }
 }
 
+/** À appeler chaque fois que l'IA propose la section reformulation, pour ce chapitre. */
 export function incrementReformShown(chapterId: string | null | undefined): void {
   if (!chapterId) return;
   const state = getReformState(chapterId);
@@ -34,6 +36,7 @@ export function incrementReformShown(chapterId: string | null | undefined): void
   }
 }
 
+/** À appeler quand l'élève ouvre effectivement la section — désactive le seuil pour ce chapitre. */
 export function markReformClicked(chapterId: string | null | undefined): void {
   if (!chapterId) return;
   const state = getReformState(chapterId);
@@ -47,6 +50,7 @@ export function markReformClicked(chapterId: string | null | undefined): void {
   }
 }
 
+/** true si le seuil est atteint sans jamais avoir été cliqué : ne plus demander la section à l'IA pour ce chapitre. */
 export function shouldHideReform(chapterId: string | null | undefined): boolean {
   const state = getReformState(chapterId);
   return state.shown >= THRESHOLD && !state.clicked;

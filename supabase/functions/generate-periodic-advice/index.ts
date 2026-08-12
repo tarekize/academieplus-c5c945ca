@@ -7,6 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Appelle OpenRouter (passerelle OpenAI-compatible) pour générer le conseil
+// + les exercices de remédiation périodique.
 async function callOpenRouterAI(apiKey: string, systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -36,6 +38,8 @@ async function callOpenRouterAI(apiKey: string, systemPrompt: string, userPrompt
   return { text: result.choices?.[0]?.message?.content || "", usage: extractOpenAiCompatUsage(result) };
 }
 
+// Extrait l'objet JSON de la réponse IA (retire ```json et texte parasite) ;
+// si le parsing échoue, dégrade en renvoyant le texte brut comme "advice".
 function extractJSON(raw: string): Record<string, unknown> {
   let cleaned = raw.replace(/```json/g, "").replace(/```/g, "").trim();
   const match = cleaned.match(/\{[\s\S]*\}/);
@@ -47,6 +51,13 @@ function extractJSON(raw: string): Record<string, unknown> {
   }
 }
 
+// Génère un conseil court + 3 exercices ciblés sur les lacunes de l'élève à
+// partir de son dernier test de positionnement, et crée une notification en
+// base. Appelée par src/components/its/ITSRecommendations.tsx (élève,
+// périodiquement après un délai depuis le dernier test). IDOR : `user_id`
+// est TOUJOURS dérivé du JWT de l'appelant (jamais du corps de la requête),
+// donc impossible de générer/notifier au nom d'un autre compte. Rate
+// limiting ci-dessous.
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 

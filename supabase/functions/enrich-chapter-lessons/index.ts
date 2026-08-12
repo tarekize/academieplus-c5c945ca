@@ -30,6 +30,9 @@ const SYSTEM_PROMPT = `أنت معلم رياضيات جزائري خبير وم
 - ابدأ مباشرة بـ <div dir="rtl"> ... </div>.`;
 
 // ===== Provider helpers =====
+// Appelle un modèle Gemini donné avec une clé donnée ; lève une erreur
+// (avec `status` HTTP attaché) pour laisser generateEnrichedHtml décider du
+// repli sur le prochain provider/modèle.
 async function callGeminiKey(systemPrompt: string, userPrompt: string, model: string, key: string, label: string): Promise<{ text: string; usage: AiUsage | null }> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
   const response = await fetch(url, {
@@ -53,6 +56,8 @@ async function callGeminiKey(systemPrompt: string, userPrompt: string, model: st
   return { text, usage: extractGeminiUsage(data) };
 }
 
+// Provider Lovable AI — non branché dans generateEnrichedHtml actuellement
+// (qui n'utilise que Gemini clé 2), conservé comme repli potentiel.
 async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<string> {
   const KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!KEY) throw new Error("LOVABLE_API_KEY not set");
@@ -79,6 +84,8 @@ async function callLovableAI(systemPrompt: string, userPrompt: string): Promise<
   return text;
 }
 
+// Provider Groq (Llama) — non branché dans generateEnrichedHtml actuellement,
+// voir commentaire sur callLovableAI ci-dessus.
 async function callGroq(systemPrompt: string, userPrompt: string): Promise<string> {
   const KEY = Deno.env.get("GROQ_API_KEY");
   if (!KEY) throw new Error("GROQ_API_KEY not set");
@@ -107,7 +114,8 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<strin
   return text;
 }
 
-// Gemini fallback chain (preferred: Gemini Key 2 only, as requested)
+// Génère le HTML enrichi d'une leçon en essayant Gemini clé 2 sur plusieurs
+// modèles/tentatives dans l'ordre (voir `steps`), jusqu'au premier succès.
 async function generateEnrichedHtml(systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
   const GEMINI_2 = Deno.env.get("GEMINI_API_KEY_2");
   const errors: string[] = [];
@@ -137,16 +145,23 @@ async function generateEnrichedHtml(systemPrompt: string, userPrompt: string): P
   throw new Error(`Gemini clé 2 a échoué. ${errors.join(" | ")}`);
 }
 
+// Retire les balises HTML du contenu actuel de la leçon pour l'inclure comme
+// simple texte de référence dans le prompt (réduit la taille du prompt).
 function stripHtml(html: string): string {
   return (html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
+// Retire les éventuelles balises ```html/``` autour du HTML généré.
 function cleanGeneratedHtml(raw: string): string {
   let s = raw.trim();
   s = s.replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/i, "");
   return s.trim();
 }
 
+// Vérifie que l'appelant est authentifié ET a le rôle admin ou pedago, via
+// le RPC has_role() (contourne RLS avec la service_role key passée par
+// l'appelant). Retourne un objet {ok:false, status, error} exploitable
+// directement pour répondre à la requête si l'accès est refusé.
 async function ensureCanManage(req: Request, supabase: ReturnType<typeof createClient>) {
   const authHeader = req.headers.get("Authorization") || "";
   const token = authHeader.replace(/^Bearer\s+/i, "").trim();
@@ -167,6 +182,13 @@ async function ensureCanManage(req: Request, supabase: ReturnType<typeof createC
   return { ok: true, userId };
 }
 
+// Réécrit en HTML enrichi le contenu d'une leçon précise (`lessonId`) ou de
+// toutes les leçons d'un chapitre (`chapterId` seul), leçon par leçon,
+// écrivant directement en base à chaque succès. Aucun appelant trouvé dans
+// src/ (grep négatif) ni dans les migrations — seule référence trouvée est
+// un libellé "Admin/Pédago" dans src/pages/AdminTokenUsage.tsx, ce qui
+// suggère un endpoint legacy/orphelin ou invoqué manuellement. Réservé
+// admin/pédago via ensureCanManage() ci-dessous.
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 

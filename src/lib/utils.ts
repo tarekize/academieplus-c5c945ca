@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+// Fusionne des classes Tailwind conditionnelles (clsx) en résolvant les
+// conflits d'utilitaires (twMerge) — utilisé dans quasi tous les composants UI.
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

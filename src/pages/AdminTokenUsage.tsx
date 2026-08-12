@@ -75,6 +75,9 @@ export default function AdminTokenUsage() {
     fetchUsage();
   }, []);
 
+  // Charge les 5000 dernières lignes de consommation IA (une ligne par appel
+  // edge function), au montage de la page. Lecture directe de
+  // ai_token_usage : à couvrir par une policy RLS admin-only côté serveur.
   const fetchUsage = async () => {
     setLoading(true);
     const { data, error } = await supabase

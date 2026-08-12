@@ -2,6 +2,9 @@
 
 const LATEX_HINT = /\\(?:lim|frac|sqrt|sum|prod|int|infty|to|cdot|times|div|pm|leq|geq|neq|alpha|beta|gamma|delta|epsilon|theta|lambda|mu|pi|rho|sigma|phi|omega|left|right|begin|end|mathbb|mathrm|mathcal|log|ln|sin|cos|tan|exp|partial|nabla|forall|exists|in|notin|subset|cup|cap|emptyset|Delta|Sigma|Omega|overline|underline|vec|hat|dot|ddot)\b|[\\^_]\{|\\\(|\\\[|\\/;
 
+/** Corrige un énoncé mathématique généré par IA pour que KaTeX puisse le
+ * rendre : normalise les `\$` échappés et enveloppe les blocs LaTeX oubliés
+ * (non délimités par `$...$`) que l'IA laisse parfois passer. */
 export function cleanMathStatement(raw: string): string {
   if (!raw) return "";
   let s = raw;
@@ -103,6 +106,8 @@ function wrapLatexRuns(s: string): string {
   return out;
 }
 
+/** Détection rapide de contenu mathématique (LaTeX) dans un énoncé, pour
+ * décider s'il faut passer par le rendu KaTeX ou du texte brut. */
 export function statementHasMath(s: string): boolean {
   return /[$\\<]|\\\(|\\\[/.test(s || "");
 }

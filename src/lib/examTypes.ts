@@ -63,6 +63,7 @@ export const TRIMESTER_LABELS: Record<number, string> = {
   5: "Bac Finale",
 };
 
+/** Trimestres proposés pour un examen : 1-3 pour tous, + Bac Blanc/Finale (4-5) en terminale. */
 export function trimesterOptions(isTerminale: boolean): number[] {
   return isTerminale ? [1, 2, 3, 4, 5] : [1, 2, 3];
 }

@@ -10,6 +10,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
 };
 
+// NB : dupliqué (plutôt que partagé via _shared/) car les redéploiements
+// mono-fonction de cette plateforme ne repèrent pas toujours un nouveau
+// fichier _shared/ ajouté après coup ("Module not found" au déploiement) —
+// chaque function reste donc volontairement autonome pour ce point.
 async function sendSmtpEmail(to: string, subject: string, html: string, text: string) {
   const hostname = Deno.env.get("SMTP_HOST");
   const port = Number(Deno.env.get("SMTP_PORT") || "465");

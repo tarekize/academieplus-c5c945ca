@@ -163,6 +163,8 @@ Format de "solution" — OBLIGATOIRE :
 ⚠️ Réponds directement par l'objet JSON, sans aucune question ni texte avant/après.`;
 }
 
+// Envoie le document (texte + image/PDF en inlineData) à Gemini pour
+// extraction/reformulation, en essayant plusieurs modèles en repli.
 async function callGemini(systemPrompt: string, userParts: any[]): Promise<{ text: string; usage: AiUsage | null }> {
   const GEMINI_API_KEY_2 = Deno.env.get("GEMINI_API_KEY_2");
   if (!GEMINI_API_KEY_2) throw new Error("GEMINI_API_KEY_2 not configured");
@@ -202,6 +204,10 @@ async function callGemini(systemPrompt: string, userParts: any[]): Promise<{ tex
   throw new Error(lastError);
 }
 
+// Extrait (ou reformule, selon `mode`) des exercices/quiz/examens à partir
+// d'un document fourni par l'enseignant (PDF, image ou texte). Appelée par
+// src/lib/documentExtraction.ts (enseignant/pédago/admin). Authentification +
+// rôle + rate limiting obligatoires ci-dessous.
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 

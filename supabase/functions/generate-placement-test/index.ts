@@ -17,6 +17,8 @@ const PREVIOUS_LEVEL_MAP: Record<string, string> = {
   "terminale": "seconde",
 };
 
+// Appelle OpenRouter (passerelle OpenAI-compatible) pour générer les
+// questions du test de positionnement ou le rapport d'évaluation.
 async function callOpenRouterAI(apiKey: string, systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: AiUsage | null }> {
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -46,6 +48,7 @@ async function callOpenRouterAI(apiKey: string, systemPrompt: string, userPrompt
   return { text: result.choices?.[0]?.message?.content || "", usage: extractOpenAiCompatUsage(result) };
 }
 
+// Extrait l'objet JSON de la réponse IA (retire ```json et texte parasite).
 function extractJSON(raw: string): any {
   let cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
   const match = cleaned.match(/\{[\s\S]*\}/);
@@ -53,6 +56,13 @@ function extractJSON(raw: string): any {
   return JSON.parse(cleaned);
 }
 
+// Test de positionnement : génère 5 QCM sur le niveau précédent
+// (action="generate") ou évalue les réponses de l'élève et produit un
+// rapport de niveau (action="evaluate"). Appelée par
+// src/pages/LearningAssessment.tsx (élève, à l'inscription ou changement de
+// niveau). Aucune donnée d'un autre compte n'est lue ni écrite : les
+// `answers` évaluées viennent entièrement du corps de la requête, pas de la
+// base. Authentification + rate limiting obligatoires ci-dessous.
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 

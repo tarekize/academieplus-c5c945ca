@@ -274,6 +274,9 @@ export default function AdminNotifications() {
     }
   };
 
+  // Supprime un modèle d'email (bouton corbeille + confirmation AlertDialog).
+  // Écriture directe sur email_templates : à couvrir par une policy RLS
+  // admin-only côté serveur.
   const handleDeleteTemplate = async (id: string) => {
     const { error } = await supabase.from("email_templates" as any).delete().eq("id", id);
     if (error) {
@@ -299,6 +302,9 @@ export default function AdminNotifications() {
 
   const allVisibleSelected = visibleCandidates.length > 0 && visibleCandidates.every((c) => selectedIds.has(c.id));
 
+  // Coche/décoche tous les destinataires actuellement visibles (après filtre
+  // rôle/contrat) — n'affecte jamais la sélection des candidats masqués par
+  // le filtre. Déclenché par la case "Tout sélectionner".
   const toggleSelectAllVisible = () => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -320,6 +326,10 @@ export default function AdminNotifications() {
     });
   };
 
+  // Envoie la campagne aux destinataires cochés (bouton "Envoyer" +
+  // confirmation AlertDialog), via l'edge function send-bulk-notification qui
+  // doit vérifier côté serveur que l'appelant est admin avant d'envoyer les
+  // emails et d'enregistrer la campagne dans email_campaigns.
   const handleSendCampaign = async () => {
     if (!selectedTemplateId || selectedIds.size === 0) return;
     setSending(true);

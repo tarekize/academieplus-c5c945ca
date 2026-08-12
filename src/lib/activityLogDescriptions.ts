@@ -40,6 +40,8 @@ const ACTION_DESCRIPTIONS: Record<string, string> = {
   delete_old_contact_messages: "Nettoyage des anciens messages de contact",
 };
 
+/** Traduit un code d'action (+ contexte via `details`) en phrase lisible pour
+ * l'admin, ex: distingue "user_deleted" auto vs par un tiers via self_delete. */
 export function describeAction(action: string, details: Json | null | undefined): string {
   const base = ACTION_DESCRIPTIONS[action]
     ?? action.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());

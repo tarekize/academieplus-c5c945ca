@@ -15,7 +15,9 @@ interface ChapterStat {
   total_answers: number;
 }
 
-// Génère l'analyse via Google Gemini (2ème clé) uniquement.
+// Génère le paragraphe d'analyse en français (destiné aux parents) via
+// Google Gemini (2ème clé) uniquement — pas de fallback multi-provider ici,
+// le rapport se dégrade vers un résumé chiffré (sans IA) en cas d'échec.
 async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ text: string; usage: GeminiUsage | null }> {
   const key = Deno.env.get("GEMINI_API_KEY_2");
   if (!key) throw new Error("GEMINI_API_KEY_2 not configured");
@@ -35,6 +37,13 @@ async function callGemini2(systemPrompt: string, userPrompt: string): Promise<{ 
   return { text: String(text).trim(), usage: extractGeminiUsage(data) };
 }
 
+// Génère et enregistre un rapport de suivi (30 derniers jours) pour UN enfant
+// précis, avec analyse IA en français destinée au parent. Appelée par
+// src/pages/ParentDashboard.tsx. IDOR : `child_id` vient du body mais est
+// systématiquement vérifié contre `parent_child_links` (lien actif,
+// parent_id = appelant du JWT) avant tout accès aux données de l'enfant —
+// un parent ne peut donc générer un rapport que pour SON enfant lié, jamais
+// pour un autre compte élève en changeant l'ID. Rate limiting ci-dessous.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });

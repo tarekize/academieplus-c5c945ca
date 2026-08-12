@@ -64,6 +64,10 @@ export default function AdminValidation() {
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
 
+  // Charge tous les contenus en attente de validation (chapitres, leçons,
+  // exercices/quiz, examens, demandes de suppression), tous types confondus,
+  // via la RPC admin_pending_content_items (admin-only côté serveur).
+  // Déclenché au montage de la page.
   const fetchItems = async () => {
     setLoading(true);
     const { data, error } = await supabase.rpc("admin_pending_content_items" as any);
@@ -71,6 +75,10 @@ export default function AdminValidation() {
     setLoading(false);
   };
 
+  // Charge l'historique des décisions de validation déjà prises (approuvé/
+  // refusé), via la RPC admin_content_review_history (admin-only côté
+  // serveur). Chargé une seule fois, à la première ouverture de l'onglet
+  // "Historique" (historyLoaded évite de recharger à chaque bascule d'onglet).
   const fetchHistory = async () => {
     setHistoryLoading(true);
     const { data, error } = await supabase.rpc("admin_content_review_history" as any);
@@ -87,6 +95,9 @@ export default function AdminValidation() {
     if (view === "history" && !historyLoaded) fetchHistory();
   }, [view, historyLoaded]);
 
+  // Construit l'URL de la page où l'admin peut examiner/valider l'item
+  // (grille de chapitres, éditeur de leçon, ou revue d'examen selon le type),
+  // utilisée par le bouton "Examiner" de chaque carte.
   const reviewUrl = (item: PendingItem): string => {
     const filiereQs = item.filiere_code ? `?filiere=${item.filiere_code}` : "";
     if (item.item_type === "lesson") return `/lecon/${item.lesson_id}`;

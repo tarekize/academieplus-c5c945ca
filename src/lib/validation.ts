@@ -102,7 +102,14 @@ export type ParentRegistration = z.infer<typeof parentRegistrationSchema>;
 export type ProfileUpdate = z.infer<typeof profileUpdateSchema>;
 export type LoginCredentials = z.infer<typeof loginSchema>;
 
-// Validation helper
+// Helper de validation de mot de passe (mêmes règles que passwordSchema).
+// À date de cet audit, aucun composant n'importe cette fonction ni les
+// schémas Zod ci-dessus (studentRegistrationSchema, passwordSchema, etc.) :
+// chaque page (Auth.tsx, ResetPassword.tsx, ChangePasswordButton.tsx,
+// AddUserDialog.tsx...) redéfinit sa propre fonction locale `validatePassword`
+// avec la même logique dupliquée. Un bug dans l'une de ces copies locales
+// (comme celui déjà corrigé dans Auth.tsx où le résultat n'était pas
+// vérifié par l'appelant) n'est pas rattrapé par ce module centralisé.
 export function validatePassword(password: string): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
   
@@ -146,11 +153,13 @@ export const allSchoolLevels = [
   ...schoolLevels.lycee,
 ];
 
+/** Libellé FR d'un niveau scolaire (valeur enum -> "Terminale", etc.), repli sur la valeur brute. */
 export function getSchoolLevelLabel(value: string): string {
   const level = allSchoolLevels.find((l) => l.value === value);
   return level?.label || value;
 }
 
+/** Regroupe un niveau scolaire dans sa catégorie (Primaire/CEM/Lycée) pour l'affichage. */
 export function getSchoolCategory(value: string): string {
   if (schoolLevels.primaire.some((l) => l.value === value)) return "Primaire";
   if (schoolLevels.cem.some((l) => l.value === value)) return "CEM";
