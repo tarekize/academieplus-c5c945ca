@@ -151,18 +151,24 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
           const codeId = sub.activation_code_id;
           if (!codeId) continue;
 
-          // Delete student subscription linked to this code
+          // Delete student subscription linked to this code — re-filtre sur
+          // activation_code_id (déjà obtenu via un code appartenant à userId)
+          // en plus de l'id, pour ne jamais pouvoir résilier l'abonnement
+          // d'un autre parent même si l'id venait à être altéré côté client.
           if (!sub.id.startsWith("free_")) {
-            await supabase.from("student_subscriptions").delete().eq("id", sub.id);
+            await supabase.from("student_subscriptions").delete().eq("id", sub.id).eq("activation_code_id", codeId);
           } else {
             await supabase.from("student_subscriptions").delete().eq("activation_code_id", codeId);
           }
 
-          // Delete the activation code
+          // Delete the activation code — re-filtre sur created_by = userId :
+          // défense en profondeur pour qu'un parent ne puisse supprimer que
+          // SES PROPRES codes d'activation, jamais ceux d'un autre parent.
           const { error: codeError } = await supabase
             .from("activation_codes")
             .delete()
-            .eq("id", codeId);
+            .eq("id", codeId)
+            .eq("created_by", userId);
           if (codeError) throw codeError;
         }
 
@@ -175,20 +181,26 @@ const ResiliationDialog = ({ userId, onResiliation }: ResiliationDialogProps) =>
         const isFreeCode = selectedSub.id.startsWith("free_");
 
         if (!isFreeCode) {
+          // Idem : re-filtre sur activation_code_id (issu d'un code déjà
+          // scopé à userId) en plus de l'id du abonnement.
           const { error: subError } = await supabase
             .from("student_subscriptions")
             .delete()
-            .eq("id", selectedSub.id);
+            .eq("id", selectedSub.id)
+            .eq("activation_code_id", selectedSub.activation_code_id || "");
           if (subError) throw subError;
         } else if (selectedSub.activation_code_id) {
           await supabase.from("student_subscriptions").delete().eq("activation_code_id", selectedSub.activation_code_id);
         }
 
         if (selectedSub.activation_code_id) {
+          // Défense en profondeur : ne supprime que si le code appartient bien
+          // au parent connecté (created_by = userId), jamais celui d'un autre parent.
           const { error: codeError } = await supabase
             .from("activation_codes")
             .delete()
-            .eq("id", selectedSub.activation_code_id);
+            .eq("id", selectedSub.activation_code_id)
+            .eq("created_by", userId);
           if (codeError) throw codeError;
         }
 

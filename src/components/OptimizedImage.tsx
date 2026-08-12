@@ -11,6 +11,9 @@ interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> 
   loading?: 'lazy' | 'eager';
 }
 
+/** Image avec lazy-loading via IntersectionObserver (chargée seulement à
+ * l'approche du viewport, sauf `loading="eager"`) et fondu à l'apparition
+ * une fois le chargement terminé. */
 export const OptimizedImage = ({
   src,
   alt,

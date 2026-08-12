@@ -22,6 +22,10 @@ interface AdaptiveActivitiesProps {
   initialTab?: "quiz" | "exercise" | "revision" | null;
 }
 
+/** Onglets d'activités adaptatives (quiz / exercices / fiches de révision)
+ * générées par l'IA pour une leçon donnée, avec suivi du score, détection
+ * d'hésitation/abandon et verrouillage temporaire après une mauvaise réponse.
+ * Interface toujours en arabe (pas de bascule i18n ici). */
 export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, lessonTitle, chapterTitle, initialTab = null }: AdaptiveActivitiesProps) {
   const {
     quizzes, exercises, revisions, loading, score,
@@ -58,6 +62,8 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
   useEffect(() => { resultsRef.current = exerciseResults; }, [exerciseResults]);
   useEffect(() => { exercisesRef.current = exercises; }, [exercises]);
 
+  /** Classe l'usage de l'indice pour un exercice : "curative" si demandé après
+   * une tentative ratée, "preventive" si demandé avant toute tentative. */
   const hintUsageFor = (eIdx: number): HintUsage => {
     const h = exerciseHint[eIdx];
     if (!h) return "none";
@@ -109,11 +115,15 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
   }, [lessonId, updateReadingTime]);
 
   // Quiz: select then validate (Règle 2B)
+  /** Mémorise le choix de l'élève sans le valider (une question déjà corrigée
+   * reste figée : re-sélectionner ne fait rien). */
   const handleQuizSelect = (qIdx: number, answer: string) => {
     if (quizResults[qIdx] !== undefined) return;
     setQuizSelected(prev => ({ ...prev, [qIdx]: answer }));
   };
 
+  /** Valide la réponse sélectionnée pour une question de quiz, met à jour le
+   * résultat affiché et journalise la réponse pour le moteur de niveau. */
   const handleQuizValidate = async (qIdx: number) => {
     if (quizResults[qIdx] !== undefined) return;
     const answer = quizSelected[qIdx];
@@ -126,6 +136,9 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
   };
 
   // Exercise: wrong answer → red lockout 3s, no reveal, retry (Règle 2A)
+  /** Vérifie la réponse d'un exercice : si correcte, marque comme résolu et
+   * journalise la réussite ; sinon verrouille brièvement le champ (3s) pour
+   * inciter à la réflexion avant une nouvelle tentative, sans révéler la solution. */
   const handleExerciseSubmit = async (eIdx: number) => {
     if (exerciseLocked[eIdx] || exerciseSolved[eIdx]) return;
     const userAnswer = exerciseAnswers[eIdx]?.trim();
@@ -150,6 +163,9 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
   };
 
   // Reveal detailed solution = give up if not solved → record as failure (abandoned)
+  /** Affiche/masque le corrigé détaillé. Si l'élève révèle la solution sans
+   * avoir résolu l'exercice, ceci compte comme un abandon (journalisé une
+   * seule fois grâce à la vérification `exerciseResults[eIdx] === undefined`). */
   const handleRevealSolution = async (eIdx: number) => {
     const willReveal = !exerciseRevealed[eIdx];
     setExerciseRevealed(prev => ({ ...prev, [eIdx]: !prev[eIdx] }));
@@ -162,6 +178,8 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
     }
   };
 
+  /** Ouvre/ferme l'indice d'un exercice et enregistre s'il a été consulté
+   * avant ou après une première tentative (utilisé par hintUsageFor). */
   const handleToggleHint = (eIdx: number) => {
     const opening = !showHints[eIdx];
     setShowHints(prev => ({ ...prev, [eIdx]: !prev[eIdx] }));
@@ -174,12 +192,16 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
     }
   };
 
+  /** Met à jour la réponse saisie et alimente la détection d'hésitation :
+   * repère le cas où l'élève tape puis efface entièrement sa réponse. */
   const handleExerciseChange = (eIdx: number, val: string) => {
     setExerciseAnswers(prev => ({ ...prev, [eIdx]: val }));
     if (val.trim().length > 0) typedRef.current[eIdx] = true;
     else if (typedRef.current[eIdx]) emptiedRef.current[eIdx] = true;
   };
 
+  /** Réinitialise l'état local du type d'activité concerné puis redemande une
+   * génération IA fraîche (bouton "تجديد"/"Générer avec l'IA"). */
   const handleRegenerate = (type: "quiz" | "exercise" | "revision") => {
     if (type === "quiz") { setQuizSelected({}); setQuizAnswers({}); setQuizResults({}); }
     if (type === "exercise") {
@@ -192,12 +214,14 @@ export function AdaptiveActivities({ lessonId, chapterId, userId, schoolLevel, l
   };
 
 
+  /** Couleur associée au niveau de difficulté courant (0-100) pour le badge de niveau. */
   const getDifficultyColor = (level: number) => {
     if (level < 30) return "text-green-500";
     if (level < 60) return "text-yellow-500";
     return "text-red-500";
   };
 
+  /** Libellé en arabe du niveau de difficulté courant, à afficher dans le badge. */
   const getDifficultyLabel = (level: number) => {
     if (level < 25) return "مبتدئ";
     if (level < 40) return "سهل";

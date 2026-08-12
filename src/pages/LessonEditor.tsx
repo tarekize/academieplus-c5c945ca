@@ -62,6 +62,10 @@ interface LatestVersion {
   rejection_reason: string | null;
 }
 
+// Éditeur de contenu de leçon (route réservée admin/pedago). Le pédago
+// travaille sur un brouillon puis soumet une version pour validation
+// (workflow lesson_versions) ; l'admin publie directement et peut
+// approuver/refuser les versions soumises par les pédagos.
 export default function LessonEditor() {
   const { lessonId } = useParams<{ lessonId: string }>();
   const navigate = useNavigate();
@@ -94,6 +98,10 @@ export default function LessonEditor() {
   const [versionsListOpen, setVersionsListOpen] = useState(false);
   const [viewingVersion, setViewingVersion] = useState<LessonVersion | null>(null);
 
+  // Charge la leçon, son chapitre (pour la navigation retour), le rôle de
+  // l'utilisateur courant et l'état du workflow de validation (brouillon,
+  // dernière version soumise). Détermine quel contenu afficher : brouillon
+  // local > version pédago en attente/refusée > contenu publié.
   const fetchLesson = useCallback(async () => {
     if (!lessonId) return;
     try {
@@ -214,6 +222,8 @@ export default function LessonEditor() {
     return () => { supabase.removeChannel(channel); };
   }, [lessonId, isDirty, fetchLesson]);
 
+  // Annule les modifications locales : revient au contenu publié et efface
+  // le brouillon serveur éventuel.
   const handleDiscard = async () => {
     setContent(lesson?.content || '');
     setContentVersion(v => v + 1);
@@ -224,6 +234,8 @@ export default function LessonEditor() {
     }
   };
 
+  // Enregistre le contenu courant comme brouillon (visible seulement par son
+  // auteur, pas encore soumis à validation).
   const handleSaveDraft = async () => {
     if (!lessonId) return;
     setSavingDraft(true);
@@ -240,6 +252,9 @@ export default function LessonEditor() {
     }
   };
 
+  // Soumet le contenu courant comme nouvelle version via la RPC
+  // submit_lesson_version : publication immédiate pour un admin, envoi en
+  // attente de validation pour un pédago.
   const handlePublish = async () => {
     if (!lessonId) return;
     setPublishing(true);
@@ -276,6 +291,8 @@ export default function LessonEditor() {
     }
   };
 
+  // Approuve la version pédago en attente (admin uniquement) : la rend
+  // visible aux élèves via la RPC approve_lesson_version.
   const handleApprove = async () => {
     if (!latestVersion || latestVersion.status !== 'pending') return;
     setApproving(true);
@@ -293,6 +310,8 @@ export default function LessonEditor() {
     }
   };
 
+  // Refuse la version pédago en attente (admin uniquement), avec un motif
+  // optionnel visible ensuite par le pédago.
   const handleReject = async () => {
     if (!latestVersion || latestVersion.status !== 'pending') return;
     setRejecting(true);
@@ -312,6 +331,8 @@ export default function LessonEditor() {
     }
   };
 
+  // Charge l'historique complet des versions soumises pour cette leçon
+  // (affiché dans le dialogue "الإصدارات السابقة").
   const fetchVersions = useCallback(async () => {
     if (!lessonId) return;
     setVersionsLoading(true);
@@ -331,6 +352,7 @@ export default function LessonEditor() {
     }
   }, [lessonId]);
 
+  // Badge visuel correspondant au statut d'une version de leçon.
   const renderVersionStatusBadge = (status: LessonVersion["status"]) => {
     if (status === "approved") {
       return (
@@ -357,15 +379,18 @@ export default function LessonEditor() {
     return <Badge variant="secondary">استُبدلت</Badge>;
   };
 
+  // Ouvre le dialogue d'historique et déclenche son chargement.
   const openVersionsList = () => {
     setVersionsListOpen(true);
     fetchVersions();
   };
 
+  // Ouvre le panneau assistant IA pour générer/modifier du contenu.
   const handleGenerateAI = () => {
     setIsAIPanelOpen(true);
   };
 
+  // Bascule entre l'édition WYSIWYG et l'édition du source LaTeX/HTML.
   const toggleLatexMode = () => {
     // En quittant le mode LaTeX, force InlineLessonEditor à repartir du
     // contenu le plus récent (il ne relit jamais `content` en cours d'édition).
@@ -373,6 +398,8 @@ export default function LessonEditor() {
     setLatexMode(v => !v);
   };
 
+  // Vide le contenu localement (marqué comme brouillon de suppression) ; ne
+  // devient effectif qu'après envoi/publication via handlePublish.
   const handleDelete = async () => {
     // Marquer pour suppression locale - pas encore publié
     setContent('');

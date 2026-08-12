@@ -25,6 +25,9 @@ export default function ExamHistoryList({ subject, schoolLevel, filiereId, isTer
   const [trimesterFilter, setTrimesterFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
+  // Recharge la liste dès que le contexte matière/niveau/filière change,
+  // scopée côté serveur sur ces critères (aucun examen d'une autre
+  // matière/niveau ne peut apparaître ici).
   useEffect(() => {
     (async () => {
       setLoading(true);

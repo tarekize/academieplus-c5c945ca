@@ -45,6 +45,7 @@ const SUBJECTS = [
   "Autre",
 ];
 
+/** Badge coloré selon le statut d'une réclamation (en attente/résolu/rejeté). */
 const statusBadge = (status: string) => {
   if (status === "resolved")
     return (
@@ -65,6 +66,9 @@ const statusBadge = (status: string) => {
   );
 };
 
+/** Dialogue permettant à un élève/enseignant de soumettre une réclamation à
+ * l'établissement et de consulter l'historique + réponses de ses propres
+ * réclamations (filtrées par user_id de l'utilisateur connecté). */
 const ReclamationDialog = ({ userRole, trigger }: ReclamationDialogProps) => {
   const [open, setOpen] = useState(false);
   const [subject, setSubject] = useState("");
@@ -73,6 +77,8 @@ const ReclamationDialog = ({ userRole, trigger }: ReclamationDialogProps) => {
   const [reclamations, setReclamations] = useState<Reclamation[]>([]);
   const [loadingList, setLoadingList] = useState(false);
 
+  /** Charge les réclamations déjà soumises par l'utilisateur connecté (et
+   * leurs réponses), à l'ouverture du dialogue. */
   const fetchReclamations = async () => {
     setLoadingList(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -92,6 +98,7 @@ const ReclamationDialog = ({ userRole, trigger }: ReclamationDialogProps) => {
     if (open) fetchReclamations();
   }, [open]);
 
+  /** Envoie une nouvelle réclamation (motif + message) puis rafraîchit la liste. */
   const handleSubmit = async () => {
     if (!subject || !message.trim()) {
       toast.error("Champs requis", { description: "Veuillez remplir tous les champs." });

@@ -20,6 +20,8 @@ import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { videoService, type ReelVideo, type VideoMapping } from "@/services/videoService";
 
+/** Panneau admin (localStorage, pas Supabase) pour associer un titre de leçon
+ * à une vidéo YouTube principale + des vidéos complémentaires ("reels"). */
 export const VideoLibraryManager = () => {
     const [mappings, setMappings] = useState<Record<string, VideoMapping>>(
         JSON.parse(localStorage.getItem("video_mappings") || "{}")
@@ -33,6 +35,8 @@ export const VideoLibraryManager = () => {
     const [loading, setLoading] = useState(false);
     const [deletingTitle, setDeletingTitle] = useState<string | null>(null);
 
+    /** Crée/remplace le mapping vidéo pour le titre de leçon saisi, après avoir
+     * parsé le JSON optionnel des vidéos complémentaires. */
     const handleAddMapping = async () => {
         if (!formData.lessonTitle.trim() || !formData.mainVideoUrl.trim()) {
             toast.error("Le titre et l'URL sont requis");
@@ -67,6 +71,8 @@ export const VideoLibraryManager = () => {
         }
     };
 
+    /** Supprime le mapping vidéo pour un titre de leçon donné, déclenché après
+     * confirmation dans la boîte de dialogue. */
     const handleDelete = async (title: string) => {
         setDeletingTitle(title);
         try {

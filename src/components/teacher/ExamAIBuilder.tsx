@@ -35,6 +35,11 @@ interface Props {
   teacherId: string;
 }
 
+// Assistant IA de création d'examens : génère exercice par exercice via
+// l'edge function generate-exam-exercise, permet l'édition manuelle, puis
+// partage l'examen assemblé aux classes de l'enseignant (jamais à une classe
+// qui ne lui appartient pas — SendContentDialog ne propose que ses propres
+// classes, filtrées par teacher_id).
 export default function ExamAIBuilder({ teacherId }: Props) {
   const [levels, setLevels] = useState<string[]>([]);
   const [level, setLevel] = useState("");
@@ -55,6 +60,8 @@ export default function ExamAIBuilder({ teacherId }: Props) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const sessionSaveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Niveaux scolaires distincts parmi les classes de l'enseignant (limite le
+  // sélecteur "Niveau" à ce qui est réellement pertinent pour lui).
   useEffect(() => {
     (async () => {
       const { data } = await supabase.from("classes").select("school_level").eq("teacher_id", teacherId);
@@ -97,6 +104,8 @@ export default function ExamAIBuilder({ teacherId }: Props) {
     })();
   }, [level, filiere, filieres]);
 
+  // Redimensionne le tableau de lignes-exercices quand l'enseignant change
+  // le nombre d'exercices voulus, en préservant les lignes déjà remplies.
   const changeCount = (n: number) => {
     setCount(n);
     setRows((prev) => {
@@ -110,10 +119,12 @@ export default function ExamAIBuilder({ teacherId }: Props) {
     });
   };
 
+  // Met à jour un champ d'une ligne-exercice donnée.
   const updateRow = (index: number, field: keyof AIExerciseRow, value: any) => {
     setRows((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
   };
 
+  // Génère un exercice IA pour la ligne `index`, à partir du chapitre choisi.
   const generateRow = async (index: number) => {
     const row = rows[index];
     if (!row.chapter_id) { toast.error("Choisissez un chapitre d'abord."); return; }
@@ -134,6 +145,8 @@ export default function ExamAIBuilder({ teacherId }: Props) {
     }
   };
 
+  // Remplace les lignes vides par les exercices extraits d'un document
+  // importé (bouton DocumentImportButton).
   const handleDocumentExtracted = (extracted: GeneratedItem[]) => {
     const newRows: AIExerciseRow[] = extracted
       .filter((it) => it.statement?.trim())
@@ -155,6 +168,7 @@ export default function ExamAIBuilder({ teacherId }: Props) {
     });
   };
 
+  // Vide le formulaire (après un partage réussi, ou "Nouveau").
   const resetForm = () => {
     setTitle("");
     setTrimester("");
@@ -162,6 +176,9 @@ export default function ExamAIBuilder({ teacherId }: Props) {
     setRows(Array.from({ length: 3 }, emptyRow));
   };
 
+  // Enregistre l'examen (teacher_content) puis l'assigne aux classes
+  // sélectionnées (classIds provient de SendContentDialog, déjà restreint
+  // aux classes de teacherId).
   const doShare = async (classIds: string[]) => {
     const validExercises = rows
       .filter((r) => r.statement.trim())
@@ -193,6 +210,8 @@ export default function ExamAIBuilder({ teacherId }: Props) {
     }
   };
 
+  // Valide que le formulaire est complet avant d'ouvrir le dialogue de
+  // sélection des classes destinataires.
   const handleShareClick = () => {
     if (!level) { toast.error("Choisissez un niveau."); return; }
     if (filieres.length > 0 && !filiere) { toast.error("Choisissez une filière."); return; }
@@ -219,6 +238,7 @@ export default function ExamAIBuilder({ teacherId }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level, filiere, title, trimester, count, rows]);
 
+  // Recharge un brouillon d'examen depuis l'historique des sessions.
   const loadSession = (session: TeacherContentSessionRow) => {
     const s = session.state || {};
     setLevel(s.level || "");
@@ -231,6 +251,7 @@ export default function ExamAIBuilder({ teacherId }: Props) {
     setShowHistory(false);
   };
 
+  // Repart d'un examen totalement vierge (abandonne la session en cours).
   const startNewSession = () => {
     setSessionId(null);
     setLevel(""); setFiliere("");

@@ -25,7 +25,12 @@ interface ProtectedRouteProps {
   blockAdmin?: boolean;
 }
 
-export default function ProtectedRoute({ 
+/** Garde de route : bloque l'accès aux enfants tant que l'utilisateur n'est
+ * pas authentifié et, si demandé, tant qu'il ne possède pas le rôle requis
+ * (requiredRole/allowedRoles/requireAdmin) ou est explicitement exclu
+ * (blockAdmin). Redirige vers /auth si non connecté, ou vers l'espace propre
+ * au rôle de l'utilisateur si connecté mais non autorisé ici. */
+export default function ProtectedRoute({
   children, 
   requiredRole,
   allowedRoles,
@@ -64,6 +69,8 @@ export default function ProtectedRoute({
   }, [user, loading]);
 
   useEffect(() => {
+    // Détermine si l'utilisateur connecté satisfait les contraintes de rôle
+    // de cette route (blockAdmin > requireAdmin > requiredRole > allowedRoles).
     async function checkAuthorization() {
       if (loading) return;
 

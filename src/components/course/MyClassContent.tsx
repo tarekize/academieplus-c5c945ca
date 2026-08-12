@@ -28,6 +28,9 @@ interface Props {
   contentType: "exercise" | "quiz";
 }
 
+/** Liste, pour l'élève courant, les exercices/quiz créés par ses enseignants
+ * (contenu assigné à sa classe ou directement à lui) — RLS sur
+ * teacher_content_assignments garantit qu'il ne voit que ce qui lui est destiné. */
 export function MyClassContent({ userId, contentType }: Props) {
   const { t, i18n } = useTranslation();
   const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
@@ -38,12 +41,15 @@ export function MyClassContent({ userId, contentType }: Props) {
   const [selected, setSelected] = useState<Record<string, string>>({});
   const [showHint, setShowHint] = useState<Record<string, boolean>>({});
 
+  /** Affiche l'indice d'un quiz (une seule fois) et journalise sa consultation. */
   const handleHint = (key: string, contentId: string) => {
     if (showHint[key]) return;
     setShowHint((h) => ({ ...h, [key]: true }));
     recordTeacherContentAttempt(contentId, userId, { hintDelta: 1 });
   };
 
+  /** Révèle/masque la correction d'un quiz enseignant et journalise la
+   * tentative (correcte ou non) auprès de l'enseignant. */
   const handleQuizCheck = (it: TeacherContentRow, p: any) => {
     if (revealed[it.id]) { setRevealed((r) => ({ ...r, [it.id]: false })); return; }
     const sel = selected[it.id];
@@ -58,6 +64,9 @@ export function MyClassContent({ userId, contentType }: Props) {
     });
   };
 
+  /** Charge les exercices/quiz assignés à l'élève, en excluant les examens
+   * (page dédiée) et en distinguant les assignations directes (mises en avant)
+   * des assignations par classe entière. */
   useEffect(() => {
     let active = true;
     (async () => {
@@ -150,6 +159,8 @@ export function MyClassContent({ userId, contentType }: Props) {
   );
 }
 
+/** Carte d'un quiz enseignant : sélection d'une option puis révélation de la
+ * correction/explication (traduite à la volée selon `lang`). */
 function QuizContentCard({
   it, direct, isRevealed, selectedOption, hintShown, lang, onSelect, onHint, onCheck,
 }: {
@@ -194,12 +205,17 @@ function QuizContentCard({
               const isCorrect = isRevealed && opt === p.correct_answer;
               const isWrong = isRevealed && isSel && opt !== p.correct_answer;
               return (
+                // dir selon la langue active de l'UI (et non dir="auto" détecté sur
+                // le contenu) + text-start (et non text-end) : text-align:end sous
+                // RTL aligne à GAUCHE, pas à droite — une option purement arabe
+                // partait donc du mauvais côté. text-start suit toujours le sens de
+                // lecture naturel, quelle que soit la langue.
                 <Button key={oIdx}
                   variant={isCorrect ? "default" : isWrong ? "destructive" : isSel ? "secondary" : "outline"}
-                  className="justify-start text-end"
+                  className="justify-start text-start"
                   onClick={() => !isRevealed && onSelect(opt)}
-                  dir="auto">
-                  <HtmlWithMath htmlContent={cleanMathStatement(tOptions[oIdx] || opt)} className="flex-1 text-end" dir="auto" />
+                  dir={lang === "fr" ? "ltr" : "rtl"}>
+                  <HtmlWithMath htmlContent={cleanMathStatement(tOptions[oIdx] || opt)} className="flex-1 text-start" dir={lang === "fr" ? "ltr" : "rtl"} />
                 </Button>
               );
             })}
@@ -230,6 +246,8 @@ function QuizContentCard({
   );
 }
 
+/** Carte d'un exercice enseignant : délègue la saisie/correction de la réponse
+ * à ExerciseAnswerBlock (qui journalise la tentative). */
 function ExerciseContentCard({ it, direct, lang, userId }: { it: TeacherContentRow; direct: boolean; lang: "fr" | "ar"; userId: string }) {
   const p = it.payload || {};
   const { translated } = useTranslatedContent([p.title || it.title || ""], lang);

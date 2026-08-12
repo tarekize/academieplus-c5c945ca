@@ -34,6 +34,9 @@ interface Reviewer {
   last_name: string | null;
 }
 
+/** Pop-up "Envoyer en révision" d'un cours : choix d'un réviseur (admin),
+ * message optionnel, puis journalisation de l'action (voir TODO plus bas,
+ * la mise à jour du statut réel du cours n'est pas encore branchée). */
 export function ReviewModal({ open, onClose, courseId, onSuccess }: ReviewModalProps) {
   const [reviewers, setReviewers] = useState<Reviewer[]>([]);
   const [selectedReviewer, setSelectedReviewer] = useState<string>("");
@@ -47,6 +50,8 @@ export function ReviewModal({ open, onClose, courseId, onSuccess }: ReviewModalP
     }
   }, [open]);
 
+  /** Charge la liste des réviseurs potentiels (utilisateurs ayant le rôle
+   * "admin", faute d'un rôle "reviseur" dédié dans l'enum actuel). */
   const loadReviewers = async () => {
     try {
       // Get all users with 'admin' role (since 'reviseur' doesn't exist in the enum)
@@ -76,6 +81,8 @@ export function ReviewModal({ open, onClose, courseId, onSuccess }: ReviewModalP
     }
   };
 
+  /** Envoie le cours en révision au réviseur sélectionné (bouton "Envoyer en
+   * révision") : journalise l'action via log_activity. */
   const handleSendToReview = async () => {
     if (!selectedReviewer) {
       toast.error("Veuillez sélectionner un réviseur");
@@ -108,6 +115,7 @@ export function ReviewModal({ open, onClose, courseId, onSuccess }: ReviewModalP
     }
   };
 
+  /** Nom affiché pour un réviseur : prénom/nom si connus, sinon email, sinon "Utilisateur". */
   const getReviewerName = (reviewer: Reviewer) => {
     if (reviewer.first_name || reviewer.last_name) {
       return `${reviewer.first_name || ''} ${reviewer.last_name || ''}`.trim();

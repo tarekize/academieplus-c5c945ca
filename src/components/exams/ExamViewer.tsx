@@ -61,6 +61,7 @@ function SolutionBox({ solution }: { solution: string }) {
   );
 }
 
+/** Formate un nombre de secondes en "MM:SS" pour l'affichage du chrono. */
 function formatClock(totalSeconds: number): string {
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
@@ -99,10 +100,14 @@ function CountdownTimer({ durationMinutes, onExpire, frozen }: { durationMinutes
   );
 }
 
+/** Un exercice est traité comme "à sous-questions" seulement à partir de 2
+ * (une seule sous-question serait affichée comme un exercice simple). */
 function hasSubQuestions(ex: ExamExercise): boolean {
   return Array.isArray(ex.sub_questions) && ex.sub_questions.length >= 2;
 }
 
+/** Grille de réponses vides initiale : une case par sous-question si
+ * l'exercice en a, sinon une seule case pour l'exercice entier. */
 function makeAnswerGrid(exercises: ExamExercise[]): string[][] {
   return exercises.map((ex) => new Array(hasSubQuestions(ex) ? ex.sub_questions!.length : 1).fill(""));
 }
@@ -129,6 +134,7 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exercises.length]);
 
+  /** Met à jour la réponse de l'élève à une (sous-)question donnée. */
   const setAnswer = (exIdx: number, subIdx: number, value: string) => {
     setAnswers((prev) => prev.map((row, i) => (i === exIdx ? row.map((a, j) => (j === subIdx ? value : a)) : row)));
   };
@@ -152,11 +158,16 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
     }
   };
 
+  // Les fonctions ci-dessous ("edit" mode uniquement) sont des no-op si
+  // onChange n'est pas fourni (mode "student"/"preview" en lecture seule).
+
+  /** Modifie un champ (énoncé, solution, réponse...) de l'exercice `index`. */
   const update = (index: number, field: keyof ExamExercise, value: string) => {
     if (!onChange) return;
     onChange(exercises.map((ex, i) => (i === index ? { ...ex, [field]: value } : ex)));
   };
 
+  /** Modifie un champ d'une sous-question précise d'un exercice. */
   const updateSubQuestion = (exIdx: number, subIdx: number, field: keyof ExamSubQuestion, value: string) => {
     if (!onChange) return;
     onChange(exercises.map((ex, i) => {
@@ -165,26 +176,33 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
     }));
   };
 
+  /** Supprime une sous-question d'un exercice. */
   const removeSubQuestion = (exIdx: number, subIdx: number) => {
     if (!onChange) return;
     onChange(exercises.map((ex, i) => (i === exIdx && ex.sub_questions ? { ...ex, sub_questions: ex.sub_questions.filter((_, j) => j !== subIdx) } : ex)));
   };
 
+  /** Ajoute une sous-question vide à un exercice. */
   const addSubQuestion = (exIdx: number) => {
     if (!onChange) return;
     onChange(exercises.map((ex, i) => (i === exIdx ? { ...ex, sub_questions: [...(ex.sub_questions || []), { question: "", expected_answer: "" }] } : ex)));
   };
 
+  /** Retire un exercice entier de l'examen. */
   const removeExercise = (index: number) => {
     if (!onChange) return;
     onChange(exercises.filter((_, i) => i !== index));
   };
 
+  /** Ajoute un exercice vide en fin d'examen. */
   const addExercise = () => {
     if (!onChange) return;
     onChange([...exercises, { statement: "", solution: "", answer: "" }]);
   };
 
+  /** Calcule le score de l'élève une fois l'examen soumis, en comparant
+   * chaque réponse normalisée (espaces/casse) à la réponse attendue ; les
+   * (sous-)questions sans réponse attendue ne comptent pas dans le total. */
   const score = useMemo(() => {
     if (!submitted) return null;
     let correct = 0;
@@ -204,6 +222,7 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
     return { correct, total };
   }, [submitted, exercises, answers]);
 
+  /** Soumission de l'examen par l'élève (bouton ou expiration du chrono) : verrouille les réponses et révèle le score. */
   const handleSubmit = () => setSubmitted(true);
 
   if (exercises.length === 0) {

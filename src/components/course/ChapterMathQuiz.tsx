@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { recordActivityAnswer } from "@/lib/recordActivityAnswer";
 import { useNavigate } from "react-router-dom";
 
+/** Petite jauge visuelle (crayons) indiquant le niveau de difficulté (1 à 5) d'une question. */
 function DifficultyPencils({ level }: { level: number }) {
   const { t } = useTranslation();
   return (
@@ -47,6 +48,9 @@ interface ChapterMathQuizProps {
   onRefresh?: () => void;
 }
 
+/** Lecteur de quiz question par question pour un chapitre : soumission,
+ * correction serveur (RPC check_quiz_answer, avec repli client si l'appel
+ * échoue), suivi du score/temps, et écran de résultats final. */
 export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, canManage, onRefresh }: ChapterMathQuizProps) => {
   const { t, i18n } = useTranslation();
   const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
@@ -100,6 +104,10 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
     lang
   );
 
+  /** Valide la réponse sélectionnée via l'edge function RPC (qui seule connaît
+   * la bonne réponse côté serveur) et journalise le résultat pour le moteur de
+   * niveau adaptatif. Repli client-side si le RPC échoue et que la bonne
+   * réponse est déjà disponible (ex. contexte admin/pédago). */
   const handleSubmit = async () => {
     if (!selectedAnswer || !currentQuestion) return;
     setIsSubmitting(true);
@@ -161,6 +169,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
     }
   };
 
+  /** Passe à la question suivante (ou affiche l'écran de résultats si c'était la dernière). */
   const handleNext = () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(prev => prev + 1);
@@ -176,6 +185,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
     }
   };
 
+  /** Réinitialise complètement le quiz pour un nouvel essai. */
   const handleRestart = () => {
     setCurrentIndex(0); setSelectedAnswer(""); setHasAnswered(false);
     setScore(0); setShowResults(false); setAnswers([]);
@@ -305,7 +315,11 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                     <Lightbulb className="h-5 w-5 text-amber mt-0.5 shrink-0" />
                     <div className="flex-1 text-sm text-foreground">
                       <p className="font-semibold mb-2">{t("quizPlayer.helpfulTip")}</p>
-                      <HtmlWithMath htmlContent={tHint} className="max-w-none text-end leading-relaxed" dir="auto" />
+                      {/* dir explicite selon la langue de l'UI (et non détecté depuis le
+                      contenu) : un indice arabe traduit à la volée en français doit
+                      s'afficher en LTR avec text-start, pas en RTL "par coïncidence"
+                      quand le texte source démarre par un symbole/chiffre. */}
+                  <HtmlWithMath htmlContent={tHint} className="max-w-none text-start leading-relaxed" dir={lang === "fr" ? "ltr" : "rtl"} />
                     </div>
                   </div>
                 </div>
@@ -355,7 +369,10 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
               </div>
 
               {explanation && (
-                <MarkdownSolution content={tExplanation} title={t("quizPlayer.detailedExplanation")} compact />
+                // dir explicite : tExplanation est traduite à la volée en français
+                // quand lang="fr" — sans ce prop, MarkdownSolution forçait RTL par
+                // défaut et l'explication française s'affichait alignée à droite.
+                <MarkdownSolution content={tExplanation} title={t("quizPlayer.detailedExplanation")} compact dir={lang === "fr" ? "ltr" : "rtl"} />
               )}
 
               {!isCorrect && correctAnswer && (

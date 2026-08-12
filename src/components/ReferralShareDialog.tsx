@@ -16,6 +16,8 @@ interface ReferralShareDialogProps {
   referralCode: string;
 }
 
+/** Dialogue de partage du lien de parrainage sur différents canaux (copie,
+ * email, SMS, WhatsApp, Messenger, Facebook, Twitter). */
 export const ReferralShareDialog = ({
   open,
   onOpenChange,
@@ -24,6 +26,8 @@ export const ReferralShareDialog = ({
 }: ReferralShareDialogProps) => {
   const shareMessage = `Rejoins-moi sur AcadémiePlus de soutien scolaire ! Utilise mon code de parrainage : ${referralCode} et nous recevrons tous les deux 5% de réduction ! ${referralUrl}`;
 
+  /** Copie le lien de parrainage dans le presse-papier, avec repli manuel
+   * (textarea + execCommand) pour les navigateurs sans API Clipboard. */
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(referralUrl);

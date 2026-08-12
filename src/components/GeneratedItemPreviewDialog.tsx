@@ -22,6 +22,8 @@ export default function GeneratedItemPreviewDialog({ open, onOpenChange, item, o
   const isQuiz = typeof item?.question === "string";
   const hasSubQuestions = !isQuiz && !!item?.sub_questions && item.sub_questions.length > 0;
 
+  /** Met à jour une sous-question (question multi-parties) à l'index donné,
+   * sans toucher aux autres. */
   const updateSubQuestion = (i: number, patch: Partial<{ question: string; expected_answer: string }>) => {
     const next = [...(item?.sub_questions || [])];
     next[i] = { ...next[i], ...patch };

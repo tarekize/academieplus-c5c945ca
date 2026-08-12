@@ -33,6 +33,10 @@ interface SendContentDialogProps {
   defaultLessonId?: string | null;
 }
 
+// Dialogue de sélection des classes destinataires (et, pour un
+// exercice/quiz, du chapitre/leçon associé) avant d'envoyer un contenu créé
+// par l'enseignant. La liste des classes proposées est toujours filtrée par
+// teacher_id côté requête : impossible de cibler la classe d'un autre enseignant.
 export default function SendContentDialog({
   open, onOpenChange, teacherId, schoolLevel, onConfirm,
   requireLesson, chapters = [], defaultChapterId, defaultLessonId,
@@ -85,8 +89,11 @@ export default function SendContentDialog({
     return () => { active = false; };
   }, [open, requireLesson, chapterId]);
 
+  // Coche/décoche une classe dans la sélection.
   const toggle = (id: string) => setSelected((s) => ({ ...s, [id]: !s[id] }));
 
+  // Valide la sélection (classes + chapitre/leçon si requis) puis délègue
+  // l'envoi effectif au parent via onConfirm.
   const handleSend = async () => {
     const ids = Object.keys(selected).filter((k) => selected[k]);
     if (ids.length === 0) {

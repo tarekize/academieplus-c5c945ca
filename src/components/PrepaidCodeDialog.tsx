@@ -22,6 +22,9 @@ export const PrepaidCodeDialog = ({ open, onOpenChange }: PrepaidCodeDialogProps
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
 
+  /** Active un code prépayé (fonctionnalité pas encore branchée côté serveur —
+   * affiche pour l'instant un message "bientôt disponible" au lieu d'appeler
+   * une edge function, volontairement, tant que celle-ci n'existe pas). */
   const handleActivateCode = async () => {
     if (!code.trim()) {
       toast.error("Code requis", {

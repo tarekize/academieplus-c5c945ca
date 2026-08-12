@@ -17,7 +17,8 @@ interface AdaptiveLessonProps {
     learningStyle: LearningStyle | null;
 }
 
-// Extraire ID YouTube
+/** Extrait l'identifiant vidéo d'une URL YouTube sous ses différents formats
+ * (youtu.be/, /v/, /embed/, ?v=...). Renvoie "" si l'URL n'est pas reconnue. */
 const getYoutubeId = (url: string): string => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
     const match = url.match(regExp);
@@ -25,6 +26,8 @@ const getYoutubeId = (url: string): string => {
 };
 
 // Lecteur YouTube
+/** Intègre une vidéo YouTube en iframe responsive ; affiche un message si
+ * l'URL fournie ne contient pas d'identifiant vidéo exploitable. */
 const YoutubePlayer = ({ url, title }: { url: string; title: string }) => {
     const youtubeId = getYoutubeId(url);
     if (!youtubeId) {
@@ -48,6 +51,9 @@ const YoutubePlayer = ({ url, title }: { url: string; title: string }) => {
     );
 };
 
+/** Bascule entre l'affichage des vidéos d'une leçon et son contenu texte, avec
+ * un choix par défaut selon le style d'apprentissage détecté (visuel → vidéos
+ * en premier, sinon texte en premier). */
 export const AdaptiveLesson = ({
     lessonTitle,
     lessonContent,
@@ -144,9 +150,13 @@ export const AdaptiveLesson = ({
                             <CardContent className="p-6">
                                 {/<\s*(html|body|head|!doctype|div|h[1-6]|p|ul|ol|table)/i.test(lessonContent) && !/^\s*#\s/m.test(lessonContent) ? (
                                     <div className="prose prose-sm max-w-none">
+                                        {/* dir="rtl" explicite (contenu en arabe) : sans cet attribut,
+                                            le conteneur héritait de la direction LTR par défaut du
+                                            document et le texte s'affichait mal aligné. */}
                                         <HtmlWithMath
                                             htmlContent={lessonContent}
                                             className="text-base leading-relaxed text-foreground"
+                                            dir="rtl"
                                         />
                                     </div>
                                 ) : (

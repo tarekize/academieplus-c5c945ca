@@ -36,6 +36,9 @@ interface TeacherProfileHeaderInfo {
   avatar_url: string | null;
 }
 
+// Tableau de bord enseignant : coquille de navigation entre les sous-écrans
+// (accueil, établissement, contenu, réclamations, profil). Redirige vers
+// /auth si aucun utilisateur n'est connecté.
 const TeacherDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -55,6 +58,8 @@ const TeacherDashboard = () => {
 
   const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Enseignant";
 
+  // Change la section active et la persiste dans sessionStorage (voir
+  // readStoredSection ci-dessus) pour survivre à un remount du composant.
   const setSection = (next: TeacherSection | null) => {
     setSectionState(next);
     try {

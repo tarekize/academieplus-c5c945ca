@@ -79,6 +79,10 @@ interface LinkedChild {
   } | null;
 }
 
+// Tableau de bord parent : liste les enfants liés (via parent_child_links),
+// leurs abonnements et rapports, et permet de créer un compte élève, lier un
+// enfant par code, activer un abonnement ou consulter la progression/le
+// contenu de cours d'un enfant.
 const ParentDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -121,6 +125,8 @@ const ParentDashboard = () => {
   const [latestReports, setLatestReports] = useState<Record<string, { id: string; generated_at: string; report_data: ParentReportData } | null>>({});
   const [generatingFor, setGeneratingFor] = useState<string | null>(null);
 
+  // Charge le profil du parent connecté (userId provient toujours de useAuth,
+  // jamais d'un paramètre externe).
   const fetchProfile = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -137,6 +143,10 @@ const ParentDashboard = () => {
     }
   }, []);
 
+  // Liste les enfants liés au parent (parent_id = userId, filtré côté
+  // requête) puis enrichit chaque enfant avec son abonnement actif s'il en a
+  // un (calcule les jours restants à partir de days_used + temps écoulé
+  // depuis last_tick_at, en ignorant les abonnements épuisés ou en pause).
   const fetchChildren = useCallback(async (userId: string) => {
     setChildrenLoading(true);
     try {
@@ -184,6 +194,8 @@ const ParentDashboard = () => {
     }
   }, []);
 
+  // Récupère, pour chaque enfant listé, le rapport parent (parent_reports)
+  // le plus récent — un seul par enfant grâce au tri desc + `if (!map[...])`.
   const fetchLatestReports = useCallback(async (childIds: string[]) => {
     if (childIds.length === 0) return;
     const { data } = await supabase
@@ -203,6 +215,9 @@ const ParentDashboard = () => {
     if (ids.length) fetchLatestReports(ids);
   }, [children, fetchLatestReports]);
 
+  // Télécharge le dernier rapport connu pour l'enfant, ou en génère un
+  // nouveau à la volée s'il n'en existe pas encore. Déclenché par le bouton
+  // "Générer"/téléchargement de la colonne "Dernier rapport".
   const handleDownloadReport = async (childId: string) => {
     const report = latestReports[childId];
     if (report?.report_data) {
@@ -213,6 +228,9 @@ const ParentDashboard = () => {
     await generateReport(childId);
   };
 
+  // Appelle l'edge function "generate-parent-report" pour produire un nouveau
+  // rapport de progression pour l'enfant donné, télécharge le PDF résultant
+  // puis met à jour le cache local latestReports.
   const generateReport = async (childId: string) => {
     setGeneratingFor(childId);
     try {
@@ -241,18 +259,23 @@ const ParentDashboard = () => {
     fetchChildren(user.id);
   }, [user, authLoading, navigate, fetchProfile, fetchChildren]);
 
+  // Nom complet affiché du parent, avec repli sur "Utilisateur".
   const getFullName = (p: Profile | null): string => {
     if (!p) return "Utilisateur";
     const parts = [p.first_name, p.last_name].filter(Boolean);
     return parts.length > 0 ? parts.join(" ") : "Utilisateur";
   };
 
+  // Nom complet affiché d'un enfant lié, avec repli si le profil est absent/vide.
   const getChildFullName = (child: LinkedChild["child"]): string => {
     if (!child) return "Compte élève";
     const parts = [child.first_name, child.last_name].filter(Boolean);
     return parts.length > 0 ? parts.join(" ") : "Sans nom";
   };
 
+  // Envoie une demande de liaison au compte élève désigné par son code de
+  // liaison (8 caractères hex) via l'edge function "link-child-by-code",
+  // qui résout le code et crée/valide le lien côté serveur.
   const handleAddByCode = async () => {
     const trimmedCode = code.trim();
     if (!trimmedCode) { sonnerToast.error("Veuillez entrer un code"); return; }
@@ -278,10 +301,19 @@ const ParentDashboard = () => {
     }
   };
 
+  // Supprime le lien parent-enfant `linkId`. Re-filtre explicitement sur
+  // parent_id = user.id en plus de l'id du lien (défense en profondeur) :
+  // sans ce garde-fou, un bug ailleurs qui ferait fuiter l'id d'un lien
+  // appartenant à un autre parent permettrait de le supprimer par erreur.
   const handleRemoveChild = async (linkId: string) => {
+    if (!user) return;
     setRemovingChildId(linkId);
     try {
-      const { error } = await supabase.from("parent_child_links").delete().eq("id", linkId);
+      const { error } = await supabase
+        .from("parent_child_links")
+        .delete()
+        .eq("id", linkId)
+        .eq("parent_id", user.id);
       if (error) throw error;
       if (user) fetchChildren(user.id);
       sonnerToast.success("Lien supprimé avec succès");
@@ -292,6 +324,9 @@ const ParentDashboard = () => {
     }
   };
 
+  // Active un abonnement pour l'enfant sélectionné en consommant un code
+  // d'activation via la RPC "redeem_activation_code" (la validation du code
+  // et le rattachement à l'enfant sont effectués côté serveur).
   const handleActivateSubscription = async () => {
     if (!activationCode.trim() || !selectedChildForActivation || !user) return;
     setActivating(true);
@@ -338,6 +373,10 @@ const ParentDashboard = () => {
     ],
   };
 
+  // Valide le formulaire de création de compte élève puis délègue la
+  // création (compte auth + profil + lien de parenté) à l'edge function
+  // "create-child-account", qui s'exécute avec des privilèges élevés côté
+  // serveur (le client ne crée jamais de compte tiers directement).
   const handleCreateChild = async () => {
     setCreateError(null);
     const missingFields = [];

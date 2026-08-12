@@ -40,6 +40,9 @@ export default function ViaIAWizard({ subject, schoolLevel, filiereId, isTermina
   const [difficultyPerChapter, setDifficultyPerChapter] = useState<Record<string, number>>({});
   const [progress, setProgress] = useState({ done: 0, total: 0 });
 
+  // Charge les chapitres disponibles une seule fois, dès l'arrivée sur
+  // l'étape "chapters" (le `chapters.length > 0` évite un rechargement à
+  // chaque retour sur cette étape).
   useEffect(() => {
     if (step !== "chapters" || chapters.length > 0) return;
     setLoadingChapters(true);
@@ -58,6 +61,8 @@ export default function ViaIAWizard({ subject, schoolLevel, filiereId, isTermina
     });
   }, [step, subject, schoolLevel, filiereId]);
 
+  /** Coche/décoche un chapitre ; à la première sélection, initialise ses
+   * réglages (nombre d'exercices, difficulté) à des valeurs par défaut. */
   const toggleChapter = (id: string) => {
     setSelectedChapterIds((prev) => {
       const next = prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id];
@@ -67,6 +72,11 @@ export default function ViaIAWizard({ subject, schoolLevel, filiereId, isTermina
     });
   };
 
+  /** Lance la génération IA : construit la liste des exercices à générer
+   * (chapitre × nombre demandé), appelle l'edge function generate-exam-exercise
+   * pour chacun séquentiellement, puis enregistre le brouillon d'examen
+   * résultant via save_exam_draft. Les échecs individuels sont signalés par
+   * toast mais n'interrompent pas la génération des autres exercices. */
   const generate = async () => {
     setStep("generating");
     const jobs: { chapterId: string; chapterTitle: string; difficulty: number }[] = [];

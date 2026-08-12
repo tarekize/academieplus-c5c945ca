@@ -33,6 +33,7 @@ const TYPE_OPTIONS: { key: ContentType; label: string; icon: any }[] = [
   { key: "exam", label: "Examens", icon: ClipboardList },
 ];
 
+// Nom complet affichable d'un élève, avec repli si les deux champs sont vides.
 function fullName(s: RosterStudent): string {
   return [s.first_name, s.last_name].filter(Boolean).join(" ") || "Élève";
 }
@@ -61,6 +62,11 @@ export default function ClassContentTracking({ open, onOpenChange, teacherId, cl
     if (!open) { setContentType(null); setSelected(null); setItems([]); }
   }, [open]);
 
+  // Au choix d'un type de contenu (exercice/quiz/examen), reconstitue la
+  // liste des contenus envoyés à cette classe : croise les assignations
+  // faites PAR cet enseignant (assigned_by = teacherId) avec la table
+  // teacher_content elle-même re-filtrée sur teacher_id — double
+  // vérification pour ne jamais afficher le contenu d'un autre enseignant.
   useEffect(() => {
     if (!contentType) return;
     let active = true;
@@ -92,6 +98,10 @@ export default function ClassContentTracking({ open, onOpenChange, teacherId, cl
     return () => { active = false; };
   }, [contentType, teacherId, classId, roster]);
 
+  // À la sélection d'un contenu précis, calcule pour chaque élève de la
+  // classe (roster, déjà scopé à cette classe) son statut : a répondu / vu
+  // sans répondre / pas vu, en croisant reads et attempts restreints aux
+  // seuls élèves du roster (in("student_id", rosterIds)).
   useEffect(() => {
     if (!selected) { setStatusByStudent({}); return; }
     let active = true;
@@ -127,6 +137,10 @@ export default function ClassContentTracking({ open, onOpenChange, teacherId, cl
     return () => { active = false; };
   }, [selected, roster]);
 
+  // Correction manuelle d'une réponse sans correcteur auto (bouton
+  // Correct/Incorrect). selected.id provient toujours de `items`, déjà
+  // filtré par teacher_id lors du chargement, donc l'élève ne peut être noté
+  // que sur un contenu réellement créé par cet enseignant.
   const gradeAttempt = async (studentId: string, isCorrect: boolean) => {
     if (!selected) return;
     setStatusByStudent((prev) => ({
@@ -141,6 +155,8 @@ export default function ClassContentTracking({ open, onOpenChange, teacherId, cl
     if (error) console.error("Error grading attempt:", error);
   };
 
+  // Navigation "retour" en trois étapes : détail élève → liste de contenus →
+  // choix du type → ferme le dialogue.
   const goBack = () => {
     if (selected) { setSelected(null); return; }
     if (contentType) { setContentType(null); return; }

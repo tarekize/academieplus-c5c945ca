@@ -33,6 +33,9 @@ export default function DocumentImportButton({
   const [modeDialogOpen, setModeDialogOpen] = useState(false);
   const modeRef = useRef<ExtractMode>("exact");
 
+  /** Extrait le contenu du document sélectionné (mode choisi via pickMode)
+   * et transmet les éléments obtenus à l'appelant via onExtracted. Déclenché
+   * par le changement de l'input file caché. */
   const handleFile = async (file: File) => {
     setLoading(true);
     try {
@@ -51,6 +54,8 @@ export default function DocumentImportButton({
     }
   };
 
+  /** Mémorise le mode d'extraction choisi ("exact" ou "improve") puis ouvre
+   * le sélecteur de fichier natif. */
   const pickMode = (mode: ExtractMode) => {
     modeRef.current = mode;
     setModeDialogOpen(false);

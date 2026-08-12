@@ -37,6 +37,7 @@ interface Props {
   contentType: ContentType;
 }
 
+// Bulle de "message" du chatbot (côté assistant), purement présentationnelle.
 function Bubble({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex gap-2 items-start">
@@ -48,6 +49,11 @@ function Bubble({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Assistant conversationnel guidé (niveau → filière → chapitre(s) →
+// leçon(s) → nombre/difficulté) qui génère des exercices/quiz via IA puis les
+// envoie aux classes de l'enseignant. Toutes les données scolaires proposées
+// (niveaux, filières) sont dérivées des classes réellement possédées par
+// teacherId, jamais d'une liste globale.
 export default function GuidedContentChatbot({ teacherId, contentType }: Props) {
   const [step, setStep] = useState<Step>("greeting");
   const [levels, setLevels] = useState<string[]>([]);
@@ -94,6 +100,7 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, items, sentIdx]);
 
+  // Recharge un brouillon de session depuis l'historique.
   const loadSession = (session: TeacherContentSessionRow) => {
     const s = session.state || {};
     setLevel(s.level || "");
@@ -112,6 +119,8 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
     setShowHistory(false);
   };
 
+  // Repart de zéro : abandonne la session en cours et relance le parcours
+  // depuis le choix du niveau.
   const startNewSession = () => {
     setSessionId(null);
     setLevel(""); setFiliere(null); setFilieres([]);
@@ -133,6 +142,7 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
     })();
   }, [teacherId]);
 
+  // Charge les chapitres du niveau (et, si applicable, de la filière choisie).
   const fetchChaptersFor = async (lv: string, filiereRow: FiliereRow | null) => {
     setLoadingList(true);
     let query = supabase
@@ -147,6 +157,9 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
     setStep("chapter");
   };
 
+  // Étape "niveau" : fixe le niveau puis détermine s'il faut demander une
+  // filière (seulement celles réellement présentes parmi les classes du
+  // professeur à ce niveau) avant de passer aux chapitres.
   const chooseLevel = async (lv: string) => {
     setLevel(lv);
     setFiliere(null);
@@ -173,15 +186,18 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
     await fetchChaptersFor(lv, null);
   };
 
+  // Étape "filière" : fixe la filière puis charge les chapitres correspondants.
   const chooseFiliere = async (f: FiliereRow) => {
     setFiliere(f);
     await fetchChaptersFor(level, f);
   };
 
+  // Coche/décoche un chapitre dans la sélection multiple.
   const toggleChapter = (id: string) => {
     setSelectedChapterIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
+  // Valide la sélection de chapitres puis charge leurs leçons.
   const confirmChapters = async () => {
     if (selectedChapterIds.length === 0) {
       toast.error("Choisis au moins un chapitre.");
@@ -196,10 +212,12 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
     setStep("lesson");
   };
 
+  // Coche/décoche une leçon dans la sélection multiple.
   const toggleLesson = (id: string) => {
     setSelectedLessonIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
+  // Valide la sélection de leçons puis passe à l'étape "nombre d'items".
   const confirmLessons = () => {
     if (selectedLessonIds.length === 0) {
       toast.error("Choisis au moins une leçon.");
@@ -208,6 +226,8 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
     setStep("count");
   };
 
+  // Génère `count` items par leçon sélectionnée (appels séquentiels à l'IA,
+  // un par leçon), en continuant même si une leçon échoue individuellement.
   const runGeneration = async () => {
     if (diffMin > diffMax) {
       toast.error("Le niveau minimal doit être inférieur ou égal au niveau maximal.");
@@ -252,6 +272,9 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
     }
   };
 
+  // Enregistre l'item généré (teacher_content) puis l'assigne aux classes
+  // choisies (classIds vient de SendContentDialog, déjà restreint aux
+  // classes de teacherId).
   const handleSend = async (classIds: string[], chapterId: string | null, lessonId: string | null) => {
     if (sendIndex === null) return;
     const item = items[sendIndex];
@@ -272,6 +295,7 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
 
   const typeLabel = CONTENT_TYPE_LABELS[contentType];
 
+  // Ajoute à la liste de résultats les items extraits d'un document importé.
   const handleDocumentExtracted = (extracted: GeneratedItem[]) => {
     // Ajoute à la suite des items déjà là (générés ou déjà importés) — les index
     // existants dans sentIdx restent valides puisqu'on ajoute en fin de liste.
@@ -281,6 +305,7 @@ export default function GuidedContentChatbot({ teacherId, contentType }: Props) 
     setStep("results");
   };
 
+  // Applique une édition manuelle (énoncé/solution/etc.) sur un item généré.
   const updateItem = (idx: number, patch: Partial<GeneratedItem>) => {
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
   };

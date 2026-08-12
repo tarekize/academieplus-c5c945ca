@@ -8,6 +8,8 @@ interface SortableSectionEditorProps {
   onDelete: () => void;
 }
 
+/** Enveloppe dnd-kit autour de SectionEditor : ajoute la poignée de
+ * glisser-déposer et l'effet visuel de transformation/opacité pendant le drag. */
 export default function SortableSectionEditor({ section, onChange, onDelete }: SortableSectionEditorProps) {
   const {
     attributes,

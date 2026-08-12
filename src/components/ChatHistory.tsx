@@ -29,6 +29,9 @@ interface ChatHistoryProps {
   activeConversationId: string | null;
 }
 
+/** Panneau listant les conversations sauvegardées du chatbot IA pour le
+ * chapitre courant (ou les conversations "générales" si chapterId est null),
+ * avec sélection, suppression et création d'une nouvelle conversation. */
 export default function ChatHistory({
   chapterId,
   onSelectConversation,
@@ -39,6 +42,8 @@ export default function ChatHistory({
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
 
+  /** Charge les conversations de l'utilisateur connecté (filtrées par
+   * user_id ET par chapterId) pour peupler la liste. */
   const fetchConversations = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -76,10 +81,17 @@ export default function ChatHistory({
     fetchConversations();
   }, [chapterId]);
 
+  /** Supprime une conversation (icône corbeille au survol). Re-filtre sur
+   * user_id en plus de l'id : défense en profondeur pour qu'un utilisateur
+   * connecté ne puisse pas supprimer la conversation d'un autre en rejouant
+   * un id qui ne lui appartient pas, même si la policy RLS de suppression
+   * s'avérait un jour trop permissive. */
   const deleteConversation = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await supabase.from("chat_conversations").delete().eq("id", id);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      await supabase.from("chat_conversations").delete().eq("id", id).eq("user_id", session.user.id);
       setConversations((prev) => prev.filter((c) => c.id !== id));
       if (activeConversationId === id) {
         onNewConversation();
@@ -89,6 +101,8 @@ export default function ChatHistory({
     }
   };
 
+  /** Construit l'aperçu texte (1er message utilisateur, 80 car. max) affiché
+   * dans la liste des conversations. */
   const getPreview = (conv: Conversation): string => {
     const firstUserMsg = conv.messages.find((m) => m.role === "user");
     if (!firstUserMsg) return "Conversation vide";

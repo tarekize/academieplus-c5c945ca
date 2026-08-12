@@ -31,6 +31,7 @@ const Header = ({ minimal = false }: { minimal?: boolean }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  /** Déconnecte l'utilisateur courant et revient à l'accueil public. */
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (!error) { navigate("/"); }

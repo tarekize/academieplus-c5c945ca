@@ -16,6 +16,10 @@ export function AvatarUpload({ url, onUpload, onDelete }: AvatarUploadProps) {
   const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
 
+  /** Upload de l'avatar du compte courant : valide type/taille du fichier,
+   * range l'image sous `${user.id}/...` dans le bucket "avatars" (isolation
+   * par utilisateur pour la RLS Storage), purge les anciens fichiers du
+   * dossier, puis rend l'URL publique via onUpload. */
   async function uploadAvatar(event: React.ChangeEvent<HTMLInputElement>) {
     if (!user) return;
 

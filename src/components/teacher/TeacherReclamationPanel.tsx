@@ -39,6 +39,9 @@ interface Props {
   onBack: () => void;
 }
 
+// Espace réclamations de l'enseignant : formulaire de soumission +
+// historique de ses propres réclamations (jamais celles d'un autre
+// utilisateur, toujours filtrées par user_id = auth.uid()).
 export default function TeacherReclamationPanel({ onBack }: Props) {
   const [reclamations, setReclamations] = useState<Reclamation[]>([]);
   const [loadingList, setLoadingList] = useState(true);
@@ -50,6 +53,7 @@ export default function TeacherReclamationPanel({ onBack }: Props) {
     fetchReclamations();
   }, []);
 
+  // Charge l'historique des réclamations soumises par l'enseignant connecté.
   const fetchReclamations = async () => {
     setLoadingList(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -65,6 +69,7 @@ export default function TeacherReclamationPanel({ onBack }: Props) {
     setLoadingList(false);
   };
 
+  // Soumet une nouvelle réclamation attribuée à l'utilisateur connecté.
   const handleSubmit = async () => {
     if (!subject || !message.trim()) {
       toast.error("Champs requis", { description: "Veuillez remplir tous les champs." });
@@ -95,6 +100,7 @@ export default function TeacherReclamationPanel({ onBack }: Props) {
     }
   };
 
+  // Rend le badge de statut correspondant (résolu / rejeté / en attente).
   const statusBadge = (status: string) => {
     if (status === "resolved")
       return (

@@ -32,6 +32,8 @@ interface ClassAnnouncementsManagerProps {
   classId: string;
 }
 
+// Gère les annonces publiées par l'enseignant pour une classe donnée
+// (liste, création, suppression) — visibles ensuite par les élèves de la classe.
 export default function ClassAnnouncementsManager({ classId }: ClassAnnouncementsManagerProps) {
   const [items, setItems] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +48,7 @@ export default function ClassAnnouncementsManager({ classId }: ClassAnnouncement
     supabase.auth.getUser().then(({ data }) => setTeacherId(data.user?.id ?? null));
   }, []);
 
+  // Charge les annonces de la classe, plus récentes en premier.
   const load = useCallback(async () => {
     setLoading(true);
     const { data, error } = await (supabase as any)
@@ -59,6 +62,8 @@ export default function ClassAnnouncementsManager({ classId }: ClassAnnouncement
 
   useEffect(() => { load(); }, [load]);
 
+  // Publie une nouvelle annonce pour la classe (teacherId = auteur, capturé
+  // via getUser() donc impossible à falsifier depuis le client).
   const handleCreate = async () => {
     if (!title.trim() || !content.trim()) {
       toast.error("Titre et message requis.");
@@ -83,9 +88,16 @@ export default function ClassAnnouncementsManager({ classId }: ClassAnnouncement
     }
   };
 
+  // Supprime une annonce. Filtre défensif sur teacher_id en plus de l'id :
+  // empêche un enseignant de supprimer l'annonce d'un collègue dans la même
+  // classe (co-enseignement) en rejouant un id qui ne lui appartient pas.
   const handleDelete = async (id: string) => {
     setDeletingId(id);
-    const { error } = await (supabase as any).from("class_announcements").delete().eq("id", id);
+    const { error } = await (supabase as any)
+      .from("class_announcements")
+      .delete()
+      .eq("id", id)
+      .eq("teacher_id", teacherId);
     setDeletingId(null);
     if (error) { toast.error("Suppression impossible"); return; }
     toast.success("Annonce supprimée");

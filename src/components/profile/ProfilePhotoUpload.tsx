@@ -11,6 +11,10 @@ interface ProfilePhotoUploadProps {
   size?: "sm" | "md" | "lg";
 }
 
+/** Avatar cliquable générique (photo de profil) avec délégation de l'upload
+ * réel au parent via `onUpload` — cette prop permet de réutiliser le
+ * composant pour différents contextes (profil élève, parent, etc.) tout en
+ * gardant la logique de stockage Supabase centralisée côté appelant. */
 export function ProfilePhotoUpload({
   currentUrl,
   name,
@@ -27,6 +31,8 @@ export function ProfilePhotoUpload({
     lg: "h-32 w-32",
   };
 
+  /** Valide le fichier choisi (type image, ≤5 Mo), affiche un aperçu local
+   * immédiat pendant que l'upload réel (délégué au parent) est en cours. */
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
