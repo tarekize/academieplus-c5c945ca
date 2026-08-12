@@ -2,6 +2,7 @@ import { User, Brain, TrendingUp, GraduationCap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import studentsImage from "@/assets/student-tutoring-teen.jpg";
 
+// Section vitrine "pourquoi nous choisir" (liste de points forts + image) de la landing page.
 const WhyChooseUs = () => {
   const { t } = useTranslation();
 

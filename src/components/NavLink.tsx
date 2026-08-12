@@ -8,6 +8,8 @@ interface NavLinkCompatProps extends Omit<NavLinkProps, "className"> {
   pendingClassName?: string;
 }
 
+// Wrapper autour de React Router NavLink qui accepte activeClassName/pendingClassName
+// (API façon react-router v5) et les fusionne via cn() dans la fonction className v6.
 const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
   ({ className, activeClassName, pendingClassName, to, ...props }, ref) => {
     return (

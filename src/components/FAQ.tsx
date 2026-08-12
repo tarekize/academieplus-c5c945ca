@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/accordion";
 import { useTranslation } from "react-i18next";
 
+// Section vitrine "questions fréquentes" (accordéon) de la landing page.
 const FAQ = () => {
   const { t } = useTranslation();
   

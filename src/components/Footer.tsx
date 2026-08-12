@@ -1,6 +1,7 @@
 import { GraduationCap, Mail, Phone, MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+// Pied de page de la landing page (navigation, contact, mentions légales).
 const Footer = () => {
   const { t } = useTranslation();
   

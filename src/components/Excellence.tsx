@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import teachersImage from "@/assets/teachers-team.jpg";
 import { useTranslation } from "react-i18next";
 
+// Section vitrine "pourquoi notre équipe" (texte + image + 3 points forts) de la landing page.
 const Excellence = () => {
   const { t } = useTranslation();
   
@@ -44,6 +45,9 @@ const Excellence = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto mb-16">
           {/* Left side - Text */}
           <div className="space-y-4">
+            {/* dangerouslySetInnerHTML sans risque ici : la valeur vient des fichiers de
+                traduction statiques (fr.json/ar.json, contrôlés par l'équipe), jamais d'une
+                saisie utilisateur ou d'une donnée en base — juste une balise <strong> figée. */}
             <p className="text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: t("excellence.intro1") }} />
             <p className="text-gray-700 leading-relaxed">
               {t("excellence.intro2")}

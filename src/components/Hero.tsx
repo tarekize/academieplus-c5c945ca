@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
+// Section d'accroche principale de la landing page (titre, CTA, stats, image).
 const Hero = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();

@@ -4,6 +4,7 @@ import studentsImage from "@/assets/students-success.jpg";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
+// Section vitrine "appel à l'action" (bandeau image + bouton vers /auth) de la landing page.
 const CTA = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();

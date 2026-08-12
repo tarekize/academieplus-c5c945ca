@@ -20,10 +20,15 @@ interface StudentAnnouncementsBannerProps {
   userId: string;
 }
 
+// Bandeau affichant les annonces de classe et les remarques (publiques) de l'enseignant
+// pour l'élève `userId` — filtré explicitement dessus (pas via l'auth.uid() implicite),
+// donc utilisable aussi bien pour l'élève lui-même que pour la vue prof/parent d'un autre élève.
 export default function StudentAnnouncementsBanner({ userId }: StudentAnnouncementsBannerProps) {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
 
+  // Charge en une passe : les annonces des classes de l'élève, puis ses remarques
+  // publiques (is_private = false — les remarques privées du prof restent cachées).
   useEffect(() => {
     let active = true;
     (async () => {

@@ -43,8 +43,14 @@ interface EditUserDialogProps {
   onUserUpdated: () => void;
 }
 
+/** Rôle "principal" affiché/édité (un utilisateur peut avoir plusieurs rôles en base,
+ * ce formulaire ne pilote que le premier). */
 const getPrimaryRole = (user: AdminUser | null): string => user?.roles?.[0] || "student";
 
+// Formulaire admin de modification d'un compte existant : identité, niveau scolaire,
+// matières (pédago). Ne modifie ni le rôle ni l'email (l'email ne peut être changé que
+// par l'utilisateur lui-même via lien de confirmation) — pas de champ mot de passe non
+// plus, cette modale ne touche donc jamais aux identifiants de connexion.
 export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }: EditUserDialogProps) {
   const { user: currentAdmin } = useAuth();
   const [firstName, setFirstName] = useState("");
@@ -104,12 +110,15 @@ export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }: Edit
       .finally(() => setLoadingSubjects(false));
   }, [open, user, isPedago]);
 
+  /** Coche/décoche une matière dans la sélection du pédago en édition. */
   const toggleSubject = (subjectId: string) => {
     setSelectedSubjects((prev) =>
       prev.includes(subjectId) ? prev.filter((s) => s !== subjectId) : [...prev, subjectId]
     );
   };
 
+  /** Enregistre le profil modifié + synchronise les matières du pédago (diff
+   * initialSubjects/selectedSubjects → deletes + inserts ciblés), puis journalise l'action. */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
