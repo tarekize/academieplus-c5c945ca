@@ -57,6 +57,9 @@ interface InlineLessonEditorProps {
   onDirty?: () => void;
 }
 
+// Détecte si `content` est déjà du HTML structuré (ancien contenu ou
+// resauvegardé par cet éditeur) plutôt que du Markdown brut : détermine si on
+// rend `frozenHtml` directement ou si on passe par ReactMarkdown (frozenMarkdown) au montage.
 const isHtmlContent = (s: string) => /<\s*(html|body|head|!doctype|div|section|article|main|h[1-6]|p)\b/i.test((s || '').trim());
 
 const EDITABLE_CLASSES = cn(

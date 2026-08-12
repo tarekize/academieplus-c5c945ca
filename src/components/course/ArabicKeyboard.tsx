@@ -29,6 +29,8 @@ const DRAG_THRESHOLD = 4;
 // pour un vrai clic ailleurs sur la page.
 const HIDE_DELAY_MS = 150;
 
+// Distingue un input/textarea (API .value/.selectionStart) d'une zone
+// contentEditable (API Selection/Range), pour insertIntoTarget/deleteBeforeCursor ci-dessous.
 function isTextField(el: EditableTarget): el is HTMLInputElement | HTMLTextAreaElement {
   return el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
 }
