@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState, ReactNode } fro
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import i18n from '@/i18n/config';
 
 interface AuthContextType {
   user: User | null;
@@ -239,6 +240,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // L'espace élève est arabe uniquement (RTL forcé, pas de bascule FR) : dès
+  // qu'un compte avec le rôle student est chargé, on verrouille la langue
+  // d'interface sur l'arabe, quel que soit le choix FR/AR précédemment
+  // mémorisé en localStorage (ex : un élève ayant basculé en FR avant ce
+  // changement, ou un compte auparavant enseignant/parent redevenu élève).
+  // applyDirection() (voir src/i18n/config.ts, déclenché par l'événement
+  // languageChanged) se charge d'appliquer dir="rtl" au document dans la
+  // foulée. Le bouton FR/AR lui-même se masque séparément pour les élèves
+  // (voir LanguageToggle.tsx) — les autres rôles gardent le choix.
+  useEffect(() => {
+    if (roles.includes('student') && i18n.language !== 'ar') {
+      i18n.changeLanguage('ar');
+    }
+  }, [roles]);
 
   // Déconnecte l'utilisateur et renvoie vers /auth. Exposé via le contexte,
   // appelé par les boutons "Se déconnecter" de tous les en-têtes de page.
