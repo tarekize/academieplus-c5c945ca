@@ -17,7 +17,12 @@ interface PricingPlan {
   total_family: number;
 }
 
-// Fallback plans
+// Valeurs affichées uniquement si le fetch de `subscription_config` échoue
+// (DB indisponible) — un simple filet d'affichage. Ces montants ne sont
+// jamais envoyés au serveur : le prix réel facturé est toujours recalculé
+// côté serveur par l'edge function record-payment à partir de
+// `subscription_config`, donc les modifier ici ou côté client n'a aucun
+// effet sur ce qui est réellement payé.
 const FALLBACK_PLANS: PricingPlan[] = [
   { id: 'annual', name: 'Formule Scolaire', billing_period: 'annual', total_single: 15000, total_family: 25000 },
   { id: 'monthly', name: 'Formule Mensuelle', billing_period: 'monthly', total_single: 2000, total_family: 3500 },
@@ -33,6 +38,12 @@ const Pricing = () => {
   const [periodLabel, setPeriodLabel] = useState<string | null>(null);
 
   useEffect(() => {
+    // Charge les tarifs et la période actifs depuis la base (source de
+    // vérité, éditable par l'admin dans AdminAbonnements). Appelée au
+    // montage puis à chaque changement realtime sur subscription_config /
+    // subscription_periods (abonnement ci-dessous), pour que la page reste à
+    // jour si un admin modifie les prix pendant que l'utilisateur la
+    // consulte.
     const fetchConfig = async () => {
       const { data } = await supabase.from("subscription_config").select("*").eq("is_active", true);
       if (data && data.length > 0) {
@@ -63,6 +74,11 @@ const Pricing = () => {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
+  // Sélectionne le tarif à afficher (solo ou famille) pour un plan donné,
+  // utilisé pour l'affichage des cartes ci-dessous ET pour préremplir
+  // `price` dans le state de navigation transmis à /paiement — purement
+  // informatif pour l'écran de paiement, ce montant n'est jamais renvoyé au
+  // serveur (voir record-payment).
   const getTotalPrice = (plan: PricingPlan) => {
     return isFamily ? plan.total_family : plan.total_single;
   };

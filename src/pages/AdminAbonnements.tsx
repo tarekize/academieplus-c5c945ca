@@ -76,12 +76,17 @@ export default function AdminAbonnements() {
     fetchAll();
   }, []);
 
+  // Charge en parallèle tarifs, périodes et coordonnées bancaires au montage
+  // de la page.
   const fetchAll = async () => {
     setLoading(true);
     await Promise.all([fetchConfigs(), fetchPeriods(), fetchBankDetails()]);
     setLoading(false);
   };
 
+  // Charge le RIB/CCP affichés aux utilisateurs sur /paiement. Lecture
+  // publique en RLS (n'importe quel utilisateur connecté peut les lire),
+  // mais l'écriture est admin-only (voir handleSaveBankDetails).
   const fetchBankDetails = async () => {
     const { data, error } = await supabase
       .from("payment_bank_details" as any)
@@ -104,6 +109,10 @@ export default function AdminAbonnements() {
     }
   };
 
+  // Enregistre le RIB/CCP/instructions. Protégé côté serveur par la policy
+  // RLS "Admins can update bank details" (UPDATE admin-only sur
+  // payment_bank_details) : même si ce bouton était appelé par un non-admin,
+  // la requête serait rejetée en base.
   const handleSaveBankDetails = async () => {
     setSavingBankDetails(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -119,6 +128,9 @@ export default function AdminAbonnements() {
     setSavingBankDetails(false);
   };
 
+  // Charge les plans tarifaires (annuel/mensuel) — c'est cette table,
+  // `subscription_config`, que Pricing.tsx affiche et que l'edge function
+  // record-payment relit pour fixer le montant réel facturé.
   const fetchConfigs = async () => {
     const { data, error } = await supabase.from("subscription_config").select("*").order("plan_type");
     if (error) {
@@ -135,6 +147,8 @@ export default function AdminAbonnements() {
     }
   };
 
+  // Charge les périodes scolaires (utilisées pour rattacher les paiements à
+  // une année scolaire et afficher un libellé de période sur Pricing.tsx).
   const fetchPeriods = async () => {
     const { data, error } = await supabase.from("subscription_periods").select("*").order("start_date", { ascending: false });
     if (error) {
@@ -144,6 +158,11 @@ export default function AdminAbonnements() {
     if (data) setPeriods(data as SubscriptionPeriod[]);
   };
 
+  // Enregistre les nouveaux tarifs saisis pour un plan. Protégé par la
+  // policy RLS "Admins can manage config" (ALL, admin-only) sur
+  // subscription_config — un utilisateur non-admin qui appellerait cette
+  // requête directement se la verrait refuser en base, pas seulement cachée
+  // dans l'UI. Déclenché par le bouton "Enregistrer" de chaque carte plan.
   const handleSavePrices = async (configId: string) => {
     setSaving(true);
     const prices = editPrices[configId];
@@ -161,6 +180,10 @@ export default function AdminAbonnements() {
     setSaving(false);
   };
 
+  // Crée ou met à jour une période scolaire depuis le dialogue. Si
+  // is_active est coché, désactive d'abord toutes les autres périodes
+  // (une seule période active à la fois, cf. commentaire ci-dessus).
+  // Déclenché par le bouton "Créer"/"Mettre à jour" du dialogue Période.
   const handleSavePeriod = async () => {
     if (!periodForm.label.trim() || !periodForm.start_date || !periodForm.end_date) {
       toast.error("Erreur", { description: "Libellé, date de début et date de fin sont obligatoires." });
@@ -211,12 +234,15 @@ export default function AdminAbonnements() {
     setSaving(false);
   };
 
+  // Ouvre le dialogue Période préchargé avec les valeurs de la ligne
+  // cliquée (bouton crayon de la table).
   const openEditPeriod = (p: SubscriptionPeriod) => {
     setEditingPeriod(p);
     setPeriodForm({ label: p.label, start_date: p.start_date, end_date: p.end_date, is_active: p.is_active });
     setPeriodDialog(true);
   };
 
+  // Ouvre le dialogue Période à vide (bouton "Nouvelle période").
   const openNewPeriod = () => {
     setEditingPeriod(null);
     setPeriodForm({ label: "", start_date: "", end_date: "", is_active: false });

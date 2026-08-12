@@ -65,6 +65,12 @@ export default function AdminPaiements() {
     setPage(0);
   }, [statusFilter]);
 
+  // Charge une page de paiements (table `payments`, admin-only via RLS) et
+  // enrichit chaque ligne avec le nom/email du payeur (table `profiles`) et
+  // le numéro de facture associé (table `invoices`, générée uniquement une
+  // fois le paiement validé). Appelée au montage et à chaque changement de
+  // page/filtre de statut (useEffect ci-dessus), et après chaque
+  // validation/rejet pour rafraîchir la liste.
   const fetchPayments = async () => {
     setLoading(true);
     try {
@@ -137,6 +143,9 @@ export default function AdminPaiements() {
     setProcessingPayment(null);
   };
 
+  // Rejette un paiement 'pending' (RPC admin_reject_payment, vérifie le rôle
+  // admin côté serveur) : aucun code d'activation n'est émis, le statut passe
+  // à 'failed'. Déclenché par le bouton "Rejeter" de chaque ligne pending.
   const handleRejectPayment = async (paymentId: string) => {
     setProcessingPayment(paymentId);
     const { error } = await supabase.rpc("admin_reject_payment" as any, { p_payment_id: paymentId });
@@ -149,6 +158,10 @@ export default function AdminPaiements() {
     setProcessingPayment(null);
   };
 
+  // Génère une URL signée temporaire (5 min) vers le reçu de virement stocké
+  // dans le bucket privé `payment-receipts`, pour que l'admin puisse vérifier
+  // visuellement le virement avant d'approuver. Déclenché par le bouton
+  // "Reçu" affiché sur les paiements par virement bancaire.
   const handleViewReceipt = async (path: string) => {
     setLoadingReceipt(true);
     setReceiptUrl("");
@@ -162,6 +175,9 @@ export default function AdminPaiements() {
     setLoadingReceipt(false);
   };
 
+  // Filtre la page de paiements déjà chargée par nom/email (recherche côté
+  // client, cf. commentaire du useEffect plus haut sur pourquoi ce n'est pas
+  // fait côté serveur).
   const filteredPayments = payments.filter((p) => {
     const s = search.trim().toLowerCase();
     if (!s) return true;

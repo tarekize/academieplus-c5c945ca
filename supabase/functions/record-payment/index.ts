@@ -5,6 +5,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 }
 
+// Point d'entrée appelé par Paiement.tsx (handlePayment) quand un utilisateur
+// authentifié valide un paiement (carte factice ou virement avec reçu). Ne
+// fait jamais confiance au prix côté client : recalcule le montant à partir
+// de `subscription_config` et insère toujours le paiement en statut
+// 'pending'. Seul admin_approve_payment (RPC, appelé depuis AdminPaiements)
+// peut le faire passer à 'completed' et émettre les codes d'activation.
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })

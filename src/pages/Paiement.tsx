@@ -87,6 +87,10 @@ const Paiement = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Charge les coordonnées bancaires à afficher pour le virement (RIB/CCP/
+  // instructions), éditables par l'admin dans AdminAbonnements. Lecture
+  // publique en RLS (table `payment_bank_details`) car nécessaire avant même
+  // que l'utilisateur ait choisi un mode de paiement.
   const fetchBankDetails = async () => {
     const { data } = await supabase
       .from("payment_bank_details" as any)
@@ -95,6 +99,9 @@ const Paiement = () => {
     if (data) setBankDetails(data as unknown as BankDetails);
   };
 
+  // Charge le profil de l'utilisateur connecté pour l'affichage (nom, avatar,
+  // niveau scolaire) dans l'en-tête de la page. Appelée au montage et à
+  // chaque changement de session (onAuthStateChange ci-dessus).
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -111,21 +118,28 @@ const Paiement = () => {
     }
   };
 
+  // Formate le nom affiché dans l'en-tête à partir du profil chargé.
   const getFullName = (p: Profile | null): string => {
     if (!p) return t("abonnements.defaultUser");
     const parts = [p.first_name, p.last_name].filter(Boolean);
     return parts.length > 0 ? parts.join(" ") : t("abonnements.defaultUser");
   };
 
+  // Traduit le code de niveau scolaire (ex: "3as") en libellé lisible.
   const getSchoolLevelName = (level: string) => {
     return t(`app.schoolLevels.${level}`, { defaultValue: level });
   };
 
+  // Déconnecte l'utilisateur depuis le menu de l'en-tête et renvoie à l'accueil.
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
   };
 
+  // Valide le fichier de reçu de virement choisi (type image + taille max
+  // 5 Mo) avant de le garder en state — l'edge function record-payment
+  // revalide ensuite côté serveur que le fichier a bien été uploadé, ce
+  // contrôle client n'est qu'un confort UX, pas une garantie de sécurité.
   const handleReceiptChange = (file: File | null) => {
     if (!file) { setReceiptFile(null); return; }
     if (!RECEIPT_ACCEPTED_TYPES.includes(file.type)) {
@@ -139,6 +153,11 @@ const Paiement = () => {
     setReceiptFile(file);
   };
 
+  // Soumet la demande de paiement : uploade le reçu de virement si besoin
+  // puis appelle l'edge function record-payment, qui recalcule le prix
+  // server-side (jamais le `paymentInfo.price` local, purement informatif
+  // ici) et crée un paiement en statut 'pending'. Déclenchée par le bouton
+  // "Payer"/"Envoyer le reçu" en bas du formulaire.
   const handlePayment = async () => {
     if (!paymentInfo || !profile) return;
 
@@ -188,6 +207,9 @@ const Paiement = () => {
     }
   };
 
+  // Dérive les infos d'affichage du récapitulatif (mensualité, dates de
+  // début/fin) à partir du plan choisi transmis par Pricing.tsx — purement
+  // pour l'UI, aucune de ces valeurs n'est envoyée au serveur.
   const getBillingDetails = () => {
     if (!paymentInfo) return null;
     const now = new Date();
