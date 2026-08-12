@@ -1062,7 +1062,10 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
               <Bot className="h-5 w-5 text-primary" />
               {t("studentDashboard.aiComment")}
             </DialogTitle>
-            <DialogDescription className="text-end" dir="auto">
+            {/* dir="auto" + text-end alignait un titre purement arabe à GAUCHE (text-align:end
+                sous direction:rtl auto-détectée = aligner à gauche). On aligne sur la langue
+                de l'UI (comme le dir du DialogContent parent) plutôt que sur un dir="auto" local. */}
+            <DialogDescription className="text-start" dir={lang === "fr" ? "ltr" : "rtl"}>
               {selectedLessonComment?.lessonTitle} {selectedLessonComment?.chapterTitle ? `— ${selectedLessonComment.chapterTitle}` : ""}
             </DialogDescription>
           </DialogHeader>
