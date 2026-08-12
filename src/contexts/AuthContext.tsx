@@ -15,6 +15,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Détermine si un élève a déjà passé le test de positionnement (pour décider
+// s'il faut le rediriger vers /learning-assessment après connexion, voir plus
+// bas). Vérifie d'abord student_scores (ligne sans lesson_id = résultat de
+// placement), puis toute ligne student_scores existante (compatibilité), puis
+// l'ancienne table learning_styles en dernier recours pour les comptes créés
+// avant la migration vers student_scores.
 async function hasCompletedPlacementAssessment(userId: string): Promise<boolean> {
   const { data: scoreRows, error: scoreError } = await supabase
     .from('student_scores')
@@ -234,16 +240,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Déconnecte l'utilisateur et renvoie vers /auth. Exposé via le contexte,
+  // appelé par les boutons "Se déconnecter" de tous les en-têtes de page.
   const signOut = async () => {
     await supabase.auth.signOut();
     navigate('/auth');
   };
 
+  // Lit le cache `roles` en mémoire (peuplé par fetchRoles depuis la table
+  // user_roles, jamais depuis un champ modifiable côté client) — utilisé par
+  // ProtectedRoute et par les pages pour afficher/masquer des sections selon
+  // le rôle. Ne remplace pas une vérification RLS/RPC côté serveur : c'est un
+  // contrôle d'affichage, pas la barrière de sécurité réelle.
   const hasRole = async (role: 'admin' | 'parent' | 'student' | 'pedago' | 'teacher' | 'etablissement'): Promise<boolean> => {
     if (!user) return false;
     return roles.includes(role);
   };
 
+  // Raccourci pour hasRole('admin'), utilisé par les gardes de routes admin.
   const isAdmin = async (): Promise<boolean> => {
     return hasRole('admin');
   };
@@ -261,6 +275,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// Hook consommé par toute page/composant ayant besoin de user/session/roles
+// ou de signOut/hasRole/isAdmin ; lève une erreur explicite si utilisé hors
+// d'un <AuthProvider> (bug d'intégration, pas un cas à gérer silencieusement).
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {

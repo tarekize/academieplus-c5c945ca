@@ -34,6 +34,11 @@ const CompleteProfile = () => {
   const [establishmentCode, setEstablishmentCode] = useState("");
 
   useEffect(() => {
+    // Page atterrissage pour tout compte authentifié sans rôle encore assigné
+    // (ex : inscription via Google OAuth, qui ne passe pas par le
+    // raw_user_meta_data lu par handle_new_user). Si un rôle existe déjà,
+    // redirige directement vers l'espace correspondant au lieu d'afficher le
+    // formulaire — cette page ne sert qu'à la première complétion.
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate("/auth"); return; }
@@ -109,6 +114,11 @@ const CompleteProfile = () => {
     setFiliere("");
   }, [classLevel]);
 
+  // Soumission du formulaire de complétion : valide les champs requis selon
+  // le profil choisi, assigne le rôle (via complete_teacher_signup pour un
+  // enseignant, insert direct RLS-validé pour élève/parent), met à jour le
+  // profil, puis redirige vers l'espace correspondant. Déclenché par le
+  // bouton de validation du formulaire.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -128,13 +138,17 @@ const CompleteProfile = () => {
     setLoading(true);
 
     try {
-      // Valider le code AVANT toute écriture sur profiles/user_roles : un code
-      // invalide ne doit pas laisser un compte enseignant à moitié créé (rôle
-      // assigné mais jamais rattaché à un établissement).
+      // Valider le code AVANT toute écriture sur profiles : un code invalide
+      // ne doit pas laisser un compte enseignant à moitié créé. On arrive ici
+      // sans aucun rôle assigné pour l'instant (voir useEffect ci-dessus, qui
+      // redirige déjà tout compte ayant un rôle) : join_establishment_by_code
+      // ne peut donc pas être utilisée, elle exige d'avoir déjà le rôle
+      // teacher. complete_teacher_signup fait les deux à la fois (assigne le
+      // rôle ET rattache l'établissement) de façon atomique côté serveur.
       let joinedEstablishment: { establishment_id: string; establishment_name: string } | null = null;
       if (profileType === 'enseignant') {
         const { data: joinResult, error: joinError } = await supabase
-          .rpc('join_establishment_by_code' as any, { p_code: establishmentCode.trim().toUpperCase() });
+          .rpc('complete_teacher_signup' as any, { p_code: establishmentCode.trim().toUpperCase() });
         if (joinError) {
           toast.error(joinError.message || "Code d'établissement invalide.");
           setLoading(false);
@@ -187,11 +201,17 @@ const CompleteProfile = () => {
 
       if (profileError) throw profileError;
 
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: userId, role: role as any });
+      // Pour un enseignant, le rôle a déjà été assigné par complete_teacher_signup
+      // ci-dessus (RLS interdit de toute façon un self-insert direct avec un
+      // rôle autre que student/parent — voir la policy "Users can insert
+      // their own initial role"). Ne le réinsérer que pour élève/parent.
+      if (role !== 'teacher') {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({ user_id: userId, role: role as any });
 
-      if (roleError && !roleError.message.includes('duplicate')) throw roleError;
+        if (roleError && !roleError.message.includes('duplicate')) throw roleError;
+      }
 
       // Rattache l'établissement au compte (même mécanisme que "Ajouter un
       // établissement" côté tableau de bord enseignant — voir EstablishmentManager).

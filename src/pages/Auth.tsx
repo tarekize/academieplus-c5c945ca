@@ -69,6 +69,11 @@ const Auth = () => {
     return age;
   };
 
+  // Détermine si un élève doit être redirigé vers /learning-assessment après
+  // connexion (voir redirectAfterLogin ci-dessous). Duplique volontairement
+  // la même vérification que AuthContext.tsx (cette page gère ses propres
+  // redirections indépendamment du contexte global, pour éviter une course
+  // entre les deux au moment du login).
   const hasCompletedPlacementAssessment = async (userId: string): Promise<boolean> => {
     const { data: scoreRows } = await supabase
       .from('student_scores')
@@ -125,6 +130,11 @@ const Auth = () => {
     // Toute erreur (requête role/assessment en échec juste après l'OAuth,
     // réseau, etc.) tombe dans le catch pour éviter de rester bloqué sur une
     // page blanche : on redirige alors vers une destination par défaut.
+    // Route l'utilisateur vers son espace selon son rôle une fois la session
+    // confirmée (login classique ou retour d'OAuth). Appelée par le listener
+    // onAuthStateChange et par le check de session existante ci-dessous.
+    // `hasNavigated` évite une double navigation si les deux se déclenchent
+    // presque en même temps.
     const redirectAfterLogin = async (session: Session) => {
       if (hasNavigated.current) return;
 
@@ -217,6 +227,12 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Contrôle client (UX immédiate, retour instantané sans aller-retour
+  // réseau) de la robustesse du mot de passe à l'inscription. Ce n'est qu'un
+  // filtre d'affichage : la validation qui compte réellement est celle
+  // configurée côté projet Supabase Auth (longueur/complexité minimales),
+  // qui rejetterait de toute façon un signUp() avec un mot de passe non
+  // conforme même si ce contrôle client était contourné.
   const validatePassword = (password: string): string | null => {
     if (password.length < 8) {
       return "Le mot de passe doit contenir au moins 8 caractères.";
@@ -230,6 +246,11 @@ const Auth = () => {
     return null;
   };
 
+  // Gère la soumission du formulaire principal (bouton "Se connecter" /
+  // "S'inscrire"), selon isLogin : en inscription, valide tous les champs
+  // côté client puis délègue à performSignUp() ; en connexion, appelle
+  // signInWithPassword() et bloque l'accès si le compte est désactivé
+  // (is_active = false, ex : établissement ayant désactivé un enseignant).
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
@@ -267,6 +288,10 @@ const Auth = () => {
       }
 
       const passwordError = validatePassword(password);
+      if (passwordError) {
+        toast.error(passwordError);
+        return;
+      }
 
       if (!consentDataProcessing || !consentTermsPrivacy) {
         toast.error("Tu dois accepter le traitement des données et la politique de confidentialité pour t'inscrire.");
@@ -337,6 +362,13 @@ const Auth = () => {
     }
   };
 
+  // Construit le raw_user_meta_data et appelle supabase.auth.signUp().
+  // L'assignation réelle du rôle et la création du profil ne se font pas
+  // ici : elles sont faites côté serveur par le trigger handle_new_user()
+  // sur auth.users, qui relit ce même user_metadata et revalide tout
+  // (dont le code établissement pour un enseignant) — ce formulaire ne fait
+  // qu'une pré-validation UX, jamais la décision de sécurité. Appelée par
+  // handleEmailAuth lors d'une inscription.
   const performSignUp = async (
     firstName: string,
     lastName: string,
@@ -458,6 +490,9 @@ const Auth = () => {
     }
   };
 
+  // Renvoie l'email de confirmation d'inscription (bouton affiché quand
+  // performSignUp a réussi mais que la confirmation email est activée côté
+  // projet, donc aucune session n'est encore ouverte).
   const handleResendConfirmation = async () => {
     if (!registrationEmail) return;
     setResendingEmail(true);
@@ -476,6 +511,12 @@ const Auth = () => {
     }
   };
 
+  // Déclenche la connexion Google (bouton "Continuer avec Google"). Un
+  // utilisateur qui arrive par ce chemin n'a pas de raw_user_meta_data.role
+  // (contrairement à performSignUp) : il atterrit toujours sans rôle sur
+  // /complete-profile après le retour OAuth (voir redirectAfterLogin et
+  // AuthContext.tsx), qui gère l'assignation du rôle séparément — y compris
+  // pour "Enseignant" via la RPC complete_teacher_signup.
   const handleGoogleAuth = async () => {
     setLoading(true);
     try {
@@ -505,6 +546,10 @@ const Auth = () => {
     }
   };
 
+  // Envoie l'email de réinitialisation de mot de passe (lien "Mot de passe
+  // oublié ?"). Ne révèle jamais si l'email existe ou non (comportement
+  // standard de resetPasswordForEmail), donc pas d'énumération de comptes
+  // possible depuis cette page.
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
