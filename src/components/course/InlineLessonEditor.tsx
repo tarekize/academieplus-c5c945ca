@@ -64,6 +64,10 @@ const EDITABLE_CLASSES = cn(
   'border border-transparent hover:border-border focus:border-primary/40 focus:outline-none transition-colors',
 );
 
+// Implémentation interne, remontée à chaque changement de `resetKey` (voir le
+// composant exporté InlineLessonEditor en bas de fichier) : tout l'état
+// (curseur, tableau actif...) est donc naturellement réinitialisé au
+// changement de leçon sans code dédié.
 function InlineLessonEditorInner({
   initialContent,
   onChange,
@@ -278,6 +282,7 @@ function InlineLessonEditorInner({
     setLayoutTick((t) => t + 1);
   }, [getTableContext, persist]);
 
+  // Ajoute une ligne vide au-dessus/en dessous de la ligne où se trouve le curseur.
   const addTableRow = useCallback((position: 'above' | 'below') => {
     withTableContext(({ table, row }) => {
       const insertIndex = position === 'above' ? row.rowIndex : row.rowIndex + 1;
@@ -289,6 +294,7 @@ function InlineLessonEditorInner({
     });
   }, [withTableContext]);
 
+  // Supprime la ligne courante, sauf s'il ne reste plus qu'une seule ligne.
   const deleteTableRow = useCallback(() => {
     withTableContext(({ table, row }) => {
       if (table.rows.length <= 1) {
@@ -299,6 +305,8 @@ function InlineLessonEditorInner({
     });
   }, [withTableContext]);
 
+  // Ajoute une colonne vide à gauche/droite de la colonne courante ; th ou
+  // td selon que la ligne parcourue est la ligne d'en-tête ou une ligne de données.
   const addTableColumn = useCallback((position: 'left' | 'right') => {
     withTableContext(({ table, colIndex }) => {
       const insertIndex = position === 'left' ? colIndex : colIndex + 1;
@@ -311,6 +319,7 @@ function InlineLessonEditorInner({
     });
   }, [withTableContext]);
 
+  // Supprime la colonne courante, sauf s'il n'en reste plus qu'une seule.
   const deleteTableColumn = useCallback(() => {
     withTableContext(({ table, colIndex }) => {
       if (table.rows[0] && table.rows[0].cells.length <= 1) {
@@ -323,6 +332,7 @@ function InlineLessonEditorInner({
     });
   }, [withTableContext]);
 
+  // Supprime le tableau entier et désactive le panneau/les boutons flottants qui le ciblaient.
   const deleteTableEl = useCallback(() => {
     withTableContext(({ table }) => {
       table.remove();
@@ -359,10 +369,14 @@ function InlineLessonEditorInner({
   // --- Sélection/suppression/déplacement de ligne ou colonne, façon tableur —
   // via les poignées (bandes cliquables) au-dessus/à gauche du tableau actif.
 
+  // Retire le surlignage visuel de sélection ligne/colonne (classe posée sur
+  // les cellules), sans toucher à `structSelection` lui-même.
   const clearStructHighlight = useCallback((table: HTMLTableElement) => {
     table.querySelectorAll('.lesson-table-cell-selected').forEach((el) => el.classList.remove('lesson-table-cell-selected'));
   }, []);
 
+  // Annule la sélection ligne/colonne courante (perte de focus sur la
+  // poignée, ou changement de tableau actif) : retire le surlignage et l'état.
   const clearStructSelection = useCallback(() => {
     if (activeTable) clearStructHighlight(activeTable);
     setStructSelection(null);
@@ -378,6 +392,7 @@ function InlineLessonEditorInner({
     setStructSelection({ type: 'col', index });
   }, [activeTable, clearStructHighlight]);
 
+  // Clique sur une poignée de ligne : même logique que selectColumn, pour la ligne entière.
   const selectRow = useCallback((index: number) => {
     if (!activeTable) return;
     clearStructHighlight(activeTable);
@@ -386,6 +401,7 @@ function InlineLessonEditorInner({
     setStructSelection({ type: 'row', index });
   }, [activeTable, clearStructHighlight]);
 
+  // Supprime la colonne `index` (déclenché par Suppr/Retour arrière sur sa poignée sélectionnée).
   const deleteColumnAt = useCallback((index: number) => {
     if (!activeTable) return;
     if ((activeTable.rows[0]?.cells.length ?? 0) <= 1) {
@@ -400,6 +416,7 @@ function InlineLessonEditorInner({
     setStructSelection(null);
   }, [activeTable, persist]);
 
+  // Supprime la ligne `index` (déclenché par Suppr/Retour arrière sur sa poignée sélectionnée).
   const deleteRowAt = useCallback((index: number) => {
     if (!activeTable) return;
     if (activeTable.rows.length <= 1) {
@@ -424,6 +441,7 @@ function InlineLessonEditorInner({
     }
   }, [deleteColumnAt, deleteRowAt]);
 
+  // Déplace la colonne `from` à la position `to` dans chaque ligne du tableau (autres colonnes décalées).
   const moveTableColumn = useCallback((table: HTMLTableElement, from: number, to: number) => {
     if (from === to) return;
     Array.from(table.rows).forEach((row) => {
@@ -435,6 +453,7 @@ function InlineLessonEditorInner({
     });
   }, []);
 
+  // Déplace la ligne `from` à la position `to` dans le tableau (autres lignes décalées).
   const moveTableRow = useCallback((table: HTMLTableElement, from: number, to: number) => {
     if (from === to) return;
     const rowNode = table.rows[from];
@@ -522,6 +541,9 @@ function InlineLessonEditorInner({
     imageInputRef.current?.click();
   }, []);
 
+  // Fichier choisi dans le sélecteur ouvert par insertImage : upload vers le
+  // stockage lesson-media, restaure le curseur sauvegardé (perdu pendant que
+  // la boîte de dialogue du système avait le focus), puis insère l'<img>.
   const handleImageSelected = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (imageInputRef.current) imageInputRef.current.value = '';
@@ -550,6 +572,9 @@ function InlineLessonEditorInner({
     insertHtmlAtCursor('<hr />');
   }, [insertHtmlAtCursor]);
 
+  // Gras/italique via l'API native du navigateur (document.execCommand),
+  // puis persiste : plus simple et plus fiable que reconstruire à la main la
+  // logique d'enveloppement de sélection pour ces deux styles très courants.
   const toggleInlineStyle = useCallback((command: 'bold' | 'italic') => {
     ref.current?.focus();
     document.execCommand(command);
