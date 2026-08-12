@@ -1331,6 +1331,11 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
     if (lockTimerRef.current) clearTimeout(lockTimerRef.current);
   }, []);
 
+  // Remonte la réponse au parent (mise à jour des compteurs/déblocage) : en
+  // cas de succès, laisse 2s pour que l'élève voie le feedback vert avant que
+  // la carte soit remplacée (voir handleDiscoverAnswer/handleUnderstandAnswer).
+  // En cas d'échec, remonte immédiatement (pas de délai à respecter, l'item
+  // reste affiché verrouillé 3s).
   const notifyAnswer = (payload: AnswerPayload) => {
     if (payload.correct) {
       completionTimerRef.current = setTimeout(() => onAnswer(payload), 2000);
@@ -1345,6 +1350,9 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
     setSelected(opt);
   };
 
+  // Soumet l'option sélectionnée au serveur (check_quiz_answer) ; si l'appel
+  // échoue (réseau...), retombe sur une comparaison locale avec
+  // question.correct_answer pour ne pas bloquer l'élève.
   const handleValidate = async () => {
     if (readOnly || solved || locked || submitting || !selected) return;
     const opt = selected;
@@ -1476,6 +1484,9 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
   );
 }
 
+// Carte interactive d'un exercice jouable (paliers Découvrir/Comprendre) :
+// ouvre un dialogue avec saisie de réponse, indice à la demande, verrouillage
+// 3s en cas d'erreur, et solution révélable indépendamment de la réussite.
 function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise: DBExercise; index: number; readOnly?: boolean; onAnswer: (answer: AnswerPayload) => void }) {
   const { t, i18n } = useTranslation();
   const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
@@ -1507,6 +1518,8 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
     if (lockTimerRef.current) clearTimeout(lockTimerRef.current);
   }, []);
 
+  // Même logique que TrackedQuizCard.notifyAnswer, avec en plus la fermeture
+  // du dialogue après le délai de 2s en cas de succès.
   const notifyAnswer = (payload: AnswerPayload) => {
     if (payload.correct) {
       completionTimerRef.current = setTimeout(() => {
@@ -1518,6 +1531,9 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
     onAnswer(payload);
   };
 
+  // Soumet la réponse saisie au serveur (check_exercise_answer) ; en cas
+  // d'échec réseau, retombe sur une comparaison locale normalisée (minuscules,
+  // espaces retirés) contre expected_answer et accepted_answers.
   const handleSubmit = async () => {
     if (!answer.trim() || submitting || locked || solved) return;
     setSubmitting(true);
@@ -1553,6 +1569,8 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
     }
   };
 
+  // Affiche/masque la solution, indépendamment d'avoir résolu l'exercice ;
+  // la charge via check_exercise_answer('__reveal__') si elle n'est pas déjà connue.
   const handleRevealSolution = async () => {
     const next = !revealed;
     setRevealed(next);
@@ -1653,6 +1671,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
   );
 }
 
+// Bouton + panneau dépliant pour afficher l'indice d'un exercice à la demande.
 function HintBlock({ hint }: { hint: string }) {
   const { t } = useTranslation();
   const [showHint, setShowHint] = useState(false);
