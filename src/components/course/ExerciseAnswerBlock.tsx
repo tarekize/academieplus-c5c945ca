@@ -205,10 +205,10 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
     <div className="space-y-3" dir={lang === "fr" ? "ltr" : "rtl"}>
       {hasSubQuestions ? (
         <div className="space-y-4">
-          {intro && <HtmlWithMath htmlContent={cleanMathStatement(tIntro)} className="text-sm text-end" dir="auto" />}
+          {intro && <HtmlWithMath htmlContent={cleanMathStatement(tIntro)} className="text-sm text-start" dir={lang === "fr" ? "ltr" : "rtl"} />}
           {parts.map((p, i) => (
             <div key={i} className="space-y-1.5">
-              <HtmlWithMath htmlContent={cleanMathStatement(tPartTexts[i] || p.text)} className="text-sm text-end" dir="auto" />
+              <HtmlWithMath htmlContent={cleanMathStatement(tPartTexts[i] || p.text)} className="text-sm text-start" dir={lang === "fr" ? "ltr" : "rtl"} />
               <div className="flex items-center gap-2">
                 <input
                   id={`exo-answer-${contentId}-${i}`}
@@ -238,12 +238,12 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
         </div>
       ) : (
         statement && (
-          <HtmlWithMath htmlContent={cleanMathStatement(tStatement)} className="text-sm text-end" dir="auto" />
+          <HtmlWithMath htmlContent={cleanMathStatement(tStatement)} className="text-sm text-start" dir={lang === "fr" ? "ltr" : "rtl"} />
         )
       )}
 
       {hint && showHint && (
-        <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="auto">💡 {tHint}</div>
+        <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded text-start" dir={lang === "fr" ? "ltr" : "rtl"}>💡 {tHint}</div>
       )}
 
       <div className="flex gap-2 items-center flex-wrap">
