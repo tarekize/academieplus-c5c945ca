@@ -35,14 +35,21 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
   const { t, i18n } = useTranslation();
   const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
   const legacySplit = splitStatementIntoQuestions(statement || "");
+  // >= 1 et non >= 2 : le prompt IA demande explicitement de ne remplir
+  // sub_questions que pour un exercice à plusieurs questions, mais il arrive
+  // que le modèle y mette une seule question quand même (ex. un exercice à
+  // une seule limite à calculer). Avec un seuil à 2, ce cas tombait dans la
+  // branche "statement" — qui ne contient alors que le contexte partagé
+  // ("Calcule la limite suivante :"), jamais l'énoncé réel de la question,
+  // resté coincé dans sub_questions[0].question et jamais affiché.
   const structuredParts: Part[] | null =
-    subQuestions && subQuestions.length >= 2
+    subQuestions && subQuestions.length >= 1
       ? subQuestions.map((q) => ({ text: q.question, expectedAnswer: q.expected_answer }))
       : legacySplit.questions.length >= 2
         ? legacySplit.questions.map((q) => ({ text: q }))
         : null;
   const hasSubQuestions = !!structuredParts;
-  const intro = subQuestions && subQuestions.length >= 2 ? (statement || "") : legacySplit.intro;
+  const intro = subQuestions && subQuestions.length >= 1 ? (statement || "") : legacySplit.intro;
   const parts = structuredParts || [];
   const hasCorrection = hasSubQuestions
     ? parts.some((p) => !!p.expectedAnswer?.trim()) || !!solution?.trim()
@@ -191,8 +198,11 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
 
   if (loadingAttempt) return null;
 
+  // dir explicite plutôt que compter sur l'héritage du document : ce bloc
+  // reste correctement RTL/LTR même monté dans un contexte qui override dir
+  // plus haut (ex. aperçu enseignant), au lieu de retomber en LTR par défaut.
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" dir={lang === "fr" ? "ltr" : "rtl"}>
       {hasSubQuestions ? (
         <div className="space-y-4">
           {intro && <HtmlWithMath htmlContent={cleanMathStatement(tIntro)} className="text-sm text-end" dir="auto" />}
