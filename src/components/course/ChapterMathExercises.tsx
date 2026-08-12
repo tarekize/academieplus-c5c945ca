@@ -285,7 +285,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
         <CardContent className="space-y-6">
           <div className="p-4 bg-muted/50 rounded-lg">
             <h4 className="font-semibold mb-3 flex items-center gap-2"><BookOpen className="h-4 w-4" />{t("exercisePlayer.statementLabel")}</h4>
-            <HtmlWithMath htmlContent={cleanMathStatement(tCurrent.statement)} className="text-sm border-t pt-2 block text-end" dir="auto" />
+            <HtmlWithMath htmlContent={cleanMathStatement(tCurrent.statement)} className="text-sm border-t pt-2 block text-start" dir={lang === "fr" ? "ltr" : "rtl"} />
           </div>
 
           {exercise.hint && (
@@ -305,7 +305,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
                     <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                     <div className="flex-1 text-sm text-amber-900 dark:text-amber-200">
                       <p className="font-semibold mb-2">{t("exercisePlayer.helpfulTip")}</p>
-                      <HtmlWithMath htmlContent={tCurrent.hint} className="max-w-none text-end leading-relaxed" dir="auto" />
+                      <HtmlWithMath htmlContent={tCurrent.hint} className="max-w-none text-start leading-relaxed" dir={lang === "fr" ? "ltr" : "rtl"} />
                     </div>
                   </div>
                 </div>
@@ -453,7 +453,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
           return (
             <div key={ex.id} className={i > 0 ? "mt-6 pt-6 border-t" : ""}>
               <h3 className="font-bold mb-2">{i + 1}. {tEx.title}</h3>
-              <HtmlWithMath htmlContent={cleanMathStatement(tEx.statement)} className="text-sm text-end" dir="auto" />
+              <HtmlWithMath htmlContent={cleanMathStatement(tEx.statement)} className="text-sm text-start" dir={lang === "fr" ? "ltr" : "rtl"} />
               {ex.solution && (
                 <div className="mt-3">
                   <MarkdownSolution content={tEx.solution} />
