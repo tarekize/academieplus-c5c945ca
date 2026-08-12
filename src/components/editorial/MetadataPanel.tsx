@@ -16,6 +16,8 @@ interface MetadataPanelProps {
   onChange: (course: any) => void;
 }
 
+/** Panneau dépliant SEO/Metadata de l'éditeur de cours : meta title/description
+ * (tronqués côté client aux limites SEO usuelles), slug d'URL et description courte. */
 export function MetadataPanel({ course, onChange }: MetadataPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
 

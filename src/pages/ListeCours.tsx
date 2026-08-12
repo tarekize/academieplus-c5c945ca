@@ -83,6 +83,10 @@ function PendingBadge({ count }: { count: number }) {
   );
 }
 
+// Page de navigation matière -> niveau -> (filière) -> chapitres. Pour un
+// élève/parent, redirige directement vers les cours de maths (seule matière
+// disponible) ; pour un admin/pédago, sert de sélecteur de contenu à gérer,
+// avec des pastilles de contenu IA en attente de validation.
 const ListeCours = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -124,6 +128,9 @@ const ListeCours = () => {
     return () => { cancelled = true; };
   }, [isAdmin]);
 
+  // Charge le profil de l'utilisateur COURANT (userId vient de useAuth) puis,
+  // pour un pédago, ses matières assignées (pedago_subjects) — l'admin, lui,
+  // a accès à toutes les matières sans requête supplémentaire.
   const fetchProfileAndSubjects = async (userId: string) => {
     try {
       const { data: profileData, error: profileError } = await supabase
@@ -166,6 +173,8 @@ const ListeCours = () => {
     }
   };
 
+  // Traduit le code de niveau scolaire ; si aucune traduction n'existe pour
+  // ce code, retourne le code brut plutôt que la clé i18n non résolue.
   const getSchoolLevelName = (level: string) => {
     if (!level) return t("listeCours.yourClass");
     const key = `app.schoolLevels.${level}`;
@@ -173,10 +182,13 @@ const ListeCours = () => {
     return translated === key ? level : translated;
   };
 
+  // Navigue vers l'étape "choix du niveau" pour la matière sélectionnée.
   const handleSubjectSelect = (subjectId: string) => {
     navigate(`/liste-matieres/${subjectId}/niveaux`);
   };
 
+  // Navigue vers l'étape "choix de la filière" (si requise pour ce niveau)
+  // ou directement vers les chapitres.
   const handleLevelSelect = (levelId: string) => {
     if (levelsWithFilieres.includes(levelId)) {
       // Étape intermédiaire : choix de la filière (premiere/seconde/terminale)
@@ -214,16 +226,19 @@ const ListeCours = () => {
     return () => { cancelled = true; };
   }, [isAdmin, isPedago, selectedLevel]);
 
+  // Navigue vers les chapitres du niveau/filière sélectionnés.
   const handleFiliereSelect = (filiereCode: string) => {
     if (selectedLevel) {
       navigate(`/cours/${selectedSubject || "math"}/${selectedLevel}/chapitres?filiere=${filiereCode}`);
     }
   };
 
+  // Retour à l'étape "choix du niveau" pour la matière courante.
   const handleBackToLevels = () => {
     navigate(`/liste-matieres/${selectedSubject || "math"}/niveaux`);
   };
 
+  // Retour à l'étape "choix de la matière".
   const handleBackToSubjects = () => {
     navigate("/liste-matieres");
   };

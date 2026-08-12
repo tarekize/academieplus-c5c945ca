@@ -25,9 +25,12 @@ interface SectionEditorProps {
   onToggleCollapse?: () => void;
 }
 
-export function SectionEditor({ 
-  section, 
-  onChange, 
+/** Éditeur d'une section de cours : titre, type pédagogique, contenu Markdown
+ * (avec bascule édition/aperçu), et gestion des formules LaTeX / images
+ * associées via les pop-up FormulaModal / ImageUploadModal. */
+export function SectionEditor({
+  section,
+  onChange,
   onDelete,
   onAddSubsection,
   level = 0,
@@ -38,6 +41,7 @@ export function SectionEditor({
   const [showImageModal, setShowImageModal] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
+  /** Callback de FormulaModal : ajoute la formule validée à la section. */
   const handleAddFormula = (formula: any) => {
     onChange({
       ...section,
@@ -45,6 +49,7 @@ export function SectionEditor({
     });
   };
 
+  /** Callback de ImageUploadModal : ajoute l'image validée à la section. */
   const handleAddImage = (image: any) => {
     onChange({
       ...section,
@@ -52,6 +57,7 @@ export function SectionEditor({
     });
   };
 
+  /** Retire une formule de la section par son index dans la liste locale. */
   const handleRemoveFormula = (index: number) => {
     onChange({
       ...section,
@@ -59,6 +65,7 @@ export function SectionEditor({
     });
   };
 
+  /** Retire une image de la section par son index dans la liste locale. */
   const handleRemoveImage = (index: number) => {
     onChange({
       ...section,
@@ -66,6 +73,7 @@ export function SectionEditor({
     });
   };
 
+  /** Couleur de bordure/fond selon le type pédagogique de la section. */
   const getSectionTypeColor = (type: string) => {
     const colors: Record<string, string> = {
       definition: "border-l-4 border-blue-500 bg-blue-50/50",

@@ -21,12 +21,17 @@ interface ExamCellDialogProps {
 
 type Screen = "menu" | "ai" | "import" | "history";
 
+/** Pop-up d'entrée pour les examens d'une cellule matière/niveau : menu de
+ * choix (via IA / import document / historique) puis délégation de l'écran
+ * actif à ViaIAWizard, ImportDocumentFlow ou ExamHistoryList. */
 export default function ExamCellDialog({
   open, onOpenChange, subject, subjectName, schoolLevel, levelName, filiereId, filiereName, isTerminale,
 }: ExamCellDialogProps) {
   const navigate = useNavigate();
   const [screen, setScreen] = useState<Screen>("menu");
 
+  // Ferme la pop-up puis réinitialise l'écran affiché après la fin de
+  // l'animation de fermeture (évite de voir le menu "sauter" pendant la transition).
   const close = () => { onOpenChange(false); setTimeout(() => setScreen("menu"), 200); };
   const backToMenu = () => setScreen("menu");
   // Ferme la pop-up et redirige vers la page complète de l'examen (créé ou

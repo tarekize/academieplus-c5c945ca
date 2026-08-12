@@ -28,6 +28,9 @@ interface Profile {
   subject: string | null;
 }
 
+// Écran "Mon profil" enseignant : édition des informations personnelles et
+// suppression de compte. Toutes les opérations portent sur user.id (le
+// compte connecté) uniquement, jamais sur un id passé en paramètre.
 export default function TeacherProfile({ onBack }: { onBack: () => void }) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -65,6 +68,8 @@ export default function TeacherProfile({ onBack }: { onBack: () => void }) {
       });
   }, [user]);
 
+  // Enregistre les modifications du formulaire dans profiles, pour
+  // l'utilisateur connecté uniquement (.eq("id", user.id)).
   const handleSave = async () => {
     if (!user) return;
     if (!form.first_name.trim() || !form.last_name.trim()) {
@@ -94,6 +99,9 @@ export default function TeacherProfile({ onBack }: { onBack: () => void }) {
     }
   };
 
+  // Supprime définitivement le compte via l'edge function dédiée (qui doit
+  // elle-même vérifier que l'appelant authentifié correspond à userId), puis
+  // déconnecte et redirige vers l'accueil.
   const handleDelete = async () => {
     if (!profile) return;
     setDeleting(true);

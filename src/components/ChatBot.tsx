@@ -41,6 +41,9 @@ type ChatBotProps = {
   onToggleExpand?: () => void;
 };
 
+/** Fenêtre de chat IA (professeur virtuel) : gère la saisie texte/vocale, les
+ * pièces jointes, le streaming SSE de la réponse, la sauvegarde automatique
+ * de la conversation et l'application des quotas gratuits (useChatLimits). */
 export default function ChatBot({ messages, setMessages, subject = "mathématiques", schoolLevel = null, chapterId = null, chapterContext = null, allChapters = null, onNavigate, isExpanded = false, onToggleExpand }: ChatBotProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -83,6 +86,9 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
     }
   }, [messages, debouncedSave]);
 
+  /** Traite la sélection d'un fichier joint (image/PDF) : vérifie quota,
+   * taille (max 20MB) et type autorisé, puis l'encode en base64 pour l'envoi
+   * au chatbot. Déclenché par l'input file caché. */
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -138,6 +144,10 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  /** Envoie le message (+ pièces jointes) au chatbot : vérifie les quotas,
+   * comptabilise l'usage, appelle l'edge function lovable-chat en streaming
+   * SSE (auth via le JWT de session, jamais la clé anonyme, voir plus bas),
+   * puis met à jour le suivi de niveau si l'IA a évalué une réponse d'exercice. */
   const sendMessage = async (content: string) => {
     if ((!content.trim() && uploadedFiles.length === 0) || isLoading) return;
 
@@ -186,11 +196,24 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      // Sans access_token valide, l'appel précédent retombait silencieusement
+      // sur la clé anonyme (publique) : l'edge function ne pouvait alors plus
+      // identifier l'utilisateur (session.user.id), et recordChatExerciseAnswer
+      // ci-dessous ainsi que le suivi de niveau/lacunes échouaient sans que
+      // l'utilisateur ne voie d'erreur claire. On bloque désormais l'envoi et
+      // on redemande explicitement une reconnexion.
+      if (!session?.access_token) {
+        toast.error("Session expirée", {
+          description: "Veuillez vous reconnecter pour continuer la conversation.",
+        });
+        setMessages((prev) => prev.slice(0, -1));
+        return;
+      }
       const response = await fetch("https://lfothlxoixayjiytwwqa.supabase.co/functions/v1/lovable-chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${session?.access_token || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxmb3RobHhvaXhheWppeXR3d3FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1MDQzNjUsImV4cCI6MjA4NzA4MDM2NX0.Z5uiVCL7jrcYIenOhGyFfXbGULHP30j_E9W390NYS3U"}`
+          "Authorization": `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           messages: updatedMessages,
@@ -274,6 +297,8 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
     }
   };
 
+  /** Parse une ligne du flux SSE (format "data: {...}") et ajoute le contenu
+   * du delta au message assistant en cours de streaming. */
   const processLine = async (line: string, currentMessage: string, onUpdate: (newMessage: string) => void) => {
     const trimmedLine = line.trim();
 
@@ -329,6 +354,8 @@ export default function ChatBot({ messages, setMessages, subject = "mathématiqu
     }
   };
 
+  /** Démarre la dictée vocale (Web Speech API) dans la langue sélectionnée
+   * (FR/AR) et remplace le contenu du champ de saisie par la transcription live. */
   const startRecording = () => {
     try {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;

@@ -27,7 +27,9 @@ function preprocessContent(raw: string): string {
   return s;
 }
 
-// Detect content that is primarily HTML (e.g. AI-enriched lessons starting with <div dir="rtl">)
+/** Détecte un contenu principalement HTML (ex. leçon enrichie par l'IA qui
+ * commence par <div dir="rtl">...) pour choisir le chemin de rendu HTML brut
+ * plutôt que le parseur Markdown. */
 function isHtmlContent(s: string): boolean {
   const t = (s || "").trim();
   if (!t) return false;
@@ -36,10 +38,17 @@ function isHtmlContent(s: string): boolean {
   return /^<(div|section|article|main|h[1-6])\b/i.test(stripped);
 }
 
+/** Retire un éventuel fencing ```html ... ``` autour du contenu (l'IA renvoie
+ * parfois le HTML entouré d'un bloc de code Markdown). */
 function stripCodeFences(s: string): string {
   return (s || "").trim().replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/i, "").trim();
 }
 
+/** Affiche le contenu d'une leçon, qu'il soit du Markdown ou du HTML déjà
+ * enrichi par l'IA, avec rendu KaTeX des formules. Le HTML passe par
+ * sanitizeLessonHtml (chemin HTML) ou rehype-sanitize (chemin Markdown) avant
+ * dangerouslySetInnerHTML/rendu, donc un contenu compromis ne peut pas
+ * injecter de script. */
 const LessonMarkdown: React.FC<LessonMarkdownProps> = ({ content, dir = "rtl" }) => {
   const isHtml = useMemo(() => isHtmlContent(content || ""), [content]);
   const processed = useMemo(

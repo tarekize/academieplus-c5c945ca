@@ -32,6 +32,8 @@ interface TeacherStudentNotesProps {
   classId?: string | null;
 }
 
+// Remarques privées ou partagées qu'un enseignant tient sur un élève
+// (visible par l'élève/parents seulement si is_private = false).
 export default function TeacherStudentNotes({ studentId, classId }: TeacherStudentNotesProps) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [content, setContent] = useState("");
@@ -45,6 +47,9 @@ export default function TeacherStudentNotes({ studentId, classId }: TeacherStude
     supabase.auth.getUser().then(({ data }) => setTeacherId(data.user?.id ?? null));
   }, []);
 
+  // Charge les remarques existantes sur cet élève (toutes les remarques,
+  // pas seulement celles de l'enseignant courant — cohérent avec le fait
+  // que plusieurs enseignants peuvent suivre le même élève).
   const load = useCallback(async () => {
     setLoading(true);
     const { data, error } = await (supabase as any)
@@ -58,6 +63,8 @@ export default function TeacherStudentNotes({ studentId, classId }: TeacherStude
 
   useEffect(() => { load(); }, [load]);
 
+  // Ajoute une nouvelle remarque, attribuée à l'enseignant courant (teacherId
+  // capturé via getUser(), non falsifiable depuis le client).
   const handleAdd = async () => {
     const text = content.trim();
     if (!text) return;
@@ -81,9 +88,16 @@ export default function TeacherStudentNotes({ studentId, classId }: TeacherStude
     }
   };
 
+  // Supprime une remarque. Filtre défensif sur teacher_id en plus de l'id :
+  // sans lui, un enseignant pourrait supprimer la remarque d'un collègue sur
+  // le même élève en rejouant un id qui ne lui appartient pas.
   const handleDelete = async (id: string) => {
     setDeletingId(id);
-    const { error } = await (supabase as any).from("teacher_student_notes").delete().eq("id", id);
+    const { error } = await (supabase as any)
+      .from("teacher_student_notes")
+      .delete()
+      .eq("id", id)
+      .eq("teacher_id", teacherId);
     setDeletingId(null);
     if (error) { toast.error("Suppression impossible"); return; }
     toast.success("Remarque supprimée");

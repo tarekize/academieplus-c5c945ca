@@ -19,6 +19,8 @@ interface Chapter {
   lessons?: { id: string; title: string; titleAr: string; content?: string }[];
 }
 
+// Vue "lecture seule" des cours d'un enfant pour son parent, accédée depuis
+// le tableau de bord parent via /parent-cours/:childId.
 const ParentCoursView = () => {
   const { childId } = useParams();
   const navigate = useNavigate();
@@ -32,9 +34,35 @@ const ParentCoursView = () => {
   const [dbExercises, setDbExercises] = useState<DBExercise[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Charge le profil de l'enfant (childId vient de l'URL) puis ses chapitres
+  // de cours. Avant toute lecture, on vérifie qu'un lien parent_child_links
+  // relie bien l'utilisateur connecté à cet enfant : sans ce contrôle, un
+  // parent authentifié pourrait consulter le nom, le niveau scolaire et le
+  // contenu de cours de N'IMPORTE QUEL enfant en changeant l'UUID dans
+  // l'URL /parent-cours/:childId (défense en profondeur, la donnée reste de
+  // toute façon soumise à la RLS côté serveur).
   const fetchData = useCallback(async () => {
     if (!childId) return;
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate("/auth");
+        return;
+      }
+
+      const { data: link } = await supabase
+        .from("parent_child_links")
+        .select("id")
+        .eq("parent_id", session.user.id)
+        .eq("child_id", childId)
+        .maybeSingle();
+
+      if (!link) {
+        toast.error("Erreur", { description: "Cet enfant n'est pas lié à votre compte." });
+        navigate("/parent-dashboard");
+        return;
+      }
+
       // Fetch child profile
       const { data: childProfile } = await supabase
         .from("profiles")
@@ -81,6 +109,8 @@ const ParentCoursView = () => {
     }
   }, [childId, navigate]);
 
+  // Charge quiz/exercices du chapitre actif (et éventuellement d'une leçon
+  // précise) via les RPC dédiées côté serveur, en lecture seule pour le parent.
   const fetchQuizExercises = useCallback(async (lessonId?: string | null) => {
     if (!activeChapter) return;
 
@@ -105,6 +135,7 @@ const ParentCoursView = () => {
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { fetchQuizExercises(); }, [fetchQuizExercises]);
 
+  // Passe au chapitre précédent/suivant dans l'ordre affiché.
   const handleChapterChange = (direction: "prev" | "next") => {
     if (!chapters.length || !activeChapter) return;
     const idx = chapters.findIndex((c) => c.id === activeChapter.id);

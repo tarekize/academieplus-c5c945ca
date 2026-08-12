@@ -14,6 +14,9 @@ interface BreadcrumbNav {
   lessonTitle: string;
 }
 
+/** Extrait les marqueurs techniques `[[BREADCRUMB:...]]` (liens chapitre/leçon
+ * générés par l'IA) et le marqueur `[[EVAL:...]]` (jamais affiché) du texte,
+ * pour rendre des boutons de navigation à la place et un contenu propre. */
 function parseBreadcrumbs(content: string): { cleanContent: string; breadcrumbs: BreadcrumbNav[] } {
   const breadcrumbs: BreadcrumbNav[] = [];
   const regex = /\[\[BREADCRUMB:([^|]+)\|([^|]+)\|([^|]+)\|([^\]]+?)\]\]/g;
@@ -72,6 +75,9 @@ interface ChatMessageProps {
   onReformulationClick?: () => void;
 }
 
+/** Détecte si un message est majoritairement en arabe (pour choisir la
+ * direction RTL/LTR du message), en ignorant le LaTeX/code qui contiendrait
+ * des lettres latines non pertinentes pour la détection. */
 const isArabicText = (text: string): boolean => {
   const stripped = text
     .replace(/\$\$[\s\S]*?\$\$/g, "")
@@ -168,6 +174,9 @@ const MarkdownContent = ({ children }: { children: string }) => (
   </ReactMarkdown>
 );
 
+/** Affiche un message de la conversation (utilisateur ou assistant) : rendu
+ * Markdown + LaTeX, direction RTL/LTR détectée par message, reformulation
+ * repliable et boutons de navigation vers le chapitre/leçon évoqués. */
 export const ChatMessage = ({ role, content, isStreaming, onNavigate, onReformulationClick }: ChatMessageProps) => {
   const isUser = role === "user";
   const navigate = useNavigate();
@@ -187,18 +196,22 @@ export const ChatMessage = ({ role, content, isStreaming, onNavigate, onReformul
   const dir: "rtl" | "ltr" = isRtl ? "rtl" : "ltr";
   const textAlign = isRtl ? "text-right" : "text-left";
 
+  /** Navigue vers la liste des leçons du chapitre référencé par le breadcrumb. */
   const handleChapterClick = (bc: BreadcrumbNav) => {
     const path = `/cours/math/chapitres/${bc.chapterId}/lecons`;
     if (onNavigate) onNavigate(path);
     else navigate(path);
   };
 
+  /** Navigue directement vers la leçon référencée par le breadcrumb. */
   const handleLessonClick = (bc: BreadcrumbNav) => {
     const path = `/cours/math/chapitres/${bc.chapterId}/lecons?lecon=${bc.lessonId}`;
     if (onNavigate) onNavigate(path);
     else navigate(path);
   };
 
+  /** Affiche/masque la reformulation simplifiée et notifie le parent au
+   * premier affichage (utilisé pour limiter la fréquence de la fonctionnalité). */
   const toggleReformulation = () => {
     setShowReformulation((prev) => {
       const next = !prev;

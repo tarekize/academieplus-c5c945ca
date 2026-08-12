@@ -15,6 +15,8 @@ interface ActivityCardsProps {
   activeCard?: string | null;
 }
 
+/** Sélecteur d'activité (quiz / exercices / flashcards) sous forme de cartes ;
+ * "flashcards" est désactivée (available: false) car pas encore livrée. */
 export const ActivityCards = ({ onCardClick, activeCard }: ActivityCardsProps) => {
   const cards: ActivityCard[] = [
     {

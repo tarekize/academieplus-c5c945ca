@@ -122,6 +122,9 @@ const SYMBOL_GROUPS: { label: string; symbols: { display: string; insert: string
   },
 ];
 
+/** Clavier de symboles mathématiques (opérateurs, puissances, analyse,
+ * ensembles, lettres grecques) inséré dans un champ de réponse via onInsert ;
+ * ne modifie jamais le champ directement, laissant l'appelant gérer la position du curseur. */
 export function MathKeyboard({ onInsert, className }: MathKeyboardProps) {
   const [activeTab, setActiveTab] = useState(0);
   const [open, setOpen] = useState(false);

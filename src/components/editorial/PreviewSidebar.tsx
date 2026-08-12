@@ -11,10 +11,13 @@ interface PreviewSidebarProps {
   niveaux: any[];
 }
 
+/** Panneau latéral d'aperçu "vue élève" du cours en cours d'édition, mis à
+ * jour en temps réel à chaque modification (titre, sections, formules, images). */
 export function PreviewSidebar({ course, matieres, niveaux }: PreviewSidebarProps) {
   const matiere = matieres.find(m => m.id === course.matiere_id);
   const niveau = niveaux.find(n => n.id === course.niveau_id);
 
+  /** Classe CSS de mise en forme selon le type pédagogique de la section (définition, exemple, etc.). */
   const getSectionClass = (type: string) => {
     const classes: { [key: string]: string } = {
       'definition': 'section-definition',

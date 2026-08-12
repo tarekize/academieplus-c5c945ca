@@ -12,13 +12,18 @@ interface State {
   hasError: boolean;
 }
 
+/** Filet de sécurité React : intercepte toute erreur de rendu non gérée dans
+ * l'arbre des enfants pour afficher un écran de secours au lieu d'une page
+ * blanche, et journalise l'erreur (console + backend via logClientError). */
 class ErrorBoundaryBase extends Component<Props, State> {
   state: State = { hasError: false };
 
+  /** Bascule le composant en état d'erreur dès qu'un enfant lève une exception au rendu. */
   static getDerivedStateFromError(): State {
     return { hasError: true };
   }
 
+  /** Journalise l'erreur capturée (message + pile des composants) pour le diagnostic. */
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught render error:", error, errorInfo);
     logClientError("react_error_boundary", error, { componentStack: errorInfo.componentStack });

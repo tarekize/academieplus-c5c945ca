@@ -10,6 +10,8 @@ interface EditorNavBarProps {
   onPreview?: () => void;
 }
 
+/** Barre d'en-tête sticky de l'éditeur de cours : titre éditable en place,
+ * et boutons "Aperçu"/"Sauvegarder" optionnels selon le contexte d'usage. */
 export default function EditorNavBar({ course, onChange, onSave, onPreview }: EditorNavBarProps) {
   return (
     <div className="border-b bg-background sticky top-0 z-50">

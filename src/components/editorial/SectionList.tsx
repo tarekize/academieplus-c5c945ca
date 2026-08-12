@@ -10,6 +10,8 @@ interface SectionListProps {
   onAddSection: () => void;
 }
 
+/** Liste réordonnable (drag & drop) des sections d'un cours, avec ajout et
+ * délégation de l'édition de chaque section à SortableSectionEditor. */
 export default function SectionList({ sections, onChange, onAddSection }: SectionListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -18,6 +20,8 @@ export default function SectionList({ sections, onChange, onAddSection }: Sectio
     })
   );
 
+  /** Fin d'un glisser-déposer : réordonne le tableau de sections et
+   * renumérote le champ `ordre` de chacune en conséquence. */
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 

@@ -9,13 +9,18 @@ interface MarkdownSolutionProps {
   content: string;
   title?: string;
   compact?: boolean;
+  /** Sens de lecture du contenu affiché. Par défaut "rtl" (le contenu généré
+   * par l'IA est en arabe en base), mais un appelant qui affiche une version
+   * déjà traduite en français doit passer "ltr" — sinon le texte français
+   * s'affichait toujours avec l'alignement/bordures d'un texte arabe. */
+  dir?: "rtl" | "ltr";
 }
 
 /**
- * Renders an Arabic step-by-step math solution with markdown + KaTeX support.
- * Used for exercise/quiz detailed solutions.
+ * Rendu d'une solution/correction pas-à-pas (markdown + LaTeX via KaTeX),
+ * utilisé pour les corrigés détaillés d'exercices et de quiz.
  */
-export const MarkdownSolution = ({ content, title = "الحل المفصل", compact = false }: MarkdownSolutionProps) => {
+export const MarkdownSolution = ({ content, title = "الحل المفصل", compact = false, dir = "rtl" }: MarkdownSolutionProps) => {
   // Auto-fix common AI output issues:
   // - Replace \boxed{X} (or broken "oxed{X}" / "\x08oxed{X}") with a clean highlighted answer
   //   instead of relying on KaTeX rendering (which often fails outside math delimiters).
@@ -35,14 +40,14 @@ export const MarkdownSolution = ({ content, title = "الحل المفصل", com
         "rounded-xl border-2 border-purple-200 dark:border-purple-700 bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-purple-950/30 dark:via-background dark:to-blue-950/30 " +
         (compact ? "p-3 space-y-2" : "p-5 space-y-4")
       }
-      dir="rtl"
+      dir={dir}
     >
       <h4 className="font-bold text-base md:text-lg text-purple-900 dark:text-purple-200 flex items-center gap-2">
         <CheckCircle2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
         {title}
       </h4>
 
-      <div className="solution-content text-right text-sm leading-relaxed">
+      <div className="solution-content text-start text-sm leading-relaxed">
         <style>{`
           .solution-content h1, .solution-content h2 {
             font-size: 1.05rem;
@@ -59,13 +64,13 @@ export const MarkdownSolution = ({ content, title = "الحل المفصل", com
             margin: 0.75rem 0 0.4rem;
             padding: 0.4rem 0.6rem;
             background: hsl(243 70% 95%);
-            border-right: 4px solid hsl(243 70% 60%);
+            border-inline-start: 4px solid hsl(243 70% 60%);
             border-radius: 4px;
           }
           .dark .solution-content h1, .dark .solution-content h2 { color: hsl(262 80% 75%); border-color: hsl(262 50% 40%); }
           .dark .solution-content h3 { color: hsl(243 80% 80%); background: hsl(243 40% 20%); border-color: hsl(243 70% 60%); }
           .solution-content p { margin: 0.5rem 0; line-height: 1.7; }
-          .solution-content ul, .solution-content ol { margin: 0.5rem 1.5rem 0.5rem 0; padding-right: 1rem; }
+          .solution-content ul, .solution-content ol { margin-block: 0.5rem; margin-inline: 1.5rem 0; padding-inline-start: 1rem; }
           .solution-content li { margin: 0.25rem 0; }
           .solution-content strong { color: hsl(243 70% 40%); font-weight: 700; }
           .dark .solution-content strong { color: hsl(243 80% 80%); }
@@ -88,7 +93,7 @@ export const MarkdownSolution = ({ content, title = "الحل المفصل", com
           }
           .dark .solution-content .katex-display { background: hsl(0 0% 10%); }
           .solution-content blockquote {
-            border-right: 4px solid hsl(160 70% 45%);
+            border-inline-start: 4px solid hsl(160 70% 45%);
             background: hsl(160 70% 95%);
             padding: 0.5rem 0.75rem;
             margin: 0.5rem 0;

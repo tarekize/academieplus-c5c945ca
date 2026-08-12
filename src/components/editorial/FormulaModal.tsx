@@ -22,6 +22,9 @@ interface FormulaModalProps {
   onInsert: (formula: any) => void;
 }
 
+/** Pop-up d'insertion d'une formule LaTeX dans une section de cours : saisie
+ * du code, symboles rapides, choix bloc/inline, légende, aperçu KaTeX en
+ * direct, et validation avant insertion. */
 export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
   const [latex, setLatex] = useState("");
   const [displayMode, setDisplayMode] = useState<"block" | "inline">("block");
@@ -29,6 +32,11 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
   const [error, setError] = useState("");
   const [isValidating, setIsValidating] = useState(false);
 
+  /** Valide la syntaxe LaTeX saisie (accolades équilibrées, absence de
+   * caractères interdits, rendu KaTeX réussi) et met à jour `error` en
+   * conséquence. Retourne un booléen que l'appelant DOIT vérifier : ce n'est
+   * pas un simple effet de bord sur `error`, car cet état peut être obsolète
+   * (voir handleInsert) au moment où l'appelant en a besoin. */
   const validateLatex = (input: string) => {
     if (!input.trim()) {
       setError("");
@@ -68,23 +76,32 @@ export function FormulaModal({ open, onClose, onInsert }: FormulaModalProps) {
     }
   };
 
+  /** Appelé à chaque frappe : met à jour le LaTeX affiché immédiatement, et
+   * planifie une validation différée (debounce) pour ne pas relancer KaTeX à
+   * chaque caractère. */
   const handleLatexChange = (value: string) => {
     setLatex(value);
     // Validate after a short delay to avoid too many validations
     const timeoutId = setTimeout(() => {
       validateLatex(value);
     }, 500);
-    
+
     return () => clearTimeout(timeoutId);
   };
 
+  // Insère la formule dans le cours (bouton "Insérer formule"). On revalide
+  // `latex` de façon synchrone ici plutôt que de se fier à l'état `error` :
+  // celui-ci provient du debounce de handleLatexChange et peut donc être
+  // encore celui de la saisie précédente si l'utilisateur clique juste après
+  // avoir fini de taper (avant les 500ms) — sans cette revalidation, une
+  // formule LaTeX invalide pourrait être insérée silencieusement.
   const handleInsert = () => {
     if (!latex.trim()) {
       toast.error("Veuillez saisir une formule");
       return;
     }
 
-    if (error) {
+    if (!validateLatex(latex)) {
       toast.error("Corrigez les erreurs avant d'insérer");
       return;
     }

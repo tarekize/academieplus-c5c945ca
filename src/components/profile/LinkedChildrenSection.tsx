@@ -36,6 +36,9 @@ const getChildFullName = (child: LinkedChild["child"]): string => {
   return parts.length > 0 ? parts.join(" ") : "Sans nom";
 };
 
+/** Carte "Mes enfants" de l'espace parent : liaison par code de 8 caractères
+ * et liste des enfants déjà liés (actifs ou en attente), chacun avec une
+ * option de suppression du lien. */
 export function LinkedChildrenSection() {
   const { children, loading, addChildByCode, removeChild } = useLinkedChildren();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -44,6 +47,8 @@ export function LinkedChildrenSection() {
 
   const [error, setError] = useState<string | null>(null);
 
+  /** Envoie le code de liaison saisi à addChildByCode (édite function
+   * link-child-by-code) pour rattacher un compte élève au parent courant. */
   const handleAddByCode = async () => {
     setError(null);
     if (!code.trim()) {
@@ -65,6 +70,8 @@ export function LinkedChildrenSection() {
     }
   };
 
+  /** Supprime le lien parent-enfant sélectionné (removeChild re-filtre déjà
+   * côté serveur sur parent_id = utilisateur courant). */
   const handleRemoveChild = async (linkId: string) => {
     await removeChild(linkId);
   };
@@ -176,6 +183,7 @@ export function LinkedChildrenSection() {
   );
 }
 
+/** Carte d'affichage d'un enfant lié : avatar, nom, statut du lien, et bouton de suppression avec confirmation. */
 function ChildCard({
   link,
   onRemove,

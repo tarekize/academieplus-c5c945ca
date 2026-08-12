@@ -91,6 +91,13 @@ interface Reclamation {
   profile?: { first_name: string | null; last_name: string | null; email: string | null };
 }
 
+// Tableau de bord établissement : liste les enseignants rattachés (via
+// teacher_establishments) et leurs classes, les élèves qui en découlent, et
+// les réclamations reçues. Les lectures/écritures sur "reclamations" ne sont
+// pas filtrées côté client par établissement — c'est la RLS serveur
+// (is_establishment_member, voir migration scope_reclamations_to_establishment)
+// qui garantit qu'un compte établissement ne voit/modifie que les
+// réclamations de ses propres membres.
 const EtablissementDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -128,6 +135,8 @@ const EtablissementDashboard = () => {
     fetchReclamations();
   }, [user]);
 
+  // Charge le code d'inscription et le nom de l'établissement COURANT
+  // (profiles.id = user.id, jamais paramétrable).
   const fetchEstablishment = async () => {
     try {
       const { data } = await (supabase as any)
@@ -144,6 +153,8 @@ const EtablissementDashboard = () => {
     }
   };
 
+  // Copie le code d'inscription établissement dans le presse-papier
+  // (affiche brièvement une coche de confirmation).
   const copyCode = async () => {
     if (!establishmentCode) return;
     try {
@@ -155,6 +166,13 @@ const EtablissementDashboard = () => {
     }
   };
 
+  // Résout la liste des enseignants réellement rattachés à CET établissement
+  // (teacher_establishments.establishment_id = user.id), puis leurs classes
+  // — en ne retenant que celles dont la ligne "establishments" pointe bien
+  // vers ce compte établissement (un même enseignant peut être lié à
+  // plusieurs établissements ; sans ce second filtre on afficherait aussi
+  // ses classes rattachées à un autre établissement) — et enfin l'effectif
+  // de chaque classe.
   const fetchTeachers = async () => {
     setLoadingTeachers(true);
     try {
@@ -244,6 +262,9 @@ const EtablissementDashboard = () => {
     }
   };
 
+  // À partir des classes déjà résolues pour cet établissement, construit la
+  // liste à plat des élèves inscrits (un élève peut apparaître plusieurs
+  // fois s'il est dans plusieurs classes) pour alimenter l'onglet "Élèves".
   const fetchAllStudents = async (teacherList: Teacher[]) => {
     const allClassIds = teacherList.flatMap((t) => t.classes.map((c) => c.id));
     if (allClassIds.length === 0) {
@@ -290,6 +311,10 @@ const EtablissementDashboard = () => {
     }
   };
 
+  // Charge les réclamations visibles pour ce compte établissement (la RLS
+  // serveur restreint déjà le résultat aux réclamations des membres de cet
+  // établissement, voir commentaire du composant) puis attache le profil de
+  // l'auteur de chacune.
   const fetchReclamations = async () => {
     setLoadingRec(true);
     try {
@@ -323,6 +348,9 @@ const EtablissementDashboard = () => {
     }
   };
 
+  // Enregistre la réponse de l'établissement à une réclamation et la marque
+  // résolue. L'UPDATE est restreint côté serveur aux réclamations des
+  // membres de cet établissement (même policy RLS que fetchReclamations).
   const handleRespond = async (reclamationId: string) => {
     const text = responseText[reclamationId]?.trim();
     if (!text) return;
@@ -350,11 +378,13 @@ const EtablissementDashboard = () => {
     }
   };
 
+  // Nom complet affiché pour un profil (enseignant, élève ou auteur de réclamation).
   const getFullName = (p: { first_name: string | null; last_name: string | null } | undefined) => {
     if (!p) return "Utilisateur inconnu";
     return [p.first_name, p.last_name].filter(Boolean).join(" ") || "Utilisateur";
   };
 
+  // Badge visuel correspondant au statut d'une réclamation.
   const statusBadge = (status: string) => {
     if (status === "resolved")
       return <Badge className="bg-green-100 text-green-700 border-green-200 gap-1"><CheckCircle className="h-3 w-3" />Résolu</Badge>;

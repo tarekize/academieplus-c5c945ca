@@ -30,6 +30,10 @@ interface LocationFieldsProps {
   required?: boolean;
 }
 
+/** Trio de champs de localisation (wilaya / ville / école) réutilisé dans les
+ * formulaires de profil : la ville est un combobox avec recherche libre,
+ * limité aux villes de la wilaya sélectionnée mais acceptant une saisie
+ * personnalisée si la ville n'est pas dans la liste. */
 const LocationFields = ({
   wilaya,
   ville,
@@ -51,7 +55,8 @@ const LocationFields = ({
     c.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Sync search with current value when opening
+  // Ré-initialise le champ de recherche avec la ville déjà sélectionnée à
+  // chaque ouverture du popover, et donne le focus au champ de recherche.
   useEffect(() => {
     if (open) {
       setSearch(ville);

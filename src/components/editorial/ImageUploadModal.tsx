@@ -19,6 +19,9 @@ interface ImageUploadModalProps {
   onUpload: (image: any) => void;
 }
 
+/** Pop-up d'insertion d'une image dans une section de cours : upload local
+ * (converti en data URL, aucun stockage serveur ici) ou URL externe, avec
+ * texte alternatif obligatoire pour l'accessibilité avant de pouvoir insérer. */
 export function ImageUploadModal({
   open,
   onClose,
@@ -31,6 +34,8 @@ export function ImageUploadModal({
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  /** Valide type/taille du fichier choisi puis le lit en data URL pour
+   * l'aperçu — déclenché par la zone drag&drop ou l'input file. */
   const handleFileUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Veuillez sélectionner une image");
@@ -62,6 +67,7 @@ export function ImageUploadModal({
     }
   };
 
+  /** Récupère le fichier déposé sur la zone drag&drop et le délègue à handleFileUpload. */
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
@@ -70,6 +76,8 @@ export function ImageUploadModal({
     }
   };
 
+  /** Insère l'image dans le cours (bouton "Insérer image") : refuse tant
+   * qu'il n'y a pas d'URL/preview ou de texte alternatif renseigné. */
   const handleInsert = () => {
     if (!url) {
       toast.error("Veuillez ajouter une image");
@@ -100,6 +108,7 @@ export function ImageUploadModal({
     toast.success("Image ajoutée");
   };
 
+  /** Onglet "URL" : met à jour l'aperçu dès que la valeur ressemble à une URL http(s). */
   const handleUrlChange = (value: string) => {
     setUrl(value);
     if (value && value.startsWith("http")) {

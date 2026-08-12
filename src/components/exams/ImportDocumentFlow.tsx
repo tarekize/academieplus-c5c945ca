@@ -24,6 +24,9 @@ export default function ImportDocumentFlow({ subject, schoolLevel, filiereId, is
   const [trimester, setTrimester] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
 
+  /** Callback de DocumentImportButton une fois l'IA revenue avec les
+   * exercices extraits du document : les convertit au format ExamExercise,
+   * puis enregistre un brouillon d'examen via save_exam_draft. */
   const handleExtracted = async (items: GeneratedItem[]) => {
     const mapped: ExamExercise[] = items
       .filter((it) => (it.statement || "").trim() || (it.sub_questions && it.sub_questions.length >= 2))

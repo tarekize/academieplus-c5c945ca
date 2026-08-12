@@ -8,6 +8,8 @@ interface EditorToolbarProps {
   onPublish: () => void;
 }
 
+/** Barre d'outils fixe en bas de l'éditeur de cours : état de sauvegarde,
+ * statut/nombre de sections, et actions "Sauvegarder brouillon"/"Publier". */
 export default function EditorToolbar({ course, isSaving, onSave, onPublish }: EditorToolbarProps) {
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg z-40">

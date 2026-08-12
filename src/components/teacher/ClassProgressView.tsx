@@ -62,6 +62,7 @@ interface ComputedStudent {
   answered: boolean;
 }
 
+// Couleur de la pastille de la grille de progression selon le niveau maîtrisé.
 function cellColor(level: number | null): string {
   if (level === null || level === undefined) return "bg-muted";
   if (level >= 75) return "bg-blue-600";
@@ -70,10 +71,12 @@ function cellColor(level: number | null): string {
   return "bg-red-500";
 }
 
+// Initiales affichées dans l'avatar de repli d'un élève.
 function initials(p: StudentProfile): string {
   return [p.first_name?.[0], p.last_name?.[0]].filter(Boolean).join("").toUpperCase() || "?";
 }
 
+// Nom complet affichable d'un élève, avec repli si les deux champs sont vides.
 function fullName(p: StudentProfile): string {
   return [p.first_name, p.last_name].filter(Boolean).join(" ") || "Élève";
 }
@@ -85,6 +88,10 @@ interface ClassProgressViewProps {
   teacherId?: string;
 }
 
+// Grille de progression d'une classe : un élève par ligne, une notion par
+// colonne, coloriée selon le niveau maîtrisé. Utilisé à la fois côté
+// enseignant (édition possible : retrait d'élève, suivi de contenu) et côté
+// tableau de bord établissement (readOnly, sans les actions de modification).
 export default function ClassProgressView({ classRow, onOpenStudentDetail, readOnly, teacherId }: ClassProgressViewProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -94,6 +101,9 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
   const [trackingOpen, setTrackingOpen] = useState(false);
 
+  // Recharge tout : membres de la classe, chapitres/leçons du niveau, scores
+  // de chaque élève, puis calcule le niveau par notion et le groupe (A/B/C/D)
+  // de chacun. Tout est scopé à classRow.id, jamais à une classe arbitraire.
   const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
@@ -234,9 +244,17 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Retire un élève de la classe (bouton corbeille, masqué en readOnly).
+  // Filtre défensif sur class_id en plus de l'id du lien : empêche de
+  // retirer par erreur/manipulation un élève d'une AUTRE classe si jamais un
+  // linkId périmé ou forgé était rejoué.
   const removeStudent = async (linkId: string) => {
     try {
-      const { error } = await supabase.from("class_students").delete().eq("id", linkId);
+      const { error } = await supabase
+        .from("class_students")
+        .delete()
+        .eq("id", linkId)
+        .eq("class_id", classRow.id);
       if (error) throw error;
       toast.success("Élève retiré de la classe");
       fetchData();

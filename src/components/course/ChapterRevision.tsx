@@ -35,6 +35,9 @@ interface RevisionRow {
 
 const CHAPTER_REVISION_CONTENT_TYPE = "revision";
 
+/** Fiche de révision de chapitre générée par l'IA, partagée par tous les élèves
+ * (pas de copie privée par utilisateur) : consultation par tous, génération et
+ * régénération réservées aux profils pédago (canManage). */
 export function ChapterRevision({ chapter, onBack, canManage = false }: ChapterRevisionProps) {
   const { t, i18n } = useTranslation();
   const dir = i18n.language === "ar" ? "rtl" : "ltr";
@@ -47,6 +50,8 @@ export function ChapterRevision({ chapter, onBack, canManage = false }: ChapterR
   const [historyOpen, setHistoryOpen] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState<RevisionRow | null>(null);
 
+  /** Le contenu stocké peut être une simple chaîne ou un objet `{ text }` selon
+   * la version du générateur ; normalise vers une chaîne affichable dans les deux cas. */
   const normalize = (c: unknown) => {
     if (typeof c === "string") return c;
     if (c && typeof c === "object" && "text" in c) {
@@ -56,6 +61,8 @@ export function ChapterRevision({ chapter, onBack, canManage = false }: ChapterR
     return JSON.stringify(c);
   };
 
+  /** Charge l'historique des fiches de révision déjà générées pour ce chapitre
+   * (la plus récente sert de contenu affiché par défaut). */
   const loadHistory = async () => {
     if (!chapter?.id) return [];
     // Fiche de révision PARTAGÉE, publiée par le pédagogue : on lit la
@@ -90,6 +97,9 @@ export function ChapterRevision({ chapter, onBack, canManage = false }: ChapterR
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapter?.id]);
 
+  /** Déclenché par le bouton "Générer"/"Régénérer" : appelle l'edge function IA
+   * avec le contenu de toutes les leçons du chapitre, enregistre le résultat en
+   * base (nouvel historique) puis l'affiche. */
   const generate = async () => {
     if (!chapter?.lessons || chapter.lessons.length === 0) {
       toast.error(t("chapterRevision.noLessonsTitle"), { description: t("chapterRevision.noLessonsDescription") });

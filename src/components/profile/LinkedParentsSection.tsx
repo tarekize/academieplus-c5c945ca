@@ -12,7 +12,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Users, Copy, Check, User, Loader2, CheckCircle, XCircle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Users, Copy, Check, User, Loader2, CheckCircle, XCircle, Trash2 } from "lucide-react";
 import { useLinkedParents, LinkedParent } from "@/hooks/useProfile";
 import { toast } from "sonner";
 
@@ -23,12 +34,16 @@ const getParentFullName = (parent: LinkedParent["parent"]): string => {
   return parts.length > 0 ? parts.join(" ") : "Sans nom";
 };
 
+/** Carte "Mes parents" de l'espace élève : demandes de liaison en attente
+ * (accepter/refuser), code de liaison personnel à partager, et liste des
+ * parents déjà liés activement. */
 export function LinkedParentsSection() {
   const { parents, linkingCode, loading, respondToRequest, removeParent } =
     useLinkedParents();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  /** Copie le code de liaison de l'élève dans le presse-papiers (bouton "Mon code de liaison"). */
   const handleCopyCode = () => {
     if (linkingCode) {
       navigator.clipboard.writeText(linkingCode);
@@ -38,10 +53,13 @@ export function LinkedParentsSection() {
     }
   };
 
+  /** Accepte ou refuse une demande de liaison reçue d'un parent (respondToRequest
+   * re-filtre déjà côté serveur sur child_id = utilisateur courant). */
   const handleRespond = async (requestId: string, accept: boolean) => {
     await respondToRequest(requestId, accept);
   };
 
+  /** Supprime un lien parent-enfant actif du point de vue de l'élève. */
   const handleRemoveParent = async (linkId: string) => {
     await removeParent(linkId);
   };
@@ -182,7 +200,7 @@ export function LinkedParentsSection() {
           ) : (
             <div className="space-y-3">
               {activeLinks.map((link) => (
-                <ParentCard key={link.id} link={link} />
+                <ParentCard key={link.id} link={link} onRemove={() => handleRemoveParent(link.id)} />
               ))}
             </div>
           )}
@@ -243,10 +261,16 @@ function PendingRequestCard({
   );
 }
 
+/** Carte d'affichage d'un parent lié activement, avec bouton de suppression
+ * du lien (confirmation requise) — ce bouton manquait auparavant : le
+ * handler de suppression existait dans le composant parent mais n'était
+ * jamais rendu, empêchant l'élève de délier un parent depuis cette liste. */
 function ParentCard({
   link,
+  onRemove,
 }: {
   link: LinkedParent;
+  onRemove: () => void;
 }) {
   const parent = link.parent;
   const fullName = getParentFullName(parent);
@@ -280,6 +304,29 @@ function ParentCard({
           )}
         </div>
       </div>
+
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button variant="outline" size="sm" className="text-destructive shrink-0">
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer le lien ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Voulez-vous vraiment supprimer le lien avec {fullName} ?
+              Ce parent ne pourra plus suivre votre progression.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={onRemove} className="bg-destructive">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

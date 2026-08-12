@@ -51,6 +51,9 @@ interface CreateClassDialogProps {
   disabled?: boolean;
 }
 
+// Dialogue de création d'une nouvelle classe, rattachée à l'enseignant et à
+// l'établissement actif courants (les deux viennent de props contrôlées par
+// le parent, jamais d'une saisie libre).
 export default function CreateClassDialog({ teacherId, establishmentId, onCreated, disabled }: CreateClassDialogProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -60,12 +63,14 @@ export default function CreateClassDialog({ teacherId, establishmentId, onCreate
 
   const needsFiliere = ["premiere", "seconde", "terminale"].includes(schoolLevel);
 
+  // Réinitialise le formulaire (fermeture du dialogue ou après création réussie).
   const reset = () => {
     setName("");
     setSchoolLevel("");
     setFiliere("");
   };
 
+  // Valide les champs requis puis crée la classe pour teacherId/establishmentId.
   const handleSubmit = async () => {
     if (!name.trim()) {
       toast.error("Veuillez nommer la classe.");

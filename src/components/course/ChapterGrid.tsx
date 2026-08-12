@@ -18,6 +18,8 @@ interface ChapterGridProps {
   subjectId?: string;
 }
 
+/** Carte cliquable représentant un chapitre : numéro, titre, statut (terminé/à
+ * faire) et temps déjà passé dessus. */
 const ChapterCard = ({
   chapter,
   displayNumber,
@@ -90,6 +92,9 @@ const ChapterCard = ({
   );
 };
 
+/** Grille de chapitres d'une matière. Cas particulier "histoire" : la matière
+ * combine Histoire et Géographie dans une seule liste de chapitres (séparées
+ * par order_index < 8), donc affichées en deux sections numérotées séparément. */
 export const ChapterGrid = ({ chapters, onChapterSelect, subjectId }: ChapterGridProps) => {
   const isHistGeo = subjectId === "histoire";
   const historyChapters = isHistGeo ? chapters.filter((c) => c.order_index < 8) : [];
