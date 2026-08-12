@@ -39,12 +39,16 @@ export interface LinkedParent {
   } | null;
 }
 
+// Profil de l'utilisateur COURANT uniquement (jamais d'un autre) : userId
+// vient toujours de useAuth(), jamais d'un paramètre — donc pas d'IDOR
+// possible en lecture/écriture via ce hook.
 export function useProfile() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  /** Charge le profil (table `profiles`) de l'utilisateur connecté. */
   const fetchProfile = useCallback(async () => {
     if (!user) {
       setProfile(null);
@@ -73,6 +77,7 @@ export function useProfile() {
     fetchProfile();
   }, [fetchProfile]);
 
+  /** Met à jour des champs du profil courant (formulaire "Mes informations") + journalise l'action. */
   const updateProfile = async (updates: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>) => {
     if (!user) return false;
 
@@ -107,6 +112,8 @@ export function useProfile() {
     }
   };
 
+  /** Upload l'avatar dans le bucket "avatars" sous un chemin `${user.id}/...`
+   * (isole les fichiers par utilisateur) puis met à jour avatar_url du profil. */
   const uploadAvatar = async (file: File): Promise<string | null> => {
     if (!user) return null;
 
@@ -141,11 +148,14 @@ export function useProfile() {
   };
 }
 
+// Enfants liés au compte PARENT courant (parent_child_links) — utilisé par
+// l'espace parent pour afficher/gérer ses enfants suivis.
 export function useLinkedChildren() {
   const { user } = useAuth();
   const [children, setChildren] = useState<LinkedChild[]>([]);
   const [loading, setLoading] = useState(true);
 
+  /** Liste les enfants liés au parent courant (parent_id = user.id), avec leur profil. */
   const fetchChildren = useCallback(async () => {
     if (!user) {
       setChildren([]);
@@ -185,6 +195,10 @@ export function useLinkedChildren() {
     fetchChildren();
   }, [fetchChildren]);
 
+  /** Envoie une demande de liaison à l'enfant via son code de 8 caractères hex,
+   * en passant par l'edge function link-child-by-code (contourne volontairement
+   * la RLS côté serveur pour permettre à un parent de résoudre un code qu'il
+   * ne "possède" pas encore). */
   const addChildByCode = async (code: string): Promise<{ success: boolean; message: string }> => {
     if (!user) return { success: false, message: "Non authentifié" };
 
@@ -218,6 +232,7 @@ export function useLinkedChildren() {
     }
   };
 
+  /** Supprime le lien avec un enfant (bouton "délier" côté parent). */
   const removeChild = async (linkId: string) => {
     try {
       // Filtre défensif sur parent_id en plus de l'id du lien : sans lui, un
@@ -251,12 +266,15 @@ export function useLinkedChildren() {
   };
 }
 
+// Parents liés au compte ÉLÈVE courant, + le code de liaison de l'élève à
+// communiquer à ses parents — utilisé par l'espace élève.
 export function useLinkedParents() {
   const { user } = useAuth();
   const [parents, setParents] = useState<LinkedParent[]>([]);
   const [linkingCode, setLinkingCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  /** Liste les parents liés à l'élève courant (child_id = user.id) + son propre linking_code. */
   const fetchParents = useCallback(async () => {
     if (!user) {
       setParents([]);
@@ -331,6 +349,7 @@ export function useLinkedParents() {
     fetchParents();
   }, [fetchParents]);
 
+  /** Accepte ou refuse une demande de liaison reçue d'un parent (déjà filtré par child_id = user.id ci-dessous). */
   const respondToRequest = async (requestId: string, accept: boolean) => {
     try {
       const { error } = await supabase
@@ -351,6 +370,7 @@ export function useLinkedParents() {
     }
   };
 
+  /** Supprime le lien avec un parent (bouton "délier" côté élève). */
   const removeParent = async (linkId: string) => {
     try {
       // Idem removeChild : filtre défensif sur child_id pour qu'un élève ne

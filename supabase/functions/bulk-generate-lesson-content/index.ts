@@ -24,6 +24,7 @@ const SYSTEM_PROMPT = `أنت معلم رياضيات خبير للسنة الن
 - لا تستعمل أية markdown غير اللازم.
 - أرجع JSON صالح فقط حسب الخطاطة المطلوبة.`;
 
+// Construit le prompt demandant 10 exercices + 10 QCM niveau BAC pour une leçon donnée.
 function buildUserPrompt(chapterAr: string, lessonAr: string, lessonFr: string) {
   return `الفصل: ${chapterAr}
 الدرس: ${lessonAr} (${lessonFr})
@@ -53,6 +54,7 @@ function buildUserPrompt(chapterAr: string, lessonAr: string, lessonFr: string) 
 {"exercises":[...10 عناصر...],"quizzes":[...10 عناصر...]}`;
 }
 
+// Appelle Lovable AI Gateway (modèle Gemini 2.5 Flash) et parse la réponse JSON.
 async function callGemini(systemPrompt: string, userPrompt: string): Promise<{ parsed: any; usage: AiUsage | null }> {
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -81,6 +83,11 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<{ p
   return { parsed: JSON.parse(cleaned), usage: extractOpenAiCompatUsage(data) };
 }
 
+// Génère et insère 10 exercices + 10 quiz pour UNE leçon donnée (remplacement
+// optionnel du contenu existant via `replace`). Aucun appelant trouvé dans
+// src/ (grep négatif) ni dans les migrations — probablement un script admin
+// externe ou l'ancêtre de bulk-gen-terminale-gemini (voir le commentaire
+// d'en-tête du fichier). Réservé admin/pédago ci-dessous.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {

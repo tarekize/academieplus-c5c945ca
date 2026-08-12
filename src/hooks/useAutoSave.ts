@@ -1,5 +1,9 @@
 import { useEffect, useRef } from 'react';
 
+// Déclenche `saveCallback(data)` après `intervalMs` d'inactivité, uniquement
+// quand `data` a réellement changé (comparaison JSON) — pour les éditeurs
+// (cours/leçons) qui veulent sauvegarder automatiquement sans spammer le
+// serveur à chaque frappe.
 export function useAutoSave<T>(
   data: T,
   intervalMs: number,

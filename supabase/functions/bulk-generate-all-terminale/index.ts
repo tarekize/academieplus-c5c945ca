@@ -24,6 +24,7 @@ const SYSTEM_PROMPT = `أنت معلم رياضيات خبير للسنة الن
 ولِّد محتوى تعليمي بالعربية مع LaTeX داخل $...$ أو $$...$$ للصيغ.
 أرجع JSON صالح فقط بدون أي شرح خارجي.`;
 
+// Construit le prompt demandant 10 exercices + 10 QCM niveau BAC pour une leçon donnée.
 function buildUserPrompt(chapterTitle: string, lessonTitle: string) {
   return `الفصل: ${chapterTitle}
 الدرس: ${lessonTitle}
@@ -51,6 +52,7 @@ function buildUserPrompt(chapterTitle: string, lessonTitle: string) {
 {"exercises":[...10...],"quizzes":[...10...]}`;
 }
 
+// Appelle Lovable AI Gateway (modèle Gemini 2.5 Flash) et parse la réponse JSON.
 async function callAI(systemPrompt: string, userPrompt: string): Promise<{ parsed: any; usage: AiUsage | null }> {
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -74,6 +76,14 @@ async function callAI(systemPrompt: string, userPrompt: string): Promise<{ parse
   return { parsed: JSON.parse(cleaned), usage: extractOpenAiCompatUsage(data) };
 }
 
+// Traite par lot (pagination `start`/`limit` en query string) TOUTES les
+// leçons de Terminale Sciences pour une filière fixe (FILIERE_ID), générant
+// et insérant 10 exercices + 10 quiz par leçon. Aucun appelant trouvé dans
+// src/ (grep négatif) ni dans les migrations — le nom "one-shot batch" et le
+// support du header x-bulk-token suggèrent un script/outil de peuplement
+// initial exécuté hors application (CLI, sandbox). Accès : jeton partagé
+// BULK_TOKEN (fermé si non configuré, cf. commentaire sur BULK_TOKEN plus
+// haut) ou JWT admin/pédago vérifié via has_role().
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 

@@ -228,6 +228,16 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<{ p
   throw new Error(lastError);
 }
 
+// Génère (Gemini direct) et insère des exercices/quiz pour UNE leçon, avec
+// contrôle fin de la répartition (sections, nombre, plage de difficulté).
+// Appelée par src/components/course/QuizExerciseCRUD.tsx (admin/pédago,
+// génération guidée pas à pas). `verify_jwt = false` dans config.toml pour
+// cette fonction : la vérification d'auth est donc entièrement portée par le
+// code ci-dessous, pas par la plateforme — soit un jeton partagé
+// BULK_GEN_TOKEN (scripts de lot), soit un JWT utilisateur avec le rôle
+// admin/pedago vérifié via has_role(). Le contenu généré par un pédago reste
+// en statut "draft" (validation admin requise) ; celui d'un admin est
+// auto-approuvé.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {

@@ -17,6 +17,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Tronque un texte long (contenu de chapitre) à maxChars caractères pour
+// borner la taille du prompt envoyé à Gemini.
 function truncateText(text: string, maxChars: number): string {
   if (text.length <= maxChars) return text;
   return text.slice(0, maxChars) + "\n... (contenu tronqué)";
@@ -77,6 +79,8 @@ Niveau scolaire de l'élève : ${schoolLevel || "non spécifié"}.${chapterConte
 - Sois clair, encourageant, et termine par une question ouverte.`;
 }
 
+// Construit le prompt système complet (corpus de cours contextualisé) pour
+// les échanges qui nécessitent le contexte complet — cf. needsFullCourseContext.
 function buildSystemPrompt(
   subject: string,
   schoolLevel: string | null,
@@ -226,7 +230,9 @@ IMPORTANT: Utilise les vrais IDs des chapitres et leçons de la liste ci-dessus.
 // est dédié exclusivement au chatbot élève, pour que les deux IA soient
 // tracées séparément dans les logs (function_name distinct).
 
-// Convert OpenAI-style messages (string OR [{type:'text'|'image_url',...}]) to Gemini parts
+// Convertit les messages façon OpenAI (texte OU [{type:'text'|'image_url',...}])
+// envoyés par le frontend en "parts" Gemini (texte ou inlineData pour une
+// image/PDF en data URL).
 function toGeminiParts(content: any): any[] {
   if (typeof content === "string") return [{ text: content }];
   if (!Array.isArray(content)) return [{ text: String(content ?? "") }];
@@ -392,6 +398,13 @@ async function callGemini(
   });
 }
 
+// Chatbot IA élève (tuteur de maths) en streaming, contextualisé sur le
+// corpus de cours de la plateforme. Appelé par src/components/ChatBot.tsx
+// via un fetch SSE direct (pas supabase.functions.invoke, qui ne supporte
+// pas le streaming). Authentification + rate limiting + quota gratuit
+// quotidien (10 messages / 3 images, cf. src/hooks/useChatLimits.ts)
+// obligatoires ci-dessous — cette fonction est la seule source de vérité
+// pour l'application du quota, le client ne fait qu'un affichage optimiste.
 // ============ Main handler ============
 serve(async (req) => {
   if (req.method === "OPTIONS") {

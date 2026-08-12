@@ -35,6 +35,14 @@ export interface AdminStats {
   activeUsers: number;
 }
 
+// Panneau d'administration des utilisateurs (page Admin) : liste tous les
+// profils + rôles + dernière connexion, calcule les statistiques globales, et
+// expose l'activation/désactivation/suppression d'un compte. Ce hook ne
+// vérifie lui-même aucun rôle admin côté client : il repose entièrement sur
+// (1) le contrôle d'accès à la route Admin en amont et (2) la policy RLS de
+// lecture sur `profiles`/`user_roles` qui doit restreindre ce SELECT * aux
+// seuls admins — à vérifier côté RLS, sans quoi n'importe quel utilisateur
+// authentifié pourrait appeler ce hook directement et lister tous les profils.
 export function useAdminUsers() {
   const { user } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -48,6 +56,7 @@ export function useAdminUsers() {
     activeUsers: 0,
   });
 
+  /** Charge tous les profils + rôles + dernière connexion, et recalcule les stats du dashboard admin. */
   const fetchUsers = useCallback(async () => {
     if (!user) return;
 
@@ -104,6 +113,7 @@ export function useAdminUsers() {
     fetchUsers();
   }, [fetchUsers]);
 
+  /** Active/désactive un compte (bouton toggle de la liste admin) + journalise l'action. */
   const toggleUserStatus = async (userId: string, active: boolean, email?: string) => {
     try {
       const { error } = await supabase
@@ -129,6 +139,7 @@ export function useAdminUsers() {
     }
   };
 
+  /** Supprime définitivement un compte (Auth + données liées) via l'edge function dédiée (admin-only côté serveur) + journalise l'action. */
   const deleteUser = async (userId: string, email?: string) => {
     try {
       // Use Edge Function to delete user from Auth and all related data
@@ -178,10 +189,15 @@ export function useAdminUsers() {
   };
 }
 
+// Journal d'activité global (page Admin) : les N derniers événements de tous
+// les utilisateurs, avec leur profil joint. Même remarque que useAdminUsers :
+// aucune vérification de rôle ici, entièrement délégué à la policy RLS de
+// lecture sur `activity_logs` (censée être admin-only) — à vérifier côté RLS.
 export function useActivityLogs(limit: number = 50) {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
 
+  /** Charge les `limit` derniers événements du journal d'activité, les plus récents en premier. */
   const fetchLogs = useCallback(async () => {
     try {
       const { data, error } = await supabase

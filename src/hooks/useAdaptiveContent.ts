@@ -40,6 +40,17 @@ interface StudentScore {
 }
 
 
+// Cœur du moteur de contenu adaptatif d'une leçon : charge/génère quiz,
+// exercices et fiches de révision calibrés sur le niveau de l'élève, et met à
+// jour son score (student_scores) à chaque réponse. Utilisé par la page
+// leçon (Cours.AdaptiveLessonContent.tsx) pour toute l'interaction élève sur
+// une leçon donnée.
+// Sécurité : `userId` est reçu en paramètre (pas relu depuis la session ici)
+// et sert de filtre `eq("user_id", userId)` sur toutes les lectures/écritures
+// de student_scores, ai_generated_content et ai_lesson_comments. Ce hook ne
+// vérifie donc pas lui-même que userId correspond à l'utilisateur connecté —
+// il fait confiance à l'appelant (qui le prend depuis useAuth()) et, en
+// dernier recours, à la policy RLS de ces tables — à vérifier côté RLS.
 export function useAdaptiveContent(lessonId: string, chapterId: string, userId: string, schoolLevel: string, lessonTitle: string, chapterTitle: string) {
   const [quizzes, setQuizzes] = useState<QuizItem[]>([]);
   const [exercises, setExercises] = useState<ExerciseItem[]>([]);
@@ -88,6 +99,9 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     commentGeneratedRef.current = false;
   }, [lessonId]);
 
+  // Commentaire de repli (arabe) si l'edge function generate-lesson-comment
+  // échoue/n'est pas dispo : reste utile et actionnable (exemple travaillé +
+  // bouton "تجديد") plutôt que de laisser l'élève sans retour.
   const buildFallbackComment = useCallback((levelBefore: number, levelAfter: number, correct: number, total: number) => {
     const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
     const lessonRef = lessonTitle ? `في درس "${lessonTitle}"` : 'في هذا الدرس';
@@ -100,6 +114,9 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     return `${intro}\n\n### 🎯 مثال لمعالجة lacune\n**القاعدة:** راجع الفكرة الخاطئة بطريقة عملية: نحدّد المطلوب، نختار القاعدة المناسبة، نطبقها على مثال جديد، ثم نتحقق من النتيجة.\n\n#### مثال جديد) تمرين مشابه\nلتكن الدالة $f(x)=3x^2-4x+1$. أوجد دالة أصلية $F$ للدالة $f$ على $\\mathbb{R}$.\n\n**الحل المفصّل:**\n1. نبحث عن $F$ بحيث يكون $F'(x)=f(x)$.\n2. دالة أصلية لـ $3x^2$ هي $x^3$ لأن $(x^3)'=3x^2$.\n3. دالة أصلية لـ $-4x$ هي $-2x^2$ لأن $(-2x^2)'=-4x$.\n4. دالة أصلية لـ $1$ هي $x$ لأن $(x)'=1$.\n5. نضيف ثابتاً $C$ لأن مشتقة الثابت تساوي $0$.\n\n**الجواب:** $$F(x)=x^3-2x^2+x+C,\\quad C\\in\\mathbb{R}$$\n\nاضغط **"تجديد"** للحصول على تمارين مكيّفة لمستواك. 💪`;
   }, [lessonTitle]);
 
+  // Génère (via l'IA, avec repli local) puis enregistre le commentaire de fin
+  // de session sur les lacunes/progrès de l'élève ; ne garde qu'un seul
+  // commentaire par leçon (supprime l'ancien avant d'insérer le nouveau).
   const saveLessonComment = useCallback(async (levelBefore: number, levelAfter: number, sessionCorrectCount: number, sessionTotalCount: number) => {
     if (!userId || !lessonId) return;
 
@@ -223,6 +240,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
   //   0.40 × taux pondéré difficulté + 0.35 × current_level + 0.25 × quiz_accuracy
   // Note: faute d'historique des 30 dernières réponses, on approxime le taux pondéré
   // par accuracy_rate. Le streak est gardé pour l'affichage uniquement.
+  /** Niveau composite affiché à l'élève (mélange current_level + accuracy), voir levelEngine.computeComposite. */
   const computeCompositeLevel = useCallback((s: StudentScore): number => {
     return computeComposite({
       currentLevel: s.current_level,
@@ -231,6 +249,9 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     });
   }, []);
 
+  /** Génère un nouveau lot (5 items) de quiz/exercices/révisions via l'IA,
+   * calibré sur le niveau composite courant, et le sauvegarde (upsert) — déclenché
+   * uniquement par le bouton "تجديد" (jamais automatiquement). */
   const generateContent = useCallback(async (contentType: "quiz" | "exercise" | "revision") => {
     setLoading(prev => ({ ...prev, [contentType]: true }));
     try {
@@ -305,7 +326,11 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     }
   }, [lessonId, chapterId, schoolLevel, lessonTitle, chapterTitle, userId, quizzes, exercises, computeCompositeLevel]);
 
-  // Record answer + update score. New AI content is generated only from the manual "تجديد" button.
+  /** Enregistre la réponse de l'élève à un quiz/exercice : met à jour le score
+   * local (ELO via levelEngine) puis student_scores, et toutes les 5 réponses
+   * d'une session, notifie l'élève et génère (une fois) un commentaire IA de
+   * synthèse. Ne régénère jamais automatiquement de contenu — uniquement via
+   * generateContent() sur clic explicite. */
   const recordAnswer = useCallback(async (
     isCorrect: boolean,
     timeSeconds: number,
@@ -459,6 +484,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     return finalScore;
   }, [userId, lessonId, chapterId, saveLessonComment, computeCompositeLevel]);
 
+  /** Ajoute `seconds` au temps de lecture cumulé de la leçon dans student_scores. */
   const updateReadingTime = useCallback(async (seconds: number) => {
     const newScore = { ...scoreRef.current, reading_time_seconds: scoreRef.current.reading_time_seconds + seconds };
     setScore(newScore);
@@ -543,6 +569,7 @@ export function useAdaptiveContent(lessonId: string, chapterId: string, userId: 
     }
   }, [userId, lessonId, chapterId]);
 
+  /** Remet à zéro les compteurs de session (x/y, concepts faibles/forts) sans toucher au score persisté. */
   const resetSessionCounters = useCallback(() => {
     setSessionCorrect(0);
     setSessionTotal(0);
