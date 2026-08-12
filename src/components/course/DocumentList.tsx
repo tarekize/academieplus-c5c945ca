@@ -13,7 +13,9 @@ interface DocumentListProps {
   documents: Document[];
 }
 
+/** Liste de documents/ressources téléchargeables ou consultables (PDF, image, lien). */
 export const DocumentList = ({ documents }: DocumentListProps) => {
+  /** Icône associée au type de document, pour un repérage visuel rapide. */
   const getIcon = (type: string) => {
     switch (type) {
       case "pdf":

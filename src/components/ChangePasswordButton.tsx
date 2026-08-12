@@ -22,6 +22,9 @@ type Step = "password" | "code";
 
 const RESEND_COOLDOWN_SECONDS = 30;
 
+/** Bouton + dialogue "Modifier le mot de passe" : ré-authentifie l'utilisateur
+ * avec son mot de passe actuel, puis exige un code de vérification envoyé par
+ * email avant d'appliquer le nouveau mot de passe (double confirmation). */
 export function ChangePasswordButton({ className }: { className?: string } = {}) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("password");
@@ -35,6 +38,9 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
   const [verificationCode, setVerificationCode] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  /** Vérifie la robustesse du nouveau mot de passe (8+ car., 1 majuscule, 1 chiffre).
+   * Retourne un message d'erreur si invalide, `null` sinon — le retour est
+   * bien contrôlé par l'appelant (handleSubmit) avant de continuer. */
   const validatePassword = (password: string): string | null => {
     if (password.length < 8) {
       return "Le mot de passe doit contenir au moins 8 caractères.";
@@ -48,6 +54,8 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
     return null;
   };
 
+  /** Démarre le compte à rebours de 30s avant de pouvoir redemander un code
+   * (anti-spam de l'envoi d'email de vérification). */
   const startResendCooldown = () => {
     setResendCooldown(RESEND_COOLDOWN_SECONDS);
     const interval = setInterval(() => {
@@ -58,6 +66,8 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
     }, 1000);
   };
 
+  /** Demande à l'edge function l'envoi d'un code de vérification par email
+   * (2ème facteur avant d'appliquer le changement de mot de passe). */
   const requestVerificationCode = async () => {
     const { error } = await supabase.functions.invoke("request-password-change");
     if (error) throw new Error(await extractFunctionErrorMessage(error));
@@ -122,6 +132,8 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
     }
   };
 
+  /** Renvoie un nouveau code de vérification (bouton "Renvoyer le code"),
+   * bloqué tant que le cooldown n'est pas écoulé. */
   const handleResendCode = async () => {
     if (resendCooldown > 0) return;
     setLoading(true);
@@ -135,6 +147,9 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
     }
   };
 
+  /** Valide le code à 6 chiffres reçu par email et applique le nouveau mot de
+   * passe côté serveur (edge function confirm-password-change) — c'est ce
+   * code, pas seulement le mot de passe actuel, qui autorise le changement final. */
   const handleConfirmCode = async () => {
     if (verificationCode.length !== 6) {
       toast.error("Veuillez entrer le code à 6 chiffres.");
@@ -160,6 +175,7 @@ export function ChangePasswordButton({ className }: { className?: string } = {})
     }
   };
 
+  /** Réinitialise le formulaire (fermeture ou succès du dialogue). */
   const resetForm = () => {
     setCurrentPassword("");
     setNewPassword("");

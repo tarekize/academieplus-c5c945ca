@@ -24,6 +24,9 @@ const CONTENT_TYPE_STYLE: Record<ContentType, string> = {
   exam: "bg-purple-500/10 text-purple-600",
 };
 
+// Écran de création de contenu (exercice/quiz/examen) : route vers le bon
+// assistant IA selon contentType, et verrouille l'accès si l'établissement
+// actif de l'enseignant n'a pas d'abonnement actif (aiLocked).
 export default function TeacherContentSpace({ teacherId, contentType, onBack }: Props) {
   const label = CONTENT_TYPE_LABELS[contentType];
   const { hasActiveEstablishment } = useTeacherEstablishmentStatus(teacherId);

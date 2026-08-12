@@ -14,11 +14,18 @@ interface AddStudentToClassDialogProps {
   onAdded: () => void;
 }
 
+// Dialogue permettant à l'enseignant de rattacher un élève existant à une
+// classe en saisissant le code de liaison personnel de l'élève.
 export default function AddStudentToClassDialog({ classId, onAdded }: AddStudentToClassDialogProps) {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Envoie le code saisi à l'edge function "add-student-to-class", qui
+  // résout le code élève et vérifie côté serveur que classId appartient bien
+  // à l'enseignant appelant avant de créer la liaison (défense contre un
+  // classId manipulé côté client pour rattacher un élève à la classe d'un
+  // autre enseignant).
   const handleSubmit = async () => {
     const trimmed = code.trim();
     if (!trimmed) {

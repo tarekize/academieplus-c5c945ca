@@ -17,6 +17,8 @@ interface ExportPDFButtonProps {
 export const ExportPDFButton = ({ targetRef, title, label = "Exporter en PDF" }: ExportPDFButtonProps) => {
   const [loading, setLoading] = useState(false);
 
+  /** Ouvre une fenêtre d'impression avec le nœud DOM déjà rendu (donc formules
+   * LaTeX déjà calculées), déclenché par un clic sur le bouton d'export. */
   const handleExportPDF = () => {
     if (!targetRef.current) {
       toast.error("Contenu introuvable pour l'export.");

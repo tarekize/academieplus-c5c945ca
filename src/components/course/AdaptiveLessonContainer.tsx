@@ -14,6 +14,8 @@ interface AdaptiveLessonContainerProps {
     learningStyle: LearningStyle | null;
 }
 
+/** Charge les vidéos associées au titre de la leçon puis délègue le rendu
+ * adapté au style d'apprentissage (visuel/textuel/pratique) à AdaptiveLesson. */
 export const AdaptiveLessonContainer = ({
     lessonTitle,
     lessonContent,
@@ -24,6 +26,8 @@ export const AdaptiveLessonContainer = ({
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        /** Récupère les vidéos liées à cette leçon par titre, déclenché à chaque
+         * changement de leçon affichée. */
         const fetchVideos = async () => {
             try {
                 setLoading(true);

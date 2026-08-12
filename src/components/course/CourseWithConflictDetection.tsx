@@ -9,6 +9,9 @@ interface CourseWithConflictDetectionProps {
   children: React.ReactNode;
 }
 
+// Enveloppe un cours en édition avec un bandeau d'alerte listant les autres
+// utilisateurs actuellement en train d'éditer le même cours (courseId),
+// pour prévenir les écrasements silencieux de modifications concurrentes.
 export const CourseWithConflictDetection = ({
   courseId,
   currentUserId,

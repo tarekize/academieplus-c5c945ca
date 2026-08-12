@@ -9,6 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
+// Page publique "Nous contacter" : formulaire libre, accessible sans
+// authentification (les messages sont insérés dans contact_messages, table
+// dont la policy RLS autorise l'insert anonyme mais pas la lecture).
 const Contact = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -19,6 +22,8 @@ const Contact = () => {
     message: "",
   });
 
+  // Envoie le message du formulaire dans contact_messages puis réinitialise
+  // les champs. Déclenché par la soumission du <form>.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -46,6 +51,7 @@ const Contact = () => {
     }
   };
 
+  // Met à jour un champ du formulaire à partir de son attribut `name`.
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {

@@ -29,11 +29,16 @@ export const TEACHER_SECTIONS: {
   { key: "profil", label: "Mon profil", desc: "Informations & compte", icon: User, iconBg: "bg-indigo-500/10", iconText: "text-indigo-600" },
 ];
 
+// Grille d'accueil enseignant : une tuile par section. Verrouille côté client
+// les sections qui nécessitent un établissement lié (l'appel serveur réel est
+// de toute façon protégé plus bas dans la chaîne — ceci n'est qu'un confort UX).
 export default function TeacherHome({ onSelect, hasEstablishment }: Props) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {TEACHER_SECTIONS.map((t) => {
         const locked = !hasEstablishment && REQUIRES_ESTABLISHMENT.includes(t.key);
+        // Clic sur une tuile : bloque avec un message explicite si la section
+        // est verrouillée, sinon délègue la navigation au parent.
         const handleActivate = () => {
           if (locked) {
             toast.error("Ajoutez d'abord un établissement pour accéder à cette fonctionnalité.");

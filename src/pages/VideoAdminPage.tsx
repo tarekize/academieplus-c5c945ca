@@ -3,6 +3,10 @@
 
 import { VideoLibraryManager } from "@/components/course/VideoLibraryManager";
 
+// Page d'administration/démo du mapping cours -> vidéos YouTube adaptatives.
+// Délègue tout le travail à VideoLibraryManager ; le reste n'est qu'un guide
+// d'utilisation statique. Les données sont stockées en localStorage (voir
+// note ci-dessous) tant que la migration Supabase correspondante n'est pas en place.
 export const VideoAdminPage = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">

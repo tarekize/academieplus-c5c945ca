@@ -5,17 +5,23 @@ interface VideoPlayerProps {
   title: string;
 }
 
+/** Lecteur vidéo générique (YouTube, Vimeo ou fichier vidéo direct), utilisé
+ * partout où une leçon référence une vidéo par simple URL. */
 export const VideoPlayer = ({ url, title }: VideoPlayerProps) => {
   // Support YouTube, Vimeo, and direct video URLs
+  /** Convertit une URL "page" (youtube.com/watch, youtu.be/, vimeo.com/) en URL
+   * d'embed iframe. Renvoie l'URL telle quelle si aucun format connu ne matche. */
   const getEmbedUrl = (url: string) => {
     if (url.includes("youtube.com") || url.includes("youtu.be")) {
-      const videoId = url.includes("youtu.be") 
-        ? url.split("/").pop()
+      // Un lien youtu.be/ peut porter des paramètres de suivi (ex. ?t=30) :
+      // sans les retirer, videoId contenait "abc123?t=30" et l'embed cassait.
+      const videoId = url.includes("youtu.be")
+        ? url.split("/").pop()?.split("?")[0]
         : new URL(url).searchParams.get("v");
       return `https://www.youtube.com/embed/${videoId}`;
     }
     if (url.includes("vimeo.com")) {
-      const videoId = url.split("/").pop();
+      const videoId = url.split("/").pop()?.split("?")[0];
       return `https://player.vimeo.com/video/${videoId}`;
     }
     return url;

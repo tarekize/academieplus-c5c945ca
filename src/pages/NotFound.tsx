@@ -4,6 +4,9 @@ import { useTranslation } from "react-i18next";
 import { GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Page 404 générique : affichée pour toute route inconnue (voir la route
+// catch-all "*" du routeur). Journalise le chemin non trouvé en console à
+// des fins de diagnostic, sans envoyer de donnée sensible.
 const NotFound = () => {
   const location = useLocation();
   const { t } = useTranslation();

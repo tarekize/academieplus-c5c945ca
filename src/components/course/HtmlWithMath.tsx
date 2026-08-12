@@ -10,6 +10,8 @@ interface HtmlWithMathProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const HTML_TAG_REGEX = /<\s*(?:!doctype|a|article|aside|blockquote|br|code|div|em|figcaption|figure|footer|h[1-6]|header|hr|img|li|main|nav|ol|p|pre|section|small|span|strong|sub|sup|table|tbody|td|th|thead|tr|u|ul)\b/i;
 
+/** Échappe les caractères HTML spéciaux d'un texte brut (contenu sans balises),
+ * pour l'insérer sans risque via dangerouslySetInnerHTML plus bas. */
 function escapeHtml(value: string) {
   return value
     .replace(/&/g, "&amp;")
@@ -17,6 +19,11 @@ function escapeHtml(value: string) {
     .replace(/>/g, "&gt;");
 }
 
+/** Nettoie/normalise un contenu (LaTeX + éventuel HTML + blocs pédago) avant
+ * rendu : dépiège \boxed{}, isole les $$...$$ sur leur propre ligne pour KaTeX,
+ * et échappe le texte s'il ne contient aucune balise HTML connue (contenu
+ * texte brut, pour éviter d'interpréter par erreur un "<" mathématique comme
+ * une balise). */
 function preprocessMathContent(raw: string) {
   let content = raw || "";
 
@@ -43,6 +50,11 @@ function preprocessMathContent(raw: string) {
   return escapeHtml(normalized).replace(/\n/g, "<br />");
 }
 
+/** Affiche un contenu HTML/LaTeX (leçon, énoncé, corrigé...) avec les formules
+ * rendues par KaTeX. Le HTML final passe par sanitizeLessonHtml juste avant
+ * dangerouslySetInnerHTML : un contenu enseignant/IA compromis ne peut pas
+ * injecter de script. `dir`/`className` (dont l'alignement text-start/text-end)
+ * doivent être fournis par l'appelant selon la langue active de l'UI. */
 export const HtmlWithMath: React.FC<HtmlWithMathProps> = ({ htmlContent, ...props }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const processedContent = useMemo(() => preprocessMathContent(htmlContent), [htmlContent]);

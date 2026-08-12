@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
 
+// Page statique de politique de confidentialité (contenu juridique fixe, pas d'appel réseau).
 const PolitiqueConfidentialite = () => {
   return (
     <div className="min-h-screen flex flex-col">
