@@ -10,6 +10,12 @@ export interface LearningStyleData {
     practical_score: number;
 }
 
+// Accès à la table learning_styles (résultat du test de style d'apprentissage
+// de l'élève). Consommé par useLearningStyle ; getUserLearningStyle(userId)/
+// getUserLearningStyleFull(userId) prennent un userId en paramètre — leurs
+// appelants doivent passer l'id de l'utilisateur courant (jamais un id
+// arbitraire) pour éviter de lire le style d'apprentissage d'un autre élève ;
+// la protection réelle reste la policy RLS de `learning_styles` — à vérifier côté RLS.
 export const learningStyleService = {
     /**
      * Récupère le style d'apprentissage de l'utilisateur

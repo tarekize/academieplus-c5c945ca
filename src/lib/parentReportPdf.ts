@@ -119,6 +119,13 @@ function buildHtml(data: ParentReportData, generatedAt: string): string {
   </div>`;
 }
 
+/**
+ * Génère et télécharge le PDF de rapport de progression envoyé/consultable
+ * par un parent : rend le HTML construit par buildHtml() dans un conteneur
+ * hors-écran, le capture en image (html2canvas) puis l'insère dans un PDF
+ * multi-pages (jsPDF) — approche image plutôt que PDF natif pour préserver
+ * fidèlement la mise en forme (dégradés, arrondis) et gérer le texte arabe.
+ */
 export async function downloadParentReportPdf(
   data: ParentReportData,
   generatedAt: string,

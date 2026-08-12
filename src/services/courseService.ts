@@ -35,6 +35,10 @@ export interface Filiere {
   school_level: string;
 }
 
+// Lecture des filières/chapitres/leçons pour la navigation du module Cours
+// (utilisé par les pages élève de parcours de cours). Requêtes en lecture
+// seule sur des tables publiques au contenu pédagogique (pas de données
+// utilisateur), donc pas d'enjeu d'IDOR ici.
 export const courseService = {
   /**
    * Récupère les filières disponibles pour un niveau scolaire
