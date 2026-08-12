@@ -7,6 +7,14 @@ const corsHeaders = {
 
 const ALLOWED_ROLES = ["admin", "pedago", "parent", "student", "teacher", "etablissement"];
 
+// Point d'entrée appelé par les pages d'administration (Admin.tsx et
+// équivalents) pour créer un compte de n'importe quel rôle — y compris
+// admin/pedago/etablissement, impossibles à s'auto-attribuer via signUp()
+// normal (handle_new_user ne mappe que student/parent/teacher depuis les
+// métadonnées). Revérifie systématiquement côté serveur que l'appelant est
+// admin (jamais fait confiance au JWT seul) avant d'utiliser le service role
+// key. Chaque étape qui échoue après la création du compte Auth déclenche un
+// rollback (deleteUser) pour ne jamais laisser un compte orphelin sans rôle.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });

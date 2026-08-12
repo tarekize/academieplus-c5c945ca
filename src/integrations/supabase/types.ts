@@ -2802,6 +2802,13 @@ export type Database = {
         Args: { _quiz_id: string; _user_answer: string }
         Returns: Json
       }
+      complete_teacher_signup: {
+        Args: { p_code: string }
+        Returns: {
+          establishment_id: string
+          establishment_name: string
+        }[]
+      }
       generate_activation_code: { Args: never; Returns: string }
       generate_establishment_code: { Args: never; Returns: string }
       get_establishment_name_by_code: {
