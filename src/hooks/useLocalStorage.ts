@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
 
+// Équivalent de useState persistant dans localStorage (donc entre sessions/
+// onglets), synchronisé entre onglets ouverts via l'event "storage". Ne
+// stocke ici que des préférences/état UI non sensibles — jamais de secret :
+// tout ce qui est dans localStorage est lisible par n'importe quel script JS
+// exécuté dans la page (donc par une éventuelle XSS).
 export function useLocalStorage<T>(key: string, initialValue: T) {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {

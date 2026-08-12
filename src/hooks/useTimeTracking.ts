@@ -21,6 +21,7 @@ interface TimeTrackingResult {
   reset: () => void;
 }
 
+/** Formate une durée en secondes en texte lisible ("1h 05min", "3min 20s", "45s"). */
 export const formatTime = (seconds: number): string => {
   if (!seconds || seconds < 0) return "0s";
   
@@ -37,8 +38,10 @@ export const formatTime = (seconds: number): string => {
   return `${secs}s`;
 };
 
-// Simplified time tracking hook that only tracks in memory
-// TODO: Add database persistence when time_tracking table is created
+// Chronomètre en mémoire uniquement (start/pause/resume/reset) — ne persiste
+// rien en base ici (voir plutôt useActivityTimeTracker pour la persistance
+// réelle dans student_scores). TODO d'origine : brancher sur une table
+// time_tracking dédiée si elle est créée un jour.
 export const useTimeTracking = ({
   contentType,
   contentId,
@@ -144,7 +147,8 @@ export const useTimeTracking = ({
   };
 };
 
-// Stubbed functions for when the time_tracking table doesn't exist
+// Stub : renvoie toujours des valeurs à zéro, en attendant une table time_tracking dédiée.
+// Conservé pour ne pas casser les composants qui l'appellent déjà (interface stable).
 export const useTimeStats = (userId?: string) => {
   return {
     totalTime: 0,
@@ -154,6 +158,7 @@ export const useTimeStats = (userId?: string) => {
   };
 };
 
+// Stub : idem useTimeStats, pour la progression par type de contenu.
 export const useContentProgress = (contentType: string, contentIds: string[]) => {
   return {
     progress: {} as Record<string, number>,

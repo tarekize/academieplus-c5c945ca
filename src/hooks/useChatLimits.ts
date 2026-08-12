@@ -13,6 +13,10 @@ interface UsageState {
   imageCount: number;
 }
 
+// Gère le quota gratuit (messages/images) du chatbot IA côté affichage
+// (compteurs optimistes) + détecte l'abonnement premium actif de l'élève.
+// Le décompte réel/faisant foi a lieu côté serveur dans l'edge function
+// lovable-chat — voir le commentaire sur recordMessage ci-dessous.
 export function useChatLimits() {
   const [usage, setUsage] = useState<UsageState>({ messageCount: 0, imageCount: 0 });
   const [hasSubscription, setHasSubscription] = useState<boolean | null>(null);

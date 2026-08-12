@@ -1,6 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 
+// Journalise une action utilisateur générique dans activity_logs (visible côté
+// admin). user_id vient de la session serveur (auth.getUser()), jamais d'un
+// paramètre appelant : un utilisateur ne peut donc pas se faire passer pour
+// un autre dans le journal via cet appel.
 export const useActivityLog = () => {
+  /** Enregistre `action` (+ détails libres) pour l'utilisateur courant. Échoue silencieusement (best-effort). */
   const logActivity = async (
     action: string,
     details?: Record<string, any>

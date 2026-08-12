@@ -8,6 +8,11 @@ interface EditingUser {
   last_activity: string;
 }
 
+// Détecte les éditions concurrentes d'un même cours via un canal Realtime de
+// présence (pas de table dédiée) : chaque éditeur "track" sa présence toutes
+// les 30s, et un toast prévient les autres éditeurs quand quelqu'un
+// rejoint/quitte/est déjà présent sur ce cours — pour éviter les écrasements
+// silencieux quand deux pédagogues éditent le même contenu en parallèle.
 export const useEditConflictDetection = (courseId: number, currentUserId: string, currentUserName: string) => {
   const [activeEditors, setActiveEditors] = useState<EditingUser[]>([]);
   const channelName = `course-editing-${courseId}`;

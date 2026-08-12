@@ -12,6 +12,9 @@ type HistoryAction<T> =
   | { type: 'REDO' }
   | { type: 'RESET'; initialPresent: T };
 
+// Reducer classique undo/redo à 3 piles (past/present/future) : SET pousse
+// l'état courant dans `past` et vide `future` (une nouvelle édition invalide
+// l'historique "redo" précédent) ; UNDO/REDO déplacent le curseur entre les piles.
 function historyReducer<T>(state: HistoryState<T>, action: HistoryAction<T>): HistoryState<T> {
   switch (action.type) {
     case 'SET': {
@@ -55,6 +58,9 @@ function historyReducer<T>(state: HistoryState<T>, action: HistoryAction<T>): Hi
   }
 }
 
+// Générique undo/redo (Ctrl+Z / Ctrl+Y) pour tout état d'édition en mémoire —
+// utilisé par les éditeurs de contenu (cours/leçons) pour permettre d'annuler
+// des modifications avant sauvegarde.
 export function useUndoRedo<T>(initialPresent: T) {
   const [state, dispatch] = useReducer(historyReducer<T>, {
     past: [],

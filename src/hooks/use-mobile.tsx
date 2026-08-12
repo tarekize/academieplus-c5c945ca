@@ -2,6 +2,9 @@ import * as React from "react";
 
 const MOBILE_BREAKPOINT = 768;
 
+// Détecte si le viewport est en dessous du breakpoint mobile (768px), pour
+// adapter la mise en page (menus, colonnes...) sans dupliquer une media query
+// CSS dans chaque composant. Se met à jour en direct au redimensionnement.
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined);
 

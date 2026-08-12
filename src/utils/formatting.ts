@@ -2,6 +2,11 @@
 // indépendants de la langue d'interface active (toujours en français ici —
 // pour un formatage qui suit la langue FR/AR de l'utilisateur, voir plutôt
 // src/lib/formatLocale.ts).
+// À date de cet audit, aucun fichier n'importe ce module : les composants qui
+// ont besoin d'un formatage équivalent redéfinissent leur propre fonction
+// locale du même nom (ex: formatDate() dans Paiement.tsx/Factures.tsx,
+// getDifficultyLabel() dans AdaptiveActivities.tsx) plutôt que d'utiliser
+// celui-ci — code mort dans son ensemble.
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -57,7 +62,7 @@ export function capitalizeFirst(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-/** Libellé FR d'un niveau de difficulté 1-5 (module Cours, dead code — voir utils/validation.ts). */
+/** Libellé FR d'un niveau de difficulté 1-5. */
 export function getDifficultyLabel(level: number): string {
   const labels: Record<number, string> = {
     1: 'Très facile',
