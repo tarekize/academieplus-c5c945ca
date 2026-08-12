@@ -38,6 +38,11 @@ const saveMappings = (mappings: Record<string, VideoMapping>) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(mappings));
 };
 
+// Mapping leçon -> vidéos YouTube stocké en localStorage (pas encore en base
+// via une table `video_mappings` dédiée — migration prévue mais pas encore
+// faite, voir commentaires ci-dessus). Purement local à l'appareil/navigateur :
+// pas partagé entre appareils ni entre utilisateurs, donc pas de préoccupation
+// IDOR ici (aucune donnée d'autrui n'est jamais accessible).
 export const videoService = {
     /**
      * Récupère les vidéos YouTube pour une leçon selon son titre

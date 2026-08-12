@@ -117,6 +117,7 @@ export function hesitationAdjustment(
   return 0;
 }
 
+/** Applique un delta au niveau courant en le bornant à [5, 100]. */
 export function applyDelta(currentLevel: number, delta: number): number {
   return clamp(currentLevel + delta, 5, 100);
 }

@@ -1,5 +1,10 @@
 import { supabase } from '@/integrations/supabase/client';
 
+// Service générique d'upload de fichiers vers Supabase Storage. À date de cet
+// audit, aucun composant n'importe mediaService (code mort) — seules ses
+// méthodes upload()/optimizeImage() sont fonctionnelles, le reste (addToSection,
+// delete, listByCourse) est un stub qui lève toujours une erreur car les
+// tables `medias`/`cours` correspondantes n'existent pas dans ce schéma.
 export const mediaService = {
   // Upload fichier vers Supabase Storage
   async upload(file: File, bucket = 'avatars') {
