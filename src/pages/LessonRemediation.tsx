@@ -40,12 +40,15 @@ interface RemediationQuiz {
   difficulty?: number;
 }
 
+/** Rendu Markdown court (énoncés, corrigés, commentaires IA) avec support LaTeX/GFM. */
 const MD = ({ children }: { children: string }) => (
   <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
     {children}
   </ReactMarkdown>
 );
 
+/** Normalise une réponse (texte libre ou LaTeX) pour la comparaison : retire
+ * le formatage LaTeX, canonicalise l'infini et les séparateurs décimaux. */
 function normalizeAnswer(s: string) {
   let v = (s || "")
     .replace(/\$/g, "")
@@ -73,6 +76,8 @@ function normalizeAnswer(s: string) {
   return v;
 }
 
+/** Compare la réponse de l'élève à la réponse attendue et aux réponses
+ * acceptées, après normalisation, avec une tolérance d'inclusion partielle. */
 function isAnswerCorrect(userAnswer: string, exercise: RemediationExercise) {
   const u = normalizeAnswer(userAnswer);
   if (!u) return false;
@@ -83,6 +88,14 @@ function isAnswerCorrect(userAnswer: string, exercise: RemediationExercise) {
   });
 }
 
+// Page de remédiation ciblée pour un élève sur une leçon donnée : génère (via
+// edge function IA) des exercices/quiz sur ses lacunes détectées, et suit sa
+// progression jusqu'à résolution. lessonId/chapterId viennent de l'URL mais
+// ne servent qu'à identifier la leçon (contenu public) — toutes les requêtes
+// sur les données propres à l'élève (scores, commentaires IA, contenu généré)
+// sont filtrées sur user_id = uid de la session, jamais sur un id fourni par
+// l'appelant, donc pas d'IDOR possible en lisant/écrivant les données d'un
+// autre élève depuis cette page.
 export default function LessonRemediation() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -132,9 +145,15 @@ export default function LessonRemediation() {
     if (!uid || !chap || !lessonId) return;
     const payload = { exercises: exs, quizzes: qzs, resolved: res };
     if (rowIdRef.current) {
+      // Filtre défensif sur user_id en plus de l'id de la ligne : même si
+      // rowIdRef provient toujours d'une ligne déjà possédée par l'utilisateur
+      // courant, ce filtre supplémentaire empêche qu'un id rejoué/deviné mette
+      // à jour le contenu de remédiation d'un AUTRE élève si la policy RLS
+      // s'avérait un jour trop permissive.
       await supabase.from("ai_generated_content")
         .update({ content: payload as any, updated_at: new Date().toISOString() })
-        .eq("id", rowIdRef.current);
+        .eq("id", rowIdRef.current)
+        .eq("user_id", uid);
     } else {
       const { data } = await supabase.from("ai_generated_content").insert({
         user_id: uid,
@@ -187,6 +206,10 @@ export default function LessonRemediation() {
     }
   }, [persist]);
 
+  // Au montage (ou changement de leçon/chapitre) : vérifie la session, charge
+  // le profil, la leçon/chapitre, le dernier commentaire IA + score de
+  // l'élève, puis réutilise les activités déjà générées ou en génère de
+  // nouvelles si aucune n'existe encore pour cette leçon.
   useEffect(() => {
     const init = async () => {
       setLoading(true);
@@ -357,6 +380,8 @@ export default function LessonRemediation() {
     }
   }, [schoolLevel, lessonLevel, lessonTitle, chapterTitle, weakConcepts, persist]);
 
+  // Valide la réponse d'un exercice : si correcte, tente de marquer la leçon
+  // résolue ; sinon, régénère un exercice similaire à refaire.
   const checkExercise = async (idx: number, ex: RemediationExercise) => {
     const correct = isAnswerCorrect(exAnswers[idx] || "", ex);
     const newResults = { ...exResults, [idx]: correct };
