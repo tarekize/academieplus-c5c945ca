@@ -9,6 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -20,7 +24,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Bell, Mail, Plus, Pencil, Trash2, Loader2, Send, Image as ImageIcon, X } from "lucide-react";
+import { ArrowLeft, Bell, Mail, Plus, Pencil, Trash2, Loader2, Send, Image as ImageIcon, X, Zap, Hand } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -36,6 +40,11 @@ interface EmailTemplate {
   logo_url: string | null;
   created_by_name: string | null;
   updated_at: string;
+  trigger_type: "manual" | "automatic";
+  trigger_roles: string[];
+  trigger_days_before: number | null;
+  trigger_profile_status: "any" | "active" | "inactive";
+  trigger_active: boolean;
 }
 
 interface NotificationCandidate {
@@ -95,7 +104,14 @@ const contractStatusBadgeVariant = (status: string): "default" | "secondary" | "
 const contractStatusBadgeClass = (status: string): string =>
   status === "expiring_soon" ? "border-orange-400 text-orange-700 dark:text-orange-400" : "";
 
-const emptyTemplateForm = { name: "", subject: "", bodyText: "", logoUrl: "" };
+const emptyTemplateForm = {
+  name: "", subject: "", bodyText: "", logoUrl: "",
+  triggerType: "manual" as "manual" | "automatic",
+  triggerRoles: [] as string[],
+  triggerDaysBefore: "5",
+  triggerProfileStatus: "any" as "any" | "active" | "inactive",
+  triggerActive: true,
+};
 
 export default function AdminNotifications() {
   const navigate = useNavigate();
@@ -147,7 +163,7 @@ export default function AdminNotifications() {
   const fetchTemplates = async () => {
     const { data, error } = await supabase
       .from("email_templates" as any)
-      .select("id, name, subject, body_text, logo_url, created_by_name, updated_at")
+      .select("id, name, subject, body_text, logo_url, created_by_name, updated_at, trigger_type, trigger_roles, trigger_days_before, trigger_profile_status, trigger_active")
       .order("updated_at", { ascending: false });
     if (error) {
       toast.error("Erreur", { description: error.message });
@@ -188,8 +204,20 @@ export default function AdminNotifications() {
       subject: template.subject,
       bodyText: template.body_text,
       logoUrl: template.logo_url || "",
+      triggerType: template.trigger_type,
+      triggerRoles: template.trigger_roles || [],
+      triggerDaysBefore: template.trigger_days_before != null ? String(template.trigger_days_before) : "5",
+      triggerProfileStatus: template.trigger_profile_status,
+      triggerActive: template.trigger_active,
     });
     setTemplateDialogOpen(true);
+  };
+
+  const toggleTemplateTriggerRole = (role: string) => {
+    setTemplateForm((f) => ({
+      ...f,
+      triggerRoles: f.triggerRoles.includes(role) ? f.triggerRoles.filter((r) => r !== role) : [...f.triggerRoles, role],
+    }));
   };
 
   const LOGO_ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp", "svg"];
@@ -234,6 +262,11 @@ export default function AdminNotifications() {
       toast.error("Nom, sujet et contenu sont requis.");
       return;
     }
+    const daysBeforeNum = parseInt(templateForm.triggerDaysBefore, 10);
+    if (templateForm.triggerType === "automatic" && (!Number.isFinite(daysBeforeNum) || daysBeforeNum < 0)) {
+      toast.error("Indiquez un nombre de jours valide (0 ou plus) avant l'échéance.");
+      return;
+    }
     setSavingTemplate(true);
     try {
       const { data: userData } = await supabase.auth.getUser();
@@ -249,6 +282,11 @@ export default function AdminNotifications() {
         subject: templateForm.subject.trim(),
         body_text: templateForm.bodyText,
         logo_url: templateForm.logoUrl || null,
+        trigger_type: templateForm.triggerType,
+        trigger_roles: templateForm.triggerRoles,
+        trigger_days_before: templateForm.triggerType === "automatic" ? daysBeforeNum : null,
+        trigger_profile_status: templateForm.triggerProfileStatus,
+        trigger_active: templateForm.triggerActive,
       };
 
       if (editingTemplateId) {
@@ -291,6 +329,11 @@ export default function AdminNotifications() {
   const toggleRoleFilter = (role: string) => {
     setRoleFilter((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]));
   };
+
+  // Les modèles automatiques ne sont pas proposés dans l'onglet Envoyer :
+  // ils sont déjà pris en charge par process-automatic-notifications, les
+  // proposer ici risquerait un envoi manuel en double.
+  const manualTemplates = templates.filter((t) => t.trigger_type === "manual");
 
   // Liste vide de filtre rôle = aucune restriction (tout le monde visible),
   // conforme à l'affichage initial "tous les utilisateurs" avant tout filtre.
@@ -388,9 +431,11 @@ export default function AdminNotifications() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-6 space-y-6">
-                {templates.length === 0 ? (
+                {manualTemplates.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    Créez d'abord un modèle dans l'onglet « Modèles » avant de pouvoir envoyer une campagne.
+                    {templates.length === 0
+                      ? "Créez d'abord un modèle dans l'onglet « Modèles » avant de pouvoir envoyer une campagne."
+                      : "Tous vos modèles sont automatiques. Créez un modèle manuel dans l'onglet « Modèles » pour envoyer une campagne ponctuelle."}
                   </p>
                 ) : (
                   <>
@@ -402,7 +447,7 @@ export default function AdminNotifications() {
                         onChange={(e) => setSelectedTemplateId(e.target.value)}
                       >
                         <option value="">— Sélectionner un modèle —</option>
-                        {templates.map((t) => (
+                        {manualTemplates.map((t) => (
                           <option key={t.id} value={t.id}>{t.name}</option>
                         ))}
                       </select>
@@ -585,6 +630,100 @@ export default function AdminNotifications() {
                           placeholder={"Bonjour {{prenom}},\n\nVotre message ici, un paragraphe par ligne.\n\n— L'équipe AcademiePlus"}
                         />
                       </div>
+
+                      <div className="space-y-2 pt-2 border-t border-border">
+                        <Label>Type de modèle</Label>
+                        <RadioGroup
+                          value={templateForm.triggerType}
+                          onValueChange={(v) => setTemplateForm((f) => ({ ...f, triggerType: v as "manual" | "automatic" }))}
+                          className="grid grid-cols-2 gap-3"
+                        >
+                          <label className={cn(
+                            "flex items-start gap-2.5 text-sm cursor-pointer border rounded-lg p-3 transition-colors",
+                            templateForm.triggerType === "manual" ? "border-primary bg-primary/5" : "border-border"
+                          )}>
+                            <RadioGroupItem value="manual" className="mt-0.5" />
+                            <span>
+                              <span className="flex items-center gap-1.5 font-medium"><Hand className="h-3.5 w-3.5" /> Manuel</span>
+                              <span className="block text-xs text-muted-foreground mt-0.5">Envoyé à la main depuis l'onglet Envoyer.</span>
+                            </span>
+                          </label>
+                          <label className={cn(
+                            "flex items-start gap-2.5 text-sm cursor-pointer border rounded-lg p-3 transition-colors",
+                            templateForm.triggerType === "automatic" ? "border-primary bg-primary/5" : "border-border"
+                          )}>
+                            <RadioGroupItem value="automatic" className="mt-0.5" />
+                            <span>
+                              <span className="flex items-center gap-1.5 font-medium"><Zap className="h-3.5 w-3.5" /> Automatique</span>
+                              <span className="block text-xs text-muted-foreground mt-0.5">Envoyé seul quand la condition ci-dessous est remplie.</span>
+                            </span>
+                          </label>
+                        </RadioGroup>
+                      </div>
+
+                      {templateForm.triggerType === "automatic" && (
+                        <div className="space-y-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <Label>Condition active</Label>
+                              <p className="text-xs text-muted-foreground">Désactivez pour suspendre les envois automatiques sans supprimer le modèle.</p>
+                            </div>
+                            <Switch
+                              checked={templateForm.triggerActive}
+                              onCheckedChange={(checked) => setTemplateForm((f) => ({ ...f, triggerActive: checked }))}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="template-days-before">Jours avant l'échéance du contrat/abonnement</Label>
+                            <Input
+                              id="template-days-before"
+                              type="number"
+                              min={0}
+                              value={templateForm.triggerDaysBefore}
+                              onChange={(e) => setTemplateForm((f) => ({ ...f, triggerDaysBefore: e.target.value }))}
+                              placeholder="Ex : 5"
+                              className="w-32"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Envoyé une fois par échéance dès qu'il reste ce nombre de jours ou moins avant l'expiration du contrat (établissement) ou de l'abonnement (élève/enseignant/pédago/parent).
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Rôles ciblés</Label>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                              {ROLE_OPTIONS.map((role) => (
+                                <label key={role.value} className="flex items-center gap-2 text-sm cursor-pointer">
+                                  <Checkbox
+                                    checked={templateForm.triggerRoles.includes(role.value)}
+                                    onCheckedChange={() => toggleTemplateTriggerRole(role.value)}
+                                  />
+                                  {role.label}
+                                </label>
+                              ))}
+                            </div>
+                            <p className="text-xs text-muted-foreground">Aucun rôle coché = tous les rôles.</p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Statut du profil</Label>
+                            <Select
+                              value={templateForm.triggerProfileStatus}
+                              onValueChange={(v) => setTemplateForm((f) => ({ ...f, triggerProfileStatus: v as "any" | "active" | "inactive" }))}
+                            >
+                              <SelectTrigger className="w-full sm:w-64">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="any">Peu importe</SelectItem>
+                                <SelectItem value="active">Compte actif uniquement</SelectItem>
+                                <SelectItem value="inactive">Compte désactivé uniquement</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <DialogFooter>
                       <Button type="button" variant="outline" onClick={() => setTemplateDialogOpen(false)}>Annuler</Button>
@@ -611,7 +750,18 @@ export default function AdminNotifications() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{template.name}</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-medium text-foreground truncate">{template.name}</p>
+                            {template.trigger_type === "automatic" ? (
+                              <Badge variant={template.trigger_active ? "default" : "secondary"} className="rounded-full gap-1 shrink-0">
+                                <Zap className="h-3 w-3" /> Auto — {template.trigger_days_before}j avant échéance{!template.trigger_active ? " (suspendu)" : ""}
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="rounded-full gap-1 shrink-0">
+                                <Hand className="h-3 w-3" /> Manuel
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground truncate">{template.subject}</p>
                         </div>
                         <Button variant="ghost" size="icon" onClick={() => openEditTemplate(template)}>

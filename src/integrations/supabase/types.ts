@@ -231,6 +231,51 @@ export type Database = {
         }
         Relationships: []
       }
+      automatic_notification_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          expiry_date_snapshot: string
+          id: string
+          success: boolean
+          target_user_id: string
+          template_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          expiry_date_snapshot: string
+          id?: string
+          success: boolean
+          target_user_id: string
+          template_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          expiry_date_snapshot?: string
+          id?: string
+          success?: boolean
+          target_user_id?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automatic_notification_log_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automatic_notification_log_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chapter_exercises: {
         Row: {
           accepted_answers: Json
@@ -836,6 +881,11 @@ export type Database = {
           logo_url: string | null
           name: string
           subject: string
+          trigger_active: boolean
+          trigger_days_before: number | null
+          trigger_profile_status: string
+          trigger_roles: string[]
+          trigger_type: string
           updated_at: string
         }
         Insert: {
@@ -847,6 +897,11 @@ export type Database = {
           logo_url?: string | null
           name: string
           subject: string
+          trigger_active?: boolean
+          trigger_days_before?: number | null
+          trigger_profile_status?: string
+          trigger_roles?: string[]
+          trigger_type?: string
           updated_at?: string
         }
         Update: {
@@ -858,6 +913,11 @@ export type Database = {
           logo_url?: string | null
           name?: string
           subject?: string
+          trigger_active?: boolean
+          trigger_days_before?: number | null
+          trigger_profile_status?: string
+          trigger_roles?: string[]
+          trigger_type?: string
           updated_at?: string
         }
         Relationships: [
@@ -3147,6 +3207,10 @@ export type Database = {
         Returns: undefined
       }
       trigger_gdpr_cleanup: { Args: never; Returns: undefined }
+      trigger_process_automatic_notifications: {
+        Args: never
+        Returns: undefined
+      }
       trigger_scheduled_parent_reports: { Args: never; Returns: undefined }
       user_has_any_role: { Args: { _user_id: string }; Returns: boolean }
     }
