@@ -176,6 +176,11 @@ const REFRESH_INTERVAL = 30000; // 30s auto-refresh
 const makeUniqueChapterKey = (chapter: { title?: string | null; title_ar?: string | null; order_index?: number | null }) =>
   `${chapter.order_index ?? ""}|${(chapter.title_ar || chapter.title || "").replace(/\s+/g, " ").trim()}`;
 
+// Tableau de bord de progression d'un élève (statistiques, radar par chapitre, détail
+// par leçon, commentaires IA). Utilisé à la fois par l'élève sur son propre espace et
+// par un prof/parent en `parentView` pour consulter un AUTRE élève — toutes les requêtes
+// de ce composant filtrent explicitement sur `userId` (jamais sur l'auth.uid() implicite)
+// pour fonctionner correctement dans les deux cas.
 export default function StudentDashboardContent({ userId, profile, hideActions, parentView }: StudentDashboardContentProps) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
@@ -286,8 +291,12 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
         const effectiveLevel = decayResult.level;
         if (decayResult.applied) {
           s.current_level = effectiveLevel;
+          // Filtre défensif sur user_id en plus de l'id de la ligne : la RLS l'impose déjà
+          // (seul l'élève propriétaire peut écrire sa propre ligne student_scores — donc en
+          // parentView cette mise à jour échoue silencieusement, ce qui est attendu), mais
+          // on le rend explicite ici plutôt que de dépendre uniquement de la policy.
           decayPersistPromises.push(
-            (supabase.from("student_scores").update({ current_level: effectiveLevel }).eq("id", s.id) as unknown as Promise<unknown>)
+            (supabase.from("student_scores").update({ current_level: effectiveLevel }).eq("id", s.id).eq("user_id", userId) as unknown as Promise<unknown>)
           );
         }
 

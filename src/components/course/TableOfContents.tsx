@@ -23,6 +23,9 @@ const BLOCK_KIND_LABEL: Record<BlockKind, { ar: string; fr: string; color: strin
     "block-graphic": { ar: "شكل", fr: "Schéma", color: "340 75% 55%" },
 };
 
+// Identifie le type de bloc pédagogique d'un élément du rendu (définition,
+// propriété, remarque, exemple, schéma) via sa classe CSS, ou null si c'est
+// un titre normal (h1/h2/h3) plutôt qu'un bloc.
 function detectBlockKind(el: Element): BlockKind | null {
     for (const kind of Object.keys(BLOCK_KIND_LABEL) as BlockKind[]) {
         if (el.classList.contains(kind)) return kind;
@@ -59,6 +62,9 @@ const SUPERSCRIPT_MAP: Record<string, string> = {
     "/": "⁄"
 };
 
+// Convertit chaque caractère en son équivalent Unicode en exposant (via
+// SUPERSCRIPT_MAP), pour afficher un exposant LaTeX ($x^2$) en texte simple
+// dans la table des matières (pas de rendu KaTeX possible là).
 function toSuperscript(value: string): string {
     return value
         .split("")
@@ -66,6 +72,10 @@ function toSuperscript(value: string): string {
         .join("");
 }
 
+// Convertit une formule LaTeX brute (extraite de l'annotation KaTeX) en texte
+// lisible avec de vrais symboles Unicode (fractions "a/b", ∞, α, √, exposants
+// via toSuperscript...), pour un affichage compact dans la table des matières
+// sans dépendre du rendu KaTeX complet.
 function latexToSymbols(input: string): string {
     let out = input;
 
@@ -106,6 +116,12 @@ function latexToSymbols(input: string): string {
     return out.replace(/\s+/g, " ").trim();
 }
 
+/**
+ * Sommaire de leçon généré à partir du DOM déjà rendu (pas du markdown
+ * source) : titres h1/h2/h3 et blocs pédagogiques (définition/propriété/...),
+ * avec surlignage automatique de la section actuellement lue (scroll spy) et
+ * clic pour y sauter.
+ */
 export function TableOfContents({ htmlContent, className, title, dir, compact = false }: TableOfContentsProps) {
     const { t, i18n } = useTranslation();
     const resolvedDir: "rtl" | "ltr" = dir ?? (i18n.language?.startsWith("ar") ? "rtl" : "ltr");
@@ -129,7 +145,11 @@ export function TableOfContents({ htmlContent, className, title, dir, compact = 
 
             const elements = container.querySelectorAll("h1, h2, h3, .lesson-block");
 
-            // Utility to extract text cleanly without duplicating KaTeX elements
+            // Utility to extract text cleanly without duplicating KaTeX elements.
+            // Une formule KaTeX rend à la fois son code source annoté (pour
+            // l'accessibilité/la copie) et son rendu visuel (spans/svg) : sans
+            // ce remplacement, .textContent verrait les deux et dupliquerait
+            // la formule dans le libellé du sommaire.
             const extractText = (htmlNode: Element): string => {
                 const clone = htmlNode.cloneNode(true) as Element;
 
@@ -188,6 +208,8 @@ export function TableOfContents({ htmlContent, className, title, dir, compact = 
 
         let frame = 0;
 
+        // Détermine le dernier titre/bloc dont le haut a franchi l'offset du
+        // header sticky : c'est celui que l'élève est en train de lire.
         const computeActive = () => {
             cancelAnimationFrame(frame);
             frame = requestAnimationFrame(() => {
@@ -223,6 +245,8 @@ export function TableOfContents({ htmlContent, className, title, dir, compact = 
         };
     }, [items]);
 
+    // Clic sur une entrée du sommaire : défilement fluide jusqu'au titre/bloc
+    // correspondant, avec un décalage pour ne pas le cacher sous le header sticky.
     const scrollToHeading = (id: string) => {
         const element = document.getElementById(id);
         if (element) {

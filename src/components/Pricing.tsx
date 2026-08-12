@@ -28,6 +28,8 @@ const FALLBACK_PLANS: PricingPlan[] = [
   { id: 'monthly', name: 'Formule Mensuelle', billing_period: 'monthly', total_single: 2000, total_family: 3500 },
 ];
 
+// Section vitrine des formules d'abonnement (tarifs chargés depuis subscription_config,
+// avec repli statique si la base est indisponible) — voir FALLBACK_PLANS ci-dessus.
 const Pricing = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();

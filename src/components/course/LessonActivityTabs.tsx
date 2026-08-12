@@ -70,6 +70,13 @@ const stepConfig: { id: StepLevel; label: string; labelAr: string; icon: typeof 
   { id: "approfondir", label: "Approfondir", labelAr: "تعمّق", icon: Rocket, color: "text-purple-500" },
 ];
 
+/**
+ * Espace d'activités élève d'une leçon (exercices ou QCM), organisé en trois
+ * paliers progressifs : Découvrir (débloque à REQUIRED_CORRECT bonnes
+ * réponses), Comprendre, Approfondir (contenu généré à la volée par l'IA
+ * adaptative, cf. useAdaptiveContent) — plus un onglet "Ma classe" si l'élève
+ * appartient à une classe suivie par un enseignant.
+ */
 export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterTitle, lessonId, lessonTitle, onGenerateAI, onSectionChange, hiddenBackButton, readOnly, userId: propUserId, schoolLevel }: LessonActivityTabsProps) {
   const { t } = useTranslation();
   const [activeSection, setActiveSection] = useState<ActivitySection>(null);
@@ -137,6 +144,9 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     setShowCorrectOnly(false);
   }, [activeStep, activeSection]);
 
+  // Tire un sous-ensemble aléatoire (5 max) d'exercices/QCM non déjà réussis
+  // pour chaque palier, dès que la liste complète change (nouvelle leçon).
+  // Recalculé ensuite par loadProgress ci-dessous une fois la progression BDD connue.
   useEffect(() => {
     const halfQuiz = Math.ceil(dbQuizzes.length / 2);
     const originDiscoverQz = dbQuizzes.slice(0, halfQuiz);
@@ -157,6 +167,9 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     setSubsetUnderstandEx([...poolUnderstandEx].sort(() => 0.5 - Math.random()).slice(0, 5));
   }, [dbQuizzes, dbExercises]);
 
+  // Résout l'utilisateur courant (si non fourni via prop), puis vérifie s'il a
+  // un abonnement actif et s'il appartient à une classe suivie (pour afficher
+  // l'onglet "Ma classe"). Réévalué sur tout changement realtime de class_students.
   useEffect(() => {
     let active = true;
     const loadUserAndClass = async () => {
@@ -256,6 +269,9 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     if (toMark.length > 0) markRead(toMark);
   }, [activeStep, activeSection, unreadItems, markRead]);
 
+  // Charge la progression persistée (student_scores) de l'élève sur cette
+  // leçon/ce chapitre : déverrouillage Découvrir/Comprendre déjà acquis,
+  // items déjà réussis (à exclure des tirages aléatoires), etc.
   useEffect(() => {
     const loadProgress = async () => {
       if (!userId) return;
@@ -335,6 +351,9 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     loadProgress();
   }, [chapterId, lessonId, triggerReload, userId, dbQuizzes, dbExercises]);
 
+  // Enregistre en base que le palier "Comprendre" est débloqué (exercices ou
+  // quiz) pour cette leçon/chapitre : met à jour la ligne student_scores
+  // existante si elle existe, sinon en crée une.
   const persistUnlock = useCallback(async (type: "exercises" | "quizzes", correctCount?: number) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -373,6 +392,8 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     }]);
   }, [chapterId, lessonId]);
 
+  // Ajoute `itemId` à la liste des exercices/quiz déjà réussis (persistée
+  // dans assessment_data), pour ne plus le proposer dans les tirages suivants.
   const persistItemCompletion = useCallback(async (type: "exercises" | "quizzes", itemId: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -406,6 +427,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     }
   }, [chapterId, lessonId]);
 
+  // Met à jour les compteurs globaux (total_answers/correct_answers/accuracy_rate)
+  // de student_scores pour cette leçon/chapitre. Non appelée actuellement dans
+  // ce composant : adaptiveContent.recordAnswer (useAdaptiveContent) tient déjà
+  // ces mêmes compteurs à jour pour chaque réponse (Découvrir/Comprendre/
+  // Approfondir) — l'appeler ici en plus compterait chaque réponse deux fois.
   const persistAnswerStats = useCallback(async (isCorrect: boolean) => {
     const localUserId = propUserId || userId;
     let currentUserId = localUserId;
@@ -458,6 +484,8 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     }
   }, [isUnlocked, showUnlockMessage]);
 
+  // Bouton "Nouvelle série" : retire un nouveau tirage aléatoire d'exercices/
+  // quiz non complétés pour le palier actif, sans toucher à la progression déjà acquise.
   const handleReloadContent = () => {
     if (activeSection === 'exercises') {
       const halfEx = Math.ceil(dbExercises.length / 2);
@@ -480,6 +508,9 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     }
   };
 
+  // Recharge l'état de déverrouillage Découvrir/Comprendre depuis la base
+  // (appelé à l'ouverture d'une section) : couvre le cas où l'élève a
+  // progressé ailleurs (autre onglet/appareil) depuis le premier chargement.
   const reloadProgressFromDB = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -515,6 +546,8 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     }
   }, [chapterId, lessonId]);
 
+  // Change de section (Exercices/QCM/null pour revenir aux vignettes),
+  // revient toujours au palier "Découvrir" et recharge la progression BDD.
   const handleSectionChange = (section: ActivitySection) => {
     setActiveSection(section);
     setActiveStep("decouvrir");
@@ -522,6 +555,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     onSectionChange?.(section);
   };
 
+  // Callback de réponse pour le palier "Comprendre" : enregistre la réponse
+  // dans le suivi IA adaptatif, et si elle est correcte, marque l'item comme
+  // complété et le remplace dans le sous-ensemble affiché par un item non
+  // encore vu (pioché dans la moitié "Comprendre" du pool complet).
   const handleUnderstandAnswer = useCallback((answer: AnswerPayload, type: "exercise" | "quiz", itemId: string) => {
     const isCorrect = answer.correct;
     adaptiveContent.recordAnswer(
@@ -564,6 +601,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
     }
   }, [persistItemCompletion, dbExercises, dbQuizzes, adaptiveContent]);
 
+  // Callback de réponse pour le palier "Découvrir" : même logique de
+  // remplacement d'item que handleUnderstandAnswer, plus le comptage des
+  // bonnes réponses consécutives qui déclenche le déverrouillage du palier
+  // "Comprendre" une fois REQUIRED_CORRECT atteint.
   const handleDiscoverAnswer = useCallback((answer: AnswerPayload, type: "exercise" | "quiz", itemId?: string) => {
     const isCorrect = answer.correct;
     adaptiveContent.recordAnswer(
@@ -1125,6 +1166,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
 
 // --- Sub-components ---
 
+// Affiche le niveau de difficulté (1 à 5) sous forme de crayons remplis ; rien si `level` est absent.
 const DifficultyIndicator = ({ level }: { level?: number }) => {
   const { t } = useTranslation();
   if (!level) return null;
@@ -1137,6 +1179,8 @@ const DifficultyIndicator = ({ level }: { level?: number }) => {
   );
 };
 
+// Carte affichée dans le mode "réponses correctes" (bascule showCorrectOnly)
+// pour un QCM déjà réussi : révèle la bonne réponse/explication à la demande.
 function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; index: number }) {
   const { t } = useTranslation();
   const [showAnswer, setShowAnswer] = useState(false);
@@ -1144,6 +1188,10 @@ function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; inde
   const [explanation, setExplanation] = useState<string | null>(question.explanation || null);
   const [loading, setLoading] = useState(false);
 
+  // Affiche/masque la réponse ; si elle n'a jamais été chargée (question
+  // reçue sans correct_answer), va la chercher via le RPC check_quiz_answer
+  // avec le marqueur spécial '__fetch__' (traité côté serveur comme "révèle
+  // sans comparer", cf. usage identique dans TrackedQuizCard/handleRevealSolution).
   const handleToggle = async () => {
     if (!showAnswer && !correctAnswer) {
       setLoading(true);
@@ -1199,6 +1247,7 @@ function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; inde
   );
 }
 
+// Équivalent de CompletedQuizCard pour un exercice déjà réussi.
 function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; index: number }) {
   const { t } = useTranslation();
   const [showSolution, setShowSolution] = useState(false);
@@ -1206,6 +1255,7 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
   const [solution, setSolution] = useState<string | null>(exercise.solution || null);
   const [loading, setLoading] = useState(false);
 
+  // Affiche/masque la solution ; la charge via check_exercise_answer('__fetch__') si absente.
   const handleToggle = async () => {
     if (!showSolution && !expectedAnswer) {
       setLoading(true);
@@ -1249,6 +1299,9 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
   );
 }
 
+// Carte interactive d'un QCM jouable (paliers Découvrir/Comprendre) : choix
+// d'une option puis validation, verrouillage 3s en cas d'erreur (sans
+// révéler la réponse), explication affichée une fois résolu.
 function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DBQuizQuestion; index: number; readOnly?: boolean; onAnswer: (answer: AnswerPayload) => void }) {
   const { t, i18n } = useTranslation();
   const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";

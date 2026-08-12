@@ -39,6 +39,8 @@ interface PedagoChapterFormProps {
   chapter?: { id: string; title: string; title_ar: string | null; description: string | null; order_index: number };
 }
 
+/** Dialogue de création/édition d'un chapitre (titres FR + AR, description).
+ * En création, calcule le prochain order_index pour l'ajouter en fin de liste. */
 export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, chapter }: PedagoChapterFormProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -50,6 +52,8 @@ export function ChapterFormDialog({ schoolLevel, filiereId, subject, onSaved, ch
 
   const isEdit = !!chapter;
 
+  // Crée ou met à jour le chapitre ; en création, place l'insertion à la fin
+  // (order_index max + 1) du même niveau/matière/filière.
   const handleSubmit = async () => {
     const titleValue = titleAr.trim();
     const titleFrValue = titleFr.trim();
@@ -218,6 +222,7 @@ interface DeleteChapterButtonProps {
   isAdmin?: boolean;
 }
 
+/** Bouton de suppression d'un chapitre : délègue au comportement partagé DeleteItemButton. */
 export function DeleteChapterButton({ chapterId, onDeleted, title, subject, schoolLevel, status, deletionRequested, isAdmin }: DeleteChapterButtonProps) {
   return (
     <DeleteItemButton
@@ -271,6 +276,8 @@ function DeleteItemButton({ itemType, itemId, onDeleted, status, deletionRequest
 
   if (deletionRequested) {
     if (isAdmin) {
+      // Confirme la suppression demandée par le pédago : le RPC (côté serveur,
+      // vérifie le rôle admin) supprime réellement l'élément.
       const approve = async () => {
         setLoading(true);
         try {
@@ -284,6 +291,7 @@ function DeleteItemButton({ itemType, itemId, onDeleted, status, deletionRequest
           setLoading(false);
         }
       };
+      // Refuse la suppression demandée : l'élément reste intact et publié, la demande est classée.
       const reject = async () => {
         setLoading(true);
         try {
@@ -315,6 +323,10 @@ function DeleteItemButton({ itemType, itemId, onDeleted, status, deletionRequest
     );
   }
 
+  // Supprime (admin, ou pédago sur un élément jamais publié) ou envoie une
+  // demande de suppression (pédago sur un élément publié) selon `needsReason`
+  // — le RPC request_item_deletion décide lui-même côté serveur lequel des
+  // deux cas s'applique, ce composant ne fait qu'ajuster l'UI en conséquence.
   const handleDelete = async () => {
     if (needsReason && !reason.trim()) {
       toast.error(t("pedagoCRUD.deletion.reasonRequired"));
@@ -386,6 +398,8 @@ interface LessonFormDialogProps {
   lesson?: { id: string; title: string; title_ar: string | null };
 }
 
+/** Dialogue de création/édition d'une leçon (titres FR + AR uniquement — le
+ * contenu de la leçon se rédige ailleurs, dans l'éditeur de leçon dédié). */
 export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialogProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -396,6 +410,8 @@ export function LessonFormDialog({ chapterId, onSaved, lesson }: LessonFormDialo
 
   const isEdit = !!lesson;
 
+  // Crée ou met à jour la leçon ; en création, place l'insertion à la fin
+  // (order_index max + 1) du chapitre.
   const handleSubmit = async () => {
     const titleValue = titleAr.trim();
     const titleFrValue = titleFr.trim();
@@ -529,6 +545,7 @@ interface DeleteLessonButtonProps {
   isAdmin?: boolean;
 }
 
+/** Bouton de suppression d'une leçon : délègue au comportement partagé DeleteItemButton. */
 export function DeleteLessonButton({ lessonId, onDeleted, chapterId, title, status, deletionRequested, isAdmin }: DeleteLessonButtonProps) {
   return (
     <DeleteItemButton

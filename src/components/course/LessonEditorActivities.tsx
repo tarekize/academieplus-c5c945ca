@@ -49,6 +49,12 @@ interface LessonEditorActivitiesProps {
   isAdmin?: boolean;
 }
 
+/**
+ * Panneau pédago/admin de gestion des exercices et QCM d'un chapitre ou d'une
+ * leçon : deux vignettes d'entrée (Exercices / QCM) puis, une fois un onglet
+ * choisi, la liste répartie en "Découvrir"/"Comprendre" avec CRUD, envoi pour
+ * validation et actions de revue (voir QuizExerciseCRUD).
+ */
 export function LessonEditorActivities({
   chapterId,
   lessonId,
@@ -61,11 +67,15 @@ export function LessonEditorActivities({
   const [quizzes, setQuizzes] = useState<DBQuiz[]>([]);
   const [exercises, setExercises] = useState<DBExercise[]>([]);
 
+  // Change d'onglet (ou revient aux vignettes si null) et notifie le parent
+  // qu'une sous-vue est active (ex: pour masquer d'autres éléments de la page).
   const handleTabChange = (tab: "exercises" | "quizzes" | null) => {
     setActiveTab(tab);
     onActiveChange?.(tab !== null);
   };
 
+  /** Charge les exercices et QCM du chapitre, filtrés sur la leçon si `lessonId`
+   * est fourni (sinon uniquement ceux rattachés au chapitre sans leçon précise). */
   const fetchData = useCallback(async () => {
     let quizzesQuery = supabase.from("chapter_quizzes").select("*").eq("chapter_id", chapterId);
     let exercisesQuery = supabase.from("chapter_exercises").select("*").eq("chapter_id", chapterId);
@@ -92,6 +102,9 @@ export function LessonEditorActivities({
   // Split items by level based on difficulty
   // Discover: Difficulty 1-2
   // Understand: Difficulty 3-5
+  // (Note : ce découpage par difficulté diffère du découpage par moitié de
+  // liste utilisé côté élève dans LessonActivityTabs — vues différentes,
+  // pas une incohérence à corriger ici.)
   const splitByLevel = <T extends { difficulty: number }>(items: T[]) => {
     if (items.some(i => i.difficulty !== undefined)) {
       return {
@@ -115,6 +128,9 @@ export function LessonEditorActivities({
   const toSendExercisesCount = exercises.filter((e) => e.status === "draft" || e.status === "rejected").length;
   const toSendQuizzesCount = quizzes.filter((q) => q.status === "draft" || q.status === "rejected").length;
 
+  // Pastille de notification sur une vignette : "pending" (rouge, admin) pour
+  // du contenu en attente de validation, "action" (orange, pédago) pour du
+  // contenu à envoyer. Rien n'est affiché si count === 0.
   const NotifDot = ({ count, tone }: { count: number; tone: "pending" | "action" }) =>
     count > 0 ? (
       <span

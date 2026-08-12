@@ -67,6 +67,9 @@ interface AddUserDialogProps {
   onUserAdded: () => void;
 }
 
+// Formulaire admin de création de compte (tous rôles). La validation côté client (mot
+// de passe, champs requis) est un confort UX : l'attribution réelle du rôle et la création
+// du compte auth se font côté serveur via l'edge function admin-create-user.
 export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -116,12 +119,16 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
       .finally(() => setLoadingSubjects(false));
   }, [isPedago, open]);
 
+  /** Coche/décoche une matière dans la sélection du pédago en création. */
   const toggleSubject = (subjectId: string) => {
     setSelectedSubjects((prev) =>
       prev.includes(subjectId) ? prev.filter((s) => s !== subjectId) : [...prev, subjectId]
     );
   };
 
+  /** Règles de robustesse du mot de passe créé par l'admin (8+ car., 1 majuscule, 1 chiffre).
+   * Son résultat EST vérifié dans handleSubmit ci-dessous (contrairement au bug déjà
+   * corrigé dans Auth.tsx où l'appel équivalent était fait mais jamais lu). */
   const validatePassword = (password: string): string | null => {
     if (password.length < 8) {
       return "Le mot de passe doit contenir au moins 8 caractères.";
@@ -135,6 +142,9 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
     return null;
   };
 
+  /** Valide le formulaire côté client puis délègue la création réelle du compte à l'edge
+   * function admin-create-user (seule habilitée, côté serveur, à écrire le rôle choisi ici —
+   * ce composant ne fait qu'un appel réseau, il n'écrit jamais lui-même dans `user_roles`). */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -242,6 +252,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
     }
   };
 
+  /** Remet tous les champs à vide (nouvelle création ou fermeture de la modale). */
   const resetForm = () => {
     setEmail("");
     setPassword("");

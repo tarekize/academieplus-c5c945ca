@@ -33,11 +33,19 @@ function isTextField(el: EditableTarget): el is HTMLInputElement | HTMLTextAreaE
   return el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
 }
 
+// React patche le setter natif de `.value` sur input/textarea pour détecter les
+// changements ; appeler `el.value = ...` directement passerait sous son radar
+// et l'événement "input" simulé plus bas ne déclencherait pas la mise à jour
+// du state React qui contrôle le champ. Le setter natif original (avant
+// patch React) est donc récupéré ici pour écrire la valeur "pour de vrai".
 function nativeValueSetter(el: HTMLInputElement | HTMLTextAreaElement) {
   const proto = el instanceof HTMLTextAreaElement ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
   return Object.getOwnPropertyDescriptor(proto, 'value')?.set;
 }
 
+// Insère `text` à la position du curseur dans le champ actif (input/textarea
+// via le setter natif ci-dessus + événement "input" simulé ; contentEditable
+// via execCommand, qui gère nativement undo/redo et la position du curseur).
 function insertIntoTarget(el: EditableTarget, text: string) {
   if (isTextField(el)) {
     const start = el.selectionStart ?? el.value.length;
@@ -52,6 +60,8 @@ function insertIntoTarget(el: EditableTarget, text: string) {
   }
 }
 
+// Équivalent de la touche Retour arrière : supprime le caractère avant le
+// curseur (ou la sélection si elle n'est pas vide), même logique input/contentEditable qu'insertIntoTarget.
 function deleteBeforeCursor(el: EditableTarget) {
   if (isTextField(el)) {
     const start = el.selectionStart ?? el.value.length;
@@ -71,6 +81,8 @@ interface Position {
   left: number;
 }
 
+// Contraint une position pour que le widget (de la taille donnée) reste
+// entièrement visible dans la fenêtre, avec une marge de 8px sur chaque bord.
 function clamp(pos: Position, width: number, height: number): Position {
   if (typeof window === 'undefined') return pos;
   const maxLeft = Math.max(8, window.innerWidth - width - 8);
@@ -81,6 +93,8 @@ function clamp(pos: Position, width: number, height: number): Position {
   };
 }
 
+// Récupère la position mémorisée du clavier flottant (localStorage), ou une
+// position par défaut sensée si absente/invalide/corrompue.
 function loadPosition(): Position {
   if (typeof window === 'undefined') return { top: 110, left: 24 };
   try {
@@ -176,6 +190,9 @@ function ArabicKeyboardWidget({ targetRef, dialogHost }: ArabicKeyboardWidgetPro
   return <FloatingKeyboard targetRef={targetRef} />;
 }
 
+// Referme le panneau déployé (open -> false) au premier clic en dehors du
+// widget, tant qu'il est ouvert. Écoute en phase de capture pour intercepter
+// le clic avant que la cible (ex: un autre champ) ne réagisse elle-même.
 function useOutsideCollapse(open: boolean, widgetRef: MutableRefObject<HTMLDivElement | null>, onCollapse: () => void) {
   useEffect(() => {
     if (!open) return;
@@ -189,6 +206,8 @@ function useOutsideCollapse(open: boolean, widgetRef: MutableRefObject<HTMLDivEl
   }, [open]);
 }
 
+// Grille des touches (lettres arabes + supprimer/espace/nouvelle ligne),
+// partagée par les deux variantes du widget (flottant et ancré en modale).
 function KeyRows({ targetRef }: { targetRef: MutableRefObject<EditableTarget | null> }) {
   const withTarget = (fn: (el: EditableTarget) => void) => () => {
     const el = targetRef.current;
@@ -319,11 +338,16 @@ function FloatingKeyboard({ targetRef }: { targetRef: MutableRefObject<EditableT
 
   useOutsideCollapse(open, widgetRef, () => setOpen(false));
 
+  // Début d'un glisser potentiel (pointerdown sur la poignée) : capture le
+  // pointeur sur cet élément pour continuer à recevoir les événements même si
+  // le curseur sort de la poignée pendant le glisser.
   const startDrag = (e: React.PointerEvent) => {
     dragState.current = { startX: e.clientX, startY: e.clientY, startTop: position.top, startLeft: position.left, moved: false };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
 
+  // Déplace le widget en suivant le pointeur, une fois le seuil DRAG_THRESHOLD
+  // dépassé (en dessous, on considère que c'est un simple clic, pas un glisser).
   const onDrag = (e: React.PointerEvent) => {
     const state = dragState.current;
     if (!state) return;
@@ -337,6 +361,8 @@ function FloatingKeyboard({ targetRef }: { targetRef: MutableRefObject<EditableT
     setPosition(clamp({ top: state.startTop + dy, left: state.startLeft + dx }, width, height));
   };
 
+  // Fin du glisser : si le pointeur n'a jamais dépassé le seuil de
+  // déplacement, c'est un simple clic -> bascule ouvert/fermé.
   const endDrag = (e: React.PointerEvent) => {
     const state = dragState.current;
     dragState.current = null;

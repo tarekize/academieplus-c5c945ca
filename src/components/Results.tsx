@@ -3,6 +3,7 @@ import studentsSuccessImage from "@/assets/students-success.jpg";
 import studentOnlineImage from "@/assets/student-online.jpg";
 import { useTranslation } from "react-i18next";
 
+// Section vitrine "résultats chiffrés" (stats + 2 images témoignage) de la landing page.
 const Results = () => {
   const { t } = useTranslation();
   

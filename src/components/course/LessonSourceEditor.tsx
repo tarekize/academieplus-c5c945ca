@@ -41,6 +41,9 @@ interface LessonSourceEditorProps {
 
 type Layout = 'split' | 'source' | 'preview';
 
+// Distingue un contenu déjà en HTML (ancien format, ou sauvegardé depuis
+// InlineLessonEditor) d'un contenu Markdown+LaTeX : détermine quel moteur de
+// rendu utiliser pour l'aperçu (renderPreview ci-dessous).
 const isHtmlContent = (s: string) => /<\s*(html|body|head|!doctype)/i.test(s || '');
 
 // --- Détection/édition d'un tableau Markdown sous le curseur --------------
@@ -48,13 +51,18 @@ const isHtmlContent = (s: string) => /<\s*(html|body|head|!doctype)/i.test(s || 
 // "|", dont la 2e ligne est la ligne de séparation ("| --- | --- |").
 
 const isTableLine = (line: string) => line.trim().startsWith('|');
+// Reconnaît la ligne de séparation Markdown ("| --- | :---: |...") qui suit
+// toujours l'en-tête d'un tableau : sert à confirmer qu'un bloc de lignes
+// commençant par "|" est bien un tableau (et pas juste du texte avec des "|").
 const isSeparatorLine = (line: string) => /^\s*\|?\s*:?-{1,}:?\s*(\|\s*:?-{1,}:?\s*)+\|?\s*$/.test(line);
 
+// Découpe une ligne de tableau Markdown en cellules (retire les "|" de bord).
 function splitRowCells(line: string): string[] {
   const withoutEdges = line.trim().replace(/^\|/, '').replace(/\|$/, '');
   return withoutEdges.split('|').map((c) => c.trim());
 }
 
+// Reconstruit une ligne de tableau Markdown à partir de ses cellules.
 function buildRow(cells: string[]): string {
   return '| ' + cells.join(' | ') + ' |';
 }
@@ -68,6 +76,10 @@ interface MarkdownTableCtx {
   numCols: number;
 }
 
+// Retrouve, à partir de la position du curseur dans le textarea, les bornes
+// du tableau Markdown en cours d'édition (lignes de début/fin, ligne et
+// colonne du curseur) — ou null si le curseur n'est pas dans un tableau.
+// Utilisée par toutes les opérations d'édition de tableau ci-dessous.
 function getMarkdownTableContext(content: string, cursorPos: number): MarkdownTableCtx | null {
   const lines = content.split('\n');
   let lineStartOffset = 0;
@@ -98,6 +110,8 @@ function getMarkdownTableContext(content: string, cursorPos: number): MarkdownTa
   return { lines, start, end, lineIndex, colIndex, numCols };
 }
 
+// Rend l'aperçu à droite (ou l'affichage lecture seule) : HTML+math si le
+// contenu est déjà en HTML, Markdown+LaTeX (rendu élève) sinon.
 function renderPreview(content: string) {
   if (!content) {
     return <p className="text-muted-foreground text-sm italic">L'aperçu s'affichera ici...</p>;
@@ -236,6 +250,8 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
     requestAnimationFrame(() => el?.focus());
   }, [content, onChange]);
 
+  // Ajoute une ligne de données vide au-dessus/en dessous de la ligne courante
+  // (jamais avant la ligne de séparation, donc jamais au-dessus de l'en-tête).
   const addMarkdownRow = useCallback((position: 'above' | 'below') => {
     withMarkdownTable(({ lines, start, lineIndex, numCols }) => {
       const insertAt = lineIndex < start + 2 ? start + 2 : (position === 'above' ? lineIndex : lineIndex + 1);
@@ -244,6 +260,8 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
     });
   }, [withMarkdownTable]);
 
+  // Supprime la ligne de données courante ; refuse si le curseur est sur
+  // l'en-tête ou la ligne de séparation (rien à supprimer là).
   const deleteMarkdownRow = useCallback(() => {
     withMarkdownTable(({ lines, start, lineIndex }) => {
       if (lineIndex < start + 2) {
@@ -254,6 +272,8 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
     });
   }, [withMarkdownTable]);
 
+  // Ajoute une colonne à gauche/droite de la colonne courante, sur toutes les
+  // lignes du tableau (en-tête, séparateur, données).
   const addMarkdownColumn = useCallback((position: 'left' | 'right') => {
     withMarkdownTable(({ lines, start, end, colIndex }) => {
       const insertIdx = position === 'left' ? colIndex : colIndex + 1;
@@ -267,6 +287,7 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
     });
   }, [withMarkdownTable]);
 
+  // Supprime la colonne courante sur toutes les lignes ; refuse s'il n'en reste plus qu'une.
   const deleteMarkdownColumn = useCallback(() => {
     withMarkdownTable(({ lines, start, end, colIndex, numCols }) => {
       if (numCols <= 1) {
@@ -283,6 +304,7 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
     });
   }, [withMarkdownTable]);
 
+  // Supprime le tableau entier (toutes ses lignes, en-tête compris).
   const deleteMarkdownTable = useCallback(() => {
     withMarkdownTable(({ lines, start, end }) => [...lines.slice(0, start), ...lines.slice(end + 1)]);
   }, [withMarkdownTable]);
@@ -293,6 +315,8 @@ export default function LessonSourceEditor({ content, onChange, editable = true 
     imageInputRef.current?.click();
   }, []);
 
+  // Fichier choisi dans le sélecteur ouvert par insertImage : upload vers le
+  // stockage lesson-media puis insertion du Markdown ![alt](url) correspondant.
   const handleImageSelected = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (imageInputRef.current) imageInputRef.current.value = '';

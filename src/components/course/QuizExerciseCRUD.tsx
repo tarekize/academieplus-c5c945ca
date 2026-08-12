@@ -109,6 +109,7 @@ export function ReviewActionButtons({ itemType, itemId, onReviewed }: { itemType
   const [reason, setReason] = useState("");
   const dir = i18n.language === "ar" ? "rtl" : "ltr";
 
+  // Publie l'item aux élèves (RPC côté serveur, vérifie le rôle admin).
   const approve = async () => {
     setLoading(true);
     try {
@@ -123,6 +124,7 @@ export function ReviewActionButtons({ itemType, itemId, onReviewed }: { itemType
     }
   };
 
+  // Refuse l'item avec motif optionnel : repasse en statut "rejected", visible du pédago pour correction.
   const reject = async () => {
     setLoading(true);
     try {
@@ -181,6 +183,8 @@ interface QuizFormProps {
   quiz?: { id: string; question: string; options: string[]; correct_answer: string; explanation: string | null; difficulty?: number; hint?: string | null };
 }
 
+/** Dialogue de création/édition d'un QCM (question, 4 options, bonne réponse,
+ * explication, indice, difficulté). */
 export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormProps) {
   const { t, i18n } = useTranslation();
   const dir = i18n.language === "ar" ? "rtl" : "ltr";
@@ -194,6 +198,7 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
   const [difficulty, setDifficulty] = useState(quiz?.difficulty || 1);
   const isEdit = !!quiz;
 
+  // Crée ou met à jour le QCM ; les options vides sont filtrées avant enregistrement.
   const handleSubmit = async () => {
     if (!question.trim() || !correctAnswer.trim()) {
       toast.error(t("quizExerciseCRUD.quiz.validationError"));
@@ -304,6 +309,10 @@ export function QuizFormDialog({ chapterId, lessonId, onSaved, quiz }: QuizFormP
   );
 }
 
+/** Bouton de suppression d'un QCM, avec confirmation. Filtré uniquement sur
+ * l'id : la RLS de chapter_quizzes autorise déjà tout admin/pédago (contenu
+ * pédagogique partagé, pas de notion de "propriétaire"), donc pas d'IDOR
+ * possible ici — voir les policies "Admin and pedago manage chapter quizzes". */
 export function DeleteQuizButton({ quizId, onDeleted }: { quizId: string; onDeleted: () => void }) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -344,6 +353,8 @@ interface ExerciseFormProps {
   exercise?: { id: string; title: string; statement: string; expected_answer?: string; accepted_answers?: string[]; solution?: string; difficulty?: number; hint?: string | null };
 }
 
+/** Dialogue de création/édition d'un exercice (titre, énoncé, réponse
+ * attendue + réponses acceptées en variantes, solution détaillée, difficulté). */
 export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: ExerciseFormProps) {
   const { t, i18n } = useTranslation();
   const dir = i18n.language === "ar" ? "rtl" : "ltr";
@@ -358,6 +369,8 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
   const [difficulty, setDifficulty] = useState(exercise?.difficulty || 1);
   const isEdit = !!exercise;
 
+  // Crée ou met à jour l'exercice ; accepted_answers est reconstruit à partir
+  // du champ texte "séparé par des virgules" saisi dans le formulaire.
   const handleSubmit = async () => {
     if (!title.trim() || !statement.trim()) {
       toast.error(t("quizExerciseCRUD.exercise.validationError"));
@@ -458,6 +471,9 @@ export function ExerciseFormDialog({ chapterId, lessonId, onSaved, exercise }: E
   );
 }
 
+/** Bouton de suppression d'un exercice, avec confirmation. Même remarque que
+ * DeleteQuizButton : le filtre sur l'id seul est suffisant, la RLS de
+ * chapter_exercises gère déjà l'autorisation par rôle (admin/pédago). */
 export function DeleteExerciseButton({ exerciseId, onDeleted }: { exerciseId: string; onDeleted: () => void }) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -570,6 +586,9 @@ export function ImportFromDocumentButton({
 type ContentType = "exercises" | "quizzes";
 type Section = "discover" | "understand";
 
+/** Bouton "Générer avec l'IA" : ouvre un dialogue de paramétrage (niveau
+ * Découvrir/Comprendre, type, nombre, plage de difficulté, ajout ou
+ * remplacement) puis appelle l'edge function bulk-gen-terminale-gemini. */
 export function GenerateQuizExercisesButton({
   chapterId,
   lessonId,
@@ -596,14 +615,19 @@ export function GenerateQuizExercisesButton({
   const [difficultyMin, setDifficultyMin] = useState(1);
   const [difficultyMax, setDifficultyMax] = useState(5);
 
+  // Coche/décoche une section (Découvrir/Comprendre) dans le formulaire de génération.
   const toggleSection = (s: Section) => {
     setSections((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
   };
+  // Coche/décoche un type de contenu ; no-op si le type est verrouillé par lockedContentType.
   const toggleContentType = (type: ContentType) => {
     if (lockedContentType) return;
     setContentTypes((prev) => (prev.includes(type) ? prev.filter((x) => x !== type) : [...prev, type]));
   };
 
+  // Valide le formulaire puis appelle l'edge function de génération IA ; le
+  // contenu inséré hérite du statut habituel (draft pour pédago, approved pour admin,
+  // logique gérée côté edge function).
   const handleGenerate = async () => {
     if (sections.length === 0) {
       toast.error(t("quizExerciseCRUD.generate.sectionsRequired"));

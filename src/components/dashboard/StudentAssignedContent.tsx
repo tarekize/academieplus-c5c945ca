@@ -15,6 +15,11 @@ interface ContentRow {
 
 const TYPE_LABEL: Record<string, string> = { exercise: "Exercice", quiz: "Quiz" };
 
+// Aperçu des exercices/quiz assignés par l'enseignant à l'élève courant. Contrairement
+// à d'autres composants du dossier, ce composant n'est appelé qu'avec le userId de
+// l'utilisateur connecté (voir ListeCours.tsx) : la RLS "teacher_content" filtre déjà
+// sur auth.uid() en interne, donc la requête ci-dessous n'a pas besoin de .eq("user_id", ...) —
+// ne pas réutiliser ce composant pour afficher le contenu d'UN AUTRE élève sans l'adapter.
 export default function StudentAssignedContent({ userId }: { userId: string }) {
   const [items, setItems] = useState<ContentRow[]>([]);
 

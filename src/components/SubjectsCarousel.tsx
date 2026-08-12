@@ -1,6 +1,7 @@
 import { Check, BookOpen, Calculator, Brain, Beaker, Languages } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+// Section vitrine listant les matières/thèmes couverts (grille de badges) de la landing page.
 const SubjectsCarousel = () => {
   const { t } = useTranslation();
 

@@ -119,6 +119,9 @@ class LessonPreviewBoundary extends Component<{ children: ReactNode; resetKey: s
     }
 }
 
+/** Analyse un message assistant pour l'affichage dans le fil de chat : distingue un
+ * <update><original>/<new></update> (édition ciblée, affichée en diff avant/après) d'une
+ * génération complète (retire un éventuel bloc ```markdown``` autour du contenu). */
 function extractDisplayContent(content: string): { isPartial: boolean; originalText: string; newText: string; displayContent: string } {
     const updateRegex = /<update>[\s\S]*?<original>([\s\S]*?)<\/original>[\s\S]*?<new>([\s\S]*?)<\/new>[\s\S]*?<\/update>/i;
     const match = content.match(updateRegex);
@@ -202,6 +205,9 @@ function resolveAiContent(aiContent: string, referenceContent: string): { finalC
     return { finalContent: newText, isPartial: true, replaced: false };
 }
 
+// Panneau latéral "assistant éditorial IA" pour la rédaction de leçons (admin/pédago) :
+// flux guidé pour une leçon vide, chat libre pour enrichir/cibler un élément, ou
+// génération à partir d'un document joint (PDF/Word/image), avec aperçu avant validation.
 export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, schoolLevel, onUpdateContent, open, onClose }: AdminAssistantPanelProps) {
     const [step, setStep] = useState<Step>('entry');
     const [messages, setMessages] = useState<Message[]>([]);
@@ -286,6 +292,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
         return () => window.removeEventListener('resize', onWindowResize);
     }, []);
 
+    /** Démarre le glisser-déposer de la poignée de redimensionnement du panneau. */
     const handleResizeStart = (e: React.PointerEvent<HTMLDivElement>) => {
         e.preventDefault();
         (e.target as HTMLDivElement).setPointerCapture(e.pointerId);
@@ -432,6 +439,7 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
         }
     };
 
+    /** Copie la réponse brute de l'IA dans le presse-papiers (bouton "نسخ الاقتراح الخام"). */
     const handleCopy = (content: string, index: number) => {
         navigator.clipboard.writeText(content);
         setCopiedIndex(index);
@@ -439,6 +447,8 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
         toast.success('تم نسخ المحتوى', { description: 'تم نسخ النص إلى الحافظة.' });
     };
 
+    /** Applique une réponse du chat libre au contenu de la leçon (via resolveAiContent) —
+     * copie le contenu dans le presse-papiers en secours si le remplacement ciblé échoue. */
     const handleApply = (content: string) => {
         const { finalContent, isPartial, replaced } = resolveAiContent(content, currentContent);
         if (isPartial && !replaced) {
@@ -570,6 +580,8 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
     // improve qui laissent l'IA reformuler/enrichir.
     const EXACT_MODES: DocumentMode[] = ['absent-exact', 'present-replace'];
 
+    /** Lance la génération/transcription à partir du document joint, selon le mode choisi
+     * (amélioration, remplacement, génération ou transcription stricte). */
     const runDocumentBasedGeneration = async (mode: DocumentMode) => {
         if (!attachedDoc) return;
         setStep('preview');
@@ -666,24 +678,29 @@ export function AdminAssistantPanel({ lessonId, currentContent, lessonTitle, sch
         }
     };
 
+    /** Valide l'aperçu généré : l'applique réellement au contenu de la leçon et ferme le panneau. */
     const handleValidatePreview = () => {
         onUpdateContent(previewContent);
         toast.success('✅ تم إدراج الدرس', { description: 'تم تطبيق الاقتراح على الدرس.', duration: 4000 });
         onClose();
     };
 
+    /** Pré-remplit le champ d'affinage de l'aperçu avec une suggestion rapide (boutons raccourcis). */
     const prefillPreviewInput = (text: string) => {
         setPreviewInput(text);
     };
 
+    /** Coche/décoche un concept clé à inclure dans le flux guidé. */
     const toggleConcept = (key: string) => setConcepts(prev => ({ ...prev, [key]: !prev[key] }));
 
+    /** Bascule vers le chat libre avec un message pré-rempli (raccourcis "élément ciblé"). */
     const goChatWithPrefill = (text: string) => {
         setStep('chat');
         setInput(text);
         setTimeout(() => textareaRef.current?.focus(), 50);
     };
 
+    /** Annule le document joint en cours et revient à l'étape d'entrée. */
     const cancelAttachedDocument = () => {
         setAttachedDoc(null);
         setStep('entry');
