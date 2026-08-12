@@ -81,6 +81,8 @@ const Abonnements = () => {
     return () => subscription.unsubscribe();
   }, [navigate, hasRole]);
 
+  // Charge le profil affiché dans l'en-tête. Appelée au montage et à chaque
+  // changement de session.
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -97,6 +99,10 @@ const Abonnements = () => {
     }
   };
 
+  // Charge les codes d'activation créés par ce compte (RLS : "Creators can
+  // view their codes", auth.uid() = created_by) et, pour ceux déjà utilisés,
+  // leur statut d'abonnement (en pause ou actif) — affiché dans le tableau
+  // "Mes codes d'activation" réservé aux parents.
   const fetchCodes = async (userId: string) => {
     const { data } = await supabase
       .from("activation_codes")
@@ -122,26 +128,36 @@ const Abonnements = () => {
     }
   };
 
+  // Formate le nom affiché dans l'en-tête.
   const getFullName = (p: Profile | null): string => {
     if (!p) return t("abonnements.defaultUser");
     const parts = [p.first_name, p.last_name].filter(Boolean);
     return parts.length > 0 ? parts.join(" ") : t("abonnements.defaultUser");
   };
 
+  // Traduit le code de niveau scolaire en libellé lisible.
   const getSchoolLevelName = (level: string) => {
     return t(`app.schoolLevels.${level}`, { defaultValue: level });
   };
 
+  // Déconnecte l'utilisateur depuis le menu de l'en-tête.
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
   };
 
+  // Copie un code d'activation dans le presse-papiers (bouton "Copier" du
+  // tableau des codes) pour que le parent puisse le transmettre à l'enfant.
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     toast.success(t("abonnements.codeCopied"), { description: code });
   };
 
+  // Calcule la date de fin d'abonnement affichée pour un code (30 jours pour
+  // le mensuel, 360 pour l'annuel), à partir de sa date d'utilisation ou, si
+  // pas encore utilisé, de sa date de création — purement indicatif côté
+  // client : la vraie durée restante vient de student_subscriptions,
+  // calculée serveur (voir AdminContrats/admin_grant_subscription_days).
   const getEndDate = (code: ActivationCode) => {
     const start = code.used_at ? new Date(code.used_at) : new Date(code.created_at);
     const days = code.plan_type === "annual" ? 360 : 30;
