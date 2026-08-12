@@ -23,6 +23,8 @@ export default function TeacherContentSessionHistory({ teacherId, contentType, a
   const [sessions, setSessions] = useState<TeacherContentSessionRow[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Charge l'historique des sessions de génération IA de l'enseignant courant
+  // pour ce type de contenu (exercice/quiz/examen).
   const fetchSessions = async () => {
     setLoading(true);
     try {
@@ -36,6 +38,8 @@ export default function TeacherContentSessionHistory({ teacherId, contentType, a
 
   useEffect(() => { fetchSessions(); }, [teacherId, contentType]);
 
+  // Supprime une session d'historique (clic sur la corbeille) ; si c'était la
+  // session actuellement affichée, revient à un nouvel écran vierge (onNew).
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {

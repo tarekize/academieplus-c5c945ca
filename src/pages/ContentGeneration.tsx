@@ -21,6 +21,11 @@ const SCHOOL_LEVELS = [
   { value: 'terminale', label: 'Terminale' },
 ];
 
+// Outil d'administration : déclenche la génération IA du contenu des
+// leçons vides via l'edge function "generate-lesson-content". Réservé
+// admin/pedago (déjà imposé par la route via ProtectedRoute ; le check
+// ci-dessous est une double vérification côté client pour éviter d'afficher
+// l'UI le temps du chargement, l'edge function revalide le rôle côté serveur).
 export default function ContentGeneration() {
   const navigate = useNavigate();
   const [level, setLevel] = useState('all');
@@ -29,6 +34,8 @@ export default function ContentGeneration() {
   const [log, setLog] = useState<{ id: string; status: string }[]>([]);
   const [canAccess, setCanAccess] = useState(false);
 
+  // Vérifie que l'utilisateur connecté a le rôle admin ou pedago ; sinon
+  // redirige vers /dashboard. Condition d'affichage du reste de la page.
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -40,6 +47,8 @@ export default function ContentGeneration() {
     })();
   }, [navigate]);
 
+  // Recalcule le nombre total de leçons, celles ayant déjà du contenu, et le
+  // nombre restant à générer (utilisé pour la barre de progression).
   const refreshStats = async () => {
     const { count: total } = await supabase.from('lessons').select('id', { count: 'exact', head: true });
     const { count: withContent } = await supabase.from('lessons').select('id', { count: 'exact', head: true }).neq('content', '').not('content', 'is', null);
@@ -48,6 +57,9 @@ export default function ContentGeneration() {
 
   useEffect(() => { if (canAccess) refreshStats(); }, [canAccess]);
 
+  // Déclenche la génération d'un seul lot (3 leçons) via l'edge function,
+  // ajoute les résultats au journal affiché puis rafraîchit les stats.
+  // Déclenché par le bouton "Générer un lot (3)".
   const runBatch = async () => {
     setRunning(true);
     try {
@@ -71,6 +83,9 @@ export default function ContentGeneration() {
     }
   };
 
+  // Enchaîne les lots de génération jusqu'à ce qu'il ne reste plus de leçon
+  // sans contenu (ou que l'edge function ne traite plus rien / échoue).
+  // Déclenché par le bouton "Générer tout".
   const runAll = async () => {
     setRunning(true);
     let remaining = stats.remaining;

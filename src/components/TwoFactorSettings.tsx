@@ -35,6 +35,11 @@ interface Factor {
   created_at: string;
 }
 
+/** Carte de gestion de la double authentification (2FA/TOTP) du compte
+ * courant : liste les facteurs enrôlés, permet d'en activer un nouveau
+ * (QR code + code de vérification) ou d'en désactiver un existant. Toutes
+ * les opérations passent par supabase.auth.mfa.*, qui n'agit que sur la
+ * session actuellement connectée — aucun risque d'IDOR sur un autre compte. */
 export const TwoFactorSettings = () => {
   const [loading, setLoading] = useState(false);
   const [factors, setFactors] = useState<Factor[]>([]);
@@ -49,6 +54,7 @@ export const TwoFactorSettings = () => {
     loadFactors();
   }, []);
 
+  /** Charge les facteurs MFA (TOTP + téléphone) déjà enrôlés pour l'utilisateur connecté. */
   const loadFactors = async () => {
     setLoading(true);
     try {
@@ -66,6 +72,9 @@ export const TwoFactorSettings = () => {
     }
   };
 
+  /** Démarre l'enrôlement d'un nouveau facteur TOTP : génère le secret/QR code
+   * côté Supabase et ouvre le dialogue de configuration (le facteur n'est
+   * activé qu'après vérification du code dans handleVerify). */
   const handleEnroll = async () => {
     setEnrolling(true);
     try {
@@ -88,6 +97,9 @@ export const TwoFactorSettings = () => {
     }
   };
 
+  /** Confirme l'enrôlement du facteur en attente : crée un challenge MFA puis
+   * vérifie le code TOTP saisi. C'est cette étape, pas handleEnroll, qui
+   * active réellement la 2FA sur le compte. */
   const handleVerify = async () => {
     if (!factorId || !verifyCode) {
       toast.error("Veuillez entrer le code de vérification");
@@ -127,6 +139,8 @@ export const TwoFactorSettings = () => {
     }
   };
 
+  /** Désactive un facteur 2FA existant (bouton "Supprimer" après confirmation
+   * dans l'AlertDialog). */
   const handleUnenroll = async (factorIdToRemove: string) => {
     setLoading(true);
     try {

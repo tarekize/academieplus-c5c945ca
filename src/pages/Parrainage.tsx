@@ -26,6 +26,9 @@ interface Profile {
   linking_code: string | null;
 }
 
+// Page "Programme de parrainage" : affiche le code de parrainage de
+// l'utilisateur connecté et son lien de partage. Redirige vers /auth si
+// aucune session n'est active.
 const Parrainage = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -37,6 +40,8 @@ const Parrainage = () => {
     fetchData();
   }, []);
 
+  // Charge le profil de l'utilisateur COURANT (id = session.user.id, jamais
+  // paramétrable) pour en extraire son linking_code de parrainage.
   const fetchData = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -66,6 +71,8 @@ const Parrainage = () => {
     ? `${window.location.origin}/auth?ref=${referralCode}`
     : "";
 
+  // Copie le lien de parrainage dans le presse-papier et affiche un état
+  // "Copié !" temporaire (2s) sur le bouton.
   const handleCopyCode = () => {
     if (referralCode) {
       navigator.clipboard.writeText(referralUrl);
@@ -77,17 +84,21 @@ const Parrainage = () => {
     }
   };
 
+  // Déconnecte l'utilisateur et retourne à l'accueil.
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
   };
 
+  // Nom affiché dans le menu : prénom+nom si renseignés, sinon email, sinon
+  // "Utilisateur" si le profil n'est pas encore chargé.
   const getFullName = () => {
     if (!profile) return "Utilisateur";
     const parts = [profile.first_name, profile.last_name].filter(Boolean);
     return parts.length > 0 ? parts.join(" ") : profile.email;
   };
 
+  // Traduit le code interne du niveau scolaire (ex: "3eme") en libellé lisible.
   const getSchoolLevelName = (level: string) => {
     const levels: Record<string, string> = {
       "6eme": "6ème",

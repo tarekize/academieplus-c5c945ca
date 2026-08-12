@@ -6,6 +6,12 @@ import { Button } from "@/components/ui/button";
 
 type Status = "loading" | "joining" | "success" | "error" | "redirecting";
 
+// Page atterrissage du lien d'invitation /rejoindre/:code. Si l'utilisateur
+// n'est pas connecté, mémorise le code et l'URL de retour puis renvoie vers
+// l'inscription ; une fois connecté, délègue la validation du code et
+// l'adhésion à la classe à l'edge function "join-class" (le code seul dans
+// l'URL ne donne aucun accès direct : c'est le serveur qui vérifie et
+// effectue le rattachement pour l'utilisateur authentifié courant).
 export default function JoinClass() {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();

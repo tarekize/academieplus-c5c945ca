@@ -5,6 +5,9 @@ interface PDFContentProps {
   content: string;
 }
 
+// Rendu imprimable d'un chapitre : le HTML enseignant/IA passe par
+// sanitizeLessonHtml avant dangerouslySetInnerHTML pour éviter toute
+// injection de script via un contenu de leçon compromis.
 export const PDFContent = ({ chapterTitle, content }: PDFContentProps) => {
   return (
     <div className="bg-white text-black p-8 max-w-4xl mx-auto">

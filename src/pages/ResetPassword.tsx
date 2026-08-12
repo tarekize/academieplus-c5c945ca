@@ -55,6 +55,10 @@ export default function ResetPassword() {
     init();
   }, []);
 
+  // Vérifie la complexité du mot de passe (8+ caractères, 1 majuscule, 1
+  // chiffre) ; retourne un message d'erreur ou null si valide. Le retour est
+  // bien testé dans handleSubmit ci-dessous (contrairement à un bug similaire
+  // déjà corrigé dans Auth.tsx où ce résultat était ignoré).
   const validatePassword = (pwd: string): string | null => {
     if (pwd.length < 8) return "Le mot de passe doit contenir au moins 8 caractères.";
     if (!/[A-Z]/.test(pwd)) return "Le mot de passe doit contenir au moins une lettre majuscule.";
@@ -62,6 +66,10 @@ export default function ResetPassword() {
     return null;
   };
 
+  // Détermine si l'utilisateur doit passer par une vérification MFA (TOTP)
+  // avant de pouvoir changer son mot de passe : vrai si son niveau d'assurance
+  // actuel est aal1 mais qu'un facteur TOTP vérifié existe (nextLevel aal2).
+  // Mémorise l'ID du facteur trouvé dans factorId pour l'étape suivante.
   const checkMfaRequired = async (): Promise<boolean> => {
     try {
       const { data: aalData, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
@@ -88,11 +96,15 @@ export default function ResetPassword() {
     }
   };
 
+  // Affiche la confirmation de succès et redirige vers le tableau de bord.
   const finishSuccess = () => {
     toast.success("Mot de passe mis à jour avec succès !");
     navigate("/dashboard", { replace: true });
   };
 
+  // Étape MFA : challenge + vérifie le code TOTP saisi, puis seulement si
+  // valide applique le nouveau mot de passe via updateUser(). Déclenché par
+  // le bouton "Vérifier et modifier" de l'étape MFA.
   const verifyMfaAndUpdate = async () => {
     if (!factorId || mfaCode.length !== 6) {
       toast.error("Veuillez entrer le code à 6 chiffres.");
@@ -127,6 +139,9 @@ export default function ResetPassword() {
     }
   };
 
+  // Soumission du formulaire "nouveau mot de passe" : valide le mot de passe
+  // et sa confirmation, puis tente updateUser() ; si le serveur exige une
+  // vérification MFA (AAL2), bascule vers l'étape TOTP au lieu d'échouer.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 

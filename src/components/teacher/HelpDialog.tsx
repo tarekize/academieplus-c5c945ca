@@ -15,6 +15,10 @@ interface Props {
   targetName: string;
 }
 
+// Boîte de dialogue enveloppant le chatbot d'aide IA (HelpChatbot), ouverte
+// depuis la vue classe ou la vue élève d'EstablishmentManager. Ne fait que
+// transmettre ses props : aucune logique de sécurité ici, elle vit dans le
+// composant enfant et dans les RPC qu'il appelle.
 export default function HelpDialog(props: Props) {
   const { open, onOpenChange, teacherId, mode, schoolLevel, classId, studentIds, studentId, targetName } = props;
 

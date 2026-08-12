@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
+// Page statique des mentions légales (contenu juridique fixe, pas d'appel réseau).
 const MentionsLegales = () => {
   return (
     <div className="min-h-screen flex flex-col">

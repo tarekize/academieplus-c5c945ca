@@ -12,6 +12,8 @@ interface TeacherPageHeaderProps {
   action?: React.ReactNode;
 }
 
+// En-tête réutilisable des écrans enseignant : icône, titre, description,
+// bouton retour et zone d'action optionnelle. Purement présentationnel.
 export default function TeacherPageHeader({
   icon: Icon,
   iconClassName,

@@ -2,6 +2,10 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CheckCircle } from "lucide-react";
 
+// Écran de confirmation affiché après une mise à jour réussie des données du
+// compte. Purement transitoire : redirige automatiquement vers /account
+// après 2 secondes (le timer est nettoyé au démontage pour éviter une
+// navigation "fantôme" si l'utilisateur quitte la page avant l'échéance).
 const UpdateSuccess = () => {
   const navigate = useNavigate();
 
