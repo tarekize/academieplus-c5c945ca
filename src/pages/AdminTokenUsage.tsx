@@ -47,6 +47,7 @@ const FUNCTION_LABELS: Record<string, string> = {
   "generate-remediation": "🩹 Remédiation ciblée (lacunes) — Élève",
   "generate-exam-exercise": "📐 Génération d'exercice d'examen — Enseignant",
   "generate-teacher-content": "🧑‍🏫 Contenu pédagogique (exercices/quiz/examen) — Enseignant",
+  "refine-teacher-content": "💬 Chat d'affinage d'exercices/quiz — Enseignant",
   "generate-parent-report": "👪 Rapport de suivi — Parent",
   "generate-periodic-advice": "📆 Conseils + exercices périodiques — Élève",
   "generate-placement-test": "🧭 Test de positionnement — Élève",
