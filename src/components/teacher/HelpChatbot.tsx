@@ -9,11 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Bot, Loader2, Send, Sparkles, Eye, CheckCircle2, History, Plus } from "lucide-react";
+import { Bot, Loader2, Send, Sparkles, Eye, CheckCircle2, History, Plus, MessageSquare, User } from "lucide-react";
 import { toast } from "sonner";
 import {
   GeneratedItem, generateTeacherContent, saveTeacherContent, assignContent,
 } from "@/lib/teacherContent";
+import { extractFunctionErrorMessage } from "@/lib/edgeFunctionError";
 import { computeStudentGroup, GROUP_INFO, GROUP_ORDER, type StudentGroupLetter } from "@/lib/studentGrouping";
 import { TeacherContentSessionRow, saveTeacherContentSession } from "@/lib/teacherContentSessions";
 import TeacherContentSessionHistory from "./TeacherContentSessionHistory";
@@ -97,6 +98,15 @@ export default function HelpChatbot(props: Props) {
   const [showHistory, setShowHistory] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
 
+  // Chat libre borné (écran "results") : l'enseignant peut demander à l'IA
+  // d'enrichir/retirer/corriger un exercice ou quiz déjà généré. Persisté
+  // dans la session au même titre que items/sent, pour que "Historique"
+  // restaure une conversation qu'on peut continuer plutôt qu'un instantané figé.
+  const [refineMessages, setRefineMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+  const [refineInput, setRefineInput] = useState("");
+  const [refineSending, setRefineSending] = useState(false);
+  const refineScrollRef = useRef<HTMLDivElement>(null);
+
   const selectedLessons = weak.filter((w) => selectedLessonIds.includes(w.lessonId));
   const targetStudentIds = mode === "class" ? (selectedGroup?.studentIds || []) : (studentId ? [studentId] : []);
 
@@ -112,15 +122,17 @@ export default function HelpChatbot(props: Props) {
     const title = `Aide · ${mode === "class" ? `Groupe ${selectedGroup?.letter ?? ""}` : targetName}${weak.length ? ` · ${selectedLessons.slice(0, 2).map((l) => l.title).join(", ")}${selectedLessons.length > 2 ? "…" : ""}` : ""}`;
     const state = {
       selectedGroup, weak, selectedLessonIds, types, approach,
-      aiExerciseCount, aiQuizCount, items, sent,
+      aiExerciseCount, aiQuizCount, items, sent, refineMessages,
     };
     saveTeacherContentSession({ id: sessionId, teacherId, contentType: "help", title, state })
       .then((id) => setSessionId(id))
       .catch((err) => console.error("Error saving teacher content session:", err));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, items, sent]);
+  }, [phase, items, sent, refineMessages]);
 
-  /** Restaure une session sauvegardée (bouton "Historique") et saute directement à l'écran des résultats. */
+  /** Restaure une session sauvegardée (bouton "Historique") et saute directement à
+   * l'écran des résultats — y compris le fil du chat libre, pour pouvoir CONTINUER
+   * la conversation avec l'IA plutôt que de retomber sur un instantané figé. */
   const loadSession = (session: TeacherContentSessionRow) => {
     const s = session.state || {};
     setSelectedGroup(s.selectedGroup || null);
@@ -132,6 +144,7 @@ export default function HelpChatbot(props: Props) {
     setAiQuizCount(s.aiQuizCount || 4);
     setItems(s.items || []);
     setSent(s.sent || {});
+    setRefineMessages(s.refineMessages || []);
     setSessionId(session.id);
     setPhase("results");
     setShowHistory(false);
@@ -140,8 +153,62 @@ export default function HelpChatbot(props: Props) {
   /** Repart de zéro sur une nouvelle session (dissocie sessionId pour ne pas écraser l'ancienne). */
   const startNewSession = () => {
     setSessionId(null);
+    setRefineMessages([]);
     restart();
     setShowHistory(false);
+  };
+
+  // Fait défiler le chat libre vers le bas à chaque nouveau message.
+  useEffect(() => {
+    refineScrollRef.current?.scrollTo({ top: refineScrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [refineMessages]);
+
+  /** Applique une action renvoyée par l'IA (update/remove/add) à la liste d'items
+   * générés — la même liste que "Accepter & envoyer" travaille déjà, donc toute
+   * modification ici est immédiatement visible/envoyable sans étape supplémentaire. */
+  const applyRefineAction = (action: any) => {
+    if (action.op === "update") {
+      setItems((prev) => prev.map((it, i) => (i === action.index ? { ...it, ...action.patch } : it)));
+    } else if (action.op === "remove") {
+      setItems((prev) => prev.filter((_, i) => i !== action.index));
+      setSent((prev) => {
+        const next: Record<number, boolean> = {};
+        Object.entries(prev).forEach(([k, v]) => {
+          const idx = Number(k);
+          if (idx < action.index) next[idx] = v;
+          else if (idx > action.index) next[idx - 1] = v;
+        });
+        return next;
+      });
+    } else if (action.op === "add") {
+      setItems((prev) => [...prev, action.item as GenEntry]);
+    }
+  };
+
+  /** Envoie le message libre de l'enseignant au chat borné (refine-teacher-content),
+   * qui ne répond QUE sur les exercices/quiz déjà générés (voir le prompt système
+   * côté edge function) — applique ensuite les éventuelles actions renvoyées
+   * (enrichir/retirer/corriger un item) à la liste affichée. */
+  const sendRefineMessage = async () => {
+    const message = refineInput.trim();
+    if (!message || refineSending) return;
+    setRefineInput("");
+    const nextHistory = [...refineMessages, { role: "user" as const, content: message }];
+    setRefineMessages(nextHistory);
+    setRefineSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("refine-teacher-content", {
+        body: { items, message, conversationHistory: refineMessages },
+      });
+      if (error) throw new Error(await extractFunctionErrorMessage(error));
+      const actions = Array.isArray(data?.actions) ? data.actions : [];
+      actions.forEach(applyRefineAction);
+      setRefineMessages([...nextHistory, { role: "assistant" as const, content: data?.reply || "…" }]);
+    } catch (e: any) {
+      setRefineMessages([...nextHistory, { role: "assistant" as const, content: `⚠️ ${e.message || "Erreur, réessayez."}` }]);
+    } finally {
+      setRefineSending(false);
+    }
   };
 
   // --- Étape 1 (mode classe) : calcule les groupes A/B/C/D de la classe ---
@@ -407,6 +474,7 @@ export default function HelpChatbot(props: Props) {
     setApproach(null);
     setItems([]);
     setSent({});
+    setRefineMessages([]);
   };
 
   if (showHistory) {
@@ -653,6 +721,48 @@ export default function HelpChatbot(props: Props) {
                   </Card>
                 ))}
               </div>
+
+              {/* Chat libre borné : l'IA n'aide QUE sur les exercices/quiz ci-dessus
+                  (voir le prompt système de refine-teacher-content) — elle peut les
+                  enrichir, en retirer, ou corriger une réponse, mais refuse toute
+                  question hors de ce périmètre. */}
+              <div className="pl-2 pt-2 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                  <MessageSquare className="h-3.5 w-3.5" /> Discuter de ces exercices/quiz avec l'IA
+                </div>
+                {refineMessages.length > 0 && (
+                  <div ref={refineScrollRef} className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                    {refineMessages.map((m, i) => (
+                      m.role === "user" ? (
+                        <div key={i} className="flex gap-2 items-start justify-end">
+                          <div className="rounded-2xl rounded-tr-sm bg-primary text-primary-foreground px-4 py-2.5 text-sm max-w-[85%]">{m.content}</div>
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                            <User className="h-4 w-4 text-primary" />
+                          </div>
+                        </div>
+                      ) : (
+                        <Bubble key={i}>{m.content}</Bubble>
+                      )
+                    ))}
+                    {refineSending && (
+                      <Bubble><Loader2 className="h-4 w-4 animate-spin" /></Bubble>
+                    )}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <Input
+                    value={refineInput}
+                    onChange={(e) => setRefineInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendRefineMessage(); } }}
+                    placeholder="Ex : ajoute un exercice plus difficile sur cette leçon, corrige la réponse du 2e exercice…"
+                    disabled={refineSending}
+                  />
+                  <Button size="sm" onClick={sendRefineMessage} disabled={refineSending || !refineInput.trim()} className="gap-1 shrink-0">
+                    {refineSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+
               <div className="pl-2">
                 <Button size="sm" variant="ghost" onClick={restart}>Recommencer</Button>
               </div>
