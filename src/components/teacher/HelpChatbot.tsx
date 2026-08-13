@@ -106,6 +106,14 @@ export default function HelpChatbot(props: Props) {
   const [refineInput, setRefineInput] = useState("");
   const [refineSending, setRefineSending] = useState(false);
   const refineScrollRef = useRef<HTMLDivElement>(null);
+  // loadSession() appelle setSelectedGroup(...) pour restaurer l'état affiché
+  // (nom du groupe, etc.) — mais selectedGroup est aussi la dépendance de
+  // l'effet "Étape 2" ci-dessous (détection des lacunes), qui se relançait
+  // donc à chaque restauration d'historique et écrasait phase="results" par
+  // phase="selectLacunes" juste après. Ce ref laisse loadSession signaler à
+  // cet effet de s'ignorer une fois, sans changer sa logique pour le vrai
+  // flux (l'utilisateur qui clique sur un groupe à l'étape "selectGroup").
+  const skipNextLacunesDetectionRef = useRef(false);
 
   const selectedLessons = weak.filter((w) => selectedLessonIds.includes(w.lessonId));
   const targetStudentIds = mode === "class" ? (selectedGroup?.studentIds || []) : (studentId ? [studentId] : []);
@@ -135,6 +143,7 @@ export default function HelpChatbot(props: Props) {
    * la conversation avec l'IA plutôt que de retomber sur un instantané figé. */
   const loadSession = (session: TeacherContentSessionRow) => {
     const s = session.state || {};
+    skipNextLacunesDetectionRef.current = true;
     setSelectedGroup(s.selectedGroup || null);
     setWeak(s.weak || []);
     setSelectedLessonIds(s.selectedLessonIds || []);
@@ -238,6 +247,7 @@ export default function HelpChatbot(props: Props) {
 
   // --- Étape 2 : détection des lacunes pour la cible sélectionnée (groupe ou élève) ---
   useEffect(() => {
+    if (skipNextLacunesDetectionRef.current) { skipNextLacunesDetectionRef.current = false; return; }
     const ids = mode === "class" ? (selectedGroup?.studentIds || []) : (studentId ? [studentId] : []);
     if (mode === "class" && !selectedGroup) return;
     if (ids.length === 0) { setPhase("none"); return; }
