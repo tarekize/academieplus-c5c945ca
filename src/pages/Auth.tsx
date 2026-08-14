@@ -36,7 +36,6 @@ const Auth = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
-  const [referralCode, setReferralCode] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [registrationEmail, setRegistrationEmail] = useState("");
@@ -104,20 +103,7 @@ const Auth = () => {
   };
 
   useEffect(() => {
-    // Capturer le code de parrainage depuis l'URL
     const params = new URLSearchParams(window.location.search);
-    const refCode = params.get('ref');
-    if (refCode) {
-      setReferralCode(refCode);
-      // Stocker dans sessionStorage pour le conserver
-      sessionStorage.setItem('referralCode', refCode);
-    } else {
-      // Vérifier si on a un code en sessionStorage
-      const storedCode = sessionStorage.getItem('referralCode');
-      if (storedCode) {
-        setReferralCode(storedCode);
-      }
-    }
 
     const mode = params.get('mode');
     if (mode === 'signup') {

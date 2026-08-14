@@ -80,7 +80,6 @@ const PolitiqueConfidentialite = () => {
                       <li>Type et statut d'abonnement</li>
                       <li>Historique des paiements</li>
                       <li>Factures (conservées 10 ans - obligation légale)</li>
-                      <li>Codes de parrainage utilisés</li>
                     </ul>
                   </div>
 
@@ -106,7 +105,6 @@ const PolitiqueConfidentialite = () => {
                   <li><strong>Fourniture des services éducatifs</strong> : accès aux cours, examens, révisions</li>
                   <li><strong>Suivi pédagogique</strong> : analyse de la progression, recommandations personnalisées</li>
                   <li><strong>Facturation</strong> : gestion des abonnements, paiements, factures</li>
-                  <li><strong>Programme de parrainage</strong> : attribution et suivi des réductions</li>
                   <li><strong>Communication</strong> : notifications importantes, support client</li>
                   <li><strong>Amélioration des services</strong> : analyses statistiques anonymisées</li>
                   <li><strong>Sécurité</strong> : prévention des fraudes, protection des comptes</li>
