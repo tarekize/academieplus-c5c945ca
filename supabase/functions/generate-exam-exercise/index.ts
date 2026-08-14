@@ -97,11 +97,41 @@ const TEXT_WRAPPED_COMMANDS: Record<string, string> = {
 };
 function repairBrokenLatexArtifacts(s: string): string {
   let out = s;
+  out = repairBoxedConclusion(out);
   const infinityPattern = INFINITY_AR_TRANSLITERATIONS.join("|");
   out = out.replace(new RegExp(`\\\\text\\{\\$?(?:${infinityPattern})\\}`, "g"), "\\infty");
   out = out.replace(new RegExp(infinityPattern, "g"), "\\infty");
   out = out.replace(/\\text\{(lim|sin|cos|tan|ln|log|exp)\}/g, (_m, name: string) => TEXT_WRAPPED_COMMANDS[name]);
   return out;
+}
+
+// Répare le \boxed{...} de conclusion (imposé par le prompt en fin de
+// solution) quand l'IA y glisse un "$" parasite au milieu (ex. "f$'(x)=1"
+// au lieu de "f'(x)=1") : ce "$" isolé casse le comptage des délimiteurs
+// $...$/$$...$$ pour tout le reste de la chaîne côté client, donc KaTeX
+// n'arrive plus à faire correspondre l'ouverture/fermeture. Même correctif
+// que src/lib/mathStatement.ts (repairBoxedConclusion), dupliqué ici pour
+// nettoyer directement le contenu stocké en base.
+function repairBoxedConclusion(s: string): string {
+  const m = /\\?boxed\{/.exec(s);
+  if (!m) return s;
+  const openIdx = m.index;
+  const contentStart = openIdx + m[0].length;
+  let depth = 1;
+  let end = -1;
+  for (let i = contentStart; i < s.length; i++) {
+    if (s[i] === "{") depth++;
+    else if (s[i] === "}") {
+      depth--;
+      if (depth === 0) { end = i; break; }
+    }
+  }
+  if (end === -1) return s;
+
+  const inner = s.slice(contentStart, end).replace(/\$/g, "");
+  const before = s.slice(0, openIdx).replace(/\$+\s*$/, "");
+  const after = s.slice(end + 1).replace(/^\s*\\?\$+/, "");
+  return `${before}$$\\boxed{${inner}}$$${after}`;
 }
 
 // Convertit les "\n" littéraux en vrais sauts de ligne, trim, et répare les

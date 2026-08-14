@@ -199,6 +199,10 @@ export default function ExamViewer({
   );
   const [submitted, setSubmitted] = useState(!!initialSubmitted);
   const [showTimeUpDialog, setShowTimeUpDialog] = useState(false);
+  // Réponses correctes révélées à la demande (bouton "إظهار الإجابة") au
+  // lieu de s'afficher automatiquement dès qu'une question est fausse —
+  // clé "exIdx-subIdx", purement locale (pas besoin de persister ce choix).
+  const [revealedAnswers, setRevealedAnswers] = useState<Set<string>>(new Set());
   const exercisesExportRef = useRef<HTMLDivElement>(null);
 
   // Ne réinitialise PAS au montage (la progression restaurée serait
@@ -330,6 +334,14 @@ export default function ExamViewer({
   const checkSingleQuestion = (exIdx: number, subIdx: number) => {
     setStatus((prev) => prev.map((row, i) => (i === exIdx ? row.map((s, j) => (j === subIdx ? gradeQuestion(exIdx, subIdx) : s)) : row)));
   };
+
+  /** Révèle la réponse correcte d'une (sous-)question à la demande de
+   * l'élève (bouton "إظهار الإجابة"), au lieu de l'afficher automatiquement
+   * dès que la question est marquée fausse. */
+  const revealAnswer = (exIdx: number, subIdx: number) => {
+    setRevealedAnswers((prev) => new Set(prev).add(`${exIdx}-${subIdx}`));
+  };
+  const isAnswerRevealed = (exIdx: number, subIdx: number) => revealedAnswers.has(`${exIdx}-${subIdx}`);
 
   /** Soumission de l'examen par l'élève (bouton ou expiration du chrono) :
    * corrige toutes les questions d'un coup (vert+verrouillé / rouge+modifiable)
@@ -554,7 +566,13 @@ export default function ExamViewer({
                                 <Send className="h-3.5 w-3.5" /> تحقق من الإجابة
                               </Button>
                               {sq.expected_answer && (
-                                <p className="text-xs text-muted-foreground">الإجابة الصحيحة : <MathText text={sq.expected_answer} /></p>
+                                isAnswerRevealed(idx, j) ? (
+                                  <p className="text-xs text-muted-foreground">الإجابة الصحيحة : <MathText text={sq.expected_answer} /></p>
+                                ) : (
+                                  <Button size="sm" variant="ghost" className="gap-1.5 text-xs" onClick={() => revealAnswer(idx, j)}>
+                                    <Eye className="h-3.5 w-3.5" /> إظهار الإجابة
+                                  </Button>
+                                )
                               )}
                             </div>
                           )}
@@ -600,7 +618,13 @@ export default function ExamViewer({
                         </Button>
                       </>
                     )}
-                    <p className="text-sm">الإجابة الصحيحة : <MathText text={ex.answer} /></p>
+                    {isAnswerRevealed(idx, 0) ? (
+                      <p className="text-sm">الإجابة الصحيحة : <MathText text={ex.answer} /></p>
+                    ) : (
+                      <Button size="sm" variant="ghost" className="gap-1.5 text-xs" onClick={() => revealAnswer(idx, 0)}>
+                        <Eye className="h-3.5 w-3.5" /> إظهار الإجابة
+                      </Button>
+                    )}
                   </div>
                 )}
                 {mode === "student" && submitted && ex.solution && <SolutionBox solution={ex.solution} label="الحل التفصيلي" />}
