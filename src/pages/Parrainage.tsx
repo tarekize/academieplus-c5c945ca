@@ -3,18 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList } from "@/components/ui/breadcrumb";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Copy, Check, User as UserIcon, LogOut, GraduationCap, Users, Gift, TrendingUp, Wallet, Link as LinkIcon } from "lucide-react";
+import { Copy, Check, Users, TrendingUp, Wallet, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ReferralShareDialog } from "@/components/ReferralShareDialog";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 interface Profile {
   id: string;
@@ -84,34 +78,6 @@ const Parrainage = () => {
     }
   };
 
-  // Déconnecte l'utilisateur et retourne à l'accueil.
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
-  // Nom affiché dans le menu : prénom+nom si renseignés, sinon email, sinon
-  // "Utilisateur" si le profil n'est pas encore chargé.
-  const getFullName = () => {
-    if (!profile) return "Utilisateur";
-    const parts = [profile.first_name, profile.last_name].filter(Boolean);
-    return parts.length > 0 ? parts.join(" ") : profile.email;
-  };
-
-  // Traduit le code interne du niveau scolaire (ex: "3eme") en libellé lisible.
-  const getSchoolLevelName = (level: string) => {
-    const levels: Record<string, string> = {
-      "6eme": "6ème",
-      "5eme": "5ème",
-      "4eme": "4ème",
-      "3eme": "3ème",
-      "seconde": "Seconde",
-      "premiere": "Première",
-      "terminale": "Terminale",
-    };
-    return levels[level] || level;
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -122,49 +88,7 @@ const Parrainage = () => {
 
   return (
     <div className="min-h-screen pro-shell">
-      <header className="bg-background border-b sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/liste-matieres")}>
-            <GraduationCap className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold">AcadémiePlus</span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={profile?.avatar_url || undefined} />
-                    <AvatarFallback>
-                      <UserIcon className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="hidden md:block text-left">
-                    <p className="text-sm font-medium">{getFullName()}</p>
-                    {profile?.school_level && (
-                      <p className="text-xs text-muted-foreground">{getSchoolLevelName(profile.school_level)}</p>
-                    )}
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => navigate("/account")}>
-                  <UserIcon className="mr-2 h-4 w-4" />
-                  Gestion du compte
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/dashboard")}>
-                  <GraduationCap className="mr-2 h-4 w-4" />
-                  Tableau de bord
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Déconnexion
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <Breadcrumb className="mb-6">

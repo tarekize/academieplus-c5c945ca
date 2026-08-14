@@ -1,20 +1,11 @@
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, CreditCard, GraduationCap, LogOut, User as UserIcon, Shield, Lock, Clock, Landmark, Upload, FileImage, X as XIcon } from "lucide-react";
+import { ArrowLeft, CreditCard, Shield, Lock, Clock, Landmark, Upload, FileImage, X as XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -25,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatLocaleDate } from "@/lib/formatLocale";
 import { useTranslation } from "react-i18next";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 interface Profile {
   id: string;
@@ -116,24 +108,6 @@ const Paiement = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Formate le nom affiché dans l'en-tête à partir du profil chargé.
-  const getFullName = (p: Profile | null): string => {
-    if (!p) return t("abonnements.defaultUser");
-    const parts = [p.first_name, p.last_name].filter(Boolean);
-    return parts.length > 0 ? parts.join(" ") : t("abonnements.defaultUser");
-  };
-
-  // Traduit le code de niveau scolaire (ex: "3as") en libellé lisible.
-  const getSchoolLevelName = (level: string) => {
-    return t(`app.schoolLevels.${level}`, { defaultValue: level });
-  };
-
-  // Déconnecte l'utilisateur depuis le menu de l'en-tête et renvoie à l'accueil.
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
   };
 
   // Valide le fichier de reçu de virement choisi (type image + taille max
@@ -244,19 +218,8 @@ const Paiement = () => {
   if (!paymentInfo) {
     return (
       <div className="min-h-screen pro-shell">
-        <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/liste-matieres")}>
-                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                  <GraduationCap className="h-6 w-6 text-primary-foreground" />
-                </div>
-                <span className="text-xl font-bold text-foreground">AcadémiePlus</span>
-              </div>
-            </div>
-          </div>
-        </header>
-        <main className="pt-24 pb-12">
+        <AppHeader />
+        <main className="pt-8 pb-12">
           <div className="container mx-auto px-4 text-center">
             <h1 className="font-display text-3xl font-extrabold mb-4 text-foreground">{t("paiement.noPlanTitle")}</h1>
             <p className="text-muted-foreground mb-8">{t("paiement.noPlanDesc")}</p>
@@ -267,25 +230,12 @@ const Paiement = () => {
     );
   }
 
-  const fullName = getFullName(profile);
-
   if (paymentDone) {
     return (
       <div className="min-h-screen pro-shell">
-        <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/liste-matieres")}>
-                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                  <GraduationCap className="h-6 w-6 text-primary-foreground" />
-                </div>
-                <span className="text-xl font-bold text-foreground">AcadémiePlus</span>
-              </div>
-            </div>
-          </div>
-        </header>
+        <AppHeader />
 
-        <main className="pt-24 pb-12">
+        <main className="pt-8 pb-12">
           <div className="container mx-auto px-4 max-w-lg">
             <Card className="p-8 text-center">
               <Clock className="h-16 w-16 text-amber-500 mx-auto mb-4" />
@@ -315,44 +265,9 @@ const Paiement = () => {
 
   return (
     <div className="min-h-screen pro-shell">
-      {/* Navigation Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/liste-matieres")}>
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold text-foreground">AcadémiePlus</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <LanguageToggle />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/10 rounded-lg p-2 transition-colors">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback>{fullName.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className="text-left hidden md:block">
-                      <p className="text-sm font-medium text-foreground">{fullName}</p>
-                      <p className="text-xs text-muted-foreground">{profile?.school_level && getSchoolLevelName(profile.school_level)}</p>
-                    </div>
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/account")}><UserIcon className="mr-2 h-4 w-4" /><span>{t("app.manageAccount")}</span></DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")}><GraduationCap className="mr-2 h-4 w-4" /><span>{t("app.dashboard")}</span></DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" /><span>{t("app.logout")}</span></DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
-      <main className="pt-24 pb-12">
+      <main className="pt-8 pb-12">
         <div className="container mx-auto px-4">
           <Breadcrumb className="mb-6">
             <BreadcrumbList>

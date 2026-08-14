@@ -1,21 +1,12 @@
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, GraduationCap, LogOut, User as UserIcon, Copy, Key } from "lucide-react";
+import { ArrowLeft, Copy, Key } from "lucide-react";
 import ResiliationDialog from "@/components/ResiliationDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import Pricing from "@/components/Pricing";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -27,6 +18,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatLocaleDate } from "@/lib/formatLocale";
 import { useTranslation } from "react-i18next";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 interface Profile {
   id: string;
@@ -128,24 +120,6 @@ const Abonnements = () => {
     }
   };
 
-  // Formate le nom affiché dans l'en-tête.
-  const getFullName = (p: Profile | null): string => {
-    if (!p) return t("abonnements.defaultUser");
-    const parts = [p.first_name, p.last_name].filter(Boolean);
-    return parts.length > 0 ? parts.join(" ") : t("abonnements.defaultUser");
-  };
-
-  // Traduit le code de niveau scolaire en libellé lisible.
-  const getSchoolLevelName = (level: string) => {
-    return t(`app.schoolLevels.${level}`, { defaultValue: level });
-  };
-
-  // Déconnecte l'utilisateur depuis le menu de l'en-tête.
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
   // Copie un code d'activation dans le presse-papiers (bouton "Copier" du
   // tableau des codes) pour que le parent puisse le transmettre à l'enfant.
   const copyCode = (code: string) => {
@@ -174,47 +148,11 @@ const Abonnements = () => {
     );
   }
 
-  const fullName = getFullName(profile);
-
   return (
     <div className="min-h-screen pro-shell">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/liste-matieres")}>
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <span className="font-display text-xl font-extrabold">AcadémiePlus</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <LanguageToggle />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/10 rounded-lg p-2 transition-colors">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback>{fullName.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className="text-left hidden md:block">
-                      <p className="text-sm font-medium">{fullName}</p>
-                      <p className="text-xs text-muted-foreground">{profile?.school_level && getSchoolLevelName(profile.school_level)}</p>
-                    </div>
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/account")}><UserIcon className="mr-2 h-4 w-4" /><span>{t("app.manageAccount")}</span></DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")}><GraduationCap className="mr-2 h-4 w-4" /><span>{t("app.dashboard")}</span></DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" /><span>{t("app.logout")}</span></DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
-      <main className="pt-20">
+      <main>
         <div className="container mx-auto px-4 pt-8">
           <Breadcrumb className="mb-6">
             <BreadcrumbList>
