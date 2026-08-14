@@ -65,7 +65,7 @@ export function MathText({ text }: { text: string }) {
 
 /** Bloc dépliant pour la solution détaillée, avec un rendu (HtmlWithMath)
  * qui gère aussi bien le LaTeX brut que le HTML structuré généré par l'IA. */
-function SolutionBox({ solution }: { solution: string }) {
+function SolutionBox({ solution, label = "Solution détaillée" }: { solution: string; label?: string }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="rounded-xl border border-primary/15 bg-gradient-to-br from-primary/5 to-transparent overflow-hidden">
@@ -74,7 +74,7 @@ function SolutionBox({ solution }: { solution: string }) {
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-sm font-semibold text-primary hover:bg-primary/5 transition-colors"
       >
-        <span className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> Solution détaillée</span>
+        <span className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> {label}</span>
         <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
       </button>
       {open && (
@@ -356,14 +356,18 @@ export default function ExamViewer({
   };
 
   if (exercises.length === 0) {
-    return <p className="text-sm text-muted-foreground text-center py-8">Aucun exercice pour le moment.</p>;
+    return (
+      <p className="text-sm text-muted-foreground text-center py-8">
+        {mode === "student" ? "لا يوجد أي تمرين حالياً." : "Aucun exercice pour le moment."}
+      </p>
+    );
   }
 
   return (
     <div className="space-y-4">
       {examTitle && (
         <div className="flex justify-end">
-          <ExportPDFButton targetRef={exercisesExportRef} title={examTitle} />
+          <ExportPDFButton targetRef={exercisesExportRef} title={examTitle} label={mode === "student" ? "تصدير PDF" : undefined} />
         </div>
       )}
       {mode === "student" && durationMinutes ? (
@@ -410,7 +414,7 @@ export default function ExamViewer({
                 <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold">
                   {idx + 1}
                 </span>
-                Exercice {idx + 1}
+                {mode === "student" ? `تمرين ${idx + 1}` : `Exercice ${idx + 1}`}
                 {ex.chapter_title && <span className="text-xs font-normal text-muted-foreground">— {ex.chapter_title}</span>}
               </span>
               {mode === "edit" && (
@@ -599,7 +603,7 @@ export default function ExamViewer({
                     <p className="text-sm">الإجابة الصحيحة : <MathText text={ex.answer} /></p>
                   </div>
                 )}
-                {mode === "student" && submitted && ex.solution && <SolutionBox solution={ex.solution} />}
+                {mode === "student" && submitted && ex.solution && <SolutionBox solution={ex.solution} label="الحل التفصيلي" />}
               </div>
             )}
           </div>
