@@ -70,6 +70,13 @@ export function cleanMathStatement(raw: string): string {
   if (!raw) return "";
   let s = raw;
 
+  // Un contenu ré-encodé en JSON par erreur en amont (ex. import/génération)
+  // laisse parfois des "\n" littéraux (backslash + n, pas un vrai saut de
+  // ligne) dans le texte stocké — affichés tels quels au lieu d'un retour à
+  // la ligne. Lookahead négatif pour ne pas casser \nabla (qui commence
+  // aussi par "\n" mais suivi d'une lettre).
+  s = s.replace(/\\n(?![a-zA-Z])/g, "\n");
+
   s = repairBrokenLatexArtifacts(s);
 
   // Convert escaped \$ into real $ delimiters

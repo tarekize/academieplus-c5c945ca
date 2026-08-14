@@ -25,6 +25,10 @@ export const MarkdownSolution = ({ content, title = "الحل المفصل", com
   // - Replace \boxed{X} (or broken "oxed{X}" / "\x08oxed{X}") with a clean highlighted answer
   //   instead of relying on KaTeX rendering (which often fails outside math delimiters).
   let cleaned = (content || "")
+    // Un contenu ré-encodé en JSON par erreur en amont laisse parfois des
+    // "\n" littéraux (texte, pas un vrai saut de ligne) — sans ça, markdown
+    // ne les interprète jamais comme des paragraphes/retours à la ligne.
+    .replace(/\\n(?![a-zA-Z])/g, "\n")
     // Strip math delimiters around boxed so we render it as plain markdown
     .replace(/\$\$\s*\\?boxed\{([^{}]+)\}\s*\$\$/g, "\n\n> ## ✅ **$1**\n\n")
     .replace(/\$\s*\\?boxed\{([^{}]+)\}\s*\$/g, "**$1**")

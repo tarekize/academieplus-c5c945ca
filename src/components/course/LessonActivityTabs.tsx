@@ -1182,7 +1182,8 @@ const DifficultyIndicator = ({ level }: { level?: number }) => {
 // Carte affichée dans le mode "réponses correctes" (bascule showCorrectOnly)
 // pour un QCM déjà réussi : révèle la bonne réponse/explication à la demande.
 function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; index: number }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
   const [showAnswer, setShowAnswer] = useState(false);
   const [correctAnswer, setCorrectAnswer] = useState<string | null>(question.correct_answer || null);
   const [explanation, setExplanation] = useState<string | null>(question.explanation || null);
@@ -1212,10 +1213,10 @@ function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; inde
     <Card className="border-green-500/50 bg-green-500/5 transition-all hover:bg-green-500/10">
       <CardContent className="p-4 space-y-2">
         <div className="flex justify-between items-start">
-          <p className="font-medium flex-1 text-right" dir="rtl">
-            <span className="font-bold text-muted-foreground ml-2">{index + 1}.</span>
-            {question.question}
-          </p>
+          <div className="font-medium flex-1 flex gap-2" dir={lang === "fr" ? "ltr" : "rtl"}>
+            <span className="font-bold text-muted-foreground shrink-0">{index + 1}.</span>
+            <HtmlWithMath htmlContent={cleanMathStatement(question.question)} className="flex-1 text-right" />
+          </div>
           <DifficultyIndicator level={question.difficulty} />
         </div>
         <div className="flex items-center gap-2 justify-end">
@@ -1230,14 +1231,14 @@ function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; inde
             <div className="p-3 rounded border border-green-200 dark:border-green-700 text-sm bg-green-500/10 text-green-800 dark:text-green-300 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" />
               <span className="font-medium">{t("lessonActivity.theCorrectAnswerLabel")} </span>
-              {correctAnswer ? <HtmlWithMath htmlContent={correctAnswer} dir="rtl" /> : "—"}
+              {correctAnswer ? <HtmlWithMath htmlContent={cleanMathStatement(correctAnswer)} dir={lang === "fr" ? "ltr" : "rtl"} /> : "—"}
             </div>
             {explanation && (
               <div className="bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
                 <p className="font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
                   <BookOpen className="h-4 w-4" /> {t("lessonActivity.explanationLabel")}
                 </p>
-                <HtmlWithMath htmlContent={explanation} dir="rtl" />
+                <HtmlWithMath htmlContent={cleanMathStatement(explanation)} dir={lang === "fr" ? "ltr" : "rtl"} />
               </div>
             )}
           </div>
@@ -1249,7 +1250,8 @@ function CompletedQuizCard({ question, index }: { question: DBQuizQuestion; inde
 
 // Équivalent de CompletedQuizCard pour un exercice déjà réussi.
 function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; index: number }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
   const [showSolution, setShowSolution] = useState(false);
   const [expectedAnswer, setExpectedAnswer] = useState<string | null>(exercise.expected_answer || null);
   const [solution, setSolution] = useState<string | null>(exercise.solution || null);
@@ -1276,10 +1278,10 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
     <Card className="border-green-500/50 bg-green-500/5 transition-all hover:bg-green-500/10">
       <CardContent className="p-4 space-y-2">
         <div className="flex justify-between items-start">
-          <h4 className="font-semibold flex-1 text-right" dir="rtl">{index + 1}. {exercise.title}</h4>
+          <h4 className="font-semibold flex-1 text-right" dir={lang === "fr" ? "ltr" : "rtl"}><HtmlWithMath htmlContent={cleanMathStatement(`${index + 1}. ${exercise.title}`)} className="inline" /></h4>
           <DifficultyIndicator level={exercise.difficulty} />
         </div>
-        <HtmlWithMath htmlContent={cleanMathStatement(exercise.statement)} className="text-sm border-t pt-2 text-right" dir="rtl" />
+        <HtmlWithMath htmlContent={cleanMathStatement(exercise.statement)} className="text-sm border-t pt-2 text-right" dir={lang === "fr" ? "ltr" : "rtl"} />
 
         <div className="flex items-center gap-2 justify-end">
           <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -1290,8 +1292,8 @@ function CompletedExerciseCard({ exercise, index }: { exercise: DBExercise; inde
         </Button>
         {showSolution && (
           <div className="space-y-2">
-            <div className="p-3 bg-muted/50 rounded-lg text-sm"><span className="font-medium">{t("exercisePlayer.theAnswerLabel")} </span><span dir="rtl">{expectedAnswer || "—"}</span></div>
-            {solution && <MarkdownSolution content={solution} compact />}
+            <div className="p-3 bg-muted/50 rounded-lg text-sm"><span className="font-medium">{t("exercisePlayer.theAnswerLabel")} </span>{expectedAnswer ? <HtmlWithMath htmlContent={cleanMathStatement(expectedAnswer)} className="inline" dir={lang === "fr" ? "ltr" : "rtl"} /> : "—"}</div>
+            {solution && <MarkdownSolution content={solution} compact dir={lang === "fr" ? "ltr" : "rtl"} />}
           </div>
         )}
       </CardContent>

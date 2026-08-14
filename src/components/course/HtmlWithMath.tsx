@@ -27,6 +27,12 @@ function escapeHtml(value: string) {
 function preprocessMathContent(raw: string) {
   let content = raw || "";
 
+  // Un contenu ré-encodé en JSON par erreur en amont laisse parfois des "\n"
+  // littéraux (backslash + n texte, pas un vrai saut de ligne) au lieu d'un
+  // retour à la ligne — affichés tels quels sans passer par la conversion en
+  // <br/> ci-dessous. Lookahead négatif pour ne pas casser \nabla.
+  content = content.replace(/\\n(?![a-zA-Z])/g, "\n");
+
   // Remove \boxed{...} or actual backspace \x08oxed{...} and keep inner content
   content = content.replace(/\\boxed\{([^{}]+)\}/g, "$1");
   content = content.replace(/\x08oxed\{([^{}]+)\}/g, "$1");
