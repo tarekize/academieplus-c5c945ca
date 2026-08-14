@@ -20,7 +20,7 @@ import { Calendar as CalendarWidget } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  ArrowLeft, FileText, Send, Loader2, Ban, Search, Pencil, CalendarIcon, Upload, Download, X,
+  ArrowLeft, FileText, Loader2, Ban, Search, Pencil, CalendarIcon, Upload, Download, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -98,7 +98,6 @@ export default function AdminContrats() {
   const [studentSubMap, setStudentSubMap] = useState<Record<string, StudentSubStatus>>({});
   const [lastReminderMap, setLastReminderMap] = useState<Record<string, string>>({});
   const [addDaysInput, setAddDaysInput] = useState<Record<string, string>>({});
-  const [sendingReminder, setSendingReminder] = useState<string | null>(null);
   const [savingRow, setSavingRow] = useState<string | null>(null);
   const [editingEtab, setEditingEtab] = useState<ContratRow | null>(null);
 
@@ -185,12 +184,10 @@ export default function AdminContrats() {
   };
 
   // Charge la date du dernier rappel de renouvellement envoyé à chaque
-  // utilisateur, pour l'afficher dans les tables. Fusionne deux sources :
-  // renewal_reminders_log (bouton "Rappel" manuel) et
-  // automatic_notification_log (modèles automatiques envoyés par
-  // process-automatic-notifications) — sans cette fusion, "Dernier rappel"
-  // resterait vide pour tout élève n'ayant jamais reçu de rappel manuel
-  // alors qu'un rappel automatique vient de partir.
+  // utilisateur, pour l'afficher dans les tables. Fusionne l'historique des
+  // rappels manuels ponctuellement envoyés par le passé (renewal_reminders_log)
+  // avec les rappels automatiques envoyés par process-automatic-notifications
+  // (automatic_notification_log, configurés depuis /admin/notifications).
   const fetchReminderLog = async () => {
     const [{ data: manual }, { data: automatic }] = await Promise.all([
       supabase.from("renewal_reminders_log" as any).select("target_user_id, created_at"),
@@ -268,31 +265,6 @@ export default function AdminContrats() {
       await fetchStudentSubscriptions();
     }
     setSavingRow(null);
-  };
-
-  // Envoie manuellement un rappel de renouvellement à un établissement ou un
-  // élève (bouton "Rappel"), via l'edge function send-renewal-reminder qui
-  // doit vérifier côté serveur que l'appelant est admin.
-  const handleSendReminder = async (userId: string) => {
-    setSendingReminder(userId);
-    const { error } = await supabase.functions.invoke("send-renewal-reminder", { body: { userId } });
-    if (error) {
-      let message = error.message || "Échec de l'envoi du rappel";
-      const context = (error as { context?: Response }).context;
-      if (context) {
-        try {
-          const body = await context.clone().json();
-          if (body?.error) message = body.error;
-        } catch {
-          // response body wasn't JSON, keep the default message
-        }
-      }
-      toast.error(message);
-    } else {
-      toast.success("Rappel envoyé");
-    }
-    setSendingReminder(null);
-    fetchReminderLog();
   };
 
   const getFullName = (r: ContratRow) => [r.first_name, r.last_name].filter(Boolean).join(" ") || "Sans nom";
@@ -490,20 +462,6 @@ export default function AdminContrats() {
                                   <Pencil className="h-3.5 w-3.5" />
                                   Contrat
                                 </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="gap-2"
-                                  disabled={sendingReminder === row.id}
-                                  onClick={() => handleSendReminder(row.id)}
-                                >
-                                  {sendingReminder === row.id ? (
-                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                  ) : (
-                                    <Send className="h-3.5 w-3.5" />
-                                  )}
-                                  Rappel
-                                </Button>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -578,10 +536,8 @@ export default function AdminContrats() {
               addDaysInput={addDaysInput}
               setAddDaysInput={setAddDaysInput}
               savingRow={savingRow}
-              sendingReminder={sendingReminder}
               onAddDays={handleAddDays}
               onDeactivate={handleDeactivateSubscription}
-              onSendReminder={handleSendReminder}
             />
           </TabsContent>
         </Tabs>
@@ -600,10 +556,8 @@ function ContratTable({
   addDaysInput,
   setAddDaysInput,
   savingRow,
-  sendingReminder,
   onAddDays,
   onDeactivate,
-  onSendReminder,
 }: {
   rows: ContratRow[];
   studentSubMap: Record<string, StudentSubStatus>;
@@ -614,10 +568,8 @@ function ContratTable({
   addDaysInput: Record<string, string>;
   setAddDaysInput: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   savingRow: string | null;
-  sendingReminder: string | null;
   onAddDays: (row: ContratRow) => void;
   onDeactivate: (userId: string) => void;
-  onSendReminder: (userId: string) => void;
 }) {
   const formatDate = (iso: string | null) => iso ? format(new Date(iso), "dd MMM yyyy", { locale: fr }) : "—";
   return (
@@ -693,20 +645,6 @@ function ContratTable({
                     <TableCell>{renderLastReminder(row.id)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-2"
-                          disabled={sendingReminder === row.id}
-                          onClick={() => onSendReminder(row.id)}
-                        >
-                          {sendingReminder === row.id ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            <Send className="h-3.5 w-3.5" />
-                          )}
-                          Rappel
-                        </Button>
                         <Button
                           variant="destructive"
                           size="sm"
