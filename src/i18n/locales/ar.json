@@ -894,7 +894,7 @@
     "email": "البريد الإلكتروني",
     "emailNotEditable": "لا يمكن تعديل البريد الإلكتروني من هذه الصفحة.",
     "phone": "الهاتف",
-    "phonePlaceholder": "05 XX XX XX XX",
+    "phonePlaceholder": "0555123456",
     "dateOfBirth": "تاريخ الميلاد",
     "selectDate": "اختر تاريخًا",
     "locationTitle": "الموقع",

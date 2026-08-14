@@ -181,7 +181,7 @@ export default function TeacherProfile({ onBack }: { onBack: () => void }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="phone">Téléphone</Label>
-              <Input id="phone" type="tel" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
+              <Input id="phone" type="tel" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value.replace(/\D/g, "").slice(0, 10) }))} maxLength={10} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="subject">Matière</Label>

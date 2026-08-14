@@ -870,9 +870,10 @@ const Auth = () => {
 
                       <Input
                         type="tel"
-                        placeholder="Numéro de téléphone (ex: 0555 123 456)"
+                        placeholder="Numéro de téléphone (ex: 0555123456)"
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                        maxLength={10}
                         className="bg-secondary/20 border-border"
                       />
 

@@ -414,9 +414,10 @@ const MesInformations = () => {
                         inputMode="tel"
                         value={formData.phone}
                         onChange={(e) => {
-                          const filtered = e.target.value.replace(/[^\d\s+.\-]/g, "");
+                          const filtered = e.target.value.replace(/\D/g, "").slice(0, 10);
                           setFormData((prev) => ({ ...prev, phone: filtered }));
                         }}
+                        maxLength={10}
                         placeholder={t("mesInformations.phonePlaceholder")}
                         className="rounded-xl"
                       />

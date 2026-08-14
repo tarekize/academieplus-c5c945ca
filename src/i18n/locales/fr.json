@@ -888,7 +888,7 @@
     "email": "Email",
     "emailNotEditable": "L'adresse email n'est pas modifiable depuis cette page.",
     "phone": "Téléphone",
-    "phonePlaceholder": "05 XX XX XX XX",
+    "phonePlaceholder": "0555123456",
     "dateOfBirth": "Date de naissance",
     "selectDate": "Sélectionnez une date",
     "locationTitle": "Localisation",

@@ -389,9 +389,11 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
                       <Label htmlFor="phone">Téléphone</Label>
                       <Input
                         id="phone"
+                        type="tel"
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="Numéro de téléphone"
+                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                        maxLength={10}
+                        placeholder="0555123456"
                       />
                     </div>
                     <div className="space-y-2">

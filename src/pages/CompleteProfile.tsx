@@ -275,7 +275,7 @@ const CompleteProfile = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label htmlFor="phone">Téléphone</Label>
-                    <Input id="phone" type="tel" placeholder="0555 123 456" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-secondary/20 border-border" />
+                    <Input id="phone" type="tel" placeholder="0555123456" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} maxLength={10} className="bg-secondary/20 border-border" />
                   </div>
                   <div className="space-y-2">
                     <Label>Date de naissance</Label>
