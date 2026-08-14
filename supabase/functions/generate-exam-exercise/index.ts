@@ -84,9 +84,30 @@ function fixJsonStringEscapes(input: string): string {
   return out;
 }
 
-// Convertit les "\n" littéraux en vrais sauts de ligne et trim.
+// L'IA écrit occasionnellement ∞ comme le mot arabe translittéré
+// phonétiquement ("إنفينيتي") au lieu de la macro LaTeX \infty, le plus
+// souvent imbriqué dans un \text{$...} invalide (ex. "\text{lim}_{x \to
+// +\text{$إنفينيتي}}" au lieu de "\lim_{x \to +\infty}") — ce qui casse le
+// rendu KaTeX de toute la formule englobante côté élève. Même correctif que
+// src/lib/mathStatement.ts (repairBrokenLatexArtifacts), dupliqué ici pour
+// nettoyer directement le contenu stocké en base.
+const INFINITY_AR_TRANSLITERATIONS = ["إنفينيتي", "انفينيتي", "إنفينتي", "انفينتي"];
+const TEXT_WRAPPED_COMMANDS: Record<string, string> = {
+  lim: "\\lim", sin: "\\sin", cos: "\\cos", tan: "\\tan", ln: "\\ln", log: "\\log", exp: "\\exp",
+};
+function repairBrokenLatexArtifacts(s: string): string {
+  let out = s;
+  const infinityPattern = INFINITY_AR_TRANSLITERATIONS.join("|");
+  out = out.replace(new RegExp(`\\\\text\\{\\$?(?:${infinityPattern})\\}`, "g"), "\\infty");
+  out = out.replace(new RegExp(infinityPattern, "g"), "\\infty");
+  out = out.replace(/\\text\{(lim|sin|cos|tan|ln|log|exp)\}/g, (_m, name: string) => TEXT_WRAPPED_COMMANDS[name]);
+  return out;
+}
+
+// Convertit les "\n" littéraux en vrais sauts de ligne, trim, et répare les
+// artefacts LaTeX les plus courants (voir repairBrokenLatexArtifacts).
 function normalizeText(value: string | null | undefined): string {
-  return (value || "").replace(/\\n/g, "\n").trim();
+  return repairBrokenLatexArtifacts((value || "").replace(/\\n/g, "\n").trim());
 }
 
 // Nettoie puis parse le JSON généré, en appliquant systématiquement le
