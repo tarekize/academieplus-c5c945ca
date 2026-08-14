@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { formatCurrencyDA } from "@/lib/formatLocale";
 
 interface PricingPlan {
   id: string;
@@ -28,9 +29,16 @@ const FALLBACK_PLANS: PricingPlan[] = [
   { id: 'monthly', name: 'Formule Mensuelle', billing_period: 'monthly', total_single: 2000, total_family: 3500 },
 ];
 
+interface PricingProps {
+  /** Masque le choix "1 enfant / Famille" et force le tarif solo — utilisé
+   * dans l'espace élève (Abonnements.tsx), où le compte ne gère qu'un seul
+   * enfant. La page d'accueil (Index.tsx) garde les deux options. */
+  singleChildOnly?: boolean;
+}
+
 // Section vitrine des formules d'abonnement (tarifs chargés depuis subscription_config,
 // avec repli statique si la base est indisponible) — voir FALLBACK_PLANS ci-dessus.
-const Pricing = () => {
+const Pricing = ({ singleChildOnly = false }: PricingProps) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -98,16 +106,16 @@ const Pricing = () => {
 
   const displayPlans = [
     {
-      name: annualPlan?.name || t("pricing.fallbackAnnualName"),
-      price: annualPlan ? `${getTotalPrice(annualPlan).toLocaleString('fr-FR')} DA` : '---',
+      name: t("pricing.fallbackAnnualName"),
+      price: annualPlan ? formatCurrencyDA(getTotalPrice(annualPlan)) : '---',
       description: t("pricing.annualDescription", { period: periodLabel || t("pricing.fallbackPeriod") }),
       features,
       highlighted: true,
       planData: annualPlan,
     },
     {
-      name: monthlyPlan?.name || t("pricing.fallbackMonthlyName"),
-      price: monthlyPlan ? `${getTotalPrice(monthlyPlan).toLocaleString('fr-FR')} DA` : '---',
+      name: t("pricing.fallbackMonthlyName"),
+      price: monthlyPlan ? formatCurrencyDA(getTotalPrice(monthlyPlan)) : '---',
       description: t("pricing.monthlyDescription"),
       features,
       highlighted: false,
@@ -128,25 +136,27 @@ const Pricing = () => {
         </div>
 
         {/* Switch pour 1 enfant vs Famille */}
-        <div className="flex items-center justify-center gap-4 mb-12">
-          <Label
-            htmlFor="family-switch"
-            className={`text-lg font-semibold cursor-pointer transition-colors ${!isFamily ? 'text-primary' : 'text-muted-foreground'}`}
-          >
-            {t("pricing.switchOneChild")}
-          </Label>
-          <Switch
-            id="family-switch"
-            checked={isFamily}
-            onCheckedChange={setIsFamily}
-          />
-          <Label
-            htmlFor="family-switch"
-            className={`text-lg font-semibold cursor-pointer transition-colors ${isFamily ? 'text-primary' : 'text-muted-foreground'}`}
-          >
-            {t("pricing.switchFamily")}
-          </Label>
-        </div>
+        {!singleChildOnly && (
+          <div className="flex items-center justify-center gap-4 mb-12">
+            <Label
+              htmlFor="family-switch"
+              className={`text-lg font-semibold cursor-pointer transition-colors ${!isFamily ? 'text-primary' : 'text-muted-foreground'}`}
+            >
+              {t("pricing.switchOneChild")}
+            </Label>
+            <Switch
+              id="family-switch"
+              checked={isFamily}
+              onCheckedChange={setIsFamily}
+            />
+            <Label
+              htmlFor="family-switch"
+              className={`text-lg font-semibold cursor-pointer transition-colors ${isFamily ? 'text-primary' : 'text-muted-foreground'}`}
+            >
+              {t("pricing.switchFamily")}
+            </Label>
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {displayPlans.map((plan, index) => (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, CreditCard, Shield, Lock, Clock, Landmark, Upload, FileImage, X as XIcon } from "lucide-react";
+import { ArrowLeft, CreditCard, Shield, Lock, Clock, Landmark, Upload, FileImage, X as XIcon, CheckCircle2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { formatLocaleDate } from "@/lib/formatLocale";
+import { formatLocaleDate, formatCurrencyDA } from "@/lib/formatLocale";
 import { useTranslation } from "react-i18next";
 import { AppHeader } from "@/components/layout/AppHeader";
 
@@ -57,6 +57,8 @@ const Paiement = () => {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [paymentDone, setPaymentDone] = useState(false);
+  const [instantCodes, setInstantCodes] = useState<string[] | null>(null);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [cardNumber, setCardNumber] = useState("");
   const [secretCode, setSecretCode] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"card" | "bank_transfer">("card");
@@ -173,7 +175,14 @@ const Paiement = () => {
       if (data?.error) throw new Error(data.error);
 
       setPaymentDone(true);
-      toast.success(t("paiement.paymentPendingToast"), { description: t("paiement.paymentPendingDesc") });
+      if (data?.status === 'completed' && Array.isArray(data.codes) && data.codes.length > 0) {
+        setInstantCodes(data.codes);
+        toast.success(t("paiement.paymentSuccessTitle"), {
+          description: data.codes.length > 1 ? t("paiement.successMessageMultiple") : t("paiement.successMessageSingle"),
+        });
+      } else {
+        toast.success(t("paiement.paymentPendingToast"), { description: t("paiement.paymentPendingDesc") });
+      }
     } catch (err: any) {
       toast.error(t("account.errorTitle"), { description: err.message });
     } finally {
@@ -231,6 +240,51 @@ const Paiement = () => {
   }
 
   if (paymentDone) {
+    if (instantCodes) {
+      const handleCopy = (code: string) => {
+        navigator.clipboard.writeText(code);
+        setCopiedCode(code);
+        setTimeout(() => setCopiedCode(null), 2000);
+      };
+      return (
+        <div className="min-h-screen pro-shell">
+          <AppHeader />
+
+          <main className="pt-8 pb-12">
+            <div className="container mx-auto px-4 max-w-lg">
+              <Card className="p-8 text-center">
+                <CheckCircle2 className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
+                <h1 className="text-2xl font-bold text-foreground mb-2">{t("paiement.paymentSuccessTitle")}</h1>
+                <p className="text-muted-foreground mb-6">
+                  {instantCodes.length > 1 ? t("paiement.successMessageMultiple") : t("paiement.successMessageSingle")}
+                </p>
+
+                <div className="space-y-2 mb-6">
+                  {instantCodes.map((code) => (
+                    <div key={code} className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                      <code className="text-lg font-mono font-bold flex-1 text-left">{code}</code>
+                      <Button size="sm" variant="outline" onClick={() => handleCopy(code)}>
+                        {copiedCode === code ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-3">
+                  <Button variant="outline" className="flex-1" onClick={() => navigate("/factures")}>
+                    {t("paiement.myCodes")}
+                  </Button>
+                  <Button className="flex-1" onClick={() => navigate("/account")}>
+                    {t("account.pageTitle")}
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          </main>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen pro-shell">
         <AppHeader />
@@ -434,7 +488,7 @@ const Paiement = () => {
                   <h3 className="text-xl font-bold text-foreground">{t("paiement.tariffTitle")}</h3>
                   <div className="text-right">
                     <span className="text-3xl font-bold text-primary">
-                      {billing ? billing.monthlyPrice.toLocaleString('fr-DZ') : '---'} DA
+                      {billing ? formatCurrencyDA(billing.monthlyPrice) : '---'}
                     </span>
                     <span className="text-muted-foreground text-sm"> {t("paiement.perMonth")}</span>
                   </div>
@@ -445,7 +499,7 @@ const Paiement = () => {
                     <h4 className="font-bold text-foreground mb-1">{t("paiement.billingLabel")}</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       {t("paiement.immediateDebit")}{" "}
-                      <span className="font-semibold text-foreground">{paymentInfo.price.toLocaleString('fr-DZ')} DA</span>
+                      <span className="font-semibold text-foreground">{formatCurrencyDA(paymentInfo.price)}</span>
                       {" "}
                       {billing?.isAnnual
                         ? t("paiement.forPeriodAnnual", { months: billing.months, start: billing.startDate, end: billing.endDate })

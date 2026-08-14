@@ -21,3 +21,11 @@ export function formatLocaleDateTime(date: Date | string, options?: Intl.DateTim
 export function formatLocaleNumber(value: number, options?: Intl.NumberFormatOptions): string {
   return value.toLocaleString(getIntlLocale(), options);
 }
+
+/** Formate un montant en dinars algériens avec le symbole dans la langue active
+ * ("DA" en français, "دج" en arabe) — chiffres toujours latins, comme le reste
+ * de l'app (cf. getIntlLocale). */
+export function formatCurrencyDA(value: number): string {
+  const amount = formatLocaleNumber(value);
+  return i18n.language === "ar" ? `${amount} دج` : `${amount} DA`;
+}

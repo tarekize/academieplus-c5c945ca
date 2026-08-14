@@ -285,7 +285,7 @@ const Abonnements = () => {
           )}
         </div>
 
-        <Pricing />
+        <Pricing singleChildOnly />
       </main>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -7,10 +8,11 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Download, Eye, Trash2, AlertTriangle, FileText, Shield } from "lucide-react";
+import { Download, Eye, Trash2, AlertTriangle, FileText, Shield, ArrowLeft } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList } from "@/components/ui/breadcrumb";
 
 const cardVariants = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } };
 
@@ -31,6 +33,7 @@ interface ActivityLogEntry {
 
 const MesDonneesPersonnelles = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [activityLogs, setActivityLogs] = useState<ActivityLogEntry[]>([]);
@@ -155,6 +158,17 @@ const MesDonneesPersonnelles = () => {
 
       <main className="flex-1 bg-gradient-to-br from-background via-accent/10 to-background py-16">
         <div className="container mx-auto px-4 max-w-6xl">
+          <Breadcrumb className="mb-6">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink onClick={() => navigate("/account")} className="cursor-pointer flex items-center gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  {t("factures.backToAccount")}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}

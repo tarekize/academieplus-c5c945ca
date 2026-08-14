@@ -8,9 +8,11 @@ const corsHeaders = {
 // Point d'entrée appelé par Paiement.tsx (handlePayment) quand un utilisateur
 // authentifié valide un paiement (carte factice ou virement avec reçu). Ne
 // fait jamais confiance au prix côté client : recalcule le montant à partir
-// de `subscription_config` et insère toujours le paiement en statut
-// 'pending'. Seul admin_approve_payment (RPC, appelé depuis AdminPaiements)
-// peut le faire passer à 'completed' et émettre les codes d'activation.
+// de `subscription_config`. Paiement par carte : activé instantanément (voir
+// complete_card_payment plus bas). Paiement par virement : reste en statut
+// 'pending', seul admin_approve_payment (RPC, appelé depuis AdminPaiements)
+// peut le faire passer à 'completed' et émettre les codes d'activation, après
+// vérification humaine du reçu.
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -121,14 +123,18 @@ Deno.serve(async (req) => {
     const periodId = periods && periods.length > 0 ? periods[0].id : null
 
     // Aucune passerelle de paiement réelle (CIB/EDAHABIA/Chargily...) n'est
-    // intégrée : le formulaire carte côté client est purement visuel, rien
-    // n'est débité. Le paiement entre donc en statut 'pending' (valeur par
-    // défaut de la colonne, cf. migration payment_requires_admin_approval) —
-    // seul un admin qui a vérifié le virement/paiement réel peut le faire
-    // passer à 'completed' via le RPC admin_approve_payment, qui émet alors
-    // les codes d'activation. Émettre les codes ici, avant toute vérification
-    // humaine, permettait à n'importe quel compte authentifié d'obtenir des
-    // codes d'activation valides sans jamais payer.
+    // intégrée pour l'instant : le formulaire carte côté client est purement
+    // visuel, rien n'est débité. Le paiement entre donc toujours en statut
+    // 'pending' à l'insertion (valeur par défaut de la colonne, cf. migration
+    // payment_requires_admin_approval) — pour un virement, seul un admin qui a
+    // vérifié le reçu peut le faire passer à 'completed' via admin_approve_payment.
+    // Pour une carte, à la demande explicite du client (environnement de test,
+    // pas de vrai paiement en jeu), on appelle immédiatement ci-dessous
+    // complete_card_payment — même effet que l'approbation admin (statut
+    // 'completed' + émission des codes), mais automatique. Cette fonction
+    // n'est exécutable que par le service_role (jamais exposée au client), donc
+    // un utilisateur authentifié ne peut pas se l'auto-accorder autrement
+    // qu'en passant réellement par ce flux de paiement carte.
     const { data: payment, error: payErr } = await serviceClient
       .from('payments')
       .insert({
@@ -150,6 +156,27 @@ Deno.serve(async (req) => {
       console.error('Payment insert error:', payErr)
       return new Response(JSON.stringify({ error: 'Failed to record payment' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (paymentMethod === 'card') {
+      const { data: codes, error: activateErr } = await serviceClient
+        .rpc('complete_card_payment', { p_payment_id: payment.id })
+
+      if (activateErr) {
+        console.error('Instant card activation error:', activateErr)
+        return new Response(JSON.stringify({ error: "Le paiement a été enregistré mais l'activation a échoué. Contactez le support." }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      return new Response(JSON.stringify({
+        payment_id: payment.id,
+        status: 'completed',
+        codes,
+        message: 'Paiement validé, votre abonnement est actif.',
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
