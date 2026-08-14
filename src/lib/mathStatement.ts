@@ -2,12 +2,44 @@
 
 const LATEX_HINT = /\\(?:lim|frac|sqrt|sum|prod|int|infty|to|cdot|times|div|pm|leq|geq|neq|alpha|beta|gamma|delta|epsilon|theta|lambda|mu|pi|rho|sigma|phi|omega|left|right|begin|end|mathbb|mathrm|mathcal|log|ln|sin|cos|tan|exp|partial|nabla|forall|exists|in|notin|subset|cup|cap|emptyset|Delta|Sigma|Omega|overline|underline|vec|hat|dot|ddot)\b|[\\^_]\{|\\\(|\\\[|\\/;
 
+// L'IA écrit occasionnellement ∞ comme le mot arabe translittéré
+// phonétiquement ("إنفينيتي") au lieu de la macro \infty, le plus souvent
+// imbriqué dans un \text{$...} invalide (un "$" au milieu d'un \text{} n'a
+// aucun sens) — ex. "\text{lim}_{x \to +\text{$إنفينيتي}}" au lieu de
+// "\lim_{x \to +\infty}". KaTeX échoue alors à parser tout le $...$
+// englobant et affiche la source brute au lieu de la formule.
+const INFINITY_AR_TRANSLITERATIONS = ["إنفينيتي", "انفينيتي", "إنفينتي", "انفينتي"];
+// Autres opérateurs que l'IA emballe parfois dans un \text{...} au lieu
+// d'utiliser leur macro LaTeX dédiée (même symptôme : le \text{...} brise le
+// rendu de toute la formule englobante).
+const TEXT_WRAPPED_COMMANDS: Record<string, string> = {
+  lim: "\\lim", sin: "\\sin", cos: "\\cos", tan: "\\tan", ln: "\\ln", log: "\\log", exp: "\\exp",
+};
+
+/** Répare les motifs de LaTeX cassé les plus fréquents que l'IA produit en
+ * essayant d'"arabiser" un symbole/opérateur au lieu d'utiliser sa macro
+ * LaTeX — voir les commentaires ci-dessus. Doit s'exécuter avant le
+ * délimitage $...$ pour que le contenu réparé soit ensuite détecté comme du
+ * LaTeX valide par LATEX_HINT. */
+function repairBrokenLatexArtifacts(s: string): string {
+  let out = s;
+  const infinityPattern = INFINITY_AR_TRANSLITERATIONS.join("|");
+  out = out.replace(new RegExp(`\\\\text\\{\\$?(?:${infinityPattern})\\}`, "g"), "\\infty");
+  out = out.replace(new RegExp(infinityPattern, "g"), "\\infty");
+  out = out.replace(/\\text\{(lim|sin|cos|tan|ln|log|exp)\}/g, (_m, name: string) => TEXT_WRAPPED_COMMANDS[name]);
+  return out;
+}
+
 /** Corrige un énoncé mathématique généré par IA pour que KaTeX puisse le
- * rendre : normalise les `\$` échappés et enveloppe les blocs LaTeX oubliés
- * (non délimités par `$...$`) que l'IA laisse parfois passer. */
+ * rendre : répare les artefacts LaTeX les plus courants (voir
+ * repairBrokenLatexArtifacts), normalise les `\$` échappés, et enveloppe les
+ * blocs LaTeX oubliés (non délimités par `$...$`) que l'IA laisse parfois
+ * passer. */
 export function cleanMathStatement(raw: string): string {
   if (!raw) return "";
   let s = raw;
+
+  s = repairBrokenLatexArtifacts(s);
 
   // Convert escaped \$ into real $ delimiters
   s = s.replace(/\\\$/g, "$");
