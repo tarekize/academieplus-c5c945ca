@@ -167,7 +167,6 @@ export default function AdminExams() {
         subtitle="Visualisation et validation des examens envoyés par les pédagogues"
         titleIcon={FileText}
         onBack={() => navigate("/dashboard")}
-        showProfileMenu={false}
       />
       <main className="container mx-auto px-4 py-8">{content}</main>
     </div>
@@ -220,7 +219,6 @@ function AdminExamCellPanel({ cell, initialTrimester, onBack }: { cell: Selected
         subtitle={`${cell.levelName}${cell.filiereName ? ` · ${cell.filiereName}` : ""}`}
         titleIcon={FileText}
         onBack={onBack}
-        showProfileMenu={false}
       />
       <main className="container mx-auto px-4 py-8 max-w-3xl">
         <Button variant="ghost" size="sm" className="gap-1 mb-4" onClick={onBack}>

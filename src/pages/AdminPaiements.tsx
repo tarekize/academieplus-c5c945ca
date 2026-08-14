@@ -193,7 +193,6 @@ export default function AdminPaiements() {
         subtitle="Historique des transactions et validation des paiements en attente"
         titleIcon={CreditCard}
         onBack={() => navigate("/dashboard")}
-        showProfileMenu={false}
       />
 
       <main className="container mx-auto px-4 py-8 space-y-6">

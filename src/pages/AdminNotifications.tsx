@@ -410,7 +410,6 @@ export default function AdminNotifications() {
         subtitle="Modèles d'email, rappels et campagnes ciblées"
         titleIcon={Bell}
         onBack={() => navigate("/dashboard")}
-        showProfileMenu={false}
       />
 
       <main className="container mx-auto px-4 py-8">

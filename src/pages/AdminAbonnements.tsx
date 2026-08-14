@@ -264,7 +264,6 @@ export default function AdminAbonnements() {
         subtitle="Configurez les tarifs, périodes et consultez les paiements"
         titleIcon={CreditCard}
         onBack={() => navigate("/dashboard")}
-        showProfileMenu={false}
       />
 
       <main className="container mx-auto px-4 py-8 space-y-8">

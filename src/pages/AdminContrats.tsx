@@ -379,7 +379,6 @@ export default function AdminContrats() {
         subtitle="Établissements et élèves"
         titleIcon={FileText}
         onBack={() => navigate("/dashboard")}
-        showProfileMenu={false}
       />
 
       <main className="container mx-auto px-4 py-8">

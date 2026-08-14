@@ -131,7 +131,6 @@ export default function AdminValidation() {
         }
         titleIcon={ClipboardCheck}
         onBack={() => navigate("/dashboard")}
-        showProfileMenu={false}
         actions={
           <Button
             variant={view === "history" ? "default" : "outline"}

@@ -146,7 +146,7 @@ export default function AdminExamReview() {
   if (!exam) {
     return (
       <div className="min-h-screen pro-shell">
-        <AppHeader title="Examen" titleIcon={FileText} onBack={() => navigate("/admin/examens")} showProfileMenu={false} />
+        <AppHeader title="Examen" titleIcon={FileText} onBack={() => navigate("/admin/examens")} />
         <main className="container mx-auto px-4 py-16 text-center text-muted-foreground">Examen introuvable.</main>
       </div>
     );
@@ -161,7 +161,6 @@ export default function AdminExamReview() {
         subtitle={`${TRIMESTER_LABELS[exam.trimester]} · Envoyé par ${exam.submitted_by_name || "Pédagogue"}`}
         titleIcon={FileText}
         onBack={() => navigate("/admin/examens")}
-        showProfileMenu={false}
       />
       <main className="container mx-auto px-4 py-8 max-w-3xl space-y-4">
         {exam.deletion_requested && (

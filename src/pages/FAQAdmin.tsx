@@ -111,7 +111,6 @@ const FAQAdmin = () => {
         subtitle="Questions fréquentes affichées aux visiteurs"
         titleIcon={HelpCircle}
         onBack={() => navigate("/dashboard")}
-        showProfileMenu={false}
       />
       <div className="container mx-auto p-6 space-y-6">
 

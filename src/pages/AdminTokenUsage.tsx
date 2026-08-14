@@ -138,7 +138,6 @@ export default function AdminTokenUsage() {
         }
         titleIcon={Cpu}
         onBack={() => navigate("/dashboard")}
-        showProfileMenu={false}
       />
 
       <main className="container mx-auto px-4 py-8 space-y-8">

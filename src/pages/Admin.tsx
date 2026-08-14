@@ -173,7 +173,6 @@ export default function Admin() {
         subtitle="Tableau de bord administrateur"
         titleIcon={Shield}
         onBack={() => navigate("/dashboard")}
-        showProfileMenu={false}
       />
 
       <main className="container mx-auto px-4 py-6 space-y-6">

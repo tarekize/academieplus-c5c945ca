@@ -128,7 +128,6 @@ const Analytics = () => {
         subtitle="Activité de la plateforme et journal des événements"
         titleIcon={BarChart3}
         onBack={() => navigate("/dashboard")}
-        showProfileMenu={false}
       />
 
       <main className="container mx-auto px-4 py-8 space-y-8">
