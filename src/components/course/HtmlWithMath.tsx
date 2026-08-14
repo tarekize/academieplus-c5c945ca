@@ -43,14 +43,22 @@ function preprocessMathContent(raw: string) {
   // formula). Collapse any newline found inside $$...$$ or $...$ to a space first.
   content = content.replace(/\$\$[\s\S]*?\$\$|\$[^$]*?\$/g, (span) => span.replace(/\s*\n\s*/g, " "));
 
-  const normalized = convertPedagoBlocks(
-    content
-      .replace(/([^\n])\$\$/g, "$1\n$$")
-      .replace(/\$\$([^\n])/g, "$$\n$1")
-  );
+  const normalized = convertPedagoBlocks(content);
 
+  // Isoler les $$...$$ sur leur propre ligne aide KaTeX pour du contenu HTML
+  // (un \n y reste inoffensif : les navigateurs le collapsent, ça reste un
+  // seul nœud texte). Mais si ce même contenu n'a AUCUNE balise HTML, il
+  // tombe dans la branche "texte brut" ci-dessous qui convertit chaque \n en
+  // véritable élément <br/> — CE <br/> scinde alors le texte en plusieurs
+  // nœuds, et un $$ isolé juste avant/après ne peut plus jamais être
+  // apparié par KaTeX (auto-render ne traverse pas les nœuds), qui affiche
+  // alors "$$", la formule et "$$" en texte brut au lieu du rendu. On
+  // n'isole donc les $$ qu'APRÈS avoir décidé de la branche, et seulement
+  // pour la branche HTML où un \n reste sans danger.
   if (HTML_TAG_REGEX.test(normalized)) {
-    return normalized;
+    return normalized
+      .replace(/([^\n])\$\$/g, "$1\n$$")
+      .replace(/\$\$([^\n])/g, "$$\n$1");
   }
 
   return escapeHtml(normalized).replace(/\n/g, "<br />");
