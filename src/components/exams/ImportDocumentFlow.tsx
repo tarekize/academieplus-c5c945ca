@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Star, Award } from "lucide-react";
 import { toast } from "sonner";
 import DocumentImportButton from "@/components/DocumentImportButton";
-import { ExamExercise, trimesterOptions, TRIMESTER_LABELS } from "@/lib/examTypes";
+import { ExamExercise, trimesterOptions, TRIMESTER_LABELS, TRIMESTER_LABELS_AR } from "@/lib/examTypes";
 import { GeneratedItem } from "@/lib/teacherContent";
 
 interface ImportDocumentFlowProps {
@@ -44,6 +44,7 @@ export default function ImportDocumentFlow({ subject, schoolLevel, filiereId, is
     setSaving(true);
     try {
       const title = `Examen — ${TRIMESTER_LABELS[trimester || 1]}`;
+      const titleAr = `امتحان — ${TRIMESTER_LABELS_AR[trimester || 1]}`;
       const { data, error } = await supabase.rpc("save_exam_draft" as any, {
         p_exam_id: null,
         p_subject: subject,
@@ -51,7 +52,7 @@ export default function ImportDocumentFlow({ subject, schoolLevel, filiereId, is
         p_filiere_id: filiereId,
         p_trimester: trimester,
         p_title: title,
-        p_title_ar: title,
+        p_title_ar: titleAr,
         p_duration_minutes: 60,
         p_content: mapped,
         p_chapter_ids: null,

@@ -82,6 +82,7 @@
     "selectFiliereToSeeCourses": "اختر شعبة لعرض الدروس المتاحة",
     "noFiliereForLevel": "لا توجد شعبة متاحة لهذا المستوى",
     "subjectsOf": "مواد {{level}}",
+    "chaptersOf": "فصول {{level}}",
     "yourClass": "قسمك",
     "discoverSubjects": "اكتشف جميع دروس قسمك واستعد للنجاح! 🚀",
     "searchSubject": "ابحث عن مادة...",

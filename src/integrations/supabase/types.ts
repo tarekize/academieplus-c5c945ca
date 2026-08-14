@@ -1093,6 +1093,50 @@ export type Database = {
         }
         Relationships: []
       }
+      exam_progress: {
+        Row: {
+          answers: Json
+          exam_id: string
+          id: string
+          started_at: string
+          status: Json
+          student_id: string
+          submitted: boolean
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          answers?: Json
+          exam_id: string
+          id?: string
+          started_at?: string
+          status?: Json
+          student_id: string
+          submitted?: boolean
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          answers?: Json
+          exam_id?: string
+          id?: string
+          started_at?: string
+          status?: Json
+          student_id?: string
+          submitted?: boolean
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_progress_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exam_versions: {
         Row: {
           content: Json

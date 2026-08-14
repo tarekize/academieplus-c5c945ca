@@ -3,13 +3,24 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Eye, Trash2, Plus, Code2, PenLine, Clock, Send, CheckCircle2, XCircle, BookOpen, ChevronDown } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Pencil, Eye, Trash2, Plus, Code2, PenLine, Clock, Send, CheckCircle2, XCircle, BookOpen, ChevronDown, RotateCcw } from "lucide-react";
 import { HtmlWithMath } from "@/components/course/HtmlWithMath";
 import { ExportPDFButton } from "@/components/course/ExportPDFButton";
 import { MathKeyboard } from "@/components/course/MathKeyboard";
 import { cleanMathStatement } from "@/lib/mathStatement";
 import { ExamExercise, ExamSubQuestion } from "@/lib/examTypes";
 import { normalizeAnswer } from "@/lib/teacherContentAttempt";
+import { QuestionStatus, saveExamProgress } from "@/lib/examProgress";
 import { cn } from "@/lib/utils";
 
 export type ExamViewerMode = "student" | "preview" | "edit";
@@ -23,6 +34,20 @@ interface ExamViewerProps {
   durationMinutes?: number;
   /** Affiche le bouton "Exporter en PDF" (titre de l'examen requis). */
   examTitle?: string;
+  /** "student" uniquement, pour persister la progression (chrono + réponses
+   * + statut par question) : sans ça, quitter la page remet tout à zéro. */
+  examId?: string;
+  studentId?: string;
+  /** Horodatage serveur figé au premier accès — sert de base au chrono
+   * plutôt qu'un simple compteur local qui repartirait de zéro à chaque
+   * montage du composant. */
+  startedAt?: string;
+  initialAnswers?: string[][];
+  initialStatus?: QuestionStatus[][];
+  initialSubmitted?: boolean;
+  /** Appelé quand l'élève clique "Refaire l'examen" dans la pop-up de temps
+   * écoulé — le parent doit réinitialiser la progression côté serveur. */
+  onRestart?: () => void;
 }
 
 /** Rend un énoncé/solution qu'il soit du texte brut avec LaTeX ($...$) ou du
@@ -69,17 +94,38 @@ function formatClock(totalSeconds: number): string {
 }
 
 /** Compte à rebours affiché en haut de la feuille pendant que l'élève
- * compose. Appelle onExpire une seule fois quand le temps est écoulé. */
-function CountdownTimer({ durationMinutes, onExpire, frozen }: { durationMinutes: number; onExpire: () => void; frozen: boolean }) {
-  const [secondsLeft, setSecondsLeft] = useState(Math.max(0, Math.round(durationMinutes * 60)));
+ * compose. Le temps restant est recalculé à chaque tick à partir de
+ * `startedAt` (horodatage serveur figé au premier accès) plutôt que d'un
+ * simple compteur local : sortir de la page puis y revenir ne redémarre
+ * donc pas le chrono à zéro, il continue de s'écouler pendant l'absence.
+ * Appelle onExpire une seule fois quand le temps est écoulé. */
+function CountdownTimer({
+  durationMinutes,
+  startedAt,
+  onExpire,
+  frozen,
+}: {
+  durationMinutes: number;
+  startedAt?: string;
+  onExpire: () => void;
+  frozen: boolean;
+}) {
+  const computeRemaining = () => {
+    const totalSeconds = Math.max(0, Math.round(durationMinutes * 60));
+    if (!startedAt) return totalSeconds;
+    const elapsedSeconds = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
+    return Math.max(0, totalSeconds - elapsedSeconds);
+  };
+  const [secondsLeft, setSecondsLeft] = useState(computeRemaining);
 
   useEffect(() => {
     if (frozen || secondsLeft <= 0) return;
     const id = setInterval(() => {
-      setSecondsLeft((s) => Math.max(0, s - 1));
+      setSecondsLeft(computeRemaining());
     }, 1000);
     return () => clearInterval(id);
-  }, [frozen, secondsLeft]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frozen, secondsLeft, startedAt]);
 
   useEffect(() => {
     if (secondsLeft === 0 && !frozen) onExpire();
@@ -112,27 +158,81 @@ function makeAnswerGrid(exercises: ExamExercise[]): string[][] {
   return exercises.map((ex) => new Array(hasSubQuestions(ex) ? ex.sub_questions!.length : 1).fill(""));
 }
 
+/** Grille de statuts initiale ("unanswered" partout), même forme que
+ * makeAnswerGrid — une case par (sous-)question. */
+function makeStatusGrid(exercises: ExamExercise[]): QuestionStatus[][] {
+  return exercises.map((ex) => new Array(hasSubQuestions(ex) ? ex.sub_questions!.length : 1).fill("unanswered") as QuestionStatus[]);
+}
+
 /** Composant unique pour les 3 façons de voir un examen :
  *  - "student" : la feuille d'examen avec une zone de réponse PAR QUESTION
  *    (un exercice à plusieurs questions a une zone pour chacune, pas une
  *    seule pour tout l'exercice), un chrono qui décompte, et un bouton
- *    "Soumettre" révélant la note.
+ *    "Soumettre" révélant la note. Une fois soumis, chaque question bien
+ *    répondue est verrouillée (verte) et chaque question fausse reste
+ *    modifiable (rouge) avec son propre bouton pour la revérifier.
  *  - "preview" : exactement la même feuille (pour pédago/admin), mais sans
  *    aucune zone de réponse — rien à insérer, juste la consultation.
  *  - "edit" : le pédago modifie chaque exercice, soit directement (aperçu
  *    du rendu en direct), soit via le LaTeX brut. */
-export default function ExamViewer({ exercises, mode, onChange, durationMinutes, examTitle }: ExamViewerProps) {
+export default function ExamViewer({
+  exercises,
+  mode,
+  onChange,
+  durationMinutes,
+  examTitle,
+  examId,
+  studentId,
+  startedAt,
+  initialAnswers,
+  initialStatus,
+  initialSubmitted,
+  onRestart,
+}: ExamViewerProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editStyle, setEditStyle] = useState<"direct" | "latex">("direct");
-  const [answers, setAnswers] = useState<string[][]>(() => makeAnswerGrid(exercises));
-  const [submitted, setSubmitted] = useState(false);
+  const [answers, setAnswers] = useState<string[][]>(() =>
+    initialAnswers && initialAnswers.length === exercises.length ? initialAnswers : makeAnswerGrid(exercises)
+  );
+  const [status, setStatus] = useState<QuestionStatus[][]>(() =>
+    initialStatus && initialStatus.length === exercises.length ? initialStatus : makeStatusGrid(exercises)
+  );
+  const [submitted, setSubmitted] = useState(!!initialSubmitted);
+  const [showTimeUpDialog, setShowTimeUpDialog] = useState(false);
   const exercisesExportRef = useRef<HTMLDivElement>(null);
 
+  // Ne réinitialise PAS au montage (la progression restaurée serait
+  // aussitôt écrasée par une grille vide) — seulement si le nombre
+  // d'exercices change vraiment ensuite (pédago qui édite en direct).
+  const didMountRef = useRef(false);
   useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
     setAnswers(makeAnswerGrid(exercises));
+    setStatus(makeStatusGrid(exercises));
     setSubmitted(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exercises.length]);
+
+  // Sauvegarde (débouncée) de la progression à chaque changement de réponse,
+  // de statut ou de soumission — uniquement en mode "student" avec un examen
+  // suivi côté serveur (examId + studentId fournis).
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (mode !== "student" || !examId || !studentId) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      saveExamProgress(examId, studentId, { answers, status, submitted }).catch((e) =>
+        console.error("[ExamViewer] Échec de sauvegarde de la progression :", e)
+      );
+    }, 600);
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answers, status, submitted, mode, examId, studentId]);
 
   /** Met à jour la réponse de l'élève à une (sous-)question donnée. */
   const setAnswer = (exIdx: number, subIdx: number, value: string) => {
@@ -200,30 +300,60 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
     onChange([...exercises, { statement: "", solution: "", answer: "" }]);
   };
 
-  /** Calcule le score de l'élève une fois l'examen soumis, en comparant
-   * chaque réponse normalisée (espaces/casse) à la réponse attendue ; les
-   * (sous-)questions sans réponse attendue ne comptent pas dans le total. */
+  /** Calcule le score de l'élève à partir du statut de correction de chaque
+   * (sous-)question — seules celles déjà vérifiées (via le bouton "Soumettre"
+   * global ou un bouton "Vérifier" individuel) comptent dans le total. */
   const score = useMemo(() => {
     if (!submitted) return null;
     let correct = 0;
     let total = 0;
-    exercises.forEach((ex, i) => {
-      if (hasSubQuestions(ex)) {
-        ex.sub_questions!.forEach((sq, j) => {
-          if (!sq.expected_answer?.trim()) return;
-          total += 1;
-          if (normalizeAnswer(answers[i]?.[j] || "") === normalizeAnswer(sq.expected_answer)) correct += 1;
-        });
-      } else if (ex.answer?.trim()) {
-        total += 1;
-        if (normalizeAnswer(answers[i]?.[0] || "") === normalizeAnswer(ex.answer)) correct += 1;
-      }
-    });
+    status.forEach((row) => row.forEach((s) => {
+      if (s === "unanswered") return;
+      total += 1;
+      if (s === "correct") correct += 1;
+    }));
     return { correct, total };
-  }, [submitted, exercises, answers]);
+  }, [submitted, status]);
 
-  /** Soumission de l'examen par l'élève (bouton ou expiration du chrono) : verrouille les réponses et révèle le score. */
-  const handleSubmit = () => setSubmitted(true);
+  /** Corrige une (sous-)question précise en comparant la réponse actuelle
+   * (normalisée) à la réponse attendue. */
+  const gradeQuestion = (exIdx: number, subIdx: number): QuestionStatus => {
+    const ex = exercises[exIdx];
+    const expected = hasSubQuestions(ex) ? ex.sub_questions?.[subIdx]?.expected_answer : ex.answer;
+    if (!expected?.trim()) return "unanswered";
+    return normalizeAnswer(answers[exIdx]?.[subIdx] || "") === normalizeAnswer(expected) ? "correct" : "incorrect";
+  };
+
+  /** Revérifie une seule question (bouton "Vérifier" à côté d'une question
+   * restée fausse) : verte + verrouillée si désormais juste, sinon reste
+   * rouge et modifiable. */
+  const checkSingleQuestion = (exIdx: number, subIdx: number) => {
+    setStatus((prev) => prev.map((row, i) => (i === exIdx ? row.map((s, j) => (j === subIdx ? gradeQuestion(exIdx, subIdx) : s)) : row)));
+  };
+
+  /** Soumission de l'examen par l'élève (bouton ou expiration du chrono) :
+   * corrige toutes les questions d'un coup (vert+verrouillé / rouge+modifiable)
+   * et arrête le chrono. */
+  const handleSubmit = () => {
+    setStatus(exercises.map((ex, i) => {
+      const count = hasSubQuestions(ex) ? ex.sub_questions!.length : 1;
+      return new Array(count).fill(null).map((_, j) => gradeQuestion(i, j)) as QuestionStatus[];
+    }));
+    setSubmitted(true);
+  };
+
+  /** Le temps est écoulé : soumet automatiquement (avec les réponses déjà
+   * saisies) et affiche la pop-up d'information. */
+  const handleExpire = () => {
+    if (submitted) return;
+    handleSubmit();
+    setShowTimeUpDialog(true);
+  };
+
+  const handleRestart = () => {
+    setShowTimeUpDialog(false);
+    onRestart?.();
+  };
 
   if (exercises.length === 0) {
     return <p className="text-sm text-muted-foreground text-center py-8">Aucun exercice pour le moment.</p>;
@@ -237,15 +367,34 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
         </div>
       )}
       {mode === "student" && durationMinutes ? (
-        <CountdownTimer durationMinutes={durationMinutes} frozen={submitted} onExpire={handleSubmit} />
+        <CountdownTimer durationMinutes={durationMinutes} startedAt={startedAt} frozen={submitted} onExpire={handleExpire} />
       ) : null}
+
+      {mode === "student" && (
+        <AlertDialog open={showTimeUpDialog} onOpenChange={setShowTimeUpDialog}>
+          <AlertDialogContent dir="rtl">
+            <AlertDialogHeader>
+              <AlertDialogTitle>انتهى وقت الامتحان</AlertDialogTitle>
+              <AlertDialogDescription>
+                انتهى الوقت المخصص لهذا الامتحان. النتيجة المعروضة تعتمد على الإجابات التي تم تسجيلها.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowTimeUpDialog(false)}>عرض النتيجة</AlertDialogCancel>
+              <AlertDialogAction onClick={handleRestart} className="gap-2">
+                <RotateCcw className="h-4 w-4" /> إعادة المحاولة
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
 
       {mode === "student" && score && (
         <div className={cn(
           "rounded-xl border p-4 text-center font-semibold",
           score.total > 0 && score.correct === score.total ? "bg-green-50 text-green-700 border-green-200" : "bg-primary/5 text-primary border-primary/20",
         )}>
-          Résultat : {score.correct} / {score.total}
+          النتيجة : {score.correct} / {score.total}
         </div>
       )}
 
@@ -367,13 +516,14 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
                 {subQ ? (
                   <div className="space-y-3">
                     {subQ.map((sq, j) => {
-                      const subCorrect = submitted && sq.expected_answer ? normalizeAnswer(answers[idx]?.[j] || "") === normalizeAnswer(sq.expected_answer) : null;
+                      const subStatus = status[idx]?.[j] || "unanswered";
+                      const locked = subStatus === "correct";
                       return (
                         <div key={j} className="space-y-1.5">
                           <div className="flex items-start justify-between gap-2">
                             <span className="text-sm font-medium flex-1"><MathText text={sq.question} /></span>
-                            {mode === "student" && submitted && sq.expected_answer && (
-                              subCorrect ? <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0 mt-0.5" /> : <XCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                            {mode === "student" && submitted && subStatus !== "unanswered" && (
+                              subStatus === "correct" ? <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0 mt-0.5" /> : <XCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
                             )}
                           </div>
                           {mode === "student" && (
@@ -381,21 +531,28 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
                               <Textarea
                                 id={`exam-answer-${idx}-${j}`}
                                 rows={2}
-                                placeholder={`Réponse à la question ${j + 1}...`}
+                                placeholder={`الإجابة على السؤال ${j + 1}...`}
                                 value={answers[idx]?.[j] || ""}
-                                disabled={submitted}
+                                disabled={locked}
                                 onChange={(e) => setAnswer(idx, j, e.target.value)}
-                                className="flex-1"
+                                className={cn("flex-1", subStatus === "correct" && "border-green-300 bg-green-50", subStatus === "incorrect" && "border-destructive/40 bg-destructive/5")}
                               />
-                              {!submitted && (
+                              {!locked && (
                                 <MathKeyboard
                                   onInsert={(sym) => insertAtCursor(`exam-answer-${idx}-${j}`, answers[idx]?.[j] || "", sym, (v) => setAnswer(idx, j, v))}
                                 />
                               )}
                             </div>
                           )}
-                          {mode === "student" && submitted && sq.expected_answer && (
-                            <p className="text-xs text-muted-foreground">Réponse attendue : <MathText text={sq.expected_answer} /></p>
+                          {mode === "student" && submitted && subStatus === "incorrect" && (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Button size="sm" variant="outline" className="gap-1.5" onClick={() => checkSingleQuestion(idx, j)}>
+                                <Send className="h-3.5 w-3.5" /> تحقق من الإجابة
+                              </Button>
+                              {sq.expected_answer && (
+                                <p className="text-xs text-muted-foreground">الإجابة الصحيحة : <MathText text={sq.expected_answer} /></p>
+                              )}
+                            </div>
                           )}
                         </div>
                       );
@@ -407,13 +564,13 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
                       <Textarea
                         id={`exam-answer-${idx}-0`}
                         rows={2}
-                        placeholder="Votre réponse..."
+                        placeholder="إجابتك..."
                         value={answers[idx]?.[0] || ""}
-                        disabled={submitted}
+                        disabled={status[idx]?.[0] === "correct"}
                         onChange={(e) => setAnswer(idx, 0, e.target.value)}
-                        className="flex-1"
+                        className={cn("flex-1", status[idx]?.[0] === "correct" && "border-green-300 bg-green-50", status[idx]?.[0] === "incorrect" && "border-destructive/40 bg-destructive/5")}
                       />
-                      {!submitted && (
+                      {status[idx]?.[0] !== "correct" && (
                         <MathKeyboard
                           onInsert={(sym) => insertAtCursor(`exam-answer-${idx}-0`, answers[idx]?.[0] || "", sym, (v) => setAnswer(idx, 0, v))}
                         />
@@ -429,12 +586,17 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
 
                 {mode === "student" && submitted && !subQ && ex.answer && (
                   <div className="flex items-center gap-2 flex-wrap">
-                    {normalizeAnswer(answers[idx]?.[0] || "") === normalizeAnswer(ex.answer) ? (
-                      <Badge className="bg-green-100 text-green-700 border-green-200 gap-1"><CheckCircle2 className="h-3 w-3" /> Correct</Badge>
+                    {status[idx]?.[0] === "correct" ? (
+                      <Badge className="bg-green-100 text-green-700 border-green-200 gap-1"><CheckCircle2 className="h-3 w-3" /> صحيح</Badge>
                     ) : (
-                      <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> Incorrect</Badge>
+                      <>
+                        <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> خطأ</Badge>
+                        <Button size="sm" variant="outline" className="gap-1.5" onClick={() => checkSingleQuestion(idx, 0)}>
+                          <Send className="h-3.5 w-3.5" /> تحقق من الإجابة
+                        </Button>
+                      </>
                     )}
-                    <p className="text-sm"><span className="font-semibold">Réponse attendue :</span> <MathText text={ex.answer} /></p>
+                    <p className="text-sm">الإجابة الصحيحة : <MathText text={ex.answer} /></p>
                   </div>
                 )}
                 {mode === "student" && submitted && ex.solution && <SolutionBox solution={ex.solution} />}
@@ -455,7 +617,7 @@ export default function ExamViewer({ exercises, mode, onChange, durationMinutes,
       {mode === "student" && !submitted && (
         <Button onClick={handleSubmit} className="w-full gap-2">
           <Send className="h-4 w-4" />
-          Soumettre l'examen
+          تسليم الامتحان
         </Button>
       )}
     </div>
