@@ -74,8 +74,14 @@ export function cleanMathStatement(raw: string): string {
 
   // Convert escaped \$ into real $ delimiters
   s = s.replace(/\\\$/g, "$");
-  // Collapse leftover empty $ $ or $$ $$
-  s = s.replace(/\$\s*\$/g, "");
+  // Collapse leftover EMPTY $ $ / $$ $$ spans only. Naively matching any
+  // "$" + whitespace* + "$" (as this used to) also matches the first two
+  // characters of a perfectly normal, non-empty "$$...content...$$" block —
+  // silently stripping its delimiters and leaving raw LaTeX behind. The
+  // lookaround in the second pass keeps each "$" from being treated as lone
+  // when it's actually one half of a "$$" pair.
+  s = s.replace(/\$\$\s*\$\$/g, "");
+  s = s.replace(/(?<!\$)\$(?!\$)\s*(?<!\$)\$(?!\$)/g, "");
   // Trim multiple spaces created by replacements
   s = s.replace(/[ \t]{2,}/g, " ").trim();
 
