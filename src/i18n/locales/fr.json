@@ -82,6 +82,7 @@
     "selectFiliereToSeeCourses": "Sélectionnez une filière pour voir les cours disponibles",
     "noFiliereForLevel": "Aucune filière disponible pour ce niveau",
     "subjectsOf": "Matières de {{level}}",
+    "chaptersOf": "Chapitres de {{level}}",
     "yourClass": "ta classe",
     "discoverSubjects": "Découvre tous les cours de ta classe et prépare-toi à réussir ! 🚀",
     "searchSubject": "Rechercher une matière...",

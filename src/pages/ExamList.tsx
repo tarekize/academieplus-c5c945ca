@@ -130,14 +130,6 @@ const ExamList = () => {
     5: "بكالوريا نهائية",
   };
 
-  const trimesterLabelsFr: Record<number, string> = {
-    1: "1er Trimestre",
-    2: "2ème Trimestre",
-    3: "3ème Trimestre",
-    4: "Bac Blanc",
-    5: "Bac Finale",
-  };
-
   const trimesterColors: Record<number, string> = {
     1: "from-blue-500 to-blue-600",
     2: "from-emerald-500 to-emerald-600",
@@ -453,9 +445,6 @@ const ExamList = () => {
             <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-gradient-to-r ${trimesterColors[trimester] || "from-primary to-primary/70"} text-white shadow-md`}>
               <BookOpenCheck className="h-4 w-4" />
               <span className="text-sm font-medium">{trimesterLabels[trimester]}</span>
-              {trimesterLabelsFr[trimester] && (
-                <span className="text-white/70 text-xs">— {trimesterLabelsFr[trimester]}</span>
-              )}
             </div>
           </div>
           {canManage && (
@@ -553,7 +542,7 @@ const ExamList = () => {
                         <h3 className="font-semibold text-foreground truncate">
                           {exam.title_ar || exam.title}
                         </h3>
-                        {exam.title_ar && exam.title !== exam.title_ar && (
+                        {canManage && exam.title_ar && exam.title !== exam.title_ar && (
                           <p className="text-xs text-muted-foreground mt-0.5 truncate">{exam.title}</p>
                         )}
                         <div className="flex items-center gap-3 mt-2">

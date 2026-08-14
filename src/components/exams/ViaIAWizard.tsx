@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Sparkles, ChevronRight, ChevronLeft, Award, Star } from "lucide-react";
 import { toast } from "sonner";
-import { ExamExercise, trimesterOptions, TRIMESTER_LABELS } from "@/lib/examTypes";
+import { ExamExercise, trimesterOptions, TRIMESTER_LABELS, TRIMESTER_LABELS_AR } from "@/lib/examTypes";
 
 interface ChapterOption {
   id: string;
@@ -126,7 +126,7 @@ export default function ViaIAWizard({ subject, schoolLevel, filiereId, isTermina
         p_filiere_id: filiereId,
         p_trimester: trimester,
         p_title: `Examen — ${TRIMESTER_LABELS[trimester || 1]}`,
-        p_title_ar: `Examen — ${TRIMESTER_LABELS[trimester || 1]}`,
+        p_title_ar: `امتحان — ${TRIMESTER_LABELS_AR[trimester || 1]}`,
         p_duration_minutes: 60,
         p_content: results,
         p_chapter_ids: selectedChapterIds,

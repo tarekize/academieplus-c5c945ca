@@ -63,6 +63,17 @@ export const TRIMESTER_LABELS: Record<number, string> = {
   5: "Bac Finale",
 };
 
+/** Version arabe de TRIMESTER_LABELS — utilisée pour tout ce qui est affiché
+ * aux élèves (verrouillés en arabe), notamment le titre `title_ar` des
+ * examens générés (wizard IA, import de document). */
+export const TRIMESTER_LABELS_AR: Record<number, string> = {
+  1: "الفصل الأول",
+  2: "الفصل الثاني",
+  3: "الفصل الثالث",
+  4: "البكالوريا البيضاء",
+  5: "البكالوريا النهائية",
+};
+
 /** Trimestres proposés pour un examen : 1-3 pour tous, + Bac Blanc/Finale (4-5) en terminale. */
 export function trimesterOptions(isTerminale: boolean): number[] {
   return isTerminale ? [1, 2, 3, 4, 5] : [1, 2, 3];

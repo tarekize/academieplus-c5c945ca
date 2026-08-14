@@ -10,7 +10,6 @@ import { AppHeader } from "@/components/layout/AppHeader";
 type TrimesterItem = {
   id: number;
   label: string;
-  labelFr: string;
   icon: string;
   color: string;
   IconComp: ComponentType<{ className?: string }> | null;
@@ -39,7 +38,6 @@ function ExamRow({ t, niveau, subject, filiere }: {
         <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
           {t.label}
         </p>
-        <p className="text-xs text-muted-foreground mt-0.5">{t.labelFr}</p>
       </div>
       <ChevronLeft className="h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5" />
     </button>
@@ -57,12 +55,12 @@ const ExamTrimesterSelect = () => {
   const isTerminale = niveau === "terminale";
 
   const trimesters: TrimesterItem[] = [
-    { id: 1, label: "اختبارات الفصل الأول", labelFr: "1er Trimestre", icon: "01", color: "text-blue-600", IconComp: null },
-    { id: 2, label: "اختبارات الفصل الثاني", labelFr: "2ème Trimestre", icon: "02", color: "text-emerald-600", IconComp: null },
-    { id: 3, label: "اختبارات الفصل الثالث", labelFr: "3ème Trimestre", icon: "03", color: "text-amber-600", IconComp: null },
+    { id: 1, label: "اختبارات الفصل الأول", icon: "01", color: "text-blue-600", IconComp: null },
+    { id: 2, label: "اختبارات الفصل الثاني", icon: "02", color: "text-emerald-600", IconComp: null },
+    { id: 3, label: "اختبارات الفصل الثالث", icon: "03", color: "text-amber-600", IconComp: null },
     ...(isTerminale ? [
-      { id: 4, label: "بكالوريا بيضاء", labelFr: "Bac Blanc", icon: "BB", color: "text-violet-600", IconComp: Star },
-      { id: 5, label: "بكالوريا نهائية", labelFr: "Bac Finale", icon: "BF", color: "text-rose-600", IconComp: Award },
+      { id: 4, label: "بكالوريا بيضاء", icon: "BB", color: "text-violet-600", IconComp: Star },
+      { id: 5, label: "بكالوريا نهائية", icon: "BF", color: "text-rose-600", IconComp: Award },
     ] as TrimesterItem[] : []),
   ];
 

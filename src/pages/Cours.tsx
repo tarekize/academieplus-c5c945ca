@@ -443,16 +443,8 @@ const Cours = () => {
   };
 
   const getSchoolLevelName = (level: string) => {
-    const labels: Record<string, string> = {
-      "6eme": "6ème",
-      "5eme": "5ème",
-      "4eme": "4ème",
-      "3eme": "3ème",
-      seconde: "Seconde",
-      premiere: "Première",
-      terminale: "Terminale",
-    };
-    return labels[level] || level;
+    const translated = t(`app.schoolLevels.${level}`, { defaultValue: "" });
+    return translated || level;
   };
 
   const handleDownloadPDF = async () => {
@@ -587,7 +579,7 @@ const Cours = () => {
               <div className="relative flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
                 <div>
                   <h2 className="text-lg font-semibold mb-1">
-                    {t("listeCours.subjectsOf", { level: (schoolLevel && getSchoolLevelName(schoolLevel)) || "" })}
+                    {t("listeCours.chaptersOf", { level: (schoolLevel && getSchoolLevelName(schoolLevel)) || "" })}
                   </h2>
                   <p className="text-sm text-muted-foreground">
                     {t("listeCours.discoverSubjects")}
