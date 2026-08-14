@@ -1395,7 +1395,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
     <Card className={cn("transition-all", solved && "border-green-500/50 bg-green-500/5", locked && "border-red-500/50 bg-red-500/5")}>
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-3">
-          <div className="font-medium flex-1 flex gap-2 items-start" dir="auto">
+          <div className="font-medium flex-1 flex gap-2 items-start" dir={lang === "fr" ? "ltr" : "rtl"}>
             <span className="shrink-0">{index + 1}.</span>
             <HtmlWithMath htmlContent={tQuestion} className="flex-1 text-right" />
           </div>
@@ -1422,7 +1422,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
               <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
               <div className="flex-1 text-amber-900 dark:text-amber-200">
                 <span className="font-semibold block mb-1">{t("lessonActivity.hintLabel")}</span>
-                <HtmlWithMath htmlContent={tHint} className="text-right" dir="auto" />
+                <HtmlWithMath htmlContent={tHint} className="text-right" dir={lang === "fr" ? "ltr" : "rtl"} />
               </div>
             </div>
           </div>
@@ -1444,7 +1444,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
                 className={cn("justify-start text-right", !solved && !locked && isSelected && "ring-2 ring-primary")}
                 onClick={() => handleSelect(opt)}
                 disabled={readOnly || solved || locked || submitting}
-                dir="auto"><HtmlWithMath htmlContent={tOptions[oIdx] || opt} /></Button>
+                dir={lang === "fr" ? "ltr" : "rtl"}><HtmlWithMath htmlContent={tOptions[oIdx] || opt} /></Button>
             );
           })}
         </div>
@@ -1476,7 +1476,7 @@ function TrackedQuizCard({ question, index, readOnly, onAnswer }: { question: DB
             <p className="font-semibold text-sm mb-2 text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <BookOpen className="h-4 w-4" /> {t("lessonActivity.explanationLabel")}
             </p>
-            <HtmlWithMath htmlContent={tExplanation} className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" dir="auto" />
+            <HtmlWithMath htmlContent={tExplanation} className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" dir={lang === "fr" ? "ltr" : "rtl"} />
           </div>
         )}
       </CardContent>
@@ -1590,7 +1590,7 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
       <Card className="cursor-pointer hover:border-primary/40 hover:shadow-md transition-all" onClick={() => setOpen(true)}>
         <CardContent className="p-4">
           <div className="flex justify-between items-start gap-3">
-            <h4 className="font-semibold flex-1 text-right" dir="auto">{index + 1}. {tTitle}</h4>
+            <h4 className="font-semibold flex-1 text-right" dir={lang === "fr" ? "ltr" : "rtl"}>{index + 1}. {tTitle}</h4>
             <DifficultyIndicator level={exercise.difficulty} />
           </div>
           <p className="text-xs text-muted-foreground mt-2 text-right">{t("lessonActivity.clickToOpenExercise")}</p>
@@ -1600,15 +1600,15 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-right" dir="auto">{index + 1}. {tTitle}</DialogTitle>
+            <DialogTitle className="text-right" dir={lang === "fr" ? "ltr" : "rtl"}>{index + 1}. {tTitle}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             {(() => {
               const cleaned = cleanMathStatement(tStatement);
               return statementHasMath(cleaned) ? (
-                <HtmlWithMath htmlContent={cleaned} className="text-sm border-t pt-2 text-right" dir="auto" />
+                <HtmlWithMath htmlContent={cleaned} className="text-sm border-t pt-2 text-right" dir={lang === "fr" ? "ltr" : "rtl"} />
               ) : (
-                <p className="text-sm border-t pt-2 text-right" dir="auto">{cleaned}</p>
+                <p className="text-sm border-t pt-2 text-right" dir={lang === "fr" ? "ltr" : "rtl"}>{cleaned}</p>
               );
             })()}
             {exercise.hint && (
@@ -1673,7 +1673,8 @@ function TrackedExerciseCard({ exercise, index, readOnly, onAnswer }: { exercise
 
 // Bouton + panneau dépliant pour afficher l'indice d'un exercice à la demande.
 function HintBlock({ hint }: { hint: string }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang: "fr" | "ar" = i18n.language?.startsWith("fr") ? "fr" : "ar";
   const [showHint, setShowHint] = useState(false);
   return (
     <div className="mt-2 mb-3">
@@ -1687,7 +1688,7 @@ function HintBlock({ hint }: { hint: string }) {
         <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
           <div className="flex items-start gap-2">
             <Lightbulb className="h-4 w-4 text-amber-500 mt-1 shrink-0" />
-            <HtmlWithMath htmlContent={hint} className="text-sm flex-1" dir="auto" />
+            <HtmlWithMath htmlContent={hint} className="text-sm flex-1" dir={lang === "fr" ? "ltr" : "rtl"} />
           </div>
         </div>
       )}

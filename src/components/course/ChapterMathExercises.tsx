@@ -265,7 +265,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
               <div className="w-10 h-10 rounded-full bg-amber/10 flex items-center justify-center">
                 <PenTool className="h-5 w-5 text-amber" />
               </div>
-              <span dir="auto">{tCurrent.title}</span>
+              <span dir={lang === "fr" ? "ltr" : "rtl"}>{tCurrent.title}</span>
               {exercise.difficulty && <DifficultyPencils level={exercise.difficulty} />}
             </div>
             <div className="flex items-center gap-2">
@@ -423,7 +423,7 @@ export const ChapterMathExercises = ({ exercises, chapterTitle, chapterId, onClo
                     )}>
                       {isSolved ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
                     </div>
-                    <div dir="auto">
+                    <div dir={lang === "fr" ? "ltr" : "rtl"}>
                       <h4 className="font-medium flex items-center">{tEx.title}{ex.difficulty && <DifficultyPencils level={ex.difficulty} />}</h4>
                       <span className="text-sm text-muted-foreground line-clamp-1">{tEx.statement.substring(0, 60)}...</span>
                     </div>

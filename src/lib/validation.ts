@@ -1,14 +1,15 @@
 import { z } from "zod";
 
-// Numéro algérien : mobile 05/06/07 + 8 chiffres, fixe 02-04 + 7-8 chiffres,
-// préfixe +213 ou 0 accepté, espaces/points/tirets tolérés dans la saisie.
-export const ALGERIAN_PHONE_REGEX = /^(?:\+213[\s.-]?0?|0)(?:[5-7](?:[\s.-]?\d){8}|[2-4](?:[\s.-]?\d){7,8})$/;
+// Numéro algérien : doit commencer par 0 et compter exactement 10 chiffres
+// (espaces/points/tirets tolérés à la saisie, retirés avant validation/stockage).
+export const ALGERIAN_PHONE_REGEX = /^0\d{9}$/;
 
 export const algerianPhoneSchema = z
   .string()
   .trim()
+  .transform((v) => v.replace(/[\s.-]/g, ""))
   .refine((v) => v === "" || ALGERIAN_PHONE_REGEX.test(v), {
-    message: "Numéro de téléphone invalide (format algérien attendu, ex : 05 XX XX XX XX)",
+    message: "Le numéro doit commencer par 0 et contenir 10 chiffres (ex : 0555123456).",
   })
   .optional()
   .or(z.literal(""));

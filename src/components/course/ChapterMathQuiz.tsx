@@ -219,7 +219,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
             {answers.map((answer, index) => (
               <div key={index} className={cn("p-3 rounded-lg flex items-start gap-3", answer.correct ? "bg-mint/10" : "bg-coral/10")}>
                 {answer.correct ? <CheckCircle2 className="h-5 w-5 text-mint mt-0.5 shrink-0" /> : <XCircle className="h-5 w-5 text-coral mt-0.5 shrink-0" />}
-                <HtmlWithMath htmlContent={tAnswerQuestions[index] || answer.question} className="text-sm" dir="auto" />
+                <HtmlWithMath htmlContent={tAnswerQuestions[index] || answer.question} className="text-sm" dir={lang === "fr" ? "ltr" : "rtl"} />
               </div>
             ))}
           </div>
@@ -297,7 +297,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <h3 className="text-lg font-semibold flex items-center gap-2"><HtmlWithMath htmlContent={tQuestion} className="flex-1" dir="auto" />{currentQuestion.difficulty && <DifficultyPencils level={currentQuestion.difficulty} />}</h3>
+          <h3 className="text-lg font-semibold flex items-center gap-2"><HtmlWithMath htmlContent={tQuestion} className="flex-1" dir={lang === "fr" ? "ltr" : "rtl"} />{currentQuestion.difficulty && <DifficultyPencils level={currentQuestion.difficulty} />}</h3>
           {currentQuestion.hint && (
             <div className="space-y-2">
               <Button
@@ -341,7 +341,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
                   !isThisSelected && !isThisCorrect && !isThisWrong && !isThisTheCorrectOne && "border-border hover:bg-accent"
                 )}>
                   <RadioGroupItem value={option} id={`option-${index}`} />
-                  <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer"><HtmlWithMath htmlContent={tOptions[index] || option} dir="auto" /></Label>
+                  <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer"><HtmlWithMath htmlContent={tOptions[index] || option} dir={lang === "fr" ? "ltr" : "rtl"} /></Label>
                   {(isThisCorrect || isThisTheCorrectOne) && <CheckCircle2 className="h-5 w-5 text-mint" />}
                   {isThisWrong && <XCircle className="h-5 w-5 text-coral" />}
                 </div>
@@ -378,7 +378,7 @@ export const ChapterMathQuiz = ({ questions, chapterTitle, chapterId, onClose, c
               {!isCorrect && correctAnswer && (
                 <div className="bg-white/50 dark:bg-black/20 p-3 rounded border border-mint/30">
                   <p className="text-sm font-semibold text-mint mb-1">{t("quizPlayer.correctAnswerLabel")}</p>
-                  <div className="text-sm text-mint"><HtmlWithMath htmlContent={tCorrectAnswer} dir="auto" /></div>
+                  <div className="text-sm text-mint"><HtmlWithMath htmlContent={tCorrectAnswer} dir={lang === "fr" ? "ltr" : "rtl"} /></div>
                 </div>
               )}
             </div>

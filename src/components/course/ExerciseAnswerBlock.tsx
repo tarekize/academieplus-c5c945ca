@@ -295,16 +295,16 @@ export default function ExerciseAnswerBlock({ contentId, userId, statement, expe
           {hasSubQuestions ? (
             parts.map((p, i) => p.expectedAnswer ? (
               <p key={i}><span className="font-semibold">{t("exercisePlayer.subQuestionAnswerLabel", { n: i + 1 })}</span>{" "}
-                <HtmlWithMath htmlContent={cleanMathStatement(tPartAnswers[i] || p.expectedAnswer)} className="inline" dir="auto" /></p>
+                <HtmlWithMath htmlContent={cleanMathStatement(tPartAnswers[i] || p.expectedAnswer)} className="inline" dir={lang === "fr" ? "ltr" : "rtl"} /></p>
             ) : null)
           ) : expectedAnswer && (
             <p><span className="font-semibold">{t("exercisePlayer.theAnswerLabel")}</span>{" "}
-              <HtmlWithMath htmlContent={cleanMathStatement(tExpectedAnswer)} className="inline" dir="auto" /></p>
+              <HtmlWithMath htmlContent={cleanMathStatement(tExpectedAnswer)} className="inline" dir={lang === "fr" ? "ltr" : "rtl"} /></p>
           )}
           {solution && (
             <div>
               <p className="font-semibold flex items-center gap-2 mb-1"><BookOpen className="h-4 w-4" /> {t("exercisePlayer.theSolutionLabel")}</p>
-              <HtmlWithMath htmlContent={cleanMathStatement(tSolution)} dir="auto" />
+              <HtmlWithMath htmlContent={cleanMathStatement(tSolution)} dir={lang === "fr" ? "ltr" : "rtl"} />
             </div>
           )}
         </div>

@@ -19,6 +19,7 @@ import iconParent from "@/assets/icon-parent.png";
 import LocationFields from "@/components/profile/LocationFields";
 import { Capacitor } from "@capacitor/core";
 import { signInWithGoogleNative } from "@/lib/nativeGoogleAuth";
+import { ALGERIAN_PHONE_REGEX } from "@/lib/validation";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -279,6 +280,12 @@ const Auth = () => {
         return;
       }
 
+      const cleanedPhone = phone.replace(/[\s.-]/g, "");
+      if (cleanedPhone && !ALGERIAN_PHONE_REGEX.test(cleanedPhone)) {
+        toast.error("Le numéro de téléphone doit commencer par 0 et contenir 10 chiffres.");
+        return;
+      }
+
       if (!consentDataProcessing || !consentTermsPrivacy) {
         toast.error("Tu dois accepter le traitement des données et la politique de confidentialité pour t'inscrire.");
         return;
@@ -304,7 +311,7 @@ const Auth = () => {
       // Envoyer l'inscription en arrière-plan
       performSignUp(
         firstName, lastName, email, password, profileType, classLevel, filiere, dateOfBirth,
-        wilaya, ville, ecole, phone, establishmentCode,
+        wilaya, ville, ecole, cleanedPhone, establishmentCode,
         { consentDataProcessing, consentTermsPrivacy, consentParental, consentParentEmail }
       );
     } else {
@@ -800,7 +807,7 @@ const Auth = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-foreground">Date de naissance</Label>
+                        <Label className="text-foreground">Date de naissance <span className="text-red-500">*</span></Label>
                         <div className="flex gap-2">
                           <Input
                             type="text"

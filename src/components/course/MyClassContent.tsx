@@ -191,7 +191,7 @@ function QuizContentCard({
           <Badge className="bg-red-600 hover:bg-red-600 text-white">{t("myClassContent.assignedToYou")}</Badge>
         )}
         <div className="flex items-center gap-3">
-          <HtmlWithMath htmlContent={cleanMathStatement(tQuestion)} className="flex-1 font-medium" dir="auto" />
+          <HtmlWithMath htmlContent={cleanMathStatement(tQuestion)} className="flex-1 font-medium" dir={lang === "fr" ? "ltr" : "rtl"} />
           <div className="flex items-center gap-0.5 shrink-0">
             {Array.from({ length: 5 }).map((_, i) => (
               <Pencil key={i} className={cn("h-3.5 w-3.5", i < (it.difficulty || 3) ? "text-amber fill-orange-500/20" : "text-muted-foreground/20")} />
@@ -222,7 +222,7 @@ function QuizContentCard({
           </div>
         )}
         {p.hint && hintShown && (
-          <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir="auto">💡 {tHint}</div>
+          <div className="text-xs text-amber-700 dark:text-amber-400 bg-yellow-500/5 p-2 rounded" dir={lang === "fr" ? "ltr" : "rtl"}>💡 {tHint}</div>
         )}
         <div className="flex justify-end gap-2">
           {p.hint && !hintShown && (
@@ -238,7 +238,7 @@ function QuizContentCard({
         {isRevealed && p.explanation && (
           <div className="bg-muted/50 p-3 rounded text-sm">
             <p className="font-semibold flex items-center gap-2 mb-1"><BookOpen className="h-4 w-4" /> {t("lessonActivity.explanationLabel")}</p>
-            <HtmlWithMath htmlContent={cleanMathStatement(tExplanation)} dir="auto" />
+            <HtmlWithMath htmlContent={cleanMathStatement(tExplanation)} dir={lang === "fr" ? "ltr" : "rtl"} />
           </div>
         )}
       </CardContent>
@@ -261,7 +261,7 @@ function ExerciseContentCard({ it, direct, lang, userId }: { it: TeacherContentR
           <Badge className="bg-red-600 hover:bg-red-600 text-white">{t("myClassContent.assignedToYou")}</Badge>
         )}
         <div className="flex items-center gap-3">
-          <HtmlWithMath htmlContent={cleanMathStatement(tTitle)} className="flex-1 font-semibold" dir="auto" />
+          <HtmlWithMath htmlContent={cleanMathStatement(tTitle)} className="flex-1 font-semibold" dir={lang === "fr" ? "ltr" : "rtl"} />
           <div className="flex items-center gap-0.5 shrink-0">
             {Array.from({ length: 5 }).map((_, i) => (
               <Pencil key={i} className={cn("h-3.5 w-3.5", i < (it.difficulty || 3) ? "text-amber fill-orange-500/20" : "text-muted-foreground/20")} />

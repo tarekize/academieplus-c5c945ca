@@ -60,18 +60,27 @@ async function hasCompletedPlacementAssessment(userId: string): Promise<boolean>
 // par navigation. Sous charge (10 VUs concurrents), ça faisait exploser le TTFB.
 // On récupère les rôles une seule fois par session et hasRole()/isAdmin() lisent
 // ce cache en mémoire au lieu de refaire une requête à chaque appel.
+// Une erreur ici (accroc réseau, connexion tout juste rouverte après un
+// signUp() qui vient de la créer) faisait auparavant retourner [] en
+// silence : ProtectedRoute lisait alors un rôle vide, ne trouvait aucune
+// entrée dans ROLE_HOME et repliait l'utilisateur sur /dashboard générique
+// au lieu de son espace réel (ex : un parent tout juste inscrit atterrissait
+// sur /dashboard au lieu de /parent-dashboard). Une seule retentative avant
+// d'abandonner suffit à absorber ce type d'accroc transitoire.
 async function fetchRoles(userId: string): Promise<string[]> {
-  const { data, error } = await supabase
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', userId);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId);
 
-  if (error) {
+    if (!error) return (data ?? []).map((r) => r.role);
+
     console.error('Error fetching roles:', error);
-    return [];
+    if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 400));
   }
 
-  return (data ?? []).map((r) => r.role);
+  return [];
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
