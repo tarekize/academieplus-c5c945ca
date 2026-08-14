@@ -163,7 +163,6 @@ export default function PedagoExams() {
         subtitle="Créez et gérez les examens par matière et niveau/filière"
         titleIcon={FileText}
         onBack={() => navigate("/dashboard")}
-        showProfileMenu={false}
       />
       <main className="container mx-auto px-4 py-8">{content}</main>
 

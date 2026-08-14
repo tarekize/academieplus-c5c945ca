@@ -87,7 +87,6 @@ export default function PedagoActivity() {
         subtitle="Historique de vos ajouts, modifications et suppressions"
         titleIcon={History}
         onBack={() => navigate("/dashboard")}
-        showProfileMenu={false}
       />
 
       <main className="container mx-auto px-4 py-8">

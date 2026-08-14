@@ -158,7 +158,7 @@ export default function PedagoExamEditor() {
   if (!exam) {
     return (
       <div className="min-h-screen pro-shell">
-        <AppHeader title="Examen" titleIcon={FileText} onBack={() => navigate("/pedago/examens")} showProfileMenu={false} />
+        <AppHeader title="Examen" titleIcon={FileText} onBack={() => navigate("/pedago/examens")} />
         <main className="container mx-auto px-4 py-16 text-center text-muted-foreground">Examen introuvable.</main>
       </div>
     );
@@ -173,7 +173,6 @@ export default function PedagoExamEditor() {
         subtitle={`${TRIMESTER_LABELS[exam.trimester]} · ${exam.subject} · ${exam.school_level}`}
         titleIcon={FileText}
         onBack={() => navigate("/pedago/examens")}
-        showProfileMenu={false}
       />
       <main className="container mx-auto px-4 py-8 max-w-3xl space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
