@@ -23,11 +23,42 @@ const TEXT_WRAPPED_COMMANDS: Record<string, string> = {
  * LaTeX valide par LATEX_HINT. */
 function repairBrokenLatexArtifacts(s: string): string {
   let out = s;
+  out = repairBoxedConclusion(out);
   const infinityPattern = INFINITY_AR_TRANSLITERATIONS.join("|");
   out = out.replace(new RegExp(`\\\\text\\{\\$?(?:${infinityPattern})\\}`, "g"), "\\infty");
   out = out.replace(new RegExp(infinityPattern, "g"), "\\infty");
   out = out.replace(/\\text\{(lim|sin|cos|tan|ln|log|exp)\}/g, (_m, name: string) => TEXT_WRAPPED_COMMANDS[name]);
   return out;
+}
+
+/** Répare le \boxed{...} de conclusion (imposé par le prompt IA en fin de
+ * solution) quand l'IA y glisse un "$" parasite au milieu (ex.
+ * "f$'(x)=1" au lieu de "f'(x)=1") : ce "$" isolé casse le comptage des
+ * délimiteurs $...$/$$...$$ pour TOUT le reste de la chaîne, donc KaTeX
+ * n'arrive plus à faire correspondre l'ouverture/fermeture et affiche la
+ * source brute au lieu du rendu. Localise "\boxed{" (accolade équilibrée,
+ * car le contenu contient souvent des sous-blocs comme \lim_{x \to +\infty}),
+ * retire tout "$" à l'intérieur, puis renveloppe proprement en $$...$$. */
+function repairBoxedConclusion(s: string): string {
+  const m = /\\?boxed\{/.exec(s);
+  if (!m) return s;
+  const openIdx = m.index;
+  const contentStart = openIdx + m[0].length;
+  let depth = 1;
+  let end = -1;
+  for (let i = contentStart; i < s.length; i++) {
+    if (s[i] === "{") depth++;
+    else if (s[i] === "}") {
+      depth--;
+      if (depth === 0) { end = i; break; }
+    }
+  }
+  if (end === -1) return s; // accolades non équilibrées : on ne touche à rien
+
+  const inner = s.slice(contentStart, end).replace(/\$/g, "");
+  const before = s.slice(0, openIdx).replace(/\$+\s*$/, "");
+  const after = s.slice(end + 1).replace(/^\s*\\?\$+/, "");
+  return `${before}$$\\boxed{${inner}}$$${after}`;
 }
 
 /** Corrige un énoncé mathématique généré par IA pour que KaTeX puisse le
