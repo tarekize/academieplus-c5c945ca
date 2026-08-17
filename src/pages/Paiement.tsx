@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, CreditCard, Shield, Lock, Clock, Landmark, Upload, FileImage, X as XIcon, CheckCircle2, Copy, Check } from "lucide-react";
+import { ArrowLeft, CreditCard, Shield, Lock, Clock, Landmark, Upload, FileImage, X as XIcon, CheckCircle2, Copy, Check, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,9 +12,20 @@ import {
   BreadcrumbLink,
   BreadcrumbList,
 } from "@/components/ui/breadcrumb";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatLocaleDate, formatCurrencyDA } from "@/lib/formatLocale";
+import { hasActiveSubscription } from "@/lib/subscriptionStatus";
 import { useTranslation } from "react-i18next";
 import { AppHeader } from "@/components/layout/AppHeader";
 
@@ -64,22 +75,37 @@ const Paiement = () => {
   const [paymentMethod, setPaymentMethod] = useState<"card" | "bank_transfer">("card");
   const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [hasActiveSub, setHasActiveSub] = useState(false);
+  const [showActiveSubWarning, setShowActiveSubWarning] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { navigate("/auth"); return; }
       fetchProfile(session.user.id);
+      hasActiveSubscription(session.user.id).then(setHasActiveSub);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) { navigate("/auth"); return; }
       fetchProfile(session.user.id);
+      hasActiveSubscription(session.user.id).then(setHasActiveSub);
     });
 
     fetchBankDetails();
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Bouton "Payer" : si l'élève a déjà un abonnement premium IA actif,
+  // avertit avant de payer une deuxième fois au lieu de lancer directement
+  // le paiement — voir handlePayment plus bas pour l'appel réel.
+  const handlePayClick = () => {
+    if (hasActiveSub) {
+      setShowActiveSubWarning(true);
+      return;
+    }
+    handlePayment();
+  };
 
   // Charge les coordonnées bancaires à afficher pour le virement (RIB/CCP/
   // instructions), éditables par l'admin dans AdminAbonnements. Lecture
@@ -457,7 +483,7 @@ const Paiement = () => {
                   className="w-auto px-10 font-bold text-lg py-6"
                   size="lg"
                   disabled={processing}
-                  onClick={handlePayment}
+                  onClick={handlePayClick}
                 >
                   {processing
                     ? t("paiement.processing")
@@ -530,6 +556,26 @@ const Paiement = () => {
           </div>
         </div>
       </main>
+
+      <AlertDialog open={showActiveSubWarning} onOpenChange={setShowActiveSubWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              {t("paiement.activeSubWarningTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("paiement.activeSubWarningDesc")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("paiement.activeSubWarningCancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { setShowActiveSubWarning(false); handlePayment(); }}>
+              {t("paiement.activeSubWarningContinue")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
