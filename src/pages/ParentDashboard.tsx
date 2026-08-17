@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSessionState } from "@/hooks/useSessionState";
-import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +25,7 @@ import {
 import { downloadParentReportPdf, type ParentReportData } from "@/lib/parentReportPdf";
 import { toast as sonnerToast } from "sonner";
 import { getSchoolLevelLabel, allSchoolLevels } from "@/lib/validation";
+import { computeRemainingDays, isSubscriptionActive } from "@/lib/subscriptionStatus";
 import StudentDashboardContent from "@/components/dashboard/StudentDashboardContent";
 import ParentTeacherChat from "@/components/messaging/ParentTeacherChat";
 import { format, parse, isValid } from "date-fns";
@@ -344,6 +344,7 @@ const ParentDashboard = () => {
       setActivationCode("");
       setActivationDialogOpen(false);
       setSelectedChildForActivation(null);
+      if (user) fetchChildren(user.id);
     } catch (err: any) {
       sonnerToast.error(err.message || "Erreur lors de l'activation");
     } finally {
@@ -746,10 +747,10 @@ const ParentDashboard = () => {
                           </TableCell>
                           <TableCell>
                             <Badge
-                              variant={link.status === "active" ? "default" : "secondary"}
-                              className={cn("rounded-full", link.status !== "active" && "badge-status-pending")}
+                              variant={isSubscriptionActive(link.subscription) ? "default" : "destructive"}
+                              className="rounded-full"
                             >
-                              {link.status === "active" ? "Actif" : "En attente"}
+                              {isSubscriptionActive(link.subscription) ? "Actif" : "Inactif"}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -800,19 +801,9 @@ const ParentDashboard = () => {
                           </TableCell>
                           <TableCell className="text-end">
                             <div className="flex items-center justify-end gap-2 flex-wrap">
-                              {link.subscription ? (
+                              {isSubscriptionActive(link.subscription) ? (
                                 (() => {
-                                  const sub = link.subscription!;
-                                  let rem: number;
-                                  if (sub.is_paused) {
-                                    rem = Math.max(0, (sub.total_days || 0) - Number(sub.days_used || 0));
-                                  } else {
-                                    const now = new Date();
-                                    const lastTick = new Date(sub.last_tick_at);
-                                    const elapsedDays = (now.getTime() - lastTick.getTime()) / (1000 * 60 * 60 * 24);
-                                    rem = Math.max(0, (sub.total_days || 0) - Number(sub.days_used || 0) - elapsedDays);
-                                  }
-                                  rem = Math.floor(rem);
+                                  const rem = Math.floor(computeRemainingDays(link.subscription));
 
                                   return (
                                     <Button
