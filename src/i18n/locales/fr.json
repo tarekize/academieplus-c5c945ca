@@ -356,6 +356,28 @@
     "subscriptionResumed": "Abonnement réactivé",
     "subscriptionResumedDesc": "Le décompte de vos jours reprend."
   },
+  "joinClass": {
+    "loading": "Chargement...",
+    "myClass": "Ma classe",
+    "leaveClassAria": "Quitter la classe",
+    "leaveClassTitle": "Quitter la classe ?",
+    "leaveClassDesc": "Vous allez supprimer votre lien avec « {{name}} ». Vous pourrez ensuite saisir un autre code pour rejoindre une nouvelle classe.",
+    "cancel": "Annuler",
+    "leave": "Quitter",
+    "joinClassTitle": "Rejoindre une classe",
+    "joinClassSubtitle": "Avec le code fourni par votre enseignant",
+    "dialogDesc": "Saisissez le code de la classe fourni par votre enseignant.",
+    "codeLabel": "Code de la classe",
+    "codePlaceholder": "Ex : A1B2C3D4",
+    "joining": "Ajout...",
+    "join": "Rejoindre",
+    "emptyCodeError": "Veuillez entrer le code de la classe.",
+    "joinedSuccess": "Vous avez rejoint {{name}}",
+    "defaultClassName": "la classe",
+    "unexpectedError": "Erreur inattendue",
+    "leftClassSuccess": "Vous avez quitté la classe.",
+    "leaveError": "Erreur lors de la suppression du lien"
+  },
   "paiement": {
     "noPlanTitle": "Aucune formule sélectionnée",
     "noPlanDesc": "Veuillez d'abord choisir une formule d'abonnement.",

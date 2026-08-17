@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +32,7 @@ interface JoinClassDialogProps {
  * n'est faite ici, ce qui évite qu'un client puisse deviner un code par
  * requêtes répétées en contournant une éventuelle protection anti-bruteforce serveur. */
 export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [saving, setSaving] = useState(false);
@@ -64,7 +66,7 @@ export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps)
         setCurrent({
           membershipId: data.id,
           classId: data.class_id,
-          name: (data as any).classes?.name || "Ma classe",
+          name: (data as any).classes?.name || t("joinClass.myClass"),
         });
         onClassChange?.(true);
       } else {
@@ -88,7 +90,7 @@ export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps)
   const handleSubmit = async () => {
     const trimmed = code.trim();
     if (!trimmed) {
-      toast.error("Veuillez entrer le code de la classe.");
+      toast.error(t("joinClass.emptyCodeError"));
       return;
     }
     setSaving(true);
@@ -104,13 +106,13 @@ export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps)
         toast.error((data as any).error);
         return;
       }
-      const name = (data as any)?.class?.name || "la classe";
-      toast.success(`Vous avez rejoint ${name}`);
+      const name = (data as any)?.class?.name || t("joinClass.defaultClassName");
+      toast.success(t("joinClass.joinedSuccess", { name }));
       setCode("");
       setOpen(false);
       await loadCurrentClass();
     } catch (e: any) {
-      toast.error(e.message || "Erreur inattendue");
+      toast.error(e.message || t("joinClass.unexpectedError"));
     } finally {
       setSaving(false);
     }
@@ -131,11 +133,11 @@ export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps)
         .eq("id", current.membershipId)
         .eq("student_id", userId);
       if (error) throw error;
-      toast.success("Vous avez quitté la classe.");
+      toast.success(t("joinClass.leftClassSuccess"));
       setCurrent(null);
       onClassChange?.(false);
     } catch (e: any) {
-      toast.error(e.message || "Erreur lors de la suppression du lien");
+      toast.error(e.message || t("joinClass.leaveError"));
     } finally {
       setLeaving(false);
     }
@@ -147,7 +149,7 @@ export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps)
         <span className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
           <Loader2 className="h-4 w-4 animate-spin" />
         </span>
-        <span className="text-sm">Chargement...</span>
+        <span className="text-sm">{t("joinClass.loading")}</span>
       </div>
     );
   }
@@ -160,7 +162,7 @@ export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps)
           <GraduationCap className="h-4 w-4" />
         </span>
         <span className="flex-1 min-w-0">
-          <span className="block text-sm font-medium">Ma classe</span>
+          <span className="block text-sm font-medium">{t("joinClass.myClass")}</span>
           <span className="block text-xs text-muted-foreground truncate">{current.name}</span>
         </span>
         <AlertDialog>
@@ -169,26 +171,25 @@ export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps)
               variant="ghost"
               size="icon"
               className="h-8 w-8 shrink-0 text-destructive hover:bg-destructive/10 active:scale-90 transition-transform"
-              aria-label="Quitter la classe"
+              aria-label={t("joinClass.leaveClassAria")}
             >
               {leaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent className="rounded-2xl">
             <AlertDialogHeader>
-              <AlertDialogTitle>Quitter la classe ?</AlertDialogTitle>
+              <AlertDialogTitle>{t("joinClass.leaveClassTitle")}</AlertDialogTitle>
               <AlertDialogDescription>
-                Vous allez supprimer votre lien avec « {current.name} ». Vous pourrez
-                ensuite saisir un autre code pour rejoindre une nouvelle classe.
+                {t("joinClass.leaveClassDesc", { name: current.name })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="rounded-xl">Annuler</AlertDialogCancel>
+              <AlertDialogCancel className="rounded-xl">{t("joinClass.cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleLeave}
                 className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                Quitter
+                {t("joinClass.leave")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -209,28 +210,28 @@ export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps)
             <Users className="h-4 w-4" />
           </span>
           <span className="flex-1 min-w-0">
-            <span className="block text-sm font-medium">Rejoindre une classe</span>
-            <span className="block text-xs text-muted-foreground">Avec le code fourni par votre enseignant</span>
+            <span className="block text-sm font-medium">{t("joinClass.joinClassTitle")}</span>
+            <span className="block text-xs text-muted-foreground">{t("joinClass.joinClassSubtitle")}</span>
           </span>
           <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
         </button>
       </DialogTrigger>
       <DialogContent className="rounded-2xl">
         <DialogHeader>
-          <DialogTitle>Rejoindre une classe</DialogTitle>
+          <DialogTitle>{t("joinClass.joinClassTitle")}</DialogTitle>
           <DialogDescription>
-            Saisissez le code de la classe fourni par votre enseignant.
+            {t("joinClass.dialogDesc")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2 py-2">
-          <Label htmlFor="class-code">Code de la classe</Label>
+          <Label htmlFor="class-code">{t("joinClass.codeLabel")}</Label>
           <div className="relative">
             <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               id="class-code"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 8))}
-              placeholder="Ex : A1B2C3D4"
+              placeholder={t("joinClass.codePlaceholder")}
               maxLength={8}
               className="pl-9 rounded-xl font-mono tracking-wider"
               onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
@@ -238,9 +239,9 @@ export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps)
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" className="rounded-xl" onClick={() => setOpen(false)}>Annuler</Button>
+          <Button variant="outline" className="rounded-xl" onClick={() => setOpen(false)}>{t("joinClass.cancel")}</Button>
           <Button className="rounded-xl" onClick={handleSubmit} disabled={saving}>
-            {saving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Ajout...</> : "Rejoindre"}
+            {saving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("joinClass.joining")}</> : t("joinClass.join")}
           </Button>
         </DialogFooter>
       </DialogContent>

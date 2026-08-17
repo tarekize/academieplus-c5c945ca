@@ -362,6 +362,28 @@
     "subscriptionResumed": "تم استئناف الاشتراك",
     "subscriptionResumedDesc": "استؤنف احتساب أيامك."
   },
+  "joinClass": {
+    "loading": "جارٍ التحميل...",
+    "myClass": "صفي",
+    "leaveClassAria": "مغادرة الصف",
+    "leaveClassTitle": "مغادرة الصف؟",
+    "leaveClassDesc": "ستُحذف صلتك بـ «{{name}}». يمكنك بعد ذلك إدخال رمز آخر للانضمام إلى صف جديد.",
+    "cancel": "إلغاء",
+    "leave": "مغادرة",
+    "joinClassTitle": "الانضمام إلى صف",
+    "joinClassSubtitle": "باستخدام الرمز الذي يقدمه أستاذك",
+    "dialogDesc": "أدخل رمز الصف الذي زوّدك به أستاذك.",
+    "codeLabel": "رمز الصف",
+    "codePlaceholder": "مثال: A1B2C3D4",
+    "joining": "جارٍ الانضمام...",
+    "join": "انضمام",
+    "emptyCodeError": "الرجاء إدخال رمز الصف.",
+    "joinedSuccess": "لقد انضممت إلى {{name}}",
+    "defaultClassName": "الصف",
+    "unexpectedError": "خطأ غير متوقع",
+    "leftClassSuccess": "لقد غادرت الصف.",
+    "leaveError": "خطأ أثناء حذف الرابط"
+  },
   "paiement": {
     "noPlanTitle": "لم يتم اختيار أي صيغة",
     "noPlanDesc": "يرجى اختيار صيغة اشتراك أولاً.",
