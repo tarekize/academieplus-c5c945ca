@@ -14,7 +14,7 @@ const ROLE_HOME: Record<AppRole, string> = {
   parent: '/parent-dashboard',
   teacher: '/teacher-dashboard',
   etablissement: '/etablissement-dashboard',
-  student: '/cours/math/chapitres',
+  student: '/dashboard',
 };
 
 interface ProtectedRouteProps {

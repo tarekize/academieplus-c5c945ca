@@ -180,7 +180,7 @@ const Auth = () => {
         } else if (roleData.role === 'pedago') {
           navigate("/liste-matieres");
         } else {
-          navigate("/cours/math/chapitres");
+          navigate("/dashboard");
         }
       } catch (error) {
         console.error('Erreur lors de la redirection après connexion:', error);

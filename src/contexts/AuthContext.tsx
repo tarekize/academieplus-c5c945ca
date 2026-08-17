@@ -229,10 +229,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
           }
 
-          // Rediriger les élèves vers /cours/math/chapitres après connexion par défaut
+          // Rediriger les élèves vers leur tableau de bord après connexion par défaut
           if (roleData?.role === 'student' &&
             (currentPath.includes('/auth') || currentPath === '/')) {
-            window.location.href = '/cours/math/chapitres';
+            window.location.href = '/dashboard';
             return;
           }
 
