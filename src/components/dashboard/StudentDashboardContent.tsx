@@ -14,8 +14,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer } from "recharts";
 import {
-  Clock, Target, TrendingUp, TrendingDown, GraduationCap, BookOpen, Brain, FileText,
-  CheckCircle2, XCircle, Zap, RefreshCw, Activity, Sparkles, Award, ChevronRight, Bell, Bot,
+  Clock, Target, GraduationCap, BookOpen, Brain, FileText,
+  Zap, RefreshCw, Activity, Sparkles, Award, ChevronRight, Bell, Bot,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -128,45 +128,45 @@ Clique sur **"Aller à la leçon"** pour réviser maintenant.`;
 اضغط على **"اذهب إلى الدرس"** للمراجعة الآن.`;
 }
 
-/** Construit le texte de suggestion IA affiché sous le chapitre sélectionné, à partir
- * du niveau moyen des leçons du chapitre (générique — pas d'appel IA réel ici). */
-function buildChapterSuggestion(lang: "ar" | "fr", chapterTitle: string, lessons: LessonProgress[]) {
+/** Construit le texte de suggestion IA affiché sous le chapitre sélectionné. Reçoit
+ * `level` déjà calculé (chapter.level, même moyenne pondérée que le badge "المستوى:
+ * X/100" du chapitre) plutôt que de recalculer sa propre moyenne à partir des
+ * leçons — les deux affichaient auparavant des nombres différents pour le même
+ * chapitre (moyenne pondérée par réponses vs moyenne simple des leçons notées). */
+function buildChapterSuggestion(lang: "ar" | "fr", chapterTitle: string, lessons: LessonProgress[], level: number) {
+  const leveled = lessons.filter((l) => l.level !== null);
   if (lang === "fr") {
     if (lessons.length === 0) {
       return `Pas encore assez de données sur le chapitre "${chapterTitle}". Commence à étudier les leçons pour obtenir une analyse.`;
     }
-    const leveled = lessons.filter((l) => l.level !== null);
     if (leveled.length === 0) {
       return `Tu n'as pas encore commencé les exercices du chapitre "${chapterTitle}". Commence maintenant pour évaluer ton niveau.`;
     }
-    const avg = Math.round(leveled.reduce((s, l) => s + (l.level || 0), 0) / leveled.length);
     const weak = lessons.filter((l) => l.level !== null && (l.level as number) < 50);
     if (weak.length > 0) {
       const names = weak.slice(0, 3).map((l) => l.lessonTitleAr || l.lessonTitle).join(", ");
-      return `Ton niveau dans le chapitre "${chapterTitle}" est de ${avg}/100. Concentre-toi sur les leçons qui ont besoin de soutien : ${names}. Revois les règles et refais les exercices étape par étape.`;
+      return `Ton niveau dans le chapitre "${chapterTitle}" est de ${level}/100. Concentre-toi sur les leçons qui ont besoin de soutien : ${names}. Revois les règles et refais les exercices étape par étape.`;
     }
-    if (avg >= 80) {
-      return `Excellente performance dans le chapitre "${chapterTitle}" avec un niveau de ${avg}/100 ! 🎉 Tu es prêt à passer à des activités plus difficiles ou à un nouveau chapitre.`;
+    if (level >= 80) {
+      return `Excellente performance dans le chapitre "${chapterTitle}" avec un niveau de ${level}/100 ! 🎉 Tu es prêt à passer à des activités plus difficiles ou à un nouveau chapitre.`;
     }
-    return `Bonne performance dans le chapitre "${chapterTitle}" avec un niveau de ${avg}/100. Continue à t'entraîner pour atteindre un niveau avancé.`;
+    return `Bonne performance dans le chapitre "${chapterTitle}" avec un niveau de ${level}/100. Continue à t'entraîner pour atteindre un niveau avancé.`;
   }
   if (lessons.length === 0) {
     return `لا توجد بيانات كافية بعد عن فصل "${chapterTitle}". ابدأ بدراسة الدروس للحصول على تحليل.`;
   }
-  const leveled = lessons.filter((l) => l.level !== null);
   if (leveled.length === 0) {
     return `لم تبدأ بعد بحل التمارين في فصل "${chapterTitle}". ابدأ الآن لقياس مستواك.`;
   }
-  const avg = Math.round(leveled.reduce((s, l) => s + (l.level || 0), 0) / leveled.length);
   const weak = lessons.filter((l) => l.level !== null && (l.level as number) < 50);
   if (weak.length > 0) {
     const names = weak.slice(0, 3).map((l) => l.lessonTitleAr || l.lessonTitle).join("، ");
-    return `مستواك في فصل "${chapterTitle}" هو ${avg}/100. ننصحك بالتركيز على الدروس التي تحتاج دعماً: ${names}. راجع القواعد وأعد حل التمارين خطوة بخطوة.`;
+    return `مستواك في فصل "${chapterTitle}" هو ${level}/100. ننصحك بالتركيز على الدروس التي تحتاج دعماً: ${names}. راجع القواعد وأعد حل التمارين خطوة بخطوة.`;
   }
-  if (avg >= 80) {
-    return `أداء ممتاز في فصل "${chapterTitle}" بمستوى ${avg}/100! 🎉 أنت جاهز للانتقال إلى أنشطة أصعب أو فصل جديد.`;
+  if (level >= 80) {
+    return `أداء ممتاز في فصل "${chapterTitle}" بمستوى ${level}/100! 🎉 أنت جاهز للانتقال إلى أنشطة أصعب أو فصل جديد.`;
   }
-  return `أداء جيد في فصل "${chapterTitle}" بمستوى ${avg}/100. واصل التدريب للوصول إلى مستوى متقدم.`;
+  return `أداء جيد في فصل "${chapterTitle}" بمستوى ${level}/100. واصل التدريب للوصول إلى مستوى متقدم.`;
 }
 
 const REFRESH_INTERVAL = 30000; // 30s auto-refresh
@@ -188,7 +188,6 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
   const getSchoolLevelLabel = (level: string | null) => (level ? t(`app.schoolLevels.${level}`) : "—");
   const [chapterStats, setChapterStats] = useState<ChapterStat[]>([]);
   const [totalTime, setTotalTime] = useState(0);
-  const [totalCorrect, setTotalCorrect] = useState(0);
   const [totalAnswers, setTotalAnswers] = useState(0);
   const [avgLevel, setAvgLevel] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -265,7 +264,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
       });
 
       let totalReadTime = 0, totalQuizTime = 0, totalExTime = 0;
-      let sumCorrect = 0, sumTotal = 0, maxStreak = 0;
+      let sumTotal = 0, maxStreak = 0;
 
       // Règle 5 — appliquer la décroissance temporelle (oubli) avant agrégation,
       // et persister la valeur dégradée dans la base pour cohérence.
@@ -311,7 +310,6 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
           totalReadTime += s.reading_time_seconds || 0;
           totalQuizTime += s.quiz_time_seconds || 0;
           totalExTime += s.exercise_time_seconds || 0;
-          sumCorrect += s.correct_answers || 0;
           sumTotal += s.total_answers || 0;
           if ((s.streak || 0) > maxStreak) maxStreak = s.streak;
           return;
@@ -339,7 +337,6 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
         totalReadTime += s.reading_time_seconds || 0;
         totalQuizTime += s.quiz_time_seconds || 0;
         totalExTime += s.exercise_time_seconds || 0;
-        sumCorrect += s.correct_answers || 0;
         sumTotal += s.total_answers || 0;
         if ((s.streak || 0) > maxStreak) maxStreak = s.streak;
       });
@@ -361,7 +358,6 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
       setChapterStats(Array.from(chapterMap.values()));
       setActivityBreakdown({ reading: totalReadTime, quiz: totalQuizTime, exercise: totalExTime });
       setTotalTime(totalReadTime + totalQuizTime + totalExTime);
-      setTotalCorrect(sumCorrect);
       setTotalAnswers(sumTotal);
 
       // Règle 3 — niveau global pondéré par nombre de réponses (pas une moyenne plate).
@@ -626,9 +622,6 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
     return () => { supabase.removeChannel(channel); };
   }, [userId]);
 
-  const successRate = totalAnswers > 0 ? Math.round((totalCorrect / totalAnswers) * 100) : 0;
-  const errorRate = totalAnswers > 0 ? 100 - successRate : 0;
-  const totalErrors = totalAnswers - totalCorrect;
   const levelInfo = getLevelInfo(t, avgLevel);
 
   const totalActivity = activityBreakdown.reading + activityBreakdown.quiz + activityBreakdown.exercise || 1;
@@ -636,23 +629,16 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
   const quizPct = Math.round((activityBreakdown.quiz / totalActivity) * 100);
   const exPct = 100 - readPct - quizPct;
 
-  /** % de leçons terminées dans un chapitre donné (utilisé pour le radar de performance). */
-  const getChapterCompletionPct = (chapterId: string) => {
-    const chapterLessons = chapterLessonProgress.find((chapter) => chapter.chapterId === chapterId);
-    if (!chapterLessons || chapterLessons.totalLessons === 0) return 0;
-    return Math.round((chapterLessons.completedLessons / chapterLessons.totalLessons) * 100);
-  };
-
-  const chapterRadarData = chapterStats.map((chapter, index) => {
-    const completionPct = getChapterCompletionPct(chapter.chapterId);
-
-    return {
-      chapter: chapter.chapterTitle.length > 18 ? `${chapter.chapterTitle.slice(0, 18)}…` : chapter.chapterTitle,
-      score: completionPct,
-      fullTitle: chapter.chapterTitle,
-      order: index + 1,
-    };
-  });
+  // Le radar reprend directement chapter.level (même niveau pondéré que le badge
+  // "المستوى: X/100" affiché plus bas pour ce chapitre) — il affichait auparavant
+  // un % de leçons "terminées" (notion distincte, jamais renseignée en pratique),
+  // ce qui le laissait bloqué à 0 même pour un chapitre déjà travaillé et noté.
+  const chapterRadarData = chapterStats.map((chapter, index) => ({
+    chapter: chapter.chapterTitle.length > 18 ? `${chapter.chapterTitle.slice(0, 18)}…` : chapter.chapterTitle,
+    score: chapter.level,
+    fullTitle: chapter.chapterTitle,
+    order: index + 1,
+  }));
 
   const selectedChapter = chapterStats.find((c) => c.chapterId === selectedChapterId) || chapterStats[0];
   const selectedChapterLessons = chapterLessonProgress.find((c) => c.chapterId === selectedChapter?.chapterId);
@@ -694,7 +680,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
   };
 
   const chapterSuggestion = selectedChapter
-    ? buildChapterSuggestion(lang, selectedChapter.chapterTitle, selectedChapterLessons?.lessons || [])
+    ? buildChapterSuggestion(lang, selectedChapter.chapterTitle, selectedChapterLessons?.lessons || [], selectedChapter.level)
     : "";
 
   return (
@@ -770,44 +756,8 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <Card className={cn("relative overflow-hidden hover:shadow-md transition-shadow", !parentView && "glass-card border-0 animate-fade-up")}>
-          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-          <CardContent className="p-5 relative">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 rounded-xl bg-emerald-500/10">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-              </div>
-              <TrendingUp className="h-4 w-4 text-emerald-500/60" />
-            </div>
-            <p className="text-xs text-muted-foreground mb-1">{t("studentDashboard.successRate")}</p>
-            <p className="text-3xl font-bold text-emerald-600">{successRate}%</p>
-            <div className="mt-3 h-1.5 rounded-full bg-secondary overflow-hidden">
-              <div className="h-full rounded-full bg-emerald-500 transition-all duration-700" style={{ width: `${successRate}%` }} />
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-2">{t("studentDashboard.correctAnswers", { count: totalCorrect })}</p>
-          </CardContent>
-        </Card>
-
-        <Card className={cn("relative overflow-hidden hover:shadow-md transition-shadow", !parentView && "glass-card border-0 animate-fade-up [animation-delay:60ms]")}>
-          <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-          <CardContent className="p-5 relative">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 rounded-xl bg-red-500/10">
-                <XCircle className="h-5 w-5 text-red-500" />
-              </div>
-              <TrendingDown className="h-4 w-4 text-red-500/60" />
-            </div>
-            <p className="text-xs text-muted-foreground mb-1">{t("studentDashboard.errorRate")}</p>
-            <p className="text-3xl font-bold text-red-500">{errorRate}%</p>
-            <div className="mt-3 h-1.5 rounded-full bg-secondary overflow-hidden">
-              <div className="h-full rounded-full bg-red-500 transition-all duration-700" style={{ width: `${errorRate}%` }} />
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-2">{t("studentDashboard.wrongAnswers", { count: totalErrors })}</p>
-          </CardContent>
-        </Card>
-
-        <Card className={cn("relative overflow-hidden hover:shadow-md transition-shadow", !parentView && "glass-card border-0 animate-fade-up [animation-delay:120ms]")}>
           <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
           <CardContent className="p-5 relative">
             <div className="flex items-center justify-between mb-3">
@@ -825,7 +775,7 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
           </CardContent>
         </Card>
 
-        <Card className={cn("relative overflow-hidden hover:shadow-md transition-shadow", !parentView && "glass-card border-0 animate-fade-up [animation-delay:180ms]")}>
+        <Card className={cn("relative overflow-hidden hover:shadow-md transition-shadow", !parentView && "glass-card border-0 animate-fade-up [animation-delay:60ms]")}>
           <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
           <CardContent className="p-5 relative">
             <div className="flex items-center justify-between mb-3">
