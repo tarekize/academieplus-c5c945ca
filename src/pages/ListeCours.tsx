@@ -84,9 +84,10 @@ function PendingBadge({ count }: { count: number }) {
 }
 
 // Page de navigation matière -> niveau -> (filière) -> chapitres. Pour un
-// élève/parent, redirige directement vers les cours de maths (seule matière
-// disponible) ; pour un admin/pédago, sert de sélecteur de contenu à gérer,
-// avec des pastilles de contenu IA en attente de validation.
+// élève/parent, affiche la liste des matières (cartes cliquables, seules les
+// matières disponibles mènent aux chapitres) ; pour un admin/pédago, sert de
+// sélecteur de contenu à gérer, avec des pastilles de contenu IA en attente
+// de validation.
 const ListeCours = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -250,13 +251,6 @@ const ListeCours = () => {
   const filteredLevels = levelsList.filter((level) =>
     level.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // Auto-redirect students directly to math course (only subject available)
-  useEffect(() => {
-    if (!authLoading && !profileLoading && profile && !isAdmin && !isPedago) {
-      navigate("/cours/math/chapitres", { replace: true });
-    }
-  }, [authLoading, profileLoading, profile, isAdmin, isPedago, navigate]);
 
   if (authLoading || profileLoading) {
     return (

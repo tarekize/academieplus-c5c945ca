@@ -15,6 +15,7 @@ import JoinClassDialog from "@/components/student/JoinClassDialog";
 import ReclamationDialog from "@/components/ReclamationDialog";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { useTranslation } from "react-i18next";
+import { computeRemainingDays } from "@/lib/subscriptionStatus";
 
 interface Profile {
   id: string;
@@ -102,17 +103,6 @@ const Account = () => {
     if (data && data.length > 0) {
       setSubscription(data[0] as any);
     }
-  };
-
-  const getRemainingDays = (sub: StudentSubscription): number => {
-    if (sub.is_paused) {
-      return Math.max(0, sub.total_days - Number(sub.days_used));
-    }
-    // Calculate elapsed since last_tick_at
-    const now = new Date();
-    const lastTick = new Date(sub.last_tick_at);
-    const elapsedDays = (now.getTime() - lastTick.getTime()) / (1000 * 60 * 60 * 24);
-    return Math.max(0, sub.total_days - Number(sub.days_used) - elapsedDays);
   };
 
   const getFullName = (profile: Profile | null): string => {
@@ -242,7 +232,7 @@ const Account = () => {
 
   const accountCards = isAdmin ? adminCards : isParent ? parentCards : isPedago ? pedagoCards : studentCards;
 
-  const remaining = subscription ? Math.floor(getRemainingDays(subscription)) : 0;
+  const remaining = Math.floor(computeRemainingDays(subscription));
 
   return (
     <div className="min-h-screen pro-shell">
