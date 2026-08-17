@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Users, Loader2, Hash, GraduationCap, Trash2, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import { extractFunctionErrorMessage } from "@/lib/edgeFunctionError";
 
 interface CurrentClass {
   membershipId: string;
@@ -96,8 +97,7 @@ export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps)
         body: { code: trimmed },
       });
       if (error) {
-        const msg = (data as any)?.error || error.message || "Erreur lors de l'ajout";
-        toast.error(msg);
+        toast.error(await extractFunctionErrorMessage(error));
         return;
       }
       if ((data as any)?.error) {
@@ -229,8 +229,9 @@ export default function JoinClassDialog({ onClassChange }: JoinClassDialogProps)
             <Input
               id="class-code"
               value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 8))}
               placeholder="Ex : A1B2C3D4"
+              maxLength={8}
               className="pl-9 rounded-xl font-mono tracking-wider"
               onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
             />

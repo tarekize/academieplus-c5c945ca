@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { extractFunctionErrorMessage } from "@/lib/edgeFunctionError";
 
 type Status = "loading" | "joining" | "success" | "error" | "redirecting";
 
@@ -45,7 +46,7 @@ export default function JoinClass() {
         });
 
         if (error || (data as any)?.error) {
-          const msg = (data as any)?.error || error?.message || "Erreur lors de l'adhésion à la classe.";
+          const msg = (data as any)?.error || (error ? await extractFunctionErrorMessage(error) : "Erreur lors de l'adhésion à la classe.");
           setStatus("error");
           setErrorMsg(msg);
           return;
