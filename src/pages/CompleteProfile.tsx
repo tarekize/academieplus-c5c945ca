@@ -223,7 +223,17 @@ const CompleteProfile = () => {
             name: joinedEstablishment.establishment_name,
             establishment_profile_id: joinedEstablishment.establishment_id,
           });
-        if (estError) console.error('Erreur liaison établissement:', estError);
+        if (estError) {
+          console.error('Erreur liaison établissement:', estError);
+          // Ne bloque pas la fin de l'inscription (le rôle est déjà attribué) mais
+          // ne doit plus rester totalement silencieux — l'enseignant se retrouvait
+          // sans établissement visible sans aucune indication de ce qui a échoué.
+          toast.error(
+            estError.code === "23505"
+              ? "Vous êtes déjà dans cet établissement."
+              : "Erreur lors du rattachement à l'établissement. Réessayez depuis votre tableau de bord.",
+          );
+        }
       }
 
       toast.success("Profil complété avec succès !");

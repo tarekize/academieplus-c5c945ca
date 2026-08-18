@@ -207,7 +207,7 @@ export default function EstablishmentManager({ teacherId, onBack }: { teacherId:
         .single();
       if (error) {
         if (error.code === "23505") {
-          toast.error("Cet établissement est déjà ajouté à votre compte.");
+          toast.error("Vous êtes déjà dans cet établissement.");
           setEstCode("");
           setShowCreateForm(false);
           return;
