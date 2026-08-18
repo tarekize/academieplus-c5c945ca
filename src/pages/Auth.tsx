@@ -114,14 +114,13 @@ const Auth = () => {
     }
 
     // Redirigé ici par AuthContext après une déconnexion forcée (compte
-    // désactivé) — la session n'existe déjà plus à ce stade, donc impossible
-    // de connaître le rôle pour affiner le message (voir le message plus
-    // précis affiché juste après une tentative de connexion échouée, plus bas).
+    // désactivé) — statut du COMPTE, indépendant de l'abonnement (voir
+    // migration 20260818100000) : ne concerne qu'une désactivation
+    // administrative réelle, jamais un abonnement premium expiré.
     if (params.get('deactivated') === '1') {
-      toast.error(
-        "Ton compte a été désactivé. Si c'est ton abonnement (élève/parent) qui est expiré, active un nouveau code pour le réactiver. Sinon, contacte l'administration.",
-        { duration: 8000 },
-      );
+      toast.error("Ton compte a été désactivé. Contacte ton établissement ou l'administration.", {
+        duration: 8000,
+      });
     }
 
     // Détermine où envoyer l'utilisateur une fois la session confirmée.
@@ -343,24 +342,11 @@ const Auth = () => {
           .maybeSingle();
 
         if (profileData && profileData.is_active === false) {
-          // La désactivation a deux causes très différentes : un abonnement élève/parent
-          // expiré (le compte se réactive tout seul dès qu'un nouveau code est activé) vs
-          // un contrat enseignant/établissement expiré (nécessite vraiment l'administration).
-          // Le message générique "contacte ton établissement" était trompeur et n'aidait pas
-          // un élève/parent à comprendre qu'il lui suffit d'activer un code.
-          const { data: roleRows } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", signInData.user!.id);
-          const roles = (roleRows || []).map((r: any) => r.role);
+          // Statut du COMPTE, indépendant de l'abonnement (voir migration
+          // 20260818100000) : ne concerne qu'une désactivation administrative
+          // réelle, jamais un abonnement premium expiré.
           await supabase.auth.signOut();
-          if (roles.includes("student") || roles.includes("parent")) {
-            toast.error("Ton abonnement est expiré. Active un nouveau code d'abonnement pour réactiver ton compte.", {
-              duration: 7000,
-            });
-          } else {
-            toast.error("Ton compte a été désactivé. Contacte ton établissement ou l'administration.");
-          }
+          toast.error("Ton compte a été désactivé. Contacte ton établissement ou l'administration.");
           setLoading(false);
           return;
         }
