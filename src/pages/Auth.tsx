@@ -116,11 +116,19 @@ const Auth = () => {
     // Redirigé ici par AuthContext après une déconnexion forcée (compte
     // désactivé) — statut du COMPTE, indépendant de l'abonnement (voir
     // migration 20260818100000) : ne concerne qu'une désactivation
-    // administrative réelle, jamais un abonnement premium expiré.
+    // administrative réelle, jamais un abonnement premium expiré. Seul un
+    // établissement est désactivé sur la base d'un contrat (reason=contract,
+    // transmis par AuthContext) ; les autres rôles gardent le message générique.
     if (params.get('deactivated') === '1') {
-      toast.error("Ton compte a été désactivé. Contacte ton établissement ou l'administration.", {
-        duration: 8000,
-      });
+      if (params.get('reason') === 'contract') {
+        toast.error("Votre contrat a expiré avec nous. Contactez-nous pour le réactiver.", {
+          duration: 8000,
+        });
+      } else {
+        toast.error("Ton compte a été désactivé. Contacte ton établissement ou l'administration.", {
+          duration: 8000,
+        });
+      }
     }
 
     // Détermine où envoyer l'utilisateur une fois la session confirmée.
@@ -344,9 +352,19 @@ const Auth = () => {
         if (profileData && profileData.is_active === false) {
           // Statut du COMPTE, indépendant de l'abonnement (voir migration
           // 20260818100000) : ne concerne qu'une désactivation administrative
-          // réelle, jamais un abonnement premium expiré.
+          // réelle, jamais un abonnement premium expiré. Seul un établissement
+          // est désactivé sur la base d'un contrat — message dédié pour ce rôle.
+          const { data: roleRows } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", signInData.user!.id);
+          const roles = (roleRows || []).map((r: any) => r.role);
           await supabase.auth.signOut();
-          toast.error("Ton compte a été désactivé. Contacte ton établissement ou l'administration.");
+          if (roles.includes("etablissement")) {
+            toast.error("Votre contrat a expiré avec nous. Contactez-nous pour le réactiver.");
+          } else {
+            toast.error("Ton compte a été désactivé. Contacte ton établissement ou l'administration.");
+          }
           setLoading(false);
           return;
         }

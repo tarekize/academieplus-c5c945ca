@@ -152,11 +152,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // pour une simple ré-authentification du même utilisateur : voir isSameUserReauth).
       if (session?.user && !isSameUserReauth) {
         setTimeout(async () => {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('is_active, date_of_birth')
-            .eq('id', session.user.id)
-            .maybeSingle();
+          // profileData et roleData n'ont pas de dépendance l'un envers l'autre :
+          // les paralléliser évite un aller-retour réseau séquentiel inutile, et
+          // roleData doit être disponible AVANT le check is_active pour distinguer
+          // le message "contrat établissement expiré" du message générique.
+          const [{ data: profileData }, { data: roleData }] = await Promise.all([
+            supabase
+              .from('profiles')
+              .select('is_active, date_of_birth')
+              .eq('id', session.user.id)
+              .maybeSingle(),
+            supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', session.user.id)
+              .maybeSingle(),
+          ]);
 
           // Un profil introuvable (et non juste "is_active = false") signifie que le
           // compte a été supprimé pendant que ce navigateur gardait une session encore
@@ -171,15 +182,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           if (profileData.is_active === false) {
             await supabase.auth.signOut();
-            window.location.href = '/auth?deactivated=1';
+            // Seul un établissement est désactivé sur la base d'un contrat (voir
+            // migration 20260818100000 — un abonnement élève/parent expiré ne
+            // désactive plus jamais le compte) : lui seul reçoit le message
+            // "contrat expiré" ; les autres rôles gardent le message générique.
+            const deactivatedQuery = roleData?.role === 'etablissement' ? 'deactivated=1&reason=contract' : 'deactivated=1';
+            window.location.href = `/auth?${deactivatedQuery}`;
             return;
           }
-
-          const { data: roleData } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
 
           const currentPath = window.location.pathname;
 
