@@ -113,6 +113,17 @@ const Auth = () => {
       setIsLogin(true);
     }
 
+    // Redirigé ici par AuthContext après une déconnexion forcée (compte
+    // désactivé) — la session n'existe déjà plus à ce stade, donc impossible
+    // de connaître le rôle pour affiner le message (voir le message plus
+    // précis affiché juste après une tentative de connexion échouée, plus bas).
+    if (params.get('deactivated') === '1') {
+      toast.error(
+        "Ton compte a été désactivé. Si c'est ton abonnement (élève/parent) qui est expiré, active un nouveau code pour le réactiver. Sinon, contacte l'administration.",
+        { duration: 8000 },
+      );
+    }
+
     // Détermine où envoyer l'utilisateur une fois la session confirmée.
     // Toute erreur (requête role/assessment en échec juste après l'OAuth,
     // réseau, etc.) tombe dans le catch pour éviter de rester bloqué sur une
@@ -332,8 +343,24 @@ const Auth = () => {
           .maybeSingle();
 
         if (profileData && profileData.is_active === false) {
+          // La désactivation a deux causes très différentes : un abonnement élève/parent
+          // expiré (le compte se réactive tout seul dès qu'un nouveau code est activé) vs
+          // un contrat enseignant/établissement expiré (nécessite vraiment l'administration).
+          // Le message générique "contacte ton établissement" était trompeur et n'aidait pas
+          // un élève/parent à comprendre qu'il lui suffit d'activer un code.
+          const { data: roleRows } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", signInData.user!.id);
+          const roles = (roleRows || []).map((r: any) => r.role);
           await supabase.auth.signOut();
-          toast.error("Ton compte a été désactivé. Contacte ton établissement ou l'administration.");
+          if (roles.includes("student") || roles.includes("parent")) {
+            toast.error("Ton abonnement est expiré. Active un nouveau code d'abonnement pour réactiver ton compte.", {
+              duration: 7000,
+            });
+          } else {
+            toast.error("Ton compte a été désactivé. Contacte ton établissement ou l'administration.");
+          }
           setLoading(false);
           return;
         }
