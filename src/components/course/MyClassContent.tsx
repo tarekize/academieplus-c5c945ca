@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { HtmlWithMath } from "./HtmlWithMath";
 import { cleanMathStatement } from "@/lib/mathStatement";
 import { cn } from "@/lib/utils";
-import { Users, BookOpen, Pencil, Eye, Lightbulb } from "lucide-react";
+import { Users, BookOpen, Pencil, Eye, Lightbulb, CheckCircle2 } from "lucide-react";
 import { recordTeacherContentAttempt } from "@/lib/teacherContentAttempt";
 import ExerciseAnswerBlock from "./ExerciseAnswerBlock";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
@@ -40,6 +40,8 @@ export function MyClassContent({ userId, contentType }: Props) {
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [selected, setSelected] = useState<Record<string, string>>({});
   const [showHint, setShowHint] = useState<Record<string, boolean>>({});
+  const [correctIds, setCorrectIds] = useState<Set<string>>(new Set());
+  const [showCorrectOnly, setShowCorrectOnly] = useState(false);
 
   /** Affiche l'indice d'un quiz (une seule fois) et journalise sa consultation. */
   const handleHint = (key: string, contentId: string) => {
@@ -103,6 +105,43 @@ export function MyClassContent({ userId, contentType }: Props) {
     return () => { active = false; };
   }, [userId, contentType]);
 
+  /** Détermine quels contenus sont déjà répondus correctement (pour la
+   * bascule "إجابات صحيحة") — chargé au départ, puis tenu à jour en direct
+   * puisque ExerciseAnswerBlock et handleQuizCheck écrivent tous deux dans
+   * teacher_content_attempts indépendamment de ce composant. */
+  useEffect(() => {
+    if (items.length === 0) { setCorrectIds(new Set()); return; }
+    let active = true;
+    const ids = items.map((it) => it.id);
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("teacher_content_attempts")
+        .select("content_id, completed, is_correct")
+        .eq("student_id", userId)
+        .in("content_id", ids);
+      if (!active) return;
+      setCorrectIds(new Set((data || []).filter((r: any) => r.completed && r.is_correct === true).map((r: any) => r.content_id)));
+    })();
+    const channel = supabase
+      .channel(`my-class-content-attempts-${userId}-${contentType}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "teacher_content_attempts", filter: `student_id=eq.${userId}` },
+        (payload: any) => {
+          const row = payload.new;
+          if (!row || !ids.includes(row.content_id)) return;
+          setCorrectIds((prev) => {
+            const next = new Set(prev);
+            if (row.completed && row.is_correct === true) next.add(row.content_id);
+            else next.delete(row.content_id);
+            return next;
+          });
+        }
+      )
+      .subscribe();
+    return () => { active = false; supabase.removeChannel(channel); };
+  }, [items, userId, contentType]);
+
   if (loading) {
     return (
       <Card className="border-emerald-500/20">
@@ -114,25 +153,56 @@ export function MyClassContent({ userId, contentType }: Props) {
   }
 
   const isQuiz = contentType === "quiz";
+  const pendingItems = items.filter((it) => !correctIds.has(it.id));
+  const displayedCount = showCorrectOnly ? correctIds.size : pendingItems.length;
 
   return (
     <Card className="border-emerald-500/20">
       <CardContent className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-emerald-600 font-bold">
             <Users className="h-5 w-5" />
             <span>{isQuiz ? t("myClassContent.quizTitle") : t("myClassContent.exercisesTitle")}</span>
           </div>
-          <Badge variant="secondary">{isQuiz ? t("cours.quizCount", { count: items.length }) : t("cours.exercisesCount", { count: items.length })}</Badge>
+          <div className="flex items-center gap-2">
+            {correctIds.size > 0 && (
+              <Button size="sm" variant={showCorrectOnly ? "default" : "outline"}
+                onClick={() => setShowCorrectOnly((v) => !v)}
+                className={cn("gap-2 rounded-full h-8 px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105",
+                  showCorrectOnly ? "bg-green-600 hover:bg-green-700 text-white" : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100")}>
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>{showCorrectOnly ? t("lessonActivity.backToExercises") : t("lessonActivity.correctAnswers")}</span>
+              </Button>
+            )}
+            <Badge variant="secondary">{isQuiz ? t("cours.quizCount", { count: displayedCount }) : t("cours.exercisesCount", { count: displayedCount })}</Badge>
+          </div>
         </div>
 
-        {items.length === 0 ? (
+        {showCorrectOnly ? (
+          correctIds.size === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              {isQuiz ? t("lessonActivity.noCorrectAnswersYet") : t("lessonActivity.noCorrectExercisesYet")}
+            </div>
+          ) : isQuiz ? (
+            <div className="space-y-3">
+              {items.filter((it) => correctIds.has(it.id)).map((it) => (
+                <CompletedQuizContentCard key={it.id} it={it} lang={lang} />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {items.filter((it) => correctIds.has(it.id)).map((it) => (
+                <CompletedExerciseContentCard key={it.id} it={it} lang={lang} />
+              ))}
+            </div>
+          )
+        ) : pendingItems.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             {isQuiz ? t("myClassContent.noQuizYet") : t("myClassContent.noExercisesYet")}
           </div>
         ) : isQuiz ? (
           <div className="space-y-3">
-            {items.map((it) => (
+            {pendingItems.map((it) => (
               <QuizContentCard
                 key={it.id}
                 it={it}
@@ -149,7 +219,7 @@ export function MyClassContent({ userId, contentType }: Props) {
           </div>
         ) : (
           <div className="space-y-3">
-            {items.map((it) => (
+            {pendingItems.map((it) => (
               <ExerciseContentCard key={it.id} it={it} direct={directIds.has(it.id)} lang={lang} userId={userId} />
             ))}
           </div>
@@ -278,6 +348,98 @@ function ExerciseContentCard({ it, direct, lang, userId }: { it: TeacherContentR
           hint={p.hint}
           subQuestions={p.sub_questions}
         />
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Carte en lecture seule pour un quiz enseignant déjà répondu correctement
+ * (bascule "إجابات صحيحة") — contrairement à CompletedQuizCard du parcours
+ * de cours, aucun fetch RPC n'est nécessaire : le payload teacher_content
+ * contient déjà la réponse/explication complètes côté client. */
+function CompletedQuizContentCard({ it, lang }: { it: TeacherContentRow; lang: "fr" | "ar" }) {
+  const { t } = useTranslation();
+  const p = it.payload || {};
+  const [showAnswer, setShowAnswer] = useState(false);
+  const translationInputs = [p.question || it.title || "", p.explanation || ""];
+  const { translated } = useTranslatedContent(translationInputs, lang);
+  const tQuestion = translated[0] || p.question || it.title || "";
+  const tExplanation = translated[1] || p.explanation || "";
+
+  return (
+    <Card className="border-green-500/50 bg-green-500/5 transition-all hover:bg-green-500/10">
+      <CardContent className="p-4 space-y-2">
+        <HtmlWithMath htmlContent={cleanMathStatement(tQuestion)} className="font-medium" dir={lang === "fr" ? "ltr" : "rtl"} />
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <span className="text-sm text-green-600 font-medium">{t("lessonActivity.correctAnswerLabelSimple")}</span>
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => setShowAnswer((v) => !v)}>
+          {showAnswer ? t("lessonActivity.hideSolutionSimple") : t("lessonActivity.showSolutionSimple")}
+        </Button>
+        {showAnswer && (
+          <div className="mt-2 space-y-3">
+            <div className="p-3 rounded border border-green-200 dark:border-green-700 text-sm bg-green-500/10 text-green-800 dark:text-green-300 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              <span className="font-medium">{t("lessonActivity.theCorrectAnswerLabel")}</span>
+              <HtmlWithMath htmlContent={cleanMathStatement(p.correct_answer || "—")} dir={lang === "fr" ? "ltr" : "rtl"} />
+            </div>
+            {p.explanation && (
+              <div className="bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
+                <p className="font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                  <BookOpen className="h-4 w-4" /> {t("lessonActivity.explanationLabel")}
+                </p>
+                <HtmlWithMath htmlContent={cleanMathStatement(tExplanation)} dir={lang === "fr" ? "ltr" : "rtl"} />
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Équivalent de CompletedQuizContentCard pour un exercice enseignant déjà
+ * réussi. */
+function CompletedExerciseContentCard({ it, lang }: { it: TeacherContentRow; lang: "fr" | "ar" }) {
+  const { t } = useTranslation();
+  const p = it.payload || {};
+  const [showSolution, setShowSolution] = useState(false);
+  const translationInputs = [p.title || it.title || "", p.expected_answer || "", p.solution || ""];
+  const { translated } = useTranslatedContent(translationInputs, lang);
+  const tTitle = translated[0] || p.title || it.title || "";
+  const tExpectedAnswer = translated[1] || p.expected_answer || "";
+  const tSolution = translated[2] || p.solution || "";
+
+  return (
+    <Card className="border-green-500/50 bg-green-500/5 transition-all hover:bg-green-500/10">
+      <CardContent className="p-4 space-y-2">
+        <HtmlWithMath htmlContent={cleanMathStatement(tTitle)} className="font-semibold" dir={lang === "fr" ? "ltr" : "rtl"} />
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <span className="text-sm text-green-600 font-medium">{t("lessonActivity.correctAnswerLabelSimple")}</span>
+        </div>
+        {(p.expected_answer || p.solution) && (
+          <Button variant="ghost" size="sm" onClick={() => setShowSolution((v) => !v)}>
+            {showSolution ? t("lessonActivity.hideSolutionSimple") : t("lessonActivity.showSolutionSimple")}
+          </Button>
+        )}
+        {showSolution && (
+          <div className="mt-2 space-y-2">
+            {p.expected_answer && (
+              <p className="text-sm"><span className="font-semibold">{t("exercisePlayer.theAnswerLabel")}</span>{" "}
+                <HtmlWithMath htmlContent={cleanMathStatement(tExpectedAnswer)} className="inline" dir={lang === "fr" ? "ltr" : "rtl"} /></p>
+            )}
+            {p.solution && (
+              <div className="bg-white/50 dark:bg-black/20 p-4 rounded border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
+                <p className="font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                  <BookOpen className="h-4 w-4" /> {t("exercisePlayer.theSolutionLabel")}
+                </p>
+                <HtmlWithMath htmlContent={cleanMathStatement(tSolution)} dir={lang === "fr" ? "ltr" : "rtl"} />
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
