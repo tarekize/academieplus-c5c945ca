@@ -93,6 +93,11 @@ export default function HelpChatbot(props: Props) {
   const [genProgress, setGenProgress] = useState<{ done: number; total: number } | null>(null);
   const [items, setItems] = useState<GenEntry[]>([]);
   const [sent, setSent] = useState<Record<number, boolean>>({});
+  // Un double-clic sur "Accepter & envoyer" pendant le round-trip réseau
+  // (saveTeacherContent + assignContent) envoyait le même exercice deux fois :
+  // `disabled={sent[idx]}` ne protège qu'une fois la première requête déjà
+  // résolue, pas pendant qu'elle est en vol.
+  const [sendingIdx, setSendingIdx] = useState<number | null>(null);
   const [previewIdx, setPreviewIdx] = useState<number | null>(null);
 
   const [showHistory, setShowHistory] = useState(false);
@@ -456,8 +461,10 @@ export default function HelpChatbot(props: Props) {
   /** Sauvegarde un item généré comme contenu du prof puis l'assigne aux élèves ciblés
    * (groupe entier en mode classe, ou l'élève seul en mode élève). */
   const sendOne = async (idx: number) => {
+    if (sent[idx] || sendingIdx === idx) return;
     const it = items[idx];
     if (targetStudentIds.length === 0) { toast.error("Aucun destinataire sélectionné"); return; }
+    setSendingIdx(idx);
     try {
       const id = await saveTeacherContent({
         teacherId, contentType: it._type,
@@ -472,6 +479,8 @@ export default function HelpChatbot(props: Props) {
       setPreviewIdx(null);
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de l'envoi");
+    } finally {
+      setSendingIdx(null);
     }
   };
 
@@ -717,9 +726,9 @@ export default function HelpChatbot(props: Props) {
                           </Button>
                           <Button
                             size="sm" variant={sent[idx] ? "secondary" : "default"}
-                            className="gap-1" disabled={sent[idx]} onClick={() => sendOne(idx)}
+                            className="gap-1" disabled={sent[idx] || sendingIdx === idx} onClick={() => sendOne(idx)}
                           >
-                            {sent[idx] ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Send className="h-3.5 w-3.5" />}
+                            {sent[idx] ? <CheckCircle2 className="h-3.5 w-3.5" /> : sendingIdx === idx ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                             {sent[idx] ? "Envoyé" : "Accepter & envoyer"}
                           </Button>
                         </div>
@@ -790,6 +799,7 @@ export default function HelpChatbot(props: Props) {
               onChange={(patch) => updateItem(previewIdx, patch)}
               onSend={() => sendOne(previewIdx)}
               sent={!!sent[previewIdx]}
+              sending={sendingIdx === previewIdx}
               sendLabel={mode === "class" ? `Envoyer au groupe ${selectedGroup?.letter ?? ""}` : `Envoyer à ${targetName}`}
             />
           )}
@@ -801,8 +811,8 @@ export default function HelpChatbot(props: Props) {
 
 /** Popup d'aperçu "côté élève" d'un item généré + édition directe de l'énoncé/solution
  * (ou question/explication pour un quiz), avec bouton d'envoi final. */
-function PreviewEditor({ item, onChange, onSend, sent, sendLabel }: {
-  item: GenEntry; onChange: (patch: Partial<GenEntry>) => void; onSend: () => void; sent: boolean; sendLabel: string;
+function PreviewEditor({ item, onChange, onSend, sent, sending, sendLabel }: {
+  item: GenEntry; onChange: (patch: Partial<GenEntry>) => void; onSend: () => void; sent: boolean; sending: boolean; sendLabel: string;
 }) {
   const isQuiz = item._type === "quiz";
   return (
@@ -840,8 +850,8 @@ function PreviewEditor({ item, onChange, onSend, sent, sendLabel }: {
         />
       </div>
       <DialogFooter>
-        <Button onClick={onSend} disabled={sent} className="gap-1">
-          <Send className="h-4 w-4" /> {sent ? "Envoyé" : sendLabel}
+        <Button onClick={onSend} disabled={sent || sending} className="gap-1">
+          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} {sent ? "Envoyé" : sendLabel}
         </Button>
       </DialogFooter>
     </>
