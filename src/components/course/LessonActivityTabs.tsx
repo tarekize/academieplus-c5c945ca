@@ -64,6 +64,17 @@ type AnswerPayload = { correct: boolean; concept?: string; userAnswer?: string; 
 
 const REQUIRED_CORRECT = 3;
 
+// Découvrir/Comprendre étaient auparavant scindés en coupant le tableau en
+// deux au milieu (première moitié = Découvrir, seconde = Comprendre) —
+// arbitraire vis-à-vis de la difficulté réelle des items, qui dépend de leur
+// ordre en base (created_at/order_index), pas de leur niveau. Un exercice
+// facile (difficulty 1-2) pouvait donc atterrir dans Comprendre, et un
+// difficile (4-5) dans Découvrir. Classé maintenant explicitement sur
+// `difficulty` (échelle 1-5, cf. les crayons affichés sur chaque item) :
+// 1-2 → Découvrir, 3-5 → Comprendre.
+const isDiscoverDifficulty = (difficulty?: number) => (difficulty ?? 3) <= 2;
+const isComprendreDifficulty = (difficulty?: number) => (difficulty ?? 3) >= 3;
+
 const stepConfig: { id: StepLevel; label: string; labelAr: string; icon: typeof Eye; color: string }[] = [
   { id: "decouvrir", label: "Découvrir", labelAr: "اكتشف", icon: Eye, color: "text-blue-500" },
   { id: "comprendre", label: "Comprendre", labelAr: "افهم", icon: Lightbulb, color: "text-yellow-500" },
@@ -148,13 +159,11 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   // pour chaque palier, dès que la liste complète change (nouvelle leçon).
   // Recalculé ensuite par loadProgress ci-dessous une fois la progression BDD connue.
   useEffect(() => {
-    const halfQuiz = Math.ceil(dbQuizzes.length / 2);
-    const originDiscoverQz = dbQuizzes.slice(0, halfQuiz);
-    const originUnderstandQz = dbQuizzes.slice(halfQuiz);
+    const originDiscoverQz = dbQuizzes.filter(q => isDiscoverDifficulty(q.difficulty));
+    const originUnderstandQz = dbQuizzes.filter(q => isComprendreDifficulty(q.difficulty));
 
-    const halfEx = Math.ceil(dbExercises.length / 2);
-    const originDiscoverEx = dbExercises.slice(0, halfEx);
-    const originUnderstandEx = dbExercises.slice(halfEx);
+    const originDiscoverEx = dbExercises.filter(e => isDiscoverDifficulty(e.difficulty));
+    const originUnderstandEx = dbExercises.filter(e => isComprendreDifficulty(e.difficulty));
 
     const poolDiscoverQz = originDiscoverQz.filter(q => !completedQuizIds.includes(q.id));
     const poolUnderstandQz = originUnderstandQz.filter(q => !completedQuizIds.includes(q.id));
@@ -339,13 +348,10 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
         setDiscoverCorrectQz(quizzesCorrectCount);
       }
 
-      const halfQuiz = Math.ceil(dbQuizzes.length / 2);
-      const halfEx = Math.ceil(dbExercises.length / 2);
-
-      setSubsetDiscoverQz([...dbQuizzes.slice(0, halfQuiz).filter(q => !uniqueQz.includes(q.id))].sort(() => 0.5 - Math.random()).slice(0, 5));
-      setSubsetUnderstandQz([...dbQuizzes.slice(halfQuiz).filter(q => !uniqueQz.includes(q.id))].sort(() => 0.5 - Math.random()).slice(0, 5));
-      setSubsetDiscoverEx([...dbExercises.slice(0, halfEx).filter(e => !uniqueEx.includes(e.id))].sort(() => 0.5 - Math.random()).slice(0, 5));
-      setSubsetUnderstandEx([...dbExercises.slice(halfEx).filter(e => !uniqueEx.includes(e.id))].sort(() => 0.5 - Math.random()).slice(0, 5));
+      setSubsetDiscoverQz([...dbQuizzes.filter(q => isDiscoverDifficulty(q.difficulty) && !uniqueQz.includes(q.id))].sort(() => 0.5 - Math.random()).slice(0, 5));
+      setSubsetUnderstandQz([...dbQuizzes.filter(q => isComprendreDifficulty(q.difficulty) && !uniqueQz.includes(q.id))].sort(() => 0.5 - Math.random()).slice(0, 5));
+      setSubsetDiscoverEx([...dbExercises.filter(e => isDiscoverDifficulty(e.difficulty) && !uniqueEx.includes(e.id))].sort(() => 0.5 - Math.random()).slice(0, 5));
+      setSubsetUnderstandEx([...dbExercises.filter(e => isComprendreDifficulty(e.difficulty) && !uniqueEx.includes(e.id))].sort(() => 0.5 - Math.random()).slice(0, 5));
     };
 
     loadProgress();
@@ -488,21 +494,19 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
   // quiz non complétés pour le palier actif, sans toucher à la progression déjà acquise.
   const handleReloadContent = () => {
     if (activeSection === 'exercises') {
-      const halfEx = Math.ceil(dbExercises.length / 2);
       if (activeStep === 'decouvrir') {
-        const pool = dbExercises.slice(0, halfEx).filter(e => !completedExerciseIds.includes(e.id));
+        const pool = dbExercises.filter(e => isDiscoverDifficulty(e.difficulty) && !completedExerciseIds.includes(e.id));
         setSubsetDiscoverEx([...pool].sort(() => 0.5 - Math.random()).slice(0, 5));
       } else if (activeStep === 'comprendre') {
-        const pool = dbExercises.slice(halfEx).filter(e => !completedExerciseIds.includes(e.id));
+        const pool = dbExercises.filter(e => isComprendreDifficulty(e.difficulty) && !completedExerciseIds.includes(e.id));
         setSubsetUnderstandEx([...pool].sort(() => 0.5 - Math.random()).slice(0, 5));
       }
     } else {
-      const halfQuiz = Math.ceil(dbQuizzes.length / 2);
       if (activeStep === 'decouvrir') {
-        const pool = dbQuizzes.slice(0, halfQuiz).filter(q => !completedQuizIds.includes(q.id));
+        const pool = dbQuizzes.filter(q => isDiscoverDifficulty(q.difficulty) && !completedQuizIds.includes(q.id));
         setSubsetDiscoverQz([...pool].sort(() => 0.5 - Math.random()).slice(0, 5));
       } else if (activeStep === 'comprendre') {
-        const pool = dbQuizzes.slice(halfQuiz).filter(q => !completedQuizIds.includes(q.id));
+        const pool = dbQuizzes.filter(q => isComprendreDifficulty(q.difficulty) && !completedQuizIds.includes(q.id));
         setSubsetUnderstandQz([...pool].sort(() => 0.5 - Math.random()).slice(0, 5));
       }
     }
@@ -578,8 +582,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           const newCompleted = [...prev, itemId];
           setSubsetUnderstandEx(currentSubset => {
             const filtered = currentSubset.filter(e => e.id !== itemId);
-            const halfEx = Math.ceil(dbExercises.length / 2);
-            const pool = dbExercises.slice(halfEx).filter(e => !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
+            const pool = dbExercises.filter(e => isComprendreDifficulty(e.difficulty) && !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
             return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
           return newCompleted;
@@ -591,8 +594,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           const newCompleted = [...prev, itemId];
           setSubsetUnderstandQz(currentSubset => {
             const filtered = currentSubset.filter(q => q.id !== itemId);
-            const halfQuiz = Math.ceil(dbQuizzes.length / 2);
-            const pool = dbQuizzes.slice(halfQuiz).filter(q => !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
+            const pool = dbQuizzes.filter(q => isComprendreDifficulty(q.difficulty) && !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
             return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
           return newCompleted;
@@ -624,8 +626,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           const newCompleted = [...prev, itemId];
           setSubsetDiscoverEx(currentSubset => {
             const filtered = currentSubset.filter(e => e.id !== itemId);
-            const halfEx = Math.ceil(dbExercises.length / 2);
-            const pool = dbExercises.slice(0, halfEx).filter(e => !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
+            const pool = dbExercises.filter(e => isDiscoverDifficulty(e.difficulty) && !newCompleted.includes(e.id) && !filtered.some(f => f.id === e.id));
             return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
           return newCompleted;
@@ -637,8 +638,7 @@ export function LessonActivityTabs({ dbQuizzes, dbExercises, chapterId, chapterT
           const newCompleted = [...prev, itemId];
           setSubsetDiscoverQz(currentSubset => {
             const filtered = currentSubset.filter(q => q.id !== itemId);
-            const halfQuiz = Math.ceil(dbQuizzes.length / 2);
-            const pool = dbQuizzes.slice(0, halfQuiz).filter(q => !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
+            const pool = dbQuizzes.filter(q => isDiscoverDifficulty(q.difficulty) && !newCompleted.includes(q.id) && !filtered.some(f => f.id === q.id));
             return [...filtered, ...pool.sort(() => 0.5 - Math.random()).slice(0, 1)];
           });
           return newCompleted;
