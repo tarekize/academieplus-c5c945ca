@@ -65,6 +65,28 @@ function functionLabel(name: string): string {
   return FUNCTION_LABELS[name] || name;
 }
 
+// Toutes les fonctions IA de l'app utilisent la même famille de modèles
+// (GEMINI_MODEL_FALLBACKS dans les edge functions : gemini-flash-latest /
+// gemini-2.5-flash / gemini-2.5-flash-lite) — ai_token_usage ne distingue pas
+// quel modèle a effectivement répondu par appel, donc le coût est estimé sur
+// le tarif de gemini-2.5-flash (le modèle principal, les autres n'étant que
+// des repli en cas d'erreur/quota). Tarifs officiels Google AI, en $/1M tokens.
+const GEMINI_INPUT_USD_PER_MILLION = 0.30;
+const GEMINI_OUTPUT_USD_PER_MILLION = 2.50;
+// Taux de change fixe approximatif (pas d'appel à une API de change en direct) —
+// à ajuster si le taux réel dérive significativement.
+const USD_TO_EUR = 0.92;
+
+function estimateCostEur(inputTokens: number, outputTokens: number): number {
+  const usd = (inputTokens / 1_000_000) * GEMINI_INPUT_USD_PER_MILLION
+    + (outputTokens / 1_000_000) * GEMINI_OUTPUT_USD_PER_MILLION;
+  return usd * USD_TO_EUR;
+}
+
+function formatEur(value: number): string {
+  return value.toLocaleString("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: value < 1 ? 4 : 2 });
+}
+
 export default function AdminTokenUsage() {
   const navigate = useNavigate();
   const [rows, setRows] = useState<UsageRow[]>([]);
@@ -118,6 +140,10 @@ export default function AdminTokenUsage() {
   const grandTotal = rows.reduce((sum, r) => sum + r.estimated_input_tokens + r.estimated_output_tokens, 0);
   const exactRowsCount = rows.filter((r) => r.is_estimated === false).length;
   const exactPct = rows.length > 0 ? Math.round((exactRowsCount / rows.length) * 100) : 0;
+  const grandTotalCostEur = rows.reduce(
+    (sum, r) => sum + estimateCostEur(r.estimated_input_tokens, r.estimated_output_tokens),
+    0
+  );
 
   if (loading) {
     return (
@@ -147,27 +173,41 @@ export default function AdminTokenUsage() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
           <Card className="border-0 shadow-lg">
             <CardContent className="p-4">
               <p className="font-display text-2xl font-extrabold">{grandTotal.toLocaleString("fr-FR")}</p>
               <p className="text-xs text-muted-foreground">Total estimé</p>
             </CardContent>
           </Card>
+          <Card className="border-0 shadow-lg bg-primary/5">
+            <CardContent className="p-4">
+              <p className="font-display text-2xl font-extrabold text-primary">{formatEur(grandTotalCostEur)}</p>
+              <p className="text-xs text-muted-foreground">Coût estimé</p>
+            </CardContent>
+          </Card>
           {Object.keys(GROUP_LABELS).map((group) => {
-            const total = rows
-              .filter((r) => r.role_group === group)
-              .reduce((sum, r) => sum + r.estimated_input_tokens + r.estimated_output_tokens, 0);
+            const groupRows = rows.filter((r) => r.role_group === group);
+            const total = groupRows.reduce((sum, r) => sum + r.estimated_input_tokens + r.estimated_output_tokens, 0);
+            const costEur = groupRows.reduce(
+              (sum, r) => sum + estimateCostEur(r.estimated_input_tokens, r.estimated_output_tokens),
+              0
+            );
             return (
               <Card key={group} className="border-0 shadow-lg">
                 <CardContent className="p-4">
                   <p className="font-display text-2xl font-extrabold">{total.toLocaleString("fr-FR")}</p>
                   <p className="text-xs text-muted-foreground">{GROUP_LABELS[group]}</p>
+                  <p className="text-xs text-primary font-medium mt-0.5">{formatEur(costEur)}</p>
                 </CardContent>
               </Card>
             );
           })}
         </div>
+        <p className="text-xs text-muted-foreground -mt-4">
+          Coût estimé sur la base des tarifs Gemini 2.5 Flash (0,30 $/1M tokens en entrée, 2,50 $/1M en sortie) et
+          d'un taux de change approximatif de 1 $ ≈ {USD_TO_EUR} € — une estimation, pas une facture réelle.
+        </p>
 
         <Card className="border-0 shadow-lg">
           <CardHeader className="border-b bg-muted/30">
@@ -220,12 +260,13 @@ export default function AdminTokenUsage() {
                   <TableHead>IA utilisée</TableHead>
                   <TableHead>Précision</TableHead>
                   <TableHead className="text-right">Tokens</TableHead>
+                  <TableHead className="text-right">Coût estimé</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredRows.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       Aucune consommation enregistrée pour le moment.
                     </TableCell>
                   </TableRow>
@@ -247,6 +288,9 @@ export default function AdminTokenUsage() {
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         {(r.estimated_input_tokens + r.estimated_output_tokens).toLocaleString("fr-FR")}
+                      </TableCell>
+                      <TableCell className="text-right font-medium text-primary">
+                        {formatEur(estimateCostEur(r.estimated_input_tokens, r.estimated_output_tokens))}
                       </TableCell>
                     </TableRow>
                   ))
