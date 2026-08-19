@@ -558,6 +558,21 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
     return () => { supabase.removeChannel(channel); };
   }, [userId, fetchScores]);
 
+  // Réagit en temps réel à toute modification des chapitres/leçons (ajout,
+  // suppression par un admin/pédago) — chapterStats est reconstruit à partir
+  // d'une requête fraîche de `chapters` à chaque fetchScores, donc un chapitre
+  // supprimé disparaît bien à la prochaine exécution ; sans cet abonnement,
+  // l'élève ne le voyait disparaître qu'au bout des 30s de l'auto-refresh (ou
+  // pas du tout tant qu'il ne rechargeait pas la page).
+  useEffect(() => {
+    const channel = supabase
+      .channel('student-dashboard-curriculum-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chapters' }, () => fetchScores(true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lessons' }, () => fetchScores(true))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [fetchScores]);
+
   // Sélectionne le premier chapitre par défaut dès que les stats sont chargées.
   useEffect(() => {
     if (!selectedChapterId && chapterStats.length > 0) {
