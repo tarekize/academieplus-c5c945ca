@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppHeader } from "@/components/layout/AppHeader";
 import StudentAnnouncementsBanner from "@/components/dashboard/StudentAnnouncementsBanner";
-import StudentAssignedContent from "@/components/dashboard/StudentAssignedContent";
 import { SUBJECTS, type SubjectDef } from "@/lib/subjects";
 import { useUnreadTeacherContent } from "@/hooks/useUnreadTeacherContent";
 import { TeacherContentRedDot } from "@/components/TeacherContentRedDot";
@@ -526,7 +525,6 @@ const ListeCours = () => {
           {user?.id && (
             <div className="mb-8">
               <StudentAnnouncementsBanner userId={user.id} />
-              <StudentAssignedContent userId={user.id} />
             </div>
           )}
 

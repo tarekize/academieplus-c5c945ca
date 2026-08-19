@@ -586,6 +586,14 @@ const Cours = () => {
                   </p>
                 </div>
                 <div className="flex gap-2 flex-wrap shrink-0">
+                  <Button
+                    variant="outline"
+                    className="rounded-full gap-2 active:scale-95 transition-transform"
+                    onClick={() => navigate("/liste-matieres")}
+                  >
+                    <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+                    {t("cours.backToCourseList")}
+                  </Button>
                   {canManage && (
                     <Button
                       variant="outline"
