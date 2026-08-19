@@ -216,11 +216,16 @@ export default function StudentDashboardContent({ userId, profile, hideActions, 
         .eq("user_id", userId)
         .order("updated_at", { ascending: false });
 
+      // Sans filtre sur `subject`, un chapitre d'une autre matière (ex: un
+      // chapitre de test créé avec subject="science") apparaissait mélangé
+      // aux chapitres de maths sur ce tableau de bord — seule "math" est
+      // actuellement proposée aux élèves (cf. ListeCours.tsx).
       const chaptersPromise = profile.school_level
         ? supabase
           .from("chapters")
           .select("id, title, title_ar, order_index, filiere_id, filiere:filieres(code)")
           .eq("school_level", profile.school_level as any)
+          .eq("subject", "math")
           .order("order_index", { ascending: true })
         : Promise.resolve({ data: [] as any[] });
 

@@ -141,12 +141,17 @@ export default function ClassProgressView({ classRow, onOpenStudentDetail, readO
       }
 
       // 2b. Chapters for the class level + filière (avoids cross-filière duplicates)
+      // Filtré sur subject="math" (seule matière actuellement proposée aux élèves,
+      // cf. ListeCours.tsx) : sans ce filtre, un chapitre d'une autre matière
+      // (ex: un chapitre de test créé avec subject="science") apparaissait
+      // mélangé aux chapitres de maths dans ce tableau de suivi de classe.
       let chapterRows: ChapterRow[] = [];
       if (classRow.school_level) {
         let q = supabase
           .from("chapters")
           .select("id, title, order_index, filiere_id")
-          .eq("school_level", classRow.school_level as any);
+          .eq("school_level", classRow.school_level as any)
+          .eq("subject", "math");
         if (filiereId) q = q.eq("filiere_id", filiereId);
         const { data: chs } = await q.order("order_index", { ascending: true });
         chapterRows = (chs as any[]) || [];
