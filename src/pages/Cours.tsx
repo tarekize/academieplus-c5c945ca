@@ -333,6 +333,20 @@ const Cours = () => {
         // Rafraîchit la référence (ex: nouvelle leçon ajoutée) même si l'id n'a pas changé
         setActiveChapter(freshActiveChapter);
       }
+      // BUG racine du "retour navigateur ne fait rien" : cette branche ne
+      // remettait jamais viewMode à "grid" quand l'URL perdait son
+      // chapitreParam (ex. bouton retour du navigateur depuis une leçon vers
+      // /cours/math/chapitres). L'URL changeait bien, mais l'écran restait
+      // affiché en mode "content" — d'où l'impression qu'un premier clic sur
+      // "précédent" ne fait rien, le second remontant alors plus loin dans
+      // l'historique (jusqu'à la page visitée avant l'entrée dans /cours).
+      if (viewMode !== "grid") {
+        setViewMode("grid");
+      }
+      if (lastSyncedLessonParamRef.current !== null) {
+        setInitialLessonId(null);
+        lastSyncedLessonParamRef.current = null;
+      }
       return;
     }
 
