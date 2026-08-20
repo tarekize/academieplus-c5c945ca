@@ -21,22 +21,30 @@ interface MarkdownSolutionProps {
  * utilisé pour les corrigés détaillés d'exercices et de quiz.
  */
 export const MarkdownSolution = ({ content, title = "الحل المفصل", compact = false, dir = "rtl" }: MarkdownSolutionProps) => {
+  // Un contenu \boxed{...} dont l'intérieur est du LaTeX (ex. "+\infty",
+  // contient un backslash ou ^/_) doit rester entre $...$ pour que
+  // remarkMath/rehypeKatex le rende encore en symbole ; sinon (texte/nombre
+  // simple, parfois en arabe) on le laisse en texte brut, car KaTeX ne sait
+  // pas correctement composer de l'arabe en mode math.
+  const wrapMathIfNeeded = (inner: string) => (/\\|[\^_]/.test(inner) ? `$${inner}$` : inner);
+
   // Auto-fix common AI output issues:
-  // - Replace \boxed{X} (or broken "oxed{X}" / "\x08oxed{X}") with a clean highlighted answer
-  //   instead of relying on KaTeX rendering (which often fails outside math delimiters).
+  // - Replace \boxed{X} (ou "oxed{X}" / "\x08oxed{X}" corrompus) par une
+  //   réponse finale mise en valeur, en gardant X entre $...$ s'il contient
+  //   du LaTeX (cf. wrapMathIfNeeded) au lieu de toujours le dégrader en
+  //   texte brut — sinon "+\infty" s'affichait tel quel au lieu de "+∞".
   let cleaned = (content || "")
     // Un contenu ré-encodé en JSON par erreur en amont laisse parfois des
     // "\n" littéraux (texte, pas un vrai saut de ligne) — sans ça, markdown
     // ne les interprète jamais comme des paragraphes/retours à la ligne.
     .replace(/\\n(?![a-zA-Z])/g, "\n")
-    // Strip math delimiters around boxed so we render it as plain markdown
-    .replace(/\$\$\s*\\?boxed\{([^{}]+)\}\s*\$\$/g, "\n\n> ## ✅ **$1**\n\n")
-    .replace(/\$\s*\\?boxed\{([^{}]+)\}\s*\$/g, "**$1**")
+    .replace(/\$\$\s*\\?boxed\{([^{}]+)\}\s*\$\$/g, (_m, inner) => `\n\n> ## ✅ **${wrapMathIfNeeded(inner)}**\n\n`)
+    .replace(/\$\s*\\?boxed\{([^{}]+)\}\s*\$/g, (_m, inner) => `**${wrapMathIfNeeded(inner)}**`)
     // Backspace char variants
-    .replace(/\x08oxed\{([^{}]+)\}/g, "**$1**")
+    .replace(/\x08oxed\{([^{}]+)\}/g, (_m, inner) => `**${wrapMathIfNeeded(inner)}**`)
     // Plain \boxed{...} or oxed{...} not wrapped in $...$
-    .replace(/\\boxed\{([^{}]+)\}/g, "**$1**")
-    .replace(/(^|[^a-zA-Z\\])oxed\{([^{}]+)\}/g, "$1**$2**");
+    .replace(/\\boxed\{([^{}]+)\}/g, (_m, inner) => `**${wrapMathIfNeeded(inner)}**`)
+    .replace(/(^|[^a-zA-Z\\])oxed\{([^{}]+)\}/g, (_m, prefix, inner) => `${prefix}**${wrapMathIfNeeded(inner)}**`);
 
   return (
     <div
