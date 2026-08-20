@@ -195,3 +195,90 @@ Les trois niveaux utilisent désormais systématiquement la même donnée déjà
 calculée (`chapter.level` pour le chapitre, `avgLevel` pour le global) — il
 n'existe plus qu'une seule formule par périmètre, pour éviter que deux
 endroits de l'UI affichent des nombres différents pour le même concept.
+
+---
+
+## 6. Sur quelle base les exercices de progression (« تجديد ») sont proposés
+
+Le niveau composite (règle 2) ne sert pas qu'à l'affichage : il pilote
+directement la difficulté du contenu que l'IA génère quand l'élève clique
+sur **« تجديد »** (renouveler) dans l'onglet « تعمّق » (Approfondir) d'une
+leçon. Code source :
+[`src/hooks/useAdaptiveContent.ts`](../src/hooks/useAdaptiveContent.ts)
+(déclenchement) et
+[`supabase/functions/generate-adaptive-content/index.ts`](../supabase/functions/generate-adaptive-content/index.ts)
+(génération IA).
+
+### 6.1 Déclenchement — jamais automatique
+
+Le lot de contenu (5 quiz ou 5 exercices) n'est régénéré QUE sur clic
+explicite du bouton « تجديد ». Répondre à des questions met à jour le niveau
+en continu (règle 1), mais **ne redéclenche jamais** une génération : toutes
+les 5 réponses d'une session, l'élève reçoit seulement une notification
+("تم تحديث مستواك") l'invitant à cliquer lui-même s'il veut du contenu
+recalibré sur son niveau à jour.
+
+### 6.2 Le niveau de départ : le composite de CETTE leçon
+
+Au moment du clic, on recalcule le niveau composite (règle 2, section 1) à
+partir du `student_scores` courant de la leçon :
+
+```
+composite = 0.40 × accuracy_rate + 0.35 × current_level + 0.25 × accuracy_rate
+```
+
+(`accuracy_rate` intervient deux fois, faute d'historique détaillé des 30
+dernières réponses pour calculer le "taux pondéré" séparément — voir le
+commentaire dans `computeCompositeLevel`.)
+
+### 6.3 Conversion du composite en difficulté cible (1 à 5)
+
+Ce score 0-100 est ensuite converti en une échelle de difficulté 1-5 envoyée
+à l'IA (`getDifficultyScale`) :
+
+| Niveau composite | Difficulté cible | Libellé |
+|---:|:---:|---|
+| < 20 | 1 | débutant (très facile) |
+| 20 – 39 | 2 | facile |
+| 40 – 59 | 3 | intermédiaire |
+| 60 – 79 | 4 | difficile |
+| ≥ 80 | 5 | avancé (très difficile) |
+
+### 6.4 Consignes envoyées à l'IA pour calibrer les 5 items
+
+- **Variation autour de la cible** : l'IA ne génère pas 5 questions à la même
+  difficulté — la consigne est explicitement "1 facile (warm-up), 2-3 au
+  niveau cible, 1 plus difficile (challenge)".
+- **Ajustement selon le taux de réussite récent** (`accuracy_rate` de la
+  leçon) :
+  - < 50 % → applications directes, énoncés courts, valeurs entières.
+  - 50-75 % → niveau cible, raisonnement intermédiaire.
+  - \> 75 % → raisonnement avancé, valeurs non triviales, plusieurs étapes.
+- **Points faibles textuels**, injectés dans le prompt à titre indicatif
+  (pas une règle numérique stricte, l'IA en tient compte librement) :
+  - `accuracy_rate < 40` → "compréhension générale faible"
+  - `40 ≤ accuracy_rate < 60` → "difficultés sur les exercices de raisonnement"
+  - `streak == 0` (dernière réponse fausse) → "erreurs consécutives récentes"
+- **Anti-répétition** : les 20 derniers énoncés déjà générés pour cette leçon
+  sont listés dans le prompt avec la consigne explicite de proposer des
+  variantes différentes plutôt que de les répéter.
+- **Seed aléatoire** : un nombre tiré au hasard est ajouté au prompt à chaque
+  génération pour forcer des valeurs numériques et contextes différents même
+  à difficulté égale.
+- **Périmètre strict** : l'IA reçoit l'ordre explicite de rester sur le sujet
+  exact de la leçon en cours — aucune question hors-sujet.
+
+### 6.5 Après génération
+
+Le nouveau lot de 5 items **remplace** (upsert) le lot précédent du même
+type (quiz ou exercice) pour cette leçon — un seul lot "actuel" est conservé
+par élève/leçon/type, pas un historique cumulatif de tous les lots générés.
+
+### 6.6 À ne pas confondre avec Découvrir/Comprendre
+
+Les exercices "Découvrir"/"Comprendre" du programme (`chapter_exercises` /
+`chapter_quizzes`) sont un contenu FIXE, classé par difficulté 1-2
+(Découvrir) / 3-5 (Comprendre), identique pour tous les élèves d'un même
+niveau scolaire. Seul l'onglet "تعمّق" (Approfondir) décrit ci-dessus génère
+du contenu réellement personnalisé, calibré sur le niveau composite propre à
+chaque élève.
