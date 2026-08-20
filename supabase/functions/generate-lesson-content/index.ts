@@ -101,15 +101,35 @@ async function generateForLesson(
 قواعد التنسيق الإلزامية:
 1. العناوين الرئيسية h2: استخدم style="color: #2980b9; font-size: 1.8em; border-bottom: 3px solid #2980b9; padding-bottom: 8px; margin-top: 30px;"
 2. العناوين الفرعية h3: استخدم style="color: #e67e22; font-size: 1.4em; margin-top: 20px; background: #fef9e7; padding: 8px 15px; border-right: 4px solid #e67e22; border-radius: 4px;"
-3. التعريفات: div بـ style="background: #eaf2f8; border-right: 4px solid #2980b9; padding: 15px; margin: 15px 0; border-radius: 6px;"
-4. الأمثلة: div بـ style="background: #fdf2e9; border-right: 4px solid #e67e22; padding: 15px; margin: 15px 0; border-radius: 6px;"
-5. الملاحظات: div بـ style="background: #fdedec; border-right: 4px solid #e74c3c; padding: 15px; margin: 15px 0; border-radius: 6px;"
-6. القوانين: div بـ style="background: #f4ecf7; border: 2px solid #8e44ad; padding: 15px; margin: 15px 0; border-radius: 8px; text-align: center; font-size: 1.2em;"
+3. لكل تعريف، خاصية/نظرية، ملاحظة، أو مثال/تمرين محلول، استعمل حصراً الصيغة الخاصة التالية (وليس <div> عادي أبداً لهذه الأربعة):
 
-اكتب الدرس بشكل شامل مع: مقدمة، شرح المفاهيم، أمثلة محلولة، خصائص، تمارين تطبيقية.`;
+::: definition عنوان التعريف
+محتوى التعريف هنا...
+:::
+
+::: property عنوان الخاصية أو النظرية
+محتوى الخاصية هنا...
+:::
+
+::: remark
+محتوى الملاحظة هنا...
+:::
+
+::: example مثال 1
+محتوى المثال المحلول هنا...
+:::
+
+قواعد صارمة على هذه الصيغة الخاصة:
+- الكلمة مباشرة بعد ::: يجب أن تكون بالضبط واحدة من: definition, property, remark, example (بدون أي كلمة إضافية أو ترجمة، بالحروف اللاتينية كما هي).
+- العنوان (اختياري) يوضع على نفس السطر بعد الكلمة، بالعربية.
+- كل صندوق فتحته بـ ::: يجب إغلاقه إجبارياً بسطر ::: بمفرده — لا تنسَ أي إغلاق.
+- لا تستعمل الرمز ::: في أي مكان آخر من النص (فقط لفتح/إغلاق هذه الصناديق الأربعة).
+- لا تضع صناديق ::: متداخلة (واحد داخل الآخر).
+
+اكتب الدرس بشكل شامل مع: مقدمة، شرح المفاهيم (::: definition و ::: property)، أمثلة محلولة (::: example)، ملاحظات مهمة (::: remark)، وتمارين تطبيقية (::: example أيضاً).`;
 
   const messages = [
-    { role: "system", content: "You are an expert Algerian math teacher. Generate beautifully formatted HTML lessons in Arabic. Use inline styles. Do NOT use markdown, only HTML. Do NOT wrap in ```html tags." },
+    { role: "system", content: "You are an expert Algerian math teacher. Generate beautifully formatted lesson content in Arabic. Use HTML for headings (h2/h3) and paragraphs with inline styles as instructed. You MUST use the special ::: block syntax (exactly as specified in the instructions) for definitions/properties/remarks/examples — this is a required custom syntax, not something to avoid. Do NOT wrap the whole output in ```html tags." },
     { role: "user", content: prompt },
   ];
 
@@ -131,11 +151,11 @@ async function generateForLesson(
 
 // Génère (et écrit en base) le contenu HTML d'une leçon donnée (`lesson_id`),
 // ou traite par lot les leçons sans contenu (`batch_size`, `school_level`
-// optionnels). Aucun appelant trouvé dans src/ (grep négatif) ni dans les
-// migrations — probablement invoquée manuellement par un admin (script/
-// console) pour peupler le contenu initial des leçons, cf. label "Admin/
-// Pédago" dans src/pages/AdminTokenUsage.tsx. Réservé admin/pédago : écrit
-// directement le contenu de cours réel avec la service_role key.
+// optionnels ; `force: true` élargit le lot aux leçons ayant déjà du contenu
+// mais pas encore migrées au format de blocs ::: — voir src/pages/
+// ContentGeneration.tsx, seul appelant, qui boucle sur les lots jusqu'à
+// épuisement). Réservé admin/pédago : écrit directement le contenu de cours
+// réel avec la service_role key.
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -196,11 +216,17 @@ serve(async (req) => {
 
     const batchSize = body.batch_size || 3;
     const schoolLevel = body.school_level;
+    // force=true : régénère aussi les leçons ayant déjà du contenu mais pas
+    // encore migrées au format de blocs pédagogiques ::: (voir lessonBlocks.ts
+    // côté client) — sinon (par défaut) ne touche qu'aux leçons vides, pour
+    // ne jamais écraser du contenu existant sans le demander explicitement.
+    const force = body.force === true;
+    const selectionFilter = force ? "content.is.null,content.eq.,content.not.ilike.%:::%" : "content.is.null,content.eq.";
 
     let query = supabase
       .from("lessons")
       .select("id, chapter_id")
-      .or("content.is.null,content.eq.")
+      .or(selectionFilter)
       .order("created_at", { ascending: true })
       .limit(batchSize);
 
@@ -234,7 +260,7 @@ serve(async (req) => {
       }
     }
 
-    let remainQuery = supabase.from("lessons").select("id", { count: "exact", head: true }).or("content.is.null,content.eq.");
+    let remainQuery = supabase.from("lessons").select("id", { count: "exact", head: true }).or(selectionFilter);
     if (schoolLevel) {
       const { data: chapterIds } = await supabase.from("chapters").select("id").eq("school_level", schoolLevel);
       if (chapterIds && chapterIds.length > 0) {

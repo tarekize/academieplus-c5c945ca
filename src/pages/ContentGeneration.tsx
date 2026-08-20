@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Sparkles, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -31,6 +32,11 @@ export default function ContentGeneration() {
   const [level, setLevel] = useState('all');
   const [running, setRunning] = useState(false);
   const [stats, setStats] = useState({ total: 0, withContent: 0, remaining: 0 });
+  // Régénère aussi les leçons qui ont déjà du contenu mais pas encore au
+  // format de blocs pédagogiques ::: (sommaire détaillé) — sinon, ne
+  // touche qu'aux leçons totalement vides.
+  const [regenerateExisting, setRegenerateExisting] = useState(false);
+  const [missingFormatCount, setMissingFormatCount] = useState(0);
   const [log, setLog] = useState<{ id: string; status: string }[]>([]);
   const [canAccess, setCanAccess] = useState(false);
 
@@ -47,12 +53,15 @@ export default function ContentGeneration() {
     })();
   }, [navigate]);
 
-  // Recalcule le nombre total de leçons, celles ayant déjà du contenu, et le
-  // nombre restant à générer (utilisé pour la barre de progression).
+  // Recalcule le nombre total de leçons, celles ayant déjà du contenu, le
+  // nombre restant à générer (leçons vides), et le nombre de leçons dont le
+  // contenu n'est pas encore au format de blocs ::: (sommaire détaillé).
   const refreshStats = async () => {
     const { count: total } = await supabase.from('lessons').select('id', { count: 'exact', head: true });
     const { count: withContent } = await supabase.from('lessons').select('id', { count: 'exact', head: true }).neq('content', '').not('content', 'is', null);
+    const { count: missingFormat } = await supabase.from('lessons').select('id', { count: 'exact', head: true }).not('content', 'ilike', '%:::%');
     setStats({ total: total || 0, withContent: withContent || 0, remaining: (total || 0) - (withContent || 0) });
+    setMissingFormatCount(missingFormat || 0);
   };
 
   useEffect(() => { if (canAccess) refreshStats(); }, [canAccess]);
@@ -65,12 +74,13 @@ export default function ContentGeneration() {
     try {
       const body: any = { batch_size: 3, offset: 0 };
       if (level !== 'all') body.school_level = level;
+      if (regenerateExisting) body.force = true;
 
       const { data, error } = await supabase.functions.invoke('generate-lesson-content', { body });
       if (error) throw error;
 
       if (data.processed === 0) {
-        toast.success('Terminé', { description: 'Toutes les leçons ont du contenu.' });
+        toast.success('Terminé', { description: regenerateExisting ? 'Toutes les leçons sont au nouveau format.' : 'Toutes les leçons ont du contenu.' });
       } else {
         setLog(prev => [...data.results, ...prev].slice(0, 50));
         toast.success(`${data.processed} leçon(s) générée(s)`, { description: `${data.remaining} restante(s)` });
@@ -88,11 +98,12 @@ export default function ContentGeneration() {
   // Déclenché par le bouton "Générer tout".
   const runAll = async () => {
     setRunning(true);
-    let remaining = stats.remaining;
+    let remaining = regenerateExisting ? missingFormatCount : stats.remaining;
     while (remaining > 0) {
       try {
         const body: any = { batch_size: 3, offset: 0 };
         if (level !== 'all') body.school_level = level;
+        if (regenerateExisting) body.force = true;
         const { data, error } = await supabase.functions.invoke('generate-lesson-content', { body });
         if (error) throw error;
         if (data.processed === 0) break;
@@ -129,7 +140,8 @@ export default function ContentGeneration() {
           </CardHeader>
           <CardContent>
             <Progress value={pct} className="h-3" />
-            <p className="mt-2 text-sm text-muted-foreground">{stats.remaining} leçon(s) restante(s)</p>
+            <p className="mt-2 text-sm text-muted-foreground">{stats.remaining} leçon(s) vide(s) restante(s)</p>
+            <p className="text-sm text-muted-foreground">{missingFormatCount} leçon(s) pas encore au format sommaire détaillé (blocs définition/propriété/remarque/exemple)</p>
           </CardContent>
         </Card>
 
@@ -150,12 +162,22 @@ export default function ContentGeneration() {
               </SelectContent>
             </Select>
 
+            <label className="flex items-start gap-2.5 text-sm cursor-pointer border rounded-lg p-3">
+              <Checkbox checked={regenerateExisting} onCheckedChange={(v) => setRegenerateExisting(v === true)} className="mt-0.5" />
+              <span>
+                <span className="font-medium">Régénérer aussi les leçons existantes ({missingFormatCount})</span>
+                <span className="block text-xs text-muted-foreground mt-0.5">
+                  Réécrit le contenu des leçons qui en ont déjà (pas seulement les vides) pour leur donner le nouveau format à sommaire détaillé. Le texte pédagogique peut légèrement changer de formulation — à valider ensuite.
+                </span>
+              </span>
+            </label>
+
             <div className="flex gap-3">
-              <Button onClick={runBatch} disabled={running || stats.remaining === 0}>
+              <Button onClick={runBatch} disabled={running || (regenerateExisting ? missingFormatCount === 0 : stats.remaining === 0)}>
                 {running ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
                 Générer un lot (3)
               </Button>
-              <Button variant="secondary" onClick={runAll} disabled={running || stats.remaining === 0}>
+              <Button variant="secondary" onClick={runAll} disabled={running || (regenerateExisting ? missingFormatCount === 0 : stats.remaining === 0)}>
                 {running ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
                 Générer tout
               </Button>
