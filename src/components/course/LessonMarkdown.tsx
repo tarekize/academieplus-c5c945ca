@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -57,6 +58,31 @@ const LessonMarkdown: React.FC<LessonMarkdownProps> = ({ content, dir = "rtl" })
       : preprocessContent(content || "")),
     [content, isHtml]
   );
+
+  // Rendu Markdown -> chaîne HTML statique (déjà nettoyée par rehypeSanitize
+  // pendant la conversion AST->HTML de ReactMarkdown, donc pas besoin de la
+  // repasser dans sanitizeLessonHtml) plutôt que de laisser ReactMarkdown
+  // produire de vrais enfants React dans le conteneur : renderMathInElement
+  // ci-dessous mute le DOM directement (remplace les nœuds texte $...$ par
+  // des <span> KaTeX) SANS que React en soit informé. Avec de vrais enfants
+  // React, le rendu suivant (changement de leçon) tente de réconcilier son
+  // arbre fiber — resté périmé par rapport au DOM déjà modifié par KaTeX —
+  // et plante avec "Failed to execute removeChild" au 2e/3e changement de
+  // leçon. Avec dangerouslySetInnerHTML (comme HtmlWithMath.tsx, qui n'a
+  // jamais ce problème), React traite le contenu comme opaque et se contente
+  // de réécrire tout le innerHTML au changement — sans jamais essayer de
+  // retrouver un nœud individuel que KaTeX aurait déjà remplacé.
+  const html = useMemo(
+    () => (isHtml
+      ? processed
+      : renderToStaticMarkup(
+          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, [rehypeSanitize, lessonSchema]]}>
+            {processed}
+          </ReactMarkdown>
+        )),
+    [processed, isHtml]
+  );
+
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -75,19 +101,7 @@ const LessonMarkdown: React.FC<LessonMarkdownProps> = ({ content, dir = "rtl" })
     } catch (e) {
       console.error("KaTeX auto-render error", e);
     }
-  }, [processed]);
-
-  if (isHtml) {
-    return (
-      <div
-        ref={containerRef}
-        dir={dir}
-        lang={dir === "rtl" ? "ar" : "fr"}
-        className="lesson-markdown prose prose-slate dark:prose-invert max-w-none"
-        dangerouslySetInnerHTML={{ __html: processed }}
-      />
-    );
-  }
+  }, [html]);
 
   return (
     <div
@@ -95,14 +109,8 @@ const LessonMarkdown: React.FC<LessonMarkdownProps> = ({ content, dir = "rtl" })
       dir={dir}
       lang={dir === "rtl" ? "ar" : "fr"}
       className="lesson-markdown prose prose-slate dark:prose-invert max-w-none"
-    >
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw, [rehypeSanitize, lessonSchema]]}
-      >
-        {processed}
-      </ReactMarkdown>
-    </div>
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
   );
 };
 
