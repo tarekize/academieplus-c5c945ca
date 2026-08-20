@@ -3,17 +3,21 @@
 // partagé depuis Supabase Vault — même mécanisme que gdpr-cleanup et
 // scheduled-parent-reports, voir 20260803090005_cron_secret_via_vault.sql).
 //
-// Pour chaque modèle d'email marqué trigger_type='automatic' et actif,
-// cherche les profils dont la date d'expiration (contract_end_date pour un
-// établissement, sinon subscription_end_date — même logique que la RPC
-// admin_list_notification_candidates) tombe dans la fenêtre
-// [aujourd'hui ; aujourd'hui + trigger_days_before], filtrés par rôle et
-// statut de profil (trigger_roles/trigger_profile_status, définis par
-// l'admin dans l'onglet Modèles). Envoie l'email et journalise chaque envoi
-// dans automatic_notification_log, avec la date d'expiration au moment de
+// Pour chaque modèle d'email marqué trigger_type='automatic' et actif (et,
+// si renseignées, dans sa fenêtre de validité trigger_start_date/
+// trigger_end_date), cherche les profils dont la date d'expiration
+// (contract_end_date pour un établissement, sinon subscription_end_date —
+// même logique que la RPC admin_list_notification_candidates) tombe dans la
+// fenêtre [aujourd'hui ; aujourd'hui + trigger_days_before], filtrés par
+// rôle et statut de profil (trigger_roles/trigger_profile_status, définis
+// par l'admin dans l'onglet Modèles). Envoie l'email (avec la pièce jointe
+// du modèle le cas échéant) et journalise chaque tentative dans
+// automatic_notification_log, avec la date d'expiration au moment de
 // l'envoi : un renouvellement qui repousse l'échéance rend un nouveau
 // rappel envoyable, mais la même échéance non renouvelée ne redéclenche
-// jamais un second envoi les jours suivants.
+// jamais un second envoi les jours suivants — ce journal-là reste interne
+// (anti-doublon), le détail affiché/supprimable côté admin vit dans
+// email_send_log (voir send-bulk-notification pour son pendant manuel).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
@@ -27,10 +31,34 @@ const VALID_ROLES = ["student", "teacher", "pedago", "etablissement", "parent"];
 // NB : dupliqué de send-bulk-notification plutôt que partagé via _shared/ —
 // voir le commentaire équivalent là-bas (redéploiements mono-fonction de
 // cette plateforme).
-async function sendSmtpEmail(client: SMTPClient, to: string, subject: string, html: string, text: string) {
+async function sendSmtpEmail(
+  client: SMTPClient,
+  to: string,
+  subject: string,
+  html: string,
+  text: string,
+  attachment: { filename: string; content: Uint8Array; contentType: string } | null,
+) {
   const fromEmail = Deno.env.get("SMTP_FROM_EMAIL") || Deno.env.get("SMTP_USERNAME");
   const fromName = Deno.env.get("SMTP_FROM_NAME") || "AcademiePlus";
-  await client.send({ from: `${fromName} <${fromEmail}>`, to, subject, content: text, html });
+  await client.send({
+    from: `${fromName} <${fromEmail}>`, to, subject, content: text, html,
+    ...(attachment ? { attachments: [{ filename: attachment.filename, content: attachment.content, encoding: "binary", contentType: attachment.contentType }] } : {}),
+  });
+}
+
+async function fetchAttachment(url: string | null, name: string | null): Promise<{ filename: string; content: Uint8Array; contentType: string } | null> {
+  if (!url) return null;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const buf = new Uint8Array(await res.arrayBuffer());
+    const contentType = res.headers.get("content-type") || "application/octet-stream";
+    return { filename: name || url.split("/").pop() || "piece-jointe", content: buf, contentType };
+  } catch (e) {
+    console.error("process-automatic-notifications: failed to fetch attachment:", e);
+    return null;
+  }
 }
 
 function escapeHtml(s: string): string {
@@ -111,7 +139,7 @@ Deno.serve(async (req) => {
   try {
     const { data: templates, error: templatesError } = await admin
       .from("email_templates")
-      .select("id, name, subject, body_text, logo_url, trigger_roles, trigger_days_before, trigger_profile_status")
+      .select("id, name, subject, body_text, logo_url, attachment_url, attachment_name, trigger_roles, trigger_days_before, trigger_profile_status, trigger_start_date, trigger_end_date")
       .eq("trigger_type", "automatic")
       .eq("trigger_active", true);
     if (templatesError) throw new Error(templatesError.message);
@@ -142,6 +170,20 @@ Deno.serve(async (req) => {
         const today = todayIso();
 
         let sent = 0, failed = 0, skippedAlreadySent = 0;
+
+        // Fenêtre de validité du modèle (bornes optionnelles définies par
+        // l'admin) : en dehors de [trigger_start_date ; trigger_end_date],
+        // le modèle est traité comme suspendu pour ce passage du cron.
+        if (template.trigger_start_date && today < template.trigger_start_date) {
+          summary.push({ templateId: template.id, templateName: template.name, sent, failed, skippedAlreadySent });
+          continue;
+        }
+        if (template.trigger_end_date && today > template.trigger_end_date) {
+          summary.push({ templateId: template.id, templateName: template.name, sent, failed, skippedAlreadySent });
+          continue;
+        }
+
+        const attachment = await fetchAttachment(template.attachment_url, template.attachment_name);
 
         // Un profil par rôle ciblé (role IN targetRoles), actif/inactif selon
         // trigger_profile_status, avec la date d'expiration pertinente pour
@@ -201,7 +243,7 @@ Deno.serve(async (req) => {
           let success = true;
           let errorMessage: string | null = null;
           try {
-            await sendSmtpEmail(smtpClient, candidate.email!, subject, html, bodyText);
+            await sendSmtpEmail(smtpClient, candidate.email!, subject, html, bodyText, attachment);
             sent++;
           } catch (sendErr: any) {
             success = false;
@@ -215,6 +257,23 @@ Deno.serve(async (req) => {
             target_user_id: candidate.id,
             expiry_date_snapshot: candidate.expiry,
             success,
+            error_message: errorMessage,
+          });
+
+          // Journal détaillé (affiché/filtrable/supprimable côté admin) —
+          // distinct d'automatic_notification_log ci-dessus, qui reste
+          // dédié à l'anti-doublon et n'est jamais exposé à la suppression.
+          const candidateName = [candidate.first_name, candidate.last_name].filter(Boolean).join(" ") || null;
+          await admin.from("email_send_log").insert({
+            source: "automatic",
+            template_id: template.id,
+            template_name_snapshot: template.name,
+            recipient_id: candidate.id,
+            recipient_email: candidate.email,
+            recipient_name: candidateName,
+            subject_sent: subject,
+            body_sent: bodyText,
+            status: success ? "success" : "failed",
             error_message: errorMessage,
           });
         }

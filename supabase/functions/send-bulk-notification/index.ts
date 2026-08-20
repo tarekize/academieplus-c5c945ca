@@ -3,8 +3,10 @@
 // (le filtre rôle/contrat côté client ne fait que montrer/cacher des lignes,
 // l'envoi cible exactement ce qui est coché — pas "tout ce qui correspond au
 // filtre"). Réservé aux admins. Chaque destinataire est traité indépendamment
-// (une erreur SMTP sur l'un n'interrompt pas les autres), et le résultat est
-// journalisé dans email_campaigns pour l'historique affiché côté admin.
+// (une erreur SMTP sur l'un n'interrompt pas les autres) ; le résultat
+// agrégé est journalisé dans email_campaigns (historique) et le détail par
+// destinataire (contenu réellement envoyé) dans email_send_log, pour la
+// recherche/suppression fine côté admin.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
@@ -23,10 +25,38 @@ const VALID_ROLES = ["student", "teacher", "pedago", "etablissement", "parent"];
 // mono-fonction de cette plateforme ne repèrent pas toujours un nouveau
 // fichier _shared/ ajouté après coup ("Module not found" au déploiement) —
 // chaque function reste donc volontairement autonome pour ce point.
-async function sendSmtpEmail(client: SMTPClient, to: string, subject: string, html: string, text: string) {
+async function sendSmtpEmail(
+  client: SMTPClient,
+  to: string,
+  subject: string,
+  html: string,
+  text: string,
+  attachment: { filename: string; content: Uint8Array; contentType: string } | null,
+) {
   const fromEmail = Deno.env.get("SMTP_FROM_EMAIL") || Deno.env.get("SMTP_USERNAME");
   const fromName = Deno.env.get("SMTP_FROM_NAME") || "AcademiePlus";
-  await client.send({ from: `${fromName} <${fromEmail}>`, to, subject, content: text, html });
+  await client.send({
+    from: `${fromName} <${fromEmail}>`, to, subject, content: text, html,
+    ...(attachment ? { attachments: [{ filename: attachment.filename, content: attachment.content, encoding: "binary", contentType: attachment.contentType }] } : {}),
+  });
+}
+
+// Télécharge la pièce jointe du modèle (URL publique du bucket email-assets)
+// une seule fois avant la boucle d'envoi, pour l'attacher identique à chaque
+// destinataire — un échec de téléchargement n'empêche pas l'envoi (l'email
+// part simplement sans pièce jointe, avec un avertissement en log).
+async function fetchAttachment(url: string | null, name: string | null): Promise<{ filename: string; content: Uint8Array; contentType: string } | null> {
+  if (!url) return null;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const buf = new Uint8Array(await res.arrayBuffer());
+    const contentType = res.headers.get("content-type") || "application/octet-stream";
+    return { filename: name || url.split("/").pop() || "piece-jointe", content: buf, contentType };
+  } catch (e) {
+    console.error("send-bulk-notification: failed to fetch attachment:", e);
+    return null;
+  }
 }
 
 // Échappe le HTML avant insertion dans le corps de l'email : le contenu du
@@ -154,7 +184,7 @@ Deno.serve(async (req) => {
 
     const { data: template, error: templateError } = await admin
       .from("email_templates")
-      .select("id, name, subject, body_text, logo_url")
+      .select("id, name, subject, body_text, logo_url, attachment_url, attachment_name")
       .eq("id", templateId)
       .maybeSingle();
     if (templateError || !template) {
@@ -215,6 +245,34 @@ Deno.serve(async (req) => {
       connection: { hostname, port, tls: port === 465, auth: { username, password } },
     });
 
+    const { data: callerProfile } = await admin
+      .from("profiles")
+      .select("first_name, last_name")
+      .eq("id", caller.id)
+      .maybeSingle();
+    const callerName = [callerProfile?.first_name, callerProfile?.last_name].filter(Boolean).join(" ") || null;
+
+    // La campagne est créée AVANT l'envoi (compteurs à 0) pour obtenir son id
+    // et pouvoir y rattacher (campaign_id, cascade delete) chaque ligne de
+    // journal détaillé insérée pendant la boucle ci-dessous ; les compteurs
+    // finaux sont mis à jour une fois l'envoi terminé.
+    const { data: campaign, error: campaignInsertError } = await admin.from("email_campaigns").insert({
+      template_id: template.id,
+      template_name_snapshot: template.name,
+      subject_snapshot: template.subject,
+      filter_roles: rolesRepresented,
+      filter_contract_status: "sélection manuelle",
+      recipient_count: recipients.length,
+      success_count: 0,
+      failure_count: 0,
+      failed_emails: [],
+      sent_by: caller.id,
+      sent_by_name: callerName,
+    }).select("id").single();
+    if (campaignInsertError) throw new Error(campaignInsertError.message);
+
+    const attachment = await fetchAttachment(template.attachment_url, template.attachment_name);
+
     let successCount = 0;
     const failedEmails: string[] = [];
 
@@ -228,39 +286,43 @@ Deno.serve(async (req) => {
         const subject = applyPlaceholders(template.subject, vars);
         const bodyText = applyPlaceholders(template.body_text, vars);
         const html = buildEmailHtml({ logoUrl: template.logo_url, subject, bodyText });
+        const recipientName = [recipient.first_name, recipient.last_name].filter(Boolean).join(" ") || null;
 
+        let status: "success" | "failed" = "success";
+        let errorMessage: string | null = null;
         try {
-          await sendSmtpEmail(smtpClient, recipient.email!, subject, html, bodyText);
+          await sendSmtpEmail(smtpClient, recipient.email!, subject, html, bodyText, attachment);
           successCount++;
         } catch (sendErr: any) {
           console.error(`send-bulk-notification: failed for ${recipient.email}:`, sendErr);
           failedEmails.push(recipient.email!);
+          status = "failed";
+          errorMessage = String(sendErr?.message ?? sendErr);
         }
+
+        await admin.from("email_send_log").insert({
+          source: "manual",
+          campaign_id: campaign.id,
+          template_id: template.id,
+          template_name_snapshot: template.name,
+          recipient_id: recipient.id,
+          recipient_email: recipient.email,
+          recipient_name: recipientName,
+          subject_sent: subject,
+          body_sent: bodyText,
+          status,
+          error_message: errorMessage,
+        });
       }
     } finally {
       await smtpClient.close();
     }
 
-    const { data: callerProfile } = await admin
-      .from("profiles")
-      .select("first_name, last_name")
-      .eq("id", caller.id)
-      .maybeSingle();
-    const callerName = [callerProfile?.first_name, callerProfile?.last_name].filter(Boolean).join(" ") || null;
-
-    await admin.from("email_campaigns").insert({
-      template_id: template.id,
-      template_name_snapshot: template.name,
-      subject_snapshot: template.subject,
-      filter_roles: rolesRepresented,
-      filter_contract_status: "sélection manuelle",
-      recipient_count: recipients.length,
+    await admin.from("email_campaigns").update({
       success_count: successCount,
       failure_count: failedEmails.length,
       failed_emails: failedEmails,
-      sent_by: caller.id,
-      sent_by_name: callerName,
-    });
+    }).eq("id", campaign.id);
 
     return new Response(JSON.stringify({
       success: true,

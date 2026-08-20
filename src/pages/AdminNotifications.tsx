@@ -24,7 +24,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Bell, Mail, Plus, Pencil, Trash2, Loader2, Send, Image as ImageIcon, X, Zap, Hand } from "lucide-react";
+import { ArrowLeft, Bell, Mail, Plus, Pencil, Trash2, Loader2, Send, Image as ImageIcon, Paperclip, X, Zap, Hand, Search, CheckCircle2, XCircle, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -38,6 +38,8 @@ interface EmailTemplate {
   subject: string;
   body_text: string;
   logo_url: string | null;
+  attachment_url: string | null;
+  attachment_name: string | null;
   created_by_name: string | null;
   updated_at: string;
   trigger_type: "manual" | "automatic";
@@ -45,6 +47,21 @@ interface EmailTemplate {
   trigger_days_before: number | null;
   trigger_profile_status: "any" | "active" | "inactive";
   trigger_active: boolean;
+  trigger_start_date: string | null;
+  trigger_end_date: string | null;
+}
+
+interface EmailSendLogRow {
+  id: string;
+  source: "manual" | "automatic";
+  template_name_snapshot: string;
+  recipient_email: string;
+  recipient_name: string | null;
+  subject_sent: string;
+  body_sent: string;
+  status: "success" | "failed";
+  error_message: string | null;
+  created_at: string;
 }
 
 interface NotificationCandidate {
@@ -106,11 +123,14 @@ const contractStatusBadgeClass = (status: string): string =>
 
 const emptyTemplateForm = {
   name: "", subject: "", bodyText: "", logoUrl: "",
+  attachmentUrl: "", attachmentName: "",
   triggerType: "manual" as "manual" | "automatic",
   triggerRoles: [] as string[],
   triggerDaysBefore: "5",
   triggerProfileStatus: "any" as "any" | "active" | "inactive",
   triggerActive: true,
+  triggerStartDate: "",
+  triggerEndDate: "",
 };
 
 export default function AdminNotifications() {
@@ -118,13 +138,24 @@ export default function AdminNotifications() {
   const [loading, setLoading] = useState(true);
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [campaigns, setCampaigns] = useState<EmailCampaign[]>([]);
+  const [sendLogs, setSendLogs] = useState<EmailSendLogRow[]>([]);
 
   // Template dialog
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
   const [templateForm, setTemplateForm] = useState(emptyTemplateForm);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [savingTemplate, setSavingTemplate] = useState(false);
+
+  // History filters + selection (onglet Historique)
+  const [historySearch, setHistorySearch] = useState("");
+  const [historyTemplateFilter, setHistoryTemplateFilter] = useState("all");
+  const [historyDateFrom, setHistoryDateFrom] = useState("");
+  const [historyDateTo, setHistoryDateTo] = useState("");
+  const [selectedLogIds, setSelectedLogIds] = useState<Set<string>>(new Set());
+  const [deletingLogs, setDeletingLogs] = useState(false);
+  const [viewingLog, setViewingLog] = useState<EmailSendLogRow | null>(null);
 
   // Send campaign
   const [candidates, setCandidates] = useState<NotificationCandidate[]>([]);
@@ -138,11 +169,11 @@ export default function AdminNotifications() {
     fetchAll();
   }, []);
 
-  // Charge en parallèle modèles, historique des campagnes et destinataires
-  // potentiels au montage de la page.
+  // Charge en parallèle modèles, historique des campagnes, journal détaillé
+  // des envois et destinataires potentiels au montage de la page.
   const fetchAll = async () => {
     setLoading(true);
-    await Promise.all([fetchTemplates(), fetchCampaigns(), fetchCandidates()]);
+    await Promise.all([fetchTemplates(), fetchCampaigns(), fetchCandidates(), fetchSendLogs()]);
     setLoading(false);
   };
 
@@ -163,13 +194,30 @@ export default function AdminNotifications() {
   const fetchTemplates = async () => {
     const { data, error } = await supabase
       .from("email_templates" as any)
-      .select("id, name, subject, body_text, logo_url, created_by_name, updated_at, trigger_type, trigger_roles, trigger_days_before, trigger_profile_status, trigger_active")
+      .select("id, name, subject, body_text, logo_url, attachment_url, attachment_name, created_by_name, updated_at, trigger_type, trigger_roles, trigger_days_before, trigger_profile_status, trigger_active, trigger_start_date, trigger_end_date")
       .order("updated_at", { ascending: false });
     if (error) {
       toast.error("Erreur", { description: error.message });
       return;
     }
     setTemplates((data as any) || []);
+  };
+
+  // Charge les 200 derniers emails réellement envoyés (manuels + automatiques
+  // confondus), un enregistrement par destinataire — alimente l'onglet
+  // Historique (recherche/filtre/suppression). Lecture directe de
+  // email_send_log : couverte par une policy RLS admin-only côté serveur.
+  const fetchSendLogs = async () => {
+    const { data, error } = await supabase
+      .from("email_send_log" as any)
+      .select("id, source, template_name_snapshot, recipient_email, recipient_name, subject_sent, body_sent, status, error_message, created_at")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) {
+      toast.error("Erreur", { description: error.message });
+      return;
+    }
+    setSendLogs((data as any) || []);
   };
 
   // Charge les 50 dernières campagnes envoyées, pour l'onglet Historique.
@@ -204,11 +252,15 @@ export default function AdminNotifications() {
       subject: template.subject,
       bodyText: template.body_text,
       logoUrl: template.logo_url || "",
+      attachmentUrl: template.attachment_url || "",
+      attachmentName: template.attachment_name || "",
       triggerType: template.trigger_type,
       triggerRoles: template.trigger_roles || [],
       triggerDaysBefore: template.trigger_days_before != null ? String(template.trigger_days_before) : "5",
       triggerProfileStatus: template.trigger_profile_status,
       triggerActive: template.trigger_active,
+      triggerStartDate: template.trigger_start_date || "",
+      triggerEndDate: template.trigger_end_date || "",
     });
     setTemplateDialogOpen(true);
   };
@@ -254,6 +306,39 @@ export default function AdminNotifications() {
     }
   };
 
+  const ATTACHMENT_ALLOWED_EXTENSIONS = ["pdf", "doc", "docx", "xls", "xlsx", "jpg", "jpeg", "png"];
+  const ATTACHMENT_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo
+
+  // Upload le document à joindre à l'email vers le bucket "email-assets"
+  // (dossier attachments/), envoyé tel quel en pièce jointe par
+  // send-bulk-notification / process-automatic-notifications.
+  const handleAttachmentUpload = async (file: File) => {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!ext || !ATTACHMENT_ALLOWED_EXTENSIONS.includes(ext)) {
+      toast.error("Format non supporté. Utilisez PDF, Word, Excel, JPG ou PNG.");
+      return;
+    }
+    if (file.size > ATTACHMENT_MAX_FILE_SIZE) {
+      toast.error("Fichier trop volumineux. Maximum 10 Mo.");
+      return;
+    }
+    setUploadingAttachment(true);
+    try {
+      const fileName = `attachments/${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("email-assets").upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from("email-assets").getPublicUrl(fileName);
+      setTemplateForm((f) => ({ ...f, attachmentUrl: data.publicUrl, attachmentName: file.name }));
+    } catch (error: any) {
+      toast.error("Erreur lors de l'envoi de la pièce jointe", { description: error.message });
+    } finally {
+      setUploadingAttachment(false);
+    }
+  };
+
   // Crée ou met à jour un modèle d'email (bouton "Créer"/"Enregistrer" du
   // dialogue). Écriture directe sur email_templates : à couvrir par une
   // policy RLS admin-only côté serveur.
@@ -265,6 +350,10 @@ export default function AdminNotifications() {
     const daysBeforeNum = parseInt(templateForm.triggerDaysBefore, 10);
     if (templateForm.triggerType === "automatic" && (!Number.isFinite(daysBeforeNum) || daysBeforeNum < 0)) {
       toast.error("Indiquez un nombre de jours valide (0 ou plus) avant l'échéance.");
+      return;
+    }
+    if (templateForm.triggerType === "automatic" && templateForm.triggerStartDate && templateForm.triggerEndDate && templateForm.triggerStartDate > templateForm.triggerEndDate) {
+      toast.error("La date de fin doit être postérieure à la date de début.");
       return;
     }
     setSavingTemplate(true);
@@ -282,11 +371,15 @@ export default function AdminNotifications() {
         subject: templateForm.subject.trim(),
         body_text: templateForm.bodyText,
         logo_url: templateForm.logoUrl || null,
+        attachment_url: templateForm.attachmentUrl || null,
+        attachment_name: templateForm.attachmentName || null,
         trigger_type: templateForm.triggerType,
         trigger_roles: templateForm.triggerRoles,
         trigger_days_before: templateForm.triggerType === "automatic" ? daysBeforeNum : null,
         trigger_profile_status: templateForm.triggerProfileStatus,
         trigger_active: templateForm.triggerActive,
+        trigger_start_date: templateForm.triggerType === "automatic" && templateForm.triggerStartDate ? templateForm.triggerStartDate : null,
+        trigger_end_date: templateForm.triggerType === "automatic" && templateForm.triggerEndDate ? templateForm.triggerEndDate : null,
       };
 
       if (editingTemplateId) {
@@ -386,6 +479,7 @@ export default function AdminNotifications() {
       });
       setSelectedIds(new Set());
       fetchCampaigns();
+      fetchSendLogs();
     } catch (error: any) {
       toast.error("Échec de l'envoi", { description: error.message });
     } finally {
@@ -394,6 +488,70 @@ export default function AdminNotifications() {
   };
 
   const selectedTemplate = templates.find((t) => t.id === selectedTemplateId) || null;
+
+  // Onglet Historique : liste des modèles distincts déjà présents dans le
+  // journal, pour peupler le filtre (indépendant des modèles encore
+  // existants — un modèle supprimé reste filtrable via son nom figé).
+  const historyTemplateOptions = [...new Set(sendLogs.map((l) => l.template_name_snapshot))].sort();
+
+  const filteredSendLogs = sendLogs.filter((log) => {
+    if (historyTemplateFilter !== "all" && log.template_name_snapshot !== historyTemplateFilter) return false;
+    if (historyDateFrom && log.created_at.slice(0, 10) < historyDateFrom) return false;
+    if (historyDateTo && log.created_at.slice(0, 10) > historyDateTo) return false;
+    if (historySearch.trim()) {
+      const q = historySearch.trim().toLowerCase();
+      const haystack = `${log.recipient_email} ${log.recipient_name || ""}`.toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const allFilteredLogsSelected = filteredSendLogs.length > 0 && filteredSendLogs.every((l) => selectedLogIds.has(l.id));
+
+  const toggleSelectAllFilteredLogs = () => {
+    setSelectedLogIds((prev) => {
+      const next = new Set(prev);
+      if (allFilteredLogsSelected) {
+        filteredSendLogs.forEach((l) => next.delete(l.id));
+      } else {
+        filteredSendLogs.forEach((l) => next.add(l.id));
+      }
+      return next;
+    });
+  };
+
+  const toggleLogSelection = (id: string) => {
+    setSelectedLogIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // Supprime un ou plusieurs enregistrements du journal détaillé (bouton
+  // corbeille unitaire, ou "Supprimer la sélection" en masse) — n'affecte ni
+  // email_campaigns (compteurs agrégés déjà figés) ni la déduplication
+  // automatic_notification_log.
+  const handleDeleteSendLogs = async (ids: string[]) => {
+    if (ids.length === 0) return;
+    setDeletingLogs(true);
+    try {
+      const { error } = await supabase.from("email_send_log" as any).delete().in("id", ids);
+      if (error) throw error;
+      toast.success(ids.length > 1 ? `${ids.length} entrées supprimées.` : "Entrée supprimée.");
+      setSelectedLogIds((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      });
+      fetchSendLogs();
+    } catch (error: any) {
+      toast.error("Erreur", { description: error.message });
+    } finally {
+      setDeletingLogs(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -602,6 +760,32 @@ export default function AdminNotifications() {
                         )}
                       </div>
                       <div className="space-y-2">
+                        <Label>Pièce jointe (optionnel)</Label>
+                        {templateForm.attachmentUrl ? (
+                          <div className="flex items-center gap-3">
+                            <span className="flex items-center gap-2 text-sm border border-border rounded-lg px-3 py-2">
+                              <Paperclip className="h-4 w-4 text-muted-foreground" /> {templateForm.attachmentName || "Fichier joint"}
+                            </span>
+                            <Button type="button" variant="ghost" size="sm" onClick={() => setTemplateForm((f) => ({ ...f, attachmentUrl: "", attachmentName: "" }))}>
+                              <X className="h-4 w-4 mr-1" /> Retirer
+                            </Button>
+                          </div>
+                        ) : (
+                          <label className="flex items-center gap-2 text-sm border border-dashed border-border rounded-lg px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors w-fit">
+                            {uploadingAttachment ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+                            {uploadingAttachment ? "Envoi en cours..." : "Joindre un document"}
+                            <input
+                              type="file"
+                              accept=".pdf,.doc,.docx,.xls,.xlsx,image/*"
+                              className="hidden"
+                              disabled={uploadingAttachment}
+                              onChange={(e) => e.target.files?.[0] && handleAttachmentUpload(e.target.files[0])}
+                            />
+                          </label>
+                        )}
+                        <p className="text-xs text-muted-foreground">PDF, Word, Excel, JPG ou PNG — joint tel quel à chaque email envoyé avec ce modèle.</p>
+                      </div>
+                      <div className="space-y-2">
                         <Label htmlFor="template-name">Nom du modèle</Label>
                         <Input
                           id="template-name"
@@ -688,6 +872,28 @@ export default function AdminNotifications() {
                               Envoyé une fois par échéance dès qu'il reste ce nombre de jours ou moins avant l'expiration du contrat (établissement) ou de l'abonnement (élève/enseignant/pédago/parent).
                             </p>
                           </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                              <Label htmlFor="template-start-date">Actif à partir du</Label>
+                              <Input
+                                id="template-start-date"
+                                type="date"
+                                value={templateForm.triggerStartDate}
+                                onChange={(e) => setTemplateForm((f) => ({ ...f, triggerStartDate: e.target.value }))}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="template-end-date">Actif jusqu'au</Label>
+                              <Input
+                                id="template-end-date"
+                                type="date"
+                                value={templateForm.triggerEndDate}
+                                onChange={(e) => setTemplateForm((f) => ({ ...f, triggerEndDate: e.target.value }))}
+                              />
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground -mt-2">Laissez vide pour aucune limite. En dehors de cette période, le modèle automatique n'envoie rien.</p>
 
                           <div className="space-y-2">
                             <Label>Rôles ciblés</Label>
@@ -798,7 +1004,7 @@ export default function AdminNotifications() {
             <Card className="border-0 shadow-lg">
               <CardHeader className="border-b bg-muted/30">
                 <CardTitle>Historique des campagnes</CardTitle>
-                <CardDescription>50 derniers envois</CardDescription>
+                <CardDescription>Résumé des 50 dernières campagnes manuelles — détail par destinataire ci-dessous</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
                 {campaigns.length === 0 ? (
@@ -839,8 +1045,196 @@ export default function AdminNotifications() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Journal détaillé : un enregistrement par email réellement envoyé
+                (manuel ou automatique), recherchable/filtrable et supprimable
+                à l'unité ou en masse. */}
+            <Card className="border-0 shadow-lg mt-4">
+              <CardHeader className="border-b bg-muted/30">
+                <CardTitle>Journal des notifications envoyées</CardTitle>
+                <CardDescription>200 derniers emails — destinataire, contenu envoyé, modèle et date</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                <div className="flex flex-wrap items-end gap-3">
+                  <div className="space-y-1.5 flex-1 min-w-[220px]">
+                    <Label className="text-xs">Rechercher un destinataire</Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        className="pl-9"
+                        placeholder="Nom ou email..."
+                        value={historySearch}
+                        onChange={(e) => setHistorySearch(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Modèle</Label>
+                    <select
+                      className="h-10 rounded-lg border border-input bg-background px-3 text-sm"
+                      value={historyTemplateFilter}
+                      onChange={(e) => setHistoryTemplateFilter(e.target.value)}
+                    >
+                      <option value="all">Tous les modèles</option>
+                      {historyTemplateOptions.map((name) => (
+                        <option key={name} value={name}>{name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Du</Label>
+                    <Input type="date" value={historyDateFrom} onChange={(e) => setHistoryDateFrom(e.target.value)} className="w-40" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Au</Label>
+                    <Input type="date" value={historyDateTo} onChange={(e) => setHistoryDateTo(e.target.value)} className="w-40" />
+                  </div>
+                  {(historySearch || historyTemplateFilter !== "all" || historyDateFrom || historyDateTo) && (
+                    <Button variant="ghost" size="sm" onClick={() => { setHistorySearch(""); setHistoryTemplateFilter("all"); setHistoryDateFrom(""); setHistoryDateTo(""); }}>
+                      Réinitialiser
+                    </Button>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <p className="text-xs text-muted-foreground">
+                    {filteredSendLogs.length} entrée{filteredSendLogs.length !== 1 ? "s" : ""} affichée{filteredSendLogs.length !== 1 ? "s" : ""} sur {sendLogs.length} — {selectedLogIds.size} sélectionnée{selectedLogIds.size !== 1 ? "s" : ""}
+                  </p>
+                  {selectedLogIds.size > 0 && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm" className="gap-2" disabled={deletingLogs}>
+                          {deletingLogs ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                          Supprimer la sélection ({selectedLogIds.size})
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Supprimer {selectedLogIds.size} entrée{selectedLogIds.size !== 1 ? "s" : ""} du journal ?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Cette action est irréversible. Les emails déjà envoyés ne sont pas rappelés — seul leur enregistrement dans le journal est supprimé.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteSendLogs(Array.from(selectedLogIds))}>Supprimer</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </div>
+
+                <div className="border border-border rounded-lg overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-10">
+                          <Checkbox checked={allFilteredLogsSelected} onCheckedChange={toggleSelectAllFilteredLogs} disabled={filteredSendLogs.length === 0} />
+                        </TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Destinataire</TableHead>
+                        <TableHead>Modèle</TableHead>
+                        <TableHead>Statut</TableHead>
+                        <TableHead>Contenu</TableHead>
+                        <TableHead className="w-10" />
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredSendLogs.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-sm text-muted-foreground text-center py-8">
+                            {sendLogs.length === 0 ? "Aucune notification envoyée pour le moment." : "Aucune entrée ne correspond à ces filtres."}
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredSendLogs.map((log) => (
+                          <TableRow key={log.id}>
+                            <TableCell>
+                              <Checkbox checked={selectedLogIds.has(log.id)} onCheckedChange={() => toggleLogSelection(log.id)} />
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                              {format(new Date(log.created_at), "dd MMM yyyy HH:mm", { locale: fr })}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              <p className="font-medium truncate max-w-[180px]">{log.recipient_name || "Sans nom"}</p>
+                              <p className="text-xs text-muted-foreground truncate max-w-[180px]">{log.recipient_email}</p>
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              <p>{log.template_name_snapshot}</p>
+                              <Badge variant="outline" className="rounded-full gap-1 mt-1">
+                                {log.source === "automatic" ? <Zap className="h-3 w-3" /> : <Hand className="h-3 w-3" />}
+                                {log.source === "automatic" ? "Auto" : "Manuel"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={log.status === "success" ? "default" : "destructive"} className="rounded-full gap-1">
+                                {log.status === "success" ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                                {log.status === "success" ? "Envoyé" : "Échec"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => setViewingLog(log)}>
+                                <Eye className="h-3.5 w-3.5" /> Voir
+                              </Button>
+                            </TableCell>
+                            <TableCell>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Supprimer cette entrée du journal ?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      L'envoi à {log.recipient_email} sera retiré du journal. Cette action est irréversible.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteSendLogs([log.id])}>Supprimer</AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
+
+        <Dialog open={!!viewingLog} onOpenChange={(open) => !open && setViewingLog(null)}>
+          <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Contenu envoyé</DialogTitle>
+              <DialogDescription>
+                À {viewingLog?.recipient_name ? `${viewingLog.recipient_name} — ` : ""}{viewingLog?.recipient_email}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <Label className="text-xs">Sujet</Label>
+                <p className="text-sm font-medium mt-1">{viewingLog?.subject_sent}</p>
+              </div>
+              <div>
+                <Label className="text-xs">Corps du message</Label>
+                <p className="text-sm mt-1 whitespace-pre-wrap">{viewingLog?.body_sent}</p>
+              </div>
+              {viewingLog?.status === "failed" && viewingLog?.error_message && (
+                <div>
+                  <Label className="text-xs text-destructive">Erreur</Label>
+                  <p className="text-sm mt-1 text-destructive">{viewingLog.error_message}</p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
