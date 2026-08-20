@@ -59,7 +59,6 @@ const FAQAdmin = lazy(() => import("./pages/FAQAdmin"));
 const CompleteProfile = lazy(() => import("./pages/CompleteProfile"));
 const LearningAssessment = lazy(() => import("./pages/LearningAssessment"));
 const LessonEditor = lazy(() => import("./pages/LessonEditor"));
-const ContentGeneration = lazy(() => import("./pages/ContentGeneration"));
 const ExamTrimesterSelect = lazy(() => import("./pages/ExamTrimesterSelect"));
 const ExamList = lazy(() => import("./pages/ExamList"));
 const LessonRemediation = lazy(() => import("./pages/LessonRemediation"));
@@ -127,7 +126,6 @@ const App = () => (
               <Route path="/contact" element={<Contact />} />
               <Route path="/analytics" element={<ProtectedRoute allowedRoles={['admin']}><Analytics /></ProtectedRoute>} />
               <Route path="/faq-admin" element={<ProtectedRoute allowedRoles={['admin']}><FAQAdmin /></ProtectedRoute>} />
-              <Route path="/content-generation" element={<ProtectedRoute allowedRoles={['admin']}><ContentGeneration /></ProtectedRoute>} />
               <Route path="/remediation" element={<ProtectedRoute allowedRoles={['student']}><LessonRemediation /></ProtectedRoute>} />
               <Route path="/exams" element={<ProtectedRoute allowedRoles={['student', 'admin']}><ExamTrimesterSelect /></ProtectedRoute>} />
               <Route path="/exams/list" element={<ProtectedRoute allowedRoles={['student', 'admin']}><ExamList /></ProtectedRoute>} />

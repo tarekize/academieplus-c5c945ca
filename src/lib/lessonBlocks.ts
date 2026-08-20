@@ -43,7 +43,7 @@ export const lessonSchema = {
  */
 export function convertPedagoBlocks(raw: string): string {
   let s = (raw || "").replace(
-    /^[ \t\u200e\u200f\u202a-\u202e]*:::\s*([a-zA-Z0-9_-]+)(.*?)\n([\s\S]*?):::/gm,
+    /^[ \t\u200e\u200f\u202a-\u202e]*(?:<p>\s*)?:::\s*([a-zA-Z0-9_-]+)(.*?)\n([\s\S]*?):::(?:\s*<\/p>)?/gm,
     (match, type, titleRaw, content) => {
       let blockClass = "lesson-block";
       const typeLower = type.toLowerCase();
@@ -59,8 +59,12 @@ export function convertPedagoBlocks(raw: string): string {
       // Si un titre est spécifié juste après ::: type (rare, mais possible)
       let titleText = titleRaw.trim();
 
-      // Si la première ligne est en gras it identifies the title (ex: **تعريف X.Y**)
-      const titleMatch = innerContent.match(/^\*\*(.*?)\*\*(?:\n|$)/);
+      // Si la première ligne est en gras (**Titre**) ou en <strong>Titre</strong>
+      // (éventuellement encapsulée dans un <p>...</p>), elle identifie le
+      // titre du bloc plutôt que d'apparaître comme première phrase du contenu.
+      const titleMatch =
+        innerContent.match(/^\*\*(.*?)\*\*(?:\n|$)/) ||
+        innerContent.match(/^(?:<p>\s*)?<strong>(.*?)<\/strong>\s*(?:<\/p>)?(?:\n|$)/i);
       if (titleMatch) {
         titleText = titleMatch[1];
         innerContent = innerContent.slice(titleMatch[0].length).trim();
@@ -75,15 +79,13 @@ export function convertPedagoBlocks(raw: string): string {
     }
   );
 
-  // Filet de sécurité : certaines leçons ont été converties en HTML avant
-  // l'existence du format :::, ce qui encapsule chaque ligne dans son
-  // propre <p>/<li> et fragmente la syntaxe ::: type ... ::: sur plusieurs
-  // balises (ex: "<p>::: remark\n<strong>titre</strong></p>" puis le
-  // contenu dans des balises suivantes, fermeture "...:::</li>" imbriquée
-  // dans une liste). Impossible à reconstituer en encadré fiable dans ce
-  // cas — mais on retire au moins les marqueurs bruts restants pour ne
-  // jamais les afficher à l'élève : "::: type" isolé disparaît (le titre en
-  // gras qui suit reste visible), et les ::: de fermeture orphelins aussi.
+  // Filet de sécurité : un ::: qui reste ici a un marqueur d'ouverture ou de
+  // fermeture manquant (ex. l'IA a oublié d'ouvrir un bloc qu'elle ferme
+  // quand même), ou est fragmenté sur des balises trop imbriquées (une
+  // liste <li>...) pour être reconstitué en encadré fiable. On retire au
+  // moins le marqueur brut pour ne jamais l'afficher à l'élève : "::: type"
+  // isolé disparaît (le titre qui suit reste visible), et les ::: orphelins
+  // aussi.
   if (s.includes(":::")) {
     s = s
       .replace(/:::\s*[a-zA-Z0-9_-]+\s*\n?/g, "")
